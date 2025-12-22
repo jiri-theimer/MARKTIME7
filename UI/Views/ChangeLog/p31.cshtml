@@ -1,0 +1,84 @@
+﻿@model UI.Models.changelogViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = "CHANGE-LOG";
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageSymbol = "timeline";
+    Model.lisData = _f.p31WorksheetBL.GetList(new BO.myQueryP31() { explicit_orderby = "a.RowID", ischangelog = true, pids = new List<int>() { Model.pid } });
+
+
+    Model.AddField("p31Date", "Datum");
+    Model.AddField("Person", "Jméno");
+    Model.AddField("p32Name", "Aktivita");
+    Model.AddField("ClientName", "Klient projektu");
+    Model.AddField("p41Name","Projekt");
+    Model.AddField("p32Name","Aktivita");
+    Model.AddField("p31Hours_Orig", "Vykázané hodiny");
+    Model.AddField("TimeFrom", "Čas od");
+    Model.AddField("TimeUntil", "Čas do");
+    Model.AddField("p31Rate_Billing_Orig", "Fakturační sazba");
+    Model.AddField("j27Code_Billing_Orig", "Měna fakturační sazby");
+    Model.AddField("p51ID_BillingRate", "Ceník fakturační sazby");
+
+    Model.AddField("p31Rate_Internal_Orig", "Nákladová sazba");
+    Model.AddField("p51ID_CostRate", "Ceník nákladové sazby");
+
+    Model.AddField("p31Amount_WithoutVat_Orig", "Vykázáno bez DPH");
+    Model.AddField("p31Text", "Text");
+    Model.AddField("p40Name", "Stupeň přesčasu");
+    
+    Model.AddField("approve_p72Name", "Návrh k fakturaci");
+    Model.AddField("p31Value_FixPrice", "Hodiny v paušálu");        
+
+    Model.AddField("p56Name", "Úkol");
+    Model.AddField("p31Code", "Kód");
+    Model.AddField("p31Value_Trimmed", "Korekce hodnoty");
+    Model.AddField("p71Name", "Schváleno");
+    Model.AddField("p31Approved_When", "Schváleno kdy");
+    Model.AddField("j02ID_ApprovedBy", "Schváleno kým");
+    Model.AddField("p31Hours_Approved_Billing", "Schválené hodiny");
+    Model.AddField("p31Amount_WithoutVat_Approved", "Schváleno bez DPH");
+    Model.AddField("p31ApprovingLevel", "Úroveň schvalování");
+
+    Model.AddField("p91Code", "Faktura");
+    Model.AddField("p70Name", "Vyúčtováno statusem");
+    Model.AddField("p31Hours_Invoiced", "Vyúčtované hodiny");
+    Model.AddField("p31Rate_Billing_Invoiced", "Vyúčtováno sazbou");
+    Model.AddField("p31Amount_WithoutVat_Invoiced", "Vyúčtováno bez DPH");
+    Model.AddField("j27ID_Billing_Invoiced", "Měna vyúčtování");
+    
+    Model.AddField("p31ExcludeBillingFlag", "Vyloučeno z vyúčtování");
+
+    Model.AddField("p31MarginHidden", "Skrytá marže");
+    Model.AddField("p31MarginTransparent", "Přiznaná marže");
+
+    Model.AddField("p31PostRecipient", "ČP - příjemce");
+    Model.AddField("p31PostCode", "ČP - číslo");
+
+    Model.AddField("p31Calc_Pieces", "Kalkulace - ks");
+    Model.AddField("p31Calc_PieceAmount", "Kalkulace - ks cena");
+    Model.AddField("b05ID_Last", "Poslední komentář");
+}
+
+
+@section header_content{
+
+
+    <link rel="stylesheet" href="/css/htmltable.css" />
+
+
+}
+
+@addTagHelper *, UI
+
+
+<div class="bg-light" style="padding:10px;">
+
+    <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
+
+
+</div>
+
+@Html.EditorFor(m => Model,"~/Views/Shared/_ChangeLogTable.cshtml")
+

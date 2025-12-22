@@ -1,0 +1,131 @@
+﻿@model UI.Models.Record.p29Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Typ kontaktu");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+}
+
+@addTagHelper *, UI
+
+<div class="modal_record_container">
+
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název"):</label>
+        <div class="col-sm-7 col-md-6">
+            <input class="form-control record_name" asp-for="Rec.p29Name" />
+        </div>
+        <label class="col-sm-1 col-md-1 col-form-label">@_f.tra("Index pořadí"):</label>
+        <div class="col-sm-1 col-md-1">
+            <mynumber asp-for="Rec.p29Ordinary" decimal-digits="0"></mynumber>
+        </div>
+    </div>
+    <div class="my-2">
+        
+
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Číselná řada kontaktů"):</label>
+            <div class="col-sm-5 col-md-4">
+                <mycombo entity="x38CodeLogic" asp-for="Rec.x38ID" selectedtext="@Model.ComboX38Name" view-flag="2" myqueryinline="x38entity|string|p28"></mycombo>
+            </div>
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Workflow šablona"):</label>
+            <div class="col-sm-5 col-md-4">
+                <mycombo entity="b01WorkflowTemplate" asp-for="Rec.b01ID" selectedtext="@Model.ComboB01Name" view-flag="2" myqueryinline="b01entity|string|p28"></mycombo>
+            </div>
+        </div>
+      
+    </div>
+    
+
+    @Html.Raw("<div class='row'>")
+    @Html.Raw("<div class='col-auto'>")
+
+    <div class="card">
+        <div class="card-header">
+            @_f.tra("Využití kontaktu")
+        </div>
+        <div class="card-body">
+            <input type="radio" value="Anyone" id="chk0" asp-for="@Model.Rec.p29ScopeFlag" />
+            <label for="chk0">@_f.tra("Neurčeno")</label>
+            <p></p>
+            <input type="radio" value="Client" id="chk1" asp-for="@Model.Rec.p29ScopeFlag" />
+            <label for="chk1">@_f.tra("Pouze klient projektu")</label>
+            <p></p>
+            <input type="radio" value="Supplier" id="chk2" asp-for="@Model.Rec.p29ScopeFlag" />
+            <label for="chk2">@_f.tra("Pouze dodavatel výdaje")</label>
+            <p></p>
+            <input type="radio" value="ClientOrSupplier" id="chk3" asp-for="@Model.Rec.p29ScopeFlag" />
+            <label for="chk3">@_f.tra("Klient i Dodavatel")</label>
+            <p></p>
+            <input type="radio" value="ContactPerson" id="chk4" asp-for="@Model.Rec.p29ScopeFlag" />
+            <label for="chk4">@_f.tra("Pouze kontaktní osoba")</label>
+        </div>
+    </div>
+
+    @Html.Raw("</div>")
+    @Html.Raw("<div class='col-auto'>")
+
+    <div class="card">
+        <div class="card-header">
+            @_f.tra("Výchozí Rozšíření karty kontaktu")
+        </div>
+        <div class="card-body">
+            <table>
+                
+                <tr>
+                    <td>
+                        <label>@_f.tra("Nahrávání příloh v kartě kontaktu"):</label>
+                    </td>
+                    <td>
+                        @Html.EditorFor(m => m.Rec.p29FilesTab, "~/Views/Shared/_BitStreamFlag.cshtml")
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label>@_f.tra("Záložka [Fakturační nastavení]"):</label>
+                    </td>
+                    <td>
+                        @Html.EditorFor(m => m.Rec.p29BillingTab, "~/Views/Shared/_BitStreamFlag.cshtml")
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label>@_f.tra("Kontaktní média"):</label>
+                    </td>
+                    <td>
+                        @Html.EditorFor(m => m.Rec.p29ContactMediaTab, "~/Views/Shared/_BitStreamFlag.cshtml")
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label>@_f.tra("Kontaktní osoby"):</label>
+                    </td>
+                    <td>
+                        @Html.EditorFor(m => m.Rec.p29ContactPersonsTab, "~/Views/Shared/_BitStreamFlag.cshtml")
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label>@_f.tra("Role a oprávnění"):</label>
+                    </td>
+                    <td>
+                        @Html.EditorFor(m => m.Rec.p29RolesTab, "~/Views/Shared/_BitStreamFlag.cshtml")
+                    </td>
+                </tr>
+                
+            </table>
+                                  
+        </div>
+    </div>
+
+    @Html.Raw("</div>")
+    @Html.Raw("</div>")
+
+
+
+    @Html.EditorFor(m => m.creates, "~/Views/Shared/_CreateAssign.cshtml")
+
+
+    @Html.EditorFor(m => m.roles, "~/Views/Shared/_RoleAssign.cshtml")
+
+</div>

@@ -1,0 +1,54 @@
+﻿@model UI.Models.p91oper.exupdateViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = _f.tra("Aktualizovat měnový kurz vyúčtování");
+
+}
+
+@addTagHelper *, UI
+
+<div class="bg-light" style="padding:10px;">
+    <button type="button" id="cmdOK" class="btn btn-success" onclick="_submit()">@_f.tra("Spustit")</button>
+
+    <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+
+
+
+</div>
+
+<form id="form1" asp-controller="p91oper" asp-action="exupdate" method="POST">
+    <div class="modal_record_container">
+        <div class="alert alert-warning">
+            <h6>@_f.tra("Aktualizace měnového kurzu může způsobit změnu částky faktury!")</h6>
+        </div>
+        <div class="alert alert-primary">
+            @(Model.RecP91.p92Name+": "+Model.RecP91.p91Code)
+            <span style="margin-left:50px;">@_f.tra("Měnový kurz"):</span>
+            <strong style="color:red;">@(Model.RecP91.p91ExchangeRate.ToString())</strong>
+            <strong style="color:blue;margin-left:10px;">@(BO.Code.Bas.ObjectDate2String(Model.RecP91.p91DateExchange))</strong>
+            <hr />
+            @(Model.RecP91.p91Client)
+        </div>
+
+    </div>
+
+
+    <input type="hidden" asp-for="@Model.p91ID" />
+</form>
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+        
+
+
+    })
+
+
+
+
+</script>

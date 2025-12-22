@@ -1,0 +1,195 @@
+﻿@model UI.Models.TheGridViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutMobile.cshtml";
+
+    if (Model.entity == null)
+    {
+        return;
+    }
+
+    Model.PageTitle = Model.entityTitle;
+
+
+
+}
+
+@addTagHelper *,UI
+
+<link href="~/lib/qtip/jquery.qtip.css" rel="stylesheet" type="text/css" />
+<script src="~/lib/qtip/jquery.qtip.min.js"></script>
+
+
+
+
+
+<div class="input-group" style="padding-top:8px;">
+    <div>
+        <ul class="nav nav-tabs">
+            @foreach (var tab in Model.OverGridTabs)
+            {
+                <li class="onetab">
+                    <a class="@tab.CssClass" id="@tab.ClientID" href="javascript:reload()">
+                        @{
+                            @Html.Raw(tab.Name)
+                            if (tab.Badge != null)
+                            {
+                                @Html.Raw(tab.Badge)
+                            }
+                        }
+                    </a>
+                </li>
+
+            }
+        </ul>
+    </div>
+    @if (Model.IsCanbeMasterView)
+    {
+        <div>
+            <a class="btn descreet_link_over_grid" title="Stránka záznamu" href="javascript:_recpage_from_grid('@(Model.prefix)')"><span class="material-icons-outlined-btn">maps_home_work</span></a>
+        </div>
+    }
+    <div>
+        <myshowmore></myshowmore>
+    </div>
+
+    @if (_f.CurrentUser.TestPermission(BO.PermValEnum.GR_GridColumnDesigner))
+    {
+        <div class="showmore dog">
+            @Html.EditorFor(m => Model.PageTitle, "~/Views/Shared/_ButtonGridDesigner.cshtml")
+        </div>
+    }
+    
+    <div class="showmore dog">
+        @Html.EditorFor(m => Model.PageTitle,"~/Views/Shared/_ButtonGridSelMenu.cshtml")
+    </div>
+
+    
+    
+    @if (Model.periodinput != null)
+    {
+        <div class="showmore dog">
+            @await Component.InvokeAsync("myPeriod",Model.periodinput)
+
+        </div>
+
+    }
+
+    @if (Model.p31statequery != null)
+    {
+        <div class="showmore dog">
+            @Html.EditorFor(m => Model.p31statequery,"~/Views/Shared/_p31StateQuery.cshtml")
+        </div>
+    }
+
+
+
+    @if (Model.p31tabquery != null)
+    {
+        <div class="showmore dog">
+            @Html.EditorFor(m => Model.p31tabquery,"~/Views/Shared/_p31TabQuery.cshtml")
+        </div>
+    }
+    @if (Model.recordbinquery != null)
+    {
+        <div class="showmore dog">
+            @Html.EditorFor(m => Model.recordbinquery,"~/Views/Shared/_RecordBinQuery.cshtml")
+        </div>
+    }
+
+
+
+    @if (Model.prefix != "p31" && Model.prefix != "x40" && Model.prefix != "o43")
+    {
+        <div class="showmore dog">
+            <a class="btn descreet_link_over_grid" href="javascript:_edit('@(Model.prefix)',0,null,'@(Model.rez)')" title="@_f.tra("Nový")"><span class="material-icons-outlined-btn menu_new_record">add_circle_outline</span></a>
+
+        </div>
+    }
+
+    @if (_f.CurrentUser.j04IsModule_p31 && (Model.prefix == "p28" || Model.prefix == "le5" || Model.prefix == "le4" || Model.prefix == "p56"))
+    {
+        <div class="showmore dog">
+            <a class="btn descreet_link_over_grid" href="javascript:_p31_entry_from_grid()" title="@_f.tra("Vykázat úkon")"><span class="material-icons-outlined-btn menu_new_record">more_time</span></a>
+        </div>
+    }
+
+
+
+</div>
+
+@await Component.InvokeAsync("myGrid",Model.gridinput)
+
+
+
+<script type="text/javascript">
+    var _pageprefix = "@Model.prefix";
+    var _rez = "@Model.rez";
+    var _tabquery = "@(Model.p31tabquery != null ? Model.p31tabquery.Value : null)";
+
+    //$(document.body).css("overflow", "hidden");
+
+
+
+
+
+    $(document).ready(function () {
+        _init_qtip_onpage();
+
+
+
+
+        _mainmenu_highlight_current("cmd" + _pageprefix + _rez);
+
+        if (_tabquery != "") {
+            $(".showmore").toggle();
+        }
+    });
+
+
+
+    function change_grid(j72id) {
+        $.post(_ep("/Common/SetUserParam"), { key: "flatview-j72id-" + _pageprefix, value: j72id }, function (data) {
+            reload();
+
+        });
+    }
+
+    function report_nocontext(x31id) {
+        _window_open("/x31/ReportNoContext?x31id=" + x31id, 2);
+    }
+
+
+    function reload() {
+        //_showloading();
+        location.replace(location.href);
+    }
+
+
+
+
+
+
+
+
+    function grid_dblclick(row) {
+        var pid = row.id.replace("r", "");
+        
+        
+
+        if (_pageprefix == "p28" || _pageprefix == "le5" || _pageprefix == "le4" || _pageprefix == "le3" || _pageprefix == "j02" || _pageprefix == "p91" || _pageprefix == "p90" || _pageprefix == "p56" || _pageprefix == "o23" || _pageprefix == "o43" || _pageprefix=="b05" || _pageprefix=="p40" || _pageprefix=="p58")
+        {
+            location.href = "/Record/RecPageMobile?prefix=" + _pageprefix + "&pid=" + pid;
+        } else {
+            _edit(_pageprefix, pid);
+        }
+
+        
+    }
+
+
+
+</script>
+
+

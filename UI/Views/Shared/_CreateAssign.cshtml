@@ -1,0 +1,94 @@
+﻿@model UI.Models.CreateAssignViewModel
+@inject BL.Factory _f
+
+@{
+    if (Model.j08RecordEntity == null)
+    {
+        return;
+    }
+
+    //string _lang_tymy = _f.tra("Týmy") + "...";
+    //string _lang_osoby = _f.tra("Osoby/Jednotlivci") + "...";
+    string _lang_vsichni = _f.tra("Kdokoliv");
+
+    string _lang_uzivatele = _f.tra("Uživatelé");
+    string _lang_tymy = _f.tra("Týmy uživatelů");
+    string _lang_role = _f.tra("Aplikační role");
+    string _lang_header1 = null;
+    string _lang_header2 = null;
+
+
+    switch (Model.j08RecordEntity)
+    {
+        case "p29":
+            _lang_header1 = _f.tra("Kdo může zakládat kontakty tohoto typu?");
+            _lang_header2 = _f.tra("Kromě uživatelů s oprávněním zakládat kontakty všech typů");
+            break;
+        case "p42":
+            _lang_header1 = _f.tra("Kdo může zakládat projekty tohoto typu?");
+            _lang_header2 = _f.tra("Kromě uživatelů s oprávněním zakládat projekty všech typů");
+            break;
+        case "o18":
+            _lang_header1 = _f.tra("Kdo může zakládat dokumenty tohoto typu?");
+            _lang_header2 = _f.tra("Kromě uživatelů s oprávněním zakládat dokumenty všech typů");
+            break;
+        case "p89":
+            _lang_header1 = _f.tra("Kdo může vytvářet zálohy tohoto typu?");
+            _lang_header2 = _f.tra("Kromě uživatelů s oprávněním vytvářet zálohy všech typů");
+            break;
+
+    }
+
+
+
+
+
+}
+
+@addTagHelper *, UI
+
+<input type="hidden" asp-for="@Model.j08RecordEntity" />
+<input type="hidden" asp-for="@Model.j08RecordPid" />
+
+<div class="card my-2">
+    <div class="card-header">
+        @_lang_header1
+        <br />
+        <var>
+            (@(_lang_header2))
+        </var>
+
+    </div>
+
+    <div class="card-body">
+        <div class="row my-2">
+
+
+
+            @if (!Model.j08IsAllUsers)
+            {
+                <div class="col-md">
+                    <mycombochecklist placeholder="@_lang_role" elementid-prefix="creates." asp-for="@Model.j04IDs" entity="j04UserRole" selectedtext="@Model.Roles"></mycombochecklist>
+                </div>
+                <div class="col-md">
+                    <mycombochecklist placeholder="@_lang_uzivatele" elementid-prefix="creates." asp-for="@Model.j02IDs" entity="j02User" selectedtext="@Model.Persons"></mycombochecklist>
+                </div>
+                <div class="col-md">
+                    <mycombochecklist placeholder="@_lang_tymy" elementid-prefix="creates." asp-for="@Model.j11IDs" entity="j11Team" selectedtext="@Model.Teams"></mycombochecklist>
+                </div>
+            }
+
+
+        </div>
+        <div class="row my-2">
+            <div class="col-md">
+                <input type="checkbox" id="chkj08IsAllUsers" asp-for="@Model.j08IsAllUsers" onchange="_postback()" />
+                <label for="chkj08IsAllUsers">@_lang_vsichni</label>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+

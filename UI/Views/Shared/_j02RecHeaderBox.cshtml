@@ -1,0 +1,116 @@
+﻿@model BO.j02User
+
+@inject BL.Factory _f
+
+@{
+
+
+    if (Model == null)
+    {
+        return;
+    }
+    bool _bolRowHover = UI.Code.basUI.DetectIfCanRowHover(_f, Context, _f.CurrentUser.j04IsModule_j02);
+
+    var mq = new BO.myQueryJ11() { j02id = Model.pid };
+    var lis = _f.j11TeamBL.GetList(mq);
+    string _Teams = string.Join(", ", lis.Select(p => p.j11Name));
+    //int _b05Count = _f.WorkflowBL.GetB05CommentsCount("j02", Model.pid);
+}
+
+@addTagHelper *, UI
+
+<table class="table table-hover">
+    @if (_bolRowHover)
+    {
+        <tr>
+            <td colspan="2" class="@(Model.isclosed ? "tdarchiv": "tdval")" onmouseover="_handle_mywrk_mouseover(this)" onmouseout="_handle_mywrk_mouseout(this)">
+                @if (Model.j02VirtualParentID == 0)
+                {
+                    <span class="material-icons-outlined">face</span>
+                }
+                else
+                {
+                    <span class="material-icons-outlined">domino_mask</span>
+                }
+                
+                @Model.FullNameAsc
+                @if(Model.j02Code != null)
+                {
+                    <sup title="Kód">@Model.j02Code</sup>
+                }
+                
+
+                <mywrkbutton prefix="j02" showcopyurl="true" pid="@Model.pid" langindex="@_f.CurrentUser.j02LangIndex"></mywrkbutton>
+            </td>
+        </tr>
+    }
+    else
+    {
+        <tr>
+            <td class="tdlab">
+                Jméno:
+            </td>
+            <td class="tdval">
+                @Model.FullnameDesc
+            </td>
+        </tr>
+    }
+
+    <tr>
+        <td class="tdlab">
+            E-mail:
+        </td>
+        <td class="tdval">
+            @Model.j02Email
+        </td>
+    </tr>
+   
+    @if (Model.j07ID > 0)
+    {
+        <tr>
+            <td class="tdlab">
+                @_f.tra("Pozice"):
+            </td>
+            <td class="tdval">
+                @Model.j07Name
+            </td>
+        </tr>
+    }
+   
+    @if (Model.c21ID > 0)
+    {
+        <tr>
+            <td class="tdlab">
+                @_f.tra("Pracovní fond"):
+            </td>
+            <td class="tdval">
+                @Model.c21Name
+            </td>
+        </tr>
+    }
+
+    @if (Model.j18ID > 0)
+    {
+        <tr>
+            <td class="tdlab">
+                @_f.tra("Středisko"):
+            </td>
+            <td class="tdval">
+                @Model.j18Name
+            </td>
+        </tr>
+    }
+    @if (!string.IsNullOrEmpty(_Teams))
+    {
+        <tr>
+            <td class="tdlab">
+                @_f.tra("Člen týmů"):
+            </td>
+            <td class="tdval">
+                @_Teams
+            </td>
+        </tr>
+    }
+
+
+</table>

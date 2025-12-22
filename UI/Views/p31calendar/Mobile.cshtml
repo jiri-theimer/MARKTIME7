@@ -1,0 +1,720 @@
+﻿@model UI.Models.p31view.calendarViewModel
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutMobile.cshtml";
+
+    Model.PageTitle = _f.tra("Kalendář");
+
+
+}
+
+
+@addTagHelper *, UI
+
+@section header_content{
+
+    <link rel="stylesheet" href="~/css/calendar.css" />
+    <link href="~/lib/autocomplete/jquery.autocomplete.css" rel="stylesheet" type="text/css" />
+
+    <style>
+        .active {
+            background-color: var(--oznaceno) !important;
+            color: var(--popredi) !important;
+        }
+
+        .gogo {
+            display: none;
+        }
+    </style>
+
+}
+<script src="~/lib/autocomplete/jquery.autocomplete.min.js"></script>
+
+<div id="calmenu1" class="calmenu">
+    <div class="input-group">
+        <div>
+            <a id="cmdP31" class="calmenu_btn"><span class="material-icons-outlined-btn">more_time</span></a>
+
+            
+        </div>
+        <div>
+            <myshowmore classname_target="gogo"></myshowmore>
+        </div>
+        <div>
+            <a id="cmdFUT" onclick="fut_init_date()" class="calmenu_btn gogo" style="margin:5px;"><span class="material-icons-outlined-btn">logout</span></a>
+        </div>
+        @if (_f.CurrentUser.j04IsModule_p11)
+        {
+            <div>
+                <a id="cmdABS" onclick="abs_init_date()" class="calmenu_btn gogo" style="margin:5px;"><span class="material-icons-outlined-btn">hourglass_empty</span></a>
+            </div>
+        }
+        <div>
+            <a id="cmdC24" onclick="c24_init_date()" class="calmenu_btn gogo" style="margin:10px;"><span class="material-icons-outlined-btn">format_paint</span></a>
+        </div>
+        <div>
+            <a id="cmdP56" class="calmenu_btn gogo" title="Úkol" style="margin:5px;"><span class="material-icons-outlined-btn">task</span></a>
+        </div>
+        <div>
+            <a id="cmdO22" class="calmenu_btn gogo" title="Termín/lhůta" style="margin:5px;"><span class="material-icons-outlined-btn">event</span></a>
+        </div>
+
+    </div>
+    <div id="divC24" style="display:none;padding:8px;">
+
+        <a style="padding-left:14px;padding-bottom:4px;" href="javascript:c24c(0)">Bez barvy</a>
+        @foreach (var c in Model.lisC24)
+        {
+            <br />
+            <a style="padding:4px;" href="javascript:c24c(@(c.pid))"><span style="background-color:@(c.c24Color)">&nbsp;&nbsp;&nbsp;&nbsp;</span>@(c.c24Name)</a>
+        }
+    </div>
+    <div id="divFUT" style="display:none;padding:8px;">
+        <strong>Nepřítomnost</strong>
+        @foreach (var c in Model.lisP32FUT)
+        {
+            <br />
+            <a style="padding:4px;" href="javascript:futc(@(c.pid))">
+                @if (c.p32AbsenceBreakFlag != BO.p32AbsenceBreakFlagENUM._None)
+                {
+                    <span style="background-color:@(c.p32Color)" class="material-icons-outlined">pause</span>
+                }
+                else
+                {
+                    <span style="background-color:@(c.p32Color)" class="material-icons-outlined">work_off</span>
+                }
+                @(c.p32Name)
+            </a>
+            @if (c.p32Value_Default > 0)
+            {
+                <span style="color:red;">@(c.p32Value_Default)</span>
+            }
+        }
+
+    </div>
+    <div id="divABS" style="display:none;padding:8px;">
+        <strong>Docházka</strong>
+        <button type="button" class="btn btn-sm btn-outline-success" onclick="abs_save()">@_f.tra("Uložit změny")</button>
+        <table>
+
+            <tr>
+                <td>
+                    <label for="Prichod">@_f.tra("Přichod"):</label>
+                </td>
+                <td>
+                    <input type="text" id="Prichod" class="form-control" onfocus="abs_focus()" onblur="abs_blur()" />
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="Odchod">@_f.tra("Odchod"):</label>
+                </td>
+                <td>
+                    <input type="text" id="Odchod" class="form-control" onfocus="abs_focus()" onblur="abs_blur()" />
+                </td>
+            </tr>
+        </table>
+
+    </div>
+</div>
+<div class="tabs_container_record">
+
+    <!-- Tab panes -->
+    <ul class="nav nav-tabs" role="tablist">
+
+        <li style="width:150px;">
+            <mycombo entity="j02User" asp-for="@Model.j02ID" search-result-width="600" placeholder="@_f.tra("Osoba")" selectedtext="@Model.RecJ02.FullnameDesc" view-flag="1" myqueryinline="allowed_for_p31_read|bool|1" event_after_changevalue="j02id_change"></mycombo>
+        </li>
+        <li style="margin-left:1px;">
+            <button title="@_f.tra("Předchozí")" type="button" class="btn bog px-2" onclick="month_prev()"><i class="material-icons-outlined-btn">first_page</i></button>
+        </li>
+        <li style="width:110px;">
+            <mydate asp-for="@Model.d0"></mydate>
+        </li>
+        <li>
+            <button title="@_f.tra("Další")" type="button" class="btn bog px-2" onclick="month_next()"><i class="material-icons-outlined-btn">last_page</i></button>
+        </li>
+        <li style="margin-left:2px;">
+            <button class="btn dropdown-toggle bog" id="cmdMore" title="Rozšíření kalendáře">
+                <myicon symbol="more_horiz"></myicon>
+
+            </button>
+        </li>
+    </ul>
+
+    <div class="input-group">
+        <div class="dropdown">
+            <button id="cmdDropdown" class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="min-width:150px;">
+            </button>
+            <ul id="navtabs" class="dropdown-menu" style="min-width:150px;line-height:25px;">
+                <li class="nav-item">
+                    <a id="link_tab1" class="nav-link" href="javascript:reload(1)" style="padding:5px;">@_f.tra("Měsíc")</a>
+                </li>
+                <li class="nav-item">
+                    <a id="link_tab2" class="nav-link" href="javascript:reload(2)" style="padding:5px;">@_f.tra("Měsíční agenda")</a>
+                </li>
+                <li class="nav-item">
+                    <a id="link_tab3" class="nav-link" href="javascript:reload(3)" style="padding:5px;">@_f.tra("Týden")</a>
+                </li>
+                <li class="nav-item">
+                    <a id="link_tab4" class="nav-link" href="javascript:reload(4)" style="padding:5px;">@_f.tra("Týdenní agenda")</a>
+                </li>
+                <li class="nav-item">
+                    <a id="link_tab5" class="nav-link" href="javascript:reload(5)" style="padding:5px;">@_f.tra("N-denní agenda")</a>
+                </li>
+                <li class="nav-item">
+                    <a id="link_tab6" class="nav-link" href="javascript:reload(6)" style="padding:5px;">@_f.tra("Přesný den")</a>
+                </li>
+            </ul>
+        </div>
+        
+        
+    </div>
+
+    
+
+</div>
+
+
+<div id="divMore" style="display:none;">
+    <div class="card" style="max-width:800px;">
+
+        <div class="card-body">
+            <div class="input-group">
+                
+
+                <div class="dog">
+                    @if (_f.CurrentUser.TestPermission(BO.PermValEnum.GR_x31_Personal))
+                    {
+                        <button title="Osobní tisková sestava" type="button" class="btn bog" onclick="report()"><span class="material-icons-outlined-btn">print</span></button>
+                    }
+                    <button type="button" title="Aktuálně zobrazený kalendář odeslat přes e-mail" class="btn bog" onclick="javascript:html2mail_local('Kalendář-@(Model.m0)/@(Model.y0)')"><span class="material-icons-outlined-btn">alternate_email</span></button>
+
+
+                    
+                </div>
+                
+
+            </div>
+
+            <button class="btn bog" onclick="ical_generator()">
+                <strong>iCal</strong>
+                <small>Integrace s Google/Outlook kalendářem</small>
+            </button>
+
+            <div style="padding:10px;">
+                <button type="button" id="cmdSaveSetting" class="btn btn-sm btn-success">@_f.tra("Uložit nastavení")</button>
+            </div>
+
+            <div>
+                <input type="checkbox" id="chkShowWeekend" asp-for="@Model.ShowWeekend" />
+                <label for="chkShowWeekend">@_f.tra("Zobrazovat víkendy (So+Ne)")</label>
+            </div>
+            <div>
+                <input type="checkbox" id="chkShowP31Recs" asp-for="@Model.ShowP31Recs" />
+                <label for="chkShowP31Recs">@_f.tra("V buňkách kalendáře podrobný rozpis úkonů")</label>
+            </div>
+            <div>
+                <input type="checkbox" id="chkShowP31RecsNoTime" asp-for="@Model.ShowP31RecsNoTime" />
+                <label for="chkShowP31RecsNoTime">@_f.tra("V podrobném rozpisu úkonů uvádět i ne-časové úkony")</label>
+            </div>
+            <div>
+                <input type="checkbox" id="chkShowP56Recs" asp-for="@Model.ShowP56Recs" />
+                <label for="chkShowP56Recs">@_f.tra("Zobrazovat Úkoly")</label>
+            </div>
+            <div>
+                <input type="checkbox" id="chkShowO22Recs" asp-for="@Model.ShowO22Recs" />
+                <label for="chkShowO22Recs">@_f.tra("Zobrazovat Termíny/Lhůty")</label>
+            </div>
+            <hr />
+            <i>@(_f.tra("Dvojklikem na buňku vykážete úkon pro daný den."))</i>
+        </div>
+    </div>
+</div>
+
+
+<div id="divOnlyOnePanel">
+    @{
+        switch (Model.CurrentView)
+        {
+            case UI.Models.p31view.CalendarViewEnum.Month:
+            case UI.Models.p31view.CalendarViewEnum.Week:
+                @Html.EditorFor(m => m, "~/Views/Shared/_CalendarMesic.cshtml")
+                break;
+            case UI.Models.p31view.CalendarViewEnum.MonthAgenda:
+            case UI.Models.p31view.CalendarViewEnum.WeekAgenda:
+            case UI.Models.p31view.CalendarViewEnum.NAgenda:
+                @Html.EditorFor(m => m, "~/Views/Shared/_CalendarAgenda.cshtml")
+                break;
+            case UI.Models.p31view.CalendarViewEnum.ExactDay:
+                @Html.EditorFor(m => m, "~/Views/Shared/_CalendarDay.cshtml")
+                break;
+        }
+
+    }
+</div>
+
+
+
+
+
+
+<script type="text/javascript">
+    var _cv = "@((int)Model.CurrentView)";
+    var _cvs = "@(Model.CurrentView.ToString().ToLower())";
+    var _ndays = parseInt("@((int)Model.AgendaNdays)");
+
+    var _lasturl = "";
+    var _lastctl = null;
+
+    var _current_mouseover_date = null;
+    var _current_abs_focused = false;
+
+    $(document.body).css("overflow", "hidden");
+
+    $(document).ready(function () {
+
+        //_mainmenu_highlight_current("cmdp31", "p31calendar_mylink");
+        $("#cmdp31_calendar").addClass("active");
+        $("#cmdcalendar").addClass("active");
+
+        if (_cv != "") {
+            $("#link_tab" + _cv).addClass("active");
+            $("#cmdDropdown").html($("#link_tab" + _cv).html());
+        }
+
+
+        var lp = _device.innerHeight - $("#divOnlyOnePanel").offset().top - 2;
+        $("#divOnlyOnePanel").css("height", lp);
+
+
+        $("#d0helper").change(function () {
+            reload();
+        });
+
+        $(".dc").dblclick(function () {
+            var j02id = "@Model.j02ID";
+            var d = $(this).attr("data-d");
+            _window_open("/p31/Record?j02id=" + j02id + "&d=" + d, 3);
+        });
+
+
+        $("#cmdMore").click(function () {
+            $("#divMore").toggle();
+            $("#calmenu1").css("display", "none");
+
+        });
+
+
+        $("#cmdSaveSetting").click(function () {
+            var k = [];
+            var v = [];
+            k.push("p31calendar-showweekend");
+            v.push($("#chkShowWeekend").prop("checked"));
+
+            k.push("p31calendar-showp31recs");
+            v.push($("#chkShowP31Recs").prop("checked"));
+            k.push("p31calendar-showp31recsnotime");
+            v.push($("#chkShowP31RecsNoTime").prop("checked"));
+            k.push("p31calendar-showp56recs");
+            v.push($("#chkShowP56Recs").prop("checked"));
+            k.push("p31calendar-showo22recs");
+            v.push($("#chkShowO22Recs").prop("checked"));
+
+            $.post("/Common/SetUserParams", { keys: k, values: v }, function (data) {
+                reload();
+
+            });
+
+
+        });
+
+
+
+        $(document).on("click", function (e) {
+            if ($(e.target).hasClass("mt_scheduler_valuelink") || $(e.target).hasClass("stat_link")) {
+                return;
+
+            }
+
+
+
+
+
+        });
+
+
+
+
+
+
+    });
+
+    function reload(cv) {
+        var d = $("#d0helper").val();
+        var url = "/p31calendar/Mobile?d=" + d;
+        if (cv != undefined) {
+            url = url + "&cv=" + cv;
+            if (cv != _cv) {
+                $.post(_ep("/Common/SetUserParam"), { key: "p31calendar-cv", value: cv }, function (data) {
+                    //uložena změna druhu kalendáře
+                });
+            }
+
+        } else {
+            url = url + "&cv=" + _cv;
+        }
+        _redirect(url);
+    }
+
+
+
+
+
+    function month_prev() {
+        var d0 = datepicker_get_value("d0");
+        if (d0 == null) {
+            d0 = new Date();
+        }
+        var d1 = new Date(d0.getFullYear(), d0.getMonth() - 1, 1);
+        if (_cvs == "week" || _cvs == "weekagenda") {
+            d1 = new Date(d0.getTime() - 8 * 24 * 60 * 60 * 1000);
+            d1 = get_next_monday(d1);
+        }
+        if (_cvs == "nagenda") {
+            d1 = get_prev_days(d0, _ndays);
+        }
+        if (_cvs == "exactday") {
+            d1 = get_prev_days(d0, 1);
+        }
+
+        datepicker_set_value("d0", d1); //tímto se spustí se $("#d0helper").change
+
+
+    }
+    function month_next() {
+        var d0 = datepicker_get_value("d0");
+        if (d0 == null) {
+            d0 = new Date();
+        }
+
+        var d1 = new Date(d0.getFullYear(), d0.getMonth() + 1, 1);
+        if (_cvs == "week" || _cvs == "weekagenda") {
+            d1 = get_next_monday(d0);
+        }
+        if (_cvs == "nagenda") {
+            d1 = get_next_days(d0, _ndays);
+        }
+        if (_cvs == "exactday") {
+            d1 = get_next_days(d0, 1);
+        }
+
+        datepicker_set_value("d0", d1); //tímto se spustí se $("#d0helper").change
+
+    }
+
+
+
+
+
+
+
+
+    function j02id_change(j02id) {
+        if (j02id == "" || j02id == "0") {
+            j02id = "@(_f.CurrentUser.j02ID)";
+        }
+
+        $.post(_ep("/Common/SetUserParam"), { key: "p31calendar-j02id", value: j02id }, function (data) {
+            reload();
+
+        });
+
+
+    }
+
+
+    function get_next_monday(d) {
+        for (var i = 0; i < 7; i++) {
+            d = new Date(d.getTime() + 1 * 24 * 60 * 60 * 1000);
+
+            if (d.getDay() == 1) {
+                return (d);
+            }
+        }
+
+        alert("get_next_monday");
+    }
+    function get_next_days(d, days) {
+        for (var i = 0; i < days; i++) {
+            d = new Date(d.getTime() + 1 * 24 * 60 * 60 * 1000);
+        }
+        return (d);
+    }
+    function get_prev_days(d, days) {
+        for (var i = 0; i < days; i++) {
+            d = new Date(d.getTime() - 1 * 24 * 60 * 60 * 1000);
+        }
+        return (d);
+    }
+
+    function p56c(d, t1, t2, j02id) {
+        if (j02id == undefined || j02id == null) {
+            j02id = "@Model.j02ID";
+        }
+
+        var url = "/p56/Record?j02id=" + j02id + "&d=" + d;
+
+        _window_open(url, 3);
+    }
+
+    function o22c(d, t1, t2, j02id) {
+        if (j02id == undefined || j02id == null) {
+            j02id = "@Model.j02ID";
+        }
+
+        var url = "/o22/Record?j02id=" + j02id + "&d=" + d;
+        if (t1 != null) {
+            url = url + "&t1=" + t1 + "&t2=" + t2;
+        }
+        _window_open(url, 3);
+    }
+
+
+    function fut_init_date() {
+        c24_hide_menu();
+        abs_hide_menu();
+        if ($("#divFUT").css("display") == "none") {
+            $("#divFUT").css("display", "block");
+        } else {
+            $("#divFUT").css("display", "none");
+        }
+
+    }
+    function fut_hide_menu() {
+        $("#divFUT").css("display", "none");
+    }
+
+    function futc(p32id) {
+        var j02id = "@(Model.j02ID)";
+
+
+        $.post(_ep("/p31calendar/SaveFutRecord"), { d: _current_mouseover_date, p32id: p32id, j02id: j02id }, function (data) {
+            if (data.message != null) {
+                alert(data.message);
+            } else {
+                reload();
+            }
+
+        });
+
+    }
+
+    function c24_init_date() {
+        fut_hide_menu();
+        abs_hide_menu();
+        if ($("#divC24").css("display") == "none") {
+            $("#divC24").css("display", "block");
+        } else {
+            $("#divC24").css("display", "none");
+        }
+
+    }
+    function c24_hide_menu() {
+        $("#divC24").css("display", "none");
+    }
+
+    function abs_hide_menu() {
+        $("#divABS").css("display", "none");
+    }
+    function abs_init_date() {
+        c24_hide_menu();
+        fut_hide_menu();
+        if ($("#divABS").css("display") == "none") {
+            $("#divABS").css("display", "block");
+            var j02id = "@(Model.j02ID)";
+
+            $.post(_ep("/p31calendar/LoadAbsRecord"), { d: _current_mouseover_date, j02id: j02id }, function (data) {
+                $("#Prichod").val(data.prichod);
+                $("#Odchod").val(data.odchod);
+            });
+
+
+        } else {
+            $("#divABS").css("display", "none");
+            return;
+        }
+
+
+        abs_init_intervals("Prichod", "06:00|06:30|07:00|07:30|08:00|08:30|09:00|09:30|10:00|10:30|11:00|11:30|12:00|12:30|13:00|13:30|14:00|14:30|15:00|15:30|16:00|16:30|17:00|17:30|18:00");
+        abs_init_intervals("Odchod", "12:00|12:30|13:00|13:30|14:00|14:30|15:00|15:30|16:00|16:30|17:00|17:30|18:00|18:30|19:00|19:30|20:00|20:30|21:00|21:30|22:00|22:30|23:00|23:30");
+    }
+    function abs_init_intervals(controlid, intervals) {
+        var arr = intervals.split("|");
+        $("#" + controlid).autocomplete({
+            source: [arr],
+            limit: 30,
+            visibleLimit: 30,
+            openOnFocus: true,
+            highlight: false,
+            autoselect: true
+        });
+
+        $("#" + controlid).prop("filled", true);
+
+        $("#" + controlid).on("focus", function (e, data) {
+            $(this).select();
+        });
+    }
+    function abs_save() {
+        var j02id = "@(Model.j02ID)";
+
+        $.post(_ep("/p31calendar/SaveAbsRecord"), { d: _current_mouseover_date, prichod: $("#Prichod").val(), odchod: $("#Odchod").val(), j02id: j02id }, function (data) {
+            if (data.message != null) {
+                alert(data.message);
+            } else {
+                reload();
+            }
+        });
+    }
+    function abs_focus() {
+        _current_abs_focused = true;
+    }
+    function abs_blur() {
+        _current_abs_focused = false;
+    }
+
+    function c24c(c24id) {
+        var j02id = "@(Model.j02ID)";
+
+
+        $.post(_ep("/p31calendar/SaveC23Record"), { d: _current_mouseover_date, c24id: c24id, j02id: j02id }, function (data) {
+            reload();
+        });
+
+    }
+
+    function p31c(d, t1, t2, j02id) {
+        if (j02id == undefined || j02id == null) {
+            j02id = "@Model.j02ID";
+        }
+
+        var url = "/p31/Record?j02id=" + j02id + "&d=" + d;
+        if (t1 != null) {
+            url = url + "&t1=" + t1 + "&t2=" + t2;
+        }
+        _window_open(url, 3);
+    }
+    function p31_rec(pid) {
+        _edit("p31", pid, "Úkon");
+    }
+    function p31bystat(prefix, pid) {
+        var j02id = "@Model.j02ID";
+
+        var url = "/p31/Record?j02id=" + j02id + "&newrec_prefix=" + prefix + "&newrec_pid=" + pid;
+
+        _window_open(url, 3);
+    }
+
+
+    function change_agenda_descending(cbx) {
+        $.post(_ep("/Common/SetUserParam"), { key: "p31calendar-agendadescending", value: cbx.value }, function (data) {
+            reload();
+        });
+    }
+    function change_agenda_ndays(cbx) {
+        $.post(_ep("/Common/SetUserParam"), { key: "p31calendar-agendandays", value: cbx.value }, function (data) {
+            reload();
+        });
+    }
+
+    function change_minutesgap(cbx) {
+        $.post(_ep("/Common/SetUserParam"), { key: "p31calendar-minutesgap", value: cbx.value }, function (data) {
+            reload();
+        });
+    }
+    function change_h0(cbx) {
+        $.post(_ep("/Common/SetUserParam"), { key: "p31calendar-h0", value: cbx.value }, function (data) {
+            reload();
+        });
+    }
+    function change_h1(cbx) {
+        $.post(_ep("/Common/SetUserParam"), { key: "p31calendar-h1", value: cbx.value }, function (data) {
+            reload();
+        });
+    }
+
+    function reccm(e, p31id) {
+        _cm(e, "p31Worksheet", p31id, "calendar");
+    }
+
+    function reccmp56(e, p56id) {
+        _cm(e, "p56Task", p56id, "calendar");
+    }
+    function reccmo22(e, o22id) {
+        _cm(e, "o22Milestone", o22id, "calendar");
+    }
+
+    function showcalmenu(e, ctl, d, view) {
+        if (d == _current_mouseover_date || _current_abs_focused == true) {
+            return;
+        }
+
+        if (d != _current_mouseover_date && $("#divC24").css("display") == "block") {
+            c24_hide_menu();
+        }
+        if (d != _current_mouseover_date && $("#divFUT").css("display") == "block") {
+            fut_hide_menu();
+        }
+        if (d != _current_mouseover_date && $("#divABS").css("display") == "block") {
+            abs_hide_menu();
+        }
+
+        _current_mouseover_date = d;
+        $("#cmdP31").prop("title", "Vykázat úkon do dne: " + d);
+        $("#cmdP31").prop("href", "javascript:p31c('" + d + "')");
+        $("#cmdP56").prop("title", "Nový úkol pro den: " + d);
+        $("#cmdP56").prop("href", "javascript:p56c('" + d + "')");
+        $("#cmdO22").prop("title", "Nový termín/lhůta pro den: " + d);
+        $("#cmdO22").prop("href", "javascript:o22c('" + d + "')");
+
+
+        var x = $(ctl).offset().left + 7;
+        var y = $(ctl).offset().top + 5;
+
+        if (view == "agenda") {
+            y = y + 10;
+            x = x + 300;
+            //$("#calmenu1").css("background-color", "khaki");
+        } else {
+            $("#calmenu1").css("background-color", "");
+        }
+
+        $("#calmenu1").css("display", "block");
+        $("#calmenu1").css("left", x + 10);
+        $("#calmenu1").css("top", y - 5);
+    }
+
+    function ical_generator() {
+        _window_open("/icalgen/Index", 3);
+    }
+
+    function report() {
+        var j02id = "@Model.j02ID";
+        _window_open("/ReportsClient/ReportContext?pid=" + j02id + "&prefix=j02");
+    }
+    function html2mail_local(mailsubject) {
+        if (document.getElementById("mt_scheduler_calendar")) {
+            _html2mail("mt_scheduler_calendar", mailsubject, "send_message_template_calendar.html");
+        }
+        if (document.getElementById("mt_scheduler_agenda")) {
+            _html2mail("mt_scheduler_agenda", mailsubject, "send_message_template_calendar.html");
+        }
+        if (document.getElementById("grid_day_container")) {
+            _html2mail("grid_day_container", mailsubject, "send_message_template_calendar.html");
+        }
+
+    }
+</script>

@@ -1,0 +1,124 @@
+﻿@model UI.Models.p41TabP40ViewModel
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+
+    IEnumerable<BO.p39WorkSheet_Recurrence_Plan> _lisP39 = _f.p40WorkSheet_RecurrenceBL.GetList_p39(0, 0, Model.p41id);
+}
+
+@addTagHelper *, UI
+
+
+@Html.Raw("<div class='info_record_container'>")
+
+
+<div class="card recpageboxauto">
+    <div class="card-header">
+        <span class="material-icons-outlined">repeat_on</span>
+        @_f.tra("Předpisy opakovaných úkonů/paušálů")
+        @if (Model.HasOwnerPermissions)
+        {
+            <a class="btn descreet_link_over_grid" title="@_f.tra("Nový")" href="javascript:p40_create()"><span class="material-icons-outlined-btn menu_new_record">add_circle_outline</span></a>
+        }
+
+    </div>
+    <div class="card-body">
+
+        <table class="table table-hover">
+
+            @foreach (var c in Model.lisP40)
+            {
+                <tr>
+
+                    <td>
+                        @(c.NamePlusCerpano)
+                        
+                        @if (!c.isclosed && _lisP39.Where(p => p.p40ID==c.pid && p.p31ID_NewInstance == 0 && p.p39DateCreate < DateTime.Now.AddDays(-10)).Count() > 0)
+                        {
+                            <div>
+                                <span class="badge text-bg-danger">Existují nevygenerované úkony mimo dosah robota!</span>
+                            </div>
+                            
+                        }
+                    </td>
+                    <td>
+                        @BO.Code.Bas.Number2String(c.p40Value)
+                    </td>
+                    <td>
+                        @c.j27Code
+                    </td>
+
+                    <td>
+                        @BO.Code.Bas.ObjectDate2String(c.p40FirstSupplyDate) - @BO.Code.Bas.ObjectDate2String(c.p40LastSupplyDate)
+                        @if (!c.isclosed && c.p40LastSupplyDate < DateTime.Now)
+                        {
+                            <div>
+                                <span class="material-icons-outlined-nosize" style="color:#FFC107;">warning</span>
+                                <span class="badge text-bg-warning">Období generování expirovalo.</span>
+                            </div>
+
+                        }
+                    </td>
+                    <td>
+                        <i>@c.p40Text</i>
+                    </td>
+                    <td>
+                        @if (Model.HasOwnerPermissions)
+                        {
+                            <button type="button" class="btn btn-sm bog" onclick="_edit('p40',@c.pid)">@_f.tra("Upravit předpis")</button>
+                        }
+
+                    </td>
+                    <td>
+                        @if (Model.HasOwnerPermissions)
+                        {
+                            <button type="button" class="btn btn-sm bog" onclick="p39_overview(@c.pid)">@_f.tra("Plán generování")</button>
+                        }
+
+                    </td>
+                    <td>
+                        @if (Model.HasOwnerPermissions)
+                        {
+                            <a class="btn btn-sm bog" target="_top" href="/Record/RecPage?prefix=p40&pid=@(c.pid)">@_f.tra("Stránka předpisu")</a>
+                        }
+
+                    </td>
+                </tr>
+            }
+        </table>
+    </div>
+</div>
+
+
+@Html.Raw("</div>")
+
+
+
+<script type="text/javascript">
+
+
+    $(document).ready(function () {
+
+
+
+
+
+    });
+
+
+
+    function p40_create() {
+
+        _window_open("/p40/Record?p41id=@Model.p41id", 2);
+
+
+    }
+
+    function p39_overview(p40id) {
+        _window_open("/p40/Tab1?caller=tabp40&pid=" + p40id, 2);
+    }
+
+
+</script>

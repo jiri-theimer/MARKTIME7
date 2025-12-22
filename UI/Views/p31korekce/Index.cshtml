@@ -1,0 +1,66 @@
+﻿@model UI.Models.p31oper.p31KorekceViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = _f.tra("Korekce u rozpracovaných úkonů");
+    Model.PageSymbol = "downloading";
+
+}
+
+@addTagHelper *, UI
+
+<form id="form1" asp-controller="p31korekce" asp-action="Index" method="POST">
+    <div class="bg-light row my-2" style="width:99%;">
+
+        <div class="col-auto">
+            <button id="cmdSave" class="btn btn-success" onclick="_submit()">@_f.tra("Uložit změny")</button>
+            <button id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+        </div>
+
+    </div>
+
+    <table>
+        <tr>
+            <td>
+                <label for="p72ID_AfterTrimming">@_f.tra("Jakou korekci nahodit"):</label>
+            </td>
+            <td>
+                <select asp-for="p72ID_AfterTrimming" class="form-select">
+                    <option value="0">@_f.tra("Vyčistit korekci")</option>
+                    <option value="6">@_f.tra("Zahrnout do paušálu")</option>
+                    <option value="2">@_f.tra("Viditelný odpis")</option>
+                    <option value="3">@_f.tra("Skrytý odpis")</option>
+                </select>
+            </td>
+        </tr>
+    </table>
+  
+
+    <input type="hidden" asp-for="@Model.pids" />
+    <input type="hidden" asp-for="@Model.pids_valid" value="@Model.pids_valid" />
+
+
+
+
+</form>
+
+
+@await Component.InvokeAsync("myGrid", Model.gridinput)
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+
+
+
+    })
+
+
+
+</script>
+

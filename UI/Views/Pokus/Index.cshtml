@@ -1,0 +1,338 @@
+﻿@model UI.Models.BaseViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var ss = "toto hovado a blb";
+    var _lis = _f.p41ProjectBL.GetList(new BO.myQueryP41("p41")).OrderBy(p => p.p41TreeIndex);
+
+
+    string strTreePrefix = "p28";
+
+    var lisflat = new List<UI.Models.Asi.TreeNode>();
+    lisflat.Add(new UI.Models.Asi.TreeNode() { Id = 999999, IdParent = 0, Name = "......" });
+
+    switch (strTreePrefix)
+    {
+        case "p41":
+            foreach (var c in _lis)
+            {
+                if (c.p41ParentID == 0 && c.p41TreeNext == c.p41TreePrev)
+                {
+                    lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = 999999, Name = c.p41Name });
+                }
+                else
+                {
+                    lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = c.p41ParentID, Name = c.p41Name });
+                }
+
+            }
+            break;
+        case "p28":
+            //var lisP28 = _lis.Where(p=>p.p28ID_Client>0).Select(p => new{p.p28ID_Client,p.Client}).Distinct();
+            var lisP28 = _lis.Select(p => new { p.p28ID_Client, p.Client }).Distinct();
+
+
+            foreach (var recP28 in lisP28)
+            {
+                if (recP28.p28ID_Client > 0)
+                {
+                    lisflat.Add(new UI.Models.Asi.TreeNode() { Id = -1 * recP28.p28ID_Client, IdParent = 0, Name = recP28.Client });
+                }
+
+
+                foreach (var c in _lis.Where(p => p.p28ID_Client == recP28.p28ID_Client))
+                {
+
+                    if (c.p28ID_Client == 0)
+                    {
+                        lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = 999999, Name = c.p41Name });
+                    }
+                    else
+                    {
+                        if (c.p41ParentID == 0 && c.p41TreeNext == c.p41TreePrev)
+                        {
+                            lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = -1 * c.p28ID_Client, Name = c.p41Name });
+                        }
+                        else
+                        {
+                            var recParent = _lis.FirstOrDefault(p => p.pid == c.p41ParentID && p.p28ID_Client == recP28.p28ID_Client);
+                            if (recParent != null)
+                            {
+                                lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = c.p41ParentID, Name = c.p41Name });
+                            }
+                            else
+                            {
+                                lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = -1 * c.p28ID_Client, Name = c.p41Name });
+                            }
+
+                        }
+                    }
+
+
+
+                }
+            }
+
+            break;
+    }
+
+
+
+
+    var rootNodes = UI.Code.basTree.BuildTree(lisflat);
+}
+
+
+
+
+@addTagHelper *, UI
+
+
+
+<button class="btn btn-link"
+        data-bs-toggle="offcanvas"
+        data-bs-target="#appMenu">
+    ☰ Hlavní menu přes offcanvas
+</button>
+
+<div class="offcanvas offcanvas-start" tabindex="-1" id="appMenu" style="width:700px;">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title">PORTAL</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+
+    <div class="offcanvas-body p-0">
+        <!-- menu -->
+
+        <div class="list-group list-group-flush">
+            <div class="px-3 pt-3 text-muted fw-bold small">ÚKONY</div>
+            <a href="/Tasks" class="list-group-item list-group-item-action">Součty</a>
+            <a href="/Attendance" class="list-group-item list-group-item-action">Docházka</a>
+
+            <div class="px-3 pt-3 text-muted fw-bold small">PROJEKTY</div>
+            <a href="/Projects" class="list-group-item list-group-item-action">Projektové šablony</a>
+        </div>
+    </div>
+</div>
+
+
+<input type="text" oninput="searchTree(this)" class="form-control" />
+
+<div id="tree1" class="treeds p-3" style="width:300px;">
+
+    @await Html.PartialAsync("~/Views/Shared/_TreeDsRenderHelper.cshtml", rootNodes)
+
+</div>
+
+
+
+
+
+
+
+<hr />
+<div id="tree2" class="treeds p-3" style="width: 300px;">
+    <details open class="branch mb-2">
+        <summary class="fw-semibold cursor-pointer rounded bg-white p-2">
+            Kořen
+        </summary>
+
+        <details class="branch">
+            <summary class="fw-medium cursor-pointer rounded bg-white p-1">
+                Větev 1
+            </summary>
+            <p class="leaf">List 1</p>
+            <p class="leaf">List 2</p>
+        </details>
+
+        <details class="branch">
+            <summary class="fw-medium cursor-pointer rounded bg-white p-1">
+                Větev 2
+            </summary>
+            <details class="branch">
+                <summary class="fw-medium cursor-pointer rounded bg-white p-1">
+                    Podvětev
+                </summary>
+                <p class="leaf">List</p>
+            </details>
+        </details>
+
+    </details>
+</div>
+
+
+
+
+
+
+<script type="text/javascript">
+
+    let menuLoaded = false;
+
+    $('#appMenu').on('show.bs.offcanvas', function () {
+        if (menuLoaded) return;
+
+        _notify_message("Loading main menu");
+
+        menuLoaded = true;
+
+        // $('#appMenuContent').load('/Menu/Main', function () {
+        //     menuLoaded = true;
+        // });
+    });
+
+
+
+     let _inicializace=true;
+
+     tree1_init();
+
+
+     function tree1_init()
+     {
+          const treeDetails = document.querySelectorAll('#tree1 details');
+          let internalChange = false;
+
+          // najde nejbližší nadřazený <details>
+         function getParentDetail(el)
+         {
+           let p = el.parentElement;
+           while (p) {
+             if (p.tagName === "DETAILS") return p;
+             p = p.parentElement;
+           }
+           return null;
+         }
+
+
+          treeDetails.forEach(d => {
+
+           d.addEventListener("toggle", () => {
+
+             if (internalChange) return;
+
+             if (_inicializace) {
+                 _inicializace = false;
+                 return;
+             }
+
+             // accordion: zavři ostatní foldery
+             if (d.open)
+             {
+
+                 internalChange = true;
+
+                 // najdu společného rodiče → tím určíme sourozence
+                 const parent = getParentDetail(d);
+
+                 // SOUROZENCI = všechny <details> se stejným rodičem
+                 const siblings = parent
+                     ? Array.from(parent.querySelectorAll(':scope > details'))
+                     : Array.from(document.querySelectorAll('#tree1 > details'));
+
+                 // zavři pouze přímé SOUROZENCE (a jen je)
+                 siblings.forEach(other => {
+                     if (other !== d) other.open = false;
+                 });
+
+                 internalChange = false;
+
+                 //otevření větve
+                 _notify_message("open");
+
+             }
+             else
+             {
+                     //zavření větve
+             }
+
+
+
+
+             if (_inicializace)
+             {
+                 _inicializace=false;
+                 return;
+             }
+
+
+           });
+         });
+
+
+     }
+
+
+
+
+
+
+
+    function searchTree(txt) {
+         const query=txt.value.trim();
+         if (query==null || query=="" || query.length<3)
+         {
+             return;
+         }
+         const treeDetails = Array.from(document.querySelectorAll('#tree1 details'));
+         const lowerQuery = query.toLowerCase();
+
+         // pomocná funkce: otevře všechny rodiče
+         function openParents(el) {
+             let parent = el.parentElement.closest('details');
+             while (parent) {
+                 parent.open = true;
+                 parent = parent.parentElement.closest('details');
+             }
+         }
+
+         // pomocná funkce: zvýrazní summary pokud match
+         function highlight(el, doHighlight) {
+             const summary = el.querySelector('summary');
+             if (!summary) return;
+             summary.style.backgroundColor = doHighlight ? 'yellow' : '';
+         }
+
+         treeDetails.forEach(d => {
+             const summaryText = d.querySelector('summary')?.textContent.toLowerCase() || '';
+             const isMatch = summaryText.includes(lowerQuery);
+
+             // zvýraznění
+             highlight(d, isMatch);
+
+             if (isMatch) {
+                 // otevře cestu k výsledku
+                 d.open = true;
+                 openParents(d);
+             }
+         });
+
+         // nyní aplikujeme akordeon: zavřeme sourozence, kteří nemají match
+         treeDetails.forEach(d => {
+             if (!d.open) return; // ignoruj uzavřené
+             const parent = d.parentElement.closest('details');
+             const siblings = parent
+                 ? Array.from(parent.querySelectorAll(':scope > details'))
+                 : Array.from(document.querySelectorAll('#tree1 > details'));
+
+             siblings.forEach(sib => {
+                 if (sib !== d) {
+                     const sibSummaryText = sib.querySelector('summary')?.textContent.toLowerCase() || '';
+                     if (!sibSummaryText.includes(lowerQuery)) {
+                         sib.open = false;
+                     }
+                 }
+             });
+         });
+     }
+
+</script>
+
+
+
+
+
+
+

@@ -1,0 +1,1022 @@
+﻿@model BaseViewModel
+@inject BL.Factory _f
+
+@{
+    var cmenu = new UI.Menu.TheMenuSupport(_f);
+
+    //List<string> _myMenu = BO.Code.Bas.ConvertString2List(_f.CurrentUser.j02MyMenuLinks, "|");
+    string[] _myMenu = new string[0];
+    if (_f.CurrentUser.j02MyMenuLinks != null)
+    {
+        _myMenu = _f.CurrentUser.j02MyMenuLinks.Split("|");
+    }
+    
+
+
+    IEnumerable<BO.o17DocMenu> _lisO17 = null;
+    if (_f.CurrentUser.j04IsModule_o23 && _myMenu.Count() > 0 && _f.CurrentUser.j02MyMenuLinks.Contains("rez-"))
+    {
+        _lisO17 = _f.GetListO17();
+        if (_lisO17.Count() > 0 && !_f.CurrentUser.IsAdmin)
+        {
+            //string strO17IDs = "," + _f.CurrentUser.o17IDs + ",";
+            string strO17IDs = $",{_f.CurrentUser.o17IDs},";
+            _lisO17 = _lisO17.Where(p => strO17IDs.Contains($",{p.pid},"));
+        }
+    }
+
+    bool _islivechat = (_f.CurrentUser.j02LiveChatTimestamp != null ? true : false);
+
+}
+
+@addTagHelper *, UI
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@(Model.PageTitle) | MARKTIME</title>
+
+    @if (_islivechat)
+    {
+        <text>
+            <!--Start of Tawk.to Script-->
+            <script type="text/javascript">
+                var Tawk_API = Tawk_API || {}, Tawk_LoadStart = new Date();
+
+                Tawk_API.visitor = {
+                    name: "@(_f.CurrentUser.FullNameAsc)",
+                    email: "@(_f.CurrentUser.j02Email)"
+                };
+
+                (function () {
+                    var s1 = document.createElement("script"), s0 = document.getElementsByTagName("script")[0];
+                    s1.async = true;
+                    s1.src = 'https://embed.tawk.to/64fc22a7b2d3e13950eed294/1h9seeo4d';
+                    s1.charset = 'UTF-8';
+                    s1.setAttribute('crossorigin', '*');
+                    s0.parentNode.insertBefore(s1, s0);
+                })();
+            </script>
+            <!--End of Tawk.to Script-->
+
+
+        </text>
+    }
+
+
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <link href="~/lib/datepicker/bootstrap-datepicker.min.css" rel="stylesheet" type="text/css" />
+    <link href="~/lib/qtip/jquery.qtip.css" rel="stylesheet" type="text/css" />
+
+    <link rel="stylesheet" href="~/css/@_f.CurrentUser.getFontSizeCss()" />
+
+    <style type="text/css">
+        :root {
+            --pozadi: @_f.CurrentUser.j02SkinBackColor;
+            --popredi: @_f.CurrentUser.j02SkinForeColor;
+            --oznaceno: @_f.CurrentUser.j02SkinSelColor;
+        }
+    </style>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/contextmenu.css" />
+    <link rel="stylesheet" href="~/css/thegrid.css" asp-append-version="true" />
+
+    @if (_f.CurrentUser.x01CustomCssFile != null)
+    {
+        <link rel="stylesheet" href="@_f.CurrentUser.x01CustomCssFile" />
+    }
+
+    @if (IsSectionDefined("header_content"))
+    {
+        @RenderSection("header_content")
+    }
+
+    <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+</head>
+<body>
+
+    <script type="text/javascript">
+        var _relpath = "@(Url.Content("~/favicon.ico").Replace("favicon.ico", ""))";   //relativní cesta: detekce kvůli případnému IIS virtuálnímu adresáři
+    </script>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/splitter/jquery-resizable.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/datepicker/bootstrap-datepicker.min.js"></script>
+    <script src="~/lib/datepicker/bootstrap-datepicker.cs.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/mycombo.js" asp-append-version="true"></script>
+    <script src="~/js/thegrid.js" asp-append-version="true"></script>
+    <script src="~/js/contextmenu.js" asp-append-version="true"></script>
+    <script src="~/js/mycontrols.js" asp-append-version="true"></script>
+    <script src="~/js/layoutshare.js" asp-append-version="true"></script>
+
+    <header>
+        <nav id="mainmenu1" class="navbar navbar-expand-lg navbar-dark bg-dark px-0 py-0">
+            <div id="mainmenu1_container" class="container-fluid px-0">
+                <div style="min-width:100px;" title="Hlavní menu, klávesová zkratka: Alt+1">
+
+                    <a id="cmdHome" class="navbar-brand nav-link" tabindex="-1" role="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvas_mainmenu">☰ @_f.CurrentUser.x01AppName</a>
+
+
+
+                </div>
+
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse" id="navbarNavDropdown">
+                    <ul class="navbar-nav">
+                        @if (_f.CurrentUser.j04IsModule_p41 || _f.CurrentUser.j04IsModule_p28 || _f.CurrentUser.j04IsModule_p56)
+                        {
+                            <li class="nav-item" title="Nový, klávesová zkratka: Alt+2">
+                                <a id="cmdnew_mainmenu" class="nav-link" tabindex="-1" role="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvas_newrecord">☰ @_f.tra("Nový")</a>
+
+                            </li>
+                        }
+
+
+                        @if (_f.CurrentUser.j04IsModule_p31)
+                        {
+                            <li title="Vykázat úkon, klávesová zkratka: Alt+W" class="nonmobile">
+                                <a class="nav-link" href="javascript:_p31_new_from_everywhere()">
+                                    <span class="material-icons-outlined-btn menu_new_record">more_time</span>
+                                </a>
+                            </li>
+                        }
+                        @if (_f.CurrentUser.j04IsModule_p41 || _f.CurrentUser.j04IsModule_p28 || _f.CurrentUser.j04IsModule_p91)
+                        {
+                            <li style="margin-right:8px;margin-left:8px;">
+
+                                <mySearch search-textbox-width="90" combo-height="700" search-result-width="800" placeholder="@_f.tra("Najít")..." event_after_changevalue="_search1_on_change"></mySearch>
+
+
+                            </li>
+                        }
+
+
+                        @if (_f.CurrentUser.j04IsModule_Widgets && _myMenu.Contains("dashboard"))
+                        {
+                            <li title="DASHBOARD" class="nonmobile">
+                                <a id="cmddashboard" class="nav-link" href="/Widgets/Index">
+                                    <span class="material-icons-outlined-btn" style="color:white;">bar_chart</span>
+                                </a>
+                            </li>
+                        }
+
+                        @if (_f.CurrentUser.j04IsModule_p31 || _f.CurrentUser.j04IsModule_p56)
+                        {
+                            @if (_myMenu.Contains("p31calendar"))
+                            {
+                                <li title="Kalendář" class="nonmobile">
+                                    <a id="cmdcalendar" class="nav-link" href="/p31calendar/Index">
+                                        <span class="material-icons-outlined-btn" style="color:white">event</span>
+                                    </a>
+                                </li>
+
+
+                            }
+                            @if (_myMenu.Contains("p31dayline"))
+                            {
+                                <li title="DAYLINE" class="nonmobile">
+                                    <a id="cmddayline" class="nav-link" href="/p31dayline/Index">
+                                        <span class="material-icons-outlined-btn" style="color:white;">apps</span>
+                                    </a>
+                                </li>
+
+                            }
+                            @if (_f.CurrentUser.IsApprovingPerson && _myMenu.Contains("approving"))
+                            {
+                                <li title="@_f.tra("Schvalování") All-in-one" class="nonmobile">
+                                    <a id="cmdapproving" class="nav-link" href="/TheGrid/ApproveView">
+                                        <span class="material-icons-outlined-btn" style="color:white">approval</span>
+                                    </a>
+                                </li>
+                            }
+                            @if (_myMenu.Contains("p31totals"))
+                            {
+                                <li title="SOUČTY" class="nonmobile">
+                                    <a id="cmdtotals" class="nav-link" href="/p31totals/Index">
+                                        <span class="material-icons-outlined-btn" style="color:white;">functions</span>
+                                    </a>
+                                </li>
+                            }
+
+                        }
+
+                        @if (_f.CurrentUser.j04IsModule_p11)
+                        {
+                            @if (_myMenu.Contains("absence"))
+                            {
+                                <li title="@_f.tra("Docházka")" class="nonmobile">
+                                    <a id="cmdabsence" class="nav-link" href="/Absence/Index">
+                                        <span class="material-icons-outlined-btn" style="color:white">hourglass_top</span>
+                                    </a>
+                                </li>
+                            }
+                            @if (_myMenu.Contains("p11"))
+                            {
+                                <li title="Záznamy docházky" class="nonmobile">
+                                    <a id="cmdp11" class="nav-link" href="/TheGrid/FlatView?prefix=p11">
+                                        <span class="material-icons-outlined-btn" style="color:white">hourglass_bottom</span>
+                                    </a>
+                                </li>
+                            }
+
+                        }
+                        @if (_myMenu.Contains("p12"))
+                        {
+                            <li title="Interní schvalování" class="nonmobile">
+                                <a id="cmdp12" class="nav-link" href="/p12/Index">
+                                    <span class="material-icons-outlined-btn" style="color:white">thumb_up</span>
+                                </a>
+                            </li>
+                        }
+
+                        @if (_f.CurrentUser.j04IsModule_p31)
+                        {
+
+                            @if (_myMenu.Contains("p31grid"))
+                            {
+                                <li style="margin-left:8px;">
+                                    <a id="cmdp31" class="nav-link" href="/TheGrid/FlatView?prefix=p31">@_f.tra("ÚKONY")</a>
+
+                                </li>
+                            }
+
+
+                        }
+
+
+
+                        @if (_f.CurrentUser.j04IsModule_p41)
+                        {
+                            @if (_myMenu.Contains("p41"))
+                            {
+                                <li style="margin-left:6px;">
+                                    <a id="cmdp41" class="nav-link" href="@(cmenu.GetMainmenuEntityUrl("p41"))">@_f.tra("PROJEKTY")</a>
+                                </li>
+                            }
+
+                            
+
+
+                        }
+
+
+                        @if (_f.CurrentUser.j04IsModule_p56)
+                        {
+                            @if (_myMenu.Contains("p56"))
+                            {
+                                <li style="margin-left:6px;">
+                                    <a id="cmdp56" class="nav-link" href="@(cmenu.GetMainmenuEntityUrl("p56"))">@_f.tra("ÚKOLY")</a>
+
+                                </li>
+                            }
+                            @if (_myMenu.Contains("p58"))
+                            {
+                                <li title="Opakované úkoly">
+                                    <a id="cmdp58" class="nav-link" href="@(cmenu.GetMainmenuEntityUrl("p58"))">
+                                        <span class="material-icons-outlined-btn" style="color:white">published_with_changes</span>
+                                    </a>
+                                </li>
+                            }
+                            @if (_myMenu.Contains("p55"))
+                            {
+                                <li title="Todo-list">
+                                    <a id="cmdp55" class="nav-link" href="@(cmenu.GetMainmenuEntityUrl("p55"))">
+                                        <span class="material-icons-outlined-btn" style="color:white">control_point_duplicate</span>
+                                    </a>
+                                </li>
+                            }
+                        }
+
+                        @if (_f.CurrentUser.j04IsModule_p28 && _myMenu.Contains("p28"))
+                        {
+                            <li style="margin-left:6px;">
+                                <a id="cmdp28" class="nav-link" href="@(cmenu.GetMainmenuEntityUrl("p28"))">@_f.tra("KONTAKTY")</a>
+
+                            </li>
+                        }
+
+                        @if (_f.CurrentUser.j04IsModule_j02 && _myMenu.Contains("j02"))
+                        {
+                            <li style="margin-left:6px;">
+                                <a id="cmdj02" class="nav-link" href="@(cmenu.GetMainmenuEntityUrl("j02"))">@_f.tra("UŽIVATELÉ")</a>
+                            </li>
+                        }
+
+                        @if (_f.CurrentUser.j04IsModule_p91 && _myMenu.Contains("p91"))
+                        {
+                            <li style="margin-left:6px;">
+                                <a id="cmdp91" class="nav-link" href="@(cmenu.GetMainmenuEntityUrl("p91"))">@_f.tra("VYÚČTOVÁNÍ")</a>
+
+                            </li>
+                            @if (_myMenu.Contains("p75"))
+                            {
+                                <li title="Opakovaná vyúčtování">
+                                    <a id="cmdp75" class="nav-link" href="@(cmenu.GetMainmenuEntityUrl("p75"))">
+                                        <span class="material-icons-outlined-btn" style="color:white">published_with_changes</span>
+                                    </a>
+                                </li>
+                            }
+                        }
+                        @if (_f.CurrentUser.j04IsModule_p91 && _myMenu.Contains("p84"))
+                        {
+                            <li title="Upomínky">
+                                <a id="cmdp84" class="nav-link" href="@(cmenu.GetMainmenuEntityUrl("p84"))">
+                                    <span class="material-icons-outlined-btn" style="color:white">gavel</span>
+                                </a>
+
+                            </li>
+                        }
+
+                        @if (_f.CurrentUser.j04IsModule_p90 && _myMenu.Contains("p90"))
+                        {
+                            <li>
+                                <a id="cmdp90" class="nav-link" href="@(cmenu.GetMainmenuEntityUrl("p90"))">@_f.tra("ZÁLOHY")</a>
+                            </li>
+                        }
+                        @if (_f.CurrentUser.j04IsModule_o23 && _myMenu.Contains("o23"))
+                        {
+                            <li style="margin-left:6px;">
+                                <a id="cmdo23" class="nav-link" href="@(cmenu.GetMainmenuEntityUrl("o23"))">@_f.tra("DOKUMENTY")</a>
+
+                            </li>
+                        }
+                        @if (_lisO17 != null)
+                        {
+                            @foreach (var c in _lisO17)
+                            {
+                                @if (_myMenu.Contains("rez-" + c.pid.ToString()))
+                                {
+                                    <li>
+                                        <a id="cmdo23@(c.pid)" class="nav-link" style="color:darkorange;" href="@(cmenu.GetMainmenuEntityUrl("o23") + "&rez=" + c.pid.ToString())">@(c.o17Name.ToUpper())</a>
+                                    </li>
+                                }
+
+                            }
+                        }
+                        @if (_f.CurrentUser.j04IsModule_p31 && _myMenu.Contains("p40") && _f.CurrentUser.TestPermission(BO.PermValEnum.GR_p41_Reader))
+                        {
+                            <li title="Opakované odměny/paušály" style="margin-left:6px;">
+                                <a id="cmdp40" class="nav-link" href="@(cmenu.GetMainmenuEntityUrl("p40"))">
+                                    <span class="material-icons-outlined-btn" style="color:white">repeat_on</span>
+                                </a>
+                            </li>
+                        }
+                        @if (_f.CurrentUser.j04IsModule_r01 && _myMenu.Contains("captml"))
+                        {
+                            <li title="Kapacitní plánování" style="margin-left:6px;">
+                                <a id="cmdCapTml" class="nav-link" href="/captml/Index">
+                                    <span class="material-icons-outlined-btn" style="color:white">online_prediction</span>
+                                </a>
+                            </li>
+                        }
+                        @if (_f.CurrentUser.j04IsModule_p49 && _myMenu.Contains("p49"))
+                        {
+                            <li title="Finanční plány" style="margin-left:6px;">
+                                <a id="cmdp49" class="nav-link" href="@(cmenu.GetMainmenuEntityUrl("p49"))">
+                                    <span class="material-icons-outlined-btn" style="color:white">energy_savings_leaf</span>
+                                </a>
+                            </li>
+                        }
+                        @if (_f.CurrentUser.j04IsModule_o43 && _myMenu.Contains("o43"))
+                        {
+                            <li title="INBOX">
+                                <a id="cmdo43" class="nav-link" href="@(cmenu.GetMainmenuEntityUrl("o43"))">
+                                    <span class="material-icons-outlined-btn" style="color:white">forward_to_inbox</span>
+                                </a>
+                            </li>
+                        }
+                        @if (_myMenu.Contains("b05"))
+                        {
+                            <li title="Poznámky, workflow historie">
+                                <a id="cmdb05" class="nav-link" href="@(cmenu.GetMainmenuEntityUrl("b05"))">
+
+                                    <span class="material-icons-outlined-btn" style="color:white">speaker_notes</span>
+                                </a>
+                            </li>
+                        }
+
+
+                        @if (_f.CurrentUser.j04IsModule_x31 && _myMenu.Contains("x31"))
+                        {
+                            <li title="Pevné tiskové sestavy" class="nonmobile">
+                                <a id="cmdx31" class="nav-link" href="/ReportsClient/ReportNoContextFramework">
+                                    <span class="material-icons-outlined-btn" style="color:white">print</span>
+                                </a>
+                            </li>
+                        }
+                        @if (_myMenu.Contains("p51") && _f.CurrentUser.TestPermission(BO.PermValEnum.GR_p51_Admin))
+                        {
+                            <li title="@_f.tra("Ceníky hodinových/kusovníkových sazeb")" class="nonmobile">
+                                <a id="cmdp51" class="nav-link" href="@(cmenu.GetMainmenuEntityUrl("p51"))">
+                                    <span class="material-icons-outlined-btn" style="color:white">price_change</span>
+                                </a>
+                            </li>
+                        }
+                        @if (_myMenu.Contains("o22"))
+                        {
+                            <li title="Termíny/Lhůty/Události" class="nonmobile">
+                                <a id="cmdo22" class="nav-link" href="@(cmenu.GetMainmenuEntityUrl("o22"))">
+                                    <span class="material-icons-outlined-btn" style="color:white">date_range</span>
+                                </a>
+                            </li>
+                        }
+                        @if (_myMenu.Contains("p15"))
+                        {
+                            <li title="Pojmenované lokality" class="nonmobile">
+                                <a id="cmdp15" class="nav-link" href="@(cmenu.GetMainmenuEntityUrl("p15"))">
+                                    <span class="material-icons-outlined-btn" style="color:white">location_on</span>
+                                </a>
+                            </li>
+                        }
+
+                        @if (_f.CurrentUser.IsAdmin && _myMenu.Contains("admin"))
+                        {
+                            <li>
+                                <a id="cmdadmin" class="nav-link" href="/Admin/Index">@_f.tra("ADMINISTRACE")</a>
+                            </li>
+
+                        }
+
+
+
+
+                    </ul>
+
+                    <ul class="navbar-nav" style="margin-left:auto;">
+                        @if (_f.CurrentUser.j02LastReadNews_Timestamp == null)
+                        {
+                            <li class="nav-news" title="Novinky | Blog">
+                                <a class="nav-link nav-news-link" href="javascript:_news()" title="Novinky | Blog">
+                                    <span class="nav-news-text">@_f.tra("novinky")</span>
+                                    <span class="nav-news-dot" aria-hidden="true"></span>
+                                </a>
+                            </li>
+                        }
+                        <li>
+                            <a class="nav-link" href="javascript:_bells()">
+                                @if (_f.CurrentUser.BellsCount > 0)
+                                {
+                                    <span class="material-icons-outlined-btn" style="color:red;">notifications_active</span>
+                                    <small style="color:orange;">@(_f.CurrentUser.BellsCount)</small>
+                                }
+                               
+
+                            </a>
+                        </li>
+                        @if (_f.CurrentUser.j04IsModule_p31)
+                        {
+                            <li class="nonmobile">
+                                <a class="nav-link" id="cmdStopky" href="javascript: _stopky()">
+                                    @if (_f.CurrentUser.StopWatchFlag == 0)
+                                    {
+                                        <span class="material-icons-outlined-btn" style="color:white;" title="Stopky">history_toggle_off</span>
+
+                                    }
+                                    else
+                                    {
+                                        @if (_f.CurrentUser.StopWatchFlag == 1)
+                                        {
+                                            <span class="material-icons-outlined-btn" style="color:lime;" title="Stopky právě běží">history_toggle_off</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="material-icons-outlined-btn" style="color:orange;" title="Stopky obsahují záznamy">history_toggle_off</span>
+                                        }
+
+                                    }
+
+                                </a>
+                            </li>
+                        }
+                        @if (_islivechat)
+                        {
+                            <li title="Vypnout live chat s MARKTIME podporou" class="nonmobile">
+                                <a class="nav-link" href="javascript: _livechat(false)">
+                                    <span class="material-icons-outlined-btn" style="color:red;">headset_off</span>
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li title="Zapnout live chat s MARKTIME podporou" class="nonmobile">
+                                <a class="nav-link" href="javascript: _livechat(true)">
+                                    <span class="material-icons-outlined-btn" style="color:white">headset_mic</span>
+                                </a>
+                            </li>
+                        }
+
+
+
+                        <li class="nav-item">
+                            <a id="cmdme" class="nav-link" tabindex="-1" role="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvas_myprofile">☰ @_f.CurrentUser.SiteMenuPersonalName</a>
+
+
+
+                        </li>
+
+                    </ul>
+
+                </div>
+            </div>
+        </nav>
+    </header>
+
+
+
+    <div id="loading_container" class="loader_topleft"></div>
+
+    <div>
+        <main role="main" class="m-0 p-0">
+            @RenderBody()
+        </main>
+    </div>
+
+    <div id="myModalContainer" style="display:none;">
+        <div id="myModalContent">
+            <div id="myModalContentContainerHeader" ondblclick="_window_toggle()">
+                <table style="width:100%;" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td style="width:20px;">
+                            <a href="javascript:_window_close()" style="margin-left:3px;margin-right:3px;"><span class="material-icons-outlined-btn" style="color:white;">close</span></a>
+                        </td>
+                        <td>
+                            <span id="myModalContentHeader"></span>
+                        </td>
+                        <td style="width:30px;">
+                            <a href="javascript:_window_toggle()"><span id="spanToggle" class="material-icons-outlined-btn" style="color:white;">crop_landscape</span></a>
+                        </td>
+                        <td style="width:30px;">
+                            <a href="javascript:_window_close()"><span class="material-icons-outlined-btn" style="color:white;">close</span></a>
+                        </td>
+                    </tr>
+                </table>
+
+
+            </div>
+            <div id="myModalFrame" style="padding: 0px; margin:0px 0px 0px 10px; overflow: auto; -webkit-overflow-scrolling: touch;">
+                <iframe id="fraModalContent" name="fraModalContent" frameborder="0"></iframe>
+            </div>
+
+        </div>
+    </div>
+
+
+
+    <!-- Nabídka Main MENU -->
+    <div class="offcanvas offcanvas-start" tabindex="-1" data-bs-scroll="true" data-bs-backdrop="true" data-bs-keyboard="true" id="offcanvas_mainmenu" style="width:1000px">
+
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title">
+
+                @_f.tra("Hlavní menu")
+
+            </h5>
+
+            @if (!_f.CurrentUser.IsPortalUserOnly())
+            {
+                <a id="linkSaveAsHomePage" class="btn bog nonmobile" style="margin-left:40px;" href="javascript:save_as_home_page()">
+                    <span class="material-icons-outlined-btn">favorite_border</span>
+                    <small>@_f.tra("Aktuální stránku uložit jako domovskou")</small>
+                </a>
+            }
+
+            <small class="ms-auto me-20" style="color:silver;">
+                @_f.App.AppBuild
+            </small>
+
+            <a href="javascript:close_offcanvas('offcanvas_mainmenu')" class="ms-auto me-3">
+                <img src="/Images/logo_transparent.png" style="height:23px; width:auto;" />
+            </a>
+
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+        </div>
+
+        <div class="offcanvas-body p-0 m-0" id="offcanvas_mainmenu_body">
+
+
+            <h1>Hlavní menu</h1>
+
+        </div>
+    </div>
+
+    <!-- Nabídka Nový Záznam -->
+    <div class="offcanvas offcanvas-start" tabindex="-1" data-bs-scroll="true" data-bs-backdrop="true" data-bs-keyboard="true" id="offcanvas_newrecord">
+
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title">
+                <span class="material-icons-outlined-btn menu_new_record">add_circle_outline</span>
+                @_f.tra("Nový záznam")
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+        </div>
+
+        <div class="offcanvas-body p-0 m-0" id="offcanvas_newrecord_body">
+
+
+            <h1>Nový záznam</h1>
+
+        </div>
+    </div>
+
+    <!-- Nabídka Můj profil -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" data-bs-scroll="true" data-bs-backdrop="true" data-bs-keyboard="true" id="offcanvas_myprofile">
+
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title">
+                <span class="material-icons-outlined-btn menu_new_record">person</span>
+                @_f.CurrentUser.FullNameAsc
+            </h5>
+
+
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+        </div>
+
+        <div class="offcanvas-body p-0 m-0" id="offcanvas_myprofile_body">
+
+
+
+            <h1>Můj profil</h1>
+
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        let _offcanvasNewIsLoaded = false;
+        let _offcanvasMainIsLoaded = false;
+        let _offcanvasMyprofileIsLoaded = false;
+
+        var _modal = document.getElementById("myModalContainer");
+        var _modal_current_layout = null;   //používá podformulář k otevírání modálního okna
+        var _header_uschova = "";
+        var _j02_modal_window_flag = "@_f.CurrentUser.j02ModalWindowsFlag";
+        if (_j02_modal_window_flag == "KeepMobileUI")
+        {
+            _j02_modal_window_flag = "FullScreen";
+            _device.type = "Phone";
+            _device.isMobile = true;
+        }
+        if (_j02_modal_window_flag == "KeepDesktopUI") {
+            _j02_modal_window_flag = "FullScreen";
+            _device.type = "Desktop";
+            _device.isMobile = false;
+        }
+
+
+        $(document).ready(function () {
+
+            $("#offcanvas_mainmenu").on("show.bs.offcanvas", function () {
+                if (_offcanvasMainIsLoaded) return;
+
+                _offcanvasMainIsLoaded = true;
+
+                render_menu("cmdHome","offcanvas_mainmenu_body","/Menu/main_home");
+            });
+
+            $("#offcanvas_newrecord").on("show.bs.offcanvas", function () {
+                if (_offcanvasNewIsLoaded) return;
+
+                _offcanvasNewIsLoaded = true;
+
+                render_menu("cmdnew_mainmenu","offcanvas_newrecord_body","/Menu/main_new");
+            });
+
+            $("#offcanvas_myprofile").on("show.bs.offcanvas", function () {
+                if (_offcanvasMyprofileIsLoaded) return;
+
+                _offcanvasMyprofileIsLoaded = true;
+
+                render_menu("cmdme","offcanvas_myprofile_body","/Menu/main_me");
+            });
+
+            $("#fraModalContent").on("load", function () {
+                $("#myModalContentHeader").text(_header_uschova);
+                $("#myModalFrame").css("visibility", "visible");
+            });
+
+            $(document).on("click", function (e) {
+                if (e.target == _modal) {
+                    _window_close();
+                }
+            });
+
+            $(document).on("keydown", function (e) {
+
+                if (e.keyCode == 27 && _modal.style.display == "block") {   //klávese ESCAPE
+                    _window_close();
+
+                }
+                if (e.keyCode == 13 && e.target.nodeName != "BUTTON" && e.target.nodeName != "TEXTAREA") { //zabránit submit formuláře po stisknutí ENTER na jakémkoliv non-submit input elementu
+                    e.preventDefault();
+                    return false;
+                }
+            });
+
+            if (_device.isMobile) {
+                _init_elements_for_mobile();
+
+            }
+
+            if (window.innerWidth<800 || window.innerHeight<600){
+                $("#cmdme").html("<span class='material-icons-outlined-btn' style='color:white'>person</span>");
+            }
+
+            _loading_hide();
+
+
+            if (document.getElementById("cmdCombomySearch1")) {
+                document.getElementById("cmdCombomySearch1").focus();   //focus na searchbox, pokud je k dispozici
+            }
+
+
+
+
+            if (document.getElementById("cmdo23_mainmenu")) {
+                register_menu("cmdo23_mainmenu", "divo23_mainmenu", "/Menu/main_o23");
+            }
+
+
+            for (var i = 1; i <= 5; i++) {
+                if (document.getElementById("cmdle" + i + "_mainmenu")) {
+                    register_menu("cmdle" + i + "_mainmenu", "divle" + i + "_mainmenu", "/Menu/main_p41?level=" + i);
+                }
+            }
+
+            var need_to_update_ping = "@(_f.CurrentUser.j02PingTimeStamp == null || _f.CurrentUser.j02PingTimeStamp.Value.AddSeconds(120) < DateTime.Now ? "1" : "0")";
+
+            if (need_to_update_ping == "1") {
+
+                _update_user_ping();     //aktualizace ping logu po 120 sekundách
+            }
+
+        @if (_f.CurrentUser.Messages4Notify != null)
+        {
+                    @foreach (var c in _f.CurrentUser.Messages4Notify)
+                    {  // <----  notifikační zprávy pro uživatele
+
+                                @:_notify_message("@Html.Raw(c.Value)", "@c.Key");
+
+                    }
+        }
+
+
+
+                });
+
+
+
+        function hardrefresh(pid, flag) {
+            //ve flag se předává volající stránka např.: /p31/Record nebo /p91/Record nebo /o23/Record apod.
+
+            var url = window.location.href;
+
+            if (url.indexOf("#") > 0) {
+                var arr = url.split("#");
+                url = arr[0];
+            }
+
+            if (_modal_current_layout == "subform") {   //volání z iframe
+
+                if (url.indexOf("p31hybrid") > 0 || url.indexOf("Record/RecPage")>0)
+                {
+                    location.href = window.location.href;
+                    return;
+                }
+
+
+                if (typeof flag !== "undefined" && url.indexOf("TheGrid/MasterView") > 0)
+                {
+                    //obnovit horní grid
+                    //location.href = window.location.href;
+                    //return;
+
+                    var gridpid = $("#tg_selected_pid").val();
+                    if (gridpid != "" && gridpid != "0")
+                    {
+                        tg_hardrefresh(gridpid);
+
+                    }
+                    else
+                    {
+                        location.href = window.location.href;
+                        return;
+                    }
+
+
+
+
+
+                }
+
+
+
+
+
+                //volání z iframe -> refreshovat pouze iframe
+                if (document.getElementById("fra_subgrid")) {
+                    document.getElementById("fra_subgrid").contentDocument.location.reload(true);
+                    return;
+
+                }
+            }
+
+            if (typeof flag === "undefined")
+            {
+                flag = "";
+            }
+            var grid_prefix = "";
+
+            if (typeof _thegrid !== "undefined")
+            {
+                grid_prefix = _thegrid.entity.substring(0, 3);
+                if (grid_prefix == "le5") grid_prefix = "p41";
+
+                if (flag !="" && pid !="" && pid !="0" && (url.indexOf("/MasterView")>0 || url.indexOf("/FlatView")>0))
+                {
+                   if (flag.indexOf(grid_prefix+"/") > -1 && typeof pid != "undefined" && pid !="0" && pid !="1")
+                   {
+                       url = _removeUrlParam("go2pid", url);
+                       if (url.indexOf("?") > 0)
+                       {
+                            url = url + "&go2pid=" + pid;
+                       }
+                       else
+                       {
+                           url = url + "?go2pid=" + pid;
+                       }
+                   }
+                    //obnovit celý grid pro jistotu
+                    _redirect(url);
+                    return;
+
+                }
+
+                if (url.indexOf("/MasterView")>0 && flag !="" && flag.indexOf("p31")>-1)
+                {
+                    document.getElementById("fra_subgrid").contentDocument.location.reload(true);   //obnovit úkony v iframe
+                    return;
+                }
+
+            }
+
+            if (flag.indexOf(grid_prefix+"/") > -1 && typeof pid != "undefined" && pid !== null && pid !== 0) {
+
+                url = _removeUrlParam("go2pid", url);
+                if (url.indexOf("?") > 0) {
+                    url = url + "&go2pid=" + pid;
+                } else {
+                    url = url + "?go2pid=" + pid;
+                }
+
+            }
+
+            _redirect(url);
+
+        }
+
+        function _postback(oper, ocas) {
+            if (!document.getElementById("form1")) {
+                alert("Chybí formulář form1!");
+                return;
+            }
+            if (!document.getElementById("IsPostback")) {
+                $("#form1").append("<input type='hidden' id='IsPostback' name='IsPostback' value='false' />");
+                $("#form1").append("<input type='hidden' id='PostbackOper' name='PostbackOper' value='' />");
+            }
+            var element = event.target;
+
+            if (element.tagName == "BUTTON") {
+                $(event.target).text("Processing...");
+                $(event.target).attr("disabled", true);
+            }
+
+            $("#IsPostback").val(true);
+            if (typeof oper === "undefined") oper = "";
+            if (typeof ocas === "undefined" || ocas == null) ocas = "";
+            $("#PostbackOper").val(oper);
+
+            if (ocas != "") {
+                form1.action = form1.action + "?" + ocas;
+            }
+
+            form1.submit();
+        }
+
+
+        //-----------------modální okno------------------------------------------
+        function _window_toggle() {
+            var okno = $("#myModalContent");
+            var s = $("#myModalContentHeader").text();
+
+            if (_device.innerWidth - $(okno).width() < 30) {
+                _window_open("", 1);
+            } else {
+                _window_open("", 2);
+            }
+            $("#myModalContentHeader").text(s);
+
+        }
+
+        function _window_close() {
+            var iframe = document.getElementById("fraModalContent");
+            var elmnt = iframe.contentWindow.document.getElementById("toolbar_changeinfo");
+            if ($(elmnt).text() !== "") {
+                if (confirm("@_f.tra("Chcete x zavřít okno bez uložení změn?")")) {
+                    $(_modal).css("display", "none");
+                } else {
+                    return;
+                }
+            }
+            $(_modal).css("display", "none");
+            window.focus();
+        }
+
+
+
+        function _window_open(url, flag, header, layout) {
+            //flag=1: normální velikost, flag=2: maximalizovaná, flag=3: za každou cenu normální velikost
+            if (url != "") {
+                $("#myModalFrame").css("visibility", "hidden");
+            }
+            _modal_current_layout = layout;
+            if (typeof header === "undefined") header = "";
+            if (typeof flag === "undefined") flag = 1;   //automaticky ne-maximalovazné okno
+            if (url != "" && _j02_modal_window_flag == "FullScreen" && flag != 3) {
+                flag = 2; //vždy maximalizovat modální okno
+            }
+
+            if (!$(_modal).attr("initialized") && flag !== 2) {
+                _make_element_draggable(document.getElementById("myModalContent"), document.getElementById("myModalFrame")); //předávání nefunguje přes jquery
+                $(_modal).attr("initialized", true);
+            }
+            $("#myModalContentHeader").text(header);
+            _header_uschova = $("#myModalContentHeader").text();
+            $("#myModalContentHeader").text("LOADING CONTENT....");
+
+
+            var okno = $("#myModalContent");
+            var fra = $("#fraModalContent");
+
+            var w = 1100;
+            var h = 800;
+            var x = 0;
+            var y = 0;
+
+            if (flag === 1 || flag === 3) {   //centralizovat, max rozměr 1000x800
+                if (_device.innerWidth < w) w = _device.innerWidth;
+                if (_device.innerHeight < h) h = _device.innerHeight;
+                x = (_device.innerWidth - w) / 2;
+                y = (_device.innerHeight - h) / 2;
+                $("#spanToggle").text("crop_landscape");
+            }
+            if (flag === 2) {   //okno na fullsreen 100%
+                $("#myModalFrame").css("padding", "0");
+                w = _device.innerWidth;
+                h = _device.innerHeight;
+                x = 0;
+                y = 0;
+                $("#spanToggle").text("close_fullscreen");
+            }
+
+            $(okno).css("width", w);
+            $(okno).css("height", h);
+            $(okno).css("left", x);
+            $(okno).css("top", y);
+            $(fra).css("width", w - 15);
+            $(fra).css("height", h - 30 - 10);    //10 padding dole, 30 div header
+
+
+            if (url !== "") {
+                if (layout != undefined && layout != null)    //předat volané stránce informaci o zdroji volání
+                {
+                    if (url.indexOf("?") > 0) {
+                        url = url + "&layout=" + layout;
+                    } else {
+                        url = url + "?layout=" + layout;
+                    }
+
+                }
+
+                url = _ep(url);
+                $(fra).attr("src", url);
+            }
+
+            if (document.getElementById("divZoomContainer")) {
+                $("#divZoomContainer").css("display", "none");
+            }
+
+
+            $(_modal).css("display", "block");
+        }
+
+
+
+    </script>
+</body>
+</html>

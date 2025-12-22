@@ -1,0 +1,183 @@
+﻿@model UI.Models.ReminderItemViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Upozornění");
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageSymbol = "notifications";
+}
+
+@addTagHelper *, UI
+
+<div class="bg-light" style="padding:10px;">
+    <button type="button" onclick="_submit()" class="btn btn-success">@_f.tra("OK")</button>
+
+    <button type="button" onclick="reminder_zoom_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+
+
+
+</div>
+
+@if (Model.message != null)
+{
+    <div class="alert alert-danger" role="alert">
+        <h4>@Html.Raw(Model.message)</h4>
+    </div>
+}
+
+<form id="form1" asp-controller="ReminderItem" asp-action="Index" method="POST" style="padding:10px;">
+    <input type="hidden" asp-for="record_prefix" />
+    <input type="hidden" asp-for="is_static_date" />
+    
+    <input type="hidden" asp-for="rowguid" />
+
+    <div class="input-group" style="padding:10px;">
+        <div>
+            <select class="form-select" asp-for="o24MediumFlag">
+                <option value="Email">E-mail</option>
+                <option value="Sms">SMS</option>
+                <option value="EmailPlusSms">E-mail+SMS</option>
+            </select>
+        </div>
+
+        @if (Model.is_static_date)
+        {
+            <mydate asp-for="o24StaticDate" include-time="true"></mydate>
+
+        }
+        else
+        {
+
+
+            <div>
+                <select class="form-control" asp-for="o24Count">
+                    <option value="-1">-1</option>
+                    <option value="-2">-2</option>
+                    <option value="-3">-3</option>
+                    <option value="-4">-4</option>
+                    <option value="-5">-5</option>
+                    <option value="-6">-6</option>
+                    <option value="-7">-7</option>
+                    <option value="-8">-8</option>
+                    <option value="-9">-9</option>
+                    <option value="-10">-10</option>
+                    <option value="-11">-11</option>
+                    <option value="-12">-12</option>
+                    <option value="-13">-13</option>
+                    <option value="-14">-14</option>
+                    <option value="-15">-15</option>
+                </select>
+            </div>
+            <div>
+                <select class="form-control" asp-for="o24Unit">
+                    <option value="h">hodiny předem</option>
+                    <option value="d">dny předem</option>
+                </select>
+            </div>
+
+
+        }
+
+    </div>
+
+
+
+    <div class="row my-2">
+
+        <div class="col-sm-1 col-md-2">
+                <select asp-for="BindPrefix" value="@Model.BindPrefix" class="form-select" onchange="_postback('refresh')">
+
+                    <option value="j02">Uživatel</option>
+                    @if (Model.record_prefix != "p31")
+                    {
+                        <option value="x67">Role v záznamu</option>
+                    }
+                    <option value="j11">@_f.tra("Tým uživatelů")</option>
+                    <option value="p28">@_f.tra("Kontakt")</option>
+                    <option value="p24">@_f.tra("Skupina kontaktů")</option>
+                </select>
+            </div>
+        <div class="col-sm-8 col-md-9">
+                @if (Model.BindPrefix == "j02")
+                {
+                    
+                    <mycombo entity="j02User" asp-for="j02ID" selectedtext="@Model.ComboJ02ID" filter-flag="1"></mycombo>
+                }
+                @if (Model.BindPrefix == "j11")
+                {
+                    
+                    <mycombo entity="j11Team" asp-for="j11ID" selectedtext="@Model.ComboJ11ID"></mycombo>
+                }
+                @if (Model.BindPrefix == "x67")
+                {
+                   
+                    <mycombo entity="x67EntityRole" asp-for="x67ID" myqueryinline="x67entity|string|@(Model.record_prefix)" selectedtext="@Model.ComboX67ID"></mycombo>
+                }
+                @if (Model.BindPrefix == "p28")
+                {
+                   
+                    <mycombo entity="p28Contact" asp-for="p28ID" selectedtext="@Model.ComboP28Name" filter-flag="1"></mycombo>
+
+                }
+                @if (Model.BindPrefix == "p24")
+                {
+                    
+                    <mycombo entity="p24ContactGroup" asp-for="p24ID" selectedtext="@Model.ComboP24Name"></mycombo>
+
+                }
+            </div>
+        
+    </div>
+    
+
+
+    
+
+    <div style="margin-top:20px;">
+        <input type="text" asp-for="o24Memo" class="form-control" placeholder="Doplňující poznámka" />
+    </div>
+</form>
+
+
+<script type="text/javascript">
+    var hotovo = "@Model.issubmit";
+    if (hotovo == "True")
+    {
+        window.parent.document.getElementById("reminder_edit_o24mediumflag").value = "@((int) Model.o24MediumFlag)";
+
+        window.parent.document.getElementById("reminder_edit_o24count").value = "@Model.o24Count";
+        window.parent.document.getElementById("reminder_edit_o24unit").value = "@Model.o24Unit";
+
+        window.parent.document.getElementById("reminder_edit_bindprefix").value = "@Model.BindPrefix";
+        window.parent.document.getElementById("reminder_edit_j02id").value = "@Model.j02ID";
+        window.parent.document.getElementById("reminder_edit_j11id").value = "@Model.j11ID";
+        window.parent.document.getElementById("reminder_edit_x67id").value = "@Model.x67ID";
+        window.parent.document.getElementById("reminder_edit_p28id").value = "@Model.p28ID";
+        window.parent.document.getElementById("reminder_edit_p24id").value = "@Model.p24ID";
+        
+        window.parent.document.getElementById("reminder_edit_o24memo").value = "@Model.o24Memo";
+
+    
+        
+    @if(Model.o24StaticDate != null)
+    {
+        <text>
+                window.parent.document.getElementById("reminder_edit_o24staticdate").value = "@Model.o24StaticDate.Value.ToString("dd.MM.yyyy HH:mm")";
+        </text>
+    }
+    
+        
+        
+
+        window.parent.reminder_hardrefresh();
+
+        
+        
+    }
+    function reminder_zoom_close() {
+        window.parent.document.getElementById("zoom_okno").style.display = "none";
+    }
+
+    
+
+</script>

@@ -1,0 +1,63 @@
+﻿@model UI.Models.Tab1.p91Tab1
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+    if (Model.Rec == null) return;
+    if (Model.ff1 != null) Model.ff1.caller = "info";
+
+    var _disp = _f.p91InvoiceBL.InhaleRecDisposition(Model.Rec.pid, Model.Rec);
+    InfoButtonsViewModel _buttons = new InfoButtonsViewModel() { prefix = Model.prefix, pid = Model.pid, disp = _disp };
+}
+
+@addTagHelper *, UI
+
+<script src="~/js/rejstriky.js" asp-append-version="true"></script>
+
+@Html.Raw("<div class='info_record_container'>")
+
+<div>
+    @Html.EditorFor(m => _buttons, "~/Views/Shared/_InfoButtons.cshtml")
+</div>
+
+
+
+<div class="card recpageboxauto">
+    <div class="card-body">
+        @await Html.PartialAsync("~/Views/Shared/_p91RecHeaderBox.cshtml",Model.Rec)
+
+        @await Html.PartialAsync("~/Views/Shared/_FreeFieldsRO.cshtml",Model.ff1)
+
+        @Html.EditorFor(m => m.Rec, "~/Views/Shared/_TimeStamp.cshtml")
+    </div>
+</div>
+
+<div class="card recpageboxauto" style="width:290px;">
+    <div class="card-body">
+        @await Html.PartialAsync("~/Views/Shared/_p91RecCastkyBox.cshtml", Model.Rec)
+    </div>
+</div>
+
+
+<div class="card recpageboxauto" style="width:290px;">
+    <div class="card-body">
+        @await Html.PartialAsync("~/Views/Shared/_p91RecDatumyBox.cshtml", Model.Rec)
+    </div>
+</div>
+
+
+
+
+
+@Html.EditorFor(m => m, "~/Views/Shared/_TagsTab1.cshtml")
+
+@Html.EditorFor(m => m, "~/Views/Shared/_lisO27Tab1.cshtml")
+
+
+<div style="clear:both;"></div>
+<p></p>
+@await Html.PartialAsync("~/Views/Shared/_p91CenovyRozpis.cshtml", Model.Rec.pid)
+
+@Html.Raw("</div>")
+

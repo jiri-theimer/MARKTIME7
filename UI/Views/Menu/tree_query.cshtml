@@ -1,0 +1,148 @@
+﻿@model DynamicMenuViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = null;
+
+
+    int _intValue = _f.CBL.LoadUserParamInt("p41-treequery");
+}
+
+@addTagHelper *, UI
+
+<style type="text/css">
+    .local-header {
+        padding: 10px;
+        color: silver;
+    }
+</style>
+
+
+<div id="divContainerTreeQueryMenu" class="dynamicmenu_container" style="min-width:300px;">
+
+
+    <div style="padding-left:10px;padding-bottom:10px;">
+        <div class="local-header">
+            <h5>
+                <span class="material-icons-outlined-btn">lan</span> @_f.tra("Filtr stromové úrovně projektů")
+
+                
+            </h5>
+        </div>
+
+        @if (_f.p07LevelsCount == 1)
+        {
+            <i>Stromová struktura projektů zatím nebyla nastavena.</i>
+            <p></p>
+            <i>V administraci můžete definovat až 5 pojmenovaných vertikálních úrovní projektů (L1->L2->L3->L4->L5).</i>
+            <p></p>
+           
+            <i>Ve výchozím stavu jsou projekty na nejnižší vertikální úrovni (L5).</i>
+           
+        }
+
+        <div id="divLocalQuery">
+
+            @if (_intValue > 0 && _f.p07LevelsCount > 1)
+            {
+                <p>
+                    <button class="btn btn-outline-danger" style="margin-left:3px;" type="button" onclick="local_runquery(0)">
+                        @_f.tra("Zrušit aktuální filtr")
+                    </button>
+                </p>
+                
+
+
+            }
+
+
+
+            <table cellpadding="4" cellspacing="4">
+                @foreach(var c in _f.lisP07.Where(p=>!p.isclosed))
+                {
+                    <tr>
+                        <td style="width:20px;">
+                            <span style="color:lightgrey;" class="material-icons-outlined-btn">filter_alt</span>
+                        </td>
+                        <td>
+                            <a style="color:gray;" id="linquery@(c.p07Level)" href="javascript:local_runquery(@c.p07Level)">
+                                <kbd class="le@(c.p07Level)">L@(c.p07Level)</kbd>
+
+                                @c.p07NamePlural
+
+                            </a>
+
+                        </td>
+                    </tr>
+                }
+                
+
+            </table>
+
+        </div>
+
+       
+
+    </div>
+
+    @if (_f.CurrentUser.IsAdmin)
+    {
+        <hr />
+        <small>Administrace:</small>
+        <small>
+            <a href="javascript:window.parent._window_open('/p07/ProjectLevels')">@_f.tra("Vertikální úrovně projektů")</a>
+        </small>
+       
+    }
+
+
+</div>
+
+
+<script type="text/javascript">
+    var _localval = "@(_intValue)";
+
+    @if (_f.p07LevelsCount == 1)
+    {
+        <text>
+            $("#divLocalQuery").css("display", "none");
+        </text>
+    }
+
+        $(document).ready(function () {
+
+            if (_localval != "0") {
+                $("#linquery" + _localval).addClass("active");
+            }
+
+
+            _adjust_divheight_small_display("divContainerTreeQueryMenu");
+
+
+
+            if (window !== top) {   //voláno uvnitř iframe
+                //nic
+            }
+        })
+
+
+
+
+
+    function local_runquery(val) {
+        var url = location.href;
+
+
+
+        $.post(_ep("/Common/SetUserParam"), { key: "p41-treequery", value: val }, function (data) {
+
+            location.replace(url);
+
+
+
+        });
+    }
+
+
+
+</script>

@@ -1,0 +1,105 @@
+﻿@model UI.Models.Record.j05Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Vztah Nadřízený -> Podřízený");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    Model.PageSymbol = "recent_actors";
+}
+
+@addTagHelper *, UI
+
+<div class="modal_record_container">
+
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Nadřízený (jednotlivec)"):</label>
+        <div class="col-sm-11 col-md-10">
+            <mycombo entity="j02User" asp-for="Rec.j02ID_Master" selectedtext="@Model.ComboPersonMaster" view-flag="1"></mycombo>
+        </div>
+       
+    </div>
+    <div class="my-2">
+        <input type="radio" value="True" id="SlaveIsTeamTrue" asp-for="@Model.SlaveIsTeam" onchange="_postback()" /><label for="SlaveIsTeamTrue">@_f.tra("Podřízený je tým")</label>
+        <br />
+        <input type="radio" value="False" id="SlaveIsTeamFalse" asp-for="@Model.SlaveIsTeam" onchange="_postback()" /><label for="SlaveIsTeamFalse">@_f.tra("Podřízený je uživatel")</label>
+
+    </div>
+    
+    @if (Model.SlaveIsTeam)
+    {
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Tým uživatelů"):</label>
+            <div class="col-sm-11 col-md-10">
+                <mycombo entity="j11Team" asp-for="Rec.j11ID_Slave" selectedtext="@Model.ComboTeamSlave" view-flag="2"></mycombo>
+            </div>
+
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Uživatel"):</label>
+            <div class="col-sm-11 col-md-10">
+                <mycombo entity="j02User" asp-for="Rec.j02ID_Slave" selectedtext="@Model.ComboPersonSlave" view-flag="1"></mycombo>
+            </div>
+
+        </div>
+    }
+   
+    <div class="card my-2">
+        <div class="card-header">
+            @_f.tra("Vztah k úkonům")
+        </div>
+        <div class="card-body">
+            <div>
+                <input type="checkbox" asp-for="Rec.j05IsCreate_p31" />
+                <label class="col-form-label" for="Rec_j05IsCreate_p31">@_f.tra("Možnost vykazovat úkony za podřízeného")</label>
+            </div>
+            <strong>@_f.tra("Přístup k uloženým úkonům podřízeného"):</strong>
+            <div>
+                <input type="radio" id="j05Disposition_p311" asp-for="@Model.Rec.j05Disposition_p31" value="Cist">
+                <label for="j05Disposition_p311">@_f.tra("Číst")</label>
+                <br />
+                <input type="radio" id="j05Disposition_p312" asp-for="@Model.Rec.j05Disposition_p31" value="CistAEdit">
+                <label for="j05Disposition_p312">@_f.tra("Číst+Upravovat")</label>
+                <br />
+                <input type="radio" id="j05Disposition_p313" asp-for="@Model.Rec.j05Disposition_p31" value="CistASchvalovat">
+                <label for="j05Disposition_p313">@_f.tra("Číst+Schvalovat")</label>
+                <br />
+                <input type="radio" id="j05Disposition_p314" asp-for="@Model.Rec.j05Disposition_p31" value="CistAEditASchvalovat">
+                <label for="j05Disposition_p314">@_f.tra("Číst+Upravovat+Schvalovat")</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="card my-2">
+        <div class="card-header">
+            @_f.tra("Vztah k uživatelským profilům")
+        </div>
+        <div class="card-body">
+            
+            <strong>@_f.tra("Oprávnění k uživatelským profilům podřízených"):</strong>
+            <div>
+               
+                <input type="radio" id="j05Disposition_j021" asp-for="@Model.Rec.j05Disposition_j02" value="Cist">
+                <label for="j05Disposition_j021">@_f.tra("Číst profil")</label>
+                <br />
+                <input type="radio" id="j05Disposition_j022" asp-for="@Model.Rec.j05Disposition_j02" value="CistAEdit">
+                <label for="j05Disposition_j022">@_f.tra("Číst+Upravovat profil")</label>
+                
+            </div>
+        </div>
+    </div>
+
+    <div class="card my-2">
+        <div class="card-header">
+            Vztah ke klientům/projektům/vyúčtování/dokumentům...
+        </div>
+        <div class="card-body">
+            <i>V případě, že nadřízený nedisponuje paušálním přístupem ke všem projektům, zdědí oprávnění k projektům od zde uvedené podřízené uživatele.</i>
+            <hr />
+            <i>Stejný princip se uplatňuje pro přístup k datům podřízeného u projektů, vyúčtování, záloh, dokumentů.</i>
+        </div>
+    </div>
+
+</div>

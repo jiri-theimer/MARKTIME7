@@ -1,0 +1,48 @@
+﻿@model UI.Models.p31oper.p31IsdocViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = "ISDOC import";
+    Model.PageSymbol = "downloading";
+
+}
+
+@addTagHelper *, UI
+
+<form id="form1" asp-controller="p31Isdoc" asp-action="Index" method="POST">
+    <div class="bg-light row my-2" style="width:99%;">
+
+        <div class="col-auto">
+            <button id="cmdSave" class="btn btn-success" onclick="_submit()">@_f.tra("Uložit změny")</button>
+            <button id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+        </div>
+
+    </div>
+
+
+
+
+    <iframe id="fraUpload" src="/FileUpload/DoUpload?guid=@Model.UploadGuid" frameborder="0" scrolling="yes" style="max-width:1200px;height:60px;"></iframe>
+
+
+    <input type="hidden" asp-for="UploadGuid" />
+</form>
+
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+
+
+
+    })
+
+
+
+</script>
+

@@ -1,0 +1,29 @@
+﻿@model UI.Models.BaseViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+
+    var _model1 = new UI.Models.p31view.minicalendarViewModel();
+    _model1.d0 = DateTime.Today;
+    _model1.j02ID = BO.Code.Bas.InInt(UI.Code.basUI.GetQueryValue(Context, "j02id"));
+    if (_f.CurrentUser.j02DefaultHoursFormat == "T")
+    {
+        _model1.ShowHHMM = true;
+    }
+    if (_model1.j02ID == 0)
+    {
+        _model1.j02ID = _f.CurrentUser.pid;
+    }
+    
+
+}
+
+@addTagHelper *, UI
+
+<link rel="stylesheet" href="~/css/calendar.css" />
+
+
+
+@Html.EditorFor(m => _model1, "~/Views/Shared/_minicalendar.cshtml")
+

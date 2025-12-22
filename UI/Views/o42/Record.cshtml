@@ -1,0 +1,117 @@
+﻿@model UI.Models.Record.o42Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("IMAP Pravidlo");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+}
+
+@addTagHelper *, UI
+
+<div class="modal_record_container">
+
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název pravidla"):</label>
+        <div class="col-sm-11 col-md-10">
+            <input class="form-control" asp-for="Rec.o42Name" />
+        </div>
+    
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("IMAP účet"):</label>
+        <div class="col-sm-11 col-md-10">
+            <mydropdown asp-for="Rec.j40ID" datasource="@Model.lisJ40" textfield="j40ImapLogin" valuefield="pid" firstemptyrowtext="-- @_f.tra("IMAP poštovní účet") --" isfirstemptyrow="true" firstemptyrowvalue="0"></mydropdown>
+        </div>
+
+    </div>
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Cíl pravidla"):</label>
+        <div class="col-sm-6 col-md-5">
+            <select asp-for="@Model.Rec.o42WhatToDoFlag" class="form-select">
+                <option value="_StayInQueue">@_f.tra("Uložit do fronty k ručním zatřídění")</option>
+                <option value="CreateDoc">@_f.tra("Nový záznam agendy")</option>
+                <option value="BindWithProject">@_f.tra("Připojit k projektu")</option>
+                <option value="BindWithContact">@_f.tra("Připojit ke kontaktu")</option>
+                <option value="BindWithUser">@_f.tra("Připojit k uživateli")</option>
+                <option value="InvoicePayment">@_f.tra("Úhrada faktury")</option>
+                <option value="ProformaPayment">@_f.tra("Úhrada zálohy")</option>
+            </select>
+        </div>
+       
+
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            @_f.tra("Výchozí zatřídění IMAP poštovní zprávy (nepovinné)")
+        </div>
+        <div class="card-body">
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Projekt"):</label>
+                <div class="col-sm-11 col-md-10">
+                    <mycombo entity="p41Project" asp-for="Rec.p41ID_Default" selectedtext="@Model.ComboP41" view-flag="1"></mycombo>
+                </div>
+
+            </div>
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Kontakt"):</label>
+                <div class="col-sm-11 col-md-10">
+                    <mycombo entity="p28Contact" asp-for="Rec.p28ID_Default" selectedtext="@Model.ComboP28" view-flag="1"></mycombo>
+                </div>
+
+            </div>
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Uživatel"):</label>
+                <div class="col-sm-11 col-md-10">
+                    <mycombo entity="j02User" asp-for="Rec.j02ID_Default" selectedtext="@Model.ComboJ02" view-flag="1"></mycombo>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    
+   
+
+    <div class="card">
+        <div class="card-header">
+            @_f.tra("Podmínky pro splnění pravidla (nepovinné)")
+        </div>
+        <div class="card-body">
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Odesílatel (adresa)"):</label>
+                <div class="col-sm-11 col-md-10">
+                    <input type="text" class="form-control" asp-for="Rec.o42Condition_Sender" />
+                </div>
+
+            </div>
+            
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Předmět zprávy"):</label>
+                <div class="col-sm-11 col-md-10">
+                    <input type="text" class="form-control" asp-for="Rec.o42Condition_Subject" />
+                </div>
+
+            </div>
+
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("CC adresa"):</label>
+                <div class="col-sm-11 col-md-10">
+                    <input type="text" class="form-control" asp-for="Rec.o42Condition_Cc" />
+                </div>
+
+            </div>
+
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("BCC adresa"):</label>
+                <div class="col-sm-11 col-md-10">
+                    <input type="text" class="form-control" asp-for="Rec.o42Condition_Bcc" />
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <myglobalparams prefix="o42" pid="@Model.rec_pid"></myglobalparams>
+</div>

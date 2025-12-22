@@ -1,0 +1,717 @@
+﻿@model UI.Models.p31approve.InlineViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = _f.tra("Schvalování nevyúčtovaných úkonů");
+    Model.PageSymbol = "approval";
+    bool _IsMobile = _f.CurrentUser.IsMobileDisplay();
+    bool _IsUrovenSchvalovani = _f.CurrentUser.IsHes(65536);
+    bool _IsHodinyPausal = _f.CurrentUser.IsHes(32768);
+    bool _IsInterniHodiny = _f.CurrentUser.IsHes(16384);
+
+    if (Model.lisRecs == null)
+    {
+        return;
+    }
+
+    List<SelectListItem> _sliP71 = new List<SelectListItem>();
+    _sliP71.Add(new SelectListItem() { Text = _f.tra("Schváleno"), Value = "1" });
+    _sliP71.Add(new SelectListItem() { Text = _f.tra("Neschváleno"), Value = "2" });
+    _sliP71.Add(new SelectListItem() { Text = _f.tra("Rozpracováno"), Value = "0" });
+
+    List<SelectListItem> _sliP72 = new List<SelectListItem>();
+    _sliP72.Add(new SelectListItem() { Text = _f.tra("Fakturovat"), Value = "4" });
+    _sliP72.Add(new SelectListItem() { Text = _f.tra("Zahrnout do paušálu"), Value = "6" });
+    _sliP72.Add(new SelectListItem() { Text = _f.tra("Viditelný odpis"), Value = "2" });
+    _sliP72.Add(new SelectListItem() { Text = _f.tra("Skrytý odpis"), Value = "3" });
+    _sliP72.Add(new SelectListItem() { Text = _f.tra("Fakturovat později"), Value = "7" });
+
+    List<SelectListItem> _lisLevel = new List<SelectListItem>();
+    _lisLevel.Add(new SelectListItem() { Text = "#0", Value = "0" });
+    _lisLevel.Add(new SelectListItem() { Text = "#1", Value = "1" });
+    _lisLevel.Add(new SelectListItem() { Text = "#2", Value = "2" });
+
+    List<SelectListItem> _sliOrder = new List<SelectListItem>();
+    _sliOrder.Add(new SelectListItem() { Text = _f.tra("Třídit podle"), Value = "0"});
+    _sliOrder.Add(new SelectListItem() { Text = _f.tra("Datum"), Value = "p31Date" });
+    _sliOrder.Add(new SelectListItem() { Text = _f.tra("Uživatel"), Value = "j02.j02LastName,j02.j02FirstName" });
+    _sliOrder.Add(new SelectListItem() { Text = _f.tra("Uživatel+Projekt"), Value = "j02.j02LastName,j02.j02FirstName,p28Client.p28Name,p41x.p41Name" });
+    _sliOrder.Add(new SelectListItem() { Text = _f.tra("Klient"), Value = "p28Client.p28Name" });
+    _sliOrder.Add(new SelectListItem() { Text = _f.tra("Klient+Uživatel"), Value = "p28Client.p28Name,j02.j02LastName,j02.j02FirstName" });
+    _sliOrder.Add(new SelectListItem() { Text = _f.tra("Klient+Projekt"), Value = "p28Client.p28Name,p41x.p41Name" });
+
+    if (Model.OrderBy1 != "0" && _sliOrder.Any(p=>p.Value==Model.OrderBy1))
+    {
+        _sliOrder.First(p => p.Value == Model.OrderBy1).Selected = true;
+    }
+
+    List<SelectListItem> _p72Query = new List<SelectListItem>();
+    _p72Query.Add(new SelectListItem() { Text = _f.tra("Filtrovat podle stavu"), Value = "0" });
+    _p72Query.Add(new SelectListItem() { Text = "Fakturovat", Value = "4" });
+    _p72Query.Add(new SelectListItem() { Text = "Zahrnout do paušálu", Value = "6" });
+    _p72Query.Add(new SelectListItem() { Text = "Odpis", Value = "23" });
+    _p72Query.Add(new SelectListItem() { Text = "Fakturovat později", Value = "7" });
+
+    if (Model.p72Query != "0" && _p72Query.Any(p => p.Value == Model.p72Query))
+    {
+        _p72Query.First(p => p.Value == Model.p72Query).Selected = true;
+    }
+
+    int _pocetFakturanichPoznamek = 0;
+    IEnumerable<BO.b05Workflow_History> _lisB05 = null;
+    if (Model.lisP41 != null && Model.lisP41.Count()>0)
+    {
+        _lisB05 = _f.WorkflowBL.GetList_b05_p41_p28(Model.lisP41.Select(p => p.pid).ToList(), Model.lisP41.Select(p => p.p28ID_Client).ToList()).Where(p => BO.Code.Bas.bit_compare_or(p.b05Tab1Flag, 4) == true);
+        _pocetFakturanichPoznamek = _lisB05.Count();
+        _pocetFakturanichPoznamek += Model.lisP41.Where(p => p.p41BillingMemo200 != null).Count();
+        _pocetFakturanichPoznamek += Model.lisP41.Where(p => p.p28BillingMemo200 != null).Count();
+    }
+    
+    
+}
+
+
+
+@addTagHelper *, UI
+
+@section header_content
+    {
+  
+    <link href="~/css/approve.css" rel="stylesheet" type="text/css" />
+}
+
+
+<script src="~/lib/dragselect/ds.min.js"></script>
+
+
+<script type="text/javascript">
+    var _guid = "@Model.p31guid";
+    var _p91id = "@Model.p91id";
+</script>
+
+<script src="~/js/p31approve.js" asp-append-version="true"></script>
+
+<form id="form1" asp-controller="p31approve" asp-action="Inline" method="POST">
+    <div class="input-group my-2" style="border-bottom:solid 1px silver;">
+        <div style="margin-left:2px;">
+            <ul class="nav nav-tabs">
+                <li class="onetab">
+                    <a class="nav-link active" href="javascript:reload()">INLINE</a>
+                </li>
+                <li class="onetab">
+                    <a class="nav-link" id="linkGo2Grid" href="javascript:go2grid('@Model.p31guid',@Model.p91id)">GRID</a>
+                </li>
+            </ul>
+        </div>
+        <div style="margin-left:20px;">
+            @if (Model.p91id == 0)
+            {
+                <button type="button" id="cmdSaveOnly" class="btn btn-info" onclick="_postback('saveonly')">@_f.tra("Pouze uložit schvalování")</button>
+                <button type="button" id="cmdSaveAndBilling" class="btn btn-success" onclick="_postback('saveandbilling')">@_f.tra("Uložit schvalování a pokračovat vyúčtováním")</button>
+            }
+            else
+            {
+                <button type="button" id="cmdAppend2Invoice" class="btn btn-success m-1" onclick="_postback('append2invoice')">@_f.tra("Vložit úkony do vyúčtování") @(Model.RecP91_Append2Invoice.p91Code)</button>
+            }
+
+        </div>
+        
+        
+       
+        <div style="margin-left:2px;">
+            <button type="button" class="btn descreet_link_over_grid" onclick="statistika(this,event,'@(Model.p31guid)')" title="@_f.tra("Podrobná statistika")">
+                <span class="material-icons-outlined-btn">auto_graph</span>
+            </button>
+        </div>
+        @if (_pocetFakturanichPoznamek > 0)
+        {
+            <div>
+                <button type="button" class="btn descreet_link_over_grid" onclick="memos(this,event,'@(Model.p31guid)')" title="@_f.tra("Fakturační poznámky")">
+                    <myicon symbol="speaker_notes"></myicon>
+                    @(_pocetFakturanichPoznamek)
+                </button>
+                
+               
+            </div>
+        }
+        @if(Model.RecP91_Append2Invoice != null)
+        {
+            <div>
+                <button type="button" class="btn descreet_link_over_grid bgp91" onclick="invoice_info(this,event,'@(Model.p91id)')">
+                    <span class="material-icons-outlined-btn">info</span>
+                    @(Model.RecP91_Append2Invoice.p91Code)
+                </button>
+            </div>
+        }
+
+        
+        <div style="margin-left:20px;">
+            <select id="cbxP72ID" asp-items="@_p72Query" class="form-select" onchange="change_query_p72id()">
+            </select>
+        </div>
+        <div>
+            <myshowmore></myshowmore>
+        </div>
+        <div class="showmore" style="margin-left:20px;">
+            <a class="btn descreet_link_over_grid nonmobile" href="javascript:p31_create()" title="@_f.tra("Přidat/vykázat úkon")"><span class="material-icons-outlined-btn">more_time</span></a>
+        </div>
+        <div class="showmore">
+            <a class="btn descreet_link_over_grid nonmobile" href="javascript:report('@(Model.p31guid)')" title="@_f.tra("Tisková sestava")"><span class="material-icons-outlined-btn">print</span></a>
+        </div>
+        <div class="showmore">
+            <select id="cbxOrder1" asp-items="@_sliOrder" class="form-select" onchange="change_order()">
+            </select>
+        </div>
+
+        <div style="margin-left:20px;">
+            <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
+        </div>
+        <div style="margin-left:auto;margin-right:10px;" class="nonmobile">
+            <button id="cmdSetting" class="btn bog" type="button" tabindex="-1" onclick="_window_open('/p31hes/Index?tabindex=2',3)">
+                ☰
+                @_f.tra("Nastavení")
+            </button>
+        </div>
+    </div>
+
+    <div class="input-group" style="padding-bottom:10px;">
+        
+        <div>
+            <button class="btn btn-sm btn-outline-primary bog dropdown-toggle" type="button" id="cmdMore">
+                
+                <span class="material-icons-outlined-btn">playlist_add_check</span>
+                @_f.tra("Akce pro vybrané")
+                <span id="selected_rowscount_info" style="background-color:blue;color:white;padding-left:5px;padding-right:5px;border-radius:4px;">0</span>
+            </button>
+        </div>
+        <div style="margin-left:16px;">
+            <a class="btn btn-sm bog" href="javascript:batch_select_what('time')" title="Zaškrtnout hodiny">
+                <span class="material-icons-outlined-btn">check_box</span>
+                @_f.tra("Hodiny")
+            </a>
+        </div>
+        <div>
+            <a class="btn btn-sm bog" href="javascript:batch_select_what('expense')" title="Zaškrtnout výdaje">
+                <span class="material-icons-outlined-btn">check_box</span>
+                @_f.tra("Výdaje")
+            </a>
+        </div>
+        <div>
+            <a class="btn btn-sm bog" href="javascript:batch_select_what('fee')" title="Zaškrtnout pevné odměny">
+                <span class="material-icons-outlined-btn">check_box</span>
+                @_f.tra("Odměny")
+            </a>
+        </div>
+        <div>
+            <a class="btn btn-sm bog" href="javascript:batch_select_what('check_all')">
+                <span class="material-icons-outlined-btn">check_box</span>
+                @_f.tra("Vše")
+            </a>
+        </div>
+        <div>
+            <a class="btn btn-sm bog" href="javascript:batch_select_what('uncheck_all')">
+                <span class="material-icons-outlined-btn">check_box_outline_blank</span>
+                @_f.tra("Zrušit")
+            </a>
+        </div>
+
+        <div style="margin-left:100px">
+            <table>
+                <tr>
+                    <td>
+                        <span class="badge-light" style="background-color:white;" id="statHodiny0" title="@_f.tra("Původní hodiny")">@(Model.InitStatistic.hodiny0)</span>
+                    </td>
+                    <td>
+                        <span class="badge-light" style="background-color:white;" id="statPenize0CZK" title="Bez DPH z původních úkonů">@(Model.InitStatistic.penize_czk0)</span>
+                        
+                    </td>
+                    <td>
+                        <span class="badge-light" style="background-color:white;" id="statPenize0EUR" title="Bez DPH z původních úkonů">@(Model.InitStatistic.penize_eur0)</span>
+                    </td>
+                    <td>
+                        <span class="badge-light" style="background-color:white;color:red;" id="statHodinyMinus" title="@_f.tra("Korekce hodin")">@(Model.InitStatistic.hodiny_minus)</span>
+                    </td>
+
+                    <td>
+                        <span class="badge-light" style="background-color:white;color:red;" id="statPenizeCZKMinus">@(Model.InitStatistic.penize_czk_minus)</span>
+                        
+                    </td>
+                    <td>
+                        <span class="badge-light" style="background-color:white;color:red;" id="statPenizeEURMinus">@(Model.InitStatistic.penize_eur_minus)</span>
+                    </td>
+
+                    <td>
+                        <span class="badge-a4" id="statHodiny4" title="@_f.tra("Hodiny k fakturaci")">@(Model.InitStatistic.hodiny4)</span>
+                    </td>
+
+                    <td>
+                        <span class="badge-a4" id="statBezDPH4CZK" title="@_f.tra("K fakturaci bez DPH CZK")">@(Html.Raw(Model.InitStatistic.bezdph4czk))</span>
+                        
+                    </td>
+                    <td>
+                        <span class="badge-a4" id="statBezDPH4EUR" title="@_f.tra("K fakturaci bez DPH EUR")">@(Html.Raw(Model.InitStatistic.bezdph4eur))</span>
+                    </td>
+
+                    <td>
+                        <span class="badge-a7" id="statHodiny7" title="@_f.tra("Hodiny fakturovat později")">@(Model.InitStatistic.hodiny7)</span>
+                    </td>
+                    <td>
+                        <span class="badge-a6" id="statHodiny6" title="@_f.tra("Hodiny v paušálu")">@(Model.InitStatistic.hodiny6)</span>
+                    </td>
+                    <td>
+                        <span class="badge-a2" id="statHodiny2" title="@_f.tra("Hodiny viditelný odpis")">@(Model.InitStatistic.hodiny2)</span>
+                    </td>
+                    <td>
+                        <span class="badge-a3" id="statHodiny3" title="@_f.tra("Hodiny skrytý odpis")">@(Model.InitStatistic.hodiny3)</span>
+                    </td>
+                    <td>
+                        <span class="badge-light" id="statHodiny9" title="@_f.tra("Hodiny rozpracované")">@(Model.InitStatistic.hodiny9)</span>
+                    </td>
+                    <td>
+                        <span class="badge-light" id="statPenizeHonorar9">@(Model.InitStatistic.honorar_hodiny9)</span>
+                    </td>
+                </tr>
+
+            </table>
+        </div>
+    </div>
+
+    <div id="divMore" style="background-color:aliceblue;display:none;padding:10px;border-radius:5px;border:solid 1px silver;margin-bottom:10px;margin-top:5px;">
+
+        
+        <div>
+
+            <button type="button" class="btn btn-sm bog" id="cmdBatch4" onclick="batch(this,1,4)"><span class="material-icons-outlined-btn" style="color:green;">approval</span>@_f.tra("Fakturovat")</button>
+            <button type="button" class="btn btn-sm bog" id="cmdBatch6" onclick="batch(this,1,6)" style="margin-left:20px;"><span class="material-icons-outlined-btn" style="color:pink;">approval</span>@_f.tra("Zahrnout do paušálu")</button>
+            <button type="button" class="btn btn-sm bog" id="cmdBatch2" onclick="batch(this,1,2)"><span class="material-icons-outlined-btn" style="color: red;">approval</span>@_f.tra("Viditelný odpis")</button>
+            <button type="button" class="btn btn-sm bog" id="cmdBatch3" onclick="batch(this,1,3)"><span class="material-icons-outlined-btn" style="color: brown;">approval</span>@_f.tra("Skrytý odpis")</button>
+            <button type="button" class="btn btn-sm bog" id="cmdBatch7" onclick="batch(this,1,7)" style="margin-left:20px;"><span class="material-icons-outlined-btn" style="color:gold;">approval</span>@_f.tra("Fakturovat později")</button>
+
+            <button type="button" class="btn btn-sm bog" id="cmdBatch0" onclick="batch(this,0,0)" style="margin-left:20px;"><span class="material-icons-outlined-btn">edit</span>@_f.tra("Vrátit do rozpracovanosti")</button>
+
+        </div>
+
+
+        <table>
+            <tr>
+                <td>
+                    @_f.tra("Výběru nahodit fakturační sazbu"):
+                </td>
+                <td style="max-width:70px">
+                    <mynumber asp-for="@Model.BatchInvoiceRate"></mynumber>
+                </td>
+                <td>
+                    <button type="button" class="btn bog" onclick="batch_sazba()">OK</button>
+                </td>
+            </tr>
+            @if (_IsUrovenSchvalovani)
+            {
+                <tr>
+                    <td>
+                        @_f.tra("Výběru záznamů nahodit schvalovací úroveň"):
+                    </td>
+                    <td>
+                        <select class="form-select" asp-for="@Model.BatchApproveLevel">
+                            <option value="0">#0</option>
+                            <option value="1">#1</option>
+                            <option value="2">#2</option>
+                        </select>
+                    </td>
+                    <td>
+                        <button type="button" class="btn bog" onclick="batch_uroven()">OK</button>
+                    </td>
+                </tr>
+            }
+
+        </table>
+
+
+        
+    </div>
+
+    <input type="hidden" asp-for="p31guid" />
+    <input type="hidden" asp-for="j72id_report" />
+    <input type="hidden" asp-for="CheckedPids" value="@Model.CheckedPids" />
+
+    <input type="hidden" asp-for="p91id" />
+    <input type="hidden" id="hidTotoJeInline" />
+    <input type="hidden" asp-for="batchpids" />
+    <input type="hidden" asp-for="IsRenderp28Name" value="@Model.IsRenderp28Name" />
+    <input type="hidden" asp-for="IsRenderp41Name" value="@Model.IsRenderp41Name" />
+    <input type="hidden" asp-for="IsRenderPerson" value="@Model.IsRenderPerson" />
+    <input type="hidden" asp-for="IsRenderp34Name" value="@Model.IsRenderp34Name" />
+    <input type="hidden" asp-for="IsRenderp32Name" value="@Model.IsRenderp32Name" />
+</form>
+
+
+<div id="tablist_container" style="overflow:auto;">
+    <table id="tab1" class="tabinline" style="user-select: none; -moz-user-select: none; -khtml-user-select: none;">
+        <thead style="border-top:solid 1px silver;border-bottom:solid 1px silver;background-color:#F5F5F5">
+            <tr>
+                <th style="width:30px;">
+                    <a class="chkbox" href="javascript:check_all()" title="Zaškrtnout vše" style="text-align:center;">
+                        <span class="material-icons-outlined-btn">check_box</span>
+                    </a>
+                    
+                </th>
+                <th style="width:150px">
+                   
+                    
+                </th>
+                <th style="width:100px;">
+                    Datum/Jméno
+                </th>
+                <th style="width:300px;padding-left:20px;">
+                    Klient/Projekt
+                </th>
+                <th style="width:200px;padding-left:20px;">
+                    Aktivita
+                </th>
+                <th style="width:70px;text-align:center;">
+                    Hodiny
+                </th>
+                <th style="width:120px;text-align:center;">
+                    Cena
+                </th>
+                <th style="width:120px;" title="Schváleno x Původně">
+
+                </th>
+
+
+                @if (_IsHodinyPausal || _IsInterniHodiny)
+                {
+                    <th style="width:90px;text-align:right;">
+
+                    </th>
+                }
+                <th style="width:auto;"></th>
+
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < Model.lisRecs.Count; i++)
+            {
+                {
+                    _sliP71[0].Selected = false; _sliP71[1].Selected = false; _sliP71[2].Selected = false;
+                    _sliP71.First(p => p.Value == Model.lisRecs[i].p71id.ToString()).Selected = true;
+
+                    _sliP72[0].Selected = false; _sliP72[1].Selected = false; _sliP72[2].Selected = false; _sliP72[3].Selected = false; _sliP72[4].Selected = false;
+                    if (_sliP72.Any(p => p.Value == Model.lisRecs[i].p72id.ToString()))
+                    {
+                        _sliP72.First(p => p.Value == Model.lisRecs[i].p72id.ToString()).Selected = true;
+                    }
+                    if (_IsUrovenSchvalovani)
+                    {
+                        _lisLevel[0].Selected = false; _lisLevel[1].Selected = false; _lisLevel[2].Selected = false;
+                        _lisLevel.First(p => p.Value == Model.lisRecs[i].uroven.ToString()).Selected = true;
+                    }
+                }
+                <tr class="tabrow @(Model.lisRecs[i].cssclass) @(Model.lisRecs[i].tabquery)" id="tr@(Model.lisRecs[i].pid)" data-x="@i">
+                    <td class="td30">
+                        <input type="checkbox" id="chk@(Model.lisRecs[i].pid)" name="selrow" value="@Model.lisRecs[i].pid" tabindex="-1" />
+                        @if (!_IsMobile)
+                        {
+                            <a class="cm" data-id="@(Model.lisRecs[i].pid)"></a>
+                        }
+                        
+                    </td>
+                    <td>
+                        <select class="editable p71id" tabindex="-1" asp-items="@_sliP71"></select>
+                        @if (_IsUrovenSchvalovani)
+                        {
+                            <select class="editable uroven" value="@Model.lisRecs[i].uroven" asp-items="@_lisLevel"></select>
+                        }
+                        @if (Model.lisRecs[i].b05id_last > 0)
+                        {
+                            <span class="material-icons-outlined-nosize">speaker_notes</span>
+                            
+                        }
+                        <br>
+                        <select class="editable p72id" asp-items="@_sliP72"></select>
+                        <input type="hidden" class="p33id" value="@Model.lisRecs[i].p33id" />
+                       
+                    </td>
+                    <td>
+                        <div>
+                            @(Model.lisRecs[i].Datum)
+                        </div>
+                        @if (Model.IsRenderPerson)
+                        {
+                            @(Model.lisRecs[i].Jmeno)
+                        }
+
+                    </td>
+                    <td>
+                        @if (Model.IsRenderp28Name)
+                        {
+                            @(Model.lisRecs[i].p28name)
+                        }
+                        @if (Model.IsRenderp41Name)
+                        {
+                            <div>
+                                @(Model.lisRecs[i].p41name)
+                            </div>
+                        }
+
+
+                        @if (Model.lisRecs[i].p56name != null)
+                        {
+                            <div style="margin-top:5px;"><span class="material-icons-outlined-btn">task</span><span style="color:blue;">@(Model.lisRecs[i].p56name)</span></div>
+                        }
+                    </td>
+                    <td>
+                        @if (Model.IsRenderp34Name)
+                        {
+                            <div>
+                                @(Model.lisRecs[i].Sesit)
+                            </div>
+                        }
+                        @if (Model.IsRenderp32Name)
+                        {
+                            <span style="color:@(Model.lisRecs[i].fakturovatelne ? "green": "red");">@(Model.lisRecs[i].Aktivita)</span>
+                        }
+                        @if (Model.lisRecs[i].p40id_fixprice > 0)
+                        {
+                            <div>
+                                <small class="badge-a6">@Model.lisRecs[i].p40name</small>
+                            </div>
+                        }
+
+                    </td>
+                    <td class="ar" id="tdHodnota@(i)">
+                        @if (Model.lisRecs[i].p33id == 1 || Model.lisRecs[i].p33id == 3)
+                        {
+                            <input type="text" class="editable hodiny cislo" value="@Model.lisRecs[i].hodiny" />
+                            <br />
+                            <span class="vykazano">@Model.lisRecs[i].vykazano</span>
+                            <div>
+                                @if (Model.lisRecs[i].p72id == 4 && Model.lisRecs[i].rozdil_vykazano_schvaleno_hodnota != null)
+                                {
+                                    <span class="rozdil_hodnota">@(Model.lisRecs[i].rozdil_vykazano_schvaleno_hodnota)</span>
+                                }
+                                else
+                                {
+                                    <span class="rozdil_hodnota"></span>
+                                }
+                            </div>
+                        }
+
+
+
+                    </td>
+
+                    <td id="tdCena@(i)" class="ar">
+                        @if (Model.lisRecs[i].p33id == 1 || Model.lisRecs[i].p33id == 3)
+                        {
+                            <div id="divSazba@(i)">
+                                <input type="text" value="@Model.lisRecs[i].sazba" class="editable sazba cislo" />
+
+
+                            </div>
+                            <span class="vykazano">@Model.lisRecs[i].vykazano_sazba</span>
+                            <div>
+                                @if (Model.lisRecs[i].p72id == 4 && Model.lisRecs[i].rozdil_vykazano_schvaleno_sazba != null)
+                                {
+                                    <span class="rozdil_sazba">@(Model.lisRecs[i].rozdil_vykazano_schvaleno_sazba)</span>
+                                }
+                                else
+                                {
+                                    <span class="rozdil_sazba"></span>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div id="divCena@(i)">
+                                <input type="text" value="@Model.lisRecs[i].bezdph" class="editable bezdph cislo" />
+
+                                <br>
+                                <input type="text" value="@Model.lisRecs[i].dphsazba" class="editable dphsazba" />
+                                <span class="suffix">%</span>
+
+                            </div>
+
+                        }
+
+
+
+
+                    </td>
+
+
+                    <td class="ar">
+                        @if (Model.lisRecs[i].p33id == 1 || Model.lisRecs[i].p33id == 3)
+                        {
+                            <div style="padding-bottom:7px;padding-top:3px;">
+                                <span class="schvaleno" id="honorar_schvaleno@(i)">@Model.lisRecs[i].honorar_schvaleno</span>
+                            </div>
+                            <span id="honorar_orig@(i)">@Model.lisRecs[i].honorar_orig</span>
+                        }
+                        else
+                        {
+                            <span class="vykazano">@Model.lisRecs[i].vykazano</span>
+
+                        }
+                        <div>
+                            @if (Model.lisRecs[i].p72id == 4 && Model.lisRecs[i].rozdil_vykazano_schvaleno_bezdph != null)
+                            {
+                                <span class="rozdil_bezdph">@(Model.lisRecs[i].rozdil_vykazano_schvaleno_bezdph)</span>
+                            }
+                            else
+                            {
+                                <span class="rozdil_bezdph"></span>
+                            }
+                        </div>
+                    </td>
+
+                    @if (_IsHodinyPausal || _IsInterniHodiny)
+                    {
+                        <td>
+                            @if (Model.lisRecs[i].p33id == 1 || Model.lisRecs[i].p33id == 3)
+                            {
+                                @if (_IsHodinyPausal)
+                                {
+                                    <input type="text" value="@Model.lisRecs[i].hodinypausal" class="editable hodinypausal cislo" />
+                                }
+                                @if (_IsInterniHodiny)
+                                {
+                                    <input type="text" value="@Model.lisRecs[i].hodinyinterni" class="editable hodinyinterni cislo" />
+                                }
+
+                            }
+                        </td>
+                    }
+
+                    <td>
+                        <textarea class="popis editable form-control">@Model.lisRecs[i].Popis</textarea>
+                        @if(Model.lisRecs[i].PopisInterni != null)
+                        {
+                            <div style="background-color:#FFF5EE;padding:5px;border-radius:5px;border:solid 1px #DCDCDC;">
+                                <i>
+                                    @Html.Raw(BO.Code.Bas.Text2Html(Model.lisRecs[i].PopisInterni))
+                                </i>
+                            </div>
+                        }
+                    </td>
+
+                </tr>
+            }
+        </tbody>
+
+    </table>
+</div>
+
+
+<script type="text/javascript">
+    var _IsHodinyPausal = "@_IsHodinyPausal";
+    var _IsInterniHodiny = "@_IsInterniHodiny";
+    var _IsUrovenSchvalovani = "@_IsUrovenSchvalovani";
+    var _IsMobile = "@_IsMobile";
+
+    $(document).ready(function () {
+
+        $("#cmdMore").click(function () {
+            $("#divMore").toggle();            
+            handle_height();
+        });
+
+        _resize_textareas();
+        setup_ds();
+
+        handle_height();
+
+        
+
+
+        init_controls();
+
+        try_init_checked_by_pids();
+
+
+        inline_update_colors();
+
+        show_stat_val("statHodiny0", "@Model.InitStatistic.hodiny0");
+        show_stat_val("statHodiny2", "@Model.InitStatistic.hodiny2");
+        show_stat_val("statHodiny3", "@Model.InitStatistic.hodiny3");
+        show_stat_val("statHodiny4", "@Model.InitStatistic.hodiny4");
+        show_stat_val("statHodiny6", "@Model.InitStatistic.hodiny6");
+        show_stat_val("statHodiny7", "@Model.InitStatistic.hodiny7");
+        show_stat_val("statHodinyMinus", "@Model.InitStatistic.hodiny_minus");
+        show_stat_val("statBezDPH4CZK", "@Model.InitStatistic.bezdph4czk");
+        show_stat_val("statBezDPH4EUR", "@Model.InitStatistic.bezdph4eur");
+        show_stat_val("statPenizeCZKMinus", "@Model.InitStatistic.penize_czk_minus");
+        show_stat_val("statPenizeEURMinus", "@Model.InitStatistic.penize_eur_minus");
+        show_stat_val("statPenize0CZK", "@Model.InitStatistic.penize_czk0");
+        show_stat_val("statPenize0EUR", "@Model.InitStatistic.penize_eur0");
+        show_stat_val("statHodiny9", "@Model.InitStatistic.hodiny9");
+        show_stat_val("statPenizeHonorar9", "@Model.InitStatistic.honorar_hodiny9");
+        
+    });
+
+    function handle_height()
+    {
+        var offset = $("#tablist_container").offset();
+
+        var hh = window.innerHeight - offset.top-5;
+        $("#tablist_container").css("height", hh.toFixed(0) + "px");
+    }
+
+    function try_init_checked_by_pids() {
+        var pids = $("#CheckedPids").val();
+        if (pids == "") return;
+
+        var arr = pids.split(",");
+        var row2scroll = null;
+        for (var i = 0; i < arr.length; i++) {
+            if (document.getElementById("chk" + arr[i])) {
+                $("#chk" + arr[i]).prop("checked", true);
+                row2scroll = document.getElementById("tr" + arr[i]);
+
+            }
+
+        }
+
+        handle_check_pids();
+
+        refresh_highlight_all_checked();
+
+        if (row2scroll != null) {
+            row2scroll.scrollIntoView({ block: "start", behavior: "smooth" });
+
+        }
+
+
+    }
+
+
+
+
+
+    function append_checked_pid(pid) {
+
+    }
+    function change_query_p72id() {
+        $.post(_ep("/Common/SetUserParam"), { key: "p31approve-query-p72id", value: $("#cbxP72ID").val() }, function (data) {
+            reload();
+        });
+    }
+    function change_order()
+    {
+        $.post(_ep("/Common/SetUserParam"), { key: "p31approve-orderby1", value: $("#cbxOrder1").val() }, function (data) {
+            reload();
+        });
+    }
+    function reload()
+    {
+        var url = "/p31approve/Inline?p31guid=" + _guid;
+        if (_p91id != "0")
+        {
+            url = url + "&" + _p91id;
+        }
+        location.reload(url);
+    }
+    function hardrefresh(pid, flag) {
+        reload();
+    }
+</script>

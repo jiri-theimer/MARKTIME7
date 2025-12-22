@@ -1,0 +1,77 @@
+﻿@model p31TabQueryViewModel
+@inject BL.Factory _f
+
+@{
+
+    string _strCssClass = "btn btn-light dropdown-toggle bog";
+
+    if (!string.IsNullOrEmpty(Model.Value))
+    {
+        _strCssClass = "btn btn-light dropdown-toggle bog filtered";
+    }
+
+
+
+
+}
+
+
+
+<div class="dropdown" style="margin-left:8px;">
+    <button class="@(_strCssClass)" type="button" id="cmdP31TabQuery" data-bs-toggle="dropdown" aria-expanded="false">
+        <span class="material-icons-outlined-nosize">filter_alt</span>
+        @(Model.getStateAlias())
+    </button>
+    <ul id="ulP31TabQuery" class="dropdown-menu" aria-labelledby="cmdP31TabQuery">
+        
+    </ul>
+</div>
+
+
+<script type="text/javascript">
+    var _p31TabQuery_Value = "@Model.Value";
+    var _p31TabQuery_ParamKey = "@Model.UserParamKey";
+
+    document.getElementById("cmdP31TabQuery").addEventListener("show.bs.dropdown", function () {
+
+        
+        
+        var explicit_javascript_onchange="@Model.javascript_onchange";
+
+        $.post("/Menu/get_p31TabQuery_MenuItems", { tgi: get_all_tgi_params(), userparamkey: _p31TabQuery_ParamKey, explicit_value: _p31TabQuery_Value, explicit_javascript_onchange: explicit_javascript_onchange }, function (data) {
+            $("#ulP31TabQuery").html(data);
+
+            if (_device.innerHeight <= 400) {
+                $("#ulP31TabQuery").css("column-count", "2");
+            }
+            if (_device.innerHeight <= 300) {
+                $("#ulP31TabQuery").css("column-count", "3");
+            }
+
+        });
+    });
+
+
+    function handle_p31tabquery_change(val) {     //filtrování podle formátu úkonu
+        var prefix = _tg_entity.substr(0, 3);
+        var k = "@Model.UserParamKey";
+        
+        if (k=="")
+        {
+            return;
+        }
+        $.post(_ep("/Common/SetUserParam"), { key: k, value: val }, function (data) {
+            var url = location.href;
+
+            if (document.getElementById("tempguid")) {
+                //schvalovací dialog
+                url = url + "&tempguid=" + $("#tempguid").val();
+
+            }
+
+            location.replace(url);
+
+        });
+    }
+
+</script>

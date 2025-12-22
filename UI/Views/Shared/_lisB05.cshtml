@@ -1,0 +1,153 @@
+﻿@model IEnumerable<BO.b05Workflow_History>
+@inject BL.Factory _f
+
+@{
+
+
+    if (Model == null)
+    {
+        return;
+    }
+
+    var _lisO24 = _f.o24ReminderBL.GetList("b05", string.Join(",", Model.Select(p => p.pid)));
+
+    bool _isOwnerAll = _f.CurrentUser.TestPermission(BO.PermValEnum.GR_b05OwnerAll);
+
+}
+
+
+<table class="table table-sm table-hover">
+    
+    @foreach (var c in Model)
+    {
+
+        <tr style="@(c.b05Tab1Flag==4 || c.b05Tab1Flag==6 ? "background-color:#DFFFE9;": null)">
+            <td style="width:20px">
+                <a class="cm" onclick="_cm(event,'b05',@c.pid)">&#9776;</a>
+            </td>
+            <td style="width:150px;">
+                @(BO.Code.Bas.ObjectDateTime2String(c.DateInsert)) (-@(BO.Code.Time.DurationFormatted(Convert.ToDateTime(c.DateInsert), DateTime.Now, true)))
+                @if(_lisO24 !=null && _lisO24.Any(p => p.o24RecordPid == c.pid))
+                {
+                    
+                    <span class="material-icons-outlined" style="color:red;">notifications</span>
+                }
+                <div>
+                    @if (c.j02ID_Sys > 0)
+                    {
+                        <span style="color:silver;">@c.Person</span>
+                    }
+                    else
+                    {
+                        <span style="color:orange;">@c.UserInsert</span>
+                    }
+                   
+
+                   
+                    <a class="nenapadny_odkaz" href="javascript:_window_open('/Record/NotepadPreview?prefix=b05&pid=@c.pid')" title="Náhled v novém okně">
+                        <span class="material-icons-outlined-btn">open_in_new</span>
+
+                    </a>
+                </div>
+                
+            </td>
+            <td>
+                
+                @if(c.j95Longitude>0 && c.j95Latitude>0)
+                {
+                    <a target="_blank" style="margin-left:6px;" href="@(c.getMapUrlClassic())">Mapa</a>
+                    <img src="@(c.WeatherIconUrl)" />
+                    <i style="margin-left:10px;">@(c.j95Description)</i>
+                    <span style="margin-left:10px;">
+                    @(BO.Code.Bas.Number2String(c.j95Temp))
+                        ℃
+                        @if (c.j95TempFeelsLike != c.j95Temp)
+                        {
+                            <span style="margin-left:6px;">@_f.tra("pocitová"):</span>
+                            @(BO.Code.Bas.Number2String(c.j95TempFeelsLike))
+                            <span>℃</span>
+                        }
+                    </span>
+                    <span style="margin-left:10px;">@_f.tra("vítr"):
+                        @(BO.Code.Bas.Number2String(c.j95WindSpeed))
+                        <span>m/s</span>
+                    </span>
+                    @if(c.j95Location !=null)
+                    {
+                        <span style="margin-left:10px;">@(c.j95Location)</span>
+                    }
+                }
+            </td>
+            
+          
+            <td>
+                @if(c.b06ID>0)
+                {
+                    <kbd style="background-color:lightblue;color:black;">
+                        @c.b06Name
+                    </kbd>
+                }
+                
+                @Html.Raw(c.StatusMoveHtmlRed)
+                @if (c.b02ID_From > 0 || c.b02ID_To > 0)
+                {
+                    <div>
+                        <span class="badge text-bg-info" style="background-color:@(c.b02Color !=null ? c.b02Color+" !important" : null)">
+                            @if (c.b02ID_To > 0)
+                            {
+                                @c.b02Name_To
+                            }
+                            else
+                            {
+                                @c.b02Name_From
+                            }
+                        </span>
+                    </div>
+
+                }
+                
+                @if(c.b05Date != null)
+                {
+                    <span class="badge-def" style="margin-right:10px;">
+                        @BO.Code.Bas.ObjectDate2String(c.b05Date.Value)
+                    </span>
+                }
+                
+                @if (c.b05Name != null)
+                {
+                    <code>
+                        @c.b05Name
+                    </code>
+                }
+                
+                @if (c.p56ID > 0)
+                {
+                    <myicon symbol="task"></myicon>
+                    <a class="cm" onclick="_cm(event,'p56',@(c.p56ID))" title="MENU"><span class="material-icons-outlined">menu</span></a>
+                    <strong>@c.p56Name</strong>
+                }
+                @if (c.o22ID > 0)
+                {
+                    <myicon symbol="event"></myicon>
+                    <a class="cm" onclick="_cm(event,'o22',@(c.o22ID))" title="MENU"><span class="material-icons-outlined">menu</span></a>
+                    <strong>@c.o21Name</strong>
+                    <code>@c.o22Name</code>
+                }
+                @if(c.b05Notepad != null)
+                {
+                    
+                    <div style="overflow:auto;max-height:150px;max-width:800px;">
+                        @Html.Raw(c.b05Notepad)
+                    </div>
+                }
+                
+                
+            </td>
+            
+            
+        </tr>
+
+
+
+    }
+</table>

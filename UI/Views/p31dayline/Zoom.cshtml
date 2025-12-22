@@ -1,0 +1,113 @@
+﻿@model UI.Models.p31view.daylineZoomViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+
+}
+
+@addTagHelper *, UI
+
+<div style="padding: 3px;background-color: #2D89EF;">
+    <span style="color:white;">
+        @if (Model.SelectedDate1 == Model.SelectedDate2)
+        {
+            @(BO.Code.Bas.ObjectDate2String(Model.SelectedDate1) + ": " + Model.RecJ02.FullNameAsc)
+        }
+        else
+        {
+            @(BO.Code.Bas.ObjectDate2String(Model.SelectedDate1) +" - "+ BO.Code.Bas.ObjectDate2String(Model.SelectedDate2) + ": " + Model.RecJ02.FullNameAsc)
+        }
+
+    </span>
+</div>
+
+<div class="bg-light input-group" style="padding-left: 10px;padding-top:2px;">
+   
+    <a class="btn bog" target="_top" href="/p31calendar/Index?d=@Model.SelectedDate1&cv=5"><span class="material-icons-outlined-btn">date_range</span>@_f.tra("Agenda")</a>
+    <a class="btn bog" target="_top" href="/p31calendar/Index?d=@Model.SelectedDate1&cv=6"><span class="material-icons-outlined-btn">today</span>@_f.tra("Přesný den")</a>
+    @if(_f.CurrentUser.j04IsModule_p11)
+    {
+        <a class="btn bog" target="_top" href="/Absence/Index?d=@Model.SelectedDate1"><span class="material-icons-outlined-btn">hourglass_empty</span>@_f.tra("Docházka")</a>
+    }
+    
+
+    
+
+    <a class="btn descreet_link_over_grid" href="javascript:create()" title="@_f.tra("Vykázat úkon")" style="margin-left:20px;"><span class="material-icons-outlined-btn">more_time</span></a>
+    @if (_f.CurrentUser.TestPermission(BO.PermValEnum.GR_GridColumnDesigner))
+    {
+        <button type="button" class="btn btn-light" onclick="navrhar_sloupcu()">@_f.tra("Sloupce")</button>
+    }
+    
+    
+
+    <button type="button" id="cmdClose" onclick="hardrefresh_top()" class="btn btn-light"><span class="material-icons-outlined-btn">refresh</span>@_f.tra("Zavřít a občerstvit pozadí")</button>
+
+    <button type="button" id="cmdClose" onclick="local_close()" class="btn btn-light"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
+
+
+
+</div>
+
+<form id="form1" asp-controller="p31view" asp-action="DaylineZoom" method="POST">
+
+
+    <input type="hidden" asp-for="@Model.j02ID" />
+    <input type="hidden" asp-for="@Model.SelectedDate1" />
+    <input type="hidden" asp-for="@Model.SelectedDate2" />
+    <input type="hidden" asp-for="@Model.p28ID" />
+    <input type="hidden" asp-for="@Model.p41ID" />
+</form>
+
+@await Component.InvokeAsync("myGrid",Model.gridinput)
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+
+
+
+    })
+
+
+
+    function local_cm(e) {     //vyvolání kontextového menu k vybranému záznamu
+        var link = e.target;
+        var pid = link.parentNode.parentNode.id.replace("r", "");
+
+        _cm(e, _tg_entity, pid, "daylinezoom", _tg_master_entity);
+    }
+
+
+    function hardrefresh(pid, flag) {
+        var url = window.location.href;
+        location.replace(url);
+    }
+
+    function hardrefresh_top() {
+
+        window.parent.top.hardrefresh();
+    }
+
+    function create() {
+        //window.parent.zoom_close();
+        window.parent.p31c("@Model.SelectedDate1",null,null,"@Model.j02ID");
+    }
+
+    function local_close() {        
+        try {
+            window.parent.zoom_close();
+        } catch (err) {
+            _window_close();
+        }
+    }
+
+    function navrhar_sloupcu() {
+        var s = location.pathname;
+        _window_open("/TheGridDesigner?j72id=" + _thegrid.j72id + "&pathname=" + s, 2);
+    }
+</script>

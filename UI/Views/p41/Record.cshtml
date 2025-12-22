@@ -1,0 +1,580 @@
+﻿@model UI.Models.Record.p41Record
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    if (Model.Rec == null) return;
+    Model.PageTitle = _f.tra("Karta projektu");
+
+    string _FirstTabCaption = Model.PageTitle;
+    if (Model.rec_pid > 0)
+    {
+        Model.PageTitle += ": " + Model.Rec.p41Name + " (" + Model.Rec.p41Code + ")"; ;
+    }
+
+    IEnumerable<BO.b05Workflow_History> _lisB05 = null;
+    if (Model.rec_pid > 0)
+    {
+        _lisB05 = _f.WorkflowBL.GetList_b05("p41", Model.rec_pid, 0, 0, 0).Where(p => BO.Code.Bas.bit_compare_or(p.b05Tab1Flag, 4) == true);
+    }
+    var _lisP07 = @_f.lisP07.Where(p => !p.isclosed);
+
+}
+@addTagHelper *, UI
+
+@section header_content
+{
+
+
+    <link rel="stylesheet" href="/lib/pell/pell.css" asp-append-version="true" />
+
+    <script src="~/lib/pell/pell.min.js"></script>
+}
+
+
+
+<div class="tabs_container_record">
+    <!-- Tab panes -->
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab1" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab1">@_FirstTabCaption</a>
+        </li>
+        @if (Model.disp.IsBilling)
+        {
+            <li class="nav-item onetab" role="presentation">
+                <a id="link_tab2" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab2">@_f.tra(Model.disp.GetTabText(PosEnum.BillingTab))</a>
+            </li>
+            <li class="nav-item onetab" role="presentation">
+                <a id="link_tab3" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab3">@_f.tra("Fakturační poznámka")</a>
+            </li>
+
+        }
+
+
+        @if (Model.disp.IsBudget)
+        {
+            <li class="nav-item onetab" role="presentation">
+                <a id="link_tab4" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab4">@_f.tra("Plán/Rozpočet")</a>
+            </li>
+        }
+        @if (Model.ff1.VisibleInputsCount > 0)
+        {
+            <li class="nav-item onetab" role="presentation">
+                <a id="link_tab5" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab5">@_f.tra("Uživatelská pole") (@Model.ff1.VisibleInputsCount)</a>
+            </li>
+        }
+
+
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab6" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab6">@_f.tra("Různé")</a>
+        </li>
+
+        <li style="margin-left:20px;">
+            @Html.EditorFor(m => Model.rec_entity, "~/Views/Shared/_cmdMoreButton.cshtml")
+        </li>
+    </ul>
+</div>
+
+<div id="divMore" class="card" style="display:none;background-color:#E6F0FF;">
+    <div style="width:350px;padding:30px;">
+        @Html.EditorFor(m => m.disp, "~/Views/Shared/_Dispozice.cshtml")
+    </div>
+</div>
+
+@Html.Raw("<div class='modal_record_container_flexi'>")
+@Html.Raw("<div class='tab-content'>")
+
+<div class="tab-pane tab-pane-fixed" id="tab1" role="tabpanel">
+    <!-- Tab1 -->
+
+    <div class="row">
+        <label for="Rec_p41Name" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název"):</label>
+        <div class="col-sm-8 col-md-7">
+            <input class="form-control record_name" required="true" asp-for="Rec.p41Name" />
+        </div>
+
+        <div class="col-sm-3 col-md-3">
+            <input class="form-control" asp-for="Rec.p41NameShort" placeholder="@_f.tra("Zkrácený (preferovaný) název")" />
+        </div>
+    </div>
+    <div class="row my-2">
+        <label for="cmdComboRec_p42ID" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Typ"):</label>
+        <div class="col-sm-8 col-md-7">
+            <mycombo entity="p42ProjectType" asp-for="Rec.p42ID" selectedtext="@Model.SelectedComboP42Name" event_after_changevalue="p42id_change"></mycombo>
+        </div>
+        <div class="col-sm-1 col-md-1">@_f.tra("Kód"):</div>
+        <div class="col-sm-2 col-md-2">
+            @if (Model.CanEditRecordCode)
+            {
+                <myval value="@Model.Rec.p41Code" hoversymol="@_f.tra("Upravit kód")" hoveronclick="true" hoverurl="javascript:_edit_code('p41',@Model.rec_pid)"></myval>
+            }
+            else
+            {
+                <myval value="@Model.Rec.p41Code"></myval>
+            }
+
+        </div>
+    </div>
+    @if (Model.disp.IsProjectClient)
+    {
+        <div class="row my-2">
+            <label for="cmdComboRec_p28ID_Client" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Klient"):</label>
+            <div class="col-sm-7 col-md-7">
+                <mycombo entity="p28Contact" asp-for="Rec.p28ID_Client" selectedtext="@Model.SelectedComboClient" filter-flag="1" search-result-width="700"></mycombo>
+            </div>
+            <label class="col-sm-1 col-md-1" for="cmdComboRec_j18ID">@_f.tra("Středisko"):</label>
+            <div class="col-sm-3 col-md-2">
+                <mycombo entity="j18Region" asp-for="Rec.j18ID" selectedtext="@Model.SelectedComboJ18Name"></mycombo>
+
+            </div>
+        </div>
+    }
+
+    <div class="row my-2">
+        <div class="col-sm-8 col-md-9"></div>
+        <label class="col-sm-1 col-md-1 col-form-label" style="font-size:90%;">
+            @_f.tra("Strom úroveň"):
+            <mytooltip text="Projekty je možné vnořovat vertikálně do stromové struktury.<hr>V administraci můžete definovat až 5 vertikálních pojmenovaných úrovní (L1->L2->L3->L4->L5).<hr>Nejnižší (výchozí) úroveň má index L5 (level5), nejvyšší je L1 (level1)"></mytooltip>
+            </label>
+        
+
+        <div class="col-sm-3 col-md-2">
+            <mydropdown asp-for="SelectedP07ID" datasource="@_lisP07" isfirstemptyrow="false" firstemptyrowvalue="0" textfield="TreeName" valuefield="pid" event_after_changevalue="p07id_change"></mydropdown>
+
+            
+        </div>
+        
+    </div>
+    
+
+
+    @if (Model.lisParentLevels != null && Model.lisParentLevels.Count() > 0)
+    {
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Nadřízená úroveň"):</label>
+            <div class="col-sm-2 col-md-2">
+                <mydropdown asp-for="SelectedParentLevelIndex" datasource="@Model.lisParentLevels" isfirstemptyrow="true" firstemptyrowtext="--@_f.tra("Vybrat úroveň")--" firstemptyrowvalue="0" textfield="TreeName" valuefield="p07Level" event_after_changevalue="parentlevel_change"></mydropdown>
+
+            </div>
+            @if (Model.SelectedParentLevelIndex > 0)
+            {
+                <div class="col-sm-9 col-md-8">
+                    @if (Model.lisParentLevels.Count() > 0)
+                    {
+                        <mycombo entity="le@(Model.SelectedParentLevelIndex)" asp-for="Rec.p41ParentID" selectedtext="@Model.SelectedComboParent" filter-flag="1"></mycombo>
+                    }
+                    else
+                    {
+                        <i>@_f.tra("Není k dispozici nadřízená úroveň.")</i>
+                    }
+
+                </div>
+            }
+
+
+        </div>
+    }
+    @if (Model.disp.IsRoles)
+    {
+        @Html.EditorFor(m => m.roles, "~/Views/Shared/_RoleAssign.cshtml")
+    }
+
+    @if (Model.disp.IsProjectContacts)
+    {
+        @Html.EditorFor(m => m, "~/Views/Shared/_p41Contacts.cshtml")
+    }
+
+    @if (Model.lisP56Clone != null)
+    {
+        <strong class="bgp56"><myicon symbol="content_copy"></myicon> @_f.tra("Kopírovat úkoly"):</strong>
+        <table class="table-hover bgp56 table">
+            @for (int i = 0; i < Model.lisP56Clone.Count; i++)
+            {
+                <tr>
+                    <td style="width:130px;">
+                        <input type="hidden" asp-for="lisP56Clone[i].pid" />
+                        <input type="hidden" asp-for="lisP56Clone[i].p56Notepad" />
+
+                        <input type="checkbox" asp-for="lisP56Clone[i].Importovat" />
+                        <label class="col-form-label" for="lisP56Clone_@(i)__Importovat">@_f.tra("Kopírovat úkol")</label>
+                    </td>
+
+                    <td>
+                        <input type="text" class="form-control" asp-for="lisP56Clone[i].p56Name" />
+                    </td>
+                    <td>
+                        <span>@Model.lisP56Clone[i].p56Notepad</span>
+                    </td>
+                    @if (Model.lisP56Clone.Any(p => p.p56PlanFrom != null))
+                    {
+                        <td style="width:120px;" title="Plánované zahájení">
+                            <mydate asp-for="lisP56Clone[i].p56PlanFrom"></mydate>
+                        </td>
+                    }
+                    <td style="width:120px;" title="Plánované dokončení/Termín">
+                        <mydate asp-for="lisP56Clone[i].p56PlanUntil"></mydate>
+                    </td>
+
+                    @if (Model.lisP56Clone.Any(p => p.p56Plan_Hours > 0))
+                    {
+                        <td style="width:80px;" title="Plán/Rozpočet hodin">
+                            <input type="text" class="form-control" asp-for="lisP56Clone[i].p56Plan_Hours" />
+                        </td>
+                    }
+
+                </tr>
+            }
+        </table>
+    }
+
+    @if (Model.lisP40Clone != null)
+    {
+        <strong class="bgp40"><myicon symbol="content_copy"></myicon> @_f.tra("Kopírovat opakované odměny"):</strong>
+        <table class="table-hover bgp40 table">
+            @for (int i = 0; i < Model.lisP40Clone.Count; i++)
+            {
+                <tr>
+                    <td style="width:130px;">
+                        <input type="hidden" asp-for="lisP40Clone[i].pid" />
+
+                        <input type="checkbox" asp-for="lisP40Clone[i].Importovat" />
+                        <label class="col-form-label" for="lisP40Clone_@(i)__Importovat">@_f.tra("Kopírovat")</label>
+                    </td>
+
+                    <td>
+                        <input type="text" placeholder="Název předpisu odměny" class="form-control" asp-for="lisP40Clone[i].p40Name" />
+                    </td>
+                    <td style="width:80px;">
+                        <input type="text" placeholder="Částka bez DPH" class="form-control" asp-for="lisP40Clone[i].p40Value" />
+                    </td>
+
+                    <td>
+                        <input type="text" class="form-control" placeholder="Maska textu generovaných úkonů" asp-for="lisP40Clone[i].p40Text" />
+                    </td>
+
+                    <td style="width:120px;" title="Datum prvního generovaného úkonu">
+                        <mydate asp-for="lisP40Clone[i].p40FirstSupplyDate"></mydate>
+                    </td>
+
+                    <td style="width:120px;" title="Kdy ukončit generování úkonů">
+                        <mydate asp-for="lisP40Clone[i].p40LastSupplyDate"></mydate>
+                    </td>
+
+                </tr>
+            }
+        </table>
+    }
+
+
+    @Html.EditorFor(m => m.hlidac, "~/Views/Shared/_hlidac.cshtml")
+
+    @Html.EditorFor(m => m.reminder, "~/Views/Shared/_Reminder.cshtml")
+
+    <mystitky entity="@Model.TagEntity" asp-for="@Model.TagPids" tagnames="@Model.TagNames" taghtml="@Model.TagHtml" buttontext="@_f.tra("Oštítkovat")"></mystitky>
+
+
+</div>
+
+
+@if (Model.disp.IsBilling)
+{
+    <div class="tab-pane tab-pane-fixed" id="tab2" role="tabpanel">
+        <!-- Tab2 -->
+        @if (Model.RecP42 == null || Model.RecP42.p42BillingFlag == 0)
+        {
+            @Html.EditorFor(m => Model, "~/Views/Shared/_p41BillingTab.cshtml")
+        }
+        else
+        {
+            @if (Model.RecP42.p42BillingFlag == 99)
+            {
+                <p> <myicon symbol="local_cafe"></myicon></p>
+
+                <h2>@_f.tra("Interní projekt: Nulové sazby, bez možnosti schvalování/vyúčtování")</h2>
+                <input type="hidden" asp-for="Rec.p41BillingFlag" value="NuloveSazbyBezWip" />
+            }
+            @if (Model.RecP42.p42BillingFlag == 6)
+            {
+                <p><myicon symbol="local_bar"></myicon></p>
+                <h2>@_f.tra("Interní projekt: Nulové sazby, možnost schvalování/vyúčtování")</h2>
+                <input type="hidden" asp-for="Rec.p41BillingFlag" value="NuloveSazbyWip" />
+            }
+        }
+
+
+    </div>
+
+    <div class="tab-pane tab-pane-fixed" id="tab3" role="tabpanel">
+        <!-- Tab3 -->
+
+        @Html.EditorFor(m => m.BillingMemo, "~/Views/Shared/_PellEditor.cshtml")
+
+        <div style="margin-top:20px;">
+        @if (Model.rec_pid > 0)
+        {
+            <button type="button" class="bog" onclick="fp()">@_f.tra("Napsat další fakturační poznámku (Neomezený Notepad)")</button>
+            @if (_lisB05 != null)
+            {
+                @await Html.PartialAsync("~/Views/Shared/_lisB05.cshtml", _lisB05)
+            }
+        }
+
+        </div>
+        
+    </div>
+}
+
+
+
+
+
+@if (Model.disp.IsBudget)
+{
+    <div class="tab-pane tab-pane-fixed" id="tab4" role="tabpanel">
+        <!-- Tab4 Rozpočet -->
+        <div class="row">
+            <label class="col-sm-1 col-md-2 col-form-label recpagelabel">@(_f.tra("Plánované zahájení")):</label>
+            <div class="col-sm-2 col-md-2">
+                <mydate asp-for="@Model.Rec.p41PlanFrom" include-time="false"></mydate>
+
+            </div>
+        </div>
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label recpagelabel">@(_f.tra("Plánované dokončení")):</label>
+            <div class="col-sm-2 col-md-2">
+                <mydate asp-for="@Model.Rec.p41PlanUntil" include-time="false"></mydate>
+
+            </div>
+
+        </div>
+
+        <hr />
+        @if (_f.Lic.x01IsCapacityFaNefa)
+        {
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label recpagelabel">@(_f.tra("Plán Fa hodin")):</label>
+                <div class="col-sm-2 col-md-2">
+                    <mynumber asp-for="Rec.p41Plan_Hours_Billable" decimal-digits="2"></mynumber>
+
+                </div>
+                <div class="col-auto"><i>Plán hodin vykázaných na fakturovatelné (zelené) aktivity (bez ohledu na jejich reálné vyúčtování).</i></div>
+            </div>
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label recpagelabel">@(_f.tra("Plán Nefa hodin")):</label>
+                <div class="col-sm-2 col-md-2">
+                    <mynumber asp-for="Rec.p41Plan_Hours_Nonbillable" decimal-digits="2"></mynumber>
+
+                </div>
+                <div class="col-auto"><i>Plán hodin vykázaných na nefakturovatelné (červené) aktivity.</i></div>
+            </div>
+        }
+        else
+        {
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label recpagelabel">@(_f.tra("Plán hodin")):</label>
+                <div class="col-sm-2 col-md-2">
+                    <mynumber asp-for="Rec.p41Plan_Hours_Billable" decimal-digits="2"></mynumber>
+
+                </div>
+                <div class="col-auto">
+                    <div class="col-auto">
+                        Pro rozpis plánu hodin na [Plán Fa hodin] a [Plán Nefa hodin] zaškrtněte v <a href="javascript:_window_open('/x01/Record?pid=@(_f.CurrentUser.x01ID)')">administraci</a> volbu <strong>V plánování rozdělovat plán hodin na [Plán Fa...</strong>
+                    </div>
+                </div>
+            </div>
+        }
+
+
+
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label recpagelabel">@(_f.tra("Plán nákladového honoráře")):</label>
+            <div class="col-sm-2 col-md-2">
+                <mynumber asp-for="Rec.p41Plan_Internal_Fee" decimal-digits="2"></mynumber>
+
+            </div>
+            <div class="col-auto"><mytooltip text="Odhad nákladové ceny hodin (hodiny x nějaká nákladová sazba)"></mytooltip></div>
+        </div>
+
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label recpagelabel">@(_f.tra("Ceník nákladových sazeb")):</label>
+            <div class="col-sm-6 col-md-5">
+                <mycombo entity="p51PriceList" asp-for="Rec.p51ID_Internal" selectedtext="@Model.SelectedComboP51Name_Internal" myqueryinline="typeflag|int|2|iscustomtailor|bool|false"></mycombo>
+
+            </div>
+
+        </div>
+
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label recpagelabel">@(_f.tra("Simulační nákladová sazba")):</label>
+            <div class="col-sm-2 col-md-2">
+                <mynumber asp-for="Rec.p41Plan_Internal_Rate" decimal-digits="2"></mynumber>
+
+            </div>
+
+        </div>
+
+        <hr />
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label recpagelabel">@(_f.tra("Plán peněžních výdajů")):</label>
+            <div class="col-sm-2 col-md-2">
+                <mynumber asp-for="Rec.p41Plan_Expenses" decimal-digits="2"></mynumber>
+
+            </div>
+            <div class="col-auto">
+                <mytooltip text="Plánovaná výše peněžních výdajů, subdodávek apod. (bez ohledu na jejich případnou přefakturaci)."></mytooltip>
+            </div>
+        </div>
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label recpagelabel">@(_f.tra("Plán fakturace")):</label>
+            <div class="col-sm-2 col-md-2">
+                <mynumber asp-for="Rec.p41Plan_Revenue" decimal-digits="2"></mynumber>
+
+            </div>
+            <div class="col-auto">
+                <mytooltip text="Odhad částky vyúčtování projektu"></mytooltip>
+            </div>
+        </div>
+
+
+    </div>
+}
+
+@if (Model.ff1.VisibleInputsCount > 0)
+{
+    <div class="tab-pane tab-pane-fixed" id="tab5" role="tabpanel">
+        <!-- Tab4 -->
+        @Html.EditorFor(m => m.ff1, "~/Views/Shared/_FreeFields.cshtml")
+    </div>
+}
+
+
+<div class="tab-pane tab-pane-fixed" id="tab6" role="tabpanel">
+    <!-- Tab5 -->
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Vlastník záznamu"):</label>
+        <div class="col-sm-11 col-md-10">
+            <mycombo entity="j02User" asp-for="Rec.j02ID_Owner" selectedtext="@Model.SelectedComboOwner" view-flag="2"></mycombo>
+        </div>
+    </div>
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">
+            @_f.tra("Klastr aktivit")
+            <mytooltip text="Klastr je pojmenovaná množina aktivit napříč sešity. Cílem je uživatelům zúžit nabídku aktivit podle povahy projektu při vykazování.<hr> Klastr můžete přiřadit i v typu projektu v administraci.<hr>Klastry aktivit se spravují v administraci."></mytooltip>
+        </label>
+        <div class="col-sm-11 col-md-10">
+            <mycombo entity="p61ActivityCluster" asp-for="Rec.p61ID" selectedtext="@Model.SelectedComboP61Name"></mycombo>
+        </div>
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Další omezení vykazování"):</label>
+        <div class="col-sm-11 col-md-10">
+            <select asp-for="Rec.p41WorksheetOperFlag" class="form-select">
+                <option value="_NotSpecified"></option>
+                <option value="UkolPovinnyUkony">@_f.tra("Povinnost vykazovat pouze přes úkol")</option>
+                <option value="UkolPovinnyHodiny">@_f.tra("Povinnost vykazovat hodiny přes úkol")</option>
+                <option value="ZakazVykazovat">@_f.tra("V projektu platí zákaz vykazovat úkony")</option>
+                <option value="ZakazVykazovatHodiny">@_f.tra("V projektu platí zákaz vykazovat hodiny")</option>
+            </select>
+        </div>
+
+    </div>
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Lokalita"):</label>
+        <div class="col-sm-11 col-md-10">
+            <mycombo entity="p15Locality" asp-for="Rec.p15ID" selectedtext="@Model.SelectedComboP15Name"></mycombo>
+        </div>
+    </div>
+
+    <div class="row my-2">
+        <div class="col-sm-1 col-md-2">@_f.tra("Externí kód"):</div>
+        <div class="col-sm-11 col-md-10">
+            <input class="form-control" asp-for="Rec.p41ExternalCode" />
+        </div>
+    </div>
+
+    @if (Model.disp.IsFiles)
+    {
+        <iframe id="fraUpload" src="/FileUpload/DoUpload?recpid=@Model.rec_pid&entity=p41&guid=@Model.UploadGuid" frameborder="0" scrolling="yes" style="max-width:1200px;height:60px;"></iframe>
+    }
+
+    @Html.EditorFor(m => m.barcodes, "~/Views/Shared/_Barcodes.cshtml")
+
+</div>
+
+
+
+@Html.Raw("</div>")
+@Html.Raw("</div>")
+
+
+<input type="hidden" asp-for="@Model.TempGuid" />
+<input type="hidden" asp-for="@Model.UploadGuid" />
+
+<input type="hidden" asp-for="@Model.Rec.p41Code" value="@Model.Rec.p41Code" />
+<input type="hidden" asp-for="@Model.Rec.p41BitStream" value="@Model.Rec.p41BitStream" />
+<input type="hidden" asp-for="@Model.CanEditRecordCode" />
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+        $("#cmdMore").click(function () {
+            $("#divMore").toggle();
+        });
+
+
+    });
+
+
+
+    function hardrefresh(pid, flag) {
+        if (flag != undefined) {
+            if (flag.includes("recordcode")) {
+                $("#Rec_p41Code").val(flag.split("|")[1]);
+            }
+
+        }
+
+
+        _postback();
+    }
+
+    function p51_record_flag3() {
+        var p51id = $("#SelectedP51ID_Flag3").val();
+
+        _window_open("/p51/Record?pid=" + p51id + "&iscustom=true&tempguid=@(Model.TempGuid)", 2, "Hodinové sazby na míru");
+    }
+    function p51_record_flag2() {
+        var p51id = $("#SelectedP51ID_Flag2").val();
+        if (p51id == "0") {
+            alert("Musíte vybrat ceník.");
+            return;
+        }
+        _window_open("/p51/Record?pid=" + p51id, 2);
+    }
+    function p51_create_flag2() {
+        _window_open("/p51/Record?pid=0", 2);
+    }
+
+    function parentlevel_change(cbx) {
+        _postback("parentlevel");
+    }
+    function p42id_change(p42id) {
+        _postback("p42id");
+    }
+    function p07id_change(p07id) {
+        _postback("p07id");
+    }
+
+    function fp() {
+        var pid = "@(Model.rec_pid)";
+        if (pid == "0") {
+            alert("Poznámku lze založit až po založení nového záznamu");
+            return;
+        }
+        _window_open("/b05/Record?recpid=" + pid + "&recprefix=p41&tab1flag=6");
+    }
+</script>

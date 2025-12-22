@@ -1,0 +1,75 @@
+﻿@model UI.Models.a55.CssFileViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("CSS styly");
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+
+
+}
+
+@addTagHelper *, UI
+
+<h4>@Model.PageTitle</h4>
+<div class="bg-light" style="padding:10px;">
+    <button id="cmdSave" type="button" class="btn btn-success" onclick="_submit()">@_f.tra("Uložit změny")</button>
+    <button id="cmdClose" type="button" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+    <button type="button" onclick="_helppage()" class="btn btn-light"><b>? </b>@_f.tra("Nápověda")</button>
+</div>
+
+
+<form id="form1" asp-controller="AdminOneWebpage" asp-action="CssFile" method="POST">
+   
+    <div class="modal_record_container">   
+        <div>
+            <select class="form-select" onchange="selectfile(this)">
+                <option>--@_f.tra("Vybrat soubor")--</option>
+                @if (Model.lisFileNames != null && Model.lisFileNames.Count() > 0)
+                {
+                    @foreach (var c in Model.lisFileNames)
+                    {
+                        <option>
+                            @c
+                        </option>
+                    }
+                }
+            </select>
+            
+        </div>
+       
+
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název souboru"):</label>
+            <div class="col-sm-9 col-md-8">
+                <input class="form-control" asp-for="@Model.FileName" />
+                
+            </div>
+            
+        </div>
+
+        <div class="my-2">
+            <textarea asp-for="@Model.Content" class="form-control" placeholder="@_f.tra("Obsah")"></textarea>
+
+        </div>
+
+
+    </div>
+</form>
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+    });
+
+
+    function selectfile(cbx)
+    {
+        location.replace("CssFile?filename="+cbx.value);
+    }
+
+
+
+</script>

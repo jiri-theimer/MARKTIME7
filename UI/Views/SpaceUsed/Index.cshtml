@@ -1,0 +1,288 @@
+﻿@model UI.Models.Admin.SpaceUsedViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Objem databáze");
+
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageSymbol = "build";
+}
+
+
+@addTagHelper *,UI
+
+<div class="bg-light input-group" style="padding:10px;">
+    <div>
+        <button id="cmdSave" class="btn btn-success" onclick="_submit()">@_f.tra("Potvrdit")</button>
+
+    </div>
+    <div>
+        <button id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+    </div>
+
+
+</div>
+
+
+<div class="modal_record_container">
+
+
+    <form id="form1" asp-controller="SpaceUsed" asp-action="Index" method="POST">
+
+
+        <table class="table table-hover">
+            <tr>
+                <th></th>
+                <th style="text-align:right;">Počet záznamů</th>
+                <th style="text-align:right;">Objem dat</th>
+                <th></th>
+            </tr>
+            <tr>
+                <td>
+                    Úkony
+                </td>
+                <td class="tdnum">
+                    <span>@(BO.Code.Bas.Integer2String(Model.rows_p31))</span>
+
+                </td>
+                <td class="tdnum">
+                    <span>@(BO.Code.Bas.FormatFileSize(Model.size_p31))</span>
+                </td>
+                <td>
+                    <a href="/p31ArchiveOper/Index?oper=archive">@_f.tra("Přesunout úkony do archivu")</a>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Úkony CHANGE-LOG
+                </td>
+                <td class="tdnum">
+                    <span>@(BO.Code.Bas.Integer2String(Model.rows_p31log))</span>
+
+                </td>
+                <td class="tdnum">
+                    <span>@(BO.Code.Bas.FormatFileSize(Model.size_p31log))</span>
+                </td>
+                <td>
+                    <input type="checkbox" asp-for="IsTruncateP31log" />
+                    <label class="col-form-label" for="IsTruncateP31log" style="color:red;">@_f.tra("Vyčistit")</label>
+                    <select asp-for="MonthBeforeP31Log">
+                        
+                        <option value="3">Starší než 3 měsíce</option>
+                        <option value="6">Starší než 6 měsíců</option>
+                        <option value="0">Vyčistit komplet</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Archiv úkonů
+                </td>
+                <td class="tdnum">
+                    <span>@(BO.Code.Bas.Integer2String(Model.rows_p31del))</span>
+
+                </td>
+                <td class="tdnum">
+                    <span>@(BO.Code.Bas.FormatFileSize(Model.size_p31del))</span>
+                </td>
+                <td>
+                    <a href="/p31ArchiveOper/Index?oper=restore">@_f.tra("Obnovit úkony z archivu")</a>
+                </td>
+            </tr>
+            <tr style="height:50px;background-color:aliceblue;">
+                <td colspan="4"></td>
+            </tr>
+           
+            <tr>
+                <td>
+                    CHANGE-LOG (kromě úkonů)
+                </td>
+                <td class="tdnum">
+                    <span>@(BO.Code.Bas.Integer2String(Model.rows_updatelog))</span>
+
+                </td>
+                <td class="tdnum">
+                    <span>@(BO.Code.Bas.FormatFileSize(Model.size_updatelog))</span>
+                </td>
+                <td>
+                    <input type="checkbox" asp-for="IsTruncateUpdateLogs" />
+                    <label class="col-form-label" for="IsTruncateUpdateLogs" style="color:red;">@_f.tra("Vyčistit")</label>
+                    <select asp-for="MonthBeforeUpdateLogs">
+                        
+                        <option value="3">Starší než 3 měsíce</option>
+                        <option value="6">Starší než 6 měsíců</option>
+                        <option value="0">Vyčistit komplet</option>
+                    </select>
+                </td>
+                <td>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    OUTBOX
+                </td>
+                <td class="tdnum">
+                    <span>@(BO.Code.Bas.Integer2String(Model.rows_outbox))</span>
+
+                </td>
+                <td class="tdnum">
+                    <span>@(BO.Code.Bas.FormatFileSize(Model.size_outbox))</span>
+                </td>
+                <td>
+                    <input type="checkbox" asp-for="IsTruncateOutbox" />
+                    <label class="col-form-label" for="IsTruncateOutbox" style="color:red;">@_f.tra("Vyčistit")</label>
+                    <select asp-for="MonthBeforeOutbox">
+                        
+                        <option value="3">Starší než 3 měsíce</option>
+                        <option value="6">Starší než 6 měsíců</option>
+                        <option value="0">Vyčistit komplet</option>
+                    </select>
+                </td>
+                <td>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    OUTBOX EML soubory
+                </td>
+                <td class="tdnum">
+                    
+                </td>
+                <td class="tdnum">
+                    
+                </td>
+                <td>
+                    <input type="checkbox" asp-for="IsTruncateEmls" />
+                    <label class="col-form-label" for="IsTruncateEmls" style="color:red;">@_f.tra("Odstranit EML soubory a složky odeslané pošty")</label>
+                    
+                </td>
+                <td>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    PDF archiv vyúčtování
+                </td>
+                <td class="tdnum">
+                </td>
+                <td class="tdnum">
+                </td>
+                <td>
+                    <input type="checkbox" asp-for="IsTruncateP96" />
+                    <label class="col-form-label" for="IsTruncateP96" style="color:red;">@_f.tra("Odstranit PDF archiv vyúčtování")</label>
+
+                </td>
+                <td>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    PING+LOGIN+ROBOT log
+                </td>
+                <td class="tdnum">
+                    <span>@(BO.Code.Bas.Integer2String(Model.rows_j92))</span>
+
+                </td>
+                <td class="tdnum">
+                    <span>@(BO.Code.Bas.FormatFileSize(Model.size_j92))</span>
+
+                </td>
+                <td>
+                    <input type="checkbox" asp-for="IsTruncateJ92" />
+                    <label class="col-form-label" for="IsTruncateJ92" style="color:red;">@_f.tra("Vyčistit")</label>
+                    <select asp-for="MonthBeforeJ92">
+                        
+                        <option value="3">Starší než 3 měsíce</option>
+                        <option value="6">Starší než 6 měsíců</option>
+                        <option value="0">Vyčistit komplet</option>
+                    </select>
+                </td>
+                <td>
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    TEMP cache
+                </td>
+                <td class="tdnum">
+                    <span>@(BO.Code.Bas.Integer2String(Model.rows_temp))</span>
+
+                </td>
+                <td class="tdnum">
+                    <span>@(BO.Code.Bas.FormatFileSize(Model.size_temp))</span>
+                </td>
+                <td>
+                    <input type="checkbox" asp-for="IsTruncateTemps" />
+                    <label class="col-form-label" for="IsTruncateTemps" style="color:red;">@_f.tra("Vyčistit")</label>
+                </td>
+                <td>
+                </td>
+            </tr>
+        </table>
+
+
+
+
+    </form>
+    <table class="table table-hover">
+        <tr>
+            <td style=width:160px;">
+            @_f.tra("Objem databáze"):
+            </td>
+            <td class="tdnum">
+                <span class="badge-light">@Model.DbUsedSpace.database_size</span>
+            </td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>
+                Z toho data:
+            </td>
+            <td class="tdnum">
+            @Model.DbUsedSpace.data
+            </td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>
+                Z toho indexy:
+            </td>
+            <td class="tdnum">
+            @Model.DbUsedSpace.index_size
+            </td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>
+                Rezervováno:
+            </td>
+            <td class="tdnum">
+            @Model.DbUsedSpace.reserved
+            </td>
+            <td></td>
+        </tr>
+    </table>
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+    });
+
+
+
+</script>

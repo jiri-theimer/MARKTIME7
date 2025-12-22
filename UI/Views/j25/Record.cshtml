@@ -1,0 +1,39 @@
+﻿@model UI.Models.Record.j25Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Report kategorie");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    Model.PageSymbol = "settings";
+}
+
+@addTagHelper *, UI
+
+<div class="modal_record_container">
+
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název"):</label>
+        <div class="col-sm-7 col-md-6">
+            <input class="form-control" asp-for="Rec.j25Name" />
+        </div>
+        <label class="col-sm-1 col-md-1 col-form-label">@_f.tra("Index pořadí"):</label>
+        <div class="col-sm-1 col-md-1">
+            <mynumber asp-for="Rec.j25Ordinary" decimal-digits="0"></mynumber>
+        </div>
+    </div>
+
+    <div class="row my-2">
+        <label class="col-sm-2 col-md-2 col-form-label">@_f.tra("Kód"):</label>
+        <div class="col-sm-2 col-md-2">
+            <input class="form-control record_code" asp-for="Rec.j25Code" />
+
+        </div>
+    </div>
+
+   
+
+
+
+</div>
+
+

@@ -1,0 +1,148 @@
+﻿@model UI.Models.banka.BankaImportViewModel
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    Model.PageTitle = "Import bankovního výpisu";
+
+
+
+}
+
+@addTagHelper *,UI
+
+
+<div class="modal_record_container">
+
+    <h4>@Model.PageTitle</h4>
+
+
+    <form asp-action="Index" id="form1" method="POST" asp-controller="BankaImport" enctype="multipart/form-data">
+        <input type="hidden" asp-for="Guid" />
+        
+
+        <div class="row">
+            <label class="col-sm-1 col-md-2 col-form-label">Typ bankovního výpisu:</label>
+
+            <div class="col-sm-7 col-md-6">
+                <select asp-for="TypVypisu" class="form-select" onchange="_postback('refresh')">
+                    <option value="fio">FIO API bankovnictví</option>
+                    <option value="gpc">Bankovní výpis ve formátu GPC souboru</option>
+                </select>
+            </div>
+        </div>
+        @if (Model.TypVypisu == "fio")
+        {
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">API klíč:</label>
+                <div class="col-sm-7 col-md-6">
+                    <input type="text" asp-for="FioApiKey" class="form-control" />
+                </div>
+            </div>
+        }
+
+        @if (Model.TypVypisu == "gpc")
+        {
+            <div class="card">
+                <div class="card-header">
+                    Nahrajte soubor bankovního výpisu v <strong>GPC</strong> formátu:
+                </div>
+                <div class="card-body">
+                    <input asp-for="@Model.file1" />
+
+                    
+                </div>
+
+            </div>
+        }
+
+
+        <p></p>
+        <button type="button" onclick="_postback('nacist')" class="btn btn-default btn-primary">Načíst bankovní výpis</button>
+        @if (Model.lisPolozky != null)
+        {
+            <button type="button" onclick="_postback('finish')" class="btn btn-default btn-success" style="margin-left:20px;">Spárovat úhrady</button>
+        }
+
+
+        <input type="checkbox" asp-for="ZobrazovatPouzeNesparovane" style="margin-left:40px;" />
+        <label class="col-form-label" for="ZobrazovatPouzeNesparovane">Zobrazovat pouze nespárované úhrady</label>
+        
+    </form>
+
+    @if (Model.lisPolozky != null)
+    {
+        <table class="table table-hover">
+            <tr>
+                <th>#</th>
+                <th>Datum</th>
+                <th>VS</th>
+                <th>Faktura</th>
+                <th>Částka</th>
+                <th>Protiúčet</th>
+                <th>Poznámka</th>
+
+            </tr>
+            @for (int i = 0; i < Model.lisPolozky.Count(); i++)
+            {
+                <tr style="@(Model.ZobrazovatPouzeNesparovane && Model.lisPolozky[i].Dluh<0.01 ? "display:none": null)">
+                    <td style="width:40px;">
+                        #@(i + 1)
+                    </td>
+
+                    <td>
+                        @Model.lisPolozky[i].p94Date.ToString("dd.MM.yyyy")
+                    </td>
+                    <td>
+                        @Model.lisPolozky[i].p94Code
+                    </td>
+                    <td>
+                        @if (Model.lisPolozky[i].p91Code != null)
+                        {
+                            @if (Model.lisPolozky[i].Dluh > 1)
+                            {
+                                <mark>
+                                    @Model.lisPolozky[i].p91Code
+                                </mark>
+                            }
+                            else
+                            {
+                                @Model.lisPolozky[i].p91Code
+                                <code>
+                                    uhrazeno
+                                </code>
+                            }
+
+                        }
+                    </td>
+                    <td style="text-align:right;">
+                        @BO.Code.Bas.Num2StringNull(Model.lisPolozky[i].p94Amount)
+                    </td>
+                    <td>
+                        @Model.lisPolozky[i].Protiucet
+                    </td>
+                    <td>
+                        @Model.lisPolozky[i].p94Description
+                    </td>
+                </tr>
+            }
+        </table>
+    }
+
+
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        _mainmenu_highlight_current("linkP94");
+        $("#linkBanka").addClass("active");
+
+
+    });
+
+
+
+   
+</script>

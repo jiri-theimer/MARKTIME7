@@ -1,0 +1,412 @@
+﻿@model UI.Models.a55.AdminOneWebpageViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    if (Model == null)
+    {
+        return;
+    }
+    if (Model.RecA55 != null)
+    {
+        Model.PageTitle = Model.RecA55.a55Name;
+    }
+
+}
+
+@addTagHelper *, UI
+
+
+@section header_content
+    {
+
+
+
+    <link rel="stylesheet" href="/lib/jquery-ui/jquery-ui.min_sortable.css" />
+
+    <link rel="stylesheet" href="~/css/widgets.css" />
+
+}
+
+    <script src="/lib/jquery-ui/jquery-ui.min_sortable.js"></script>
+
+
+    @Html.Raw("<div id='header_index' class='input-group' style='margin-top:0px;padding-top:8px;padding-bottom:8px;background-color:#F5F5F5;'>")
+
+    <div>
+        <span class="material-icons-outlined-btn">language</span>
+    </div>
+
+@if (Model.lisA55.Count() > 0)
+{
+    <div style="margin-left:4px;">
+        <div class="input-group">
+            <mydropdown asp-for="@Model.SelectedA55ID" datasource="@Model.lisA55" textfield="a55Name" valuefield="pid" event_after_changevalue="changetemplate"></mydropdown>
+            @if (Model.RecA55 != null)
+            {
+                <button type="button" class="btn bog" onclick="a55_edit(@Model.SelectedA55ID)" title="Nastavení šablony">...</button>
+            }
+
+
+        </div>
+    </div>
+}
+
+
+<div>
+    <div class="input-group" style="margin-left:20px;">
+        <mydropdown asp-for="@Model.SelectedA59ID" datasource="@Model.lisA59" textfield="a59Name" valuefield="pid" event_after_changevalue="changelayer"></mydropdown>
+        @if (Model.RecA59 != null)
+        {
+            <button type="button" class="btn bog" onclick="a59_edit(@Model.SelectedA59ID)" title="Nastavení plochy">...</button>
+        }
+
+    </div>
+</div>
+
+@if (Model.SelectedA55ID > 0)
+{
+    <div style="margin-left:6px;">
+        <button type="button" class="btn bog" onclick="a59_new(@Model.SelectedA55ID)">@_f.tra("Nová plocha")</button>
+    </div>
+}
+
+
+@if (Model.RecA59 != null)
+{
+
+
+    <div class="dropdown" style="margin-left:40px;">
+        <button class="btn dropdown-toggle bog" role="button" id="cmdInsertWidget" data-bs-toggle="dropdown" aria-expanded="false">
+            <span>@_f.tra("Funkční prvky plochy")</span>
+        </button>
+
+        <div class="dropdown-menu" aria-labelledby="cmdInsertWidget">
+            <button type="button" class="btn bog" onclick="a58_new(@Model.SelectedA59ID)">@_f.tra("Založit nový prvek")</button>
+
+            <ul id="rp1_menu" style="list-style:none;columns:3;width:1000px;">
+
+                @foreach (var c in Model.lisAllWidgets)
+                {
+                    <li class="nav-item p-2">
+
+                        @if (Model.lisUserWidgets.Where(p => p.pid == c.pid).Count() == 0)
+                        {
+                            <span style="color:blue;">@c.Name</span>
+                            @if (Model.RecA59.a59StructureFlag == BO.a59StructureFlagENUM.CustomHtml)
+                            {
+                                <span style="margin-left:6px;color:orange;">@c.a58Code</span>
+                            }
+                            <a class="btn btn-sm btn-outline-secondary" title="Nastavení prvku" href="javascript:a58_edit(@c.pid)">...</a>
+                            @if (Model.RecA59.a59StructureFlag == BO.a59StructureFlagENUM.Boxes)
+                            {
+                                <a class="btn btn-sm btn-outline-primary" title="Vložit funkční prvek na plochu" href="javascript:handle_insert_snippet(@c.pid)">🡇</a>
+                            }
+
+
+                        }
+                        else
+                        {
+                            <span style="color:silver;">@c.Name</span>
+                            @if (Model.RecA59.a59StructureFlag == BO.a59StructureFlagENUM.CustomHtml)
+                            {
+                                <span style="margin-left:6px;color:orange;">@c.a58Code</span>
+                            }
+                            <a class="btn btn-sm btn-outline-secondary" title="Nastavení prvku" href="javascript:a58_edit(@c.pid)">...</a>
+                        }
+
+
+                    </li>
+                }
+
+            </ul>
+
+        </div>
+    </div>
+
+
+
+}
+
+
+
+<div class="col-auto" style="margin-left:20px;">
+    <mycombo entity="@Model.RecA55.a55Entity" asp-for="@Model.Simulation_RecPid" search-result-width="800" selectedtext="@Model.Simulation_RecName" filter-flag="1" placeholder="@_f.tra("Najít záznam pro simulaci stránky")..." event_after_changevalue="simulation_on_searched"></mycombo>
+
+</div>
+@if (Model.Simulation_RecPid > 0)
+{
+    <div class="col-auto">
+        odkaz na simulaci
+    </div>
+}
+
+<div class="col-auto flow-end" style="margin-left:auto;display:none;">
+    <button type="button" class="btn bog" onclick="cssfile()">CSS</button>
+</div>
+
+
+<div class="col-auto flow-end" style="margin-left:auto;">
+    <button type="button" class="btn btn-sm bog" onclick="a55_new()">@_f.tra("Nová web stránka")</button>
+</div>
+
+@Html.Raw("</div>")
+
+
+@if (Model.RecA59 != null && Model.RecA59.a59StructureFlag == BO.a59StructureFlagENUM.Boxes)
+{
+    <div id="container_index" class="row">
+        <div class="column @Model.BoxColCss" id="col1">
+            @foreach (var c in Model.DockStructure.Col1)
+            {
+
+                <div id="box_@(c.pid)" class="portlet">
+                    <div class="portlet-header">
+                        <span class="ml-1">@(c.Name)</span>
+                        <a class="btn btn-sm btn-outline-secondary py-0 px-2 float-end mx-2" title="@_f.tra("Vyjmout z plochy")" href="javascript:handle_after_close_snippet(@c.pid)">x</a>
+                        <a class="btn btn-sm btn-outline-secondary py-0 px-1 float-end" title="Nastavení prvku" href="javascript:a58_edit(@c.pid)">...</a>
+                    </div>
+                    <div id="box_content_@(c.pid)" class="portlet-content">
+                        bla bla
+
+                    </div>
+                </div>
+
+
+            }
+        </div>
+
+        @if (Model.ColumnsPerPage > 1)
+        {
+            <div class="column @Model.BoxColCss" id="col2">
+                @foreach (var c in Model.DockStructure.Col2)
+                {
+                    <div id="box_@(c.pid)" class="portlet">
+                        <div class="portlet-header">
+
+                            <span class="ml-1">@(c.Name)</span>
+                            <a class="btn btn-sm btn-outline-secondary py-0 px-2 float-end mx-2" title="@_f.tra("Vyjmout z plochy")" href="javascript:handle_after_close_snippet(@c.pid)">x</a>
+                            <a class="btn btn-sm btn-outline-secondary py-0 px-1 float-end" title="Nastavení prvku" href="javascript:a58_edit(@c.pid)">...</a>
+
+                        </div>
+                        <div id="box_content_@(c.pid)" class="portlet-content">
+                            bla bla
+                        </div>
+                    </div>
+
+
+                }
+            </div>
+        }
+
+        @if (Model.ColumnsPerPage > 2)
+        {
+            <div class="column @Model.BoxColCss" id="col3">
+                @foreach (var c in Model.DockStructure.Col3)
+                {
+                    <div id="box_@(c.pid)" class="portlet">
+                        <div class="portlet-header">
+
+                            <span class="ml-1">@(c.Name)</span>
+
+                            <a class="btn btn-sm btn-outline-secondary py-0 px-2 float-end mx-2" title="@_f.tra("Vyjmout z plochy")" href="javascript:handle_after_close_snippet(@c.pid)">x</a>
+                            <a class="btn btn-sm btn-outline-secondary py-0 px-1 float-end" title="Nastavení prvku" href="javascript:a58_edit(@c.pid)">...</a>
+
+                        </div>
+                        <div id="box_content_@(c.pid)" class="portlet-content">
+                            bla bla
+                        </div>
+                    </div>
+
+
+                }
+            </div>
+        }
+
+
+
+    </div>
+}
+
+@if (Model.RecA59 != null && Model.RecA59.a59StructureFlag == BO.a59StructureFlagENUM.CustomHtml)
+{
+    @Html.Raw(Model.RecA59.a59CustomHtmlStructure)
+}
+
+
+<script type="text/javascript">
+    var _a59id = "@Model.SelectedA59ID";
+    var _a55id = "@Model.SelectedA55ID";
+    var _strankaprefix = "";
+    @if (Model.RecA55 != null)
+    {
+        <text>
+            _strankaprefix = "@Model.RecA55.a55Entity";
+        </text>
+    }
+
+
+        $(document).ready(function () {
+
+
+            _mainmenu_highlight_current("cmdadmin");
+
+            $(".column").sortable({
+                connectWith: ".column",
+                handle: ".portlet-header",
+                cancel: ".portlet-toggle",
+                placeholder: "portlet-placeholder ui-corner-all",
+                stop: function (event, ui) {
+                    save_dock_state();
+                }
+            });
+
+            $(".portlet")
+                .addClass("ui-widget ui-widget-content ui-helper-clearfix ui-corner-all")
+                .find(".portlet-header")
+                .addClass("ui-widget-header ui-corner-all");
+
+
+            $(".portlet-toggle").on("click", function () {
+                var icon = $(this);
+                icon.toggleClass("ui-icon-minusthick ui-icon-plusthick");
+                icon.closest(".portlet").find(".portlet-content").toggle();
+            });
+
+
+            if (_device.type == "Phone") {
+                $("#ColumnsPerPage").css("display", "none");
+                $("#rp1_menu").css("columns", "1");
+                $("#rp1_menu").css("width", _device.availWidth);
+            }
+
+
+    @foreach (var c in Model.lisUserWidgets)
+    {
+        <text>
+                    load_widget_content(@c.pid, @Model.ColumnsPerPage);
+        </text>
+    }
+
+
+                                            });
+
+
+
+    function save_dock_state() {
+
+        var s = $("#col1").sortable("serialize", { key: "sort" });
+    @if (Model.ColumnsPerPage > 1)
+    {
+        <text>
+                s = s + "|" + $("#col2").sortable("serialize", { key: "sort" });
+        </text>
+    }
+    @if (Model.ColumnsPerPage > 2)
+    {
+        <text>
+                s = s + "|" + $("#col3").sortable("serialize", { key: "sort" });
+        </text>
+    }
+
+
+            $.post("/AdminOneWebpage/SaveWidgetState", { s: s, a59id: "@(Model.SelectedA59ID)" }, function (data) {
+                _notify_message("@_f.tra("Změna rozložení plochy uložena.")", "info");
+
+
+
+            });
+
+
+    }
+
+    function changetemplate(cbx) {
+        location.replace("/AdminOneWebpage/Index?a55id=" + cbx.value);
+    }
+
+    function changelayer(cbx) {
+        location.replace("/AdminOneWebpage/Index?a59id=" + cbx.value);
+    }
+
+
+
+    function reload() {
+        var url = "/AdminOneWebpage/Index";
+        if (_a59id != "") {
+            url = url + "?a59id=" + _a59id;
+        } else {
+            if (_a55id != "") {
+                url = url += "?a55id=" + _a55id;
+            }
+        }
+
+        location.replace(url);
+    }
+
+    function handle_after_close_snippet(a58id) {
+        _notify_message("Loading...", "info");
+        $.post("/AdminOneWebpage/RemoveWidget", { a58id: a58id }, function (data) {
+            reload();
+
+
+        });
+    }
+
+    function handle_insert_snippet(a58id) {
+        $.post("/AdminOneWebpage/InsertWidget", { a58id: a58id }, function (data) {
+            reload();
+
+
+        });
+    }
+
+
+
+
+
+    function load_widget_content(a58id) {
+        var h = $("#box_content_" + a58id).height();
+        $("#box_content_" + a58id).html("<div style='height:" + h + "px;'><strong>Loading...</strong></div>");
+
+        $.post("/AdminOneWebpage/GetWidgetHtmlContent", { a58id: a58id }, function (data) {
+
+            $("#box_content_" + a58id).html(data);
+
+
+
+
+
+        });
+    }
+
+    function cssfile() {
+        _window_open("/AdminOneWebpage/CssFile");
+    }
+    function a55_new() {
+        _window_open("/a55/Record", 3);
+    }
+    function a55_edit(pid) {
+        _window_open("/a55/Record?pid=" + pid, 3);
+    }
+    function a59_edit(pid) {
+        _window_open("/a59/Record?pid=" + pid, 3);
+    }
+
+    function a59_new(a55id) {
+        _window_open("/a59/Record?a55id=" + a55id, 3);
+    }
+
+    function a58_new(a59id) {
+        _window_open("/a58/Record?a59id=" + a59id, 3);
+    }
+    function a58_edit(pid) {
+        _window_open("/a58/Record?pid=" + pid, 3);
+    }
+
+
+    function simulation_on_searched(pid) {
+        if (pid == "" || pid == "0") return;
+
+        window.open("/Record/DynamicPage?prefix=" + _strankaprefix + "&pid=" + pid + "&a55id=" + _a55id + "&a59id=" + _a59id, "_blank");
+    }
+</script>

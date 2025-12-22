@@ -1,0 +1,302 @@
+﻿@model DynamicMenuViewModel
+@inject BL.Factory _f
+
+@{
+    var _lisX31 = _f.x31ReportBL.GetList(new BO.myQueryX31() { IsRecordValid = true, MyRecordsDisponible = true });
+    IEnumerable<BO.x31Report> _lisX31_Kontext = null;
+    if (Model.Prefix == "p28")
+    {
+        _lisX31_Kontext = _lisX31.Where(p => p.x31QueryFlag == BO.x31QueryFlagENUM.p31 || p.x31QueryFlag == BO.x31QueryFlagENUM.p28 || p.x31QueryFlag == BO.x31QueryFlagENUM.p91);
+    }
+    if (Model.Prefix == "p41")
+    {
+        _lisX31_Kontext = _lisX31.Where(p => p.x31QueryFlag == BO.x31QueryFlagENUM.p31 || p.x31QueryFlag == BO.x31QueryFlagENUM.p41 || p.x31QueryFlag == BO.x31QueryFlagENUM.p91);
+    }
+    if (Model.Prefix == "p91")
+    {
+        _lisX31_Kontext = _lisX31.Where(p => p.x31QueryFlag == BO.x31QueryFlagENUM.p31 || p.x31QueryFlag == BO.x31QueryFlagENUM.p91);
+    }
+    if (Model.Prefix == "p56")
+    {
+        _lisX31_Kontext = _lisX31.Where(p => p.x31QueryFlag == BO.x31QueryFlagENUM.p31 || p.x31QueryFlag == BO.x31QueryFlagENUM.p56 || p.x31QueryFlag == BO.x31QueryFlagENUM.p91);
+    }
+    if (Model.Prefix == "j02")
+    {
+        _lisX31_Kontext = _lisX31.Where(p => p.x31QueryFlag == BO.x31QueryFlagENUM.p31 || p.x31QueryFlag == BO.x31QueryFlagENUM.j02 || p.x31QueryFlag == BO.x31QueryFlagENUM.p91);
+    }
+    if (Model.Prefix == "p31")
+    {
+        _lisX31_Kontext = _lisX31.Where(p => p.x31QueryFlag == BO.x31QueryFlagENUM.p31);
+    }
+
+   
+}
+
+@addTagHelper *,UI
+
+<script src="~/lib/clipboard/clipboard.min.js"></script>
+
+
+@if (_f.CurrentUser.TestPermission(BO.PermValEnum.GR_GridExports))
+{
+    <div style="width:100%;background-color:#F5F5F5;border-radius:4px;">
+        <h5 style="padding:10px;">REPORT/EXPORT</h5>
+    </div>
+
+    <div class="accordion accordion-flush" id="accordigExport1">
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
+                    <span style="width:170px;">@_f.tra("Všechny záznamy v tabulce")</span> <span class="badge bg-primary" id="exportPocetZaznamuAll"></span>
+                </button>
+            </h2>
+            <div id="flush-collapseOne" class="accordion-collapse collapse" data-bs-parent="#accordigExport1">
+                <div class="accordion-body">
+
+                    <a class="nav-link" href="javascript:gridreport_menu()"><myicon symbol="summarize"></myicon> GRID-REPORT</a>
+
+
+                    <a class="nav-link" href="javascript:grid_menu_export('xlsx')"><myicon symbol="cloud_download"></myicon> MS EXCEL</a>
+
+
+                    <a class="nav-link" href="javascript:grid_menu_export('csv')"><myicon symbol="cloud_download"></myicon> CSV</a>
+
+                </div>
+            </div>
+        </div>
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapseTwo" aria-expanded="false" aria-controls="flush-collapseTwo">
+                    <span style="width:170px">@_f.tra("Vybrané záznamy")</span> <span class="badge bg-primary" id="exportPocetZaznamuSel"></span>
+                   
+                </button>
+            </h2>
+            <div id="flush-collapseTwo" class="accordion-collapse collapse" data-bs-parent="#accordigExport1">
+                <div class="accordion-body">
+                    <small>(@_f.tra("výběr pomocí myši nebo checkboxů"))</small>
+                    <p></p>
+                    <a class="nav-link" href="javascript:gridreport_selected()"><myicon symbol="summarize"></myicon> GRID-REPORT</a>
+
+                    @if (_f.CurrentUser.j04IsModule_p31 && (Model.Prefix == "p31" || Model.Prefix == "p28" || Model.Prefix == "j02" || Model.Prefix == "p41" || Model.Prefix == "p91" || Model.Prefix == "p56" || Model.Prefix == "le4" || Model.Prefix == "le3" || Model.Prefix == "le2"))
+                    {
+
+                        <a class="nav-link" href="javascript:local_totals()"><myicon symbol="functions"></myicon> SOUČTY</a>
+
+                        <div style="width:100%;border-top:dashed 1px lightgray"></div>
+                    }
+
+
+
+                    <a class="nav-link" href="javascript:local_export('xlsx','selected')"><myicon symbol="cloud_download"></myicon> MS EXCEL</a>
+                    <a class="nav-link" href="javascript:local_export('csv','selected')"><myicon symbol="cloud_download"></myicon> CSV</a>
+
+
+                    <a class="nav-link" href="javascript:local_export('clipboard_tabs','selected')">
+                        <myicon symbol="file_copy"></myicon>
+                        @_f.tra("Zkopírovat do schránky")
+                    </a>
+                    <button id="cmdCopyToHtml" class="btn btn-sm btn-primary" data-clipboard-action="copy" data-clipboard-target="#tabHtmlToClipboard" style="visibility:hidden;">Zkopírovat zformátovaný obsah</button>
+
+
+                    <div style="width:100%;border-top:dashed 1px lightgray;margin-top:10px;"></div>
+
+                    <a class="nav-link" href="javascript:local_export('email','selected')">
+                        <myicon symbol="alternate_email"></myicon>
+                        @_f.tra("E-MAIL")
+                    </a>
+
+                    <div style="width:100%;border-top:dashed 1px lightgray"></div>
+
+                    @if (_lisX31.Where(p => p.x31Entity == BO.Code.Entity.GetPrefixDb(Model.Prefix)).Count() > 0)
+                    {
+                        <a class="nav-link" href="javascript:multireport_selected(true)" title="Kontextová sestava (pevný report)"><myicon symbol="print"></myicon> Pevný report <small>(Kontext)</small></a>
+                    }
+
+                    @if (_lisX31_Kontext != null && _lisX31_Kontext.Count() > 0)
+                    {
+                        <a class="nav-link" href="javascript:multireport_selected(false)" style="color:forestgreen;" title="Bezkontextová sestava (pevný report)"><myicon symbol="print"></myicon> Pevný report</a>
+                    }
+
+                    @if (_f.App.Implementation == "pierstone" && (Model.Prefix == "p28" || Model.Prefix == "j02" || Model.Prefix == "p41"))
+                    {
+                        <a class="nav-link" href="javascript:local_pierstone()" title="PIERSTONE Report"><myicon color="green" symbol="flag"></myicon>Pierstone Report</a>
+                    }
+
+
+                </div>
+            </div>
+        </div>
+        
+    </div>
+
+    
+
+    
+}
+
+<div id="wrapper_clipboard" style="width:100%;"></div>
+
+
+
+<script>
+    $(document).ready(function () {
+
+        RefreshExportAccording();
+
+    });
+    
+
+
+
+    function RefreshExportAccording()
+    {
+        
+
+        const pids=$("#tg_selected_pids").val().split(",");
+        
+        let panelid="flush-collapseOne";
+        if (pids.length>1)
+        {
+            panelid="flush-collapseTwo";
+        }
+
+        $("#exportPocetZaznamuAll").html($("#tabgrid1_rows").text());
+        $("#exportPocetZaznamuSel").html(pids.length);
+
+        const el = document.getElementById(panelid);
+        const collapse = bootstrap.Collapse.getOrCreateInstance(el);
+        collapse.show();
+    }
+
+
+
+    function grid_menu_export(format)
+    {
+        _loading_show("middle");
+
+        $.post(_tg_url_export, { format: format, tgi: get_all_tgi_params(), pathpars: get_all_path_values() }, function (data) {
+
+            _loading_hide();
+
+            location.replace(_ep("/FileUpload/FileDownloadTempFileNDB?tempfilename=" + data.tempfilename + "&contenttype=" + data.contenttype + "&downloadfilename=" + data.downloadfilename));
+
+
+        });
+
+
+    }
+
+
+    function gridreport_menu() {
+        var url = "/TheGridReport/Index?j72id=" + _j72id;
+        if (_tg_master_entity !== "" && _tg_master_pid > 0)
+        {
+            url = url + "&master_prefix=" + _tg_master_entity.substr(0, 3) + "&master_pid=" + _tg_master_pid;
+        }
+
+        if (document.getElementById("p31guid"))
+        {
+            //schvalování
+            url = url + "&p31guid=" + $("#p31guid").val();
+        }
+
+        _window_open(url, 2);
+
+    }
+
+
+
+    function local_export(format, scope) {
+        var pids = "";
+        if (scope === "selected") {
+            pids = $("#tg_selected_pids").val();
+            if (pids === "") {
+                _notify_message("Musíte zaškrtnout/označit minimálně jeden záznam.");
+                return;
+            }
+        }
+
+        $.post(_tg_url_export, { format: format, pids: pids, tgi: get_all_tgi_params(), pathpars: get_all_path_values() }, function (data) {
+
+            if (data.contenttype == "clipboard") {
+                if (format == "email") {
+
+                    $("#wrapper_clipboard").html(data.clipboardcontent);    //načtený html tabulky vložit do lokálního html elementu
+
+                    _html2mail("wrapper_clipboard","Vybrané záznamy tabulky","send_message_template_grid.html");
+
+                    $("#wrapper_clipboard").html("");
+                    return;
+
+                }
+
+
+
+                var copyText = data.clipboardcontent;
+                navigator.clipboard.writeText(copyText).then(() => {
+                    // Alert the user that the action took place.
+                    if (scope == "selected") {
+                        alert("Počet záznamů zkopírovaných do schránky: " + pids.split(",").length);
+                    }
+
+                });
+
+                return;
+            }
+
+            location.replace(_ep("/FileUpload/FileDownloadTempFileNDB?tempfilename=" + data.tempfilename + "&contenttype=" + data.contenttype + "&downloadfilename=" + data.downloadfilename));
+
+
+        });
+
+
+    }
+
+
+
+    function gridreport_selected() {
+        var url = "/TheGridReport/Index?j72id=" + _j72id;
+        if (_tg_master_entity !== "" && _tg_master_pid > 0) {
+            url = url + "&master_prefix=" + _tg_master_entity.substr(0, 3) + "&master_pid=" + _tg_master_pid;
+        }
+
+        _window_open_from_grid_selected(url, "pids", 2);
+
+    }
+
+    function local_totals() {
+        var prefix = "@Model.Prefix";
+        var url = "/p31totals/Index?selected_entity=" + prefix+"&blank=1";
+
+        _local_href_from_grid_selected(url, "selected_pids",true);
+
+    }
+
+    function local_pierstone() {
+        var prefix = "@Model.Prefix";
+        var url = "/Pierstone/Index?prefix=" + prefix;
+
+        _window_open_from_grid_selected(url, "pids", 3);
+
+    }
+
+    function multireport_selected(iscontext) {
+        var prefix = "@BO.Code.Entity.GetPrefixDb(Model.Prefix)";
+
+        if (iscontext) {
+            _window_open_from_grid_selected("/ReportsClient/ReportContext?prefix=" + prefix, "pids", 2);
+
+        } else {
+
+            _window_open_from_grid_selected("/ReportsClient/ReportNoContextFramework?caller_prefix=" + prefix, "caller_pids", "_blank");
+
+        }
+
+    }
+
+     function show_info() {
+        alert("Zkopírováno.");
+
+    }
+
+</script>

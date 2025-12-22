@@ -1,0 +1,56 @@
+﻿@model UI.Models.p31oper.p31delbatchViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    switch (Model.oper)
+    {
+        case "restore":
+            Model.PageTitle = _f.tra("Přesunout vybrané úkony z archivu");
+            break;
+        case "archive":
+            Model.PageTitle = _f.tra("Přesunout vybrané úkony do archivu");
+            break;
+        
+    }
+
+
+
+}
+
+@addTagHelper *, UI
+
+
+<div class="bg-light" style="padding:10px;">
+    <button id="cmdSave" class="btn btn-success" onclick="_submit()">@_f.tra("Potvrdit")</button>
+    <button id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+    <myhelpbutton></myhelpbutton>
+</div>
+
+<form id="form1" asp-controller="p31delbatch" asp-action="Index" method="POST">
+    <input type="hidden" asp-for="pids" />
+    <input type="hidden" asp-for="pids_valid" />
+    <input type="hidden" asp-for="j72id" />
+   
+    <input type="hidden" asp-for="oper" />
+</form>
+
+@await Component.InvokeAsync("myGrid", Model.gridinput)
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+
+
+
+    })
+
+
+
+</script>
+
+
+

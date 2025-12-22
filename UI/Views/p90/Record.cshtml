@@ -1,0 +1,227 @@
+﻿@model UI.Models.Record.p90Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Záloha");
+    if (Model.RecP89 !=null){
+        Model.PageTitle = Model.RecP89.p89Name;
+    }
+    if (Model.Rec.p90Code !=null){
+        Model.PageTitle += ": " + Model.Rec.p90Code;
+    }
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    
+}
+
+@addTagHelper *, UI
+
+
+
+
+
+<div class="tabs_container_record">
+    <!-- Tab panes -->
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab1" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab1">@Model.PageTitle</a>
+        </li>
+        
+        @if (Model.ff1.VisibleInputsCount > 0)
+        {
+            <li class="nav-item onetab" role="presentation">
+                <a id="link_tab3" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab3">@_f.tra("Uživatelská pole") (@Model.ff1.VisibleInputsCount)</a>
+            </li>
+        }
+        @if (Model.disp.IsRoles)
+        {
+            <li class="nav-item onetab" role="presentation">
+                <a id="link_tab4" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab4">@_f.tra(Model.disp.GetTabText(PosEnum.Roles))</a>
+            </li>
+        }
+
+        <li style="margin-left:20px;">
+            @Html.EditorFor(m => Model.rec_entity,"~/Views/Shared/_cmdMoreButton.cshtml")
+        </li>
+    </ul>
+</div>
+
+<div id="divMore" class="card" style="display:none;background-color:#E6F0FF;">
+    <div style="width:300px;padding:30px;">
+        @Html.EditorFor(m => m.disp, "~/Views/Shared/_Dispozice.cshtml")
+    </div>
+</div>
+
+@Html.Raw("<div class='modal_record_container_flexi'>")
+@Html.Raw("<div class='tab-content'>")
+
+<div class="tab-pane tab-pane-fixed" id="tab1" role="tabpanel">
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Typ zálohy"):</label>
+        <div class="col-sm-7 col-md-6">
+            <mycombo entity="p89ProformaType" asp-for="Rec.p89ID" selectedtext="@Model.ComboP89Name" event_after_changevalue="p89id_change"></mycombo>
+        </div>
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Měna"):</label>
+        <div class="col-sm-3 col-md-2">
+            <mycombo entity="j27Currency" asp-for="Rec.j27ID" selectedtext="@Model.ComboJ27Code"></mycombo>
+        </div>
+    </div>
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Klient"):</label>
+        <div class="col-sm-7 col-md-6">
+            <mycombo entity="p28Contact" asp-for="Rec.p28ID" selectedtext="@Model.ComboP28Name" filter-flag="1" search-result-width="800"></mycombo>
+        </div>
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Částka celkem"):<a style="float:right;" href="javascript:recalc2();">@_f.tra("Dopočítat")</a></label>
+        <div class="col-sm-3 col-md-2">
+            <mynumber asp-for="@Model.Rec.p90Amount" decimal-digits="2"></mynumber>
+        </div>
+    </div>
+
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Datum vystavení"):</label>
+        <div class="col-sm-3 col-md-2">
+            <mydate asp-for="Rec.p90Date"></mydate>
+        </div>
+        <div class="col-sm-4 col-md-4">
+        </div>
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Částka bez DPH"):<a style="float:right;" href="javascript:recalc1();">@_f.tra("Dopočítat")</a></label>
+        <div class="col-sm-3 col-md-2">
+            <mynumber asp-for="@Model.Rec.p90Amount_WithoutVat" decimal-digits="2"></mynumber>
+        </div>
+    </div>
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Datum splatnosti"):</label>
+        <div class="col-sm-3 col-md-2">
+            <mydate asp-for="Rec.p90DateMaturity"></mydate>
+        </div>
+        <div class="col-sm-4 col-md-4">
+        </div>
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Sazba DPH"):</label>
+        <div class="col-sm-2 col-md-1">
+            <mynumber asp-for="@Model.Rec.p90VatRate" decimal-digits="2"></mynumber>
+        </div>
+    </div>
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Kód dokladu"):</label>
+        <div class="col-sm-3 col-md-2">
+            @if (Model.CanEditRecordCode)
+            {                
+                <myval value="@Model.Rec.p90Code" hoversymol="@_f.tra("Upravit kód")" hoveronclick="true" hoverurl="javascript:_edit_code('p90',@Model.rec_pid)"></myval>
+            }
+            else
+            {
+                <myval value="@Model.Rec.p90Code"></myval>
+            }
+        </div>
+        <div class="col-sm-4 col-md-4">
+        </div>
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Částka DPH"):</label>
+        <div class="col-sm-3 col-md-2">
+            <mynumber asp-for="@Model.Rec.p90Amount_Vat" decimal-digits="2"></mynumber>
+        </div>
+    </div>
+
+
+
+    <div class="form-floating my-2">
+        <textarea class="form-control" asp-for="Rec.p90Text1"></textarea>
+        <label for="Rec_p90Text1">@_f.tra("Text zálohy")</label>
+    </div>
+    <div class="form-floating my-2">
+        <textarea class="form-control" asp-for="Rec.p90Text2"></textarea>
+        <label for="Rec_p90Text2">@_f.tra("Technický text zálohy")</label>
+    </div>
+
+    <mystitky entity="p28Contact" asp-for="@Model.TagPids" tagnames="@Model.TagNames" taghtml="@Model.TagHtml" buttontext="@_f.tra("Oštítkovat")"></mystitky>
+
+    @if (Model.disp.IsFiles)
+    {
+        <iframe id="fraUpload" src="/FileUpload/DoUpload?recpid=@Model.rec_pid&entity=p90&guid=@Model.UploadGuid" frameborder="0" scrolling="yes" style="max-width:1200px;height:60px;"></iframe>
+    }
+</div>
+
+
+
+
+
+
+@if (Model.ff1.VisibleInputsCount > 0)
+{
+    <div class="tab-pane tab-pane-fixed" id="tab3" role="tabpanel">
+        <!-- Tab2 -->
+    @Html.EditorFor(m => m.ff1, "~/Views/Shared/_FreeFields.cshtml")
+
+    </div>
+}
+
+
+
+
+@if (Model.disp.IsRoles)
+{
+    <div class="tab-pane tab-pane-fixed" id="tab4" role="tabpanel">
+        <!-- Tab4 -->
+
+        <div class="row" style="margin-bottom:10px;">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Vlastník záznamu"):</label>
+            <div class="col-sm-11 col-md-10">
+                <mycombo entity="j02User" asp-for="Rec.j02ID_Owner" selectedtext="@Model.ComboOwner" view-flag="1"></mycombo>
+            </div>
+        </div>
+
+
+
+        @Html.EditorFor(m => m.roles, "~/Views/Shared/_RoleAssign.cshtml")
+    </div>
+}
+
+
+
+
+@Html.Raw("</div>")
+@Html.Raw("</div>")
+
+<input type="hidden" asp-for="@Model.UploadGuid" />
+<input type="hidden" asp-for="@Model.Rec.p90Code" value="@Model.Rec.p90Code" />
+<input type="hidden" asp-for="@Model.Rec.p90BitStream" value="@Model.Rec.p90BitStream" />
+<input type="hidden" asp-for="@Model.CanEditRecordCode" />
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $("#cmdMore").click(function () {
+            $("#divMore").toggle();
+        });
+
+
+    });
+
+
+
+
+    function recalc1() {
+        _postback("recalc1");
+    }
+    function recalc2() {
+        _postback("recalc2");
+
+    }
+    function p89id_change(p89id) {
+        _postback("p89id")
+    }
+    function hardrefresh(pid, flag) {
+        if (flag != undefined) {
+            if (flag.includes("recordcode")) {
+                $("#Rec_p90Code").val(flag.split("|")[1]);
+            }
+
+        }
+
+
+        _postback();
+    }
+
+</script>

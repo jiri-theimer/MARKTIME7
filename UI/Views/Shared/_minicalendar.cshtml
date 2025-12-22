@@ -1,0 +1,614 @@
+﻿@model UI.Models.p31view.minicalendarViewModel
+@inject BL.Factory _f
+
+@{
+    Microsoft.Extensions.Primitives.StringValues queryVal;
+    if (Context.Request.Query.TryGetValue("d0", out queryVal))
+    {
+        Model.d0 = BO.Code.Bas.String2Date(queryVal.FirstOrDefault());
+    }
+    if (Model.j02ID == 0)
+    {
+        Model.j02ID = _f.CurrentUser.pid;
+    }
+    if (Context.Request.Query.TryGetValue("j02id", out queryVal))
+    {
+        Model.j02ID = Convert.ToInt32(queryVal.FirstOrDefault());
+    }
+
+
+    int _m0 = Model.d0.Month;
+    int _y0 = Model.d0.Year;
+
+    DateTime _d1 = new DateTime(Model.d0.Year, Model.d0.Month, 1);
+    DateTime _d2 = _d1.AddMonths(1).AddDays(-1);
+    _d1 = BO.Code.Bas.get_first_prev_monday(_d1);
+    _d2 = BO.Code.Bas.get_first_prev_monday(_d2).AddDays(6);
+
+    List<BO.p31WorksheetTimelineDay> _lisSums = _f.p31WorksheetBL.GetList_TimelineDays(new List<int> { Model.j02ID }, _d1, _d2, 0, 0, 0).ToList();
+
+    
+
+    var lisX67 = _f.x67EntityRoleBL.GetList(new BO.myQuery("x67") { explicit_orderby = "x67Ordinary" });
+    var _lisX67_p56 = lisX67.Where(p => p.x67Entity == "p56");
+    var _lisX67_o22 = lisX67.Where(p => p.x67Entity == "o22");
+    var _x67ID_p56 = _f.CBL.LoadUserParamInt("minicalendar-x67id_p56");
+    var _x67ID_o22 = _f.CBL.LoadUserParamInt("minicalendar-x67id_o22");
+
+    IEnumerable<BO.p56Task> _lisP56 = null;
+    if (_x67ID_p56 > 0)
+    {
+        var mqP56 = new BO.myQueryP56() { x67id = _x67ID_p56, j02id = Model.j02ID, global_d1 = _d1, global_d2 = _d2, period_field = "p56PlanUntil" };
+        if (Model.j02ID != _f.CurrentUser.pid)
+        {
+            mqP56.MyRecordsDisponible = true;
+        }
+        _lisP56 = _f.p56TaskBL.GetList(mqP56);
+    }
+    
+    
+    IEnumerable<BO.o22Milestone> _lisO22 = null;
+    IEnumerable<BO.c23PersonalDayColor> _lisC23 = null;
+    IEnumerable<BO.c26Holiday> _lisC26 = _f.c26HolidayBL.GetList(new BO.myQueryC26() { global_d1 = _d1, global_d2 = _d2 }); ;
+    IEnumerable<BO.p11Attendance> _lisP11 = _f.p11AttendanceBL.GetList(_d1, _d2, Model.j02ID, false);
+
+    string _strMesic = $"{_d1.Month}/{_d1.Year}";
+
+    string strClass = null;
+    string strTitle = null;
+    bool bolWeekendDay = false;
+    bool bolHoliday = false;
+    bool bolOK = false;
+    string strStyle = null;
+    int x = 1;
+
+
+    string strCisloDne = null;
+    string strDatum = null;
+    bool bolOutMonth = false;
+    DateTime datFirstDayOfMonth = new DateTime(Model.d0.Year, Model.d0.Month, 1);
+    DateTime datLastDayOfMonth = datFirstDayOfMonth.AddMonths(1).AddDays(-1);
+    string strHodiny = null;
+
+    IEnumerable<BO.p56Task> qryP56 = null;
+    IEnumerable<BO.o22Milestone> qryO22 = null;
+    IEnumerable<BO.p11Attendance> qryP11 = null;
+
+    bool bolRenderP11 = false;
+
+    if (_lisP11 != null && _lisP11.Count() > 0)
+    {
+        bolRenderP11 = true;
+    }
+
+    BO.p31WorksheetTimelineDay _recFirst = null;
+}
+
+@addTagHelper *, UI
+
+<div id="zoomwin" style="position:absolute;top:0px;left:0px;z-index:1000;display:none;"></div>
+
+<div class="input-group" style="margin-left:20px;">
+    <div>
+        <button title="@_f.tra("Předchozí")" type="button" class="btn bog px-2" onclick="local_month_prev()"><i class="material-icons-outlined-btn">first_page</i></button>
+    </div>
+    
+    <div>
+        <select id="m0" class="form-select" onchange="local_reload()">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+            <option value="11">11</option>
+            <option value="12">12</option>
+        </select>
+    </div>
+    <div>
+        <select id="y0" class="form-select" onchange="local_reload()">
+            <option value="@(_y0-3)">@(_y0 - 3)</option>
+            <option value="@(_y0-2)">@(_y0 - 2)</option>
+            <option value="@(_y0-1)">@(_y0 - 1)</option>
+            <option value="@(_y0)">@(_y0)</option>
+            <option value="@(_y0+1)">@(_y0 + 1)</option>
+        </select>
+    </div>
+    <div>
+        <button title="@_f.tra("Další")" type="button" class="btn bog px-2" onclick="local_month_next()"><i class="material-icons-outlined-btn">last_page</i></button>
+    </div>
+
+    <div style="margin-left:20px;">
+        <button class="btn dropdown-toggle bog" id="cmdMoreLocal">
+            <myicon symbol="more_horiz"></myicon>
+
+        </button>
+    </div>
+
+    <div>
+        <span class="badge-light" title="Vykázané hodiny">
+            @(BO.Code.Time.FormatNumeric(@_lisSums.Where(p=>p.p31Date.Month==Model.d0.Month).Sum(p => p.Hours), Model.ShowHHMM))
+        </span>
+    </div>
+    <div>
+        <span class="badge-a4" title="Fa hodiny">
+            @(BO.Code.Time.FormatNumeric(@_lisSums.Where(p => p.p31Date.Month == Model.d0.Month).Sum(p => p.Hours_Billable), Model.ShowHHMM))
+        </span>
+    </div>
+    <div>
+        <span class="badge-a2" title="Nefa hodiny">
+            @(BO.Code.Time.FormatNumeric(@_lisSums.Where(p => p.p31Date.Month == Model.d0.Month).Sum(p => p.Hours_NonBillable), Model.ShowHHMM))
+        </span>
+    </div>
+    
+</div>
+
+
+<div id="divMoreLocal" style="display:none;padding:10px;">
+    <select id="cbxX67ID_p56" class="form-select" onchange="save_settings_and_reload_local()">
+        <option value="0">Nezobrazovat úkoly</option>
+        @foreach (var c in _lisX67_p56)
+        {
+            <option value="@(c.pid)">@(c.x67Name)</option>
+        }
+    </select>
+    <p></p>
+    <select id="cbxX67ID_o22" class="form-select" onchange="save_settings_and_reload_local()">
+        <option value="0">Nezobrazovat termíny/lhůty</option>
+        @foreach (var c in _lisX67_o22)
+        {
+            <option value="@(c.pid)">@(c.x67Name)</option>
+        }
+    </select>
+</div>
+
+
+
+
+<table border="0" id="mt_minicalendar">
+    @{
+        strStyle = "14%";
+        if (!Model.ShowWeekend) strStyle = "20%";
+    }
+    <tr>
+        <th style="@(strStyle)">Po</th>
+        <th style="@(strStyle)">Út</th>
+        <th style="@(strStyle)">St</th>
+        <th style="@(strStyle)">Čt</th>
+        <th style="@(strStyle)">Pá</th>
+        @if (Model.ShowWeekend)
+        {
+            <th>So</th>
+            <th>Ne</th>
+        }
+    </tr>
+
+    @Html.Raw("<tr>")
+
+    @for (DateTime d = _d1; d <= _d2; d = d.AddDays(1))
+    {
+        strClass = "mt_scheduler-day-out-month"; bolWeekendDay = false; bolOutMonth = true; bolHoliday = false;
+
+        if (d.Month == _m0 && d.Year == _y0)
+        {
+            strClass = "mt_scheduler-day-in-month";
+            bolOutMonth = false;
+        }
+        if (d.DayOfWeek == DayOfWeek.Saturday || d.DayOfWeek == DayOfWeek.Sunday)
+        {
+            bolWeekendDay = true;
+            strClass = "mt_scheduler-day-weekend";
+
+
+        }
+        if (_lisC26.Any(p => p.c26Date == d))
+        {
+            bolHoliday = true;
+            strClass = "mt_scheduler-day-holiday";
+        }
+        if (d == DateTime.Today)
+        {
+            strClass = "mt_scheduler-today";
+        }
+        if (d == Model.d0)
+        {
+            if (strClass != null)
+            {
+                strClass += " bunka_selected";
+            }
+            else
+            {
+                strClass = "bunka_selected";
+            }
+        }
+        strClass += " dclocal";
+        bolOK = true;
+        if (bolWeekendDay && !Model.ShowWeekend)
+        {
+            bolOK = false;
+        }
+        if (bolOK)
+        {
+            strStyle = null;
+            strTitle = null;
+            if (_lisC23 != null && _lisC23.Any(p => p.c23Date == d))
+            {
+                strStyle = $"background-color:{_lisC23.First(p => p.c23Date == d).c24Color}";
+                strTitle = _lisC23.First(p => p.c23Date == d).c24Name;
+            }
+            strDatum = BO.Code.Bas.ObjectDate2String(d, "dd.MM.yyyy");
+            strCisloDne = BO.Code.Bas.ObjectDate2String(d, "dd");
+
+            @Html.Raw($"<td class='{strClass}' data-d='{strDatum}' style='{strStyle}' title='{strTitle}'>")
+
+            strTitle = null;
+
+            strStyle = null;
+            strClass = "mt_scheduler-day-link";
+            if (bolOutMonth)
+            {
+                strClass += " out-month";
+            }
+            if (d == datFirstDayOfMonth || d == datLastDayOfMonth)
+            {
+                @Html.Raw("<div class='mt_scheduler-day-header' style='background-color:khaki;'>")
+            }
+            else
+            {
+                @Html.Raw("<div class='mt_scheduler-day-header'>")
+            }
+
+            if (d == DateTime.Today)
+            {
+                strCisloDne += "<span class='material-icons-outlined' style='font-size:90%;color:lime;'>star</span>";
+            }
+
+
+
+            @Html.Raw($"<a href=\"javascript:sdlocal('{strDatum}')\" class='cislodne' title='{strDatum}'>{strCisloDne}</a>")
+
+
+            if (bolHoliday)
+            {
+                @Html.Raw($"<span title='{_lisC26.First(p => p.c26Date == d).c26Name}'>🍷</span>")
+            }
+
+
+
+            @Html.Raw("</div>")
+
+
+            @Html.Raw($"<div class='mt_scheduler-day' style='min-height: 25px !important;' >")
+
+
+            var qry = _lisSums.Where(p => p.p31Date == d);
+            if (qry.Count() > 0)
+            {
+                strStyle = "color:blue;";
+                _recFirst = qry.First();
+                if (_recFirst.Hours_Billable > 0 && _recFirst.Hours_NonBillable == 0)
+                {
+                    strStyle = "color:green;";
+                }
+                else
+                {
+                    if (_recFirst.Hours_NonBillable > 0 && _recFirst.Hours_Billable == 0)
+                    {
+                        strStyle = "color:red;";
+                    }
+                }
+                strStyle += ";margin-left:3px;";
+                strHodiny = BO.Code.Time.FormatNumeric(_recFirst.Hours, Model.ShowHHMM);
+                if (Model.mode == "hybrid")
+                {
+                    @Html.Raw($"<a onclick='hy(this,{Model.j02ID},\"{strDatum}\")'  class='mt_scheduler_valuelink' style='{strStyle}' p31date='{strDatum}' j02id='{Model.j02ID}'>{strHodiny}</a>")
+                }
+                else
+                {
+                    @Html.Raw($"<a onclick='re(this,{Model.j02ID},\"{strDatum}\")'  class='mt_scheduler_valuelink' style='{strStyle}' p31date='{strDatum}' j02id='{Model.j02ID}'>{strHodiny}</a>")
+                }
+                if (_recFirst.Moneys != 0) //peněžní úkony
+                {
+                    if (Model.mode == "hybrid")
+                    {
+                        @Html.Raw($"<a class='mt_scheduler_valuelink_money' onclick='hy(this,{Model.j02ID},\"{strDatum}\")' title='Peněžní úkony' p31date='{strDatum}' j02id='{Model.j02ID}'>{_recFirst.Moneys}</a>")
+                    }
+                    else
+                    {
+                        @Html.Raw($"<a class='mt_scheduler_valuelink_money' onclick='re(this,{Model.j02ID},\"{strDatum}\")' title='Peněžní úkony' p31date='{strDatum}' j02id='{Model.j02ID}'>{_recFirst.Moneys}</a>")
+                    }
+
+                }
+                if (_recFirst.Pieces != 0) //kusovník
+                {
+                    if (Model.mode == "hybrid")
+                    {
+                        @Html.Raw($"<a onclick='hy(this,{Model.j02ID},\"{strDatum}\")' class='mt_scheduler_valuelink_kusovnik' title='Kusovník' class='kusovnik'>{_recFirst.Pieces}</a>")
+                    }
+                    else
+                    {
+                        @Html.Raw($"<a onclick='re(this,{Model.j02ID},\"{strDatum}\")' class='mt_scheduler_valuelink_kusovnik' title='Kusovník' class='kusovnik'>{_recFirst.Pieces}</a>")
+                    }
+
+                }
+
+                
+
+            }
+            if (bolRenderP11)
+            {
+                qryP11 = _lisP11.Where(p => p.p11Date == d);
+                if (qryP11.Count() > 0)
+                {
+                    if (qryP11.First().p11TodayStart != null)
+                    {
+                        @Html.Raw($"<div class='odchod-prichod-mini'>{BO.Code.Bas.ObjectDateTime2String(qryP11.First().p11TodayStart, "HH:mm")}</div>")
+                    }
+                    if (qryP11.First().p11TodayEnd != null)
+                    {
+                        @Html.Raw($"<div class='odchod-prichod-mini'>{BO.Code.Bas.ObjectDateTime2String(qryP11.First().p11TodayEnd, "HH:mm")}</div>")
+                    }
+                }
+
+            }
+
+            if (_lisP56 != null)      //úkoly
+            {
+                qryP56 = _lisP56.Where(p => p.p56PlanUntil >= d && p.p56PlanUntil < d.AddDays(1));
+                foreach (var recP56 in qryP56)
+                {
+                    strClass = "p31_rec_link";
+                    strTitle = $"{recP56.p57Name}: {recP56.p56Name} ({recP56.b02Name})";
+                    @Html.Raw("<div style='white-space: nowrap;'>")
+                    @Html.Raw($"<a class='cm' onclick='reccmp56_local(event,{recP56.pid})'>&#9776;</a>")
+                    
+                    @Html.Raw($"<a class='{strClass}' title='{strTitle}' onclick=\"_zoom(event,'p56',{recP56.pid})\">")
+                    @Html.Raw($"<span class='material-icons-outlined' style='color:{recP56.b02Color};'>task</span>")
+                    @Html.Raw("</a>")
+                    @Html.Raw("</div>")
+                }
+            }
+            if (_lisO22 != null)      //termíny/lhůty
+            {
+                qryO22 = _lisO22.Where(p => (p.o21TypeFlag == BO.o21TypeFlagEnum.Udalost && d.AddDays(1) > p.o22PlanFrom && p.o22PlanUntil >= d) || (p.o21TypeFlag != BO.o21TypeFlagEnum.Udalost && p.o22PlanUntil >= d && p.o22PlanUntil < d.AddDays(1)));
+                foreach (var recO22 in qryO22)
+                {
+                    strClass = "p31_rec_link";
+                    strTitle = $"{recO22.o21Name}: {recO22.o22Name}";
+                    @Html.Raw("<div style='white-space: nowrap;'>")
+                    @Html.Raw($"<a class='cm' onclick='reccmo22_local(event,{recO22.pid})'>&#9776;</a>")
+                    @Html.Raw($"<span class='material-icons-outlined' style='color:{recO22.ForeColor};'>event</span>")
+                    @Html.Raw($"<a class='{strClass}' title='{strTitle}' onclick=\"_zoom(event,'o22',{recO22.pid})\">{BO.Code.Bas.OM2(recO22.o22Name, 25)}")
+                    @Html.Raw("</a>")
+                    @Html.Raw("</div>")
+                }
+            }
+
+            @Html.Raw("</div>")
+
+
+            @Html.Raw("</td>")
+
+
+        }
+        if (x == 7)
+        {
+            x = 0;
+            @Html.Raw("</tr>")
+            ;
+            @Html.Raw("<tr>")
+            ;
+
+        }
+        x += 1;
+    }
+
+</table>
+
+
+
+<script type="text/javascript">
+    var _zoomwin = document.getElementById("zoomwin");
+    _zoomwin = document.getElementById("zoomwin");
+    var _lasturl = "";
+    var _lastctl = null;
+    
+
+    function re(ctl, j02id, d) {
+        var url = "/p31dayline/Zoom?j02id=" + j02id + "&d=" + d;
+        local_zoom_open(ctl, url);
+
+    }
+    function hy(ctl, j02id, d) {
+        
+        location.replace("/p31hybrid/Index?d="+d);
+        
+        
+        
+    }
+
+    $(document).ready(function () {
+        $("#m0").val("@_m0");
+        $("#y0").val("@_y0");
+
+        $("#cbxX67ID_p56").val("@(_x67ID_p56)");
+        $("#cbxX67ID_o22").val("@(_x67ID_o22)");
+
+        $(document).on("keydown", function (e) {
+            if (e.keyCode == 27 && _zoomwin.style.display == "block") {   //klávese ESCAPE
+                local_zoom_close();
+            }
+
+        });
+
+        $(document).on("click", function (e) {
+            if ($(e.target).hasClass("mt_scheduler_valuelink") || $(e.target).hasClass("stat_link")) {
+                return;
+
+            }
+
+            local_zoom_close();
+
+
+
+        });
+
+        $(".dclocal").dblclick(function () {
+            var j02id = "@Model.j02ID";
+            var d = $(this).attr("data-d");
+            if (window !== window.top) {
+                window.parent._window_open("/p31/Record?j02id=" + j02id + "&d=" + d, 3);
+            } else {
+                _window_open("/p31/Record?j02id=" + j02id + "&d=" + d, 3);
+            }
+            
+        });
+
+        $("#cmdMoreLocal").click(function () {
+            $("#divMoreLocal").toggle();
+        });
+    });
+
+
+
+
+    function local_zoom_open(ctl, url) {
+        if (_lasturl == url && _lastctl == ctl && $("#zoomwin").css("display") == "block") {
+            local_zoom_close();
+            return;
+        }
+        url = _ep(url);
+        _lasturl = url;
+        _lastctl = ctl;
+
+        if (window !== window.top) {
+            window.parent._window_open(url,3,"Zoom");  //kalendář je uvnitř IFRAME
+            return;
+        }
+        
+
+        $(".zoom_ctl_current").removeClass("zoom_ctl_current");
+        $(ctl).addClass("zoom_ctl_current");
+
+        var c = $("#zoomwin");
+        
+
+        var w = _device.innerWidth - 100;
+        var h = 450;
+        var y = $(ctl).offset().top + 20;
+        if (y + h + 20 > _device.innerHeight) {
+            y = $(ctl).offset().top - h - 2;
+        }
+
+        if (_device.innerWidth < w) w = _device.innerWidth;
+        if (_device.innerHeight < h) h = _device.innerHeight;
+        x = (_device.innerWidth - w) / 2;
+
+        $(c).css("display", "block");
+        $(c).css("width", w + "px");
+        $(c).css("height", h + "px");
+        $(c).css("left", x + "px");
+        $(c).css("top", y + "px");
+        $(c).html("<iframe id='frazoom' style='border:solid 1px gray;' width='" + (w - 50) + "px' height='" + (h - 40) + "px' src='" + url + "'></iframe>");
+
+    }
+
+    function local_zoom_close() {
+        if ($("#zoomwin").css("display") == "block") {
+            $("#zoomwin").css("display", "none");
+        }
+
+        $(".zoom_ctl_current").removeClass("zoom_ctl_current");
+    }
+
+
+    function sdlocal(d) {
+        var j02id = "@Model.j02ID";
+
+        if (window !== window.top) {
+            window.parent._window_open("/p31/Record?j02id=" + j02id + "&d=" + d, 3);
+        } else {
+            _window_open("/p31/Record?j02id=" + j02id + "&d=" + d, 3);
+        }
+        
+    }
+
+
+    function local_month_prev() {
+        var m = parseInt($("#m0").val());
+        var y = parseInt($("#y0").val());
+        
+        if (m == 1) {
+            m = 12;
+            y = y - 1;
+        }
+        else
+        {
+            m = m - 1;
+        }
+        $("#m0").val(m);
+        $("#y0").val(y);
+
+        local_reload();
+        
+        
+
+
+    }
+    function local_month_next() {
+        var m = parseInt($("#m0").val());
+        var y = parseInt($("#y0").val());
+
+        if (m == 12)
+        {
+            m = 1;
+            y = y + 1;
+        } else
+        {
+            m = m + 1;
+        }
+        $("#m0").val(m);
+        $("#y0").val(y);
+        
+
+        local_reload();
+
+    }
+
+    function local_reload() {
+        var url = _removeUrlParam("d0", location.href);
+        if (url.indexOf("?") > 0) {
+            url = url + "&";
+        } else {
+            url = url + "?";
+        }
+        url = url + "d0=1." + $("#m0").val() + "." + $("#y0").val();
+        location.replace(url);
+    }
+    function reccmp56_local(e, p56id) {
+        _cm(e, "p56Task", p56id, "calendar");
+    }
+    function reccmo22_local(e, o22id) {
+        _cm(e, "o22Milestone", o22id, "calendar");
+    }
+
+    function save_settings_and_reload_local() {
+        var k = [];
+        var v = [];
+       
+        
+        k.push("minicalendar-x67id_p56");
+        v.push($("#cbxX67ID_p56").val());
+        k.push("minicalendar-x67id_o22");
+        v.push($("#cbxX67ID_o22").val());
+
+        $.post("/Common/SetUserParams", { keys: k, values: v }, function (data) {
+            local_reload();
+
+        });
+    }
+</script>

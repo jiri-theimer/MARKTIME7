@@ -1,0 +1,77 @@
+﻿@model UI.Models.p91oper.p91deleteViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = _f.tra("Odstranit vyúčtování");
+
+}
+
+@addTagHelper *, UI
+
+<div class="bg-light" style="padding:10px;">
+    <button type="button" id="cmdOK" class="btn btn-success" onclick="_submit()">@_f.tra("Potvrdit odstranění vyúčtování")</button>
+
+    <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+
+
+
+</div>
+
+<form id="form1" asp-controller="p91oper" asp-action="p91delete" method="POST">
+    <div class="modal_record_container">
+        <div class="alert alert-primary">
+            @(Model.RecP91.p92Name + ": " + Model.RecP91.p91Code)
+            <hr />
+            @(Model.RecP91.p91Client)
+        </div>
+
+
+        <div class="card">
+            <div class="card-header">
+                @_f.tra("Co se má stát s vyúčtovanými položkami?")
+            </div>
+            <div class="card-body">
+                <input type="radio" asp-for="@Model.SelectedOper" id="opg1" value="1" />
+                <label for="opg1">@_f.tra("Položky (úkony) Změnit na schválené")</label>
+                <br />
+                <br />
+                <input type="radio" asp-for="@Model.SelectedOper" id="opg2" value="2" />
+                <label for="opg2">@_f.tra("Položky (úkony) změnit na rozpracované")</label>
+                <br />
+                <br />
+                
+                    <input type="radio" asp-for="@Model.SelectedOper" id="opg3" value="3" />
+                    <label for="opg3">@_f.tra("Položky (úkony) změnit na vyloučené z vyúčtování")</label>
+               
+                <br />
+                <br />
+                <input type="radio" asp-for="@Model.SelectedOper" id="opg4" value="4" />
+                <label for="opg4">@_f.tra("Položky (úkony) nenávratně odstranit")</label>
+                <br />
+            </div>
+        </div>
+    </div>
+
+
+    <input type="hidden" asp-for="@Model.p91ID" />
+    <input type="hidden" asp-for="@Model.TempGuid" />
+</form>
+
+<vc:the-grid input="@Model.gridinput"></vc:the-grid>
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+
+
+
+    })
+
+
+
+
+</script>

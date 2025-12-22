@@ -1,0 +1,434 @@
+﻿@model UI.Models.p31view.calendarViewModel
+@inject BL.Factory _f
+
+@{
+    var qryP31 = Model.lisP31;
+    if (Model.CurrentView == UI.Models.p31view.CalendarViewEnum.Month)
+    {
+        qryP31 = Model.lisP31.Where(p => p.p31Date.Year == Model.y0 && p.p31Date.Month == Model.m0);
+    }
+    string _strMesic = null;
+    switch (Model.CurrentView)
+    {
+        case UI.Models.p31view.CalendarViewEnum.Month:
+        case UI.Models.p31view.CalendarViewEnum.MonthAgenda:
+            _strMesic = Model.d0.Month.ToString() + "/" + Model.d0.Year.ToString();
+            break;
+        case UI.Models.p31view.CalendarViewEnum.ExactDay:
+            _strMesic = Model.d0.ToString("dd.MM.yyyy ddd");
+            break;
+        default:
+            _strMesic = BO.Code.Bas.ObjectDate2String(Model.d1) + " - " + BO.Code.Bas.ObjectDate2String(Model.d2);
+            break;
+    }
+    var mq = new BO.myQueryP41("le5");   
+
+    double _dblHodiny = qryP31.Sum(p => p.p31Hours_Orig);
+    double _dblHodinyFa = qryP31.Where(p => p.p32IsBillable).Sum(p => p.p31Hours_Orig);
+    double _dblHodinyWip = qryP31.Where(p => p.p71ID == BO.p71IdENUM.Nic && p.p91ID == 0).Sum(p => p.p31Hours_Orig);
+    double _dblHodinyFaWip = qryP31.Where(p => p.p32IsBillable && p.p71ID == BO.p71IdENUM.Nic && p.p91ID == 0).Sum(p => p.p31Hours_Orig);
+    double _dblHodinyNeFaWip = qryP31.Where(p => !p.p32IsBillable && p.p71ID == BO.p71IdENUM.Nic && p.p91ID == 0).Sum(p => p.p31Hours_Orig);
+    double _dblFond = 0.00;
+    if (Model.RecJ02 !=null)
+    {
+        if (Model.RecJ02.c21ScopeFlag == BO.c21ScopeFlagENUM.PerTimesheet)
+        {
+            _dblFond = _dblHodiny;  //fond 100% podle timesheet
+        }
+        else
+        {
+            if (Model.CurrentView == UI.Models.p31view.CalendarViewEnum.Month)
+            {
+                _dblFond = _f.c21FondCalendarBL.GetSumHours(Model.RecJ02.c21ID, Model.RecJ02.j02CountryCode, new DateTime(Model.d0.Year, Model.d0.Month, 1), new DateTime(Model.d0.Year, Model.d0.Month, 1).AddMonths(1).AddDays(-1));
+            }
+            else
+            {
+                _dblFond = _f.c21FondCalendarBL.GetSumHours(Model.RecJ02.c21ID, Model.RecJ02.j02CountryCode, Model.d1, Model.d2);
+            }
+        }
+        
+        
+    }
+    double _dblUtilTotal = 0.00;
+    double _dblUtilFa = 0.00;
+    if (_dblFond > 0)
+    {
+        _dblUtilTotal = 100.00 * _dblHodiny / _dblFond;
+        _dblUtilFa = 100.00 * _dblHodinyFa / _dblFond;
+    }
+
+    double _dblHodiny4Approve = qryP31.Where(p => p.p71ID == BO.p71IdENUM.Schvaleno && p.p91ID == 0).Sum(p => p.p31Hours_Orig);
+
+    double _dblHodinyVyfa4 = 0.00;
+    double _dblHodinyVyfa4Orig = 0.00;
+    double _dblHodinyVyfa6 = 0.00;
+    double _dblHodinyVyfa23 = 0.00;
+
+    if (_f.CurrentUser.IsRatesAccess)
+    {
+        _dblHodinyVyfa4 = qryP31.Where(p => p.p91ID > 0 && p.p70ID == BO.p70IdENUM.Vyfakturovano).Sum(p => p.p31Hours_Invoiced);
+        _dblHodinyVyfa4Orig = qryP31.Where(p => p.p91ID > 0 && p.p70ID == BO.p70IdENUM.Vyfakturovano).Sum(p => p.p31Hours_Orig);
+        _dblHodinyVyfa6 = qryP31.Where(p => p.p91ID > 0 && p.p70ID == BO.p70IdENUM.ZahrnutoDoPausalu).Sum(p => p.p31Hours_Orig);
+        _dblHodinyVyfa23 = qryP31.Where(p => p.p91ID > 0 && (p.p70ID == BO.p70IdENUM.SkrytyOdpis || p.p70ID == BO.p70IdENUM.ViditelnyOdpis)).Sum(p => p.p31Hours_Orig);
+    }
+
+
+
+
+    }
+
+<button id="cmdCalendarPanel2" title="Levý panel" type="button" class="btn btn-sm" onclick="handle_calendarpanel()"><span class='material-icons'>keyboard_double_arrow_left</span></button>
+
+<table class="table table-sm table-hover" style="margin-right:50px;">
+    <tr>
+        <td>
+            @_f.tra("Vykázané hodiny")
+
+            <span class="badge bg-info">
+                @(_strMesic)
+            </span>
+            
+
+        </td>
+        <td class="tdnum">
+            <a class="stat_link" style="font-weight:bold;" onclick="zoom_alldays(this)">
+                @(BO.Code.Time.FormatNumeric(_dblHodiny,Model.ShowHHMM))
+            </a>
+            
+        </td>
+        <td >h.</td>
+    </tr>
+    <tr>
+        <td style="padding-left:20px;">
+            @_f.tra("Z toho fakturovatelné aktivity"):
+        </td>
+        <td class="tdnum">
+            <a class="stat_link fa" onclick="zoom_stat(this,'true')">
+                @(BO.Code.Time.FormatNumeric(_dblHodinyFa,Model.ShowHHMM))
+            </a>
+            
+        </td>
+        <td>h.</td>
+    </tr>
+    <tr style="border-top:solid 2px gray;">
+        <td style="padding-left:20px;">
+            @_f.tra("Z toho rozpracované (čeká na schválení)"):
+        </td>
+        <td class="tdnum">            
+            <a class="stat_link" style="color:black;" onclick="zoom_stat(this,null,'true')">
+                @(BO.Code.Time.FormatNumeric(_dblHodinyWip,Model.ShowHHMM))
+            </a>
+        </td>
+        <td>h.</td>
+    </tr>
+    <tr>
+        <td style="padding-left:40px;">
+            @_f.tra("Z toho fakturovatelné aktivity"):
+        </td>
+        <td class="tdnum">
+            <a class="stat_link fa" onclick="zoom_stat(this,'true','true')">
+                @(BO.Code.Time.FormatNumeric(_dblHodinyFaWip,Model.ShowHHMM))
+            </a>            
+        </td>
+        <td style="width:20px;">h.</td>
+    </tr>
+    <tr>
+        <td style="padding-left:40px;">
+            @_f.tra("Z toho nefakturovatelné aktivity"):
+        </td>
+        <td class="tdnum">
+            <a class="stat_link nefa" onclick="zoom_stat(this,'false','true')">
+                @(BO.Code.Time.FormatNumeric(_dblHodinyNeFaWip,Model.ShowHHMM))
+            </a>
+            
+        </td>
+        <td>h.</td>
+    </tr>
+    <tr style="border-top:solid 2px gray;">
+        <td style="padding-left:20px;">
+            @_f.tra("Z toho schváleno a čeká na vyúčtování"):
+        </td>
+        <td class="tdnum">            
+            <a class="stat_link" style="color:black;" onclick="zoom_stat(this,null,null,null,'true')">
+                @(BO.Code.Time.FormatNumeric(_dblHodiny4Approve,Model.ShowHHMM))
+            </a>
+        </td>
+        <td><span class="material-icons-outlined" style="color:green;">approval</span></td>
+    </tr>
+    @if (_f.CurrentUser.IsRatesAccess)
+    {
+        <tr>
+            <td style="padding-left:20px;">
+                @_f.tra("Z toho vyúčtováno"):
+            </td>
+            <td>
+            </td>
+            <td></td>
+        </tr>
+        <tr>
+            <td style="padding-left:40px;">
+                @_f.tra("Sazbou"):
+            </td>
+            <td class="tdnum fa">                
+                <a class="stat_link fa" onclick="zoom_stat(this,null,null,'4')">
+                    @(BO.Code.Time.FormatNumeric(_dblHodinyVyfa4,Model.ShowHHMM))
+                    @if (_dblHodinyVyfa4 != _dblHodinyVyfa4Orig)
+                    {
+                        @(" z "+BO.Code.Time.FormatNumeric(_dblHodinyVyfa4Orig, Model.ShowHHMM))
+                    }
+                </a>
+            </td>
+            <td style="background-color:green;">h.</td>
+        </tr>
+        <tr>
+            <td style="padding-left:40px;">
+                @_f.tra("Zahrnuto do paušulu "):
+            </td>
+            <td class="tdnum">                
+                <a class="stat_link" style="color:pink;" onclick="zoom_stat(this,null,null,'6')">
+                    @(BO.Code.Time.FormatNumeric(_dblHodinyVyfa6,Model.ShowHHMM))
+                </a>
+            </td>
+            <td style="background-color:pink;">h.</td>
+        </tr>
+        <tr>
+            <td style="padding-left:40px;">
+                @_f.tra("Odepsáno"):
+            </td>
+            <td class="tdnum">                
+                <a class="stat_link" style="color:brown;" onclick="zoom_stat(this,null,null,'23')">
+                    @(BO.Code.Time.FormatNumeric(_dblHodinyVyfa23,Model.ShowHHMM))
+                </a>
+            </td>
+            <td style="background-color:brown;">h.</td>
+        </tr>
+
+    }
+    <tr style="border-top:solid 2px gray;">
+        <td>
+            @_f.tra("Fond pracovní doby"):
+        </td>
+        <td class="tdnum" style="color: #B8860B;">
+            @(BO.Code.Time.FormatNumeric(_dblFond,Model.ShowHHMM))
+        </td>
+        <td>h.</td>
+    </tr>
+    @if (_dblFond > 0)
+    {
+        <tr>
+            <td style="padding-left:20px;">
+                @_f.tra("Utilizace (všechny hodiny)"):
+            </td>
+            <td class="tdnum" style="color: blue;">
+                @(BO.Code.Bas.Number2String(_dblUtilTotal))
+            </td>
+            <td>%</td>
+        </tr>
+        <tr>
+            <td style="padding-left:20px;">
+                @_f.tra("Utilizace (fakturovatelné aktivity)"):
+            </td>
+            <td class="tdnum fa">
+                @(BO.Code.Bas.Number2String(_dblUtilFa))
+            </td>
+            <td>%</td>
+        </tr>
+    }
+
+</table>
+
+
+<div class="dropdown">
+    
+    <button class="btn bog dropdown-toggle" type="button" id="cmdSouctyPodle" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="material-icons-outlined-btn" style="color:blue;">flag</i>
+        @_f.tra("Nabídka podle")
+    </button>
+    <ul class="dropdown-menu" aria-labelledby="cmdSouctyPodle">
+        <li>
+            <input type="radio" asp-for="@Model.StatTotalsByPrefix" id="opg1" value="none" onchange="reload_totalsby(this)" />
+            <label for="opg1">@_f.tra("Nezobrazovat")</label>
+        </li>
+        <li>
+            <input type="radio" asp-for="@Model.StatTotalsByPrefix" id="opgTOPP41" value="topp41" onchange="reload_totalsby(this)" />
+            <label for="opgTOPP41">@_f.tra("15 naposledy vykazovaných projektů")</label>
+        </li>
+        <li>
+            <input type="radio" asp-for="@Model.StatTotalsByPrefix" id="opgTOPP28" value="topp28" onchange="reload_totalsby(this)" />
+            <label for="opgTOPP28">@_f.tra("15 naposledy vykazovaných klientů")</label>
+        </li>
+        <li>
+            <input type="radio" asp-for="@Model.StatTotalsByPrefix" id="opgP28" value="p28" onchange="reload_totalsby(this)" />
+            <label for="opgP28">@_f.tra("Součty podle klienta projektu")</label>
+        </li>
+        <li>
+            <input type="radio" asp-for="@Model.StatTotalsByPrefix" id="opgP41" value="p41" onchange="reload_totalsby(this)" />
+            <label for="opgP41">@_f.tra("Součty podle projektu")</label>
+        </li>
+        <li>
+            <input type="radio" asp-for="@Model.StatTotalsByPrefix" id="opgP32" value="p32" onchange="reload_totalsby(this)" />
+            <label for="opgP32">@_f.tra("Součty podle aktivity")</label>
+        </li>
+    </ul>
+</div>
+
+@if (Model.StatTotalsByPrefix == "p28")
+{
+    var qry = qryP31.OrderBy(p=>p.ClientName).GroupBy(p => p.p28ID_Client);
+    <table class="table table-sm table-hover">
+        <tr>
+            <th>@_f.tra("Klient")</th>
+            <th class="numcell"><span class="material-icons-outlined">functions</span></th>
+            <th class="numcell fa">Fa</th>
+            <th class="numcell nefa">Nefa</th>
+        </tr>
+        @foreach (var c in qry)
+        {
+            <tr>
+                <td>
+                    <a style="text-decoration:none;" href="javascript:p31bystat('p28',@(c.First().p28ID_Client))">@(c.First().ClientName)</a>
+                </td>
+                <td class="numcell">                    
+                    <a class="stat_link" onclick="zoom_stat(this,null,null,null,null,@(c.First().p28ID_Client))">
+                        @(BO.Code.Time.FormatNumeric(c.Sum(p=>p.p31Hours_Orig),Model.ShowHHMM))
+                    </a>
+                </td>
+                <td class="numcell fa">
+                    @(BO.Code.Time.FormatNumeric(c.Where(p=>p.p32IsBillable==true).Sum(p=>p.p31Hours_Orig),Model.ShowHHMM))
+                </td>
+                <td class="numcell nefa">
+                    @(BO.Code.Time.FormatNumeric(c.Where(p=>p.p32IsBillable==false).Sum(p=>p.p31Hours_Orig),Model.ShowHHMM))
+                </td>
+            </tr>
+        }
+    </table>
+}
+
+@if (Model.StatTotalsByPrefix == "p41")
+{
+    var qry = qryP31.OrderBy(p=>p.Project).GroupBy(p => p.p41ID);
+    <table class="table table-sm table-hover">
+        <tr>
+            <th>@_f.tra("Projekt")</th>
+            <th class="numcell"><span class="material-icons-outlined">functions</span></th>
+            <th class="numcell fa">Fa</th>
+            <th class="numcell nefa">NeFa</th>
+        </tr>
+        @foreach (var c in qry)
+        {
+    <tr>
+        <td>
+            <a style="text-decoration:none;" href="javascript:p31bystat('p41',@(c.First().p41ID))">@(c.First().Project)</a>
+        </td>
+        <td class="numcell">            
+            <a class="stat_link" onclick="zoom_stat(this,null,null,null,null,null,@(c.First().p41ID))">
+                @(BO.Code.Time.FormatNumeric(c.Sum(p=>p.p31Hours_Orig),Model.ShowHHMM))
+            </a>
+        </td>
+        <td class="numcell fa">
+            @(BO.Code.Time.FormatNumeric(c.Where(p=>p.p32IsBillable==true).Sum(p=>p.p31Hours_Orig),Model.ShowHHMM))
+
+        </td>
+        <td class="numcell nefa">
+            @(BO.Code.Time.FormatNumeric(c.Where(p=>p.p32IsBillable==false).Sum(p=>p.p31Hours_Orig),Model.ShowHHMM))
+        </td>
+    </tr>
+        }
+    </table>
+}
+
+@if (Model.StatTotalsByPrefix == "p32")
+{
+    var qry = qryP31.OrderBy(p=>p.p32Name).GroupBy(p => p.p32ID);
+    <table class="table table-sm table-hover">
+        <tr>
+            <th>@_f.tra("Aktivita")</th>
+            <th class="numcell"><span class="material-icons-outlined">functions</span></th>
+            <th class="numcell fa">Fa</th>
+            <th class="numcell nefa">NeFa</th>
+        </tr>
+        @foreach (var c in qry)
+        {
+            <tr>
+                <td>
+                    <a style="text-decoration:none;" href="javascript:p31bystat('p32',@(c.First().p32ID))">@(c.First().p32Name)</a>
+                </td>
+                <td class="numcell">                    
+                    <a class="stat_link" onclick="zoom_stat(this,null,null,null,null,null,null,@(c.First().p32ID))">
+                        @(BO.Code.Time.FormatNumeric(c.Sum(p=>p.p31Hours_Orig),Model.ShowHHMM))
+                    </a>
+                </td>
+                <td class="numcell fa">
+                    @(BO.Code.Time.FormatNumeric(c.Where(p=>p.p32IsBillable==true).Sum(p=>p.p31Hours_Orig),Model.ShowHHMM))
+                </td>
+                <td class="numcell nefa">
+                    @(BO.Code.Time.FormatNumeric(c.Where(p=>p.p32IsBillable==false).Sum(p=>p.p31Hours_Orig),Model.ShowHHMM))
+                </td>
+            </tr>
+        }
+    </table>
+}
+
+@if (Model.StatTotalsByPrefix == "topp41")
+{
+    var qryTop10 = _f.p41ProjectBL.GetList_MyTop10(Model.j02ID, 15);
+
+    <table class="table table-sm table-hover">
+        <tr>
+            <th>@_f.tra("Projekt")</th>            
+            <th>@_f.tra("Naposledy vykázáno")</th>                
+        </tr>
+        @foreach (var c in qryTop10)
+        {
+            <tr>
+                <td>
+                    <a style="text-decoration:none;" title="@(c.Project.Length>44 ? c.Project : null)" href="javascript:p31bystat('p41',@(c.p41ID))">@(BO.Code.Bas.OM2(c.Project, 44))</a>
+                </td>
+               
+               <td>
+                   <small>
+                        @(BO.Code.Time.GetTimestamp(c.LastDate))
+                   </small>
+                    
+               </td>
+            </tr>
+        }
+    </table>
+}
+@if (Model.StatTotalsByPrefix == "topp28")
+{
+    var qryTop10 = _f.p28ContactBL.GetList_MyTop10(Model.j02ID, 15);
+
+    <table class="table table-sm table-hover">
+        <tr>
+            <th>@_f.tra("Klient")</th>
+            <th>@_f.tra("Naposledy vykázáno")</th>
+        </tr>
+        @foreach (var c in qryTop10)
+        {
+            <tr>
+                <td>
+                    <a style="text-decoration:none;" href="javascript:p31bystat('p28',@(c.p28ID))">@(BO.Code.Bas.OM2(c.Client,44))</a>
+                </td>
+
+                <td>
+                    <small>
+                        @(BO.Code.Time.GetTimestamp(c.LastDate))
+                    </small>
+                </td>
+            </tr>
+        }
+    </table>
+}
+
+<script type="text/javascript">
+    function reload_totalsby(opg) {
+
+        $.post(_ep("/Common/SetUserParam"), { key: "p31calendar-totalsby", value: opg.value }, function (data) {
+            reload();
+
+        });
+
+
+    }
+</script>

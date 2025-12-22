@@ -1,0 +1,513 @@
+﻿@model UI.Models.Tab1.p41Tab1
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+    if (Model.Rec == null) return;
+
+
+    UI.Models.Tab1.BaseTab1ViewModel _tabWeather = null;
+    if (Model.Rec.p15ID > 0)
+    {
+        _tabWeather = new UI.Models.Tab1.BaseTab1ViewModel() { prefix = "p15", pid = Model.Rec.p15ID };
+    }
+
+    var _lisO24 = _f.o24ReminderBL.GetList("p41", Model.pid);
+
+    IEnumerable<BO.b05Workflow_History> _lisB05 = _f.WorkflowBL.GetList_b05("p41", Model.pid, 0, 0, 0).Where(p => BO.Code.Bas.bit_compare_or(p.b05Tab1Flag, 2));
+
+
+    IEnumerable<BO.p41BoxRec> _lisP41 = null;
+    string _strBadgeHeader = null;
+    bool _bolIsTree = false;
+
+    bool _bolIsMobile = _f.CurrentUser.IsMobileDisplay();
+    string _strRecPage = "RecPage";
+
+
+    if (_bolIsMobile)
+    {
+        _strRecPage = "RecPageMobile";
+    }
+
+    if (Model.Rec.p41TreePrev > 0 && Model.Rec.p41TreeNext > 0)
+    {
+        _bolIsTree = true;
+        _lisP41 = _f.p41ProjectBL.GetList_p41InProjectBox(Model.Rec.p41ID_P07Level4, Model.Rec.p41ID_P07Level3, Model.Rec.p41ID_P07Level2, Model.Rec.p41ID_P07Level1);
+
+        int intOtevrene = _lisP41.Where(p => p.p41ValidUntil > DateTime.Now).Count();
+        if (_lisP41.Count() == intOtevrene)
+        {
+            _strBadgeHeader = intOtevrene.ToString();
+        }
+        else
+        {
+            _strBadgeHeader = $"{_strBadgeHeader} + {(_lisP41.Count() - intOtevrene)})";
+        }
+    }
+    else
+    {
+        if (Model.Rec.p28ID_Client > 0)
+        {
+            _lisP41 = _f.p41ProjectBL.GetList_p41InProjectBox(Model.Rec.p28ID_Client);
+            int intOtevrene = _lisP41.Where(p => p.p41ValidUntil > DateTime.Now).Count();
+            if (_lisP41.Count() == intOtevrene)
+            {
+                _strBadgeHeader = intOtevrene.ToString();
+            }
+            else
+            {
+                _strBadgeHeader = $"{intOtevrene}+{(_lisP41.Count() - intOtevrene)}";
+            }
+            if (!Model.Rec.isclosed)
+            {
+                _lisP41 = _lisP41.Where(p => p.p41ValidUntil > DateTime.Today);
+            }
+
+
+
+        }
+    }
+
+
+    IEnumerable<BO.p40WorkSheet_Recurrence> _lisP40 = null;
+    if (_f.CurrentUser.IsRatesAccess)
+    {
+        _lisP40 = _f.p40WorkSheet_RecurrenceBL.GetList(new BO.myQueryP40() { p41id = Model.pid });
+    }
+
+    IEnumerable<BO.p56Task> _lisP56 = null;
+    if (_f.CurrentUser.j04IsModule_p56)
+    {
+        _lisP56 = _f.p56TaskBL.GetList(new BO.myQueryP56() { IsRecordValid = true, p41id = Model.pid, MyRecordsDisponible = true });
+    }
+
+    IEnumerable<BO.o23Doc> _lisO23 = null;
+    if (_f.CurrentUser.j04IsModule_o23)
+    {
+        _lisO23 = _f.o23DocBL.GetList(new BO.myQueryO23() { p41id = Model.pid, IsRecordValid = true, MyRecordsDisponible = true });
+    }
+    var _lisB20 = _f.b20HlidacBL.GetListB21("p41", Model.pid);
+
+    BO.TaggingHelper _tg = null;
+    if (Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.tags))
+    {
+        _tg = _f.o51TagBL.GetTagging("p41", Model.pid);
+    }
+
+    IEnumerable<BO.p91Invoice> _lisP91 = null;
+    if (_f.CurrentUser.j04IsModule_p91)
+    {
+        _lisP91 = _f.p91InvoiceBL.GetList(new BO.myQueryP91() { p41id = Model.pid, MyRecordsDisponible = true });
+    }
+
+}
+
+
+
+
+
+
+
+
+@addTagHelper *, UI
+@section header_content {
+
+
+    <link rel="stylesheet" href="/css/htmltable.css" />
+
+
+}
+
+
+@await Html.PartialAsync("~/Views/Shared/_Tab1ButtonSetting.cshtml", Model.prefix)
+
+@Html.Raw("<div class='info_record_container'>")
+
+@if (Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.recheader))
+{
+    <div class="card recpagebox400" id="divRecPageBox1">
+        <div class="card-body">
+            @Html.EditorFor(m => m.Rec, "~/Views/Shared/_p41RecHeaderBox.cshtml")
+
+            @Html.EditorFor(m => m.ff1, "~/Views/Shared/_FreeFieldsRO.cshtml")
+
+            @if (Model.lisP26 != null && Model.lisP26.Count() > 0)
+            {
+                @Html.EditorFor(m => m.lisP26, "~/Views/Shared/_lisP26.cshtml")
+            }
+            @if (_tg != null && _tg.TagHtml != null)
+            {
+                @Html.Raw(_tg.TagHtml)
+
+
+            }
+
+
+            @Html.EditorFor(m => m.Rec, "~/Views/Shared/_TimeStamp.cshtml")
+        </div>
+    </div>
+}
+
+@Html.Raw("<div id='divTree1Container' style='float: left;vertical-align: top;border:none;margin-left:4px;margin-top:4px;'>")
+
+@Html.EditorFor(m => _lisO24, "~/Views/Shared/_o24TreeView.cshtml")
+@Html.EditorFor(m => _lisB20, "~/Views/Shared/_b20TreeView.cshtml")
+
+
+
+@if (_lisP41 != null && Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.navigor))
+{
+
+    @if (!_bolIsTree)
+    {
+        <ul class="mytreeview">
+            <li>
+                <a class="mytreeview-toggle-kontejner" onclick="_treeview_toggle(this,'tab1-p41-toggle-p28')">
+                    <span class="material-icons-outlined-btn mytreeview-toggle-sipka">@(UI.Code.basKendoTreeViewSupport.Get_Arrow_LastState(_f, "tab1-p41-toggle-p28", "expanded"))</span>
+                    <span class="material-icons-outlined-btn">contacts</span>
+                    <a class="treeview-link" target="_top" href="/Record/@(_strRecPage)?prefix=p28&pid=@(Model.Rec.p28ID_Client)">@(BO.Code.Bas.OM2(Model.Rec.Client, 25)) (@_strBadgeHeader)</a>
+
+                </a>
+
+                <ul style="display:@(UI.Code.basKendoTreeViewSupport.Get_UL_LastState(_f,"tab1-p41-toggle-p28","expanded"))">
+                    @foreach (var c in _lisP41)
+                    {
+                        <li>
+                            @if (_f.CurrentUser.j04IsModule_p41)
+                            {
+
+                                <a id="p41@(c.p41ID)" class="treeview-link @(Model.pid==c.p41ID ? "active" : null)" title="@(c.Project.Length>35 ? c.Project : null)" target="_top" href="/Record/@(_strRecPage)?prefix=p41&pid=@(c.p41ID)">@(BO.Code.Bas.OM2(c.Project, 35))</a>
+                            }
+                            else
+                            {
+                                <small title="@(c.Project.Length>35 ? c.Project : null)">@(BO.Code.Bas.OM2(c.Project, 35))</small>
+                            }
+                        </li>
+                    }
+
+                </ul>
+
+            </li>
+        </ul>
+    }
+
+    @if (_bolIsTree)
+    {
+       
+        <ul class="mytreeview">
+            
+            @foreach (var c0 in _lisP41.Where(p => p.p41TreeLevel == 0))
+            {
+                <li>
+
+                    @if (c0.p41TreeNext > c0.p41TreePrev)
+                    {
+                        <span class="material-icons-outlined-btn mytreeview-toggle-sipka" onclick="_treeview_toggle(this)">arrow_drop_down</span>
+                        <kbd class="le@(c0.p07Level)">L@(c0.p07Level)</kbd>
+                    }
+
+                    <a class="treeview-link" style="@(c0.p41ValidUntil<DateTime.Now ? "text-decoration: line-through": null)" id="p41@(c0.p41ID)" target="_top" href="/Record/@(_strRecPage)?prefix=p41&pid=@(c0.p41ID)">@(c0.Project)</a>
+
+
+                    @if (c0.p41TreeNext > c0.p41TreePrev)
+                    {
+                        <ul>
+                            @foreach (var c1 in _lisP41.Where(p => p.p41ParentID == c0.p41ID))
+                            {
+                                <li>
+                                    @if (c1.p41TreeNext > c1.p41TreePrev)
+                                    {
+                                        <span class="material-icons-outlined-btn mytreeview-toggle-sipka" onclick="_treeview_toggle(this)">arrow_drop_down</span>                                        
+                                        <kbd class="le@(c1.p07Level)">L@(c1.p07Level)</kbd>
+                                    }
+
+                                    <a class="treeview-link" id="p41@(c1.p41ID)" style="@(c1.p41ValidUntil<DateTime.Now ? "text-decoration: line-through": null)" target="_top" href="/Record/@(_strRecPage)?prefix=p41&pid=@(c1.p41ID)">@(c1.Project)</a>
+
+
+                                    @if (c1.p41TreeNext > c1.p41TreePrev)
+                                    {
+                                        <ul>
+                                            @foreach (var c2 in _lisP41.Where(p => p.p41ParentID == c1.p41ID))
+                                            {
+                                                <li>
+                                                    @if (c2.p41TreeNext > c2.p41TreePrev)
+                                                    {
+                                                        <span class="material-icons-outlined-btn mytreeview-toggle-sipka" onclick="_treeview_toggle(this)">arrow_drop_down</span>
+                                                        <kbd class="le@(c2.p07Level)">L@(c2.p07Level)</kbd>
+                                                    }
+
+                                                    <a class="treeview-link" id="p41@(c2.p41ID)" target="_top" style="@(c2.p41ValidUntil<DateTime.Now ? "text-decoration: line-through": null)" href="/Record/@(_strRecPage)?prefix=p41&pid=@(c2.p41ID)">@(c2.Project)</a>
+                                                    @if (c2.p41TreeNext > c2.p41TreePrev)
+                                                    {
+                                                        <ul>
+                                                            @foreach (var c3 in _lisP41.Where(p => p.p41ParentID == c2.p41ID))
+                                                            {
+                                                                <li>
+                                                                    <a class="treeview-link" id="p41@(c3.p41ID)" style="@(c3.p41ValidUntil<DateTime.Now ? "text-decoration: line-through": null)" target="_top" href="/Record/@(_strRecPage)?prefix=p41&pid=@(c3.p41ID)">@(c3.Project)</a>
+                                                                </li>
+                                                            }
+                                                        </ul>
+                                                    }
+                                                </li>
+
+                                            }
+                                        </ul>
+                                    }
+                                </li>
+                            }
+                        </ul>
+                    }
+                </li>
+            }
+        </ul>
+    }
+
+
+}
+
+@if (_lisP40 != null && _lisP40.Count() > 0)
+{
+    <ul class="mytreeview">
+        <li>
+            <a class="mytreeview-toggle-kontejner" onclick="_treeview_toggle(this,'tab1-p41-toggle-p40')">
+                <span class="material-icons-outlined-btn mytreeview-toggle-sipka">@(UI.Code.basKendoTreeViewSupport.Get_Arrow_LastState(_f, "tab1-p41-toggle-p40", "collapsed"))</span>
+                <span class="material-icons-outlined-btn">repeat_on</span>
+                <span>@_f.tra("Opakované odměny") (@(_lisP40.Count()))</span>
+
+            </a>
+
+            <ul style="display:@(UI.Code.basKendoTreeViewSupport.Get_UL_LastState(_f,"tab1-p41-toggle-p40","collapsed"))">
+                @foreach (var c in _lisP40)
+                {
+                    <li>
+                        <a class="treeview-link" target="_top" title="@c.Project" href="/Record/@(_strRecPage)?prefix=p40&pid=@(c.pid)">@(BO.Code.Bas.OM2(c.p40Name, 20))</a>
+                        <small style="color:green;">
+                            @(BO.Code.Bas.Number2String(c.p40Value)) @c.j27Code
+                        </small>
+                        @if (c.p40LastSupplyDate < DateTime.Now)
+                        {
+                            <small class="badge text-bg-warning">Expirovalo</small>
+                        }
+                    </li>
+                }
+
+            </ul>
+
+        </li>
+    </ul>
+}
+
+@if (_lisP56 != null && _lisP56.Count() > 0)
+{
+    <ul class="mytreeview">
+        <li>
+            <a class="mytreeview-toggle-kontejner" onclick="_treeview_toggle(this,'tab1-p41-toggle-p56')">
+                <span class="material-icons-outlined-btn mytreeview-toggle-sipka">@(UI.Code.basKendoTreeViewSupport.Get_Arrow_LastState(_f, "tab1-p41-toggle-p56", "collapsed"))</span>
+                <span class="material-icons-outlined-btn">task</span>
+                <span>@_f.tra("Otevřené úkoly") (@(_lisP56.Count()))</span>
+
+            </a>
+
+            <ul style="display:@(UI.Code.basKendoTreeViewSupport.Get_UL_LastState(_f,"tab1-p41-toggle-p56","collapsed"))">
+                @foreach (var c in _lisP56)
+                {
+                    <li>
+                        <a class="treeview-link" target="_top" href="/Record/@(_strRecPage)?prefix=p56&pid=@(c.pid)">@(BO.Code.Bas.OM2(c.p56Name, 25))</a>
+                        
+                        @if(c.b02Color != null)
+                        {
+                            <small class="tecka-vedle">
+                                @(c.b02Name)
+                                <small class="dot" style="background-color:@c.b02Color"></small>
+                            </small>
+                        }
+                        else
+                        {
+                            <small>
+                                @(c.b02Name)
+                            </small>
+                        }
+
+                    </li>
+                }
+
+            </ul>
+
+        </li>
+    </ul>
+}
+
+@if (_lisO23 != null && _lisO23.Count() > 0)
+{
+    <ul class="mytreeview">
+        <li>
+            <a class="mytreeview-toggle-kontejner" onclick="_treeview_toggle(this,'tab1-p41-toggle-o23')">
+                <span class="material-icons-outlined-btn mytreeview-toggle-sipka">@(UI.Code.basKendoTreeViewSupport.Get_Arrow_LastState(_f, "tab1-p41-toggle-o23"))</span>
+                <span class="material-icons-outlined-btn" onclick="_treeview_toggle(this)">file_present</span>
+                <span>@_f.tra("Dokumenty") (@(_lisO23.Count()))</span>
+            </a>
+            <ul style="display:@(UI.Code.basKendoTreeViewSupport.Get_UL_LastState(_f,"tab1-p41-toggle-o23","collapsed"))">
+                @foreach (var c in _lisO23)
+                {
+                    <li>
+                        <a class="treeview-link" target="_top" title="@c.o18Name" href="/Record/@(_strRecPage)?prefix=o23&pid=@(c.pid)">@(BO.Code.Bas.OM2(c.o23Name, 35))</a>
+
+                    </li>
+                }
+
+            </ul>
+
+        </li>
+    </ul>
+}
+
+@if (_lisP91 != null && _lisP91.Count() > 0)
+{
+    <ul class="mytreeview">
+        <li>
+            <a class="mytreeview-toggle-kontejner" onclick="_treeview_toggle(this,'tab1-p41-toggle-p91')">
+                <span class="material-icons-outlined-btn mytreeview-toggle-sipka">@(UI.Code.basKendoTreeViewSupport.Get_Arrow_LastState(_f, "tab1-p41-toggle-p91"))</span>
+                <span class="material-icons-outlined-btn" onclick="_treeview_toggle(this)">receipt_long</span>
+                <span>@_f.tra("Vyúčtování") (@(_lisP91.Count()))</span>
+            </a>
+            <ul style="display:@(UI.Code.basKendoTreeViewSupport.Get_UL_LastState(_f,"tab1-p41-toggle-p91","collapsed"))">
+                <li>
+                   
+                    <table class="table-sm table-hover table">
+                        @foreach (var c in _lisP91)
+                        {
+                            <tr>
+                                <td style="background-color: @(c.p91Amount_Debt > 1 && DateTime.Today>c.p91DateMaturity ? "red": "none")">
+                                    <a class="treeview-link" target="_top" href="/Record/@(_strRecPage)?prefix=p91&pid=@(c.pid)">@c.p91Code</a>
+                                </td>
+                                <td>
+                                    @(BO.Code.Bas.ObjectDate2String(c.p91DateSupply, "dd.MM.yyyy"))
+                                </td>
+                                <td class="tdcastka" style="text-align:right;">
+                                    
+                                        @(BO.Code.Bas.Number2String(c.p91Amount_WithoutVat)) @c.j27Code
+                                    
+                                </td>
+                                
+
+
+
+                            </tr>
+                        }
+                    </table>
+                </li>
+
+            </ul>
+
+        </li>
+    </ul>
+}
+
+@Html.Raw("</div>")
+
+
+
+@if (Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.p41billingbox) && _f.CurrentUser.IsRatesAccess)
+{
+    @Html.Raw("<div class='card' id='divBillingBoxContainer' style='float: left;vertical-align: top;margin-left:4px;margin-top:4px'>")
+    <div class="card-body">
+        @await Html.PartialAsync("~/Views/Shared/_p41RecBillingBox.cshtml", Model.Rec)
+    </div>
+    @Html.Raw("</div>")
+}
+
+
+
+
+
+
+
+
+@if (_f.CurrentUser.j04IsModule_p31 && _f.CBL.LoadUserParamBool($"{Model.prefix}-quickstat-immediately", false))
+{
+    <div class="recpageboxauto">
+        @await Html.PartialAsync("~/Views/Shared/_TabStat.cshtml", Model)
+    </div>
+
+
+}
+
+
+
+
+
+
+
+@if (Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.o27list))
+{
+    @Html.EditorFor(m => m, "~/Views/Shared/_lisO27Tab1.cshtml")
+}
+
+
+@if (_tabWeather != null)
+{
+    @await Html.PartialAsync("~/Views/Shared/_WeatherBox.cshtml", _tabWeather)
+}
+
+@Html.Raw("</div>")
+
+
+@if(Model.Rec.p41BillingMemo200 != null)
+{
+    <div class="recpageboxauto" style="background-color:#DFFFE9;padding:3px;" title="Fakturační poznámka">
+        @Html.Raw( _f.p41ProjectBL.LoadBillingMemo(Model.Rec.pid))
+    </div>
+}
+
+@if (_lisB05.Count() > 0)
+{
+    <div class="recpageboxauto">
+        @await Html.PartialAsync("~/Views/Shared/_lisB05.cshtml", _lisB05)
+    </div>
+
+}
+
+
+
+
+
+<script type="text/javascript">
+
+
+    $(document).ready(function () {
+
+        if (document.getElementById("divTree1Container")) {
+
+            $("#p41@(Model.pid)").addClass("active");
+
+            _adjust_divheight_small_display("divTree1Container");
+
+
+            $("#divTree1Container").animate(
+                {
+                    scrollTop: $("#p41@(Model.pid)").offset().top - $("#divTree1Container").offset().top,
+                },
+                250
+            );
+
+        }
+
+        if (document.getElementById("divBillingBoxContainer")) {
+            _adjust_divheight_small_display("divBillingBoxContainer");
+        }
+
+        if (document.getElementById("divRecPageBox1")) {
+            _adjust_divheight_small_display("divRecPageBox1");
+        }
+
+    });
+
+
+
+
+
+
+
+</script>

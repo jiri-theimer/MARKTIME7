@@ -1,0 +1,82 @@
+﻿@model UI.Models.Record.b02Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Workflow stav");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    Model.PageSymbol = "schema";
+}
+
+@addTagHelper *, UI
+
+
+<div class="modal_record_container">
+
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název"):</label>
+        <div class="col-sm-7 col-md-6">
+            <input class="form-control" asp-for="Rec.b02Name" />
+        </div>
+        <label class="col-sm-1 col-md-1 col-form-label">@_f.tra("Index pořadí"):</label>
+        <div class="col-sm-1 col-md-1">
+            <mynumber asp-for="Rec.b02Ordinary" decimal-digits="0"></mynumber>
+        </div>
+    </div>
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Workflow šablona"):</label>
+        <div class="col-sm-7 col-md-6">
+            <mycombo entity="b01WorkflowTemplate" asp-for="Rec.b01ID" selectedtext="@Model.ComboB01" view-flag="2"></mycombo>
+        </div>
+
+    </div>
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Typ stavu"):</label>
+        <div class="col-sm-7 col-md-6">
+            <select asp-for="@Model.Rec.b02AutoRunFlag" class="form-select" onchange="_postback()">
+                <option value="Standard">@_f.tra("Standardní stav záznamu")</option>
+                <option value="Startovaci">@_f.tra("Startovací stav celé šablony")</option>
+                <option value="Technicky">@_f.tra("Technický stav")</option>
+                
+            </select>
+
+        </div>
+    </div>
+
+    @if(Model.Rec.b02AutoRunFlag != BO.b02AutoRunFlagEnum.Technicky)
+    {
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Časová platnost záznamu ve stavu"):</label>
+            <div class="col-sm-7 col-md-6">
+                <select asp-for="@Model.Rec.b02RecordFlag" class="form-select" onchange="_postback()">
+                    <option value="_None">@_f.tra("Beze změny")</option>
+                    <option value="ZaznamOtevreny">@_f.tra("Přechodem do stavu se záznam otevře")</option>
+                    <option value="ZaznamVArchivu">@_f.tra("Přechodem do stavu se záznam uzavře (přesune do archivu)")</option>
+
+                </select>
+
+            </div>
+        </div>
+
+
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Barva"):</label>
+            <div class="col-sm-7 col-md-6">
+                @Html.EditorFor(m => m.Rec.b02Color, "~/Views/Shared/_ColorCombo.cshtml")
+                
+            </div>
+        </div>
+
+
+        <div class="my-2">
+            <input type="checkbox" asp-for="@Model.Rec.b02IsRecordReadOnly4Owner" />
+            <label class="col-form-label" for="Rec_b02IsRecordReadOnly4Owner">@_f.tra("Zakladatel/Vlastník záznamu ztrácí v tomto stavu editační práva k záznamu")</label>
+        </div>
+    }
+    
+
+    
+
+
+</div>

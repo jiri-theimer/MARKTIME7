@@ -1,0 +1,104 @@
+.pell {
+  border: 1px solid rgba(10, 10, 10, 0.1);
+  box-sizing: border-box; }
+
+.pell-content {
+    box-sizing: border-box;
+    height: 300px;
+    outline: 0;
+    overflow-y: auto;
+    background-color: #DFFFE9;
+}
+
+.pell-actionbar {
+  background-color: #FFF;
+  border-bottom: 1px solid rgba(10, 10, 10, 0.1); }
+
+.pell-button {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  height: 30px;
+  outline: 0;
+  width: 41px;
+  text-align:center;
+  
+  vertical-align: bottom; }
+
+.pell-button-selected {
+  background-color: #F0F0F0; }
+
+.pell-button:hover {
+    background-color: lightgrey;
+}
+
+
+
+
+
+/* Vlastní stylování pells editoru */
+
+
+.pell-content, #preview {
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #1f2937; /* tmavě šedý text */
+}
+
+    /* Odstavce */
+    .pell-content p,
+    #preview p {
+        margin-bottom: 1rem;
+    }
+
+    /* Seznamy */
+    .pell-content ol,
+    #preview ol {
+        list-style-type: decimal;
+        list-style-position: inside;
+        margin-left: 1.5rem;
+    }
+
+    .pell-content ul,
+    #preview ul {
+        list-style-type: disc;
+        list-style-position: inside;
+        margin-left: 1.5rem;
+    }
+
+    /* Seznamové položky */
+    .pell-content li,
+    #preview li {
+        margin-bottom: 0.5rem;
+    }
+
+    /* Odkazy */
+    .pell-content a,
+    #preview a {
+        color: #3b82f6; /* modrá */
+        text-decoration: underline;
+        transition: color 0.2s;
+    }
+
+        .pell-content a:hover,
+        #preview a:hover {
+            color: #1d4ed8; /* tmavší modrá při hover */
+        }
+
+    /* Řádkové zlomy */
+    .pell-content br,
+    #preview br {
+        display: block;
+        content: "";
+        margin-bottom: 0.5rem;
+    }
+
+
+#txtContentBodyMarkup {
+    display: block;
+    overflow: auto !important;
+    
+    min-height:400px;
+    width:100%;
+}

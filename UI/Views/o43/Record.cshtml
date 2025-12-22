@@ -1,0 +1,180 @@
+﻿@model UI.Models.Imap.InboxRecordViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("INBOX záznam");
+    if (Model.Rec == null) return;
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+
+    string _b05Name = null;
+    if (Model.Rec.b05ID > 0)
+    {
+        _b05Name = _f.WorkflowBL.GetList_b05(null, 0, 0, Model.Rec.b05ID, 0).First().b05Name;
+    }
+}
+
+@addTagHelper *, UI
+
+
+
+<input type="hidden" asp-for="CurrentBody" />
+<input type="hidden" asp-for="Rec.b05ID" />
+
+<div id="divContainer">
+
+    
+
+
+    <div class="row" style="padding:0px;margin:0px;">
+        <div class="col-4">
+            @Html.EditorFor(m => m.RecPreview, "~/Views/Shared/_o43RecHeaderBox.cshtml")
+
+            <div class="row">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Předmět zprávy"):</label>
+                <div class="col-sm-11 col-md-10">
+                    <input class="form-control record_name" asp-for="@Model.Rec.o43Subject" />
+                </div>
+
+            </div>
+            @if(_f.CurrentUser.j04IsModule_p41)
+            {
+                @Html.EditorFor(m => m.ProjectCombo, "~/Views/Shared/_ProjectCombo.cshtml")
+            }
+            
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Kontakt"):</label>
+                <div class="col-sm-11 col-md-10">
+                    <mycombo entity="p28Contact" asp-for="Rec.p28ID" selectedtext="@Model.ComboP28" filter-flag="1" search-result-width="700"></mycombo>
+                </div>
+            </div>
+            
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Uživatel"):</label>
+                <div class="col-sm-11 col-md-10">
+                    <mycombo entity="j02User" asp-for="Rec.j02ID" selectedtext="@Model.ComboJ02" filter-flag="1" search-result-width="700"></mycombo>
+                </div>
+            </div>
+            @if(_f.CurrentUser.j04IsModule_o23)
+            {
+                <div class="row my-2">
+                    <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Dokument"):</label>
+                    <div class="col-sm-11 col-md-10">
+                        <mycombo entity="o23Doc" asp-for="Rec.o23ID" selectedtext="@Model.ComboO23" filter-flag="1" search-result-width="700"></mycombo>
+                    </div>
+                </div>
+            }
+            
+            @if(_f.CurrentUser.j04IsModule_p56)
+            {
+                <div class="row my-2">
+                    <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Úkol"):</label>
+                    <div class="col-sm-11 col-md-10">
+                        <mycombo entity="p56Task" asp-for="Rec.p56ID" selectedtext="@Model.ComboP56" filter-flag="1" search-result-width="700"></mycombo>
+                    </div>
+                </div>
+            }
+            @if(_f.CurrentUser.j04IsModule_p91)
+            {
+                <div class="row my-2">
+                    <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Vyúčtování"):</label>
+                    <div class="col-sm-11 col-md-10">
+                        <mycombo entity="p91Invoice" asp-for="Rec.p91ID" selectedtext="@Model.ComboP91" filter-flag="1" search-result-width="700"></mycombo>
+                    </div>
+                </div>
+            }
+            
+            @if (Model.Rec.b05ID > 0)
+            {
+                <div class="row my-2">
+                    <label class="col-sm-1 col-md-2 col-form-label">Notepad:</label>
+                    <div class="col-sm-11 col-md-10">
+                        <span class="form-control" style="background-color:#F5F5F5;">@(_b05Name)</span>
+                    </div>
+                </div>
+            }
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">Změnit složku:</label>
+                <div class="col-sm-5 col-md-4">
+                    <input type="text" class="form-control" asp-for="Rec.o43ImapFolder" />
+                </div>
+            </div>
+            <hr />
+            <div class="my-2">
+                <button id="cmdLoad" class="btn btn-sm btn-primary" onclick="_postback('load')" style="width:250px;">@_f.tra("Načíst zprávu znovu z poštovního serveru")</button>
+            </div>
+           
+        </div>
+        <div class="col-8" style="border-left:dashed 1px silver;">
+
+            <ul class="nav nav-tabs">
+                @if (Model.CurrentBody == "html")
+                {
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page">HTML</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="_postback('text')">TEXT</a>
+                    </li>
+
+                }
+                @if (Model.CurrentBody == "text")
+                {
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="_postback('html')">HTML</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page">TEXT</a>
+                    </li>
+
+                }
+
+            </ul>
+
+            @if (Model.CurrentBody == "html")
+            {
+                <iframe id="fra1" src="/o43/BodyHtml?pid=@Model.rec_pid" style="width:99%;"></iframe>
+            }
+            @if (Model.CurrentBody == "text")
+            {
+                <textarea id="txt1" readonly="readonly" class="form-control">@Html.Raw(Model.RecPreview.o43BodyText)</textarea>
+            }
+
+        </div>
+    </div>
+
+
+
+
+</div>
+
+
+
+
+
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        if(document.getElementById("fra1")){
+            var ofs = $("#fra1").offset();
+            var hh = window.innerHeight - ofs.top - 50;
+
+            $("#fra1").height(hh);
+        }
+        if (document.getElementById("txt1")) {
+            var ofs = $("#txt1").offset();
+            var hh = window.innerHeight - ofs.top - 50;
+
+            $("#txt1").height(hh);
+        }
+
+    })
+
+    function p41id_change(p41id)
+    {
+        
+        _postback("p41id");
+    }
+</script>

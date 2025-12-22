@@ -1,0 +1,88 @@
+﻿@model UI.Models.changelogViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = "CHANGE-LOG";
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageSymbol = "timeline";
+    Model.lisData = _f.o23DocBL.GetList(new BO.myQueryO23() { explicit_orderby = "a.RowID", pids = new List<int>() { Model.pid } }, true);
+
+
+
+    Model.AddField("o23Name", "Název");
+    Model.AddField("o18Name", "Typ");
+
+    Model.AddField("o23Code", "Kód");
+    Model.AddField("o23ArabicCode", "o23ArabicCode");
+
+    Model.AddField("o23BackColor", "Barva pozadí");
+    Model.AddField("o23ForeColor", "Barva písma");
+    
+    Model.AddField("b02ID", "Workflow stav");
+
+    Model.AddField("o23FreeDate01", "Datum 1");
+    Model.AddField("o23FreeDate02", "Datum 2");
+    Model.AddField("o23FreeDate03", "Datum 3");
+    Model.AddField("o23FreeDate04", "Datum 4");
+    Model.AddField("o23FreeDate05", "Datum 5");
+
+    Model.AddField("o23FreeText01", "Text 1");
+    Model.AddField("o23FreeText02", "Text 2");
+    Model.AddField("o23FreeText03", "Text 3");
+    Model.AddField("o23FreeText04", "Text 4");
+    Model.AddField("o23FreeText05", "Text 5");
+    Model.AddField("o23FreeText06", "Text 6");
+    Model.AddField("o23FreeText07", "Text 7");
+    Model.AddField("o23FreeText08", "Text 8");
+    Model.AddField("o23FreeText09", "Text 9");
+    Model.AddField("o23FreeText10", "Text 10");
+
+    Model.AddField("o23FreeNumber01", "Číslo 1");
+    Model.AddField("o23FreeNumber02", "Číslo 2");
+    Model.AddField("o23FreeNumber03", "Číslo 3");
+    Model.AddField("o23FreeNumber04", "Číslo 4");
+    Model.AddField("o23FreeNumber05", "Číslo 5");
+
+    Model.AddField("o23FreeBoolean01", "ANO/NE 1");
+    Model.AddField("o23FreeBoolean02", "ANO/NE 2");
+    Model.AddField("o23FreeBoolean03", "ANO/NE 3");
+    Model.AddField("o23FreeBoolean04", "ANO/NE 4");
+    Model.AddField("o23FreeBoolean05", "ANO/NE 5");
+
+    
+    Model.AddField("Owner", "Vlastník záznamu");
+    
+    Model.AddField("b01ID", "Workflow šablona");
+
+    Model.AddField("o23Notepad", "Notepad");
+
+
+    Model.AddField("ValidFrom", "Platnost od");
+    Model.AddField("ValidUntil", "Platnost do");
+
+}
+
+
+@section header_content{
+
+
+    <link rel="stylesheet" href="/css/htmltable.css" />
+
+
+}
+
+@addTagHelper *, UI
+
+
+<div class="bg-light" style="padding:10px;">
+
+    <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
+
+
+</div>
+
+@Html.EditorFor(m => Model,"~/Views/Shared/_ChangeLogTable.cshtml")
+
+
+
+

@@ -1,0 +1,268 @@
+﻿@model VysledovkaViewModel
+@inject BL.Factory _f
+
+@{
+
+    //Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageSymbol = "balance";
+    Model.PageTitle = "Výsledovky";
+
+    if (Model.prefix == null || Model.pid == 0)
+    {
+        return;
+    }
+    Model.PageTitleAfter = Model.VysledovkaHeader;
+
+
+    bool _IsGrid = false;
+}
+
+
+<link rel="stylesheet" href="/css/htmltable.css" />
+
+@addTagHelper *,UI
+
+<hr />
+<div class="input-group m-0" style="padding-top:1px;">
+   
+    <div>
+        @await Component.InvokeAsync("myPeriod",Model.periodinput)
+    </div>
+    <div style="margin-left:6px;">
+        @Html.EditorFor(m => Model.PageTitle,"~/Views/Shared/_cmdMoreButton.cshtml")
+    </div>
+
+    <div style="margin-left:6px;">
+        <button type="button" class="btn bog" title="@_f.tra("Občerstvit")" onclick="reload()"><span class="material-icons-outlined-btn">refresh</span></button>
+    </div>
+    
+    <div style="margin-left:20px;">
+        <button type="button" class="btn btn-light" onclick="local_tryclose()">Zavřít</button>
+    </div>
+
+    
+</div>
+
+
+<div id="divMore" style="display:none;">
+    <div class="card">        
+        <div class="card-body" style="background-color:#F0F8FF;">
+            
+            
+            <table>
+                <tr>
+                    <td>
+                        @_f.tra("Jak počítat nákladovou cenu hodin:")
+                    </td>
+                    <td>                       
+                        <select id="cbxNakladovaSazbaScenar" onchange="save_and_reload(this,'vysledovka-nakladovasazba-scenar')">
+                            <option value="1">Nákladová sazba časového úkonu</option>"
+                            <option value="2">Režijní sazba časového úkonu</option>"
+                            <option value="3">Simulační nákladová sazba projektu</option>"
+                            <option value="4">Simulační nákladová sazba uživatele</option>"
+                            <option value="5">Simulační sazbu zadat zde ručně</option>
+                            <option value="6">Procento z fakturační sazby</option>
+                        </select>
+
+                        
+                   
+                    </td>
+                    <td></td>
+                </tr>
+                @if (Model.ScenarNakladovaSazba == BO.Model.TimesheetCostRateEnum.SimulacniSazbaRucne)
+                {
+                    <tr>
+                        <td>
+                            @_f.tra("Zadejte simulační sazbu:")
+                        </td>
+                        <td>
+                            <input id="txtSimulacniSazba" onchange="save_and_reload(this,'vysledovka-NakladovaSazbaCislo')" type="text" style="width:40px;" value="@(Model.NakladovaSazbaCislo)" />
+                        </td>
+                        <td>
+                            
+                        </td>
+                    </tr>
+
+                    
+                    
+                }
+                               
+                @if (Model.ScenarNakladovaSazba == BO.Model.TimesheetCostRateEnum.ProcentoFakturacniSazby)
+                {
+                    <tr>
+                        <td>
+                            @_f.tra("Zadejte procento z fakturačních sazeb:")
+                        </td>
+                        <td>
+                            <input id="txtProcentoFakSazby" onchange="save_and_reload(this,'vysledovka-NakladovaSazbaProcento')" type="text" style="width:30px;" value="@(Model.NakladovaSazbaProcento)" />
+                            
+                        </td>
+                        <td></td>
+                    </tr>
+                }
+                
+            </table>
+
+            <hr />
+            <div>
+                <input type="checkbox" id="chkIsVystup_Aktivita" asp-for="IsVystup_Aktivita" onchange="save_and_reload(this,'vysledovka-IsVystup_Aktivita-@Model.prefix')" />
+                <label for="chkIsVystup_Aktivita">@_f.tra("Statistika hodin podle Aktivit")</label>
+            </div>
+            <div>
+                <input type="checkbox" id="chkIsVystup_Osoba" asp-for="IsVystup_Osoba" onchange="save_and_reload(this,'vysledovka-IsVystup_Osoba-@Model.prefix')" />
+                <label for="chkIsVystup_Osoba">@_f.tra("Statistika hodin podle Uživatelů")</label>
+            </div>
+            <div>
+                <input type="checkbox" id="chkIsVystup_Aktivita_Osoba" asp-for="IsVystup_Aktivita_Osoba" onchange="save_and_reload(this,'vysledovka-IsVystup_Aktivita_Osoba-@Model.prefix')" />
+                <label for="chkIsVystup_Aktivita_Osoba">@_f.tra("Statistika podle Aktivita+Uživatel")</label>
+            </div>
+            <div>
+                <input type="checkbox" id="chkIsVystup_Analyza" asp-for="IsVystup_Analyza" onchange="save_and_reload(this,'vysledovka-IsVystup_Analyza-@Model.prefix')" />
+                <label for="chkIsVystup_Analyza">@_f.tra("Analýzu efektivních sazeb vyúčtovaných pevných odměn")</label>
+            </div>
+            <div>
+                <input type="checkbox" id="chkIsVystup_Fee" asp-for="IsVystup_Fee" onchange="save_and_reload(this,'vysledovka-IsVystup_Fee-@Model.prefix')" />
+                <label for="chkIsVystup_Fee">@_f.tra("Tabulka pevných odměn")</label>
+            </div>
+            <div>
+                <input type="checkbox" id="chkIsVystup_Expense" asp-for="IsVystup_Expense" onchange="save_and_reload(this,'vysledovka-IsVystup_Expense-@Model.prefix')" />
+                <label for="chkIsVystup_Expense">@_f.tra("Tabulka peněžních výdajů")</label>
+            </div>
+            
+           <hr />
+            <div class="card p-0 m-0 nonmobile" style="max-width:500px;">
+                <div class="card-header">
+                    @_f.tra("Nastavit vzhled tabulky")
+                </div>
+                <div class="card-body">
+                    @Html.EditorFor(m => _IsGrid, "~/Views/Shared/_TableLayoutDeisgner.cshtml")
+                </div>
+            </div>
+           
+            
+        </div>
+    </div>
+   
+</div>
+
+@if (Model.ScenarVysledovkaVydaje == 2)
+{
+    <code>Peněžní výdaje kompletně odepsat.</code>
+}
+@if (Model.ScenarVysledovkaVydaje == 1)
+{
+    <br />
+    <code>Fa peněžní výdaje k přefakturaci, Nefa peněžní výdaje odepsat.</code>
+}
+@if (Model.ScenarVysledovkaHodiny == 2)
+{
+    <br />
+    <code>Všechny hodiny kompletně odepsat.</code>
+}
+@if (Model.ScenarVysledovkaHodiny == 1)
+{
+    <br />
+    <code>Fa hodiny fakturovat, Nefa hodiny odepsat.</code>
+}
+
+@Html.Raw(Model.Vystup_Overview1)
+@if(Model.Vystup_Overview2 != null)
+{
+    @Html.Raw(Model.Vystup_Overview2)
+}
+@if(Model.IsVystup_Osoba){
+    @Html.Raw(Model.Vystup_Osoba)
+}
+@if(Model.IsVystup_Aktivita){
+    @Html.Raw(Model.Vystup_Aktivita)
+}
+@if(Model.IsVystup_Osoba_Aktivita){
+    @Html.Raw(Model.Vystup_Osoba_Aktivita)
+}
+@if(Model.IsVystup_Aktivita_Osoba){
+    @Html.Raw(Model.Vystup_Aktivita_Osoba)
+}
+@if(Model.IsVystup_Analyza){
+    @Html.Raw(Model.Vystup_Analyza)
+}
+@if(Model.IsVystup_Fee){
+    @Html.Raw(Model.Vystup_Fee)
+}
+@if(Model.IsVystup_Expense){
+    @Html.Raw(Model.Vystup_Expense)
+}
+@if (Model.IsVystup_Vysledovka1)
+{
+    @Html.Raw(Model.Vystup_Vysledovka1)
+}
+
+
+<div style="max-height:300px;overflow:auto;">
+
+</div>
+
+<script type="text/javascript">
+    var _ScenarNakladovaSazba = "@((int)Model.ScenarNakladovaSazba)";
+    $(document).ready(function () {
+
+        $("#cbxNakladovaSazbaScenar").val(_ScenarNakladovaSazba);
+
+        $("#cmdMore").click(function () {
+            $("#divMore").toggle();
+        });
+
+        if (self == top)
+        {
+            $("#linkNewWindow").css("display", "none");
+        }
+        
+        
+    });
+
+
+    function newwindow()
+    {
+        _window_open(location.href+"&blank=1");
+        //window.open(location.href,"_blank");
+    }
+    function save_and_reload(ctl,key)
+    {
+        var v=$(ctl).val();
+
+        if (key.substring(0,13)=="vysledovka-Is")
+        {
+            v=$(ctl).prop("checked");
+            
+        }
+        
+        //alert("key: "+key+", v: "+v);
+        
+        $.post(_ep("/Common/SetUserParam"), { key: key, value: v }, function (data){
+            reload();
+
+        });
+
+        
+    }
+
+
+    function reload()
+    {
+        location.replace(location.href);
+    }
+
+    function local_tryclose() {
+        try {
+            window.parent._window_close();
+        }
+        catch (err) {
+            window.close();
+        }
+    }
+
+    function hardrefresh(flag, pid) {
+        //nic
+    }
+</script>

@@ -1,0 +1,245 @@
+﻿@model UI.Models.Record.j04Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Aplikační role");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    Model.PageSymbol = "manage_accounts";
+
+    var lisA55 = _f.a55RecPageBL.GetList(new BO.myQuery("a55"));
+    IEnumerable<BO.a55RecPage> _lisA55_o23 = lisA55.Where(p => p.a55Entity == "o23");
+    IEnumerable<BO.a55RecPage> _lisA55_p28 = lisA55.Where(p => p.a55Entity == "p28");
+    IEnumerable<BO.a55RecPage> _lisA55_p91 = lisA55.Where(p => p.a55Entity == "p91");
+    IEnumerable<BO.a55RecPage> _lisA55_le5 = lisA55.Where(p => p.a55Entity == "le5");
+    IEnumerable<BO.a55RecPage> _lisA55_le4 = lisA55.Where(p => p.a55Entity == "le4");
+    IEnumerable<BO.a55RecPage> _lisA55_j02 = lisA55.Where(p => p.a55Entity == "j02");
+
+}
+
+@addTagHelper *, UI
+
+<div class="modal_record_container">
+
+    <div class="row">
+        <label class="col-auto col-form-label">@_f.tra("Název"):</label>
+        <div class="col-sm-6 col-md-5">
+            <input class="form-control" asp-for="Rec.j04Name" />
+        </div>
+        <div class="col-sm-4 col-md-5">
+            <input type="checkbox" asp-for="@Model.Rec.j04IsAllowLoginByGoogle" />
+            <label class="col-form-label" for="Rec_j04IsAllowLoginByGoogle">@_f.tra("Povolit přihlášení/ověření uživatele přes Google")</label>
+        </div>
+    </div>
+
+
+    <div class="row my-2">
+        <div class="col-sm-6 col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    @_f.tra("Oprávnění aplikační role")
+                    <button type="button" id="cmdUnCheckAll" class="btn btn-sm btn-primary" onclick="_postback('uncheckall')">@_f.tra("Odškrtnout vše")</button>
+                    <button type="button" id="cmdCheckAll" class="btn btn-sm btn-primary" onclick="_postback('checkall')">@_f.tra("Zaškrtnout vše")</button>
+                </div>
+                <div class="card-body" id="divX53">
+                    <mycheckboxlist asp-for="@Model.SelectedPermNumbers" groupfield="Group" datasource="@Model.lisAllPerms" valuefield="ValueInt" textfield="Name"></mycheckboxlist>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-md-6">
+            <div class="card" id="divMenu">
+                <div class="card-header">
+                    @_f.tra("Přístupné moduly")
+                </div>
+                <div class="card-body">
+                    <div class="row my-2">
+                        <div class="col-6">
+                            <div>
+                                <input type="checkbox" asp-for="@Model.Rec.j04IsModule_Widgets" />
+                                <label class="col-form-label" for="Rec_j04IsModule_Widgets">DASHBOARD</label>
+                            </div>
+                            <div class="my-2">
+                                <input type="checkbox" asp-for="@Model.Rec.j04IsModule_p31" />
+                                <label class="col-form-label" for="Rec_j04IsModule_p31">@_f.tra("ÚKONY")</label>
+                            </div>
+                            <div class="my-2">
+                                <input type="checkbox" asp-for="@Model.Rec.j04IsModule_p41" />
+                                <label class="col-form-label" for="Rec_j04IsModule_p41">@_f.tra("PROJEKTY")</label>
+                            </div>
+                            <div class="my-2">
+                                <input type="checkbox" asp-for="@Model.Rec.j04IsModule_p56" />
+                                <label class="col-form-label" for="Rec_j04IsModule_p56">@_f.tra("ÚKOLY")</label>
+                            </div>
+                            <div class="my-2">
+                                <input type="checkbox" asp-for="@Model.Rec.j04IsModule_p91" />
+                                <label class="col-form-label" for="Rec_j04IsModule_p91">@_f.tra("VYÚČTOVÁNÍ")</label>
+                            </div>
+                            <div class="my-2">
+                                <input type="checkbox" asp-for="@Model.Rec.j04IsModule_p90" />
+                                <label class="col-form-label" for="Rec_j04IsModule_p90">@_f.tra("ZÁLOHY")</label>
+                            </div>
+                            <div class="my-2">
+                                <input type="checkbox" asp-for="@Model.Rec.j04IsModule_o43" />
+                                <label class="col-form-label" for="Rec_j04IsModule_o43">INBOX</label>
+                            </div>
+                           
+                        </div>
+                        <div class="col-6">
+                            <div>
+                                <input type="checkbox" asp-for="@Model.Rec.j04IsModule_p28" />
+                                <label class="col-form-label" for="Rec_j04IsModule_p28">@_f.tra("KONTAKTY")</label>
+                            </div>
+                            <div class="my-2">
+                                <input type="checkbox" asp-for="@Model.Rec.j04IsModule_o23" />
+                                <label class="col-form-label" for="Rec_j04IsModule_o23">@_f.tra("DOKUMENTY")</label>
+                            </div>
+                            <div class="my-2">
+                                <input type="checkbox" asp-for="@Model.Rec.j04IsModule_j02" />
+                                <label class="col-form-label" for="Rec_j04IsModule_j02">@_f.tra("UŽIVATELÉ")</label>
+                            </div>
+                            <div class="my-2">
+                                <input type="checkbox" asp-for="@Model.Rec.j04IsModule_x31" />
+                                <label class="col-form-label" for="Rec_j04IsModule_x31">@_f.tra("PEVNÉ TISKOVÉ SESTAVY")</label>
+                            </div>
+                            <div class="my-2">
+                                <input type="checkbox" asp-for="@Model.Rec.j04IsModule_p11" />
+                                <label class="col-form-label" for="Rec_j04IsModule_p11">@_f.tra("DOCHÁZKA")</label>
+                            </div>
+                            <div class="my-2">
+                                <input type="checkbox" asp-for="@Model.Rec.j04IsModule_r01" />
+                                <label class="col-form-label" for="Rec_j04IsModule_r01">@_f.tra("KAPACITNÍ PLÁNOVÁNÍ")</label>
+                            </div>
+                            <div class="my-2">
+                                <input type="checkbox" asp-for="@Model.Rec.j04IsModule_p49" />
+                                <label class="col-form-label" for="Rec_j04IsModule_p49">@_f.tra("FINANČNÍ PLÁNOVÁNÍ")</label>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+
+
+
+                </div>
+            </div>
+            <div class="card my-2">
+                <div class="card-header">
+                    @_f.tra("Povolené skupiny widgetů")                    
+                </div>
+                <div class="card-body" id="divX54">
+                    <mycheckboxlist asp-for="SelectedX54IDs" datasource="@Model.lisX54" valuefield="pid" textfield="x54Name"></mycheckboxlist>
+                </div>
+            </div>
+            <div class="card my-2" style="display:none;">
+                <div class="card-header">
+                    @_f.tra("Individuální stránky záznamů")
+                </div>
+                <div class="card-body">
+                    <table>
+                        <tr>
+                            <td>
+                                @_f.tra("Stránka dokumentu"):
+                            </td>
+                            <td>
+                                <mydropdown asp-for="@Model.Rec.a55ID_o23" isfirstemptyrow="true" firstemptyrowvalue="0" datasource="@_lisA55_o23" textfield="a55Name" valuefield="pid"></mydropdown>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                @_f.tra("Stránka kontaktu"):
+                            </td>
+                            <td>
+                                <mydropdown asp-for="@Model.Rec.a55ID_p28" isfirstemptyrow="true" firstemptyrowvalue="0" datasource="@_lisA55_p28" textfield="a55Name" valuefield="pid"></mydropdown>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                @_f.tra("Stránka")
+                                @(" " + _f.getP07Level_Inflection(5) + ":")
+                            </td>
+                            <td>
+                                <mydropdown asp-for="@Model.Rec.a55ID_le5" isfirstemptyrow="true" firstemptyrowvalue="0" datasource="@_lisA55_le5" textfield="a55Name" valuefield="pid"></mydropdown>
+                            </td>
+                        </tr>
+                        @if (_f.p07LevelsCount > 1)
+                        {
+                            <tr>
+                                <td>
+                                    @_f.tra("Stránka")
+                                    @(" " + _f.getP07Level_Inflection(4) + ":")
+                                </td>
+                                <td>
+                                    <mydropdown asp-for="@Model.Rec.a55ID_le4" isfirstemptyrow="true" firstemptyrowvalue="0" datasource="@_lisA55_le4" textfield="a55Name" valuefield="pid"></mydropdown>
+                                </td>
+                            </tr>
+                        }
+                        <tr>
+                            <td>
+                                @_f.tra("Stránka vyúčtování"):
+                            </td>
+                            <td>
+                                <mydropdown asp-for="@Model.Rec.a55ID_p91" isfirstemptyrow="true" firstemptyrowvalue="0" datasource="@_lisA55_p91" textfield="a55Name" valuefield="pid"></mydropdown>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                @_f.tra("Stránka uživatele"):
+                            </td>
+                            <td>
+                                <mydropdown asp-for="@Model.Rec.a55ID_j02" isfirstemptyrow="true" firstemptyrowvalue="0" datasource="@_lisA55_j02" textfield="a55Name" valuefield="pid"></mydropdown>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card my-2">
+                <div class="card-header">
+                    @_f.tra("Zakázané GRID sloupce")
+                </div>
+                <div class="card-body">
+                    <textarea class="form-control" asp-for="Rec.j04GridColumnsExclude" placeholder="Oddělovač je čárka"></textarea>
+                    
+                </div>
+            </div>
+
+            <div class="card my-2">
+                <div class="card-header">
+                    @_f.tra("Výchozí Rozšíření karty uživatele")
+                </div>
+                <div class="card-body">
+                    <div>
+                        <label>@_f.tra("Nahrávání příloh v kartě uživatele"):</label>
+                        @Html.EditorFor(m => m.Rec.j04FilesTab, "~/Views/Shared/_BitStreamFlag.cshtml")
+                    </div>
+
+                </div>
+            </div>
+
+            
+        </div>
+    </div>
+
+
+
+
+</div>
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+
+
+    });
+
+
+
+
+
+
+
+
+</script>

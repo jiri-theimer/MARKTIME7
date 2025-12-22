@@ -1,0 +1,438 @@
+﻿@model UI.Models.Record.b06Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Workflow krok v rámci stavu") + ": " + Model.RecB02.b02Name;
+
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    Model.PageSymbol = "schema";
+}
+
+@addTagHelper *, UI
+
+<div class="alert alert-primary" role="alert">
+    @Model.RecB02.b02Name
+</div>
+
+<div class="tabs_container_record">
+    <!-- Tab panes -->
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab1" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab1">@_f.tra("Karta kroku")</a>
+        </li>
+        <li class="nav-item onetab" role="presentation" id="litab2">
+            <a id="link_tab2" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab2">@_f.tra("Kdo může spustit krok")</a>
+        </li>
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab3" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab3">@_f.tra("Notifikace")</a>
+        </li>
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab4" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab4">@_f.tra("SQL")</a>
+        </li>
+
+
+    </ul>
+</div>
+
+
+<div class="modal_record_container">
+    <div class="tab-content">
+        <div class="tab-pane" id="tab1" role="tabpanel">
+
+
+            <div class="row">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název kroku"):</label>
+                <div class="col-sm-7 col-md-6">
+                    <input class="form-control" asp-for="Rec.b06Name" />
+                </div>
+                <label class="col-sm-1 col-md-1 col-form-label">@_f.tra("Index pořadí"):</label>
+                <div class="col-sm-1 col-md-1">
+                    <mynumber asp-for="Rec.b06Ordinary" decimal-digits="0"></mynumber>
+                </div>
+            </div>
+
+
+            @if (Model.RecB02.b02AutoRunFlag != BO.b02AutoRunFlagEnum.Technicky)
+            {
+                <input type="radio" id="b06AutoRunFlag0" asp-for="Rec.b06AutoRunFlag" value="UzivatelskyKrok" onchange="_postback()">
+                <label for="b06AutoRunFlag0">@_f.tra("Uživatelský/Manuální krok: Uživatel spouští ručně")</label>
+
+                <br />
+                <input type="radio" id="b06AutoRunFlag2" asp-for="Rec.b06AutoRunFlag" value="AutomatickySpustenySeStavem" onchange="_postback()">
+                <label for="b06AutoRunFlag2">@_f.tra("Krok, který systém automaticky spouští s nahozením stavu"): @(Model.RecB02.b02Name)</label>
+            }
+
+            <br />
+            <input type="radio" id="b06AutoRunFlag1" asp-for="Rec.b06AutoRunFlag" value="NeUzivatelskyKrok" onchange="_postback()">
+            <label for="b06AutoRunFlag1">@_f.tra("Robotický krok: Systém zkouší spustit každých cca 5 minut")</label>
+
+            
+
+            
+
+            @if (Model.Rec.b06AutoRunFlag != BO.b06AutoRunFlagEnum.AutomatickySpustenySeStavem && (Model.Rec.p60ID==0 || (Model.Rec.p60ID>0 && Model.Rec.b06AutoTaskFlag == BO.b06AutoTaskFlagEnum.Auto)))
+            {
+                <div class="row my-2">
+                    <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Nahodit cílový workflow stav"):</label>
+                    <div class="col-sm-7 col-md-6">
+                        <mydropdown asp-for="Rec.b02ID_Target" isfirstemptyrow="true" firstemptyrowvalue="0" datasource="@Model.lisTargetB02" textfield="b02Name" valuefield="pid" event_after_changevalue="b02id_target_changed"></mydropdown>
+                    </div>
+
+                </div>
+            }
+
+            @if (Model.Rec.b06AutoRunFlag == BO.b06AutoRunFlagEnum.UzivatelskyKrok && (Model.Rec.p60ID == 0 || (Model.Rec.p60ID > 0 && Model.Rec.b06AutoTaskFlag == BO.b06AutoTaskFlagEnum.Auto)))
+            {
+                <div class="my-2">
+                    <select asp-for="Rec.b06NotepadFlag" class="form-select">
+                        <option value="_Default">@_f.tra("Notepad se nabízí k vyplnění")</option>
+                        <option value="WithoutNotepad">@_f.tra("Bez možnosti vyplnit Notepad")</option>
+                        <option value="NotepadIsRequired">@_f.tra("Notepad je povinné vyplnit")</option>
+                    </select>
+
+                </div>
+            }
+
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Založit úkol ze šablony"):</label>
+                <div class="col-sm-7 col-md-6">
+                    <mydropdown asp-for="Rec.p60ID" isfirstemptyrow="true" event_after_changevalue="p60id_onchange" firstemptyrowvalue="0" datasource="@Model.lisP60" textfield="p60Name" valuefield="pid"></mydropdown>
+                </div>
+                @if (Model.Rec.p60ID > 0)
+                {
+                    <div class="col-sm-4 col-md-4">
+                        <select asp-for="Rec.b06AutoTaskFlag" class="form-select" onchange="_postback('refresh')">
+                            <option value="Auto">@_f.tra("Automaticky na pozadí")</option>
+                            <option value="Manual">@_f.tra("Ručně uživatel")</option>
+                            
+                        </select>
+                    </div>
+                }
+                
+            </div>
+
+            @if (Model.RecB02.b01Entity=="p91")
+            {
+                <div class="row my-2">
+                    <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Založit upomínku typu"):</label>
+                    <div class="col-sm-7 col-md-6">
+                        <mydropdown asp-for="Rec.p83ID" isfirstemptyrow="true" event_after_changevalue="p83id_onchange" firstemptyrowvalue="0" datasource="@Model.lisP83" textfield="p83Name" valuefield="pid"></mydropdown>
+                    </div>
+                </div>
+            }
+
+            <div class="my-2">
+                <select asp-for="Rec.b06GeoFlag" class="form-select">
+                    <option value="_None">@_f.tra("Bez podpory geo polohy a počasí")</option>
+                    <option value="LoadFromP15">@_f.tra("Načíst lokální počasí z lokality projektu nebo úkolu")</option>
+                    <option value="LoadFromCurrentUser">@_f.tra("Načíst aktuální polohu uživatele (vč. počasí)")</option>
+                </select>
+
+            </div>
+
+
+
+
+            @if (Model.Rec.b06AutoTaskFlag != BO.b06AutoTaskFlagEnum.Manual)
+            {
+                <div class="card">
+                    <div class="card-header">
+                        Nominace obsazení role v záznamu
+                    </div>
+                    <div class="card-body">
+                        <div class="my-2">
+                            <select asp-for="Rec.b06NomineeFlag" class="form-select" onchange="_postback()">
+                                <option value="_None">@_f.tra("Krok bez možnosti nominovat/změnit obsazení role v záznamu")</option>
+                                @if (Model.Rec.b06AutoRunFlag == BO.b06AutoRunFlagEnum.UzivatelskyKrok)
+                                {
+                                    <option value="RucniNepovinna">@_f.tra("Uživatel má možnost nominovat změnu obsazení role v záznamu")</option>
+                                    <option value="RucniPovinna">@_f.tra("Uživatel povinně musí nominovat změnu obsazení role v záznamu")</option>
+                                }
+
+                                <option value="Pevna">@_f.tra("Automatická změna obsazení role v záznamu")</option>
+                            </select>
+                        </div>
+                        @if (Model.Rec.b06NomineeFlag != BO.b06NomineeFlagENum._None)
+                        {
+                            <div class="row my-2">
+                                <label class="col-auto">@_f.tra("Role"):</label>
+                                <div class="col-sm-7 col-md-6">
+                                    @if (Model.Rec.b06NomineeFlag == BO.b06NomineeFlagENum.Pevna)
+                                    {
+                                        <mydropdown asp-for="Rec.x67ID_Direct" datasource="@Model.lisAllX67_Nominee" textfield="x67Name" valuefield="pid"></mydropdown>
+                                    }
+                                    else
+                                    {
+                                        <mydropdown asp-for="Rec.x67ID_Nominee" datasource="@Model.lisAllX67_Nominee" textfield="x67Name" valuefield="pid"></mydropdown>
+                                    }
+
+                                </div>
+                            </div>
+                        }
+                        @if (Model.Rec.b06NomineeFlag == BO.b06NomineeFlagENum.Pevna)
+                        {
+                            <table>
+                                <tr>
+                                    <td>
+                                        @_f.tra("Obsadit týmem"):
+                                    </td>
+                                    <td>
+                                        <mycombo entity="j11Team" asp-for="Rec.j11ID_Direct" selectedtext="@Model.Nominee_j04Name" view-flag="2"></mycombo>
+                                    </td>
+                                </tr>
+                               
+                                <tr>
+                                    <td>
+                                        @_f.tra("Nebo obsadit podle posledního stavu v"):
+                                    </td>
+                                    <td>
+                                        <mydropdown asp-for="@Model.Rec.b02ID_LastReceiver_ReturnTo" isfirstemptyrow="true" firstemptyrowvalue="0" datasource="@Model.lisTargetB02" textfield="b02Name" valuefield="pid"></mydropdown>
+                                    </td>
+                                </tr>
+                            </table>
+
+                        }
+
+
+                    </div>
+                </div>
+            }
+
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Příkaz kroku"):</label>
+                <div class="col-sm-7 col-md-6">
+                    <select asp-for="Rec.b06JobFlag" class="form-select">
+                        <option value="0"></option>
+                        <option value="PdfFaktura">Vygenerovat PDF dokument faktury</option>
+                    </select>
+                </div>
+
+            </div>
+        </div>
+
+
+        <div class="tab-pane" id="tab2" role="tabpanel">
+
+            <div class="card">
+                <div class="card-body">
+                    <div class="card-title">Role uživatelů v záznamu</div>
+                    <mycheckboxlist asp-for="@Model.Receiver_x67IDs" datasource="@Model.Receiver_AllX67" valuefield="pid" textfield="x67Name"></mycheckboxlist>
+
+                    <p></p>
+                    <input type="checkbox" asp-for="@Model.Receiver_IsRecordOwner" />
+                    <label class="col-form-label" for="Receiver_IsRecordOwner">@_f.tra("Vlastník záznamu")</label>
+                    <br />
+                    <input type="checkbox" asp-for="@Model.Receiver_IsRecordCreator" />
+                    <label class="col-form-label" for="Receiver_IsRecordCreator">@_f.tra("Zakladatel záznamu")</label>
+                </div>
+            </div>
+
+
+            <p></p>
+            <mycombochecklist placeholder="Týmy uživatelů" asp-for="@Model.Receiver_j11IDs" entity="j11Team" selectedtext="@Model.Receiver_j11Names"></mycombochecklist>
+
+            <p></p>
+            <mycombochecklist placeholder="Aplikační role" asp-for="@Model.Receiver_j04IDs" entity="j04UserRole" selectedtext="@Model.Receiver_j04Names"></mycombochecklist>
+            <p></p>
+        </div>
+        <div class="tab-pane" id="tab3" role="tabpanel">
+            <p></p>
+            <button type="button" class="btn btn-primary" onclick="handle_b11_append()">@_f.tra("Přidat")</button>
+            <table class="table table-hover">
+                <tr>
+                    <th style="background-color:aliceblue;">
+                        @_f.tra("Šablona zprávy")
+                    </th>
+                    <th colspan="2" style="background-color:LightSkyBlue;">
+                        @_f.tra("Příjemce zprávy")
+                    </th>
+                    <th></th>
+                    <th style="width:20px;">
+
+                    </th>
+                </tr>
+                @for (var i = 0; i < Model.lisB11.Count; i++)
+                {
+                    <tr style="@(Model.lisB11[i].CssTempDisplay)">
+                        <td style="min-width:200px;background-color:aliceblue;">
+                            <mycombo entity="j61TextTemplate" asp-for="lisB11[i].j61ID" selectedtext="lisB11[i].j61Name" myqueryinline="entity|string|@Model.RecB02.b01Entity" placeholder="@_f.tra("Vybrat šablonu poštovní zprávy")..." view-flag="2"></mycombo>
+                        </td>
+                        <td style="background-color:LightSkyBlue;">
+                            <input type="hidden" asp-for="lisB11[i].IsTempDeleted" value="@Model.lisB11[i].IsTempDeleted" />
+                            <input type="hidden" asp-for="lisB11[i].TempGuid" value="@Model.lisB11[i].TempGuid" />
+                            <mydropdown asp-for="lisB11[i].x67ID" isfirstemptyrow="true" firstemptyrowvalue="0" datasource="@Model.Receiver_AllX67" textfield="x67Name" valuefield="pid"></mydropdown>
+
+                            <br />
+                            <mycombo entity="j04UserRole" asp-for="lisB11[i].j04ID" selectedtext="lisB11[i].j04Name" placeholder="@_f.tra("Vybrat aplikační roli")..." view-flag="2"></mycombo>
+                        </td>
+                       
+                        <td style="background-color:LightSkyBlue;">
+                            <mycombo entity="j11Team" asp-for="lisB11[i].j11ID" selectedtext="lisB11[i].j11Name" placeholder="@_f.tra("Vybrat tým")..." view-flag="2"></mycombo>
+                            <br />
+                            <select class="form-select" asp-for="lisB11[i].RecordUserRole">
+                                <option value="0"></option>
+                                <option value="1">Vlastník záznamu</option>
+                                <option value="2">Zakladatel záznamu</option>
+                                <option value="3">E-mail zakladatele záznamu</option>
+                            </select>
+                        </td>
+                        
+                        <td>
+                            <input type="text" class="form-control" asp-for="lisB11[i].b11Subject" placeholder="Předmět zprávy" />
+                        </td>
+                        <td style="width:20px;">
+                            <button type="button" class="btn btn-danger" title="@_f.tra("Odstranit řádek")" onclick="handle_delete_b11('@(Model.lisB11[i].TempGuid)')">x</button>
+                        </td>
+
+                    </tr>
+
+                }
+            </table>
+
+            <p></p>
+            <input type="checkbox" asp-for="Rec.b06IsNotifyMerge" />
+            <label class="col-form-label" for="Rec_b06IsNotifyMerge">Slučovat notifikační zprávy</label>
+
+            
+
+            <div class="row my-2">
+                <label class="col-auto col-form-label">Čas sloučené notifikační zprávy:</label>
+                <div class="col-sm-1 col-md-1">
+                    <input type="text" class="form-control" asp-for="Rec.b06NotifyMergeTime" />
+                </div>
+
+            </div>
+        </div>
+
+        <div class="tab-pane" id="tab4" role="tabpanel">
+
+            @if (Model.Rec.b06AutoRunFlag == BO.b06AutoRunFlagEnum.NeUzivatelskyKrok)
+            {
+                <div class="card">
+                    <div class="card-header">
+                        Rámcový SQL dotaz robotického kroku
+                    </div>
+                    <div class="card-body">
+                        <div class="card-title">
+                            SQL, který vrací sadu potenciálně vyhovujících záznamů pro otestování spuštění kroku. 
+                        </div>
+                        <var>Pokud není vyplněno, vůbec nedojde k otestování spuštění robotického kroku!</var>
+                        <textarea asp-for="Rec.b06FrameworkSql" class="form-control" placeholder="sql, lze využít parametr b02id"></textarea>
+
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        Po spuštění robotického kroku: Zda a kdy spustit znovu?
+                    </div>
+                    <div class="card-body">
+                        <div class="row my-2">
+                            <label class="col-auto col-form-label">@_f.tra("Po uplynutí počtu hodin"):</label>
+                            <div class="col-sm-1 col-md-1">
+                                <mynumber asp-for="Rec.b06NextRunAfterHours" decimal-digits="0"></mynumber>
+                            </div>
+
+                        </div>
+                        <div>A zároveň po změně hodnoty od posledního spuštění kroku. SQL vracející hodnotu pro porovnání:</div>
+                        <textarea asp-for="Rec.b06CacheValueSql" class="form-control" placeholder="sql"></textarea>
+                    </div>
+                </div>
+            }
+
+            <p></p>
+            <div class="card">
+                <div class="card-header">
+                    Validační SQL dotaz testující možnost spuštění kroku v záznamu
+                </div>
+                <div class="card-body">
+                    <div>
+                        Pokud SQL vrací hodnotu 1, podmínka je splněna:
+                    </div>
+                    <textarea asp-for="Rec.b06ValidateBeforeRunSQL" class="form-control" placeholder="sql"></textarea>
+
+                    <div class="row">
+                        <label class="col-sm-4 col-md-4 col-form-label">Uživatelská hláška v případě nesplnění validačního dotazu:</label>
+                        <div class="col-sm-8 col-md-8">
+                            <input class="form-control" asp-for="Rec.b06ValidateBeforeErrorMessage" />
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <p></p>
+            <div class="card" style="display:none;">
+                <div class="card-header">
+                    Automatické spuštění kroku: Krok bude automaticky spuštěn po splnění následujícího SQL dotazu
+                </div>
+                <div class="card-body">
+                    <div class="card-title">
+                        Splnění podmínky znamená, že SQL dotaz vrací hodnotu: 1 [typ: int], systém testuje nepřetržitě každých 5 minut.
+                    </div>
+
+                    <textarea asp-for="Rec.b06ValidateAutoMoveSQL" class="form-control" placeholder="sql"></textarea>
+
+                </div>
+            </div>
+
+            <p></p>
+            <div class="card">
+                <div class="card-header">
+                    SQL po spuštění kroku
+                </div>
+                <div class="card-body">
+                    <div class="card-title">
+                        S workflow krokem automaticky spouštět v záznamu následující SQL dotaz:
+                    </div>
+
+                    <textarea asp-for="Rec.b06RunSQL" class="form-control" placeholder="sql"></textarea>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<input type="hidden" asp-for="Rec.b02ID" />
+
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        var typkroku = "@Model.Rec.b06AutoRunFlag";
+
+        if (typkroku == "NeUzivatelskyKrok" || typkroku == "AutomatickySpustenySeStavem") {
+            $("#litab2").css("display", "none");
+            $("#tab2").css("display", "none");
+        }
+
+
+    });
+
+
+
+    function b02id_target_changed(b02id) {
+        _postback();
+    }
+
+
+
+    function handle_b11_append() {
+        _postback("add_b11");
+
+    }
+    function handle_delete_b11(guid) {
+        _postback("delete_b11", "guid=" + guid);
+
+
+    }
+
+    function p60id_onchange(){
+        _postback("p60id");
+    }
+    function p83id_onchange() {
+        _postback("p83id");
+    }
+</script>

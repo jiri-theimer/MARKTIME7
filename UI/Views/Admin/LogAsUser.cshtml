@@ -1,0 +1,56 @@
+﻿@model UI.Models.Admin.AdminLogAsUser
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Přihlásit se pod identitou jiného uživatele");
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageSymbol = "login";
+}
+
+@addTagHelper *, UI
+
+
+<div class="bg-light" style="padding:10px;">
+    <button id="cmdSave" type="button" class="btn btn-success">@_f.tra("Potvrdit")</button>
+    <button type="button" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+    <button type="button" onclick="_helppage()" class="btn btn-light"><b>? </b>@_f.tra("Nápověda")</button>
+</div>
+<form id="form1" asp-controller="Admin" asp-action="LogAsUser" method="POST">
+    <div class="modal_record_container">
+
+        <div class="row">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Přepnout na login"):</label>
+            <div class="col-sm-4 col-md-4">
+                <input id="txtLogin" class="form-control" asp-for="@Model.Login" />
+
+            </div>
+        </div>
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("API key"):</label>
+            <div class="col-sm-4 col-md-4">
+                <input id="txtCode" class="form-control" autocomplete="off" type="text" asp-for="@Model.SecurityCode" />
+
+            </div>
+        </div>
+    </div>
+</form>
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $("#cmdSave").click(function () {
+            $(this).text("Processing...");
+            $(this).attr("disabled", true);
+            form1.submit();
+
+        });
+
+
+
+    });
+
+
+
+
+</script>

@@ -1,0 +1,146 @@
+﻿@model UI.Models.p40PostGenerateViewModel
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = _f.tra("Hromadně vygenerovat chybějící odměny");
+    Model.PageSymbol = "flash_on";
+
+}
+
+@addTagHelper *, UI
+
+<div class="bg-light" style="padding:10px;">
+    <button type="button" id="cmdSave" class="btn btn-success" onclick="_submit()"><span class="material-icons-outlined-btn">done</span>@_f.tra("Spustit frontu")</button>
+
+    <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
+
+
+</div>
+
+<div class="tabs_container_record">
+    <!-- Tab panes -->
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab1" class="nav-link active" data-bs-toggle="tab" role="tab" href="#tab1">@_f.tra("Fronta úkonů")</a>
+        </li>
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab2" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab2">@_f.tra("Vybrané předpisy generování")</a>
+        </li>
+
+    </ul>
+</div>
+
+
+
+
+
+
+<div class="tab-content" style="width:90%;">
+    <div class="tab-pane tab-pane-fixed active" id="tab1" role="tabpanel">
+        <!-- Tab1 -->
+
+        <form id="form1" asp-controller="p40" asp-action="PostGenerate" method="POST">
+            <div style="padding:10px;">
+                @await Component.InvokeAsync("myPeriod", Model.periodinput)
+            </div>
+            
+            <input type="hidden" asp-for="p40ids" />
+            <input type="hidden" asp-for="oper" />
+            <input type="hidden" asp-for="j72id" />
+        </form>
+
+        <div style="max-height:70%;overflow:auto;">
+
+            <table class="table table-hover">
+                <tr>
+                    <th>@_f.tra("Klient")</th>
+                    <th>@_f.tra("Projekt")</th>
+                    <th>@_f.tra("Kdy generovat")</th>
+                    <th>@_f.tra("Datum úkonu")</th>
+                    <th>@_f.tra("Hodnota (cena)")</th>
+
+                    <th>@_f.tra("Text")</th>
+
+
+
+                    <th></th>
+                </tr>
+                @foreach (var c in Model.lisP39)
+                {
+                    <tr>
+                        <td>
+                            @c.Client
+                        </td>
+                        <td>
+                            @c.p41Name
+                        </td>
+                        <td style="width:100px;">
+                            @BO.Code.Bas.ObjectDate2String(c.p39DateCreate)
+                        </td>
+                        <td style="width:100px;">
+                            @BO.Code.Bas.ObjectDate2String(c.p39Date)
+                        </td>
+                        <td class="tdnum">
+                            @BO.Code.Bas.Number2String(c.p40Value)
+                        </td>
+                        <td>
+                            @c.p39Text
+                        </td>
+
+
+                        <td>
+                            @if (c.p39DateCreate < DateTime.Now)
+                            {
+                                <myicon symbol="priority_high" color="red"></myicon>
+                            }
+
+                            @if (c.p39DateCreate.AddDays(31) < DateTime.Now)
+                            {
+                                <code>@_f.tra("Robot se již nebude pokoušet úkon vygenerovat.")</code>
+
+                            }
+
+                        </td>
+
+                        <td style="color:red;">
+                            @c.p39ErrorMessage_NewInstance
+                        </td>
+
+                    </tr>
+
+
+                }
+            </table>
+        </div>
+    </div>
+
+    <div class="tab-pane tab-pane-fixed" id="tab2" role="tabpanel">
+        <!-- Tab2-->
+        <p></p>
+
+        @await Component.InvokeAsync("myGrid", Model.gridinput)
+
+    </div>
+</div>
+
+
+
+<script type="text/javascript">
+
+    var _oper = "@Model.oper";
+
+    $(document).ready(function () {
+
+
+        tg_adjust_parts_width();
+
+    })
+
+
+
+</script>
+
+
+

@@ -1,0 +1,233 @@
+﻿@model UI.Models.Tab1.p84Tab1
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+    if (Model.Rec == null) return;
+
+    bool _bolIsMobile = _f.CurrentUser.IsMobileDisplay();
+    string _strRecPage = "RecPage";
+    if (_bolIsMobile)
+    {
+        _strRecPage = "RecPageMobile";
+    }
+
+
+    int _b05Count = _f.WorkflowBL.GetB05CommentsCount("p84", Model.pid);
+    IEnumerable<BO.b05Workflow_History> _lisB05 = _f.WorkflowBL.GetList_b05("p84", Model.pid, 0, 0, 0).Where(p => BO.Code.Bas.bit_compare_or(p.b05Tab1Flag, 2) == true);
+
+    var _lisP84 = _f.p84UpominkaBL.GetList(new BO.myQueryP84() { p91id = Model.Rec.p91ID });
+
+    var _lisO24 = _f.o24ReminderBL.GetList("p84", Model.pid);
+
+}
+
+@addTagHelper *, UI
+
+<div class="input-group">
+    <div style="margin-right:40px;">
+        @Html.EditorFor(m => m, "~/Views/Shared/_p84Tab1Buttons.cshtml")
+    </div>
+
+    @Html.EditorFor(m => m.Rec, "~/Views/Shared/_TimeStamp.cshtml")
+</div>
+
+
+
+
+
+@Html.Raw("<div class='info_record_container'>")
+
+@if (Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.recheader))
+{
+
+    <div class="card recpagebox400">
+        <div class="card-body">
+            <table class="table table-hover">
+                <tr>
+                    <td colspan="2" class="@(Model.Rec.isclosed ? "tdarchiv": "tdval")" onmouseover="_handle_mywrk_mouseover(this)" onmouseout="_handle_mywrk_mouseout(this)">
+                        <myicon symbol="receipt"></myicon>
+                        @Model.Rec.p84Code
+                        <mywrkbutton prefix="p84" pid="@Model.pid" showcopyurl="true" langindex="@_f.CurrentUser.j02LangIndex" showcount="@_b05Count"></mywrkbutton>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="tdlab">
+                        @_f.tra("Faktura"):
+                    </td>
+                    <td>
+                        <myval value="@Model.RecP91.p91Code" hoverprefix="p91" hoverpid="@Model.Rec.p91ID"></myval>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="tdlab">
+                        @_f.tra("Typ upomínky"):
+                    </td>
+                    <td>
+                        <myval value="@Model.Rec.p83Name"></myval>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="tdlab">
+                        @_f.tra("Klient"):
+                    </td>
+                    <td>
+                        <myval value="@Model.RecP91.p91Client" hoverprefix="p28" hoverpid="@Model.RecP91.p28ID"></myval>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="tdlab">
+                        @_f.tra("Datum"):
+                    </td>
+                    <td class="tddatum">
+                        <myval datatype="date" value="@Model.Rec.p84Date"></myval>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="tdlab">
+                        @_f.tra("Splatnost faktury"):
+                    </td>
+                    <td class="tddatum">
+                        <myval datatype="date" value="@Model.RecP91.p91DateMaturity"></myval>
+                    </td>
+                </tr>
+            </table>
+
+
+
+            @Html.EditorFor(m => m.ff1, "~/Views/Shared/_FreeFieldsRO.cshtml")
+
+
+
+
+        </div>
+
+
+    </div>
+}
+
+@Html.Raw("<div id='divTree1Container' style='float: left;vertical-align: top;border:none;margin-left:4px;margin-top:4px;'>")
+
+@Html.EditorFor(m => _lisO24, "~/Views/Shared/_o24TreeView.cshtml")
+
+<ul class="mytreeview">
+    <li>
+        <a class="mytreeview-toggle-kontejner" onclick="_treeview_toggle(this,'tab1-p84-toggle-p91')">
+            <span class="material-icons-outlined-btn mytreeview-toggle-sipka">@(UI.Code.basKendoTreeViewSupport.Get_Arrow_LastState(_f, "tab1-p84-toggle-p91", "expanded"))</span>
+            <span class="material-icons-outlined-btn">receipt_long</span>
+            <a class="treeview-link" target="_top" href="/Record/@(_strRecPage)?prefix=p91&pid=@(Model.Rec.p91ID)">@(BO.Code.Bas.OM2(Model.Rec.p91Code, 25)) (@_lisP84.Count())</a>
+
+        </a>
+
+        <ul style="display:@(UI.Code.basKendoTreeViewSupport.Get_UL_LastState(_f,"tab1-p41-toggle-p28","expanded"))">
+            @foreach (var c in _lisP84)
+            {
+                <li>
+                    @if (_f.CurrentUser.j04IsModule_p91)
+                    {
+
+                        <a id="p84@(c.pid)" class="treeview-link @(Model.pid==c.pid ? "active" : null)" title="@(c.p83Name): @(c.p84Code)" target="_top" href="/Record/@(_strRecPage)?prefix=p84&pid=@(c.pid)">@(BO.Code.Bas.OM2(c.p84Name, 25))</a>
+                    }
+                    else
+                    {
+                        <small>@(BO.Code.Bas.OM2(c.p84Name, 25))</small>
+                    }
+                </li>
+            }
+
+        </ul>
+
+    </li>
+</ul>
+
+@Html.Raw("</div>")
+
+@if (Model.Rec.p84TextA != null || Model.Rec.p84TextB != null)
+{
+    <div class="card recpageboxauto">
+        <div class="card-body">
+            <myicon symbol="format_quote" color="gray"></myicon>
+            <i>
+                @Html.Raw(BO.Code.Bas.Text2Html(Model.Rec.p84TextA))
+            </i>
+
+            @if (Model.Rec.p84TextB != null)
+            {
+                <br />
+                <myicon symbol="format_quote" color="red"></myicon>
+                <i style="color:red;">
+                    @Html.Raw(BO.Code.Bas.Text2Html(Model.Rec.p84TextB))
+                </i>
+            }
+        </div>
+    </div>
+
+}
+
+
+
+
+
+@if (Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.tags))
+{
+    @Html.EditorFor(m => m, "~/Views/Shared/_TagsTab1.cshtml")
+}
+
+
+@if (Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.o27list))
+{
+    @Html.EditorFor(m => m, "~/Views/Shared/_lisO27Tab1.cshtml")
+}
+
+
+@Html.Raw("</div>")
+<div style="clear:both;"></div>
+
+@if (_lisB05.Count() > 0)
+{
+    @await Html.PartialAsync("~/Views/Shared/_lisB05.cshtml", _lisB05)
+}
+
+
+<script type="text/javascript">
+    if (window.parent.window.location.href != undefined) {
+        if (window.parent.window.location.href.indexOf("RecPage") > 0) {
+            $("#cmdRecPage").css("display", "none");
+            $("#cmdCM").css("display", "none");
+        }
+    }
+
+
+    if (document.getElementById("divTree1Container")) {
+
+        $("#p84@(Model.pid)").addClass("active");
+
+        _adjust_divheight_small_display("divTree1Container");
+
+
+        $("#divTree1Container").animate(
+            {
+                scrollTop: $("#p84@(Model.pid)").offset().top - $("#divTree1Container").offset().top,
+            },
+            250
+        );
+
+    }
+
+
+    function p84report(x31id, p84id) {
+        _window_open("/ReportsClient/ReportContext?prefix=p84&pid=" + p84id + "&x31id=" + x31id);
+    }
+
+    function p91report(x31id, p91id) {
+        _window_open("/ReportsClient/ReportContext?prefix=p91&pid=" + p91id + "&x31id=" + x31id);
+    }
+
+
+</script>
+
+
+
+
+

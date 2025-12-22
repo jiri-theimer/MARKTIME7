@@ -1,0 +1,421 @@
+﻿@model UI.Models.Admin.AdminHome
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Administrace");
+    Layout = _f.CurrentUser.GetLayoutPerDisplay();
+
+    DateTime? _lastRobotRun = null;
+    var recJ91 = _f.FBL.GetLastRobotRun(BO.j91RobotTaskFlag.End);
+    if (recJ91 != null)
+    {
+        _lastRobotRun = recJ91.j91Date;
+    }
+
+    var _treemenu = new UI.Models.Admin.AdminPage();
+    var _isMobile = _f.CurrentUser.IsMobileDisplay();
+}
+
+@addTagHelper *, UI
+
+@section header_content{
+
+   
+    
+}
+
+
+
+<div id="layout_sidebar_contextmenu">
+    <button type="button" id="cmdShowHideTreeMenu" class="btn bog" onclick="show_hide_tree_menu()" style="margin-left:20px;display:none;">☰MENU</button>
+
+</div>
+
+
+<div id="layout_sidebar" style="overflow:auto;width:230px !important;@(!_isMobile ? "top: 40px;": null) )">
+
+    @await Html.PartialAsync("~/Views/Shared/_TreeAdminMenu.cshtml", _treemenu)
+
+</div>
+
+
+
+<div id="layout_main" style="max-width:1000px;margin-left:230px !important;">
+
+    
+
+    <div class="card" style="margin:20px;">
+        <div class="card-header">
+            <div class="row">
+                <div class="col-4">
+                    <button id="cmdGlobalParams" type="button" onclick="_window_open('/x01/Record?pid=@_f.CurrentUser.x01ID')" class="btn bog"><span class="material-icons-outlined-btn">manufacturing</span>@_f.tra("Základní parametry databáze")</button>
+                </div>
+                <div class="col-4">
+                    <button id="cmdSpaceUsed" type="button" onclick="_window_open('/SpaceUsed/Index')" class="btn bog"><span class="material-icons-outlined-btn">build</span> @_f.tra("Velikost a výkon databáze")</button>
+                </div>
+                <div class="col-3">
+                    <button id="cmdBackup" type="button" onclick="_window_open('/Backup/Index')" class="btn bog"><span class="material-icons-outlined-btn">backup</span> @_f.tra("Záloha dat")</button>
+                </div>
+
+
+               
+            </div>
+            
+            
+
+            
+        </div>
+        <div class="card-body">
+            <table class="table-sm table-hover table">
+                <tr>
+                    <th style="width:200px;"></th>
+                    <th></th>
+                    <th></th>
+                </tr>
+                @if (BO.Code.Bas.bit_compare_or(Model.RecX01.x01LockFlag,2))
+                {
+                    <tr>
+                        <td>
+                            @_f.tra("Zámek"):
+                        </td>
+                        <td>
+                            <span class="badge text-bg-danger">Databáze je přístupná pouze admin uživatele</span>
+
+
+                        </td>
+                        <td>
+                        </td>
+                    </tr>
+                }
+                @if (BO.Code.Bas.bit_compare_or(Model.RecX01.x01LockFlag, 4))
+                {
+                    <tr>
+                        <td>
+                            Robot:
+                        </td>
+                        <td>
+                            <span class="badge text-bg-warning">V databázi je vypnutý robot na pozadí</span>
+
+
+                        </td>
+                        <td>
+                        </td>
+                    </tr>
+                }
+                
+                <tr>
+                    <td>
+                        @_f.tra("Verze aplikace"):
+                    </td>
+                    <td>                        
+                        <span>
+                            @_f.App.AppBuild
+                        </span>
+
+                    </td>
+                    <td>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @_f.tra("Čas posledního spuštění robota"):
+                    </td>
+                    <td>
+                        @if (_lastRobotRun != null)
+                        {
+                            <span class="badge-light">
+                                @(_lastRobotRun)
+                            </span>
+                        }
+
+
+                    </td>
+                    
+                    <td>
+                        @if (_f.App.HostingMode == BL.Singleton.HostingModeEnum.None || _f.CurrentUser.j02Login.Substring(0,5)=="admin")
+                        {
+                            <a href="/Robot" target="_blank" class="btn btn-sm bog"><span class="material-icons-outlined-btn">smart_toy</span>@_f.tra("Spustit robota ručně")</a>
+                        }
+
+                        <button type="button" onclick="run_recovery_permissions()" class="btn btn-sm bog"><span class="material-icons-outlined-btn">cached</span> @_f.tra("Přepočítat oprávnění")</button>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @_f.tra("Režim spouštění robota"):
+                    </td>
+                    <td colspan="2">
+                        @if (_f.App.IsRobot)
+                        {
+                            <span>Na pozadí uvnitř aplikace (podle appsettings.json), robot url: <small>@(_f.App.RobotUrl)</small></span>
+                        }
+                        else
+                        {
+                            <span>Externí spouštěč mimo aplikaci (Task Scheduler)</span>
+                        }
+
+                    </td>
+                   
+                </tr>
+                <tr>
+                    <td>
+                        @_f.tra("Limitní počet uživatelů"):
+                    </td>
+                    <td>
+                        @Model.RecX01.x01LimitUsers
+                    </td>
+                    <td>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>
+                        @_f.tra("Veřejná URL adresa"):
+                    </td>
+                    <td>
+                        @Model.RecX01.x01AppHost
+                    </td>
+                    <td>
+                    </td>
+                </tr>
+                @if (_f.App.HostingMode == BL.Singleton.HostingModeEnum.None)
+                {
+                    <tr>
+                        <td>
+                            @_f.tra("Upload složka"):
+                        </td>
+                        <td>
+                            @(_f.UploadFolder)
+                        </td>
+                        <td>
+                        </td>
+                    </tr>
+                }
+                <tr>
+                    <td>
+                        @_f.tra("Název databáze"):
+                    </td>
+                    <td>
+                        @(Model.RecX01.x01AppName)
+                    </td>
+                    <td>
+                        <i class="nonmobile">Zobrazuje se v hlavním menu vlevo nahoře.</i>
+                    </td>
+                </tr>
+
+                @if (_f.CurrentUser.j04IsModule_p31)
+                {
+                    <tr>
+                        <td>
+                            @_f.tra("Zaokrouhlovat vykázané hodiny"):
+                        </td>
+                        <td>
+                            @Model.RecX01.x01Round2Minutes
+                        </td>
+                        <td>
+                            <i class="nonmobile">@_f.tra("Minuty nahoru")</i>
+                        </td>
+                    </tr>
+                }
+                @if (_f.CurrentUser.j04IsModule_p91)
+                {
+                    <tr>
+                        <td>
+                            @_f.tra("Výchozí splatnost faktury"):
+                        </td>
+                        <td>
+                            @Model.RecX01.x01InvoiceMaturityDays
+                        </td>
+                        <td>
+                            <i class="nonmobile">@_f.tra("Dny")</i>
+                        </td>
+                    </tr>
+                }
+               
+
+                <tr>
+                    <td>
+                        @_f.tra("Povolit uživatelům obnovu zapomenutého hesla"):
+                    </td>
+                    <td>
+                        @Model.RecX01.x01IsAllowPasswordRecovery
+                    </td>
+                    <td>
+                        <i class="nonmobile">@_f.tra("Tlačítko [Obnovit zapomenuté heslo] na přihlašovací stránce")</i>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @_f.tra("Domácí měna"):
+                    </td>
+                    <td>
+                        @Model.RecX01.j27ID
+                    </td>
+                    <td>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @_f.tra("ISO kód státu"):
+                    </td>
+                    <td>
+                        @Model.RecX01.x01CountryCode
+                    </td>
+                    <td>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @_f.tra("Ostatní fakturační jazyky"):
+                    </td>
+                    <td>
+                        #1: @Model.RecX01.x01BillingLang1, #2: @Model.RecX01.x01BillingLang2, #3: @Model.RecX01.x01BillingLang3, #4: @Model.RecX01.x01BillingLang4
+                    </td>
+                    <td>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @_f.tra("Doména"):
+                    </td>
+                    <td>
+                        @(Model.RecX01.x01LoginDomain)
+                    </td>
+                    <td>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Hosting Mode:
+                    </td>
+                    <td>
+                        @(_f.App.HostingMode)
+                    </td>
+                    <td>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @_f.tra("IIS binding"):
+                    </td>
+                    <td>
+                        @Model.IISBinding
+                    </td>
+                    <td>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @_f.tra("ID Licence"):
+                    </td>
+                    <td>
+                        @Model.RecX01.x01Guid
+                    </td>
+                    <td>
+                    </td>
+                </tr>
+
+            </table>
+        </div>
+    </div>
+
+    @if (_f.CurrentUser.j04IsModule_p41)
+    {
+        <div class="row">
+
+
+            <div class="col-auto">
+                <div class="card" style="margin:20px;">
+                    <div class="card-header">
+                        <strong>
+                            @_f.tra("Grafické logo")
+                        </strong>
+
+                        <button id="cmdLogo" type="button" onclick="_window_open('/Admin/CompanyLogo',3)" class="btn bog"><span class="material-icons-outlined-btn">image</span> @_f.tra("Nahrát grafické logo")</button>
+                    </div>
+                    <div class="card-body">
+                        @if (Model.RecX01.x01LogoFileName != null)
+                        {
+                            <iframe frameborder="1" src="/FileUpload/LogoFile?logofilename=@(Model.RecX01.x01LogoFileName)"></iframe>
+                        }
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+
+
+
+
+
+</div>
+
+
+<script type="text/javascript">
+    var _local_ismobile = "@(_isMobile)";
+    if (_device.isMobile) {
+        _local_ismobile = "True";
+    }
+
+    $(document).ready(function () {
+
+        _mainmenu_highlight_current("cmdadmin");
+
+
+        var offset = $("#layout_sidebar").offset();
+        var h_vertical = _device.innerHeight - offset.top;
+        h_vertical = parseInt(h_vertical) + 10;
+        $("#layout_sidebar").css("height", h_vertical + "px");
+
+
+
+        if (_local_ismobile == "True") {
+            $("#layout_sidebar").css("display", "none");
+            $("#layout_main").css("margin-left", "0px");
+            $("#cmdShowHideTreeMenu").css("display", "block");
+
+        }
+
+
+        if (_local_ismobile == "True") {
+            $("#layout_sidebar").css("display", "none");
+            $("#layout_main").css("margin-left", "0px");
+            $("#cmdShowHideTreeMenu").css("display", "block");
+            
+        }
+
+    });
+
+
+    function run_recovery_permissions() {
+        _notify_message("Loading...", "info");
+
+        $.post("/Admin/RunRecovery_Permissions", {}, function (data) {
+            _notify_message_hide();
+            alert("Dokončeno.");
+
+        });
+    }
+
+    function show_hide_tree_menu() {
+        if ($("#layout_sidebar").css("display") == "none") {
+            $("#layout_sidebar").css("display", "block");
+            $("#layout_main").css("margin-left", "230px");
+        } else {
+            $("#layout_main").css("margin-left", "0px");
+            $("#layout_sidebar").css("display", "none");
+        }
+
+
+
+    }
+
+
+</script>
+
+
+
+
+

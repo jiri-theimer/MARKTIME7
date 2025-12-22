@@ -1,0 +1,71 @@
+﻿@model UI.Views.Shared.Components.myPeriod.UserPeriodsViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Pojmenovaná časová období");
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageSymbol = "edit_calendar";
+}
+
+@addTagHelper *, UI
+
+
+<div class="bg-light" style="padding:10px;">
+    <button id="cmdSave" class="btn btn-success" onclick="_submit()">@_f.tra("Uložit změny")</button>
+    <button id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+</div>
+
+<form id="form1" asp-controller="myPeriod" asp-action="UserPeriods" method="POST">
+    <div class="modal_record_container">
+        <div>
+            <button type="button" class="btn btn-sm bog" onclick="_postback('add')">@_f.tra("Přidat")</button>
+        </div>
+        <table class="table table-hover" style="table-layout: fixed;">
+            @for (int i = 0; i < Model.lisX21.Count; i++)
+            {
+                <tr style="@(Model.lisX21[i].CssTempDisplay)">
+                    <td>
+                        <input type="text" class="form-control" asp-for="lisX21[i].x21Name" />
+
+                        <input type="hidden" asp-for="lisX21[i].IsTempDeleted" value="@Model.lisX21[i].IsTempDeleted" />
+                        <input type="hidden" asp-for="lisX21[i].TempGuid" value="@Model.lisX21[i].TempGuid" />
+                        <input type="hidden" asp-for="lisX21[i].pid" value="@Model.lisX21[i].pid" />
+                    </td>
+                    <td>
+                        <mydate asp-for="lisX21[i].x21ValidFrom"></mydate>
+                    </td>
+                    
+                    <td>
+                        <mydate asp-for="lisX21[i].x21ValidUntil"></mydate>
+                    </td>
+
+                    <td style="width:70px;">
+                        <button type="button" class="btn btn-sm btn-danger" title="@_f.tra("Odstranit řádek")" onclick="handle_delete('@(Model.lisX21[i].TempGuid)')">x</button>
+                    </td>
+                </tr>
+            }
+        </table>
+
+        
+
+
+    </div>
+   
+</form>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+        
+
+
+
+    })
+
+    
+    function handle_delete(guid) {
+        _postback("delete","guid=" + guid);
+        
+    }
+</script>

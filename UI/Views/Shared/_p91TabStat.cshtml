@@ -1,0 +1,396 @@
+﻿@model BO.p91Invoice
+@inject BL.Factory _f
+
+
+@{
+    bool _isStatistika = _f.CBL.LoadUserParamBool("tab1-p91-statistika", false);    
+
+    var _statbyprefix = _f.CBL.LoadUserParam("recpage-p91-statprefix", "j02");
+
+    var lisP31 = _f.p31WorksheetBL.GetList(new BO.myQueryP31() { p91id = Model.pid });
+
+
+    var _qrystat = lisP31.Take(0).GroupBy(p => p.p41ID).Select(p => new { groupbypid = p.Key, groupbyalias = p.Min(p => p.p41Name), hvyf = p.Sum(p => p.p31Hours_Invoiced), hvyk = p.Sum(p => p.p31Hours_Orig), bezdph = p.Sum(p => p.p31Amount_WithoutVat_Invoiced) });
+    if (_isStatistika)
+    {
+        switch (_statbyprefix)
+        {
+            case "j02":
+                _qrystat = lisP31.GroupBy(p => p.j02ID).Select(p => new { groupbypid = p.Key, groupbyalias = p.Min(p => p.Person), hvyf = p.Sum(p => p.p31Hours_Invoiced), hvyk = p.Sum(p => p.p31Hours_Orig), bezdph = p.Sum(p => p.p31Amount_WithoutVat_Invoiced) });
+                break;
+            case "p32":
+                _qrystat = lisP31.GroupBy(p => p.p32ID).Select(p => new { groupbypid = p.Key, groupbyalias = p.Min(p => p.p32Name), hvyf = p.Sum(p => p.p31Hours_Invoiced), hvyk = p.Sum(p => p.p31Hours_Orig), bezdph = p.Sum(p => p.p31Amount_WithoutVat_Invoiced) });
+                break;
+            case "p34":
+                _qrystat = lisP31.GroupBy(p => p.p34ID).Select(p => new { groupbypid = p.Key, groupbyalias = p.Min(p => p.p34Name), hvyf = p.Sum(p => p.p31Hours_Invoiced), hvyk = p.Sum(p => p.p31Hours_Orig), bezdph = p.Sum(p => p.p31Amount_WithoutVat_Invoiced) });
+                break;
+            case "p95":
+                _qrystat = lisP31.GroupBy(p => p.p95ID).Select(p => new { groupbypid = p.Key, groupbyalias = p.Min(p => p.p95Name), hvyf = p.Sum(p => p.p31Hours_Invoiced), hvyk = p.Sum(p => p.p31Hours_Orig), bezdph = p.Sum(p => p.p31Amount_WithoutVat_Invoiced) });
+                break;
+            case "vat":
+                _qrystat = lisP31.GroupBy(p => Convert.ToInt32(p.p31VatRate_Invoiced)).Select(p => new { groupbypid = p.Key, groupbyalias = p.Min(p => p.p31VatRate_Invoiced.ToString()), hvyf = p.Sum(p => p.p31Hours_Invoiced), hvyk = p.Sum(p => p.p31Hours_Orig), bezdph = p.Sum(p => p.p31Amount_WithoutVat_Invoiced) });
+                break;
+            case "billingrate":
+                _qrystat = lisP31.GroupBy(p => Convert.ToInt32(p.p31Rate_Billing_Invoiced)).Select(p => new { groupbypid = p.Key, groupbyalias = p.Min(p => p.p31Rate_Billing_Invoiced.ToString()), hvyf = p.Sum(p => p.p31Hours_Invoiced), hvyk = p.Sum(p => p.p31Hours_Orig), bezdph = p.Sum(p => p.p31Amount_WithoutVat_Invoiced) });
+                break;
+            default:
+                _qrystat = lisP31.GroupBy(p => p.p41ID).Select(p => new { groupbypid = p.Key, groupbyalias = p.Min(p => p.p41Name), hvyf = p.Sum(p => p.p31Hours_Invoiced), hvyk = p.Sum(p => p.p31Hours_Orig), bezdph = p.Sum(p => p.p31Amount_WithoutVat_Invoiced) });
+                break;
+        }
+        _qrystat = _qrystat.OrderBy(p => p.groupbyalias);
+    }
+
+
+    BO.p31BudgetCompare _bcomp = null;
+    bool _isVysledovka = _f.CBL.LoadUserParamBool("tab1-p91-vysledovka", false);
+    if (Model.p92TypeFlag == BO.p92TypeFlagENUM.CreditNote)
+    {
+        _isVysledovka = false;
+    }
+
+    BO.Model.TimesheetCostRateEnum _NakladovaSazbaScenar = BO.Model.TimesheetCostRateEnum.SimulacniSazbaRucne;
+    double _dblSimulacniSazba = 0;
+    double _dblProcentoZFakSazby = 0;
+   
+
+    if (_isVysledovka)
+    {
+        _dblSimulacniSazba = BO.Code.Bas.InDouble(_f.CBL.LoadUserParam("vysledovka-NakladovaSazbaCislo", (_f.Lic.j27ID == 2 ? "500" : "25")));
+        _dblProcentoZFakSazby = BO.Code.Bas.InDouble(_f.CBL.LoadUserParam("vysledovka-NakladovaSazbaProcento", "50"));
+        _NakladovaSazbaScenar = (BO.Model.TimesheetCostRateEnum)_f.CBL.LoadUserParamInt("vysledovka-nakladovasazba-scenar", 5);
+        _bcomp = _f.p31WorksheetBL.LoadBudgetCompare("p91", Model.pid, _NakladovaSazbaScenar, _dblSimulacniSazba, _dblProcentoZFakSazby);
+
+        
+        
+    }
+    
+
+}
+
+@if (!_isVysledovka && Model.p92TypeFlag == BO.p92TypeFlagENUM.ClientInvoice)
+{
+    <a class="mytreeview-toggle-kontejner" href="javascript:billingbox_change_value('1','tab1-p91-vysledovka')">
+        <span class="material-icons-outlined-btn mytreeview-toggle-sipka">arrow_right</span>
+    </a>
+    <a class="btn px-0" href="javascript:billingbox_change_value('1','tab1-p91-vysledovka')">
+        
+        <span class="material-icons-outlined-btn">balance</span>
+        @_f.tra("Výsledovka")
+
+    </a>
+}
+
+@if (_isVysledovka)
+{
+    <table class="table table-sm table-hover">
+        <tr style="vertical-align:bottom;">
+            <td>
+                <div class="dropdown">
+                    <a class="mytreeview-toggle-kontejner" onclick="billingbox_change_value('0','tab1-p91-vysledovka')">
+                        <span class="material-icons-outlined-btn mytreeview-toggle-sipka">arrow_drop_down</span>
+                    </a>
+                    <a class="btn dropdown-toggle px-0" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span class="material-icons-outlined-btn">balance</span>
+                        @_f.tra("Výsledovka")
+
+                    </a>
+
+                    <div class="dropdown-menu" style="padding:10px;background-color:aliceblue;">
+
+
+                        <a href="javascript: _window_open('/Vysledovka/Index?master_entity=p91&master_pid=@(Model.pid)')">@_f.tra("Podrobnější výsledovky")</a>
+
+                        <a class="btn btn-sm btn-light" title="SOUČTY" href="javascript:_window_open('/p31Totals/Index?selected_entity=p91&selected_pids=@(Model.pid)&blank=1')"><span class="material-icons-outlined-btn">functions</span></a>
+
+                        <hr />
+
+                        <label for="cbxNakladovaSazbaScenar">Nákladová sazba hodin:</label>
+                        <select id="cbxNakladovaSazbaScenar">
+                            <option value="1">Nákladová sazba úkonu (N1)</option>"
+                            <option value="2">Režijní sazba úkonu (N2)</option>"
+                            <option value="3">Simulační sazba projektu (N3)</option>"
+                            <option value="4">Simulační sazba uživatele (N4)</option>"
+                            <option value="5">Simulační sazbu zadat zde ručně (N5)</option>
+                            <option value="6">Procento z výchozí fakturační sazby (N6)</option>
+                        </select>
+
+                        @if (_NakladovaSazbaScenar == BO.Model.TimesheetCostRateEnum.SimulacniSazbaRucne)
+                        {
+                            <br />
+                            <label for="txtSimulacniSazba">Simulační nákladová sazba:</label>
+                            <input id="txtSimulacniSazba" onchange="billingbox_change_simulacni_sazba()" type="text" style="width:40px;" value="@(_dblSimulacniSazba)" />
+                        }
+                        @if (_NakladovaSazbaScenar == BO.Model.TimesheetCostRateEnum.ProcentoFakturacniSazby)
+                        {
+                            <br />
+                            <label for="txtProcentoFakSazby">Procento z fakturační sazby:</label>
+                            <input id="txtProcentoFakSazby" onchange="billingbox_change_procento_sazba()" type="text" style="width:30px;" value="@(_dblProcentoZFakSazby)" />
+                            <span>%</span>
+                        }
+
+
+
+                    </div>
+                </div>
+            </td>
+            <td class="numcell">
+                @_f.tra("Náklad")
+            </td>
+            <td class="numcell">
+                @_f.tra("Výnos")
+            </td>
+            <td style="text-align:center;">
+                @_f.tra("Zisk/Ztráta")
+
+
+            </td>
+        </tr>
+        @if (_bcomp.Vyuctovano_Hodiny_Vykazane != 0)
+        {
+            <tr>
+                <td>
+                    @_f.tra("Hodiny")
+                    <span class="badge-light" title="Celkem vykázané hodiny">@BO.Code.Bas.Num2StringNull(_bcomp.Vyuctovano_Hodiny_Vykazane)</span>
+                    
+                    @if (_bcomp.Vyuctovano_Hodiny != 0)
+                    {
+                        <span class="badge-a4" title="Hodiny vyúčtované statusem: Fakturovat">@BO.Code.Bas.Number2String(_bcomp.Vyuctovano_Hodiny)</span>
+                    }
+                    @if (_bcomp.Vyuctovano_Hodiny_6 != 0)
+                    {
+                        <span class="badge-a6" title="Hodiny vyúčtované statusem: Zahrnout do paušálu">@BO.Code.Bas.Number2String(_bcomp.Vyuctovano_Hodiny_6)</span>
+                    }
+                    @if (_bcomp.Vyuctovano_Hodiny_2 != 0)
+                    {
+                        <span class="badge-a2" title="Hodiny vyúčtované statusem: Viditelný odpis">@BO.Code.Bas.Number2String(_bcomp.Vyuctovano_Hodiny_2)</span>
+                    }
+                    @if (_bcomp.Vyuctovano_Hodiny_3 != 0)
+                    {
+                        <span class="badge-a3" title="Hodiny vyúčtované statusem: Skrytý odpis">@BO.Code.Bas.Number2String(_bcomp.Vyuctovano_Hodiny_3)</span>
+                    }
+                </td>
+                <td class="numcell">
+                    @BO.Code.Bas.Num2StringNull(_bcomp.Vyuctovano_Honorar_Naklad)
+                    @if (_NakladovaSazbaScenar==BO.Model.TimesheetCostRateEnum.SimulacniSazbaRucne)
+                    {
+                        <br />
+                        <small style="background-color:lightyellow;padding:3px;">
+                            @(_dblSimulacniSazba) x @BO.Code.Bas.Number2String(_bcomp.Vyuctovano_Hodiny_Vykazane)
+                        </small>
+                    }
+                </td>
+                <td class="numcell">
+                    @BO.Code.Bas.Num2StringNull(_bcomp.Vyuctovano_Honorar)
+
+
+                </td>
+                <td class="numcell" style="color:@(_bcomp.Vyuctovano_Honorar - _bcomp.Vyuctovano_Honorar_Naklad>0 ? "green": "red")">
+                    @BO.Code.Bas.Num2StringNull(_bcomp.Vyuctovano_Honorar - _bcomp.Vyuctovano_Honorar_Naklad)
+
+                </td>
+               
+
+            </tr>
+        }
+        @if (_bcomp.Vydaje != 0)
+        {
+            <tr>
+                <td>
+                    @_f.tra("Peněžní výdaje")
+
+                </td>
+                <td class="numcell">
+                    @BO.Code.Bas.Num2StringNull(_bcomp.Vydaje)
+                </td>
+                <td class="numcell">
+                    @BO.Code.Bas.Num2StringNull(_bcomp.Vyuctovano_Vydaje)
+
+
+                </td>
+                <td class="numcell" style="color:@(_bcomp.Vyuctovano_Vydaje - _bcomp.Vydaje>0 ? "green": "red")">
+                    @BO.Code.Bas.Num2StringNull(_bcomp.Vyuctovano_Vydaje - _bcomp.Vydaje)
+
+                </td>
+               
+
+            </tr>
+        }
+        @if (_bcomp.Vyuctovano_Odmeny != 0)
+        {
+            <tr>
+                <td>
+                    @_f.tra("Pevné odměny")
+
+                </td>
+                <td class="numcell">
+                </td>
+                <td class="numcell">
+                    @BO.Code.Bas.Num2StringNull(_bcomp.Vyuctovano_Odmeny)
+
+
+                </td>
+                <td class="numcell" style="color:green" )">
+                    @BO.Code.Bas.Num2StringNull(_bcomp.Vyuctovano_Odmeny)
+                </td>
+
+            </tr>
+        }
+        <tr style="background-color:aliceblue">
+            <td>
+                @if (_bcomp.Vyuctovano_BezDph - (_bcomp.Honorar_Naklad + _bcomp.Vydaje) > 0)
+                {
+                    <span class="material-icons-outlined-btn">sentiment_satisfied</span>                    
+                }
+                else
+                {
+                    <span style="color:red;" class="material-icons-outlined-btn">sentiment_worried</span>
+                    
+                }
+            </td>
+            <td class="numcell">
+                @(BO.Code.Bas.Num2StringNull(_bcomp.Honorar_Naklad + _bcomp.Vydaje))
+            </td>
+            <td class="numcell">
+                @(BO.Code.Bas.Num2StringNull(_bcomp.Vyuctovano_BezDph))
+
+            </td>
+            <td class="numcell" style="color:@(_bcomp.Vyuctovano_BezDph - (_bcomp.Honorar_Naklad +_bcomp.Vydaje)> 0 ? "green": "red")">
+                <strong>
+                    @BO.Code.Bas.Num2StringNull(_bcomp.Vyuctovano_BezDph - (_bcomp.Honorar_Naklad + _bcomp.Vydaje))
+                 </strong>
+            </td>
+
+        </tr>
+    </table>
+
+}
+
+
+
+<div>
+    @if (_isStatistika)
+    {
+        <a class="mytreeview-toggle-kontejner" href="javascript:billingbox_change_value('0','tab1-p91-statistika')">
+            <span class="material-icons-outlined-btn mytreeview-toggle-sipka">arrow_drop_down</span>
+        </a>
+        <a class="btn px-0" href="javascript:billingbox_change_value('0','tab1-p91-statistika')">
+            <span class="material-icons-outlined-btn">auto_graph</span>
+            @_f.tra("Statistika vyúčtování")
+
+        </a>
+    }
+    else
+    {
+        <a class="mytreeview-toggle-kontejner" href="javascript:billingbox_change_value('1','tab1-p91-statistika')">
+            <span class="material-icons-outlined-btn mytreeview-toggle-sipka">arrow_right</span>
+        </a>
+        <a class="btn px-0" href="javascript:billingbox_change_value('1','tab1-p91-statistika')">
+            <span class="material-icons-outlined-btn">auto_graph</span>
+            @_f.tra("Statistika vyúčtování")
+
+        </a>
+    }
+
+        
+</div>
+@if (_isStatistika)
+{
+    <table class="table table-sm table-bordered table-hover">
+        <tr>
+            <th>
+                <select asp-for="@_statbyprefix" onchange="statbyprefix_change(this)">
+                    <option value="p41">@_f.tra("Projekt")</option>
+                    <option value="j02">@_f.tra("Uživatel")</option>
+                    <option value="p32">@_f.tra("Aktivita")</option>
+                    <option value="p34">@_f.tra("Sešit")</option>
+                    <option value="p95">@_f.tra("Fakturační oddíl")</option>
+                    <option value="vat">@_f.tra("DPH sazba")</option>
+                    <option value="billingrate">@_f.tra("Fakturační sazba")</option>
+
+                </select>
+            </th>
+            <th>@Model.j27Code</th>
+            <th title="Hodiny vyúčtované">
+                <span class="material-icons-outlined">history</span>
+                <span class="material-icons-outlined">attach_money</span>
+            </th>
+            <th title="Hodiny vykázané">
+                <span class="material-icons-outlined">history</span>
+                <span class="material-icons-outlined">functions</span>
+            </th>
+
+        </tr>
+        @foreach (var c in _qrystat)
+        {
+            <tr>
+                <td>
+                    @c.groupbyalias
+                </td>
+                <td style="text-align:right;">
+                    @(BO.Code.Bas.Number2String(c.bezdph))
+
+                </td>
+                <td style="text-align:right;">
+                    @(BO.Code.Bas.Number2String(c.hvyf))
+                </td>
+                <td style="text-align:right;">
+                    @(BO.Code.Bas.Number2String(c.hvyk))
+                </td>
+            </tr>
+
+        }
+        <tr>
+            <th><span class="material-icons-outlined-nosize">functions</span></th>
+            <th style="text-align:right;">@(BO.Code.Bas.Number2String(_qrystat.Sum(p => p.bezdph)))</th>
+            <th style="text-align:right;">@(BO.Code.Bas.Number2String(_qrystat.Sum(p => p.hvyf)))</th>
+            <th style="text-align:right;">@(BO.Code.Bas.Number2String(_qrystat.Sum(p => p.hvyk)))</th>
+        </tr>
+    </table>
+}
+
+
+
+<script type="text/javascript">
+    $("#cbxNakladovaSazbaScenar").change(function () {
+
+        billingbox_change_value(this.value, "vysledovka-nakladovasazba-scenar");
+
+    });
+
+    $("#cbxNakladovaSazbaScenar").val(@((int)_NakladovaSazbaScenar));
+
+    function statbyprefix_change(cbx) {
+        $.post("/Common/SetUserParam", { key: "recpage-p91-statprefix", value: cbx.value }, function (data) {
+            location.reload(location.href);
+
+        });
+    }
+
+
+    function billingbox_change_value(val, key) {
+
+        $.post(_ep("/Common/SetUserParam"), { key: key, value: val }, function (data) {
+            location.replace(location.href);
+
+        });
+    }
+
+    function billingbox_change_simulacni_sazba() {
+        var val = _string2number($("#txtSimulacniSazba").val());
+
+        $.post(_ep("/Common/SetUserParam"), { key: 'vysledovka-NakladovaSazbaCislo', value: val }, function (data) {
+            location.replace(location.href);
+
+        });
+    }
+
+    function billingbox_change_procento_sazba() {
+        var val = _string2number($("#txtProcentoFakSazby").val());
+
+        $.post(_ep("/Common/SetUserParam"), { key: 'vysledovka-NakladovaSazbaProcento', value: val }, function (data) {
+            location.replace(location.href);
+
+        });
+    }
+
+</script>

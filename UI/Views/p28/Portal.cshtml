@@ -1,0 +1,236 @@
+﻿@model UI.Models.Record.p28Record
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    if (Model.Rec == null) return;
+    Model.PageTitle = _f.tra("Fakturační údaje");
+
+
+
+}
+@addTagHelper *, UI
+
+
+
+
+
+<input type="hidden" asp-for="TempGuid" />
+
+<input type="hidden" asp-for="Rec.p28Code" value="@Model.Rec.p28Code" />
+
+
+
+
+<div class="modal_record_container">
+
+
+    <div class="row">
+        <div class="col-sm-3 col-md-3">
+            <input type="radio" id="opgIsCompany1" asp-for="IsCompany" value="1" onchange="_postback('IsCompany')">
+            <label for="opgIsCompany1">@_f.tra("Společnost/právnická osoba")</label>
+            <br />
+            <input type="radio" id="opgIsCompany0" asp-for="IsCompany" value="0" onchange="_postback('IsCompany')">
+            <label for="opgIsCompany0">@_f.tra("Fyzická osoba")</label>
+        </div>
+        <div class="col-sm-2 col-md-2">
+            @Html.EditorFor(m => m.Rec.p28CountryCode, "~/Views/Shared/_CountryCodeCombo.cshtml")
+
+        </div>
+
+    </div>
+
+    <div class="row">
+        <div class="col-sm-6 col-md-6">
+            <div id="divCompany1">
+                <div class="row my-2">
+                    <label for="Rec_p28CompanyName" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Společnost"):</label>
+                    <div class="col-sm-11 col-md-10">
+                        <input class="form-control record_name" asp-for="Rec.p28CompanyName" value="@Model.Rec.p28CompanyName" />
+                    </div>
+                </div>
+            </div>
+            <div id="divCompany0">
+                <div class="row my-2">
+                    <label for="Rec_p28TitleBeforeName" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Osoba"):</label>
+                    <div class="col-sm-11 col-md-10">
+                        <input class="form-control" asp-for="Rec.p28TitleBeforeName" placeholder="@_f.tra("Titul")" />
+
+                    </div>
+
+                </div>
+                <div class="row my-2">
+                    <div class="col-sm-1 col-md-2"></div>
+                    <div class="col-sm-11 col-md-10">
+                        <input class="form-control" asp-for="Rec.p28FirstName" placeholder="@_f.tra("Křestní jméno")" />
+                    </div>
+                </div>
+                <div class="row my-2">
+                    <div class="col-sm-1 col-md-2"></div>
+                    <div class="col-sm-11 col-md-10">
+                        <input class="form-control" asp-for="Rec.p28LastName" placeholder="@_f.tra("Příjmení")" />
+                    </div>
+                </div>
+                <div class="row my-2">
+                    <div class="col-sm-1 col-md-2"></div>
+                    <div class="col-sm-11 col-md-10">
+                        <input class="form-control" asp-for="Rec.p28TitleAfterName" placeholder="@_f.tra("Za jménem")" />
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="row my-2">
+                <label for="Rec_p28RegID" class="col-sm-1 col-md-2 col-form-label">@_f.tra("IČO"):</label>
+                <div class="col-sm-5 col-md-4">
+                    <input class="form-control" asp-for="Rec.p28RegID" value="@Model.Rec.p28RegID" />
+                </div>
+                <label for="Rec_p28VatID" class="col-sm-1 md-1 col-form-label">@_f.tra("DIČ"):</label>
+                <div class="col-sm-5 col-md-5">
+                    <input class="form-control" asp-for="Rec.p28VatID" value="@Model.Rec.p28VatID" />
+                </div>
+            </div>
+            @if (Model.Rec.p28CountryCode == "SK")
+            {
+                <div class="row my-2">
+                    <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("IČ DPH (SK)"):</label>
+                    <div class="col-sm-5 col-md-4">
+                        <input class="form-control" asp-for="Rec.p28ICDPH_SK" value="@Model.Rec.p28ICDPH_SK" />
+                    </div>
+
+                </div>
+            }
+
+
+        </div>
+
+    </div>
+
+
+
+
+
+
+
+    <div class="card">
+        <div class="card-header">
+            <myicon symbol="home"></myicon> @_f.tra("Adresa") #1
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-sm-3 col-md-4">
+                    <textarea asp-for="Rec.p28Street1" class="form-control" placeholder="@_f.tra("Ulice")"></textarea>
+
+                </div>
+                <div class="col-sm-3 col-md-4">
+                    <textarea class="form-control" asp-for="Rec.p28City1" placeholder="@_f.tra("Město")"></textarea>
+                </div>
+                <div class="col-sm-1 col-md-1">
+                    <input type="text" class="form-control" asp-for="Rec.p28PostCode1" placeholder="@_f.tra("PSČ")" value="@Model.Rec.p28PostCode1" />
+                </div>
+                <div class="col-sm-3 col-md-3">
+                    <input type="text" class="form-control" asp-for="Rec.p28Country1" placeholder="@_f.tra("Stát")" value="@Model.Rec.p28Country1" />
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    @Html.EditorFor(m => m, "~/Views/Shared/_p28ContactMedia.cshtml")
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+<script type="text/javascript">
+    var _is_local_company = "@Model.IsCompany";
+    var _is_local_postback = "@Model.IsPostback";
+
+    $(document).ready(function () {
+
+
+
+        myautocomplete_init_manual("Rec_p28TitleBeforeName", "@string.Join("|", Model.lisAutocomplete.Where(p => p.o15Flag == BO.AutoCompleteFlag.TitulPred).Select(p => p.o15Value))");
+        myautocomplete_init_manual("Rec_p28TitleAfterName", "@string.Join("|", Model.lisAutocomplete.Where(p => p.o15Flag == BO.AutoCompleteFlag.TitulZa).Select(p => p.o15Value))");
+        myautocomplete_init_manual("Rec_p28Country1", "@string.Join("|", Model.lisAutocomplete.Where(p => p.o15Flag == BO.AutoCompleteFlag.Stat).Select(p => p.o15Value))");
+
+
+        $("#cmdOK").click(function () {
+
+            $(this).text("Processing...");
+            $(this).attr("disabled", true);
+            form1.submit();
+
+        });
+
+
+
+        if (_is_local_postback == "True")   //textarea standardně nevloží hodnotu přes postback při ares funkci
+        {
+            $("#Rec_p28Street1").val("@Model.Rec.p28Street1");
+            $("#Rec_p28City1").val("@Model.Rec.p28City1");
+        }
+
+
+
+        if (_is_local_company == "1") {
+            $("#divCompany1").css("display", "block");
+            $("#divCompany0").css("display", "none");
+            $("#opgIsCompany1").prop("checked", true);
+        }
+        else {
+            $("#divCompany1").css("display", "none");
+            $("#divCompany0").css("display", "block");
+            $("#opgIsCompany0").prop("checked", true);
+        }
+
+
+    });
+
+
+
+    function handle_delete_o32(guid) {
+        _postback("delete_o32", "guid=" + guid);
+
+    }
+
+
+
+    function hardrefresh(pid, flag) {
+
+        if (flag != undefined) {
+
+            if (flag.includes("b05")) {
+                _postback();
+                return
+            }
+            if (flag.includes("recordcode")) {
+                $("#Rec_p28Code").val(flag.split("|")[1]);
+            }
+
+        }
+
+
+        _postback();
+    }
+
+
+
+
+
+
+
+
+
+</script>

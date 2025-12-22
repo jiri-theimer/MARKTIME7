@@ -1,0 +1,195 @@
+﻿@model FileUploadViewModel
+@inject BL.Factory _f
+
+@{
+    
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+}
+
+
+@addTagHelper *, UI
+
+
+
+
+
+
+<div class="row" style="padding:0px;margin:0px;margin-top:20px;">
+
+    <div class="col-auto">
+        <form method="post" id="frmUpload" enctype="multipart/form-data" asp-controller="FileUpload" asp-action="DoUpload">
+            <input type="hidden" asp-for="Entity" />
+            <input type="hidden" asp-for="Guid" />
+            <input type="hidden" asp-for="RecPid" />
+
+
+
+
+
+            <input title="@_f.tra("Souborové přílohy mimo Notepad")" id="upload1" type="file" name="files" multiple />
+
+            <input type="submit" id="cmdUpload" class="btn btn-primary" value="@_f.tra("Nahrát přílohy na server")" style="display:none;" />
+
+
+        </form>
+    </div>
+    <div class="col-auto">
+        @if (Model.lisTempFiles.Count() > 0)
+        {
+            <div class="card">
+                <div class="card-header">
+                    @_f.tra("Nahrané přílohy: Čeká na uložení")
+                    <button type="button" onclick="clearuploads()" class="btn btn-sm btn-outline-danger">@_f.tra("Vyčistit")</button>
+                </div>
+                <div class="card-body py-0 px-0">
+                    <table id="tabTempFiles" class="table table-hover table-sm">
+                        @foreach (var c in Model.lisTempFiles)
+                        {
+                            <tr>
+                                <td>
+                                    <a target="_blank" asp-action="FileDownloadTempFile" asp-controller="FileUpload" asp-route-tempfilename="@(c.o27ArchiveFileName)">@(c.o27OriginalFileName)</a>
+                                </td>
+
+                                <td style="text-align:right;padding-right:20px;">
+                                    @(BO.Code.Bas.FormatFileSize(c.o27FileSize))
+                                </td>
+                                <td>
+                                    <i>
+                                        @if (string.IsNullOrEmpty(c.o27Name))
+                                        {
+                                            <a href="javascript:changelabel('@Model.Guid','@(c.o27ArchiveFileName)','@(c.o27Name)')">@_f.tra("Popis/název")</a>
+                                        }
+                                        else
+                                        {
+                                            <a href="javascript:changelabel('@Model.Guid','@(c.o27ArchiveFileName)','@(c.o27Name)')">@(c.o27Name)</a>
+                                        }
+                                    </i>
+                                </td>
+                                <td style="width:20px;">
+                                    <button type="button" class="btn btn-sm btn-danger" title="@_f.tra("Odstranit řádek")" onclick="handle_delete_upload_row('@(c.o27ArchiveFileName)')">x</button>
+
+                                </td>
+                            </tr>
+                        }
+                    </table>
+                </div>
+            </div>
+        }
+
+    </div>
+</div>
+
+
+
+
+@Html.EditorFor(m => m, "~/Views/Shared/_lisO27Edit.cshtml")
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#upload1").change(function () {
+            $("#cmdUpload").css("display", "inline");
+            $("#cmdUpload").click();    //zjt
+        });
+
+
+        //$(document.body).css("background-color","red");                
+        
+
+        if (window.parent.document.getElementById("fraUpload")) {
+            var ff = window.parent.document.getElementById("fraUpload");
+
+            var o27rows = "@(Model.lisO27 !=null ? Model.lisO27.Count(): 0)";
+            if (o27rows == "0")
+            {
+                $(ff).height(50);
+            }
+            else
+            {
+                $(ff).height(150);
+            }
+            
+        }
+
+        if (window.parent.document.getElementById("fraUpload") && document.getElementById("tabTempFiles"))
+        {                
+            var fra = window.parent.document.getElementById("fraUpload");
+            var tab = document.getElementById("tabTempFiles");
+            
+            var h = 60;
+            if (tab.rows.length >= 1) {
+                h = 120;
+            }
+
+            if (tab.rows.length >= 2) {
+                var h = 120 + (tab.rows.length * 20);
+            }
+
+            if (h > 500) {
+                h = 500;
+            }
+
+            if ($(fra).height()<h)
+            {
+                $(fra).height(h);
+            }
+                        
+        }
+
+
+    });
+
+
+    function changelabel(fileguid,filename, current_label) {
+        var s = prompt("@_f.tra("Zadejte popis/název k příloze.")", current_label);
+        if (s != null) {
+            $.post("/FileUpload/ChangeTempFileLabel", {fileguid:fileguid, tempfilename: filename, newlabel: s }, function (data) {
+
+                frmUpload.Action = "/FileUpload/DoUpload?oper=postback";
+                frmUpload.submit();
+                
+
+            });
+        }
+    }
+
+    function clearuploads() {
+        
+        $.post("/FileUpload/ClearTempFiles", { guid: "@Model.Guid" }, function (data) {
+
+            frmUpload.Action = "/FileUpload/DoUpload?oper=postback";
+            frmUpload.submit();
+
+        });
+    }
+
+    
+
+    function changelabel_saved(fileguid, current_label) {
+        var s = prompt("@_f.tra("Zadejte popis/název k příloze.")", current_label);
+        if (s != null) {
+            $.post("/FileUpload/ChangeFileLabel", { fileguid: fileguid, newlabel: s }, function (data) {
+                
+                frmUpload.submit();
+
+
+            });
+        }
+    }
+
+    function handle_delete_upload_row(filename) {
+        
+        $.post("/FileUpload/DeleteTempFile", { filename: filename, guid: "@Model.Guid" }, function (data) {
+            
+            if (data.issuccess ===false) 
+            {
+                alert(data.message);
+            }
+            frmUpload.submit();
+
+        });
+    }
+
+    
+</script>

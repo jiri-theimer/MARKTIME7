@@ -1,0 +1,371 @@
+﻿@model UI.Models.Tab1.p40Tab1
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+    if (Model.Rec == null) return;
+
+    bool _bolRowHover = UI.Code.basUI.DetectIfCanRowHover(_f, Context, true);
+
+
+}
+
+@addTagHelper *, UI
+
+
+
+@Html.Raw("<div class='info_record_container'>")
+
+
+<div class="card recpagebox400">
+    <div class="card-body">
+
+        <table class="table table-hover">
+
+            <tr>
+                <td colspan="2" class="@(Model.Rec.isclosed ? "tdarchiv": "tdval")">
+                    @Model.Rec.p40Name
+                </td>
+            </tr>
+
+            <tr>
+                <td class="tdlab">
+                    @_f.getP07Level(Model.RecP41.p07Level, true):
+                </td>
+                <td class="tdval">
+                    @if (_bolRowHover)
+                    {
+                        <myval value="@Model.RecP41.PrefferedName" hoverprefix="p41" datatype="link" hoverpid="@Model.Rec.p41ID" linktarget="_top" linkurl="/Record/RecPage?prefix=p41&pid=@(Model.RecP41.pid)"></myval>
+                    }
+                    else
+                    {
+                        @Model.RecP41.PrefferedName
+                    }
+
+                    @if (Model.RecP41.isclosed)
+                    {
+                        <kbd>Projekt je v archivu.</kbd>
+                    }
+                </td>
+            </tr>
+            @if (Model.RecP41.p28ID_Client > 0)
+            {
+                <tr>
+                    <td class="tdlab">
+                        @_f.tra("Klient"):
+                    </td>
+                    <td class="tdval">
+                        @if (_bolRowHover && _f.CurrentUser.j04IsModule_p28)
+                        {
+                            <myval value="@Model.RecP41.Client" hoverprefix="p28" hoverpid="@Model.RecP41.p28ID_Client" datatype="@(_f.CurrentUser.j04IsModule_p28 ? "link": "string")" linktarget="_top" linkurl="@(_f.CurrentUser.j04IsModule_p28 ? $"/Record/RecPage?prefix=p28&pid={Model.RecP41.p28ID_Client}":"")"></myval>
+                        }
+                        else
+                        {
+                            <myval value="@Model.RecP41.Client" linktarget="_top"></myval>
+                        }
+                    </td>
+                </tr>
+            }
+            <tr>
+                <td class="tdlab">
+                    @_f.tra("Typ opakování"):
+                </td>
+                <td class="tdval">
+                    <myval value="@Model.Rec.RecurrenceAlias"></myval>
+
+                </td>
+            </tr>
+            <tr>
+                <td class="tdlab">
+                    @_f.tra("Začátek"):
+                </td>
+                <td class="tdval">
+                    <myval value="@Model.Rec.p40FirstSupplyDate" datatype="date"></myval>
+
+                </td>
+            </tr>
+            <tr>
+                <td class="tdlab">
+                    @_f.tra("Konec"):
+                </td>
+                <td class="tdval">
+                    <myval value="@Model.Rec.p40LastSupplyDate" datatype="date"></myval>
+                    @if (!Model.Rec.isclosed && Model.Rec.p40LastSupplyDate < DateTime.Now)
+                    {
+                        <span class="material-icons-outlined-nosize" style="color:#FFC107;">warning</span>
+                        <span class="badge text-bg-warning">Období generování expirovalo.</span>
+                    }
+                    @if (!Model.Rec.isclosed && Model.lisP39.Where(p => p.p31ID_NewInstance == 0 && p.p39DateCreate < DateTime.Now.AddDays(-10)).Count() > 0)
+                    {
+                        <span class="badge text-bg-danger">Existují nevygenerované úkony mimo dosah robota!</span>
+                    }
+                </td>
+            </tr>
+            
+            <tr>
+                <td class="tdlab">
+                    @_f.tra("Maska textu"):
+                </td>
+                <td class="tdval">
+                    <myval value="@(BO.Code.Bas.OM2(Model.Rec.p40Text,50))" tooltip="@(Model.Rec.p40Text !=null && Model.Rec.p40Text.Length>50 ? Model.Rec.p40Text: null))"></myval>
+
+                </td>
+            </tr>
+
+            <tr>
+                <td class="tdlab">
+                    @_f.tra("Aktivita"):
+                </td>
+                <td class="tdval">
+                    <myval value="@Model.Rec.p32Name" valueafter="@Model.Rec.p34Name"></myval>
+
+                </td>
+            </tr>
+            @if (Model.Rec.p33ID == 2 || Model.Rec.p33ID == 5)
+            {
+
+                <tr>
+                    <td class="tdlab">
+                        @_f.tra("Částka"):
+                    </td>
+                    <td class="tdval">
+                        <myval value="@Model.Rec.p40Value" datatype="num" valueafter="@Model.Rec.j27Code"></myval>
+
+                    </td>
+                </tr>
+                @if (Model.Rec.p40FreeHours != 0)
+                {
+                    <tr>
+                        <td class="tdlab">
+                            @_f.tra("Volné Fa hodiny zdarma"):
+                        </td>
+                        <td class="tdval">
+                            <myval value="@Model.Rec.p40FreeHours" datatype="num"></myval>
+
+                        </td>
+                    </tr>
+                }
+                @if (Model.Rec.p40FreeFee != 0)
+                {
+                    <tr>
+                        <td class="tdlab">
+                            @_f.tra("Fakturační honorář zdarma"):
+                        </td>
+                        <td class="tdval">
+                            <myval value="@Model.Rec.p40FreeFee" datatype="num"></myval>
+
+                        </td>
+                    </tr>
+                }
+
+            }
+            else
+            {
+                <tr>
+                    <td class="tdlab">
+                        @_f.tra("Počet"):
+                    </td>
+                    <td class="tdval">
+                        <myval value="@Model.Rec.p40Value" datatype="num"></myval>
+
+                    </td>
+                </tr>
+            }
+
+
+        </table>
+
+
+
+    </div>
+</div>
+
+
+@if (Model.lisP39 != null)
+{
+    <div class="card" style="float: left;margin-left:10px;">
+        <div class="card-body">
+            <div class="card-title recpagetitle bgp51">
+
+                @_f.tra("Přesný plán generování úkonů")
+
+
+            </div>
+            <table>
+                <tr>
+                    <td>
+                        @_f.tra("Zobrazovat historii"):
+                    </td>
+                    <td>
+                        <select class="form-select" onchange="change_plusminus(this)" asp-for="@Model.PlusMinusp39Mesice">
+                            <option value="3">3</option>
+                            <option value="6">6</option>
+                            <option value="12">12</option>
+                            <option value="24">24</option>
+                            <option value="0">@_f.tra("Bez omezení")</option>
+                        </select>
+                    </td>
+                    <td>
+                        @_f.tra("(max počet měsíců dozadu)")
+                    </td>
+                </tr>
+            </table>
+
+            <table class="table table-hover">
+                <tr>
+                    <th>@_f.tra("Vzor textu")</th>
+                    <th>@_f.tra("Datum úkonu")</th>
+                    <th>@_f.tra("Kdy generovat")</th>
+                    <th colspan="3">@_f.tra("Již vygenerováno")</th>
+
+                    <th></th>
+                    <th></th>
+                </tr>
+                @foreach (var c in Model.lisP39)
+                {
+                    <tr>
+                        <td>
+                            @c.p39Text
+                        </td>
+                        <td>
+                            @BO.Code.Bas.ObjectDate2String(c.p39Date)
+                        </td>
+                        <td>
+                            @BO.Code.Bas.ObjectDate2String(c.p39DateCreate)
+                        </td>
+                        <td>
+                            @if (c.p31ID_NewInstance > 0)
+                            {
+                                @(BO.Code.Bas.ObjectDateTime2String(c.p31DateInsert) + ": ")
+
+                                <i>
+                                    @c.p31Text
+                                </i>
+                            }
+                            else
+                            {
+                                if (c.p39DateCreate < DateTime.Now)
+                                {
+                                    <myicon symbol="priority_high" color="red"></myicon>
+                                }
+
+                                if (c.p39DateCreate.AddDays(31) < DateTime.Now)
+                                {
+                                    <code>@_f.tra("Robot se již nebude pokoušet úkon vygenerovat.")</code>
+
+                                }
+
+                            }
+
+                        </td>
+                        <td>
+                        </td>
+                        <td style="color:red;">
+                            @Html.Raw(c.p39ErrorMessage_NewInstance)
+
+                        </td>
+                        <td>
+                            @if (c.p31ID_NewInstance > 0)
+                            {
+                                @if (_f.p31WorksheetBL.Load(c.p31ID_NewInstance) == null)
+                                {
+                                    <small style="color:brown">Vygenerovaný úkon neexistuje (byl odstraněn)</small>
+                                    <br />
+                                    <button type="button" class="btn btn-sm bog" style="color:red;" onclick="generate_manually(@c.p39ID)">@_f.tra("Vygenerovat úkon ručně")</button>
+                                    <br />
+                                    <button type="button" class="btn btn-sm bog" onclick="generate_clear(@c.p39ID)">@_f.tra("Vyčistit stopu generování")</button>
+                                }
+                                else
+                                {
+                                    <button type="button" class="btn btn-sm bog" onclick="p31_record(@c.p31ID_NewInstance)">@_f.tra("Vygenerováno")</button>
+                                }
+
+                            }
+                            else
+                            {
+                                if (c.p39DateCreate.AddDays(31) < DateTime.Now)
+                                {
+
+                                    <button type="button" class="btn btn-sm bog" style="color:red;" onclick="generate_manually(@c.p39ID)">@_f.tra("Vygenerovat úkon ručně")</button>
+                                }
+                                else
+                                {
+                                    <button type="button" class="btn btn-sm bog" style="color:brown" onclick="generate_manually(@c.p39ID)">@_f.tra("Nečekat a vygenerovat ručně")</button>
+                                }
+                            }
+                        </td>
+                    </tr>
+
+
+                }
+            </table>
+
+
+        </div>
+    </div>
+}
+
+
+
+<div style="clear:both;"></div>
+
+
+@Html.Raw("</div>")
+
+
+<script type="text/javascript">
+
+
+    $(document).ready(function () {
+
+
+
+
+
+    });
+
+    function change_plusminus(cbx) {
+
+        $.post(_ep("/Common/SetUserParam"), { key: "p40-PlusMinusp39Mesice", value: cbx.value }, function (data) {
+            location.replace(window.location.href);
+
+        });
+    }
+
+    function generate_manually(p39id) {
+
+        $.post("/p40/GenerateManually", { p39id: p39id }, function (data) {
+
+            if (data == -1) {
+                alert("Nemáte vlastnické oprávnění k projektu.");
+                return;
+            }
+            if (data == 0) {
+                alert("Nedošlo k vygenerování záznamu úkonu.");
+                return;
+            }
+            location.replace(window.location.href);
+        });
+
+
+    }
+
+    function generate_clear(p39id) {
+
+        $.post("/p40/GenerateClear", { p39id: p39id }, function (data) {
+
+
+            location.replace(window.location.href);
+        });
+
+
+    }
+
+
+    function p31_record(p31id) {
+        _edit("p31", p31id);
+    }
+
+
+</script>

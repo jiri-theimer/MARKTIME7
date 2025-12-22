@@ -1,0 +1,61 @@
+﻿@model UI.Models.p91oper.creditnoteViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = _f.tra("Vytvořit k faktuře opravný doklad");
+
+}
+
+@addTagHelper *, UI
+
+<div class="bg-light" style="padding:10px;">
+    <button type="button" id="cmdOK" class="btn btn-success" onclick="_submit()">@_f.tra("Vygenerovat opravný doklad")</button>
+
+    <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+
+
+
+</div>
+
+<form id="form1" asp-controller="p91oper" asp-action="creditnote" method="POST">
+    <div class="modal_record_container">
+        <div class="alert alert-warning">
+            <p>Původně vyúčtované úkony zůstanou uloženy beze změny v původním vyúčtování (faktuře).</p>
+            <p>Opravný doklad bude technicky nové vyúčtování čistěn peněžních úkonů s mínus znaménky. Opravný doklad bude obsahovat pro každou sazbu DPH jeden peněžní úkon.</p>
+        </div>
+        <div class="alert alert-primary">
+            @(Model.RecP91.p92Name+": "+Model.RecP91.p91Code)
+            <hr />
+            @(Model.RecP91.p91Client)
+        </div>
+
+
+        <div class="row">
+            <label class="col-sm-2 col-md-3 col-form-label">@_f.tra("Typ opravného dokladu"):</label>
+            <div class="col-sm-6 col-md-5">
+                <mycombo entity="p92InvoiceType" asp-for="@Model.SelectedP92ID" selectedtext="@Model.SelectedP92Name" myqueryinline="invoicetype|int|2"></mycombo>
+
+            </div>
+        </div>
+        
+    </div>
+
+
+    <input type="hidden" asp-for="@Model.p91ID" />
+</form>
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+
+    })
+
+
+
+
+</script>
+

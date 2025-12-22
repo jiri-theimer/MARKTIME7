@@ -1,0 +1,647 @@
+﻿@model UI.Models.Record.p31Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Vykázat úkon");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+
+    if (Model.RecP34 != null)
+    {
+        Model.PageTitle += ": " + Model.RecP34.p34Name;
+    }
+
+
+    if (Model.RecP34 != null && (Model.RecP34.p33ID == BO.p33IdENUM.PenizeBezDPH || Model.RecP34.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu))
+    {
+        Model.PageSymbol = "paid";
+    }
+    string _o18Name = null;
+    if (Model.Rec.o23ID > 0)
+    {
+        _o18Name = _f.o23DocBL.Load(Model.Rec.o23ID).o18Name;
+    }
+
+    var _lisB05 = _f.WorkflowBL.GetList_b05("p31", Model.rec_pid, 0, 0, 0);
+    bool _isMobile = _f.CurrentUser.IsMobileDisplay();
+}
+
+@addTagHelper *, UI
+
+
+
+<div id="loading_container" class="loader_postback"></div>
+
+@Html.Raw("<div class='modal_record_container'>")
+
+@if (Model.Rec.o23ID > 0)
+{
+    <div class="row my-2">
+        <div class="col-sm-1 col-md-1">
+            <span class="material-icons-outlined" style="color:orange;">file_present</span>
+        </div>
+        <div class="col-sm-6 col-md-6">
+            <myval style="font-weight:bold;" value="@Model.Doc_o23Name" hoverprefix="o23" hoverpid="@Model.Rec.o23ID"></myval>
+        </div>
+        <div class="col-sm-3 col-md-3">
+            @if (Model.rec_pid > 0)
+            {
+                <button type="button" class="btn btn-outline-danger" onclick="_postback('clear_o23id')">Vyčistit vazbu na @(_o18Name)</button>
+            }
+        </div>
+
+        <input type="hidden" asp-for="@Model.Doc_o23Name" />
+    </div>
+}
+@if (Model.Rec.p49ID > 0)
+{
+    <div class="row my-2">
+        <div class="col-sm-1 col-md-1">
+            <span class="material-icons-outlined" style="color:orange;">energy_savings_leaf</span>
+        </div>
+
+        <div class="col-sm-3 col-md-3">
+            @if (Model.rec_pid > 0)
+            {
+                <button type="button" class="btn btn-outline-danger" onclick="_postback('clear_p49id')">Vyčistit vazbu na plán</button>
+            }
+        </div>
+    </div>
+}
+
+<div id="divMore" class="card" style="display:none;background-color:#E6F0FF;max-width:50%;">
+    <div style="width:300px;padding:30px;">
+        <button tabindex="-1" onclick="setting()" class="btn btn-sm bog">@_f.tra("Moje předvolby pro vykazování")</button>
+        <p></p>
+        @if (Model.RecP34 != null && _f.CurrentUser.IsRatesAccess && (Model.RecP34.p33ID == BO.p33IdENUM.Cas || (Model.RecP34.p33ID == BO.p33IdENUM.Kusovnik)))
+        {
+            <button type="button" class="btn btn-sm bog" onclick="simulation()"><span class="material-icons-outlined-btn">attach_money</span>@_f.tra("Simulace sazby")</button>
+            <p></p>
+        }
+
+        @Html.EditorFor(m => m.disp, "~/Views/Shared/_Dispozice.cshtml")
+
+
+
+    </div>
+</div>
+
+<div class="row my-2">
+    <label for="cmdComboRec_j02ID" class="col-sm-1 col-md-1 col-form-label nonmobile">@_f.tra("Jméno"):</label>
+    <div class="col-sm-10 col-md-9">
+        <mycombo entity="j02User" asp-for="Rec.j02ID" selectedtext="@Model.SelectedComboPerson" view-flag="1" myqueryinline="allowed_for_p31_entry|bool|1" event_after_changevalue="j02id_change"></mycombo>
+    </div>
+
+</div>
+
+@if (!_isMobile && Model.Rec.j02ID != _f.CurrentUser.pid)
+{
+    <div class="row my-2">
+        <div class="col-sm-1 col-md-1">
+        </div>
+        <div class="col-sm-5 col-md-5">
+            <select asp-for="PravaZaJineho" onchange="_postback('pravazajineho')">
+                <option value="1">@_f.tra("Nabídka projektů podle oprávnění vykazovaného uživatele")</option>
+                <option value="2">@_f.tra("Nabídka projektů podle oprávnění přihlášeného uživatele")</option>
+            </select>
+        </div>
+    </div>
+}
+else
+{
+    <input type="hidden" asp-for="PravaZaJineho" />
+}
+
+
+<div class="row my-2">
+    <label for="cmdComboRec_p41ID" class="col-sm-1 col-md-1 col-form-label recpagelabel">@(_f.getP07Level(Model.SelectedLevelIndex, true)):</label>
+
+    <div class="col-sm-10 col-md-9">
+        <mycombo entity="@(Model.ProjectEntity)" search-result-width="900" combo-height="570" asp-for="Rec.p41ID" selectedtext="@Model.SelectedComboProject" filter-flag="1" view-flag="1" myqueryinline="@(Model.MyQueryInline_Project)" event_after_changevalue="p41id_change"></mycombo>
+    </div>
+    @if (Model.lisLevelIndex.Count() > 1)
+    {
+        <div class="col-sm-1 col-md-2" style="max-width:200px;">
+            <mydropdown asp-for="SelectedLevelIndex" datasource="@Model.lisLevelIndex" textfield="Text" valuefield="Value" event_after_changevalue="levelindex_change"></mydropdown>
+        </div>
+    }
+    else
+    {
+        <input type="hidden" asp-for="SelectedLevelIndex" value="@Model.SelectedLevelIndex" />
+        @if (!_isMobile && Model.p61Name != null)
+        {
+            <div class="col-sm-1 col-md-2" title="Klastr aktivit">
+                <mark>@Model.p61Name</mark>
+            </div>
+        }
+    }
+
+</div>
+
+@if (Model.IsShowP56Combo)
+{
+    <div class="row my-2">
+        <label for="cmdComboRec_p56ID" class="col-sm-1 col-md-1 col-form-label">
+            @_f.tra("Úkol"):
+            <span class="material-icons-outlined" style="color:blue;">task</span>
+        </label>
+        <div class="col-sm-10 col-md-9">
+            <mycombo entity="p56Task" asp-for="Rec.p56ID" selectedtext="@Model.SelectedComboTask" myqueryinline="p41id|int|@(Model.Rec.p41ID)" event_after_changevalue="p56id_change"></mycombo>
+        </div>
+    </div>
+}
+
+
+
+
+<div class="row my-2">
+
+    <label for="cmdComboRec_p32ID" class="col-sm-1 col-md-1 col-form-label">
+        @_f.tra("Aktivita"):
+        @if (Model.RecP32 != null && Model.RecP32.p32HelpText != null)
+        {
+
+            <a data-toggle="tooltip" id="p32help" title="@(Model.RecP32.p32HelpText)"><span class="material-icons-outlined-btn">help</span></a>
+        }
+    </label>
+    <div class="col-sm-10 col-md-9">
+        @if (Model.RecP34 != null)
+        {
+            @if (Model.RecP34.p34ActivityEntryFlag == BO.p34ActivityEntryFlagENUM.AktivitaSeNezadava)
+            {
+                <input type="hidden" asp-for="Rec.p32ID" />
+                <span class="form-control" style="background-color:#F8F9FA;color:silver;">@(Model.SelectedComboP32Name)</span>
+
+            }
+            else
+            {
+                <mycombo entity="p32Activity" asp-for="Rec.p32ID" combo-height="520" selectedtext="@Model.SelectedComboP32Name" myqueryinline="p34id|int|@(Model.RecP34.pid)|p61id|int|@(Model.p61ID)" event_after_changevalue="p32id_change"></mycombo>
+            }
+
+        }
+        else
+        {
+            <span class="val-readonly">@_f.tra("Pro vyplnění aktivity je třeba vybrat sešit.")</span>
+        }
+
+    </div>
+    <div class="col-sm-1 col-md-2" style="max-width:200px;">
+        <mycombo entity="p34ActivityGroup" asp-for="Rec.p34ID" selectedtext="@Model.SelectedComboP34Name" myqueryinline="j02id_query|int|@(Model.Rec.j02ID)|p41id|int|@(Model.Rec.p41ID)|p61id|int|@(Model.p61ID)" event_after_changevalue="p34id_change" placeholder="@_f.tra("Sešit")"></mycombo>
+
+
+
+    </div>
+</div>
+
+<div class="row my-2">
+
+    @if (_isMobile)
+    {
+        <label for="p31Datehelper" class="col-sm-1 col-md-1 col-form-label">@_f.tra("Datum"):</label>
+    }
+    else
+    {
+        <label for="p31Datehelper" class="col-sm-1 col-md-1 col-form-label rowvalhover nonmobile">@_f.tra("Datum"):<a class="reczoom" id="linkZoomDay" data-rel="/p31/Day?d=@Model.p31Date.Value&hover_by_reczoom=1&j02id=@Model.Rec.j02ID" data-height="270">ℹ</a></label>
+    }
+
+
+    @if (Model.IsMultiDate)
+    {
+        <div class="col-sm-4 col-md-4 col-6">
+            <mydate asp-for="MultiDate" multidate="true"></mydate>
+            <input type="hidden" asp-for="p31Date" />
+        </div>
+    }
+    else
+    {
+        <div class="col-sm-2 col-md-2 col-6">
+            <mydate asp-for="p31Date"></mydate>
+            <input type="hidden" asp-for="MultiDate" />
+        </div>
+    }
+    @if (Model.rec_pid == 0 && Model.RecP34 != null && Model.RecP34.p33ID == BO.p33IdENUM.Cas)
+    {
+        <div class="col-sm-1 col-md-1 col-6">
+            <div class="form-check form-switch" title="Vykazování za více dnů najednou">
+                <input class="form-check-input" type="checkbox" asp-for="IsMultiDate" tabindex="-1" onchange="_postback('multidate')" />
+                <label for="IsMultiDate">
+                    multi
+                </label>
+            </div>
+        </div>
+
+
+    }
+
+    @if (Model.lisP54 != null)
+    {
+        <div class="col-sm-2 col-md-2">
+            <mydropdown asp-for="Rec.p54ID" datasource="@Model.lisP54" tabindex="-1" textfield="p54Name" valuefield="pid" isfirstemptyrow="true" firstemptyrowvalue="0" firstemptyrowtext="--@_f.tra("Hladina sazby")--" event_after_changevalue="p54id_onchange"></mydropdown>
+        </div>
+    }
+    @if (Model.lisP40 != null && Model.lisP40.Count() > 0)
+    {
+        <div class="col-sm-4 col-md-4">
+            <mydropdown asp-for="Rec.p40ID_FixPrice" datasource="@Model.lisP40" tabindex="-1" textfield="NamePlusCerpano" valuefield="pid" isfirstemptyrow="true" firstemptyrowvalue="0" firstemptyrowtext="--@_f.tra("Spárovat hodiny s opakovaným paušálem")?--" event_after_changevalue="p40id_onchange"></mydropdown>
+        </div>
+    }
+    @if (Model.RecP34 != null && (Model.RecP34.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu || Model.RecP34.p33ID == BO.p33IdENUM.PenizeBezDPH))
+    {
+        <div class="col-auto">
+            <mytooltip text="Můžete nahrát ISDOC soubor nebo PDF dokument, v kterém je přiložen ISDOC soubor.<hr>Z ISDOC se načte částka, dph, text, datum a vazba na dodavatele nebo na projekt (podle IČO).<hr>Vstupní soubor se stane přílohou záznamu výdaje."></mytooltip>
+            <label for="isdoc1" class="btn btn-sm bog" style="margin-left:13px;"><img src="/images/isdoc_icon.png" />ISDOC import</label>
+            <input type="file" id="isdoc1" name="files" onchange="isdoc_upload()" accept=".isdoc, .pdf" style="visibility:hidden">
+
+            <input type="hidden" asp-for="IsdocLastUpload" />
+        </div>
+    }
+</div>
+
+@if (Model.RecP34 != null)
+{
+    if (Model.RecP34.p33ID == BO.p33IdENUM.Cas && !Model.Setting.TimesheetEntryByMinutes)
+    {
+        <div class="row my-2">
+            <label for="Rec_Value_Orig" class="col-sm-1 col-md-1 col-form-label nonmobile">@_f.tra("Hodiny"):</label>
+            <div class="col-sm-2 col-md-2 col-6">
+                <myhours asp-for="Rec.Value_Orig" showsettingbutton="true" hoursentryformat="@(_f.CurrentUser.j02DefaultHoursFormat)" hoursentryflag="@(_f.CurrentUser.j02HesBitStream)"></myhours>
+
+            </div>
+            <div class="col-sm-1 col-md-1 col-3">
+                <input type="text" class="form-control" placeholder="@_f.tra("Čas od")" asp-for="@Model.Rec.TimeFrom" onchange="handle_recalc_duration('timefrom')" />
+            </div>
+            <div class="col-sm-1 col-md-1 col-3">
+                <input type="text" class="form-control" placeholder="@_f.tra("Čas do")" asp-for="@Model.Rec.TimeUntil" onchange="handle_recalc_duration('timeuntil')" />
+            </div>
+            <div class="nonmobile col-auto">
+                <small class="text-info" id="hours_message"></small>
+            </div>
+        </div>
+    }
+    if (Model.RecP34.p33ID == BO.p33IdENUM.Cas && Model.Setting.TimesheetEntryByMinutes)
+    {
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-1 col-form-label">@_f.tra("Minuty"):</label>
+            <div class="col-sm-2 col-md-2">
+                <div class="input-group">
+                    <input type="text" class="form-control" asp-for="@Model.Rec.Value_Orig" />
+                    <button type="button" tabindex="-1" class="btn btn-sm bog" style="padding-left: 3px; padding-right: 3px;" onclick="setting()" title="Nastavení hodin"><span class="material-icons-outlined-btn">schedule</span></button>
+                </div>
+
+
+            </div>
+
+        </div>
+    }
+    if (Model.RecP34.p33ID == BO.p33IdENUM.Kusovnik)
+    {
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-1 col-form-label">@_f.tra("Počet"):</label>
+            <div class="col-sm-2 col-md-2">
+                <mynumber asp-for="Rec.Value_Orig"></mynumber>
+            </div>
+        </div>
+    }
+    @if (Model.RecP32 != null && Model.RecP32.p32ManualFeeFlag == 1)
+    {
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-1 col-form-label">@_f.tra("Pevný honorář"):</label>
+            <div class="col-sm-2 col-md-2">
+                <mynumber asp-for="Rec.ManualFee"></mynumber>
+            </div>
+        </div>
+    }
+
+    if (Model.RecP34.p33ID == BO.p33IdENUM.PenizeBezDPH || Model.RecP34.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu)
+    {
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-1 col-form-label">@_f.tra("Bez DPH"):</label>
+            <div class="col-sm-2 col-md-2">
+                <mynumber asp-for="Rec.Amount_WithoutVat_Orig"></mynumber>
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <mycombo entity="j27Currency" asp-for="Rec.j27ID_Billing_Orig" selectedtext="@Model.SelectedComboJ27Code" placeholder="@_f.tra("Měna")"></mycombo>
+
+            </div>
+            @if (Model.RecP34.p34IncomeStatementFlag == BO.p34IncomeStatementFlagENUM.Vydaj)
+            {
+                <div class="col-sm-1 col-md-1">
+                </div>
+                <div class="col-sm-2 col-md-2">
+                    <input type="text" class="form-control" asp-for="Rec.p31Code" value="@Model.Rec.p31Code" placeholder="@_f.tra("Kód dokladu")" />
+                </div>
+                <div class="col-sm-1 col-md-2">
+                    <mycombo entity="j19PaymentType" asp-for="Rec.j19ID" selectedtext="@Model.SelectedComboJ19Name" placeholder="@_f.tra("Druh úhrady")"></mycombo>
+
+                </div>
+            }
+
+        </div>
+    }
+    if (Model.RecP34.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu)
+    {
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-1 col-form-label">@_f.tra("DPH%"):</label>
+            <div class="col-sm-1 col-md-1">
+                <mynumber asp-for="Rec.VatRate_Orig" decimal-digits="0"></mynumber>
+            </div>
+            <label class="col-sm-1 col-md-1 col-form-label">@_f.tra("Vč.DPH"):</label>
+            <div class="col-sm-2 col-md-2">
+                <mynumber asp-for="Rec.Amount_WithVat_Orig"></mynumber>
+            </div>
+            <label class="col-sm-1 col-md-1 col-form-label">@_f.tra("Částka DPH"):</label>
+            <div class="col-sm-2 col-md-2">
+                <mynumber asp-for="Rec.Amount_Vat_Orig"></mynumber>
+            </div>
+        </div>
+    }
+
+
+}
+
+<div class="my-2">
+    <textarea class="form-control" asp-for="Rec.p31Text" onmouseover="p31text_mouseover(this)" onmouseout="p31text_mouseout(this)" placeholder="@_f.tra("Podrobný popis úkonu")"></textarea>
+    @if (!_isMobile)
+    {
+        <button type="button" id="cmdFindText" tabindex="-1" onmouseout="cmdFindText_mouseout(this)" class="btn btn-sm btn-light my-0 py-0" style="visibility:hidden;float:left;" onclick="_najit_text(this,event,'p31text',@(Model.Rec.j02ID))">Najít text</button>
+
+        @if (_lisB05.Count() == 0)
+        {
+            <a title="Doplnit poznámku" tabindex="-1" href="javascript:_window_open('/workflow_dialog/Index?record_prefix=p31&record_pid=@(Model.rec_pid)')" style="float:right;font-size:90%;margin-left:10px;"><myicon symbol="speaker_notes"></myicon></a>
+
+        }
+        @if (_lisB05.Count() > 0)
+        {
+
+            <div style="padding:6px;float:right;">
+                <button type="button" class="btn btn-sm btn-light dropdown-toggle" onclick="toggle_history()">
+                    <myicon symbol="speaker_notes"></myicon>
+                    <span class="badge-def">
+                        @(_lisB05.Count())
+                    </span>
+                </button>
+            </div>
+
+            <div id="history" style="display:none;">
+                <button type="button" id="cmdWrkButton" class="btn btn-sm btn-light py-0" style="float:right;margin-top:5px;" onclick="_window_open('/workflow_dialog/Index?record_prefix=p31&record_pid=@(Model.rec_pid)')">
+                    @_f.tra("Přidat")
+                </button>
+
+                @await Html.PartialAsync("~/Views/Shared/_lisB05.cshtml", _lisB05)
+            </div>
+
+        }
+    }
+
+    @if (Model.lisP30 != null && Model.lisP30.Count() > 0)
+    {
+        <select asp-for="Rec.p28ID_ContactPerson" style="float:right;border-radius:5px;">
+            <option value="0">--@_f.tra("Kontaktní osoba")--</option>
+            @foreach (var c in Model.lisP30)
+            {
+                <option value="@c.p28ID_Person">@c.Person</option>
+            }
+        </select>
+    }
+
+</div>
+
+@Html.Raw(Model.BillingLangFlagHtml)
+@if (Model.RecP34 != null)
+{
+    @if (Model.RecP34.p34TextInternalFlag == 1)
+    {
+        <div class="my-2">
+            <input type="text" class="form-control" asp-for="Rec.p31TextInternal" placeholder="@_f.tra("Interní text")" style="background-color:#FFF5EE;" />
+
+        </div>
+    }
+    @if (Model.RecP34.p34TextInternalFlag == 2)
+    {
+        <div class="my-2">
+            <textarea class="form-control" asp-for="Rec.p31TextInternal" placeholder="@_f.tra("Interní text")" style="background-color:#FFF5EE !important;"></textarea>
+        </div>
+    }
+
+    @if (Model.IsOfferNavicKusovnik && Model.RecP34.p33ID == BO.p33IdENUM.Cas)
+    {
+        <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" asp-for="IsNavicKusovnik" tabindex="-1" onchange="_postback('navic-kusovnik')" />
+            <label for="IsNavicKusovnik">
+                @_f.tra("K hodinám vykázat i kusovníkové úkony")
+            </label>
+        </div>
+
+        @if (Model.IsNavicKusovnik || Model.RecP34.p33ID == BO.p33IdENUM.Kusovnik)
+        {
+            @Html.EditorFor(m => m, "~/Views/Shared/_p31RecordKusovnik.cshtml")
+        }
+    }
+    @if (Model.rec_pid > 0)
+    {
+        @await Html.PartialAsync("~/Views/Shared/_p31RecordFamily.cshtml", Model)
+    }
+
+}
+
+
+
+
+
+
+@Html.EditorFor(m => m.ff1, "~/Views/Shared/_FreeFields.cshtml")
+
+@if (Model.p72ID_DefaultTrimming > 0)
+{
+    <span>@_f.tra("Výchozí korekce úkonu")</span>
+    if (Model.p72ID_DefaultTrimming == 6)
+    {
+        <strong class="badge-a6">@_f.tra("Zahrnout do paušálu")</strong>
+    }
+    else
+    {
+        if (Model.p72ID_DefaultTrimming == 2)
+        {
+            <strong class="badge-a2">@_f.tra("Viditelný odpis")</strong>
+        }
+        else
+        {
+            <strong class="badge-a3">@_f.tra("Skrytý odpis")</strong>
+        }
+    }
+    @if (!Model.disp.IsTrimming)
+    {
+        <p><i>Pokud to chcete změnit, zapněte si v rozšíření možnost zapisovat korekce!</i></p>
+    }
+
+}
+
+
+
+@if (Model.disp.IsTrimming)
+{
+    @Html.EditorFor(m => m, "~/Views/Shared/_p31RecordKorekce.cshtml")
+}
+
+@if (Model.RecP34 != null)
+{
+    @if (Model.RecP34.p33ID == BO.p33IdENUM.PenizeBezDPH || Model.RecP34.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu)
+    {
+        <div class="row my-2">
+            <label class="col-sm-2 col-md-2 col-form-label recpagelabel">@_f.tra("Spočítat jako kusy x počet"):</label>
+            <div class="col-sm-1 col-md-1">
+                <mynumber asp-for="Rec.p31Calc_Pieces" placeholder="@_f.tra("Počet")"></mynumber>
+            </div>
+            <div class="col-sm-1 col-md-1 p-0">
+                <mynumber asp-for="Rec.p31Calc_PieceAmount" placeholder="@_f.tra("Cena 1 kus")"></mynumber>
+            </div>
+            <div class="col-sm-1 col-md-1 p-0">
+                <mycombo entity="p35Unit" asp-for="Rec.p35ID" selectedtext="@Model.SelectedComboP35Code" placeholder="@_f.tra("Jednotka")"></mycombo>
+
+            </div>
+            <div class="col-sm-2 col-md-2">
+                <select class="form-select" asp-for="@Model.PiecePriceFlag">
+                    <option value="1">@_f.tra("Kusová cena bez DPH")</option>
+                    <option value="2">@_f.tra("Kusová cena vč. DPH")</option>
+                </select>
+            </div>
+        </div>
+
+        @if (Model.reminder != null)
+        {
+            @Html.EditorFor(m => m.reminder, "~/Views/Shared/_Reminder.cshtml")
+        }
+    }
+
+    @if ((Model.RecP32 != null && Model.RecP32.p32IsSupplier) || Model.IsdocLastUpload != null)
+    {
+        <div class="row my-2">
+            <label class="col-sm-2 col-md-2 col-form-label">@(_f.tra("Dodavatel")):</label>
+            <div class="col-sm-10 col-md-10">
+                <mycombo entity="p28Contact" asp-for="Rec.p28ID_Supplier" selectedtext="@Model.SelectedComboSupplier" view-flag="1" myqueryinline="canbe_supplier|bool|1"></mycombo>
+            </div>
+        </div>
+    }
+    @if (Model.RecP32 != null && Model.RecP32.p32IsCP)
+    {
+        @Html.EditorFor(m => m, "~/Views/Shared/_p31RecordPostovne.cshtml")
+    }
+
+    @if (Model.RecP32 != null && (Model.RecP32.p32MarginHidden != 0 || Model.RecP32.p32MarginTransparent != 0))
+    {
+        <hr />
+        <div class="row my-2">
+            <label class="col-sm-2 col-md-2 col-form-label recpagelabel">@_f.tra("Skrytá marže") (%):</label>
+            <div class="col-sm-1 col-md-1">
+                <mynumber asp-for="Rec.p31MarginHidden"></mynumber>
+            </div>
+            <label class="col-sm-2 col-md-2 col-form-label recpagelabel">@_f.tra("Přiznaná marže") (%):</label>
+            <div class="col-sm-1 col-md-1">
+                <mynumber asp-for="Rec.p31MarginTransparent"></mynumber>
+            </div>
+        </div>
+    }
+}
+
+@if (Model.disp.IsTags)
+{
+    <mystitky entity="p31Worksheet" asp-for="@Model.TagPids" tagnames="@Model.TagNames" taghtml="@Model.TagHtml" buttontext="@_f.tra("Oštítkovat")"></mystitky>
+}
+
+@Html.Raw("</div>")
+
+@if (Model.disp.IsFiles)
+{
+    <iframe id="fraUpload" src="/FileUpload/DoUpload?recpid=@Model.rec_pid&entity=p31&guid=@Model.UploadGuid" frameborder="0" scrolling="yes" style="max-width:1200px;height:60px;"></iframe>
+}
+
+
+
+
+@if (Model.IsShowDateCloneDialog)
+{
+    <div id="KopirovatZaznamDialog" class="modal-dialog-inner" style="display:block;">
+
+        <!-- Modal content -->
+        <div class="modal-dialog-inner-content">
+            <h4>@_f.tra("Do nového úkonu zkopírovat dnešní datum?")</h4>
+            <p>
+                @_f.tra("Datum kopírovaného záznamu"):
+                @if (Model.p31Date != null)
+                {
+                    <kbd style="background-color:green;">@(Model.p31Date.Value.ToString("dd.MM.yyyy ddd"))</kbd>
+                }
+
+            </p>
+            <button type="button" id="cmdSetToday" class="btn btn-primary" onclick="set_p31date_today()">OK: @_f.tra("Dnešní datum")</button>
+            <button type="button" class="btn btn-secondary" style="margin-left:40px;" onclick="$('#KopirovatZaznamDialog').css('display','none');">@_f.tra("Zachovat kopírované datum")</button>
+
+        </div>
+
+    </div>
+}
+<button type="button" id="cmdSaveAndClone" class="btn btn-light nonmobile" style="margin-right:10px;" onclick="handle_saveandclone()">
+    <span class="material-icons-outlined-btn" style="color:green;">save</span>@_f.tra("Uložit a kopírovat")
+</button>
+
+<button id="cmdMore" tabindex="-1" class="btn bog" data-bs-toggle="collapse" role="button" aria-expanded="false" title="Rozšíření vykazování">
+    <myicon symbol="more_horiz"></myicon>
+</button>
+
+@if (Model.p91ID > 0)
+{
+    <div><mark>Nový úkon do vyúčtování...</mark></div>
+}
+
+<input type="hidden" asp-for="GuidApprove" value="@Model.GuidApprove" />
+<input type="hidden" asp-for="UploadGuid" value="@Model.UploadGuid" />
+<input type="hidden" asp-for="DefaultText" value="@Model.DefaultText" />
+<input type="hidden" asp-for="p61ID" value="@Model.p61ID" />
+<input type="hidden" asp-for="Rec.o23ID" value="@Model.Rec.o23ID" />
+<input type="hidden" asp-for="Rec.p49ID" value="@Model.Rec.p49ID" />
+
+<input type="hidden" asp-for="p91ID" />
+<input type="hidden" asp-for="p68ID" />
+<input type="hidden" asp-for="IsOfferNavicKusovnik" />
+
+<input type="hidden" asp-for="p34TrimmingFlag" />
+
+<input type="hidden" asp-for="p34TagsFlag" />
+<input type="hidden" asp-for="p34FilesFlag" />
+<input type="hidden" asp-for="Rec.p31BitStream" value="@Model.Rec.p31BitStream" />
+<input type="hidden" asp-for="IsShowP56Combo" value="@Model.IsShowP56Combo" />
+
+
+<script type="text/javascript">
+    var _theukon = {
+        rec_pid: "@(Model.rec_pid)",
+        p41id: "@(Model.Rec.p41ID)",
+        j02id: "@(Model.Rec.j02ID)",
+        p32id: "@(Model.Rec.p32ID)",
+        p34id: "@(Model.RecP34 != null ? (int)Model.RecP34.pid : 0)",
+        p33id: "@(Model.RecP34 != null ? (int)Model.RecP34.p33ID : 0)",
+        p54id: "@(Model.Rec.p54ID)",
+        p40id: "@(Model.Rec.p40ID_FixPrice)",
+        p61id: "@(Model.p61ID)",
+        casoddo_intervaly: "@Model.CasOdDoIntervals",
+        timesheet_by_minutes: false,
+        hoursformat: "@(_f.CurrentUser.j02DefaultHoursFormat)",
+        auto_open_project_searchbox: "@(Model.AutoOpenProjectSearchbox)",
+        isdoclasttext: "@(Model.IsdocLastDokladText)"
+    };
+
+
+    @if (Model.Setting.TimesheetEntryByMinutes)
+    {
+            @:_theukon.timesheet_by_minutes=true;
+    }
+
+
+
+
+        function toggle_history() {
+            $("#history").toggle();
+        }
+
+</script>
+
+<script src="~/js/p31record.js" asp-append-version="true"></script>

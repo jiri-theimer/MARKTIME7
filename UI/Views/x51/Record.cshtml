@@ -1,0 +1,79 @@
+﻿@model UI.Models.Record.x51Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Nápověda");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    Model.PageSymbol = "help";
+}
+
+@addTagHelper *, UI
+
+
+@section header_content{
+    <link href="~/lib/froala-editor/css/froala_editor.pkgd.min.css" rel="stylesheet" type="text/css" />
+    }
+
+<div class="modal_record_container">
+    <input type="hidden" asp-for="ComboParent" />
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název"):</label>
+        <div class="col-sm-7 col-md-6">
+            <input class="form-control" asp-for="Rec.x51Name" />
+        </div>
+        <label class="col-sm-1 col-md-1 col-form-label">#@_f.tra("Pořadí"):</label>
+        <div class="col-sm-1 col-md-1">
+            <mynumber asp-for="Rec.x51Ordinary" class="record_ordinary" decimal-digits="0"></mynumber>
+        </div>
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">View url:</label>
+        <div class="col-sm-7 col-md-6">
+            <input class="form-control" asp-for="Rec.x51ViewUrl" />
+        </div>
+
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">Near urls:</label>
+        <div class="col-sm-11 col-md-10">
+            <textarea asp-for="Rec.x51NearUrls" class="form-control"></textarea>
+            
+        </div>
+
+    </div>
+    <div class="row my-2">
+        <label for="cmdComboRec_p28ParentID" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Nadřízený ve stromu"):</label>
+        <div class="col-sm-11 col-md-10">
+            <mycombo entity="x51HelpCore" asp-for="Rec.x51ParentID" selectedtext="@Model.ComboParent"></mycombo>
+        </div>
+    </div>
+
+
+    @Html.EditorFor(m => m.Notepad, "~/Views/Shared/_Notepad.cshtml")
+
+
+</div>
+
+@if (Model.rec_pid > 0)
+{
+    <a id="cmdPreview" class="btn btn-light" style="margin-right:10px;" href="/x51/Index?pid=@Model.rec_pid">
+        @_f.tra("Náhled")
+    </a>
+}
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+        if (document.getElementById("cmdPreview")) {
+            document.getElementById("toolbarRezerva").appendChild(document.getElementById("cmdPreview"));
+        }
+
+
+    })
+
+
+
+</script>

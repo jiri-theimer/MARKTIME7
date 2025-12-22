@@ -1,0 +1,96 @@
+﻿
+html {
+    font-size: 0.8rem;
+}
+
+
+div.dog{
+    padding-right:8px;
+    padding-bottom:8px;
+}
+
+
+
+/*link pro hamburger menu*/
+/*link pro hamburger menu*/
+a.cm {
+    cursor: pointer;
+    text-decoration: none;
+    color: black;
+    text-align: center;
+    padding-left: 3px;
+    padding-right: 3px;
+    float: left;
+}
+
+    a.cm:hover {
+        color: black;
+        background-color: lightsteelblue;
+    }
+
+
+/*Kontextové MENU pro mobilní zařízení*/
+.cm_mobile {
+    position: absolute;
+    background-color: aliceblue;
+    left: 0px;
+    height: 100%;
+    width: 100%;
+    z-index: 999;
+    overflow: auto;
+    list-style: none;
+}
+
+    .cm_mobile ul {
+        padding-top: 5px;
+        padding-bottom: 10px;
+        list-style: none;
+    }
+
+
+
+
+ul.cm_menu .dropdown-item {
+    padding-top: 10px !important;
+}
+ul.cm_submenu li {
+    color: darkgreen;
+}
+
+    ul.cm_submenu li {
+        color: darkgreen;
+    }
+
+.cm_submenuicon {
+    color: darkgreen;
+}
+
+
+/*link menu v rozhraní Admininstrace, na mobilní stránce nahrazuje soubor admin.css */
+a.topmenulink_active {
+    padding-top:5px;
+    padding-bottom:5px;
+    padding-left: 10px;
+    padding-right: 15px !important;
+    color: var(--popredi) !important;
+    background-color: var(--oznaceno);
+    text-transform: uppercase;
+    border-radius: 6px;
+}
+
+    a.topmenulink_active:hover {
+        background-color: var(--oznaceno) !important;
+        color: var(--popredi);
+    }
+
+a.topmenulink {
+    line-height:30px;
+    padding-bottom: 5px;
+    padding-top: 5px;
+    text-transform: uppercase;
+}
+
+    a.topmenulink:hover {
+        color: var(--popredi) !important;
+        background-color: var(--oznaceno) !important;
+    }

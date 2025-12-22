@@ -1,0 +1,64 @@
+﻿@model UI.Models.Record.p41Record
+@inject BL.Factory _f
+
+@{
+    if (!Model.disp.IsProjectContacts || Model.lisP26 ==null)
+    {
+        return;
+    }
+    string _placeholderP28 = @_f.tra("Společnost/Jednotlivec");
+    string _placeholderName = @_f.tra("Poznámka");
+
+    var _lisP27 = _f.FBL.GetListP27();
+}
+
+
+@addTagHelper *, UI
+
+<div class="card my-2">
+    <div class="card-header">
+        <span class="material-icons-outlined">contact_emergency</span>
+        @_f.tra("Kontakty projektu")
+        <button type="button" class="btn btn-sm btn-outline-secondary" tabindex="-1" onclick="_postback('add_p26')">@_f.tra("Přidat")</button>
+    </div>
+    <div class="card-body p-1">
+        <table class="table table-hover" style="table-layout: fixed;">           
+            @for (int i = 0; i < Model.lisP26.Count; i++)
+            {
+                <tr style="@(Model.lisP26[i].CssTempDisplay)">
+                    
+                    <td style="width:100px;">
+                        <mydropdown asp-for="@Model.lisP26[i].p27ID" datasource="@_lisP27" textfield="p27Name" valuefield="pid" firstemptyrowvalue="0" firstemptyrowtext="Typ vazby" isfirstemptyrow="true"></mydropdown>
+                        
+                    </td>
+
+                    <td style="width:450px;">
+                        <mycombo entity="p28Contact" asp-for="@Model.lisP26[i].p28ID" selectedtext="@Model.lisP26[i].ComboP28" filter-flag="1" placeholder="@(_placeholderP28)"></mycombo>
+                    </td>
+
+                    <td style="width:170px;">
+                        <input type="hidden" asp-for="@Model.lisP26[i].IsTempDeleted" value="@Model.lisP26[i].IsTempDeleted" />
+                        <input type="hidden" asp-for="@Model.lisP26[i].TempGuid" value="@Model.lisP26[i].TempGuid" />
+                        <input type="hidden" asp-for="@Model.lisP26[i].pid" value="@Model.lisP26[i].pid" />
+
+                        <input class="form-control" asp-for="@Model.lisP26[i].p26Name" placeholder="@(_placeholderName)" />
+                    </td>
+
+                    <td style="width:70px;">
+                        <button type="button" class="btn btn-sm btn-danger" title="@_f.tra("Odstranit řádek")" onclick="handle_delete_p26('@(Model.lisP26[i].TempGuid)')">x</button>
+                    </td>
+                </tr>
+            }
+        </table>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+
+    function handle_delete_p26(guid) {
+        _postback("delete_p26", "guid=" + guid);
+
+    }
+
+</script>

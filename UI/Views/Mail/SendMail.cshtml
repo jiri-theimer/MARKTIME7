@@ -1,0 +1,494 @@
+﻿@model UI.Models.Mail.SendMailViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Odeslat poštovní zprávu");
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageSymbol = "email";
+
+    var recJ02 = _f.j02UserBL.Load(_f.CurrentUser.pid);
+    var _podpis = BO.Code.Bas.Text2Html(recJ02.j02EmailSignature);
+
+    if (Model.Rec.x40RecordEntity != null && Model.Rec.x40RecordPid > 0)
+    {
+        Model.PageTitleAfter = _f.CBL.GetObjectAlias(Model.Rec.x40RecordEntity, Model.Rec.x40RecordPid);
+    }
+
+}
+
+@addTagHelper *, UI
+@section header_content {
+    <link rel="stylesheet" href="/kendo/styles/kendo.common.min.css" type="text/css" />
+    <link href="/kendo/styles/kendo.default.min.css" rel="stylesheet" type="text/css" />
+    <link href="/kendo/styles/kendo.default.mobile.min.css" rel="stylesheet" type="text/css" />
+    @if (Model.Notepad.SelectedX04ID > 0)
+    {
+        <link href="~/lib/froala-editor/css/froala_editor.pkgd.min.css" rel="stylesheet" type="text/css" />
+    }
+
+}
+
+<script src="/kendo/js/kendo.core.min.js"></script>
+<script src="/kendo/js/kendo.data.min.js"></script>
+<script src="/kendo/js/kendo.list.min.js"></script>
+<script src="/kendo/js/kendo.popup.min.js"></script>
+<script src="/kendo/js/kendo.autocomplete.min.js"></script>
+
+
+
+<div class="bg-light" style="padding:10px;">
+    <button id="cmdSave" type="submit" class="btn btn-success" onclick="_submit()"><span class="material-icons-outlined-btn">done</span>@_f.tra("Odeslat")</button>
+    <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
+    
+
+</div>
+
+<form id="form1" asp-controller="Mail" asp-action="SendMail" method="POST">
+
+    <input type="hidden" asp-for="UploadGuid" />
+    <input type="hidden" asp-for="Rec.x40MessageGuid" />
+    <input type="hidden" asp-for="Rec.x40RecordEntity" />
+    <input type="hidden" asp-for="Rec.x40RecordPid" />
+    <input type="hidden" asp-for="ActiveTabIndex" />
+    <input type="hidden" asp-for="b05ID" />
+    <input type="hidden" asp-for="j61MailBody" value="@Model.j61MailBody" />
+
+    <input type="hidden" asp-for="j61GridColumns" value="@Model.j61GridColumns" />
+
+
+    <div class="modal_record_container">
+
+
+        <div class="row">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Odesílatel"):</label>
+            <div class="col-sm-7 col-md-6">
+                <mycombo entity="j40MailAccount" asp-for="Rec.j40ID" selectedtext="@Model.SelectedJ40Name" view-flag="2" myqueryinline="is4sendmail|bool|1"></mycombo>
+            </div>
+            <div class="col-sm-4 col-md-4 nonmobile">
+                <select class="form-select" asp-for="Rec.x40SkeletonFile">
+                    <option></option>
+                    <option value="send_message_template.html">Kostra: send_message_template.html</option>
+                    <option value="send_message_template_plain.html">Kostra: send_message_template_plain.html</option>
+                    <option value="send_message_template_dayline.html">Kostra: DAYLINE</option>
+                    <option value="send_message_template_htmltable.html">Kostra: TABLE</option>
+                    <option value="send_message_template_calendar.html">Kostra: CALENDAR</option>
+                    <option value="send_message_template_grid.html">Kostra: GRID</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="row my-2">
+            <div class="col-sm-1 col-md-2">
+                <label>@_f.tra("Komu (To)"):</label>
+
+                <a id="cmdMore" class="btn btn-light dropdown-toggle" data-bs-toggle="collapse" role="button" aria-expanded="false">
+
+                </a>
+            </div>
+
+            <div class="col-sm-10 col-md-9">
+                <input class="form-control" style="width:100%;" asp-for="Recipient" value="@Model.Recipient" onfocus="Recipient_Focus(this)" autocomplete="off" />
+
+            </div>
+            <div class="col-sm-1 col-md-1">
+                <a id="cmdPoziceTym" class="btn btn-light dropdown-toggle" data-bs-toggle="collapse" role="button" aria-expanded="false"></a>
+            </div>
+        </div>
+        <div id="divPoziceTym" style="display:none;background-color:aliceblue;border-radius:5px;border:solid 1px silver;">
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label" style="margin-left:10px;">@_f.tra("Vložit příjemce podle pozice"):</label>
+                <div class="col-sm-6 col-md-5">
+                    <mycombo entity="j07PersonPosition" asp-for="SelectedJ07ID" selectedtext="@Model.SelectedJ07Name" view-flag="2" event_after_changevalue="j07id_onchange"></mycombo>
+                </div>
+            </div>
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label" style="margin-left:10px;">@_f.tra("Vložit příjemce podle týmu"):</label>
+                <div class="col-sm-6 col-md-5">
+                    <mycombo entity="j11Team" asp-for="@Model.SelectedJ11ID" selectedtext="@Model.SelectedJ11Name" view-flag="2" event_after_changevalue="j11id_onchange"></mycombo>
+                </div>
+                
+            </div>
+        </div>
+        <div id="divMore" style="display:none;">
+            <div class="row my-2">
+                
+                <div class="col-sm-7 col-md-8">
+                    
+
+                </div>
+                <div class="col-sm-5 col-md-4">
+                    <input placeholder="Příjemce (TO) z šablony zprávy" class="form-control" asp-for="Rec.x40TO_j61" value="@Model.Rec.x40TO_j61" />
+
+                </div>
+            </div>
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("V kopii (Cc)"):</label>
+                <div class="col-sm-6 col-md-6">
+                    <input class="form-control" asp-for="Rec.x40CC" value="@Model.Rec.x40CC" />
+
+                </div>
+                <div class="col-sm-5 col-md-4">
+                    <input placeholder="Příjemce v kopii (CC) z šablony zprávy" class="form-control" asp-for="Rec.x40CC_j61" value="@Model.Rec.x40CC_j61" />
+
+                </div>
+            </div>
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Ve skryté kopii (Bcc)"):</label>
+                <div class="col-sm-6 col-md-6">
+                    <input class="form-control" asp-for="Rec.x40BCC" value="@Model.Rec.x40BCC" />
+
+                </div>
+                <div class="col-sm-5 col-md-4">
+                    <input placeholder="Příjemce ve skryté kopii (BCC) z šablony zprávy" class="form-control" asp-for="Rec.x40BCC_j61" value="@Model.Rec.x40BCC_j61" />
+
+                </div>
+            </div>
+            
+
+        </div>
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Předmět zprávy"):</label>
+            <div class="col-sm-11 col-md-10">
+                <input class="form-control" asp-for="Rec.x40Subject" id="txtSubject" />
+            </div>
+        </div>
+
+
+
+        @Html.EditorFor(m => m.Notepad, "~/Views/Shared/_Notepad.cshtml")
+        <div class="my-2">
+            <input type="checkbox" asp-for="@Model.Rec.x40IsUserSignature" onchange="_postback()" />
+            <label for="Rec_x40IsUserSignature">@_f.tra("Do zprávy vložit můj e-mail podpis")</label>
+
+            @if (Model.Rec.x40RecordEntity != null && Model.Rec.x40RecordEntity != "j02")
+            {
+                <input type="checkbox" asp-for="@Model.Rec.x40IsRecordLink" />
+
+                <label for="Rec_x40IsRecordLink">Do zprávy vložit odkaz na stránku <mark>@(BO.Code.Entity.GetAlias(Model.Rec.x40RecordEntity))</mark></label>
+
+            }
+
+            @if (Model.Rec.x40RecordEntity != null && Model.Rec.x40RecordEntity != "j02" && Model.Rec.x40RecordPid > 0)
+            {
+                <input type="checkbox" asp-for="@Model.IsShowGridColumns" style="margin-left:20px;" onchange="_postback()" />
+                <label for="IsShowGridColumns">Do zprávy vložit tabulku atributů z <mark>@(BO.Code.Entity.GetAlias(Model.Rec.x40RecordEntity))</mark></label>
+            }
+
+        </div>
+
+        @if (Model.Rec.x40RecordEntity != null && Model.Rec.x40RecordEntity != "j02" && Model.Rec.x40RecordPid > 0 && Model.b05ID == 0 && !_f.CurrentUser.IsPortalUserOnly())
+        {
+            <div class="row my-2" style="background-color:aliceblue;border-radius:5px;padding-top:10px;padding-bottom:10px;">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Šablona zprávy"):</label>
+                <div class="col-sm-9 col-md-8">
+                    <mycombo entity="j61TextTemplate" asp-for="SelectedJ61ID" selectedtext="@Model.SelectedJ61Name" myqueryinline="entity|string|@(Model.Rec.x40RecordEntity)|MyRecordsDisponible|bool|1" event_after_changevalue="j61id_onchange"></mycombo>
+
+                </div>
+                @if (Model.SelectedJ61ID > 0)
+                {
+                    <div class="col-auto">
+                        <button type="button" class="btn btn-sm descreet_link_over_grid" onclick="j61_edit(@(Model.SelectedJ61ID))" title="@_f.tra("Upravit e-mail šablonu")"><span class="material-icons-outlined-btn">edit</span></button>
+                    </div>
+                }
+                <div class="col-auto">
+                    <button type="button" class="btn btn-sm bog" onclick="j61_create()">@_f.tra("Nová šablona")</button>
+                </div>
+            </div>
+        }
+
+
+
+
+        <div class="row my-2">
+            <div class="col-sm-5 col-md-5">
+                @if (Model.IsShowGridColumns)
+                {
+                    <div class="card">
+                        @if (!_f.CurrentUser.IsPortalUserOnly())
+                        {
+                            <div class="card-header">
+                                <button type="button" class="btn btn-sm bog" onclick="grid_designer()">
+                                    @_f.tra("Návrhář tabulky pod textem zprávy")
+                                    <mark>@(BO.Code.Entity.GetAlias(Model.Rec.x40RecordEntity))</mark>
+                                </button>
+
+                                <button type="button" onclick="_postback('j61id')" class="btn btn-sm">
+                                    Občerstvit
+                                </button>
+                            </div>
+                        }
+
+                        <div class="card-body">
+                            @if (Model.lisGridColumns != null && Model.lisGridColumns.Count() > 0)
+                            {
+
+                                <var>
+                                    Pod textem zprávy bude tabulka s vybranými údaji:
+                                </var>
+
+                                <table class="table table-hover">
+                                    @foreach (var col in Model.lisGridColumns)
+                                    {
+                                        <tr>
+                                            <td class="tdlab">
+                                                @(col.Header):
+                                            </td>
+                                            <td class="tdval">
+                                                @(Html.Raw(col.Rezerva))
+
+                                            </td>
+                                        </tr>
+                                    }
+                                </table>
+
+                            }
+                        </div>
+                    </div>
+
+
+                }
+            </div>
+            <div classs="col-sm-7 col-md-7" style="max-width:600px;">
+                <iframe id="fraUpload" src="/FileUpload/DoUpload?entity=x40&guid=@Model.UploadGuid" frameborder="0" scrolling="yes"></iframe>
+            </div>
+
+
+
+
+        </div>
+
+
+
+        @if (Model.Rec.x40IsUserSignature)
+        {
+            <div class="card">
+                <div class="card-body">
+                    @Html.Raw(_podpis)
+                </div>
+            </div>
+
+        }
+
+
+
+
+        <div class="my-2">
+            <input type="checkbox" id="chkIsTest" asp-for="@Model.IsTest" />
+            <label for="chkIsTest">@_f.tra("Testovací zpráva")</label>
+        </div>
+
+
+
+
+
+    </div>
+
+
+</form>
+
+
+<div id="divRecipient_Focus" style="z-index:1000;position:absolute;min-height:100px;background-color:aliceblue;display:none;border-bottom-left-radius:5px;border-bottom-right-radius:5px;border:solid 1px silver;">
+    <table class="table table-sm table-hover">
+        @foreach (var c in Model.Last10Receivers)
+        {
+            <tr>
+                <td>
+                    <a href="javascript:Recipient_Focus_Insert('@c')">@c</a>
+                </td>
+            </tr>
+        }
+    </table>
+    
+</div>
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        var dataSource = new kendo.data.DataSource({
+            transport: {
+                read: {
+                    url: "/Mail/AutoCompleteSource",
+                    dataType: "json"
+                }
+            }
+        });
+
+        $("#Recipient").kendoAutoComplete({
+            dataSource: dataSource,
+            filter: "contains",
+            suggest: true,
+            placeholder: "@_f.tra("Email adresy")...",
+            dataTextField: "address",
+            separator: ", ",
+            open: function (e) {
+                // handle the event
+                $("#divRecipient_Focus").css("display", "none");
+                
+            }
+        });
+
+
+
+        $("#cmdMore").click(function () {
+            $("#divMore").toggle();
+        });
+
+        $("#cmdPoziceTym").click(function () {
+            $("#divPoziceTym").toggle();
+        });
+
+
+    @if (!string.IsNullOrEmpty(Model.Rec.x40CC) || !string.IsNullOrEmpty(Model.Rec.x40BCC) || !string.IsNullOrEmpty(Model.Rec.x40BCC_j61) || !string.IsNullOrEmpty(Model.Rec.x40CC_j61) || !string.IsNullOrEmpty(Model.Rec.x40TO_j61))
+    {
+        <text>
+                $("#divMore").css("display", "block");
+        </text>
+    }
+
+
+    @if (Model.IsPostback && Model.PostbackOper == "j61id")
+    {
+        <text>
+                editor_setcontent($("#j61MailBody").val());
+        </text>
+    }
+
+
+            _resize_textareas();
+
+
+        _resize_iframe_onpage("fraUpload");
+
+    });
+
+    function Recipient_Focus(txt)
+    {
+        var offset = $(txt).offset();
+
+        
+        $("#divRecipient_Focus").css("top", offset.top + $(txt).height()+6);
+        $("#divRecipient_Focus").css("left", offset.left);
+        $("#divRecipient_Focus").css("width", $(txt).width());
+        $("#divRecipient_Focus").css("display", "block");
+    }
+
+    function Recipient_Focus_Insert(email)
+    {
+        $("#Recipient").val(email);
+        $("#Recipient").select();
+        $("#divRecipient_Focus").css("display", "none");
+    }
+
+    function j11id_onchange(j11id) {
+        _postback("j11id");
+    }
+    function j07id_onchange(j07id) {
+        _postback("j07id");
+    }
+    function j61id_onchange(j61id) {
+
+        $.post("/Mail/MailMergeByTextTemplate", { j61id: j61id, prefix: "@(Model.Rec.x40RecordEntity)", recpid: @(Model.Rec.x40RecordPid)}, function (data) {
+
+            if (data.j61MailSubject != null && data.j61MailSubject != "") {
+                $("#txtSubject").val(data.j61MailSubject);
+            }
+
+
+
+
+            document.getElementById("Rec_x40IsRecordLink").checked = data.j61IsRecordLink;
+
+            if (data.j61UserSignatureFlag == 1) {
+                $("#Rec_x40IsUserSignature").prop("checked", true);
+            }
+            if (data.j61UserSignatureFlag == 2) {
+                $("#Rec_x40IsUserSignature").prop("checked", false);
+            }
+            if (data.j61RecordLinkFlag == 1) {
+                $("#Rec_x40IsRecordLink").prop("checked", true);
+            }
+            if (data.j61RecordLinkFlag == 2) {
+                $("#Rec_x40IsRecordLink").prop("checked", false);
+            }
+            if (data.j61GridColumnsFlag == 1) {
+                $("#IsShowGridColumns").prop("checked", true);
+            }
+            if (data.j61GridColumnsFlag == 2) {
+                $("#IsShowGridColumns").prop("checked", false);
+            }
+
+            $("#Rec_x40BCC_j61").val(data.j61MailBCC);
+            $("#Rec_x40CC_j61").val(data.j61MailCC);
+            $("#Rec_x40TO_j61").val(data.j61MailTO);
+
+            // if (data.j61MailBCC != null && data.j61MailBCC != "") {
+            //     $("#Rec_x40BCC").val(data.j61MailBCC);
+            // }
+            // if (data.j61MailCC != null && data.j61MailCC != "") {
+            //     $("#Rec_x40CC").val(data.j61MailCC);
+            // }
+            // if (data.j61MailTO != null && data.j61MailTO != "") {
+            //     $("#Recipient").val(data.j61MailTO);
+            // }
+
+            //editor_setcontent(data.j61MailBody);
+
+            _postback("j61id");
+
+
+        });
+
+
+
+
+    }
+
+    function grid_designer() {
+        var cols = $("#j61GridColumns").val();
+        var prefix = "@Model.Rec.x40RecordEntity";
+
+        _window_open("/TheGridDesigner?prefix=" + prefix + "&cols=" + cols);
+
+
+    }
+
+
+    function hardrefresh(pid, cols) {
+
+        if (cols != "j61id" && cols != "") {
+            $("#j61GridColumns").val(cols);
+            _postback("cols");
+            return;
+        }
+
+        _postback();
+
+    }
+
+    function j61_create() {
+        var prefix = "@(Model.Rec.x40RecordEntity == "p84" ? "p91" : Model.Rec.x40RecordEntity)";
+
+        _window_open("/j61/Record?prefix=" + prefix);
+    }
+    function j61_edit(j61id) {
+        _window_open("/j61/Record?pid=" + j61id);
+    }
+
+    function reload_after_griddesigner(pid, cols) {
+
+        //změna sloupců
+        if (cols != "j61id" && cols != "") {
+            $("#j61GridColumns").val(cols);
+            _postback("cols");
+            return;
+        }
+
+
+    }
+</script>
+
+
+
+
+

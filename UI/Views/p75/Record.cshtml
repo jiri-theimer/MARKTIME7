@@ -1,0 +1,200 @@
+﻿@model UI.Models.Record.p75Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Předpis opakovaného vyúčtování");
+
+
+
+
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+}
+
+@addTagHelper *, UI
+
+
+
+
+
+@Html.Raw("<div class='modal_record_container'>")
+
+
+<div class="my-2">
+    <input class="form-control record_name" asp-for="Rec.p75Name" placeholder="@_f.tra("Název předpisu")" />
+</div>
+
+<div class="row my-2">
+    <label for="cmdComboRec_p28ID_Client" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Klient"):</label>
+    <div class="col-sm-11 col-md-10">
+        <mycombo entity="p28Contact" asp-for="Rec.p28ID" selectedtext="@Model.ComboP28" filter-flag="1" search-result-width="700"></mycombo>
+    </div>
+
+</div>
+<div class="my-2">
+    <strong><kbd>NEBO</kbd></strong>
+</div>
+
+@Html.EditorFor(m => m.ProjectCombo, "~/Views/Shared/_ProjectCombo.cshtml")
+
+<div class="card">
+    <div class="card-header">
+        @_f.tra("Opakování")
+    </div>
+    <div class="card-body">
+        <table>
+            <tr>
+                <td style="padding-right:40px;">
+
+
+
+                    <input type="radio" value="Month" id="chkMonth" asp-for="@Model.Rec.p75RecurrenceType" />
+                    <label for="chkMonth">@_f.tra("Měsíční opakování")</label>
+                    <p></p>
+                    <input type="radio" value="Quarter" id="chkQuarter" asp-for="@Model.Rec.p75RecurrenceType" />
+                    <label for="chkQuarter">@_f.tra("Čtvrtletní opakování")</label>
+                    <p></p>
+                    <input type="radio" value="Year" id="chkYear" asp-for="@Model.Rec.p75RecurrenceType" />
+                    <label for="chkYear">@_f.tra("Roční opakování")</label>
+                    <p></p>
+                </td>
+                <td>
+                    <div class="row">
+                        <label class="col-sm-5 col-md-6 col-form-label recpagelabel">@(_f.tra("První rozhodné datum (RD)")):</label>
+                        <div class="col-sm-3 col-md-4">
+                            <mydate asp-for="Rec.p75BaseDateStart" include-time="false"></mydate>
+
+                        </div>
+
+                    </div>
+                    <div class="row my-2">
+                        <label class="col-sm-6 col-md-7 col-form-label recpagelabel">@(_f.tra("Datum generování bude o X dní před/po RD (-/+)")):</label>
+                        <div class="col-sm-2 col-md-3">
+                            <mynumber asp-for="Rec.p75Generate_DaysToBase_D" class="record_ordinary" decimal-digits="0"></mynumber>
+                        </div>
+                        <div class="col-auto">
+                            <mytooltip text="Mínus číslo: dny před RD, Plus číslo: dny po RD"></mytooltip>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <label class="col-sm-5 col-md-6 col-form-label recpagelabel">@(_f.tra("Poslední rozhodné datum")):</label>
+                        <div class="col-sm-3 col-md-4">
+                            <mydate asp-for="Rec.p75BaseDateEnd" include-time="false"></mydate>
+
+                        </div>
+                        <div class="col-auto">
+                            <mytooltip text="Datum, kdy má skončit generování faktur podle této šablony.<hr>Generování skoční i v případě, že tento záznam přesunuete do archivu."></mytooltip>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+
+    </div>
+</div>
+
+
+
+<div class="row my-2">
+    <label class="col-sm-2 col-md-3 col-form-label">@(_f.tra("Datum plnění")):</label>
+    <div class="col-sm-4 col-md-4">
+        <select asp-for="@Model.Rec.p75DateSupplyFlag" class="form-select">
+
+            <option value="1">@_f.tra("Datum generování")</option>
+            <option value="2">@_f.tra("Datum RD")</option>
+            <option value="3">@_f.tra("Konec měsíce před RD")</option>
+            <option value="4">@_f.tra("Konec měsíce RD")</option>
+        </select>
+    </div>
+</div>
+
+<div class="row my-2">
+    <label class="col-sm-2 col-md-3 col-form-label recpagelabel">@(_f.tra("Datum splatnosti o X dní po RD (-/+)")):</label>
+    <div class="col-sm-1 col-md-1">
+        <mynumber asp-for="Rec.p75DateMaturityDaysAfter" class="record_ordinary" decimal-digits="0"></mynumber>
+    </div>
+    <div class="col-auto">
+        <mytooltip text="Mínus číslo: dny před RD, Plus číslo: dny po RD"></mytooltip>
+    </div>
+</div>
+
+
+
+<div class="col-sm-2 col-md-2">
+    <input type="checkbox" asp-for="@Model.Rec.p75IsDraft" />
+    <label class="col-form-label" for="Rec_p75IsDraft">@_f.tra("Draft faktura")</label>
+</div>
+
+<div class="row my-2">
+    <label class="col-sm-2 col-md-3 col-form-label">@(_f.tra("Období vyúčtovaných úkonů")):</label>
+    <div class="col-sm-4 col-md-4">
+        <select asp-for="@Model.Rec.p75PeriodFlag" class="form-select">
+
+            <option value="0">@_f.tra("Bez omezení časového období")</option>
+            <option value="2">@_f.tra("Měsíc RD")</option>
+            <option value="3">@_f.tra("Kvartál RD")</option>
+            <option value="4">@_f.tra("Rok RD")</option>
+        </select>
+    </div>
+</div>
+
+
+
+
+<div class="form-floating my-2">
+    <textarea class="form-control" asp-for="@Model.Rec.p75InvoiceText"></textarea>
+    <label for="Rec_p41InvoiceDefaultText1">@_f.tra("Maska textu faktury")</label>
+    <br />
+    <code>Zkratky období v masce</code>
+    <i>[YYYY]: Rok, [MM] nebo [M]:Měsíc, [QQ] nebo [Q]: Čtvrtletí</i>
+</div>
+
+
+<div class="alert alert-info">
+    <p>Vyplňte buď projekt nebo klienta.</p>
+    <hr />
+    <p>V kartě projektu nebo v kartě klienta (záložka [Fakturační nastavení] musí být vyplněný [Typ faktury]!</p>
+    <hr />
+    <p>Do vygenerované faktury se automaticky nahrnou všechny nevyúčtované úkony bez ohledu na jejich období!</p>
+</div>
+
+
+
+
+
+
+<input type="hidden" asp-for="Rec.j02ID_Owner" value="@Model.Rec.j02ID_Owner" />
+<input type="hidden" asp-for="ComboOwner" value="@Model.ComboOwner" />
+
+
+
+@Html.Raw("</div>")
+
+
+
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+
+
+
+    });
+
+
+    function hardrefresh(pid, flag) {
+
+
+        _postback();
+    }
+
+
+
+
+
+</script>

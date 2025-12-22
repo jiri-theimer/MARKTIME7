@@ -1,0 +1,23 @@
+﻿@model BaseViewModel
+@inject BL.Factory _f
+
+
+
+@{
+    int _intLangIndex = _f.App.DefaultLangIndex;
+    
+    if (Context.Request.Cookies["marktime.langindex"] != null)
+    {
+        _intLangIndex = BO.Code.Bas.InInt(Context.Request.Cookies["marktime.langindex"]);
+    }
+
+    ViewData["Title"] = _f.trawi("Odhlášení z aplikace", _intLangIndex);
+    Layout = "~/Views/Shared/_LayoutAnonym.cshtml";
+}
+
+<div style="margin:auto;max-width:500px;">
+    <h4>@_f.trawi("Došlo k odhlášení uživatele", _intLangIndex)</h4>
+
+    <a asp-action="UserLogin" asp-controller="Login">@_f.trawi("Přihlásit se", _intLangIndex)</a>
+</div>
+

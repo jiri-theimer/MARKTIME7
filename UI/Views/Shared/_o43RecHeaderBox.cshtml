@@ -1,0 +1,224 @@
+﻿@model BO.o43Inbox
+
+@inject BL.Factory _f
+
+@{
+
+
+    if (Model == null)
+    {
+        return;
+    }
+
+
+    BO.p41Project _p41Rec = null;
+    if (Model.p41ID > 0 && _f.CurrentUser.j04IsModule_p41)
+    {
+        _p41Rec = _f.p41ProjectBL.Load(Model.p41ID);
+    }
+    BO.p91Invoice _p91Rec = null;
+    if (Model.p91ID > 0 && _f.CurrentUser.j04IsModule_p91)
+    {
+        _p91Rec = _f.p91InvoiceBL.Load(Model.p91ID);
+    }
+    BO.p56Task _p56Rec = null;
+    if (Model.p56ID > 0 && _f.CurrentUser.j04IsModule_p56)
+    {
+        _p56Rec = _f.p56TaskBL.Load(Model.p56ID);
+    }
+    BO.o23Doc _o23Rec = null;
+    if (Model.o23ID > 0 && _f.CurrentUser.j04IsModule_o23)
+    {
+        _o23Rec = _f.o23DocBL.Load(Model.o23ID);
+    }
+    BO.b05Workflow_History _b05Rec = null;
+    if (Model.b05ID > 0)
+    {
+        _b05Rec = _f.WorkflowBL.GetList_b05(null, 0, 0, Model.b05ID, 0).First();
+    }
+    BO.o22Milestone _o22Rec = null;
+    if (Model.o22ID > 0)
+    {
+        _o22Rec = _f.o22MilestoneBL.Load(Model.o22ID);
+    }
+
+}
+
+@addTagHelper *, UI
+
+
+<table class="table table-hover">
+    <tr>
+        <td colspan="2" class="@(Model.isclosed ? "tdarchiv": "tdval")">
+            <myicon symbol="forward_to_inbox"></myicon>
+            @_f.tra("Inbox zpráva")
+
+            <a title="MIME format" href="/o43/DownloadAsFile?pid=@(Model.pid)&format=eml">EML</a>
+            <a title="MS OUTLOOK format" style="margin-left:6px;" href="/o43/DownloadAsFile?pid=@(Model.pid)&format=msg">MSG</a>
+
+            <code style="margin-left:10px;">@Model.o43SenderName</code>
+
+        </td>
+    </tr>
+    <tr>
+        <td style="min-width:140px;">
+            @_f.tra("Odesílatel"):
+        </td>
+        <td>
+            <myval value="@Model.o43SenderAddress"></myval>
+        </td>
+    </tr>
+    <tr>
+        <td style="min-width:140px;">
+            @_f.tra("Komu"):
+        </td>
+        <td>
+            <myval value="@Model.o43To"></myval>
+        </td>
+    </tr>
+    @if (Model.o43Cc != null)
+    {
+        <tr>
+            <td style="min-width:140px;">
+                @_f.tra("V kopii"):
+            </td>
+            <td>
+                <myval value="@Model.o43Cc"></myval>
+            </td>
+        </tr>
+    }
+
+    <tr>
+        <td>
+            @_f.tra("Datum zprávy"):
+        </td>
+        <td>
+            <myval value="@Model.o43DateMessage" datatype="datetime"></myval>
+        </td>
+    </tr>
+    @if (Model.o43Subject != null)
+    {
+        <tr>
+            <td>
+                @_f.tra("Předmět zprávy"):
+            </td>
+            <td>
+                <myval value="@Model.o43Subject"></myval>
+            </td>
+        </tr>
+    }
+
+   
+    <tr>
+        <td>
+            @_f.tra("Velikost")
+            /
+            @_f.tra("Imap složka"):
+        </td>
+        <td>
+            <myval value="@(BO.Code.Bas.FormatFileSize(Model.o43Length))" valueafter="@($"<code>{Model.o43ImapFolder}</code>")"></myval>
+        </td>
+    </tr>
+
+    @if (Model.j02ID > 0)
+    {
+        <tr>
+            <td>
+                @_f.tra("Uživatel"):
+            </td>
+            <td>
+                <myval value="@Model.Person" hoverprefix="j02" hoverpid="@Model.pid"></myval>
+            </td>
+        </tr>
+    }
+    @if (_p41Rec != null)
+    {
+        <tr>
+            <td>
+               @(_p41Rec.p42Name):
+            </td>
+            <td>
+                <myval value="@_p41Rec.FullName" hoverprefix="p41" hoverpid="@Model.p41ID"></myval>
+            </td>
+        </tr>
+    }
+    @if (Model.p28ID > 0)
+    {
+        <tr>
+            <td>
+                @_f.tra("Kontakt"):
+            </td>
+            <td>
+                <myval value="@Model.p28Name" hoverprefix="p28" hoverpid="@Model.p28ID"></myval>
+            </td>
+        </tr>
+    }
+    @if (_p56Rec != null)
+    {
+        <tr>
+            <td>
+                @(_p56Rec.p57Name):
+            </td>
+            <td>
+                <myval value="@_p56Rec.FullName" hoverprefix="p56" hoverpid="@Model.p56ID"></myval>
+            </td>
+        </tr>
+    }
+    @if (_o22Rec != null)
+    {
+        <tr>
+            <td>
+                @(_o22Rec.o21Name):
+            </td>
+            <td>
+                <myval value="@_o22Rec.o22Name" hoverprefix="o22" hoverpid="@Model.o22ID"></myval>
+            </td>
+        </tr>
+    }
+    @if (_p91Rec != null)
+    {
+        <tr>
+            <td>
+                @(_p91Rec.p92Name):
+            </td>
+            <td>
+                <myval value="@_p91Rec.p91Code" hoverprefix="p91" hoverpid="@Model.p91ID"></myval>
+            </td>
+        </tr>
+    }
+    @if (_o23Rec != null)
+    {
+        <tr>
+            @if (_o23Rec.o23Name==null || _o23Rec.o18Name == _o23Rec.o23Name)
+            {
+                <td>
+                    @_f.tra("Dokument"):
+                </td>
+                <td>
+                    <myval value="@_o23Rec.o18Name" hoverprefix="o23" hoverpid="@Model.o23ID"></myval>
+                </td>
+            }
+            else
+            {
+                <td>
+                    @(_o23Rec.o18Name):
+                </td>
+                <td>
+                    <myval value="@_o23Rec.o23Name" hoverprefix="o23" hoverpid="@Model.o23ID"></myval>
+                </td>
+            }
+            
+        </tr>
+    }
+    @if (_b05Rec != null)
+    {
+        <tr>
+            <td>
+                Notepad:
+            </td>
+            <td>
+                <myval value="@_b05Rec.b05Name"></myval>
+            </td>
+        </tr>
+    }
+</table>

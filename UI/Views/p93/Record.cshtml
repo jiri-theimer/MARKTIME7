@@ -1,0 +1,416 @@
+﻿@model UI.Models.Record.p93Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Vystavovatel faktur");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    Model.PageSymbol = "holiday_village";
+}
+
+@addTagHelper *, UI
+
+<script src="~/js/rejstriky.js" asp-append-version="true"></script>
+
+<div class="tabs_container_record">
+    <!-- Tab panes -->
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item onetab">
+            <a id="link_tab1" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab1">@_f.tra("Vystavovatel faktury")</a>
+        </li>
+        <li class="nav-item onetab">
+            <a id="link_tab2" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab2">@_f.tra("Grafické logo/podpisy")</a>
+        </li>
+        <li class="nav-item onetab">
+            <a id="link_tab3" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab3">@_f.tra("Volná pole")</a>
+        </li>
+
+    </ul>
+</div>
+
+@Html.Raw("<div class='modal_record_container_flexi'>")
+@Html.Raw("<div class='tab-content'>")
+
+<div class="tab-pane tab-pane-fixed" id="tab1" role="tabpanel">
+    <!-- Tab1 -->
+    <div class="col-8">
+        <div class="row">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název"):</label>
+            <div class="col-sm-11 col-md-10">
+                <input class="form-control record_name" asp-for="Rec.p93Name" />
+            </div>
+
+        </div>
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("IČO"):</label>
+            <div class="col-sm-5 col-md-4">
+                <div class="input-group">
+                    <input asp-for="Rec.p93RegID" class="form-control" />
+                    <button tabindex="-1" type="button" class="btn btn-sm btn-outline-secondary" onclick="load_rejstrik('ico')">@_f.tra("Načíst z rejstříku")</button>
+                </div>
+            </div>
+            <label class="col-sm-1 col-md-1 col-form-label">@_f.tra("DIČ"):</label>
+            <div class="col-sm-5 col-md-4">
+                <div class="input-group">
+                    <input asp-for="Rec.p93VatID" class="form-control" />
+                    <button tabindex="-1" type="button" class="btn btn-sm btn-outline-secondary" onclick="load_rejstrik('dic')">@_f.tra("Načíst z rejstříku")</button>
+                </div>
+            </div>
+        </div>
+        @if (Model.Rec.p93CountryCode == "SK")
+        {
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">IČ-DPH:</label>
+                <div class="col-sm-4 col-md-3">
+                    <div class="input-group">
+                        <input asp-for="Rec.p93ICDPH_SK" class="form-control" />
+
+                    </div>
+                </div>
+
+            </div>
+        }
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název firmy"):</label>
+            <div class="col-sm-11 col-md-10">
+                <input class="form-control" asp-for="Rec.p93Company" />
+
+            </div>
+
+        </div>
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Ulice"):</label>
+            <div class="col-sm-11 col-md-10">
+                <textarea class="form-control" asp-for="Rec.p93Street"></textarea>
+
+            </div>
+
+        </div>
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Město"):</label>
+            <div class="col-sm-6 col-md-5">
+                <input class="form-control" asp-for="Rec.p93City" />
+
+            </div>
+            <label class="col-sm-2 col-md-2 col-form-label">@_f.tra("PSČ"):</label>
+            <div class="col-sm-2 col-md-2">
+                <input class="form-control" asp-for="Rec.p93Zip" />
+
+            </div>
+        </div>
+
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Stát"):</label>
+            <div class="col-sm-6 col-md-5">
+                <input class="form-control" asp-for="Rec.p93Country" />
+
+            </div>
+            <label class="col-sm-2 col-md-2 col-form-label">@_f.tra("ISO kód státu"):</label>
+            <div class="col-sm-2 col-md-2">
+
+                @Html.EditorFor(m => m.Rec.p93CountryCode, "~/Views/Shared/_CountryCodeCombo.cshtml")
+
+            </div>
+        </div>
+        <div class="row mt-2">
+            <div class="col-sm-7 col-md-7"></div>
+            <label class="col-sm-2 col-md-2 col-form-label">Domácí měna:</label>
+            <div class="col-sm-2 col-md-2">
+                <select class="form-select" asp-for="Rec.j27ID_Domestic">
+                    <option value="0">Zdědit</option>
+                    <option value="2">CZK</option>
+                    <option value="3">EUR</option>
+                    <option value="58">USD</option>
+                    <option value="59">GBP</option>
+                    <option value="56">CHF</option>
+                    <option value="50">PLN</option>
+
+                </select>
+            </div>
+
+        </div>
+
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Kontaktní TEL"):</label>
+            <div class="col-sm-11 col-md-10">
+                <textarea class="form-control" asp-for="Rec.p93Contact"></textarea>
+
+            </div>
+
+        </div>
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Kontaktní e-mail"):</label>
+            <div class="col-sm-11 col-md-10">
+                <input asp-for="@Model.Rec.p93Email" class="form-control" />
+
+            </div>
+
+        </div>
+
+
+        <div class="form-floating my-2">
+            <textarea class="form-control" asp-for="Rec.p93Registration"></textarea>
+            <label for="Rec_p32HelpText">@_f.tra("Registrace v rejstříku")</label>
+        </div>
+        <div class="form-floating my-2">
+            <textarea class="form-control" asp-for="Rec.p93Referent"></textarea>
+            <label for="Rec_p32HelpText">@_f.tra("Referent (doklad vystavil)")</label>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                @_f.tra("Bankovní účty")
+                <button type="button" class="btn btn-outline-primary btn-sm" onclick="_postback('add_row')">@_f.tra("Přidat řádek")</button>
+            </div>
+            <div class="card-body">
+                <table class="table table-hover" style="table-layout: fixed;">
+                    <tr>
+                        <th>@_f.tra("Měna")</th>
+                        <th>@_f.tra("Bankovní účet")</th>
+                        <th style="width:40px;"></th>
+                    </tr>
+                    @for (int i = 0; i < Model.lisP88.Count; i++)
+                    {
+                        <tr style="@(Model.lisP88[i].CssTempDisplay)">
+                            <td>
+                                <input type="hidden" asp-for="lisP88[i].IsTempDeleted" value="@Model.lisP88[i].IsTempDeleted" />
+                                <input type="hidden" asp-for="lisP88[i].TempGuid" value="@Model.lisP88[i].TempGuid" />
+
+                                <mycombo entity="j27Currency" asp-for="@Model.lisP88[i].j27ID" selectedtext="@Model.lisP88[i].ComboJ27" view-flag="2"></mycombo>
+                            </td>
+                            <td>
+                                <mycombo entity="p86BankAccount" asp-for="@Model.lisP88[i].p86ID" selectedtext="@Model.lisP88[i].ComboP86" view-flag="2"></mycombo>
+
+                            </td>
+
+
+                            <td>
+                                <button type="button" class="btn btn-danger" title="@_f.tra("Odstranit řádek")" onclick="handle_delete_row('@(Model.lisP88[i].TempGuid)')">x</button>
+                            </td>
+
+                        </tr>
+                    }
+                </table>
+            </div>
+        </div>
+
+        @if (Model.rec_pid > 0)
+        {
+            <div class="card" style="margin-top:10px;">
+                <div class="card-header">
+                    <myicon symbol="sync"></myicon>
+
+                    @_f.tra("Aktualizovat hlavičku dodavatele u vystavených faktur")
+                </div>
+                <div class="card-body">
+                    <table>
+                        <tr>
+                            <td>
+                                @_f.tra("DUZP od"):
+                            </td>
+                            <td>
+                                <mydate asp-for="@Model.recalc_d1"></mydate>
+                            </td>
+                            <td>
+                                @_f.tra("DUZP do"):
+                            </td>
+                            <td>
+                                <mydate asp-for="@Model.recalc_d2"></mydate>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-sm bog" onclick="tryrecalc()">@_f.tra("Spustit")</button>
+                            </td>
+                        </tr>
+
+                    </table>
+                </div>
+            </div>
+        }
+
+    </div>
+
+
+</div>
+
+
+
+<div class="tab-pane tab-pane-fixed" id="tab2" role="tabpanel">
+    <!-- Tab2 -->
+    <div class="card">
+        <div class="card-header">
+            @_f.tra("Obrázek loga")
+        </div>
+        <div class="card-body p-0 m-0">
+            <input type="hidden" asp-for="@Model.LogoFile" />
+
+            @if (!string.IsNullOrEmpty(Model.LogoFile))
+            {
+                <button type="button" id="cmdDeleteLogo" class="btn btn-danger">@_f.tra("Odstranit obrázek")</button>
+                <img src="@Model.LogoFile" />
+            }
+            <iframe id="fraUpload" src="/FileUpload/SingleUpload?guid=@Model.UploadGuidLogo" frameborder="0"></iframe>
+        </div>
+    </div>
+
+
+
+    <div class="card">
+        <div class="card-header">
+            @_f.tra("Podpis jako obrázek")
+        </div>
+        <div class="card-body p-0 m-0">
+            <input type="hidden" asp-for="@Model.SignatureFile" />
+
+            @if (!string.IsNullOrEmpty(Model.SignatureFile))
+            {
+                <button type="button" id="cmdDeleteSignature" class="btn btn-danger">@_f.tra("Odstranit obrázek")</button>
+                <img src="@Model.SignatureFile" />
+            }
+            <iframe id="fraUpload" src="/FileUpload/SingleUpload?guid=@Model.UploadGuidSignature" frameborder="0" scrolling="yes"></iframe>
+            <div>
+                <input asp-for="@Model.Rec.p93Signature" class="form-control" placeholder="@_f.tra("Text podpisu")" />
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            @_f.tra("Elektronický podpis"): Kvalifikovaný elektronický podpis (pfx soubor)
+        </div>
+        <div class="card-body p-0 m-0">
+            <input type="hidden" asp-for="@Model.PfxFile" />
+
+            @if (!string.IsNullOrEmpty(Model.PfxFile))
+            {
+                <button type="button" onclick="_postback('delete_pfx')" class="btn btn-danger">@_f.tra("Odstranit certifikát")</button>
+                <a href="@(Model.PfxFile)" target="_self">PFX soubor</a>
+            }
+            <div class="my-2">
+                <input class="form-control" type="text" asp-for="PfxPassword" autocomplete="off" placeholder="@_f.tra("Heslo k pfx souboru zadávejte pouze pokud ho měníte.")" />
+
+            </div>
+            <iframe id="fraPfx" src="/FileUpload/SingleUpload?guid=@Model.UploadGuidPfx" frameborder="0" scrolling="yes"></iframe>
+        </div>
+    </div>
+
+</div>
+
+
+<div class="tab-pane tab-pane-fixed" id="tab3" role="tabpanel">
+    <!-- Tab3 -->
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Volné pole")<span>#1:</span></label>
+        <div class="col-sm-11 col-md-10">
+            <textarea class="form-control" asp-for="Rec.p93FreeText01"></textarea>            
+
+        </div>
+
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Volné pole")<span>#2:</span></label>
+        <div class="col-sm-11 col-md-10">
+            <textarea class="form-control" asp-for="Rec.p93FreeText02"></textarea>
+            
+
+        </div>
+
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Volné pole")<span>#3:</span></label>
+        <div class="col-sm-11 col-md-10">
+            <input class="form-control" asp-for="Rec.p93FreeText03" />
+
+        </div>
+
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Volné pole")<span>#4:</span></label>
+        <div class="col-sm-11 col-md-10">
+            <input class="form-control" asp-for="Rec.p93FreeText04" />
+
+        </div>
+
+    </div>
+
+</div>
+
+@Html.Raw("</div>")
+@Html.Raw("</div>")
+
+<input type="hidden" asp-for="IsDeleteLogo" value="@Model.IsDeleteLogo" />
+<input type="hidden" asp-for="IsDeleteSignature" value="@Model.IsDeleteSignature" />
+<input type="hidden" asp-for="IsDeletePfx" value="@Model.IsDeletePfx" />
+<input type="hidden" asp-for="UploadGuidLogo" value="@Model.UploadGuidLogo" />
+<input type="hidden" asp-for="UploadGuidSignature" value="@Model.UploadGuidSignature" />
+<input type="hidden" asp-for="UploadGuidPfx" value="@Model.UploadGuidPfx" />
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+
+
+        $("#cmdDeleteLogo").on("click", function () {
+            _postback("delete_logo");
+        });
+
+        $("#cmdDeleteSignature").on("click", function () {
+            _postback("delete_signature");
+        });
+
+
+    });
+
+
+
+    function load_rejstrik(pole) {
+        var hodnota = $("#Rec_p93RegID").val();
+        if (pole == "dic") {
+            hodnota = $("#Rec_p93VatID").val();
+        }
+        var country = $("#Rec_p93CountryCode").val();
+        if (hodnota == "") {
+            _notify_message("Musíte zadat IČO nebo DIČ.");
+            return;
+        }
+
+        _notify_message("Loading...", "info");
+
+        $.post("/p28/LoadRejstrikSubjekt", { strPole: pole, strHodnota: hodnota, strCountryCode: country }, function (data) {
+            var subjekt = data;
+            $("#Rec_p93Company").val(subjekt.name);
+            $("#Rec_p93City").val(subjekt.city);
+            $("#Rec_p93Zip").val(subjekt.zipcode);
+            $("#Rec_p93Street").val(subjekt.street);
+            if (pole == "ico") {
+                $("#Rec_p93VatID").val(subjekt.dic);
+            }
+            if (pole == "dic") {
+                $("#Rec_p93RegID").val(subjekt.ico);
+            }
+
+            if ($("#Rec_p93Name").val() == "") {
+                $("#Rec_p93Name").val(subjekt.name);
+            }
+
+        });
+    }
+
+
+
+    function handle_delete_row(guid) {
+        _postback("delete_row", "guid=" + guid);
+        //form1.action = _ep("/p93/Record?oper=delete_row&guid=" + guid);
+        //form1.submit();
+
+    }
+
+    function tryrecalc() {
+        if (confirm("Opravdu aktualizovat vystavovatele u faktur za zvolené období?")) {
+            _postback("recalc");
+        }
+    }
+
+</script>

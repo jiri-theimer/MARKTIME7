@@ -1,0 +1,93 @@
+﻿@model UI.Models.Home.SmsVerifyViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Ověření SMS kódu");
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var _returnurl = @Context.Request.Query["returnurl"];
+}
+
+
+
+<div class="container-lg">
+    <div class="row">
+        <div class="col-md-7">
+            <form id="form1" asp-action="SmsVerify" method="post">
+                @if (_f.CurrentUser.j02SmsVerifyCode != null)
+                {
+                    <h4>@(BO.Code.Bas.ObjectDateTime2String( _f.CurrentUser.j02SmsVerifyCreate))</h4>
+                    
+                    <h4>Na mobilní telefon @(Model.recJ02.j02Mobile) byla odeslána SMS zpráva s ověřovacím kódem.</h4>
+                }
+                else
+                {
+                    <h4>Na mobilní telefon @(Model.recJ02.j02Mobile) nebyl odeslán SMS ověřovací kód!</h4>
+                }
+
+
+                <div class="form-group">
+                    <label for="SmsCode" class="control-label">@_f.tra("Zadejte SMS kód"):</label>
+                    <input asp-for="@Model.SmsCode" class="form-control" autocomplete="off"/>
+
+                </div>
+
+                <div class="form-group">
+                    <input type="submit" value="@_f.tra("Odeslat")" class="btn btn-default btn-primary" asp-route-returnurl="@_returnurl" />
+                </div>
+               
+
+            </form>
+        </div>
+    </div>
+    <hr />
+    <table>
+        <tr>
+            <td>
+                @_f.tra("Jméno"):
+            </td>
+            <td>
+                @Model.recJ02.FullNameAsc
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @_f.tra("Mobilní číslo"):
+            </td>
+            <td>
+                @Model.recJ02.j02Mobile
+            </td>
+        </tr>
+    </table>
+   
+</div>
+
+
+
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+        document.getElementById("SmsCode").addEventListener("keyup",function(event)
+        {
+            if (event.keyCode==13){
+                form1.submit()
+            }
+        });
+       
+        setTimeout(handle_focus,500);
+
+
+        _mainmenu_highlight_current("cmdme");
+        
+    });
+
+
+    function handle_focus(){
+        $("#SmsCode").focus();
+    }
+
+
+
+</script>

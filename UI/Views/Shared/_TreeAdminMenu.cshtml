@@ -1,0 +1,223 @@
+﻿@model UI.Models.Admin.AdminPage
+@inject BL.Factory _f
+
+@{
+
+    var n=Model.AddMother(_f.tra("Správa uživatelů"), "users", "manage_accounts");
+    Model.AddChild(n, _f.tra("Uživatelské účty"), "j02");
+    Model.AddChild(n, _f.tra("Aplikační role"), "j04");
+    Model.AddChild(n, _f.tra("Pozice"), "j07");
+    Model.AddDivider(n);
+    Model.AddChild(n, _f.tra("Týmy uživatelů"), "j11");
+    Model.AddChild(n, _f.tra("Nadřízení/Podřízení"), "j05");
+    Model.AddDivider(n);
+    Model.AddChild(n, _f.tra("Přihlásit se pod jiným uživatelem"), null, "javascript: _window_open('/Admin/LogAsUser')");
+    Model.AddDivider(n);
+    Model.AddChild(n, "PING Log", "j92");
+    Model.AddChild(n, "LOGIN Log", "j90");
+
+    n = Model.AddMother(_f.tra("Kontakty"), "contacts", "contacts");    
+    Model.AddChild(n, _f.tra("Typy kontaktů"), "p29");
+    Model.AddChild(n, _f.tra("Role uživatelů v kontaktech"), "x67", "/Admin/Page?area=contacts&prefix=x67&myqueryinline=x67entity|string|p28");
+    Model.AddChild(n, _f.tra("Uživatelská pole"), "x28", "/Admin/Page?area=contacts&prefix=x28&myqueryinline=x28entity|string|p28");
+
+
+    n = Model.AddMother(_f.tra("Projekty"), "projects", "work");
+
+    Model.AddChild(n, _f.tra("Typy projektů"), "p42");
+    Model.AddChild(n, _f.tra("Role uživatelů v projektech"), "x67", "/Admin/Page?area=projects&prefix=x67&myqueryinline=x67entity|string|p41");
+    Model.AddChild(n, _f.tra("Vertikální úrovně projektů"), null, "javascript:_window_open('/p07/ProjectLevels')");
+    Model.AddChild(n, _f.tra("Klastry aktivit"), "p61");
+    Model.AddDivider(n);
+    Model.AddChild(n, _f.tra("Uživatelská pole"), "x28", "/Admin/Page?area=projects&prefix=x28&myqueryinline=x28entity|string|p41");
+    Model.AddDivider(n);
+    Model.AddChild(n, _f.tra("Verze kapacitních plánů"), "r02", null);
+
+
+    n = Model.AddMother(_f.tra("Vykazování"), "worksheet", "schedule");
+
+    Model.AddChild(n, _f.tra("Aktivity"), "p32");
+    Model.AddChild(n, _f.tra("Klastry aktivit"), "p61");
+    Model.AddDivider(n);
+    Model.AddChild(n, _f.tra("Sešity aktivit"), "p34");
+    Model.AddChild(n, _f.tra("Odvětví aktivit"), "p38");
+    Model.AddDivider(n);
+    Model.AddChild(n, _f.tra("Pracovní fondy"), "c21");
+    Model.AddChild(n, _f.tra("Dny svátků"), "c26");
+    Model.AddChild(n, _f.tra("Barvy dnů v kalendáři"), "c24");
+    Model.AddDivider(n);
+    Model.AddChild(n, _f.tra("Uzamknutá období"), "p36");
+    Model.AddChild(n, _f.tra("Jednotky kusovníkových úkonů"), "p35");
+    Model.AddChild(n, _f.tra("DPH sazby"), "p53");
+    Model.AddDivider(n);
+    Model.AddChild(n, _f.tra("Ceníky hodinových sazeb"), "p51");
+    Model.AddChild(n, _f.tra("Hladiny hodinových sazeb"), "p54");
+    Model.AddDivider(n);
+    Model.AddChild(n, _f.tra("Uživatelská pole"), "x28", "/Admin/Page?area=worksheet&prefix=x28&myqueryinline=x28entity|string|p31");
+
+
+    n = Model.AddMother(_f.tra("Vyúčtování"), "billing", "receipt_long");    
+    Model.AddChild(n, _f.tra("Typy faktur"), "p92");
+    Model.AddChild(n, _f.tra("Bankovní účty"), "p86");
+    Model.AddChild(n, _f.tra("Vystavovatelé faktur"), "p93");
+    Model.AddDivider(n);
+    Model.AddChild(n, _f.tra("Měnové kurzy"), "m62");
+    Model.AddChild(n, _f.tra("Fakturační oddíly"), "p95");
+    Model.AddChild(n, _f.tra("Typy upomínek"), "p83");
+    Model.AddDivider(n);
+    Model.AddChild(n, _f.tra("Zaokrouhlovací pravidla faktury"), "p98");
+    Model.AddChild(n, _f.tra("Struktury rozpisu částky faktury"), "p80");
+    Model.AddChild(n, _f.tra("Režijní přirážky k fakturaci"), "p63");
+    Model.AddChild(n, _f.tra("DPH sazby"), "p53");
+    Model.AddDivider(n);
+    Model.AddChild(n, _f.tra("Ceníky hodinových sazeb"), "p51");
+    Model.AddDivider(n);
+    Model.AddChild(n, _f.tra("Role uživatelů ve vyúčtování"), "x67", "/Admin/Page?area=billing&prefix=x67&myqueryinline=x67entity|string|p91");
+    Model.AddChild(n, _f.tra("Uživatelská pole"), "x28", "/Admin/Page?area=billing&prefix=x28&myqueryinline=x28entity|string|p91");
+
+    n = Model.AddMother(_f.tra("Zálohy"), "proforma", "receipt");
+
+    Model.AddChild(n, _f.tra("Typy záloh"), "p89");
+    Model.AddChild(n, _f.tra("Role uživatelů v zálohách"), "x67", "/Admin/Page?area=proforma&prefix=x67&myqueryinline=x67entity|string|p90");
+    Model.AddChild(n, _f.tra("Uživatelská pole"), "x28", "/Admin/Page?area=proforma&prefix=x28&myqueryinline=x28entity|string|p90");
+
+    n = Model.AddMother(_f.tra("Úkoly"), "tasks", "task");
+
+    Model.AddChild(n, _f.tra("Typy úkolů"), "p57");
+    Model.AddChild(n, _f.tra("Šablony úkolů"), "p60");
+
+    Model.AddDivider(n);
+    Model.AddChild(n, _f.tra("Role uživatelů v úkolech"), "x67", "/Admin/Page?area=tasks&prefix=x67&myqueryinline=x67entity|string|p56");
+    Model.AddChild(n, _f.tra("Uživatelská pole"), "x28", "/Admin/Page?area=tasks&prefix=x28&myqueryinline=x28entity|string|p56");
+
+    n = Model.AddMother(_f.tra("Termíny/lhůty"), "o22s", "event");
+
+    Model.AddChild(n, _f.tra("Typy termínů"), "o21");
+    Model.AddChild(n, _f.tra("Role uživatelů v termínech"), "x67", "/Admin/Page?area=o22s&prefix=x67&myqueryinline=x67entity|string|o22");
+
+    n = Model.AddMother(_f.tra("Dokumenty"), "docs", "file_present");
+
+    Model.AddChild(n, _f.tra("Typy dokumentů"), "o18");
+    Model.AddChild(n, _f.tra("Menu dokumentů"), "o17");
+    Model.AddDivider(n);
+    Model.AddChild(n, _f.tra("Role uživatelů v dokumentech"), "x67", "/Admin/Page?area=docs&prefix=x67&myqueryinline=x67entity|string|o23");
+
+    n = Model.AddMother(_f.tra("Štítky"), "tags", "local_offer");
+
+    Model.AddChild(n, _f.tra("Skupiny štítků"), "o53");
+    Model.AddChild(n, _f.tra("Položky štítků"), "o51");
+
+
+    n = Model.AddMother(_f.tra("Tiskové sestavy"), "reps", "print");    
+    Model.AddChild(n, _f.tra("Report šablony"), "x31");
+    Model.AddChild(n, _f.tra("Report kategorie"), "j25");
+
+
+    n = Model.AddMother(_f.tra("Elektronická pošta"), "mails", "alternate_email");    
+    Model.AddChild(n, "OUTBOX", "x40");
+    Model.AddChild(n, _f.tra("Poštovní účty"), "j40");
+    Model.AddChild(n, _f.tra("Šablony poštovních zpráv"), "j61");
+    Model.AddDivider(n);
+    Model.AddChild(n, _f.tra("IMAP pravidla"), "o42");
+    Model.AddChild(n, _f.tra("Reminder fronta"), "o24");
+
+
+    n = Model.AddMother(_f.tra("Různé"), "misc", "manufacturing");    
+    Model.AddChild(n, _f.tra("Střediska"), "j18");
+    Model.AddChild(n, _f.tra("Číselné řady"), "x38");    
+    Model.AddChild(n, _f.tra("Autocomplete položky"), "o15");
+    Model.AddChild(n, _f.tra("Návrhář workflow šablon"), null, "/workflow_designer/Index");
+    Model.AddDivider(n);
+    Model.AddChild(n, _f.tra("Integrace"), "x07");
+    Model.AddDivider(n);
+    Model.AddChild(n, _f.tra("Konfigurace hlídačů"), "b20");
+    Model.AddChild(n, _f.tra("Notepad konfigurace"), "x04");
+    Model.AddDivider(n);
+    Model.AddChild(n, _f.tra("Katalog uživatelských polí"), "x28");
+    Model.AddChild(n, _f.tra("Skupiny uživatelských polí"), "x27");
+    Model.AddDivider(n);
+    Model.AddChild(n, _f.tra("Widget skupiny"), "x54");
+    Model.AddChild(n, _f.tra("Widgety"), "x55");
+    Model.AddDivider(n);
+    
+    //Model.AddChild(n, _f.tra("Uživatelská nápověda"), "x51");
+    Model.AddChild(n, _f.tra("Novinky | Blog"), "x52");
+    Model.AddChild(n, _f.tra("Aplikační překlad"), "x97");
+
+
+    if (Model.area != null)
+    {
+        
+        if (Model.prefix != null && Model.lisMenuNodes.Any(p => p.Area == Model.area && p.Prefix == Model.prefix))
+        {
+            var polozka = Model.lisMenuNodes.First(p => p.Area == Model.area && p.Prefix == Model.prefix);
+            if (polozka != null)
+            {
+                polozka.active = "active";
+
+            }
+
+        }
+
+    
+    }
+
+    
+}
+
+<ul class="mytreeview">
+    <li>
+        <span class="material-icons-outlined-btn mytreeview-toggle-sipka">line_start</span>
+        <span class="material-icons-outlined-btn">settings</span>
+        <a id="uvod" class="treeview-link @(Model.area==null ? "active": null)" style="font-weight:bold;color:rgb(11,75,146);" href="/Admin/Index">ADMIN HOME</a>
+    </li>
+
+</ul>
+
+@foreach(var np in Model.lisMenuNodes.Where(p=>p.ParentNode==null))
+{
+    <ul class="mytreeview">
+        <li>
+            <a class="mytreeview-toggle-kontejner" onclick="_treeview_toggle(this)">
+                <span class="material-icons-outlined-btn mytreeview-toggle-sipka">@(Model.area==np.Area ? "arrow_drop_down" : "arrow_right")</span>
+                <span class="material-icons-outlined-btn">@np.Icon</span>
+            </a>
+            
+            <a class="treeview-link" id="@np.Area" style="font-weight:bold;color:rgb(11,75,146);" href="/Admin/Page?area=@np.Area">@(np.Text.ToUpperInvariant())</a>
+            <ul style="display:@(Model.area==np.Area ? "block" : "none");">
+                @foreach (var nc in Model.lisMenuNodes.Where(p => p.ParentNode == np))
+                {
+                    <li style="margin-bottom:4px;">
+                        @if (nc.IsDivider)
+                        {
+                            <div style="width:100%;border:solid 1px lightgrey;margin-top:10px;margin-bottom:10px;"></div>
+                        }
+                        else
+                        {
+                            @if (nc.Url != null)
+                            {
+                                <a class="treeview-link-syty @(nc.active)" style="display:block;" href="@nc.Url">@nc.Text</a>
+
+                            }
+                            else
+                            {
+                                <a id="@nc.Prefix" class="treeview-link-syty @(nc.active)" style="display:block;" href="/Admin/Page?area=@nc.Area&prefix=@(nc.Prefix)">@nc.Text</a>
+                            }
+                        }
+                        
+                    </li>
+                }
+            </ul>
+            
+        </li>
+    </ul>
+}
+
+
+
+
+
+<script type="text/javascript">
+
+  
+</script>

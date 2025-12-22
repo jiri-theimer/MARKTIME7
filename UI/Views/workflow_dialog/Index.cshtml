@@ -1,0 +1,328 @@
+﻿@model UI.Models.wrk.WorkflowDialogViewModel
+@inject BL.Factory _f
+
+
+@{
+    if (Model.b02ID>0 || Model.b01ID > 0)
+    {
+        Model.PageTitle = "Workflow";
+    }
+    else
+    {
+        Model.PageTitle = "Notepad"; 
+    }
+
+    if (Model.RecordEntity != "o22" && Model.RecordEntity != "p31" && Model.RecordEntity != "j02")
+    {
+        Model.PageTitle = $"{Model.PageTitle}: {_f.CBL.GetObjectAlias(Model.RecordEntity, Model.RecordPid)}";
+    }
+
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageSymbol = "speaker_notes";
+
+    IEnumerable<BO.b05Workflow_History> _lisB05 = null;
+    if (Model.Caller != "portal")
+    {
+        _lisB05 = _f.WorkflowBL.GetList_b05(Model.RecordEntity, Model.RecordPid, 0, 0, 0);
+    }
+
+
+}
+
+@addTagHelper *, UI
+
+
+@if (Model.Notepad != null && Model.Notepad.SelectedX04ID > 0)
+{
+    @section header_content{
+    <link href="~/lib/froala-editor/css/froala_editor.pkgd.min.css" rel="stylesheet" type="text/css" />
+    }
+}
+
+
+<div class="bg-light input-group" style="padding:10px;">
+    <div>
+        <button id="cmdSave" class="btn btn-success" onclick="_submit()">
+            <span class="material-icons-outlined-btn" style="color:lime;">save</span>
+            @_f.tra("Uložit a zavřít")
+        </button>
+
+    </div>
+    @if (Model.RecordPid > 0 && Model.RecordEntity != "j02")
+    {
+        <div style="margin-left:10px;">
+            <button id="cmdSaveAndNotify" class="btn btn-info" onclick="_postback('mail')">
+                <span class="material-icons-outlined-btn">alternate_email</span>
+                @_f.tra("Uložit a notifikovat")
+            </button>
+
+
+        </div>
+    }
+    @if (_f.CurrentUser.IsAdmin && Model.RecB01 !=null)
+    {
+        <div>
+            <myshowmore></myshowmore>
+        </div>
+        <div class="showmore" style="margin-left:10px;">
+            <button id="cmdSaveAndNotify" class="btn btn-warning" onclick="_postback('restart')">
+                <span class="material-icons-outlined-btn">restart_alt</span>
+                @_f.tra("Nahodit do úvodního stavu workflow šablony")
+            </button>
+
+
+        </div>
+    }
+
+    <div style="margin-left:20px;">
+        <button id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+    </div>
+    <div style="margin-left:50px;">
+        @if (Model.RecB02 != null)
+        {
+            <label>@_f.tra("Aktuální stav"):</label>
+            
+
+            <strong>
+                @Model.RecB02.b02Name
+                
+            </strong>
+            @Html.Raw(UI.Code.basUI.HtmlColorStrip(Model.RecB02.b02Color))
+
+        }
+    </div>
+
+
+</div>
+
+<div id="divMail" style="display:none;margin:10px;">
+    <button id="cmdSaveAndNotify" class="btn btn-success" onclick="_postback('send')">@_f.tra("Odeslat notifikaci")</button>
+</div>
+
+
+
+@Html.Raw("<div class='modal_record_container'>")
+
+<form id="form1" asp-controller="workflow_dialog" asp-action="Index" method="POST">
+
+    <div id="divRadioList">
+        <myradiolist asp-for="@Model.SelectedB06ID" datasource="@Model.lisB06" valuefield="pid" textfield="b06Name" event_after_changevalue="b06id_onchange"></myradiolist>
+    </div>
+
+    @if (Model.RecB06 != null && (Model.RecB06.b06NomineeFlag == BO.b06NomineeFlagENum.RucniPovinna || Model.RecB06.b06NomineeFlag == BO.b06NomineeFlagENum.RucniNepovinna))
+    {
+        <div class="card">
+            <div class="card-header">
+                @_f.tra("Nominace")
+                @if (Model.RecB06.x67ID_Nominee > 0)
+                {
+                    <span class="badge-light">
+                        @(_f.x67EntityRoleBL.Load(Model.RecB06.x67ID_Nominee).x67Name)
+
+                    </span>
+                }                                
+            </div>
+            <div class="card-body">
+                @if (Model.RecordEntity == "p91")
+                {
+                    @await Html.PartialAsync("~/Views/Shared/_RoleAssignRO.cshtml", new UI.Models.Tab1.p56Tab1() { prefix = "p91", pid = Model.RecordPid })
+                }
+                @if (Model.RecordEntity == "p41")
+                {
+                    @await Html.PartialAsync("~/Views/Shared/_RoleAssignRO.cshtml", new UI.Models.Tab1.p41Tab1() { prefix = "p41", pid = Model.RecordPid })
+                }
+                @if (Model.RecordEntity == "o23")
+                {
+                    @await Html.PartialAsync("~/Views/Shared/_RoleAssignRO.cshtml", new UI.Models.Tab1.o23Tab1() { prefix = "o23", pid = Model.RecordPid })
+                }
+                @if (Model.RecordEntity == "p28")
+                {
+                    @await Html.PartialAsync("~/Views/Shared/_RoleAssignRO.cshtml", new UI.Models.Tab1.p28Tab1() { prefix = "p28", pid = Model.RecordPid })
+                }
+                @if (Model.RecordEntity == "p56")
+                {
+                    @await Html.PartialAsync("~/Views/Shared/_RoleAssignRO.cshtml", new UI.Models.Tab1.p56Tab1() { prefix = "p56", pid = Model.RecordPid })
+                }
+                <mycombochecklist placeholder="Nominovat jednotlivce" asp-for="@Model.Nominee_j02IDs" entity="j02User" selectedtext="@Model.Nominee_Persons"></mycombochecklist>
+                <p></p>
+                <mycombochecklist placeholder="Nominovat týmy" asp-for="@Model.Nominee_j11IDs" entity="j11Team" selectedtext="@Model.Nominee_j11Names"></mycombochecklist>
+               
+            </div>
+        </div>
+
+
+    }
+
+
+
+    @if (Model.Notepad != null)
+    {
+        @Html.EditorFor(m => m.Notepad, "~/Views/Shared/_Notepad.cshtml")
+    }
+
+    @if (Model.RecB06.b06GeoFlag == BO.b06GeoFlagEnum.LoadFromCurrentUser)
+    {
+        <iframe id="mapa" style="border:none;width:100%;height:500px;display:none;"></iframe>
+    }
+    @if (Model.SelectedB06ID == 0 && Model.RecordEntity !="p91")
+    {
+        <div class="row my-2">
+            <div class="col-sm-6 col-md-5">
+                <input type="text" asp-for="b05Name" placeholder="@_f.tra("Název")" class="form-control" />
+            </div>
+
+
+            <div class="col-sm-2 col-md-2" title="Datum záznamu">
+                <mydate asp-for="b05Date" include-time="false"></mydate>
+            </div>
+            <div class="col-sm-4 col-md-5">
+                @if (Model.SelectedB02ID == 0 && Model.RecordEntity != null && Model.RecordEntity != "j02" && Model.RecordEntity != "p31")
+                {
+                    <div>
+                        <input id="chkIsTab1" type="checkbox" asp-for="IsTab1" />
+                        <label for="chkIsTab1" style="font-size:90%;">
+                            @_f.tra("Připnout na první záložku")
+                            <code>@(BO.Code.Entity.GetAlias(Model.RecordEntity))</code>
+                        </label>
+                    </div>
+                }
+                @if (Model.SelectedB02ID == 0 && (BO.Code.Entity.GetPrefixDb(Model.RecordEntity) == "p41" || Model.RecordEntity == "p28"))
+                {
+                    <div>
+                        <input id="chkIsBillingMemo" type="checkbox" asp-for="IsBillingMemo" />
+                        <label for="chkIsBillingMemo" style="font-size:90%;">
+                            @_f.tra("Fakturační poznámka")
+
+                        </label>
+
+                    </div>
+                }
+                @if (Model.SelectedB02ID == 0 && (Model.RecordEntity == "p28" || Model.RecordEntity == "p91" || Model.IsPortalAccess))
+                {
+                    <div>
+                        <input id="chkIsPortalAccess" type="checkbox" asp-for="IsPortalAccess" />
+                        <label for="chkIsPortalAccess" style="font-size:90%;">@_f.tra("Publikovatelné na klientském portálu")</label>
+
+                    </div>
+                }
+            </div>
+
+            
+
+
+            
+
+        </div>
+
+        <div>
+            @Html.EditorFor(m => m.reminder, "~/Views/Shared/_Reminder.cshtml")
+        </div>
+
+    }
+    
+
+    <input type="hidden" asp-for="@Model.RecordEntity" />
+    <input type="hidden" asp-for="@Model.RecordPid" />
+    <input type="hidden" asp-for="@Model.b01ID" />
+    <input type="hidden" asp-for="@Model.b02ID" />
+    <input type="hidden" asp-for="@Model.current_user_lon" />
+    <input type="hidden" asp-for="@Model.current_cuser_lat" />
+    <input type="hidden" asp-for="NameIsRequired" />
+    <input type="hidden" asp-for="Caller" />
+</form>
+
+
+
+
+@Html.Raw("</div>")
+
+@if (_lisB05 !=null && _lisB05.Count() > 0)
+{
+    <div style="padding:6px;">
+        <button type="button" class="btn btn-sm dropdown-toggle bog" onclick="toggle_history()">
+            @_f.tra("Historie")
+            <span class="badge-def">
+                @(_lisB05.Count())
+            </span>
+
+        </button>
+    </div>
+
+    <div id="history" style="display:none;">
+        @await Html.PartialAsync("~/Views/Shared/_lisB05.cshtml",_lisB05)
+    </div>
+
+}
+
+
+
+@if (Model.RecordEntity == "p91")
+{
+
+    <iframe id="fraPdfPreview" frameborder="0" style="width:100%;height:800px;" src="/p91/PdfPreview?pid=@Model.RecordPid" scrolling="auto"></iframe>
+
+}
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+    @if (Model.RecB06.b06GeoFlag == BO.b06GeoFlagEnum.LoadFromCurrentUser)
+    {
+        <text>
+                getLocation();
+        </text>
+    }
+
+            $("#cmdMail").click(function () {
+                $("#divMail").toggle();
+            });
+
+            if (document.getElementById("fraPdfPreview"))
+            {
+                var offset = $("#fraPdfPreview").offset();
+                var fra=document.getElementById("fraPdfPreview");
+                $(fra).css("height", _device.innerHeight-offset.top-7);
+            }
+    })
+
+    function toggle_history() {
+        $("#history").toggle();
+    }
+
+    function b06id_onchange(b06id) {
+        _postback("b06id");
+    }
+
+
+    function getLocation() {
+        _notify_message("Načítám souřadnice polohy...", "info");
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(showPosition);
+        } else {
+            x.innerHTML = "Geolocation is not supported by this browser.";
+        }
+    }
+
+    function showPosition(position) {
+
+        $("#current_user_lon").val(position.coords.longitude);
+        $("#current_cuser_lat").val(position.coords.latitude);
+
+        showMap();
+    }
+
+
+    function showMap() {
+        _notify_message("Poloha: " + $("#current_user_lon").val() + " - " + $("#current_cuser_lat").val(), "info");
+        $("#mapa").css("display", "block");
+        var x = $("#current_user_lon").val();
+        var y = $("#current_cuser_lat").val();
+        document.getElementById("mapa").src = "https://frame.mapy.cz/turisticka?source=coor&id=" + x + "%2C" + y + "&ds=1&x=" + x + "&y=" + y + "&z=17";
+
+    }
+
+    function hardrefresh(pid, flag) {
+        location.replace(location.href);
+    }
+</script>

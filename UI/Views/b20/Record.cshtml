@@ -1,0 +1,254 @@
+﻿@model UI.Models.Record.b20Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Hlídač");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    Model.PageSymbol = "smart_toy";
+}
+
+@addTagHelper *, UI
+
+
+
+<div class="tabs_container_record">
+    <!-- Tab panes -->
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab1" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab1">@_f.tra("Karta záznamu")</a>
+        </li>
+        @if (Model.Rec.IsCyklus)
+        {
+            <li class="nav-item onetab" role="presentation">
+                <a id="link_tab2" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab2">@_f.tra("Notifikace")</a>
+            </li>
+
+
+            <li class="nav-item onetab" role="presentation">
+                <a id="link_tab3" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab3">SQL</a>
+            </li>
+        }
+
+    </ul>
+</div>
+
+
+<div class="modal_record_container">
+    <div class="tab-content">
+        <div class="tab-pane" id="tab1" role="tabpanel">
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Typ hlídače"):</label>
+                <div class="col-sm-9 col-md-8">
+                    <select asp-for="Rec.b20TypeFlag" class="form-select" onchange="_postback()">
+                        <option value="TestBySql">@_f.tra("Testování výsledku SQL dotazu")</option>
+                        <option value="ZmenaAdresy">@_f.tra("Testování změny adresy sídla kontaktu")</option>
+                        <option value="Insolvence">@_f.tra("Testování kontaktu v insolvenčním rejstříku")</option>
+                        <option value="WipFaHodinyZakazPrekrocit">Zákaz překročit objem rozpracovaných Fa hodin</option>
+                        <option value="WipFaHonorarZakazPrekrocit">Zákaz překročit objem honoráře z rozpracovaných Fa hodin</option>
+                        <option value="WipFaHodinyZdarma">Limit volných fakturovatelných hodin zdarma</option>
+                        <option value="WipFaHonorarZdarma">Limit fakturačního honoráře zdarma</option>
+
+                    </select>
+                </div>
+
+
+
+            </div>
+
+            <div class="row">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název pravidla"):</label>
+                <div class="col-sm-7 col-md-6">
+                    <input class="form-control" asp-for="Rec.b20Name" />
+                </div>
+                <label class="col-sm-1 col-md-1 col-form-label">@_f.tra("Index pořadí"):</label>
+                <div class="col-sm-1 col-md-1">
+                    <mynumber asp-for="Rec.b20Ordinary" decimal-digits="0"></mynumber>
+                </div>
+            </div>
+
+
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Entita"):</label>
+                <div class="col-sm-4 col-md-3">
+                    <select asp-for="Rec.b20Entity" class="form-select" onchange="_postback()">
+                        <option value="p28">@_f.tra("Kontakt")</option>
+                        <option value="p41">@_f.tra("Projekt")</option>
+                        <option value="p56">@_f.tra("Úkol")</option>
+                        <option value="p91">@_f.tra("Vyúčtování")</option>
+                        <option value="o23">@_f.tra("Dokument")</option>
+                        <option value="p90">@_f.tra("Záloha")</option>
+                        <option value="j02">@_f.tra("Uživatel")</option>
+                        <option value="x01">@_f.tra("Systém")</option>
+                    </select>
+                </div>
+                <label class="col-sm-2 col-md-2 col-form-label">@_f.tra("Vlastní název pro entitu"):</label>
+                <div class="col-sm-3 col-md-3">
+                    <input class="form-control" asp-for="Rec.b20EntityAlias" />
+                </div>
+            </div>
+
+
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název parametru") #1:</label>
+                <div class="col-sm-5 col-md-5">
+                    <input class="form-control" asp-for="Rec.b20Par1Name" />
+                </div>
+            </div>
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název parametru") #2:</label>
+                <div class="col-sm-5 col-md-5">
+                    <input class="form-control" asp-for="Rec.b20Par2Name" />
+                </div>
+            </div>
+
+            @if (Model.Rec.IsCyklus)
+            {
+                <div class="card">
+                    <div class="card-header">
+                        Jak často a kdy spouštět testování?
+                    </div>
+                    <div class="card-body">
+                        <div class="row my-2">
+                            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Testovat pravidelně každých"):</label>
+                            <div class="col-sm-1 col-md-1">
+                                <mynumber asp-for="Rec.b20NextRunAfterMinutes" decimal-digits="0"></mynumber>
+                            </div>
+                            <div class="col-sm-1 col-md-1">
+                                minut
+                            </div>
+                        </div>
+                        <div class="row my-2">
+                            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Testovat v čase od"):</label>
+                            <div class="col-sm-2 col-md-2">
+                                <input class="form-control" asp-for="Rec.b20TestTimeFrom" />
+                            </div>
+                        </div>
+                        <div class="row my-2">
+                            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Testovat v čase do"):</label>
+                            <div class="col-sm-2 col-md-2">
+                                <input class="form-control" asp-for="Rec.b20TestTimeUntil" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+
+
+
+
+
+
+        </div>
+
+
+
+        @if (Model.Rec.IsCyklus)
+        {
+            <div class="tab-pane" id="tab2" role="tabpanel">
+
+                <div class="row my-2">
+                    <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Příjemci notifikace"):</label>
+                    <div class="col-sm-11 col-md-10">
+                        <input class="form-control" asp-for="Rec.b20NotifyReceivers" />
+                    </div>
+                </div>
+                <div class="row my-2">
+                    <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Notifikovat tým"):</label>
+                    <div class="col-sm-11 col-md-10">
+                        <mycombo entity="j11Team" asp-for="Rec.j11ID_Notify" selectedtext="@Model.ComboTeam" view-flag="2"></mycombo>
+                    </div>
+
+                </div>
+                <div class="row my-2">
+                    <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Notifikovat roli v záznamu") #1:</label>
+                    <div class="col-sm-11 col-md-10">
+                        <mycombo entity="x67EntityRole" myqueryinline="x67entity|string|@(Model.Rec.b20Entity)" asp-for="Rec.x67ID_Notify1" selectedtext="@Model.ComboRole1" view-flag="2"></mycombo>
+                    </div>
+
+                </div>
+                <div class="row my-2">
+                    <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Notifikovat roli v záznamu") #2:</label>
+                    <div class="col-sm-11 col-md-10">
+                        <mycombo entity="x67EntityRole" myqueryinline="x67entity|string|@(Model.Rec.b20Entity)" asp-for="Rec.x67ID_Notify2" selectedtext="@Model.ComboRole2" view-flag="2"></mycombo>
+                    </div>
+
+                </div>
+                <div class="row my-2">
+                    <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Úvodní text notifikační zprávy"):</label>
+                    <div class="col-sm-11 col-md-10">
+                        <textarea asp-for="@Model.Rec.b20NotifyMessage" class="form-control"></textarea>
+                    </div>
+                </div>
+
+                <div class="my-2">
+
+                    <input type="checkbox" asp-for="@Model.Rec.b20IsNotifyRecordOwner" />
+                    <label class="col-form-label" for="Rec_b20IsNotifyRecordOwner">@_f.tra("Notifikovat i vlastníka záznamu")</label>
+                </div>
+
+
+
+            </div>
+
+            <div class="tab-pane" id="tab3" role="tabpanel">
+
+                <div class="card">
+                    <div class="card-header">
+                        SQL dotaz testující splnění podmínky pro vyvolání události v záznamu
+                    </div>
+                    <div class="card-body">
+                        <div>
+                            Pokud SQL vrací nějaký záznam, dojde k vyvolání události.
+                            Pokud se hodnota výsledku SQL dotazu v čase změní, dojde opět k vyvolání události.
+                        </div>
+                        <textarea asp-for="@Model.Rec.b20TestSql" class="form-control" placeholder="sql"></textarea>
+
+
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        Spustit SQL po vyvolání události
+                    </div>
+                    <div class="card-body">
+
+                        <textarea asp-for="@Model.Rec.b20RunSql" class="form-control" placeholder="sql"></textarea>
+
+                    </div>
+                </div>
+
+            </div>
+        }
+
+
+        
+    </div>
+
+</div>
+
+
+
+
+
+<script type="text/javascript">
+    var _typ = "@Model.Rec.b20TypeFlag";
+    $(document).ready(function () {
+
+
+        if (_typ != "TestBySql") {
+            $("#tab3").css("display", "none");
+        }
+
+        if (_typ != "TestBySql") {
+            $("#tab3").css("display", "none");
+        }
+
+    });
+
+
+
+
+</script>
+

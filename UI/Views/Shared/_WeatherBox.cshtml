@@ -1,0 +1,160 @@
+﻿@model UI.Models.Tab1.BaseTab1ViewModel
+
+@inject BL.Factory _f
+
+@{
+
+
+    if (Model == null)
+    {
+        return;
+    }
+
+    BO.j95GeoWeatherLog _rec = _f.p15LocationBL.LoadWeatherRec(Model.prefix, Model.pid);
+
+
+}
+
+<div class="card recpagebox400">
+    <div class="card-body">
+        @if (Model.prefix =="p15" && (_rec == null || _rec.j95Date.AddMinutes(5) < DateTime.Now))
+        {
+            <div>
+                <button type="button" onclick="append2log()" class="btn btn-outline-primary">
+                    @_f.tra("Načíst aktuální data o lokálním počasí")
+                </button>
+            </div>
+        }
+
+        @if (_rec != null)
+        {
+            <table class="table table-hover">
+
+                <tr>
+                    <td class="tdlab">
+                        @_f.tra("Čas"):
+                    </td>
+                    <td class="tdval tddatum">
+                        @BO.Code.Bas.ObjectDateTime2String(_rec.j95Date)
+                        <i style="margin-left:6px;">@(_rec.j95Location)</i>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td class="tdlab">
+                        @_f.tra("Teplota"):
+                    </td>
+                    <td class="tdval">
+                        @(BO.Code.Bas.Number2String(_rec.j95Temp))
+                        <span>℃</span>
+                        @if (_rec.j95TempFeelsLike != _rec.j95Temp)
+                        {
+                            <span style="margin-left:6px;">@_f.tra("pocitová"):</span>
+                            @(BO.Code.Bas.Number2String(_rec.j95TempFeelsLike))
+                            <span>℃</span>
+                        }
+
+                    </td>
+                </tr>
+                @if (_rec.j95TempMax != _rec.j95Temp || _rec.j95TempMin != _rec.j95Temp)
+                {
+                    <tr>
+                        <td class="tdlab">
+                            @_f.tra("Teplota min-max"):
+                        </td>
+                        <td class="tdval">
+                            @(BO.Code.Bas.Number2String(_rec.j95TempMin))
+                            <span>℃</span>
+                            <code style="margin-left:6px;margin-right:6px;">x</code>
+                            @(BO.Code.Bas.Number2String(_rec.j95TempMax))
+                            <span>℃</span>
+                        </td>
+                    </tr>
+                }
+
+                <tr>
+                    <td class="tdlab">
+                        @_f.tra("Vítr"):
+                    </td>
+                    <td class="tdval">
+                        @(BO.Code.Bas.Number2String(_rec.j95WindSpeed))
+                        <span>m/s</span>
+                        @if (_rec.j95WindGust > 0)
+                        {
+                            <span style="margin-left:6px;">@_f.tra("poryvy"):</span>
+                            @(BO.Code.Bas.Number2String(_rec.j95WindGust))
+                            <span>m/s</span>
+                        }
+
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>
+                        <img src="@(_rec.IconUrl)" />
+                        <strong style="margin-left:10px;">@(_rec.j95Description)</strong>                        
+                        
+                    </td>
+                    <td>
+                        <table>
+                            <tr>
+                                <td>
+                                    @_f.tra("Vlhkost"):
+                                </td>
+                                <td class="tdval">
+                                    @(_rec.j95Humidity)
+                                    <span>%</span>
+                                </td>
+                            </tr>
+                            @if(_rec.j95Visibility !=10000)
+                            {
+                                <tr>
+                                    <td>
+                                        @_f.tra("Viditelnost"):
+                                    </td>
+                                    <td class="tdval">
+                                        @(_rec.j95Visibility)
+                                        <span>m</span>
+                                    </td>
+                                </tr>
+                            }
+                            
+                            <tr>
+                                <td>
+                                    @_f.tra("Tlak"):
+                                </td>
+                                <td class="tdval">
+                                    @(_rec.j95Pressure)
+                                    <span>hPa</span>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                
+            </table>
+        }
+
+
+
+    </div>
+</div>
+
+
+
+<script type="text/javascript">
+
+    function append2log() {
+        _notify_message("Loading...", "info");
+        $.post("/p15/AppendWeatherLog", { record_prefix: "@(Model.prefix)", record_pid: @(Model.pid) }, function (data) {
+
+            if (!data.issuccess) {
+                alert(data.message);
+                return;
+            }
+
+            location.replace(location.href);
+
+        });
+    }
+</script>

@@ -1,0 +1,203 @@
+﻿@model UI.Models.p31approve.GridViewModel
+@inject BL.Factory _f
+
+@{
+
+
+}
+
+@addTagHelper *, UI
+
+<input type="hidden" asp-for="Rec.pid" value="@Model.Rec.pid" />
+<input type="hidden" asp-for="Rec.p33id" />
+
+<i id="recNadpis">@_f.tra("Vyberte záznam v přehledu")</i>
+@Html.Raw("<div id='tabRecord' style='display:none;'>")
+<div>
+    <p></p>
+    <input type="radio" id="chkp71ID_1" asp-for="Rec.p71id" value="1" onchange="handle_rec_change()" />
+    <label style="font-size:80%;" for="chkp71ID_1">@_f.tra("Schváleno")</label>
+    <input type="radio" id="chkp71ID_2" asp-for="Rec.p71id" value="2" onchange="handle_rec_change()" style="margin-left:5px;" />
+    <label style="font-size:80%;" for="chkp71ID_2">@_f.tra("Neschváleno")</label>
+    <input type="radio" id="chkp71ID_0" asp-for="Rec.p71id" value="0" onchange="handle_rec_change()" style="margin-left:5px;" />
+    <label style="font-size:80%;" for="chkp71ID_0">@_f.tra("Rozpracováno")</label>
+    <p></p>
+</div>
+
+<div class="row p-0">
+    <div class="col-auto" id="trP72ID">
+        <input type="radio" id="chkp72ID_4" asp-for="Rec.p72id" value="4" onchange="handle_rec_change()" />
+        <label for="chkp72ID_4" class="badge-a4" style="width:117px;margin-bottom:2px;">@_f.tra("Fakturovat")</label>
+        <br />
+        <input type="radio" id="chkp72ID_7" asp-for="Rec.p72id" value="7" onchange="handle_rec_change()" />
+        <label for="chkp72ID_7" class="badge-a7" style="width:117px;margin-bottom:2px;">@_f.tra("Fakturovat později")</label>
+        <br />
+        <input type="radio" id="chkp72ID_6" asp-for="Rec.p72id" value="6" onchange="handle_rec_change()" />
+        <label for="chkp72ID_6" class="badge-a6" style="width:117px;margin-bottom:2px;">@_f.tra("Zahrnout do paušálu")</label>
+        <br />
+        <input type="radio" id="chkp72ID_2" asp-for="Rec.p72id" value="2" onchange="handle_rec_change()" />
+        <label for="chkp72ID_2" class="badge-a2" style="width:117px;margin-bottom:2px;">@_f.tra("Viditelný odpis")</label>
+        <br />
+        <input type="radio" id="chkp72ID_3" asp-for="Rec.p72id" value="3" onchange="handle_rec_change()" />
+        <label for="chkp72ID_3" class="badge-a3" style="width:117px;">@_f.tra("Skrytý odpis")</label>
+    </div>
+    <div class="col-auto">
+        <button type="button" class="btn btn-primary" onclick="save_selected_temp_record()">
+            @_f.tra("Potvrdit změny")
+        </button>
+    </div>
+</div>
+
+<div class="row my-2">
+    <div class="col-auto">
+        <span class="val-readonly-wrap" id="Rec_Datum"></span>
+    </div>
+    <div class="col-auto">
+        <span class="val-readonly-wrap" id="Rec_Jmeno"></span>
+    </div>
+</div>
+
+<div id="trPopis" class="my-2">
+    <textarea class="form-control" id="Rec_Popis" style="overflow:auto !important;"></textarea>
+</div>
+
+
+
+
+<div id="trHodinyKFakturaci" data-p33id="1" class="input-group my-2">
+    <div style="width:140px;">
+        @_f.tra("Hodiny k fakturaci")
+        <span id="spanPuvodniHodiny4"></span>
+    </div>
+    <div style="width:130px;">
+        <myhours cssstyle="color:green;font-weight:bold;" asp-for="@Model.Rec.hodiny" showsettingbutton="true" hoursentryformat="@(_f.CurrentUser.j02DefaultHoursFormat)" hoursentryflag="@(_f.CurrentUser.j02HesBitStream)"></myhours>
+    </div>
+
+</div>
+
+<div id="trSazbaKFakturaci" data-p33id="1" class="input-group my-2">
+    <div style="width:140px;">
+        @_f.tra("Fakturační sazba")
+        <span id="j27code_sazba">:</span>
+    </div>
+    <div style="width:130px;">
+        <mynumber cssstyle="color:green;font-weight:bold;" asp-for="@Model.Rec.sazba"></mynumber>
+    </div>
+
+</div>
+
+@if (_f.CurrentUser.IsHes(32768))
+{
+    <div id="trHodinyVPausalu" data-p33id="1" class="input-group my-2">
+        <div style="width:140px;">
+            @_f.tra("Hodiny v paušálu")
+            <span id="spanPuvodniHodiny6"></span>
+        </div>
+        <div style="width:130px;color:black;">
+            <myhours cssstyle="background-color:pink;" asp-for="@Model.Rec.hodinypausal" showsettingbutton="true" hoursentryformat="@(_f.CurrentUser.j02DefaultHoursFormat)" hoursentryflag="@(_f.CurrentUser.j02HesBitStream)"></myhours>
+        </div>
+
+    </div>
+}
+
+
+<div id="trBezDph" data-p33id="25" class="input-group my-2">
+    <div style="width:140px;">
+        @_f.tra("K fakturaci")
+        <span id="j27code_bezdph">:</span>
+    </div>
+    <div style="width:130px;">
+        <mynumber cssstyle="color:green;font-weight:bold;" asp-for="@Model.Rec.bezdph"></mynumber>
+    </div>
+
+</div>
+
+<div id="trDphSazba" data-p33id="25" class="input-group my-2">
+    <div style="width:140px;">
+        @_f.tra("DPH sazba %"):
+    </div>
+    <div style="width:130px;">
+        <mynumber cssstyle="color:green;font-weight:bold;" asp-for="@Model.Rec.dphsazba"></mynumber>
+    </div>
+
+</div>
+
+
+
+
+<div class="input-group my-2">
+    <div style="width:140px;">
+        @_f.tra("Vykázáno"):
+    </div>
+    <div style="width:90px;">
+        <span class="val-readonly" id="Rec_Vykazano"></span>
+    </div>
+    <div style="width:70px;">
+        <span class="val-readonly" id="Rozdil_Vykazano" title="Rozdíl mezi vykázanou a schválenou hodnotou k fakturaci"></span>
+    </div>
+</div>
+
+<div id="trSazba" data-p33id="13" class="input-group my-2">
+    <div style="width:140px;">
+        @_f.tra("Výchozí fakt. sazba"):
+    </div>
+    <div style="width:90px;">
+        <span class="val-readonly" id="Rec_Sazba"></span>
+    </div>
+    <div style="width:70px;">
+        <span class="val-readonly" id="Rozdil_Sazba" title="Rozdíl mezi výchozí a schválenou sazbou"></span>
+    </div>
+</div>
+
+<div class="my-2" id="tdProjekt">
+    <span class="val-readonly-wrap" id="Rec_Projekt"></span>
+</div>
+
+<div class="my-2">
+    <span class="val-readonly-wrap" id="Rec_Aktivita"></span>
+</div>
+
+@if (_f.CurrentUser.IsHes(16384))
+{
+    <div id="trHodinyInterni" data-p33id="1" class="input-group my-2">
+        <div style="width:140px;">
+            @_f.tra("Interně schválené hodiny"):
+        </div>
+        <div style="width:130px;">
+            <myhours cssstyle="background-color:lavender;" asp-for="@Model.Rec.hodinyinterni" showsettingbutton="true" hoursentryformat="@(_f.CurrentUser.j02DefaultHoursFormat)" hoursentryflag="@(_f.CurrentUser.j02HesBitStream)"></myhours>
+        </div>
+
+    </div>
+}
+
+@if (_f.CurrentUser.IsHes(65536))
+{
+    <div id="trUrovenSchvalovani" class="input-group my-2">
+        <div style="width:140px;">
+            @_f.tra("Úroveň schvalování"):
+        </div>
+        <div style="width:130px;">
+            <select asp-for="@Model.Rec.uroven">
+                <option value="0">#0</option>
+                <option value="1">#1</option>
+                <option value="2">#2</option>
+            </select>
+        </div>
+
+    </div>
+}
+
+
+<div id="trUpravitZdrojovyUkon" class="my-2">
+    <a href="javascript:edit_source_rec()">@_f.tra("Upravit zdrojový záznam")</a>
+</div>
+<div class="my-2">
+    <span title="Čas vytvoření záznamu" id="timestamp_insert"></span>
+</div>
+<div class="my-2">
+    <span title="Čas poslední aktualizace záznamu" id="timestamp_update"></span>
+</div>
+
+
+
+@Html.Raw("</div>")

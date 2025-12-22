@@ -1,0 +1,204 @@
+﻿@model UI.Models.Tab1.p56Tab1
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+    if (Model.Rec == null) return;
+
+    bool _bolIsMobile = _f.CurrentUser.IsMobileDisplay();
+    string _strRecPage = "RecPage";
+    if (_bolIsMobile)
+    {
+        _strRecPage = "RecPageMobile";
+    }
+
+    UI.Models.Tab1.BaseTab1ViewModel _tabWeather = null;
+    if (Model.Rec.p15ID > 0)
+    {
+        _tabWeather = new UI.Models.Tab1.BaseTab1ViewModel() { prefix = "p15", pid = Model.Rec.p15ID };
+    }
+
+    var _NotepadLookAt = new UI.Models.Notepad.LookAtViewModel() { IsTab1 = true, prefix = "p56", pid = Model.Rec.pid, NotepadContent = Model.Rec.p56Notepad, x04ID = Model.Rec.x04ID };
+
+    IEnumerable<BO.b05Workflow_History> _lisB05 = _f.WorkflowBL.GetList_b05("p56", Model.pid, 0, 0, 0).Where(p => BO.Code.Bas.bit_compare_or(p.b05Tab1Flag, 2) == true);
+
+    IEnumerable<BO.p56Task> _lisP56 = null;
+    BO.p41Project _recP41 = null;
+    if (Model.Rec.p41ID > 0)
+    {
+        _recP41 = _f.p41ProjectBL.Load(Model.Rec.p41ID);
+        _lisP56 = _f.p56TaskBL.GetList(new BO.myQueryP56() { IsRecordValid = true, p41id = Model.Rec.p41ID, MyRecordsDisponible = true });
+    }
+
+    var _lisO24 = _f.o24ReminderBL.GetList("p56", Model.pid);
+
+    BO.TaggingHelper _tg = null;
+    if (Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.tags))
+    {
+        _tg = _f.o51TagBL.GetTagging("p56", Model.pid);
+    }
+}
+
+@addTagHelper *, UI
+@section header_content {
+
+
+    <link rel="stylesheet" href="/css/htmltable.css" />
+
+
+}
+
+
+@Html.Raw("<div class='info_record_container'>")
+
+@await Html.PartialAsync("~/Views/Shared/_Tab1ButtonSetting.cshtml", Model.prefix)
+
+
+
+@if (Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.recheader))
+{
+    <div class="card recpagebox400" id="divRecPageBox1">
+        <div class="card-body">
+            @await Html.PartialAsync("~/Views/Shared/_p56RecHeaderBox.cshtml", Model.Rec)
+
+            @Html.EditorFor(m => m.ff1, "~/Views/Shared/_FreeFieldsRO.cshtml")
+
+            @if (_tg != null && _tg.TagHtml != null)
+            {
+                @Html.Raw(_tg.TagHtml)
+
+
+            }
+
+            @Html.EditorFor(m => m.Rec, "~/Views/Shared/_TimeStamp.cshtml")
+        </div>
+    </div>
+
+}
+
+@Html.Raw("<div id='divTree1Container' style='float: left;vertical-align: top;border:none;margin-left:4px;margin-top:4px;'>")
+@Html.EditorFor(m => _lisO24, "~/Views/Shared/_o24TreeView.cshtml")
+@if (_lisP56 != null && _lisP56.Count() > 0)
+{
+    <ul class="mytreeview">
+        <li>
+            <a class="mytreeview-toggle-kontejner" onclick="_treeview_toggle(this,'tab1-p56-toggle-p41')">
+                <span class="material-icons-outlined-btn mytreeview-toggle-sipka">@(UI.Code.basKendoTreeViewSupport.Get_Arrow_LastState(_f, "tab1-p56-toggle-p41", "expanded"))</span>
+                <span class="material-icons-outlined-btn">work</span>
+                <a class="treeview-link" target="_top" href="/Record/@(_strRecPage)?prefix=p41&pid=@(Model.Rec.p41ID)">@(BO.Code.Bas.OM2(Model.Rec.ProjectWithClient, 25)) (@_lisP56.Count())</a>
+
+            </a>
+
+            <ul style="display:@(UI.Code.basKendoTreeViewSupport.Get_UL_LastState(_f,"tab1-p56-toggle-p41","expanded"))">
+                @foreach (var c in _lisP56)
+                {
+                    <li>
+                        @if (_f.CurrentUser.j04IsModule_p56)
+                        {
+
+                            <a id="p56@(c.pid)" class="treeview-link @(Model.pid==c.pid ? "active" : null)" target="_top" href="/Record/@(_strRecPage)?prefix=p56&pid=@(c.pid)">@(c.p56Name)</a>
+                        }
+                        else
+                        {
+                            <small>@(BO.Code.Bas.OM2(c.p56Name, 25))</small>
+                        }
+                        @if (c.b02Color != null)
+                        {
+                            <small class="tecka-vedle">
+                                @(c.b02Name)
+                                <small class="dot" style="background-color:@c.b02Color"></small>
+                            </small>
+                        }
+                        else
+                        {
+                            <small>
+                                @(c.b02Name)
+                            </small>
+                        }
+                        
+                        
+
+                    </li>
+                }
+
+            </ul>
+
+        </li>
+    </ul>
+}
+@Html.Raw("</div>")
+
+@if (_f.CurrentUser.IsRatesAccess && 1==2)
+{
+    @Html.Raw("<div class='card' id='divRecBillingBox' style='float: left;vertical-align: top;margin-left:4px;margin-top:4px;'>")
+    <div class="card-body">
+        @await Html.PartialAsync("~/Views/Shared/_p56RecBillingBox.cshtml", Model.Rec)
+    </div>
+    @Html.Raw("</div>")
+}
+
+
+
+@if (Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.quickstat) && Model.Rec.p41ID > 0 && _f.CBL.LoadUserParamBool($"p56-quickstat-immediately", false))
+{
+    <div class="card recpageboxauto">
+        <div class="card-body">
+            @await Html.PartialAsync("~/Views/Shared/_TabStat.cshtml", Model)
+
+        </div>
+    </div>
+
+}
+
+
+
+@if (Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.o27list))
+{
+    @Html.EditorFor(m => m, "~/Views/Shared/_lisO27Tab1.cshtml")
+}
+
+@if (_tabWeather != null)
+{
+    @await Html.PartialAsync("~/Views/Shared/_WeatherBox.cshtml", _tabWeather)
+}
+
+@Html.Raw("</div>")
+
+<div style="clear:both;"></div>
+@if (Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.notepad))
+{
+    @Html.EditorFor(m => _NotepadLookAt, "~/Views/Shared/_NotepadRO.cshtml")
+}
+
+@if (_lisB05.Count() > 0)
+{
+    @await Html.PartialAsync("~/Views/Shared/_lisB05.cshtml", _lisB05)
+}
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        if (document.getElementById("divRecPageBox1")) {
+            _adjust_divheight_small_display("divRecPageBox1");
+        }
+
+        if (document.getElementById("divTree1Container")) {
+
+
+            _adjust_divheight_small_display("divTree1Container");
+
+            $("#divTree1Container").animate(
+                {
+                    scrollTop: $("#p56@(Model.pid)").offset().top - $("#divTree1Container").offset().top,
+                },
+                250
+            );
+
+        }
+
+
+    });
+
+</script>

@@ -1,0 +1,680 @@
+﻿@model UI.Models.Home.MyProfileViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Můj profil");
+
+    Layout = _f.CurrentUser.GetLayoutPerDisplay();
+
+    
+}
+
+
+
+@addTagHelper *, UI
+
+<script src="/lib/qrcode/qrcode.min.js"></script>
+
+<div class="tabs_container_record">
+    <!-- Tab panes -->
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab1" class="nav-link active" data-bs-toggle="tab" role="tab" href="#tab1">
+                <myicon prefix="j02"></myicon>
+                @_f.CurrentUser.FullNameAsc
+            </a>
+        </li>
+
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab2" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab2">
+                <myicon symbol="email"></myicon>
+                @_f.tra("Poštovní účty")
+            </a>
+        </li>
+
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab3" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab3">
+                <myicon symbol="search"></myicon>
+                Searchbox
+            </a>
+        </li>
+
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab4" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab4">Browser</a>
+        </li>
+
+        
+    </ul>
+
+
+</div>
+
+<div class="modal_record_container">
+    <div class="tab-content">
+        <div class="tab-pane active" id="tab1" role="tabpanel">
+            <form id="form1" asp-controller="Home" asp-action="MyProfile" method="POST">
+                <input type="hidden" asp-for="SearchboxJ02" />
+                <input type="hidden" asp-for="SearchboxP41" />
+                <input type="hidden" asp-for="SearchboxP28" />
+                <input type="hidden" asp-for="SearchboxP56" />
+                <input type="hidden" asp-for="SearchboxP32" />
+                <input type="hidden" asp-for="SearchboxP91" />
+
+                <div class="btn-group">
+                    <div>
+                        <button type="submit" class="btn btn-success">@_f.tra("Uložit změny")</button>
+                    </div>
+                    <div style="margin-left:20px;">
+                        <a class="btn bog dropdown-toggle" data-bs-toggle="collapse" id="cmdKdoJsem" role="button" aria-expanded="false">
+                            <myicon symbol="more_horiz"></myicon>
+                        </a>
+                    </div>
+                    <div style="margin-left:20px;">
+
+                        <button class="btn bog" type="button" onclick="_window_open('/p31hes/Index', 3);"><span class="material-icons-outlined-btn menu_new_record">more_time</span> @_f.tra("Moje předvolby pro vykazování a schvalování")</button>
+                    </div>
+                   
+                    <div style="margin-left:20px;">
+                       
+                        <button class="btn bog" type="button" onclick="_window_open('/icalgen/Index', 3);"><mark>iCal</mark> @_f.tra("Integrace s Google/Outlook kalendářem")</button>
+                    </div>
+
+                    <div style="margin-left:20px;display:none;">
+
+                        <button class="btn bog" type="button" onclick="_news()"><span class="material-icons-outlined-btn" style="color:skyblue;">brand_awareness</span> @_f.tra("Novinky | Blog")</button>
+                    </div>
+                </div>
+
+                @Html.EditorFor(m => Model.RecJ02, "~/Views/Shared/_j02MyProfile.cshtml")
+
+                <div class="row mt-4">
+                    <label class="col-sm-1 col-md-2 col-form-label"><myicon symbol="alternate_email"></myicon>E-mail:</label>
+                    <div class="col-sm-11 col-md-10">
+                        <input class="form-control" asp-for="RecJ02.j02Email" />
+
+                    </div>
+                </div>
+
+                <div class="row my-2">
+                    <label class="col-sm-1 col-md-2 col-form-label"><myicon symbol="phone_iphone"></myicon>@_f.tra("Mobilní telefon"):</label>
+                    <div class="col-sm-11 col-md-10">
+
+                        <input class="form-control" asp-for="RecJ02.j02Mobile" />
+                    </div>
+
+                </div>
+
+                <div class="my-2">
+                    <textarea class="form-control" asp-for="RecJ02.j02EmailSignature" placeholder="Podpis pro e-mail zprávy"></textarea>
+
+                </div>
+
+                <div class="row my-2">
+                    <label class="col-sm-1 col-md-2 col-form-label">
+                        @_f.tra("Automatické vyplňování formulářů")
+                        <mytooltip text="Zda v modálních oknech povolit/zakázat funcki [Autocomplete].<hr>Html atribut autocomplete off/on."></mytooltip>
+                        </label>
+                    <div class="col-sm-6 col-md-5">
+                        <select asp-for="RecJ02.j02AutocompleteFlag" class="form-select">
+                            <option value="0">@_f.tra("Vypnuto")</option>
+                            <option value="1">@_f.tra("Zapnuto")</option>                            
+                        </select>
+
+                    </div>
+                   
+                </div>
+
+
+                <div class="row my-2 nonmobile">
+                    <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Detekce mobilních zařízení"):</label>
+                    <div class="col-sm-6 col-md-5">
+                        <select asp-for="RecJ02.j02ModalWindowsFlag" class="form-select">
+                            <option value="Default">@_f.tra("Nechat rozhodnutí na systému")</option>
+                            <option value="FullScreen">@_f.tra("Nechat rozhodnutí na systému + okna na celou obrazovku")</option>
+                            <option value="KeepMobileUI">@_f.tra("Vždy mobilní rozhraní")</option>
+                            <option value="KeepDesktopUI">@_f.tra("Vždy desktop rozhraní")</option>
+                        </select>
+
+                    </div>
+
+                </div>
+
+
+
+
+                <div class="row my-2">
+                    <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Přijímat e-mail notifikace?"):</label>
+                    <div class="col-sm-6 col-md-5">
+                        <select asp-for="@Model.RecJ02.j02NotifySubscriberFlag" class="form-control">
+                            <option value="0">@_f.tra("Nechť mi systém odesílá e-mail notifikace")</option>
+                            <option value="1">@_f.tra("Odhlašuji se z e-mail notfikací")</option>
+
+                        </select>
+
+                    </div>
+                </div>
+
+
+
+                <div class="card" style="margin-top:40px;">
+                    <div class="card-header">
+                        <myicon symbol="palette"></myicon>
+                        Barvy mého ekosystému
+                    </div>
+                    <div class="card-body">
+
+                        <div class="input-group">
+                            <div>
+                                <table>
+                                    <tr>
+                                        <td>
+                                            <label>@_f.tra("Změnit barvu pozadí"):</label>
+                                        </td>
+                                        <td>
+                                            <input type="color" asp-for="@Model.RecJ02.j02SkinBackColor" value="@Model.RecJ02.j02SkinBackColor" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <label>@_f.tra("Změnit barvu písma"):</label>
+                                        </td>
+                                        <td>
+                                            <input type="color" asp-for="@Model.RecJ02.j02SkinForeColor" value="@Model.RecJ02.j02SkinForeColor" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <label>@_f.tra("Změnit active barvu"):</label>
+                                        </td>
+                                        <td>
+                                            <input type="color" asp-for="@Model.RecJ02.j02SkinSelColor" value="@Model.RecJ02.j02SkinSelColor" />
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div>
+                                <div class="dropdown">
+                                    <button class="btn dropdown-toggle bog" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        @_f.tra("Pojmenované kombinace barev")
+                                    </button>
+                                    <ul class="dropdown-menu" style="columns: 2;">
+                                        <li><a class="dropdown-item" href="javascript:setskin('#0b4b92','#4169e1','#ffffff')">Tovární barvy MT7</a></li>
+                                        <li><a class="dropdown-item" href="javascript:setskin('#2D89EF','#808080','#FFFFFF')">MT6</a></li>
+                                        <li><a class="dropdown-item" href="javascript:setskin('#3C7BC9','#6f9fd8','#FFFFFF')">Little Boy Blue</a></li>
+                                        <li><a class="dropdown-item" href="javascript:setskin('#7D7B33','#9C9A40','#FFFFFF')">Golden Lime</a></li>
+                                        <li><a class="dropdown-item" href="javascript:setskin('#008373','#00A591','#FFFFFF')">Arcadia</a></li>
+                                        <li><a class="dropdown-item" href="javascript:setskin('#3D5676','#4C6A92','#FFFFFF')">Riverside</a></li>
+                                        <li><a class="dropdown-item" href="javascript:setskin('#457087','#578ca9','#FFFFFF')">Niagara</a></li>
+                                        <li><a class="dropdown-item" href="javascript:setskin('#CAC0A1','#EAE6DA','#000000')">Tofu</a></li>
+                                        <li><a class="dropdown-item" href="javascript:setskin('#5BCBD3','#95DEE3','#000000')">Island Paradise</a></li>
+                                        <li><a class="dropdown-item" href="javascript:setskin('#F43B26','#F7786B','#FFFFFF')">Peach Echo</a></li>
+                                        <li><a class="dropdown-item" href="javascript:setskin('#BA2B1E','#dd4132','#FFFFFF')">Fiesta</a></li>
+                                        <li><a class="dropdown-item" href="javascript:setskin('#E9AB18','#efc050','#000000')">Mimosa</a></li>
+                                        <li><a class="dropdown-item" href="javascript:setskin('#5E5845','#766f57','#FFFFFF')">Martini Olive</a></li>
+                                        <li><a class="dropdown-item" href="javascript:setskin('#564977','#6b5b95','#FFFFFF')">Ultra Violet</a></li>
+
+                                        <li><a class="dropdown-item" href="javascript:setskin('#944743','#763835','#FFFFFF')">Chilli Oil</a></li>
+                                        <li><a class="dropdown-item" href="javascript:setskin('#8F9397','#b4b7ba','#FFFFFF')">Harbor Mist</a></li>
+                                        <li><a class="dropdown-item" href="javascript:setskin('#6E7271','#898e8c','#FFFFFF')">Neutral Gray</a></li>
+                                        <li><a class="dropdown-item" href="javascript:setskin('#93714D','#b18f6a','#FFFFFF')">Iced Coffe</a></li>
+                                        <li><a class="dropdown-item" href="javascript:setskin('#663538','#7f4145','#FFFFFF')">Red Pear</a></li>
+                                        <li><a class="dropdown-item" href="javascript:setskin('#B89228','#d5ae41','#000000')">Ceylon Yellow</a></li>
+                                        <li><a class="dropdown-item" href="javascript:setskin('#C36019','#e47a2e','#000000')">Russet Orange</a></li>
+                                        <li><a class="dropdown-item" href="javascript:setskin('#005A58','#006e6d','#FFFFFF')">Quetzal Green</a></li>
+
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </form>
+
+
+            @if (!_f.CurrentUser.IsMobileDisplay())
+            {
+                <div class="card" style="margin-top:40px;">
+                    <div class="card-header">
+                        <myicon symbol="menu"></myicon>
+                        @_f.tra("MENU odkazy")
+                    </div>
+                    <div class="card-body">
+                        <button type="button" id="cmdDefaultMenuLinks" class="btn btn-sm bog">@_f.tra("Nahodit MENU do továrního (výchozího) stavu")</button>
+                        <button type="button" id="cmdClearMenuLinks" class="btn btn-sm btn-outline-danger" style="margin-left:40px;">@_f.tra("Vyčistit MENU odkazy")</button>
+
+                    </div>
+                </div>
+            }
+
+            <div class="card" style="margin-top:40px;display:none;">
+                <div class="card-header">
+                    <myicon symbol="phone_iphone"></myicon>
+                    @_f.tra("Rozhraní pro mobilní zařízení")
+                </div>
+                <div class="card-body">
+                    <i>@_f.tra("Url pro mobilní zařízení"):</i>
+                    <div id="qrcode1"></div>
+                </div>
+            </div>
+
+            <div class="card" style="margin-top:40px;">
+                <div class="card-header">
+                    <myicon symbol="cached"></myicon>
+                    Server cache
+                </div>
+                <div class="card-body">
+                    <button type="button" id="cmdClearParams" class="btn btn-sm btn-outline-danger">@_f.tra("Vyčistit paměť uživatelského profilu")</button>
+                    <i>
+                        @_f.tra("Aplikace si ukládá naposledy vybrané záznamy, používané tiskové sestavy,searchbox sloupce, rozložení panelů apod.")
+                    </i>
+                </div>
+            </div>
+
+
+
+        </div>
+
+
+        <div class="tab-pane" id="tab2" role="tabpanel">
+            <button type="button" id="cmdAddJ40" class="btn btn-sm bog">@_f.tra("Přidat poštovní účet")</button>
+            
+            <p></p>
+            <table class="table table-hover">
+                @foreach (var c in Model.lisJ40)
+                {
+                    <tr>
+                        <td>
+                            <a class="btn btn-sm bog" href="javascript:_edit('j40',@c.pid)">@_f.tra("Upravit")</a>
+                        </td>
+                        @if (c.isclosed)
+                        {
+                            <td class="closed_item">
+                                @c.UsageAlias
+                            </td>
+                            <td class="closed_item">
+                                @c.Name
+                            </td>
+
+                        }
+                        else
+                        {
+                            <td>
+                                @c.UsageAlias
+                            </td>
+                            <td>
+                                @c.Name
+                            </td>
+
+                        }
+
+
+
+                    </tr>
+                }
+            </table>
+        </div>
+
+        <div class="tab-pane" id="tab3" role="tabpanel">
+
+            <code>[Searchbox] je ovládací prvek, kterým uživatel vyhledává záznam.</code>
+
+            
+
+            <table class="table table-hover">
+                <tr>
+                    <th style="max-width:70px;"></th>
+
+                    <th></th>
+                </tr>
+                <tr>
+                    <td>
+                        <button type="button" class="btn btn bog" onclick="grid_designer('j02')">
+                            <mark>Searchbox</mark>
+                            @_f.tra("Uživatel")
+
+                        </button>
+                    </td>
+                    <td>
+
+
+                        @foreach (var col in Model.lisSearchboxJ02)
+                        {
+                            <span class="badge-def" style="margin-left:10px;">
+                                @col.Header
+                            </span>
+
+
+
+                        }
+
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <button type="button" class="btn btn bog" onclick="grid_designer('p41')">
+                            <mark>Searchbox</mark>
+                            @_f.tra("Projekt")
+
+                        </button>
+                    </td>
+                    <td>
+                        @foreach (var col in Model.lisSearchboxP41)
+                        {
+                            <span class="badge-def" style="margin-left:10px;">
+                                @col.Header
+                            </span>
+                        }
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <button type="button" class="btn btn bog" onclick="grid_designer('p28')">
+                            <mark>Searchbox</mark>
+                            @_f.tra("Kontakt")
+
+                        </button>
+                    </td>
+                    <td>
+                        @foreach (var col in Model.lisSearchboxP28)
+                        {
+                            <span class="badge-def" style="margin-left:10px;">
+                                @col.Header
+                            </span>
+                        }
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <button type="button" class="btn btn bog" onclick="grid_designer('p32')">
+                            <mark>Searchbox</mark>
+                            @_f.tra("Aktivita")
+
+                        </button>
+                    </td>
+                    <td>
+                        @foreach (var col in Model.lisSearchboxP32)
+                        {
+                            <span class="badge-def" style="margin-left:10px;">
+                                @col.Header
+                            </span>
+                        }
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <button type="button" class="btn btn bog" onclick="grid_designer('p56')">
+                            <mark>Searchbox</mark>
+                            @_f.tra("Úkol")
+
+                        </button>
+                    </td>
+                    <td>
+                        @foreach (var col in Model.lisSearchboxP56)
+                        {
+                            <span class="badge-def" style="margin-left:10px;">
+                                @col.Header
+                            </span>
+                        }
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <button type="button" class="btn btn bog" onclick="grid_designer('p91')">
+                            <mark>Searchbox</mark>
+                            @_f.tra("Vyúčtování")
+
+                        </button>
+                    </td>
+                    <td>
+                        @foreach (var col in Model.lisSearchboxP91)
+                        {
+                            <span class="badge-def" style="margin-left:10px;">
+                                @col.Header
+                            </span>
+                        }
+                    </td>
+                </tr>
+            </table>
+
+
+
+            <div class="row my-2">
+                <label class="col-sm-2 col-md-3 col-form-label">
+                    @_f.tra("Maximum najednou zobrazených záznamů")
+
+                </label>
+                <div class="col-sm-1 col-md-1">
+                    <select asp-for="SearchboxTopRecs" class="form-select">
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                        <option value="150">150</option>
+                        <option value="200">200</option>
+                    </select>
+
+                </div>
+                <div class="col-auto">
+                    <mytooltip text="Kolik záznamů se může najednou zobrazit v combo nabídce. Výchozí hodnota je 50 záznamů."></mytooltip>
+                </div>
+            </div>
+
+
+
+
+
+
+        </div>
+
+        <div class="tab-pane" id="tab4" role="tabpanel">
+
+
+            <table>
+                <tr>
+                    <td>
+                        Device:
+                    </td>
+                    <td>
+                        <span id="infoMobile"></span> @Model.client_info.Device.Family
+
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        OS:
+                    </td>
+                    <td>
+                        @Model.client_info.OS.Family @Model.client_info.OS.Major
+
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Browser:
+                    </td>
+                    <td>
+                        @Model.client_info.UA.Family @Model.client_info.UA.Major
+                    </td>
+                </tr>
+
+                <tr>
+                    <td>
+                        Avail resolution:
+                    </td>
+                    <td>
+                        <span id="infoAvailResolution"></span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        Inner resolution:
+                    </td>
+                    <td>
+                        <span id="infoInnerResolution"></span>
+                    </td>
+                </tr>
+
+            </table>
+            <hr />
+            <span>@Model.userAgent</span>
+        </div>
+    </div>
+
+
+</div>
+
+
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+        
+
+        $("#infoAvailResolution").text(_device.availWidth + " x " + _device.availHeight);
+        $("#infoInnerResolution").text(_device.innerWidth + " x " + _device.innerHeight);
+        $("#infoMobile").text(_device.type);
+
+
+        $("#cmdKdoJsem").click(function () {
+            $("#kdojsem").toggle();
+        });
+
+
+        $('a[data-bs-toggle="tab"]').on("shown.bs.tab", function (e) {
+
+
+
+        })
+
+        $("#SearchboxTopRecs").change(function () {
+            $.post("/Common/SetUserParam", { key: "searchbox-toprecs", value: $(this).val() }, function (data) {
+                _postback("reload");
+            });
+        });
+
+        $("#cmdAddJ40").click(function () {
+
+            _window_open("/j40/Record?pid=0", 1);
+        });
+
+        _mainmenu_highlight_current("cmdme");
+
+        $("#cmdDefaultMenuLinks").click(function () {
+            if (confirm("@_f.tra("Opravdu resetovat MENU odkazy do výchozího stavu?")")) {
+                _postback("resetmenu");
+
+            }
+
+        });
+        $("#cmdClearMenuLinks").click(function () {
+            if (confirm("@_f.tra("Opravdu vyčistit MENU odkazy?")")) {
+                _postback("clearmenu");
+
+            }
+
+        });
+
+        $("#cmdClearParams").click(function () {
+            if (confirm("@_f.tra("Opravdu vyčištit servech cache?")")) {
+                $(this).text("Processing...");
+                $(this).attr("disabled", true);
+                form1.action = "/Home/MyProfile?oper=clearparams";
+                form1.submit();
+            }
+
+        });
+
+        var qrcode = new QRCode("qrcode1", {
+            text: location.href,
+            width: 128,
+            height: 128,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
+
+        _resize_textareas();
+    });
+
+
+    function setskin(bgcolor, selcolor, forecolor) {
+        bgcolor = bgcolor.replace("#", "");
+        forecolor = forecolor.replace("#", "");
+        selcolor = selcolor.replace("#", "");
+        form1.action = "/Home/MyProfile?oper=skin&bgcolor=" + bgcolor + "&forecolor=" + forecolor + "&selcolor=" + selcolor;
+        form1.submit();
+    }
+
+   
+
+</script>
+
+
+
+
+
+
+
+
+
+<script type="text/javascript">
+
+    var _prefix_grid_designer = "";
+
+    $(document).ready(function () {
+
+        $("#infoAvailResolution").text(_device.availWidth + " x " + _device.availHeight);
+        $("#infoInnerResolution").text(_device.innerWidth + " x " + _device.innerHeight);
+        $("#infoMobile").text(_device.type);
+
+
+
+
+
+        $('a[data-bs-toggle="tab"]').on("shown.bs.tab", function (e) {
+
+            tg_adjust_for_screen();
+
+        })
+
+        $("#cmdAddJ40").click(function () {
+
+            _window_open("/j40/Record?pid=0", 1);
+        });
+
+        _mainmenu_highlight_current("cmdme");
+
+        
+
+        _resize_textareas();
+    });
+
+
+    function grid_designer(prefix) {
+        _prefix_grid_designer = prefix;
+
+        var cols = $("#Searchbox" + prefix.toUpperCase()).val();
+
+        _window_open("/TheGridDesigner?prefix=" + prefix + "&cols=" + cols);
+
+
+
+    }
+
+    function reload_after_griddesigner(pid, cols) {
+        $("#Searchbox" + _prefix_grid_designer.toUpperCase()).val(cols);
+
+        var key = "searchbox-" + _prefix_grid_designer;
+
+        $.post("/Common/SetUserParam", { key: key, value: cols }, function (data) {
+            _postback("searchbox");
+        });
+
+
+
+    }
+
+    
+</script>
+
+

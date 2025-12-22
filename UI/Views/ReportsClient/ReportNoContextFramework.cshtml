@@ -1,0 +1,206 @@
+﻿@model UI.Models.ReportNoContextFrameworkViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+
+}
+
+<style>
+    :root {
+        --topbar-h: 76px;
+        --left-panel-w: 360px;
+    }
+
+    #reportsPanel.offcanvas-start {
+        width: var(--left-panel-w);
+    }
+
+
+    /* pravý panel */
+    .report-area {
+        height: calc(100vh - var(--topbar-h));
+        margin-left: 0;
+        transition: margin-left .25s ease;
+    }
+
+    /* push efekt (jen když chceš) */
+    body.offcanvas-push .report-area {
+        margin-left: var(--left-panel-w);
+    }
+
+    /* iframe vyplní panel */
+    #fra1 {
+        width: 100%;
+        height: 100%;
+        border: 0;
+        display: block;
+    }
+
+    a.replink {
+        margin-bottom: 4px;
+        margin-top: 4px;
+        padding: 5px;
+        border-bottom: dashed 1px silver;
+    }
+
+        a.replink:hover {
+            background-color: var(--oznaceno);
+            color: var(--popredi);
+        }
+
+    .oznaceno {
+        background-color: var(--oznaceno) !important;
+        color: var(--popredi) !important;
+        border: solid 1px var(--oznaceno) !important;
+    }
+</style>
+
+
+@addTagHelper *, UI
+
+<div class="row align-items-center p-0 m-0">
+    <div class="col-auto" style="width:360px;">
+        <button class="btn bog" type="button" data-bs-toggle="offcanvas" data-bs-target="#reportsPanel">☰ @_f.tra("Nabídka tiskových sestav")</button>
+    </div>
+    <div class="col-auto">
+        <span id="spanX31Name" style="font-weight:bold;text-decoration:underline;">@_f.tra("Vyberte tiskovou sestavu")...</span>
+    </div>
+</div>
+
+
+
+<div class="app-shell">
+
+    <!-- LEVÝ PANEL -->
+    <div class="offcanvas offcanvas-start" tabindex="-1" data-bs-scroll="true" data-bs-backdrop="false" data-bs-keyboard="false" id="reportsPanel">
+
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title">Tiskové sestavy</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+        </div>
+
+        <div class="offcanvas-body p-0 m-0">
+
+
+            <div class="accordion bg-white" id="accordionReports">
+                @foreach (var recJ25 in Model.lisJ25.OrderBy(p => p.j25Ordinary))
+                {
+                    <div class="according-item">
+                        <div class="accordion-header" id="heading@(recJ25.pid)">
+                            <button id="cmd@(recJ25.pid)" class="accordion-button collapsed py-2" style="background-color:var(--pozadi);color:var(--popredi);border-bottom:solid 1px silver;" type="button" data-bs-toggle="collapse" data-bs-target="#collapse@(recJ25.pid)" aria-expanded="false" aria-controls="collapse@(recJ25.pid)">
+                                @recJ25.j25Name
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="collapse@(recJ25.pid)" class="accordion-collapse collapse" aria-labelledby="heading@(recJ25.pid)" data-bs-parent="#accordionReports">
+                        <div class="accordion-body p-0">
+                            <ul style="list-style:none;padding:0px;">
+                                @foreach (var c in Model.lisX31.Where(p => p.j25ID == recJ25.pid))
+                                {
+                                    <li>
+
+                                        <a class="nav-link replink" id="report@(c.pid)" href="javascript:showrep(@(c.pid),'@(c.x31Name)','@(c.x31Code)','@(c.FormatName)')">
+
+                                            @(c.x31Name)
+                                            @if (c.x31FormatFlag == BO.x31FormatFlagENUM.XLSX)
+                                            {
+                                                <img src="/images/files/excel.png" width="20" height="20" />
+                                            }
+                                        </a>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+
+
+                }
+
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- PRAVÁ ČÁST -->
+    <div id="reportArea" class="report-area">
+
+        <iframe id="fra1" scrolling="no"></iframe>
+
+        <input type="hidden" id="j72id" />
+    </div>
+
+</div>
+
+
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const el = document.getElementById('reportsPanel');
+      const oc = bootstrap.Offcanvas.getOrCreateInstance(el);
+      oc.show();
+    });
+
+    const panel = document.getElementById('reportsPanel');
+
+    panel.addEventListener('shown.bs.offcanvas', () => {
+      document.body.classList.add('offcanvas-push');
+      window.dispatchEvent(new Event('resize'));
+    });
+
+    panel.addEventListener('hidden.bs.offcanvas', () => {
+      document.body.classList.remove('offcanvas-push');
+      window.dispatchEvent(new Event('resize'));
+    });
+
+
+
+    @if (Model.SelectedReport != null)
+    {
+                    @:$("#cmd@(Model.SelectedReport.j25ID)").attr("class", "accordion-button py-2");
+                    @:$("#collapse@(Model.SelectedReport.j25ID)").attr("class", "accordion-collapse collapse show");
+                    @:showrep("@(Model.SelectedReport.pid)", "@(Model.SelectedReport.x31Name)", "@(Model.SelectedReport.x31Code)", "@(Model.SelectedReport.FormatName)");
+
+
+
+    }
+
+
+
+
+    function showrep(x31id, x31name, x31code,x31format) {
+        $("#spanX31Name").html(x31name);
+        $("#spanX31Name").attr("title", "Report code: " + x31code);
+
+        var callear_prefix = "@(Model.caller_prefix)";
+        var ocas = "";
+        if (callear_prefix != "") {
+            ocas = "&caller_prefix=@(Model.caller_prefix)&caller_pids=@(Model.caller_pids)";
+        }
+
+        switch (x31format) {
+            case "XLSX":
+                $("#fra1").attr("src", "/ReportsClient/ReportNoContextXls?x31id=" + x31id+ocas);
+
+                break;
+            default:
+                $("#fra1").attr("src", "/ReportsClient/ReportNoContext?x31id=" + x31id+ocas);
+
+                break;
+        }
+
+        $(".nav-link").removeClass("oznaceno");
+        $("#report" + x31id).addClass("oznaceno");
+
+
+
+
+
+    }
+</script>
+
+

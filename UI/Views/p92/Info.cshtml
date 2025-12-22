@@ -1,0 +1,125 @@
+﻿@model UI.Models.Tab1.BaseTab1ViewModel
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+
+
+
+    BO.p92InvoiceType _rec = _f.p92InvoiceTypeBL.Load(Model.pid);
+    BO.p93InvoiceHeader _recP93 = null;
+    BO.x38CodeLogic _recX38 = null;
+
+    if (_rec.p93ID > 0)
+    {
+        _recP93 = _f.p93InvoiceHeaderBL.Load(_rec.p93ID);
+    }
+    if (_rec.x38ID > 0)
+    {
+        _recX38 = _f.x38CodeLogicBL.Load(_rec.x38ID);
+    }
+
+}
+
+@addTagHelper *, UI
+
+
+
+@Html.Raw("<div class='info_record_container'>")
+
+<table style="width:90%;">
+    <tr>
+        <td>
+            <h4>Typ faktury</h4>
+        </td>
+        <td>
+            @if (_f.CurrentUser.IsAdmin)
+            {
+                <a href="javascript:_edit('p92',@Model.pid)">@_f.tra("Administrace")</a>
+            }
+        </td>
+    </tr>
+</table>
+
+
+
+
+
+<table class="table table-sm table-hover">
+    <tr>
+        <td>
+            Název:
+        </td>
+        <td style="font-weight:bold;">
+            @(_rec.p92Name)
+
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Výchozí měna:
+        </td>
+        <td>
+            @(_rec.j27Code)
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Vystavovatel faktury
+        </td>
+        <td>
+            @(_recP93.p93Company)
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Číselná řada:
+        </td>
+        <td>
+            @(_recX38.x38Name)
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Výchozí DPH režim:
+        </td>
+        <td>
+            @(_rec.x15Name)
+        </td>
+    </tr>
+    @if (_rec.x31ID_Invoice > 0 && _f.x31ReportBL.Load(_rec.x31ID_Invoice) !=null)
+    {
+        <tr>
+            <td>
+                Výchozí sestava dokladu:
+            </td>
+            <td>
+                @(_f.x31ReportBL.Load(_rec.x31ID_Invoice).x31Name))
+            </td>
+        </tr>
+    }
+    @if (_rec.x31ID_Attachment > 0 && _f.x31ReportBL.Load(_rec.x31ID_Attachment) !=null)
+    {
+        <tr>
+            <td>
+                Výchozí sestava přílohy:
+            </td>
+            <td>
+                @(_f.x31ReportBL.Load(_rec.x31ID_Attachment).x31Name))
+            </td>
+        </tr>
+    }
+
+
+</table>
+
+
+
+
+
+
+
+
+@Html.Raw("</div>")
+

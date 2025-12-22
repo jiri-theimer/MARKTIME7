@@ -1,0 +1,179 @@
+﻿@model UI.Models.HlidacViewModel
+@inject BL.Factory _f
+
+@{
+    if (Model == null)
+    {
+        return;
+    }
+
+    if (Model.b21_postback_par == "b21id-add")
+    {
+        Model.ShowB20Combo = true;
+    }
+
+    if (Model.lisItems == null)
+    {
+        Model.lisItems = new List<b21RepeaterItem>();
+        if (Model.rec_pid > 0)
+        {
+            var lis = _f.b20HlidacBL.GetListB21(Model.rec_entity, Model.rec_pid);
+            foreach (var c in lis)
+            {
+                var rec = new b21RepeaterItem() { b21ID = c.pid, TempGuid = BO.Code.Bas.GetGuid(), b20ID = c.b20ID, b20Par2Name = c.b20Par2Name, b20Par1Name = c.b20Par1Name, b20Name = c.b20Name, b21Par1 = c.b21Par1, b21Par2 = c.b21Par2, b21NotifyReceivers = c.b21NotifyReceivers };                
+                if (c.b20TypeFlag == BO.b20TypeFlagEnum.WipFaHodinyZakazPrekrocit || c.b20TypeFlag == BO.b20TypeFlagEnum.WipFaHonorarZakazPrekrocit || c.b20TypeFlag == BO.b20TypeFlagEnum.WipFaHodinyZdarma || c.b20TypeFlag == BO.b20TypeFlagEnum.WipFaHonorarZdarma)
+                {
+                    rec.IsCyklus = false;
+                }
+                else
+                {
+                    rec.IsCyklus = true;
+                }
+                Model.lisItems.Add(rec);
+            }
+        }
+    }
+
+
+    if (Model.b21_postback_par == "b20id-change" && Model.SelectedB20ID>0)
+    {
+        Model.ShowB20Combo = true;
+        if (Model.lisItems.Where(p => p.b20ID == Model.SelectedB20ID && !p.IsTempDeleted).Count() > 0)
+        {
+            _f.CurrentUser.AddMessage("Tento hlídač již v seznamu existuje.");
+        }
+        else
+        {
+            var recB20 = _f.b20HlidacBL.Load(Model.SelectedB20ID);
+            var rec = new b21RepeaterItem() { TempGuid = BO.Code.Bas.GetGuid(), b20ID = Model.SelectedB20ID, b20Name = recB20.b20Name, b20Par1Name = recB20.b20Par1Name, b20Par2Name = recB20.b20Par2Name };
+            rec.IsCyklus = recB20.IsCyklus;
+            Model.lisItems.Add(rec);
+            Model.b21_postback_par = null;
+        }
+
+    }
+    if (Model.b21_postback_par != null && Model.b21_postback_par.Length > 15)
+    {
+        Model.lisItems.First(p => p.TempGuid == Model.b21_postback_par).IsTempDeleted = true;
+        Model.b21_postback_par = null;
+
+
+    }
+
+
+    if (Model.ShowB20Combo)
+    {
+        Model.lisB20 = _f.b20HlidacBL.GetList(new BO.myQuery("b20") { b20entity = Model.rec_entity });
+    }
+}
+
+@addTagHelper *, UI
+
+<table>
+    <tr>
+        <td>
+            <button type="button" class="btn btn-sm btn-light" tabindex="-1" onclick="b20id_add()">
+                <myicon symbol="local_police"></myicon>
+                @_f.tra("Přidat hlídače")
+            </button>
+        </td>
+
+        <td>
+            @if (Model.lisB20 != null)
+            {
+                <select class="form-select" asp-for="@Model.SelectedB20ID" onchange="b20id_change(this)">
+                    <option value="0">---Vyberte typ hlídače---</option>
+
+                    @foreach (var c in Model.lisB20)
+                    {
+                        <option value="@(c.pid)">@(c.b20Name)</option>
+
+                    }
+
+                </select>
+            }
+        </td>
+
+
+    </tr>
+</table>
+
+
+
+<table class="table table-hover">
+    @for (int i = 0; i < Model.lisItems.Count(); i++)
+    {
+        <tr style="@(Model.lisItems[i].CssTempDisplay)">
+            <td style="width:20px;">
+                <span class="material-icons-outlined" style="color:red;">
+                    local_police
+                </span>
+            </td>
+            <td>
+                <strong>@Model.lisItems[i].b20Name</strong>
+                <input type="hidden" asp-for="lisItems[i].b20ID" />
+
+                <input type="hidden" asp-for="lisItems[i].b20Name" />
+
+                <input type="hidden" asp-for="lisItems[i].b20Par1Name" />
+                <input type="hidden" asp-for="lisItems[i].b20Par2Name" />
+                <input type="hidden" asp-for="lisItems[i].b21ID" />
+                <input type="hidden" asp-for="lisItems[i].IsCyklus" />
+            </td>
+            <td>
+                <code>@(Model.lisItems[i].b20Par1Name == null ? "" : Model.lisItems[i].b20Par1Name + ":")</code>
+                <input type="text" asp-for="lisItems[i].b21Par1" style="width:80px;display:@(Model.lisItems[i].b20Par1Name==null ? "none": "block");" />
+            </td>
+
+            <td>
+                <code>@(Model.lisItems[i].b20Par2Name == null ? "" : Model.lisItems[i].b20Par2Name + ":")</code>
+                <input type="text" asp-for="lisItems[i].b21Par2" style="width:80px;display:@(Model.lisItems[i].b20Par2Name==null ? "none": "block");" />
+            </td>
+
+            <td>
+                @if (Model.lisItems[i].IsCyklus)
+                {
+                    <input type="text" asp-for="lisItems[i].b21NotifyReceivers" placeholder="Další příjemci notifkace" />
+                }
+                
+            </td>
+
+
+            <td>
+                <input type="hidden" asp-for="lisItems[i].TempGuid" />
+
+                <input type="hidden" asp-for="lisItems[i].IsTempDeleted" value="@Model.lisItems[i].IsTempDeleted" />
+            </td>
+            <td style="width:70px;">
+                <button type="button" class="btn btn-sm btn-danger" title="@_f.tra("Odstranit řádek")" onclick="handle_delete_b21('@(Model.lisItems[i].TempGuid)')">x</button>
+            </td>
+        </tr>
+
+    }
+
+</table>
+
+<input type="hidden" asp-for="@Model.b21_postback_par" value="@Model.b21_postback_par" />
+<input type="hidden" asp-for="rec_entity" />
+<input type="hidden" asp-for="rec_pid" />
+<input type="hidden" asp-for="ShowB20Combo" value="@Model.ShowB20Combo" />
+
+<script type="text/javascript">
+    function b20id_add() {
+        $("#hlidac_b21_postback_par").val("b21id-add");
+        _postback("b21id-add");
+    }
+
+    function b20id_change(cbx) {
+        $("#hlidac_b21_postback_par").val("b20id-change");
+        _postback("b20id-change");
+    }
+
+    function handle_delete_b21(guid) {
+        $("#hlidac_b21_postback_par").val(guid);
+        _postback("b21id-delete");
+
+    }
+
+
+</script>

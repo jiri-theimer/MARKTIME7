@@ -1,0 +1,304 @@
+﻿@model UI.Models.Guru.CreateLicenseViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = "Založení nové licence";
+
+    Layout = "~/Views/Shared/_LayoutAnonym.cshtml";
+
+
+}
+<script src="https://www.google.com/recaptcha/api.js"></script>
+
+<script src="~/js/rejstriky.js" asp-append-version="true"></script>
+
+<div style="margin:auto;max-width:900px;">
+
+    @if (Model.Message != null)
+    {
+        <div class="alert alert-danger" role="alert">
+            <h4>@Html.Raw(Model.Message)</h4>
+        </div>
+    }
+    
+
+    <form id="form1" asp-controller="CreateLicenseFree" asp-action="Index" method="post">
+        <input type="hidden" asp-for="AllowPrefill" />
+        <h4>Založit novou licenci</h4>
+        @if (Model.AllowPrefill)
+        {
+            <button type="button" onclick="postback('prefill')">Před-vyplnit</button>
+        }
+        
+
+        <div class="row mt-4">
+            <label class="col-sm-2 col-md-3 col-form-label">Kód země:</label>
+            <div class="col-sm-5 col-md-4">
+                <select class="form-select" asp-for="Rec.x01CountryCode" onchange="change_isocode(this)">
+                    <option value="CZ">CZ</option>
+                    <option value="SK">SK</option>
+
+                </select>
+            </div>
+
+        </div>
+        <div class="row mt-4">
+            <label class="col-sm-2 col-md-3 col-form-label" for="Email">E-mail:</label>
+            <div class="col-sm-5 col-md-4">
+                <input class="form-control" asp-for="Email" required="true" value="@Model.Email" />
+            </div>
+            <div class="col-sm-5 col-md-5">
+                <i>Na e-mail Vám bude doručeno potvrzení o založení účtu.</i>
+            </div>
+        </div>
+        <div class="row mt-2">
+            <label class="col-sm-2 col-md-3 col-form-label" for="p93Company">Název firmy:</label>
+            <div class="col-sm-5 col-md-4">
+                <input class="form-control" required="true" asp-for="p93Company" value="@Model.p93Company" onchange="change_p93company(this)" />
+
+            </div>
+
+        </div>
+
+        <div class="row mt-2">
+            <label class="col-sm-2 col-md-3 col-form-label" for="p93RegID">IČO:</label>
+            <div class="col-sm-5 col-md-4">
+                <input class="form-control" asp-for="p93RegID" value="@Model.p93RegID" />
+
+            </div>
+            <div class="col-sm-5 col-md-5">
+                <i>Pokud zadáte IČO, profil firmy se natáhne z rejstříku.</i>
+            </div>
+        </div>
+
+        <div class="row mt-2">
+            <label class="col-sm-2 col-md-3 col-form-label" for="FirstName">Jméno:</label>
+            <div class="col-sm-5 col-md-4">
+                <input class="form-control" required="true" asp-for="FirstName" value="@Model.FirstName" />
+
+            </div>
+
+        </div>
+        <div class="row mt-2">
+            <label class="col-sm-2 col-md-3 col-form-label" for="LastName">Příjmení:</label>
+            <div class="col-sm-5 col-md-4">
+                <input class="form-control" required="true" asp-for="LastName" value="@Model.LastName" />
+
+            </div>
+
+        </div>
+
+
+        
+
+        <div class="row mt-2" style="display:none;">
+            <label class="col-sm-2 col-md-3 col-form-label">Doména pro přihlašování:</label>
+            <div class="col-sm-5 col-md-4">
+                <input class="form-control" asp-for="LoginDomainPrefix" value="@Model.LoginDomainPrefix" onchange="change_domain(this)" onkeypress="return (event.charCode === 0 )||  /[a-z0-9]/.test(String.fromCharCode(event.charCode));" />
+
+            </div>
+            <div class="col-sm-5 col-md-5">
+                <i>Nejedná se o e-mail doménu. Povolené znaky: 0-9, a-z</i>
+            </div>
+        </div>
+        <div class="row mt-2" style="display:none;">
+            <label class="col-sm-2 col-md-3 col-form-label">Uživatelské jméno (login):</label>
+            <div class="col-sm-5 col-md-4">
+                <div class="input-group">
+                    <div style="width:140px;">
+                        <input class="form-control" asp-for="LoginName" value="@Model.LoginName" onkeypress="return (event.charCode === 0 )||  /[a-z0-9.]/.test(String.fromCharCode(event.charCode));" />
+                    </div>
+                    
+                    <div>
+                        <strong class="form-control" id="LoginZbytek" style="background-color:lightgrey;"></strong>
+                        
+                    </div>
+                  
+                </div>
+                
+            </div>
+            <div class="col-sm-5 col-md-5">
+                <i>Nejedná se o e-mail adresu. Povolené znaky: 0-9, a-z a "tečka".</i>
+            </div>
+
+        </div>
+        <div class="row mt-2">
+            <label class="col-sm-2 col-md-3 col-form-label" for="UserPassword">Nastavit heslo:</label>
+            <div class="col-sm-5 col-md-4">
+                <input class="form-control" required="true" asp-for="UserPassword" value="@Model.UserPassword" />
+
+            </div>
+
+        </div>
+
+        <div class="row mt-2">
+            <label class="col-sm-2 col-md-3 col-form-label" for="VerifyPassword">Ověření hesla:</label>
+            <div class="col-sm-5 col-md-4">
+                <input class="form-control" required="true" asp-for="VerifyPassword" value="@Model.VerifyPassword" />
+
+            </div>
+
+        </div>
+        
+        
+        
+
+
+        
+        
+
+
+        
+
+        
+
+        <hr />
+
+
+        <div class="row" style="margin-top:10px;">
+            <div class="col-sm-5">
+                <div class="g-recaptcha" data-sitekey="6LcPbGwUAAAAAA0NxLqcKM7iTdpO-gF0zKh4UCqK"></div>
+            </div>
+            <div class="col-sm-7">
+                <input type="submit" value="Vytvořit účet" class="btn btn-default btn-success" />
+                <br />
+                <span>Vytvořením účtu souhlasíte s </span>
+                <a href="/docs/marktime_sluzba_podminky.pdf" target="_blank">podmínkami užití služby</a>.
+                <p></p>
+                <p>
+                    Tuto licenci zakládáte pro jednoho uživatele bez omezení další funkcionality.
+                </p>
+                <p>
+                    V administraci systému můžete založit další uživatele a tak vyzkoušet MARKTIME v multi-uživatelském prostředí.
+                </p>
+                <p>
+                    Licence pro 1 uživatele je zdarma a navždy.
+                </p>
+                
+            </div>
+          
+
+        </div>
+
+        
+        
+    </form>
+
+
+
+
+</div>
+
+
+
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+        handle_complete_domain();
+
+    });
+
+    
+
+    function postback(oper) {
+
+        form1.action = "/CreateLicenseFree/Index?oper="+oper;
+        form1.submit();
+    }
+    
+
+    function changelang(opg) {
+        $("#Rec_x01LangIndex").val(opg.value);
+    }
+
+
+    function load_rejstrik(pole) {
+        var hodnota = $("#p93RegID").val();
+        if (pole == "dic") {
+            hodnota = $("#p93VatID").val();
+        }
+        var country = $("#Rec_x01CountryCode").val();
+        if (hodnota == "") {
+            _notify_message("Musíte zadat IČO nebo DIČ.");
+            return;
+        }
+
+        $("#loadingp93").text("Loading...");
+
+        $.post("/Guru/LoadRejstrikSubjekt", { strPole: pole, strHodnota: hodnota, strCountryCode: country }, function (data) {
+            var subjekt = data;
+            $("#p93Company").val(subjekt.name);
+            $("#p93City").val(subjekt.city);
+            $("#p93Zip").val(subjekt.zipcode);
+            $("#p93Street").val(subjekt.street);
+            if (pole == "ico") {
+                $("#p93VatID").val(subjekt.dic);
+            }
+            if (pole == "dic") {
+                $("#p93RegID").val(subjekt.ico);
+            }
+
+            $("#loadingp93").text("");
+
+        });
+    }
+
+    function change_isocode(cbx)
+    {
+        handle_complete_domain();
+    }
+    function change_p93company(txt) {
+        var s = txt.value;
+        s = s.replace("s.r.o.", "");
+        s = s.replace("a.s.", "");
+        s = s.normalize('NFKD').replace(/[^\w]/g, '');
+        s = s.replace(/[^a-z0-9]+/gi, "");
+        s = s.toLowerCase();
+                
+        $("#LoginDomainPrefix").val(s);
+        
+
+        handle_complete_domain();
+    }
+    function change_domain(txt) {
+        handle_complete_domain();
+    }
+
+    function handle_complete_domain() {
+        var s = "@("@")"+$("#LoginDomainPrefix").val() + "." + $("#Rec_x01CountryCode").val();
+        s = s.toLowerCase();
+        if ($("#LoginDomainPrefix").val() == "") {
+            s = "???";
+        }
+        $("#LoginZbytek").text(s);
+    }
+
+    function load_rejstrik_klient() {
+        var hodnota = $("#p28RegID").val();
+
+        var country = $("#Rec_x01CountryCode").val();
+        if (hodnota == "") {
+            _notify_message("Musíte zadat IČO.");
+            return;
+        }
+
+        $("#loadingp28").text("Loading...");
+
+        $.post("/Guru/LoadRejstrikSubjekt", { strPole: "ico", strHodnota: hodnota, strCountryCode: country }, function (data) {
+            var subjekt = data;
+            $("#p28CompanyName").val(subjekt.name);
+            $("#p28City1").val(subjekt.city);
+            $("#p28PostCode1").val(subjekt.zipcode);
+            $("#p28Street1").val(subjekt.street);
+            $("#p28VatID").val(subjekt.dic);
+
+            $("#loadingp28").text("");
+
+        });
+    }
+</script>

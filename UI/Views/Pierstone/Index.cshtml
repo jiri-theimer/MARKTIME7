@@ -1,0 +1,102 @@
+﻿@model UI.Models.Reporting.PierstoneViewModel
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+
+    Model.PageTitle = "PIERSTONE Reporting";
+
+
+
+
+}
+
+@addTagHelper *, UI
+
+<div class="bg-light input-group" style="padding:10px;">
+    <div>
+        <button type="button" id="cmdSave" class="btn btn-success" onclick="_submit()" style="margin-left:10px;"><span class="material-icons-outlined-btn">done</span>@_f.tra("Spustit")</button>
+    </div>
+
+
+    <div style="margin-left:10px;">
+        <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
+    </div>
+
+
+    <myhelpbutton></myhelpbutton>
+</div>
+
+<form id="form1" asp-controller="Pierstone" asp-action="Index" method="POST">
+
+    <table>
+        <tr>
+            <td>
+                @await Component.InvokeAsync("myPeriod", Model.PeriodFilter)
+            </td>
+            <td>
+                @Html.EditorFor(m => Model.p31statequery, "~/Views/Shared/_p31StateQuery.cshtml")
+            </td>
+            <td>
+                <select class="form-select" asp-for="PageOrientation" style="width:150px;">
+                    <option value="landscape">Na šířku (Landscape)</option>
+                    <option value="portrait">Na výšku (Portrait)</option>
+                </select>
+            </td>
+            <td>
+                <select class="form-select" asp-for="ReportLanguaage" style="width:80px;">
+                    <option value="cs">Česky</option>
+                    <option value="eng">English</option>
+                </select>
+            </td>
+            <td>
+                <select class="form-select" asp-for="DataScope" style="width:130px;">
+                    <option value="time">Pouze hodiny</option>
+                    <option value="all">Hodiny/Výdaje/Odměny</option>
+                </select>
+            </td>
+        </tr>
+    </table>
+    
+
+    <input type="hidden" asp-for="prefix" />
+    <input type="hidden" asp-for="pids" />    
+
+    @if (Model.TempFileName != null)
+    {
+        <div class="card">
+            <div class="card-header">@_f.tra("Výsledek")</div>
+            <div class="card-body">
+                <a href="/FileUpload/FileDownloadTempFileNDB?tempfilename=@(Model.TempFileName)">Stáhnout XLS report</a>
+
+            </div>
+        </div>
+
+    }
+</form>
+
+<p></p>
+<table class="table table-hover">
+    @for (int i = 0; i < Model.lisPIDs.Count(); i++)
+    {
+        <tr>
+            <td>
+                @(_f.CBL.GetObjectAlias(Model.prefix, Model.lisPIDs[i]))
+            </td>
+        </tr>
+    }
+</table>
+
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+
+
+    });
+
+
+
+</script>

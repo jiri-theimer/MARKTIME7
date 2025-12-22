@@ -1,0 +1,363 @@
+﻿@model UI.Models.capacity.CreateViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = _f.tra("Kapacitní plán projektu");
+    if (Model.RecP41 != null)
+    {
+        Model.PageTitle += ": " + Model.RecP41.FullName;
+    }
+
+    Model.PageSymbol = "online_prediction";
+
+}
+
+@addTagHelper *, UI
+
+
+<div class="bg-light input-group">
+    <div>
+        <button type="button" id="cmdSave" class="btn btn-success" onclick="_submit()"><span class="material-icons-outlined-btn">done</span>@_f.tra("Uložit změny")</button>
+    </div>
+    <div>
+        <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
+    </div>
+
+    <div>
+    </div>
+</div>
+
+
+<form id="form1" asp-controller="r01" asp-action="Create" method="POST">
+    <input type="hidden" asp-for="p41ID" value="@Model.p41ID" />
+    <input type="hidden" asp-for="r02ID" />
+    <input type="hidden" asp-for="SourceGroupBy" />
+    <input type="hidden" asp-for="Items" />
+    <input type="hidden" asp-for="ItemsPrefix" />
+
+    <div>
+        <table>
+            <tr>
+                <td style="width:400px;">
+                    @if (Model.ItemsPrefix == "j02")
+                    {
+                        @Html.EditorFor(m => m.ProjectCombo, "~/Views/Shared/_ProjectCombo.cshtml")
+                    }
+                    
+                    @if(Model.ItemsPrefix=="p41")
+                    {
+                        <myval value="@Model.RecP41.FullName"></myval>
+                    }
+                    
+                </td>
+                <td>
+                    @if (Model.RecP41 != null)
+                    {
+                        @Html.EditorFor(m => m.RecP41, "~/Views/Shared/_ProjectPlanPeriod.cshtml")
+                    }
+                </td>
+            </tr>
+        </table>
+    </div>
+
+
+
+    <div style="margin:10px;">
+        <input type="radio" id="opgScale1" asp-for="opgScale" value="interval" onchange="_postback('scale')">
+        <label for="opgScale1">@_f.tra("Jeden plán za celé období")</label>
+
+        <input type="radio" id="opgScale2" asp-for="opgScale" value="cell" onchange="_postback('scale')">
+        <label for="opgScale2">@_f.tra("Po buňkách") <kbd>@(Model.SourceGroupBy == "Month" ? "Měsíce" : "Dny")</kbd></label>
+    </div>
+
+
+    <table class="table table-hover" style="table-layout: fixed;width:95%;display:@(Model.opgScale=="cell" ? "block": "none");)">
+        <tr>
+            <th style="width:200px;">
+                @_f.tra("Personální zdroj")
+            </th>
+
+            <th style="width:120px;">
+                Od
+            </th>
+            <th style="width:120px;">
+                Do
+            </th>
+            @if (Model.IsUseFaNefa)
+            {
+                <th style="width:80px;">
+                    Fa
+                </th>
+                <th style="width:80px;">
+                    Nefa
+                </th>
+            }
+            else
+            {
+                <th style="width:80px;">
+                    Hodiny
+                </th>
+            }
+            <th style="width:130px;"></th>
+            <th>
+            <th>
+
+            </th>
+            <th style="width:20px;">
+
+            </th>
+        </tr>
+        @for (int i = 0; i < Model.InputCells.Count(); i++)
+        {
+            <tr style="@(Model.InputCells[i].CssTempDisplay)">
+                <td>
+                    <input type="hidden" asp-for="@Model.InputCells[i].j02id" />
+                    <input type="hidden" asp-for="@Model.InputCells[i].Person" />
+                    <input type="hidden" asp-for="@Model.InputCells[i].d" />
+                    <input type="hidden" asp-for="@Model.InputCells[i].dalias" />
+
+                    <span>@Model.InputCells[i].Person</span>
+                    <code>@Model.InputCells[i].dalias</code>
+
+                </td>
+
+                <td>
+                    <mydate asp-for="@Model.InputCells[i].d1"></mydate>
+                </td>
+                <td>
+                    <mydate asp-for="@Model.InputCells[i].d2"></mydate>
+                </td>
+                <td>
+                    <mynumber asp-for="@Model.InputCells[i].HoursFa" decimal-digits="0"></mynumber>
+                </td>
+                @if (Model.IsUseFaNefa)
+                {
+                    <td>
+                        <mynumber asp-for="@Model.InputCells[i].HoursNeFa" decimal-digits="0"></mynumber>
+                    </td>
+                }
+
+
+                <td>
+                    @Html.EditorFor(m => m.InputCells[i].Color, "~/Views/Shared/_ColorCombo.cshtml")
+                </td>
+
+                <td>
+                    <input class="form-control" asp-for="@Model.InputCells[i].Memo" placeholder="@_f.tra("Poznámka")" />
+                    <input type="hidden" asp-for="InputCells[i].IsTempDeleted" value="@Model.InputCells[i].IsTempDeleted" />
+                    <input type="hidden" asp-for="InputCells[i].TempGuid" value="@Model.InputCells[i].TempGuid" />
+
+
+                </td>
+                <td>
+                    <button type="button" tabindex="-1" class="btn btn-danger" title="@_f.tra("Odstranit řádek")" onclick="handle_delete_row('@(Model.InputCells[i].TempGuid)')">x</button>
+                </td>
+
+
+
+            </tr>
+        }
+    </table>
+
+
+    <table class="table table-hover" style="table-layout: fixed;width:95%;display:@(Model.opgScale=="interval" ? "block": "none");)">
+        <tr>
+            <th style="width:200px;">
+                @_f.tra("Personální zdroj")
+            </th>
+
+            <th style="width:120px;">
+                Od
+            </th>
+            <th style="width:120px;">
+                Do
+            </th>
+            @if (Model.IsUseFaNefa)
+            {
+                <th style="width:80px;">
+                    Fa
+                </th>
+                <th style="width:80px;">
+                    Nefa
+                </th>
+            }
+            else
+            {
+                <th style="width:80px;">
+                    Hodiny
+                </th>
+            }
+            <th style="width:130px;"></th>
+            <th>
+
+            </th>
+            <th style="width:20px;">
+
+            </th>
+        </tr>
+        @for (int i = 0; i < Model.InputIntervals.Count; i++)
+        {
+            <tr style="@(Model.InputIntervals[i].CssTempDisplay)">
+                <td>
+                    <input type="hidden" asp-for="@Model.InputIntervals[i].j02id" />
+                    <input type="hidden" asp-for="@Model.InputIntervals[i].Person" />
+                    <input type="hidden" asp-for="@Model.InputIntervals[i].d" />
+                    <input type="hidden" asp-for="@Model.InputIntervals[i].dalias" />
+
+                    <span>@Model.InputIntervals[i].Person</span>
+                    <code>@Model.InputIntervals[i].dalias</code>
+
+                </td>
+
+                <td>
+                    <mydate asp-for="@Model.InputIntervals[i].d1"></mydate>
+                </td>
+                <td>
+                    <mydate asp-for="@Model.InputIntervals[i].d2"></mydate>
+                </td>
+                <td>
+                    <mynumber asp-for="@Model.InputIntervals[i].HoursFa" decimal-digits="0"></mynumber>
+                </td>
+                @if (Model.IsUseFaNefa)
+                {
+
+                    <td>
+                        <mynumber asp-for="@Model.InputIntervals[i].HoursNeFa" decimal-digits="0"></mynumber>
+                    </td>
+                }
+
+
+                <td>
+                    @Html.EditorFor(m => m.InputIntervals[i].Color, "~/Views/Shared/_ColorCombo.cshtml")
+                </td>
+
+
+                <td>
+                    <input class="form-control" asp-for="@Model.InputIntervals[i].Memo" placeholder="@_f.tra("Poznámka")" />
+                    <input type="hidden" asp-for="InputIntervals[i].IsTempDeleted" value="@Model.InputIntervals[i].IsTempDeleted" />
+                    <input type="hidden" asp-for="InputIntervals[i].TempGuid" value="@Model.InputIntervals[i].TempGuid" />
+
+
+                </td>
+                <td>
+                    <button type="button" tabindex="-1" class="btn btn-danger" title="@_f.tra("Odstranit řádek")" onclick="handle_delete_row('@(Model.InputIntervals[i].TempGuid)')">x</button>
+                </td>
+
+
+
+            </tr>
+        }
+    </table>
+
+</form>
+
+
+<table id="tabR04" class="table table-hover" style="max-width:600px;">
+    <tr style="background-color:aliceblue;">
+        <th>
+            @_f.tra("Kapacitní zdroje projektu")
+            <button type="button" class="btn btn-sm bog" onclick="_window_open('/r01/ProjectResources?p41id=@(Model.p41ID)')">@_f.tra("Doplnit zdroje")</button>
+        </th>
+        <th class="numcell" style="width:90px;">
+            @_f.tra("Naplánováno")
+        </th>
+        <th class="numcell" style="width:90px;">
+            @_f.tra("Strop")
+        </th>
+        <th class="numcell" style="width:90px;">
+            @_f.tra("Zbývá")
+        </th>
+
+    </tr>
+    @if (Model.lisR04 != null)
+    {
+        @foreach (var c in Model.lisR04)
+        {
+            
+            <tr>
+                <td>
+                    @c.Person
+                </td>
+                @if (Model.IsUseFaNefa)
+                {
+                    <td class="numcell">
+                        @(BO.Code.Bas.Number2String(Model.lisR01.Where(p => p.j02ID == c.j02ID).Sum(p => p.r01HoursFa)))
+                    </td>
+                    <td class="numcell">
+                        @(BO.Code.Bas.Number2String(c.r04HoursFa))
+                    </td>
+                    <td class="numcell">
+                        @(BO.Code.Bas.Number2String(Model.lisR01.Where(p => p.j02ID == c.j02ID).Sum(p => p.r01HoursNeFa)))
+
+                    </td>
+                    <td class="numcell">
+                        @(BO.Code.Bas.Number2String(c.r04HoursNeFa))
+                    </td>
+                }
+                else
+                {
+                    <td class="numcell">
+                        @(BO.Code.Bas.Number2String(Model.lisR01.Where(p => p.j02ID == c.j02ID).Sum(p => p.r01HoursTotal)))
+                    </td>
+                    <td class="numcell" style="color:red;">
+                        @if (c.FaZastropovan)
+                        {
+                            @(BO.Code.Bas.Number2String(c.r04HoursTotal))
+                        }
+                        else
+                        {
+                            <span>-</span>
+                        }                        
+                    </td>
+                    <td class="numcell" style="color:blueviolet;">
+                        @if (c.FaZastropovan)
+                        {
+                            @(BO.Code.Bas.Number2String(c.r04HoursTotal - Model.lisR01.Where(p => p.j02ID == c.j02ID).Sum(p => p.r01HoursTotal)))
+                        }
+                        else
+                        {
+                            <span>-</span>
+                        }
+                        
+                    </td>
+                }
+            </tr>
+        }
+    }
+
+</table>
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+
+       
+
+
+
+
+    });
+
+
+
+    function hardrefresh(pid, flag) {
+        _postback("refresh");
+    }
+
+
+    function handle_delete_row(guid) {
+        _postback("delete_row", "guid=" + guid);
+
+
+    }
+
+
+    function handle_clear_rows() {
+        _postback("clear_rows");
+
+    }
+
+
+</script>

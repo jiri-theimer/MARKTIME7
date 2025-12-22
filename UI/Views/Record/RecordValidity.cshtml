@@ -1,0 +1,64 @@
+﻿@model RecordValidity
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = "RecordValidity";
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+}
+
+@addTagHelper *, UI
+
+
+<div class="bg-light" style="padding:10px;">
+    <button id="cmdSave" onclick="ok()" class="btn btn-success">OK</button>
+    <button id="cmdSave" onclick="close2now()" class="btn btn-secondary">@_f.tra("Uzavřít k TEĎ")</button>
+    <button id="cmdClose" onclick="okno_zoom_close()" class="btn btn-light">@_f.tra("Zrušit")</button>
+
+
+
+</div>
+
+<form id="form1" asp-controller="Record" asp-action="RecordValidity" method="POST">
+    <div class="row">
+        <label class="col-sm-2 col-md-2 col-form-label">@_f.tra("Platnost od"):</label>
+        <div class="col-sm-4 col-md-4">
+            <mydate asp-for="@Model.d1" include-time="true"></mydate>
+        </div>
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-2 col-md-2 col-form-label">@_f.tra("Platnost do"):</label>
+        <div class="col-sm-4 col-md-4">
+            <mydate asp-for="@Model.d2" include-time="true"></mydate>
+
+        </div>
+    </div>
+</form>
+
+<script type="text/javascript">
+        $(document).ready(function () {
+            @if (Model.IsAutoClose == true)
+            {
+                <text>
+            ok();
+                </text>
+
+            }
+
+        })
+
+
+        function ok() {
+            window.parent.document.getElementById("hidExplicitD1").value = $("#d1").val();
+            window.parent.document.getElementById("hidExplicitD2").value = $("#d2").val();
+            window.parent.document.getElementById("toolbar_message").innerText = "@_f.tra("Po uložení dojde ke změně platnosti záznamu.")";
+            okno_zoom_close();
+        }
+        function okno_zoom_close() {
+            window.parent.document.getElementById("zoom_okno").style.display = "none";
+        }
+        function close2now() {
+            form1.action = "/Record/RecordValidity?oper=now";
+            form1.submit();
+
+        }
+</script>

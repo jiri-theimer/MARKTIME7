@@ -1,0 +1,193 @@
+﻿@model UI.Models.Tab1.p75Tab1
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+    if (Model.Rec == null) return;
+
+
+    
+    string _Necekat = _f.tra("Nečekat a vygenerovat ručně");
+
+    
+
+}
+
+@addTagHelper *, UI
+
+
+
+@Html.Raw("<div class='info_record_container'>")
+
+
+<div class="card recpagebox400">
+    <div class="card-body">
+        <div class="card-title recpagetitle bgp40">
+            @Model.Rec.p75Name
+        </div>
+
+        
+
+        @if (Model.RecP41 != null)
+        {
+            <div class="row my-1">
+                <label class="col-sm-2 col-md-3 col-form-label">@_f.getP07Level(Model.RecP41.p07Level, true):</label>
+                <div class="col-sm-10 col-md-9">
+                    <myval value="@Model.RecP41.FullName" hoverprefix="p41" hoverpid="@Model.Rec.p41ID"></myval>
+
+                </div>
+            </div>
+        }
+        @if (Model.RecP28 != null)
+        {
+            <div class="row my-1">
+                <label class="col-sm-2 col-md-3 col-form-label">Klient:</label>
+                <div class="col-sm-10 col-md-9">
+                    <myval value="@Model.RecP28.p28Name" hoverprefix="p28" hoverpid="@Model.Rec.p28ID"></myval>
+
+                </div>
+            </div>
+        }
+
+
+        <div class="row my-1">
+            <label class="col-sm-2 col-md-3 col-form-label">RD1:</label>
+            <div class="col-sm-4 col-md-4">
+                <myval value="@Model.Rec.p75BaseDateStart" datatype="date"></myval>
+
+            </div>
+        </div>
+
+        <div class="row my-1">
+            <label class="col-sm-2 col-md-3 col-form-label">RD2:</label>
+            <div class="col-sm-4 col-md-4">
+                <myval value="@Model.Rec.p75BaseDateEnd" datatype="date"></myval>
+
+            </div>
+        </div>
+
+        <div class="row my-1">
+            <label class="col-sm-2 col-md-3 col-form-label">Text faktury:</label>
+            <div class="col-sm-10 col-md-9">
+                <myval value="@Model.Rec.p75InvoiceText"></myval>
+
+            </div>
+        </div>
+
+        
+    </div>
+</div>
+
+
+@if (Model.lisP76 != null)
+{
+    <div class="card recpageboxauto">
+        <div class="card-body">
+            <div class="card-title recpagetitle bgp51">
+                @_f.tra("Přesný plán generování")
+            </div>
+            <table class="table-hover table">
+                <tr>
+                    <th>@_f.tra("Text faktury")</th>
+                    <th title="Rozhodné datum">@_f.tra("RD")</th>
+                    <th>@_f.tra("Datum plnění")</th>
+                    <th>@_f.tra("Splatnost")</th>
+                    <th>@_f.tra("Datum generování")</th>
+                    <th></th>
+
+                </tr>
+                @foreach (var c in Model.lisP76)
+                {
+                    <tr>
+                        <td>
+                            @c.p76Name
+                        </td>
+                        <td>
+                            @BO.Code.Bas.ObjectDate2String(c.p76BaseDate, "dd.MM.yyyy")
+                        </td>
+                        <td>
+                            @BO.Code.Bas.ObjectDate2String(c.p76DateSupply, "dd.MM.yyyy")
+                        </td>
+                        <td>
+                            @BO.Code.Bas.ObjectDate2String(c.p76DateMaturity, "dd.MM.yyyy")
+                        </td>
+                        <td>
+                            @BO.Code.Bas.ObjectDate2String(c.p76DateCreate, "dd.MM.yyyy")
+                        </td>
+                        <td class="rowvalhover">
+                            @if (c.p91ID_NewInstance > 0)
+                            {
+                                <kbd style="background-color:green;">@_f.tra("Již vygenerováno")</kbd>
+                                <a class="reczoom" data-rel="/p91/Info?pid=@(c.p91ID_NewInstance)&hover_by_reczoom=1">ℹ</a>
+                                <br />
+                                <var>
+                                    @c.p91Code
+                                </var>
+                                <small>
+                                    @BO.Code.Bas.ObjectDateTime2String(c.p91DateInsert)
+                                </small>
+                            }
+                            else
+                            {
+                                if (c.p76DateCreate.AddDays(10) < DateTime.Now)
+                                {
+                                    <code>@_f.tra("Robot se již nebude pokoušet úkol generovat.")</code>
+                                    <button type="button" class="btn btn-sm bog" onclick="try_generate(@c.p75ID,@c.p76ID)">Vygenerovat ručně</button>
+                                }
+                                else
+                                {
+                                    <button type="button" class="btn btn-sm bog" onclick="try_generate(@c.p75ID,@c.p76ID)">@(_Necekat)</button>
+                                }
+
+                            }
+                            @if (c.p76ErrorMessage_NewInstance != null)
+                            {
+                                <span style="color:red;">@c.p76ErrorMessage_NewInstance</span>
+                            }
+
+
+                        </td>
+
+
+
+                    </tr>
+
+
+                }
+            </table>
+
+
+        </div>
+    </div>
+}
+
+
+
+
+
+@Html.Raw("</div>")
+
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+    });
+
+    function try_generate(p75id, p76id) {
+        $.post("/p75/TryGenerate_Recurrence_Instance", { p75id: p75id, p76id: p76id }, function (data) {
+
+            if (!data.issuccess) {
+                alert(data.message);
+                return;
+            }
+
+            location.replace(location.href);
+
+        });
+    }
+</script>

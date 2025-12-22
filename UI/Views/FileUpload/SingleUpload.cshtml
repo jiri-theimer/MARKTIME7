@@ -1,0 +1,73 @@
+﻿@model FileUploadSingleViewModel
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+}
+
+
+@addTagHelper *, UI
+
+
+<div class="modal_record_container">
+
+    <div>
+
+        <form method="post" id="frmUpload" enctype="multipart/form-data" asp-controller="FileUpload" asp-action="SingleUpload">
+
+            <input type="hidden" asp-for="Guid" />
+            <input type="hidden" asp-for="JavascriptParentSite" />
+
+            <input id="upload1" type="file" name="files" />
+
+            <input type="submit" id="cmdUpload" class="btn btn-primary" value="@_f.tra("Nahrát přílohu na server")" style="display:none;" />
+
+
+        </form>
+    </div>
+    <div>
+        @if (Model.lisTempFiles.Count() > 0)
+        {
+
+            <code>@_f.tra("Nahraná příloha, která čeká na uložení"):</code>
+
+            @foreach (var c in Model.lisTempFiles)
+            {
+                <div style="margin-top:20px;">
+                    <a target="_blank" asp-action="FileDownloadTempFile" asp-controller="FileUpload" asp-route-tempfilename="@(c.o27ArchiveFileName)">@(c.o27OriginalFileName)</a>
+                </div>
+            }
+
+
+            
+
+        }
+
+    </div>
+
+
+
+
+
+
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#upload1").change(function () {
+            $("#cmdUpload").css("display", "inline");
+            //$("#cmdUpload").click();
+        });
+
+
+
+
+
+    });
+
+
+
+
+
+</script>

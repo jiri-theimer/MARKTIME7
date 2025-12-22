@@ -1,0 +1,234 @@
+﻿@model UI.Models.Record.p42Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Typ projektu");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    Model.PageSymbol = "settings";
+}
+
+@addTagHelper *, UI
+
+<div class="modal_record_container_flexi">
+
+    <div class="row" style="max-width:1500px;">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název"):</label>
+        <div class="col-sm-4 col-md-4">
+            <input class="form-control record_name" asp-for="Rec.p42Name" />
+        </div>
+        
+        <label class="col-sm-1 col-md-1 col-form-label">@_f.tra("Index pořadí"):</label>
+        <div class="col-sm-1 col-md-1">
+            <mynumber asp-for="Rec.p42Ordinary" decimal-digits="0"></mynumber>
+        </div>
+
+    </div>
+
+    <div class="row my-2" style="max-width:1500px;">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Číselná řada projektů"):</label>
+        <div class="col-sm-4 col-md-4">
+            <mycombo entity="x38CodeLogic" asp-for="Rec.x38ID" selectedtext="@Model.ComboX38Name" view-flag="2" myqueryinline="x38entity|string|p41"></mycombo>
+        </div>
+        <label class="col-sm-1 col-md-1 col-form-label">@_f.tra("Workflow šablona"):</label>
+        <div class="col-sm-3 col-md-3">
+            <mycombo entity="b01WorkflowTemplate" asp-for="Rec.b01ID" selectedtext="@Model.ComboB01Name" view-flag="2" myqueryinline="b01entity|string|p41"></mycombo>
+        </div>
+        <div class="col-sm-1 col-md-1">
+            <mytooltip text="Workflow šablona slouží k podpoře nahazování různých stavů podle životního cyklu projektu. V administraci si můžete založit více workflow šablon."></mytooltip>
+        </div>
+    </div>
+
+
+   
+
+    @Html.Raw("<div class='row'>")
+
+    @Html.Raw("<div class='col-auto'>")
+
+    <div class="card">
+        <div class="card-header">
+            @_f.tra("Fakturační nastavení projektu")
+        </div>
+        <div class="card-body">
+            <input type="radio" id="Radiop51Flag1" asp-for="Rec.p42BillingFlag" value="0" onchange="_postback()">
+            <label for="Radiop51Flag1">@_f.tra("Klientský projekt")</label>
+            <br /><i>Fakturační sazby podle ceníků</i>
+            <hr />
+            <input type="radio" id="Radiop51Flag2" asp-for="Rec.p42BillingFlag" value="99" onchange="_postback()">
+            <label for="Radiop51Flag2">@_f.tra("Interní projekt") <myicon symbol="local_cafe"></myicon></label>
+            <br /><i>Nulové fakturační sazby, vyloučeno ze schvalování/vyúčtování</i><mytooltip text="Záměrem je, aby se takový projekt vůbec nenabízel pro vyúčtování. Praktické pro vykazování nepřítomnosti a interních aktivit."></mytooltip>
+            <hr />
+            <input type="radio" id="Radiop51Flag3" asp-for="Rec.p42BillingFlag" value="6" onchange="_postback()">
+            <label for="Radiop51Flag3">@_f.tra("Interní projekt") <myicon symbol="local_bar"></myicon></label>
+            <br /><i>Nulové fakturační sazby, možnost schvalování/vyúčtování</i><mytooltip text="Záměrem je, aby i hodiny vykázané na fakturovatelné aktivity měli nulovou fakturační sazbu. Projekt lze technicky vyúčtovat."></mytooltip>
+        </div>
+    </div>
+
+
+
+    @Html.Raw("</div>")
+
+
+    @Html.Raw("<div class='col-auto'>")
+
+    <div class="card">
+        <div class="card-header">
+            @_f.tra("Pracovní náplň projektu")
+        </div>
+        <div class="card-body">
+            <table>
+                    <tr>
+                        <td>
+                            @_f.tra("Klastr aktivit")<mytooltip text="Cílem klastru je zúžit nabídku aktivit v rámci vybraného sešitu při vykazování.<hr> Klastr lze nastavit i v kartě projektu."></mytooltip>
+                            :
+                        </td>
+                    </tr>
+                    <tr>
+                      
+                        <td>
+                            <mycombo entity="p61ActivityCluster" asp-for="Rec.p61ID" selectedtext="@Model.ComboP61Name"></mycombo>
+                        </td>
+                    </tr>
+                </table>
+
+            <hr />
+            <div>@_f.tra("Povolené sešity pro vykazování")</div>
+            <table class="table table-hover">
+                @for (int i = 0; i < Model.lisP43.Count(); i++)
+                {
+                    <tr>
+                        <td>
+                            <input id="chk@(i)" type="checkbox" asp-for="@Model.lisP43[i].IsSelected" onchange="_postback()" />
+                            <label for="chk@(i)">@(Model.lisP43[i].p34Name)</label>
+                            <input type="hidden" asp-for="@Model.lisP43[i].p34ID" />
+                            <input type="hidden" asp-for="@Model.lisP43[i].p34Name" />
+                        </td>
+
+
+                    </tr>
+                }
+            </table>
+            <hr />
+            <div class="my-2">
+                <input type="checkbox" id="chkIsP54" asp-for="Rec.p42IsP54" />
+                <label for="chkIsP54">@_f.tra("Povolit uživatelům vykazovat hladinu sazby")</label>
+                <mytooltip text="Hladina sazby je číselník násobků fakturační sazby.<hr>Využití pro zaznamenávání práce o víkendu/svátku/přesčas apod."></mytooltip>
+               
+                
+            </div>
+
+
+
+        </div>
+    </div>
+
+    @Html.Raw("</div>")
+
+
+    @Html.Raw("<div class='col-auto'>")
+
+    <div class="card">
+        <div class="card-header">
+            @_f.tra("Výchozí Rozšíření karty projektu")
+            <mytooltip text="Editační karta projektu je členěna do záložek.<hr>Níže se nastavuje, které ze záložek mají/nemají být viditelné uživatelům"></mytooltip>
+        </div>
+        <div class="card-body">
+            <table>
+
+                <tr>
+                    <td>
+                        <label>@_f.tra("Nahrávání příloh v kartě projektu"):</label>
+                    </td>
+                    <td>
+                        @Html.EditorFor(m => m.Rec.p42FilesTab, "~/Views/Shared/_BitStreamFlag.cshtml")
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label>@_f.tra("Záložka [Fakturační nastavení]"):</label>
+                    </td>
+                    <td>
+                        @Html.EditorFor(m => m.Rec.p42BillingTab, "~/Views/Shared/_BitStreamFlag.cshtml")
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label>@_f.tra("Projektové role"):</label>
+                    </td>
+                    <td>
+                        @Html.EditorFor(m => m.Rec.p42RolesTab, "~/Views/Shared/_BitStreamFlag.cshtml")
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label>@_f.tra("Klient projektu"):</label>
+                    </td>
+                    <td>
+                        @Html.EditorFor(m => m.Rec.p42ClientTab, "~/Views/Shared/_BitStreamFlag.cshtml")
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label>@_f.tra("Záložka [Rozpočet projektu]"):</label>
+                    </td>
+                    <td>
+                        @Html.EditorFor(m => m.Rec.p42BudgetTab, "~/Views/Shared/_BitStreamFlag.cshtml")
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label>@_f.tra("Kontakty projektu"):</label>
+                    </td>
+                    <td>
+                        @Html.EditorFor(m => m.Rec.p42ContactsTab, "~/Views/Shared/_BitStreamFlag.cshtml")
+                    </td>
+                </tr>
+            </table>
+
+
+
+        </div>
+    </div>
+
+    @Html.Raw("</div>")
+
+    @Html.Raw("</div>")
+
+
+
+    <div style="max-width:1500px;">
+        @Html.EditorFor(m => m.creates, "~/Views/Shared/_CreateAssign.cshtml")
+
+
+
+
+        <div class="row my-2">
+
+            <div class="col-md">
+                <label>@_f.tra("Ochrana proti archivování projektu"):</label>
+                <select asp-for="@Model.Rec.p42ArchiveFlag" class="form-select">
+                    <option value="NoLimit">@_f.tra("Bez omezení")</option>
+                    <option value="NoArchive_Waiting_Invoice">@_f.tra("Projekty nelze přesouvat do archivu, pokud v něm existují nevyúčtované úkony")</option>
+                    <option value="NoArchive_Waiting_Approve">@_f.tra("Projekty nelze přesouvat do archivu, pokud v něm existují rozpracované úkony")</option>
+                </select>
+            </div>
+
+            <div class="col-md">
+                <label>@_f.tra("Ochrana proti archivování aktivit"):</label>
+                <select asp-for="@Model.Rec.p42ArchiveFlagP31" class="form-select">
+                    <option value="EditingOnly">@_f.tra("Do projektu povoleno přesouvat rozpracované úkony")</option>
+                    <option value="EditingOrApproved">@_f.tra("Do archivu povoleno přesouvat rozpracované nebo schválené úkony")</option>
+                    <option value="NoRecords">@_f.tra("Zákaz archivovat jakékoliv úkony")</option>
+                </select>
+            </div>
+        </div>
+
+
+    </div>
+</div>
+
+
+
+
+
+

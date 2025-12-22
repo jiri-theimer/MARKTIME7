@@ -1,0 +1,1033 @@
+﻿@model UI.Models.p11.AbsenceViewModel
+
+@inject BL.Factory _f
+
+@{
+
+    Layout = _f.CurrentUser.GetLayoutPerDisplay();
+    bool _bolMobile = _f.CurrentUser.IsMobileDisplay();
+
+    Model.PageTitle = _f.tra("Docházka");
+
+    string strClass = null;
+
+
+    bool bolHoliday = false;
+
+
+    string strCisloDne = null;
+    string strDatum = null;
+    string strDatumID = null;
+    string strPrichod = null;
+    string strOdchod = null;
+    string strPrestavky = null;
+    double dblPrestavka = 0;
+    double dblVPraci = 0;
+    double dblVPraciVcPrestavek = 0;
+    double dblFond = 0;
+
+    string strC24Color = null;
+
+    double dblPrescas = 0;
+    double dblNepritomnost = 0;
+    int intLastM = 0;
+    int x_ok = 0;
+
+    IEnumerable<BO.p31Worksheet> qryP31 = Model.lisP31;
+
+    double _dblHodiny = qryP31.Sum(p => p.p31Hours_Orig);
+    DateTime d = Model.d1;
+    if (Model.IsAgendaDescending) d = Model.d2;
+
+
+    IEnumerable<BO.p11Attendance> qryP11 = null;
+    IEnumerable<BO.c22FondCalendar_Date> qryC22 = null;
+
+    double dblSum_VPraci = 0;
+    double dblSum_VPraciVcPrestavek = 0;
+    double dblSum_Fond = 0;
+    double dblSum_Prestavka = 0;
+    double dblSum_Prescas = 0;
+    double dblSum_Nepritomnost = 0;
+
+
+
+}
+
+@addTagHelper *, UI
+
+@section header_content {
+
+    <link rel="stylesheet" href="~/css/calendar.css" />
+    <link href="~/lib/autocomplete/jquery.autocomplete.css" rel="stylesheet" type="text/css" />
+
+    <style type="text/css">
+        html, body {
+            overflow: hidden
+        }
+
+        .tableFixHead {
+            overflow-y: auto; /* make the table scrollable if height is more than 200 px  */
+            height: 200px; /* gives an initial height of 200px to the table */
+        }
+
+            .tableFixHead thead th {
+                position: sticky; /* make the table heads sticky */
+                top: 0px; /* table head will be placed from the top of the table and sticks to it */
+            }
+
+        table.tab1 th {
+            text-align: center;
+            background-color: white;
+        }
+
+        table.tab1 td {
+            text-align: center;
+        }
+    </style>
+
+}
+<script src="~/lib/autocomplete/jquery.autocomplete.min.js"></script>
+
+<div id="zoomwin" style="position:absolute;top:0px;left:0px;z-index:2000;display:none;"></div>
+
+<div id="calmenu1" class="calmenu nonmobile">
+    <a class="calmenu_btn" id="cmdNew" onclick="calmenu_init_content()" title="Menu pro vybraný den"><span class="material-icons-outlined-btn">add_circle_outline</span></a>
+
+    <div id="divCal" style="display:none;background-color:#E8E8E8;padding:8px;border:solid 1px silver;border-radius:6px;margin-top:-60px;margin-left:20px;">
+
+        <table class="nonmobile" style="min-width:700px;">
+
+            <tr>
+
+                <td>
+                    <label for="Prichod">@_f.tra("Přichod"):</label>
+                </td>
+                <td style="width:70px;">
+                    <input type="text" id="Prichod" class="form-control" onfocus="abs_focus()" onblur="abs_blur()" />
+                </td>
+
+                <td>
+                    <label for="Odchod">@_f.tra("Odchod"):</label>
+                </td>
+                <td style="width:70px;">
+                    <input type="text" id="Odchod" class="form-control" onfocus="abs_focus()" onblur="abs_blur()" />
+                </td>
+                <td>
+                    <button type="button" class="btn btn-sm bog" onclick="abs_save()">@_f.tra("Uložit příchod a odchod")</button>
+                </td>
+
+                <td>
+                    <a id="cmdP31" class="btn btn-sm bog" style="margin-left:10px;margin-right:10px;"><span class="material-icons-outlined-btn">more_time</span><strong id="spanCurrentDate">@_f.tra("Vykázat úkon")</strong></a>
+                </td>
+                <td>
+                    <a id="aReCurrentDate" class="btn btn-sm bog mt_scheduler_valuelink" href="#">@_f.tra("Přehled vykázaných úkonů")</a>
+                </td>
+            </tr>
+        </table>
+
+
+
+
+        @foreach (var c in Model.lisP32FUT.Take(10))
+        {
+
+            <a style="padding:4px;" href="javascript:futc(@(c.pid))">
+                @if (c.p32AbsenceBreakFlag != BO.p32AbsenceBreakFlagENUM._None)
+                {
+                    <span style="background-color:@(c.p32Color)" class="material-icons-outlined">pause</span>
+                }
+                else
+                {
+                    <span style="background-color:@(c.p32Color)" class="material-icons-outlined">work_off</span>
+                }
+                @(BO.Code.Bas.OM2(c.p32Name, 10))
+            </a>
+            @if (c.p32Value_Default > 0)
+            {
+                <span style="color:red;">@(c.p32Value_Default)</span>
+            }
+        }
+
+        <strong>Barva dne:</strong>
+
+        <a style="padding-left:14px;padding-bottom:4px;" href="javascript:c24c(0)">Bez barvy</a>
+        @foreach (var c in Model.lisC24)
+        {
+
+            <a style="padding:4px;" href="javascript:c24c(@(c.pid))"><span style="background-color:@(c.c24Color)">&nbsp;&nbsp;&nbsp;&nbsp;</span>@(c.c24Name)</a>
+        }
+
+    </div>
+
+
+
+
+</div>
+
+
+<ul class="nav nav-tabs" role="tablist" style="margin-top:6px;">
+    <li class="onetab" style="margin-right:2px;">
+        <a id="cmdMore" class="nav-link onetab-offcanvas" tabindex="-1" role="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvas_more">
+            @_f.tra("Docházka")
+            <span class="onetab-caret">▼</span>
+        </a>
+
+
+
+
+    </li>
+
+
+    <li style="width:200px;">
+        <mycombo entity="j02User" asp-for="@Model.j02ID" search-result-width="600" placeholder="@_f.tra("Osoba")" selectedtext="@Model.RecJ02.FullnameDesc" view-flag="1" myqueryinline="allowed_for_p31_read|bool|1" event_after_changevalue="j02id_change"></mycombo>
+    </li>
+    <li style="margin-left:1px;">
+        <button title="@_f.tra("Předchozí")" type="button" class="btn bog px-2" onclick="month_prev()"><i class="material-icons-outlined-btn">first_page</i></button>
+    </li>
+    <li style="width:110px;">
+        <mydate asp-for="@Model.d0"></mydate>
+    </li>
+    <li>
+        <button title="@_f.tra("Další")" type="button" class="btn bog px-2" onclick="month_next()"><i class="material-icons-outlined-btn">last_page</i></button>
+    </li>
+
+
+    <li class="dog" style="padding-left:10px;padding-right:10px;">
+        <table>
+            <tr>
+                <td>
+                </td>
+
+                <td style="max-width:70px;">
+                    <input type="text" id="PrichodHeader" placeholder="@_f.tra("Přichod")" class="form-control" value="@Model.Prichod" onblur="abs_needsave()" />
+                </td>
+
+                <td style="max-width:70px;">
+                    <input type="text" id="OdchodHeader" placeholder="@_f.tra("Odchod")" class="form-control" value="@Model.Odchod" onblur="abs_needsave()" />
+                </td>
+                <td>
+                    <button type="button" class="btn btn-sm bog" id="cmdUlozitZmeny" style="display:none;" onclick="abs_save_header()">
+                        <span class="material-icons-outlined-btn">save</span>
+                        @_f.tra("Uložit příchod/odchod")
+                        <span>
+                            @Model.d0.ToString("dd.MM.")
+                        </span>
+                    </button>
+                </td>
+            </tr>
+        </table>
+
+    </li>
+
+
+
+
+</ul>
+
+
+<div class="tableFixHead" id="divTabContainer" style="border-top:solid 1px silver;">
+
+    <table class="table-bordered table-hover tab1 table">
+        <colgroup>
+            <col width="120" />
+            <col width="70" />
+            <col width="70" />
+            <col width="100" />
+            <col width="70" />
+            <col width="100" />
+            <col width="100" />
+            <col width="70" />
+            <col width="100" />
+            <col width="100" />
+            <col width="70" />
+            <col width="70" />
+            <col width="70" />
+
+            @foreach (var c in Model.lisP32FUT_OsaX)
+            {
+                <col width="90" />
+            }
+            <col />
+        </colgroup>
+        <thead>
+            <tr>
+
+                <th>
+                    Datum
+                </th>
+                <th>
+                    Příchod
+                </th>
+                <th>
+                    Odchod
+                </th>
+                <th>
+                    Přestávky
+                </th>
+                <th>
+                    <myicon symbol="functions"></myicon>
+                    <br />
+                    Přestávka
+                </th>
+                <th title="Doba bez přestávek">
+                    V práci
+                </th>
+                <th title="Doba včetně přestávek">
+                    V práci vč.přestávek
+                </th>
+                <th>
+                    Fond
+                </th>
+                <th>
+                    Přesčas
+                </th>
+                <th>
+                    <myicon symbol="functions"></myicon>
+                    <br />
+                    Nepřítomnost
+                </th>
+                @foreach (var c in Model.lisP32FUT_OsaX)
+                {
+                    <th style="background-color:@(c.p32Color)">
+                        @(c.p32Name)
+                    </th>
+                }
+
+                <th title="Celkově vykázané hodiny">
+                    <myicon symbol="functions"></myicon>
+                    <br />Vykázáno
+                </th>
+                <th title="Vykázané hodiny na fakturovatelné aktivity">
+                    <span style="background-color:green;color:white;border-radius:4px;padding:2px;">FA</span>
+                    <br /> Vykázáno
+                </th>
+                <th title="Vykázané hodiny na nefakturovatelné aktivity">
+                    <span style="background-color:red;color:white;border-radius:4px;padding:2px;">NEFA</span>
+                    <br />Vykázáno
+                </th>
+
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int x = 1; x < 50; x++)
+            {
+                strClass = "mt_scheduler-day-in-month"; bolHoliday = false;
+                if (d.DayOfWeek == DayOfWeek.Saturday || d.DayOfWeek == DayOfWeek.Sunday)
+                {
+                    strClass = "mt_scheduler-day-weekend";
+                }
+                if (Model.lisC26.Any(p => p.c26Date == d))
+                {
+                    bolHoliday = true;
+                    strClass = "mt_scheduler-day-holiday";
+                }
+                //if (d == DateTime.Today)
+                //{
+                //    strClass = "mt_scheduler-today";
+                //}
+
+                if (d == Model.d0)
+                {
+                    strClass = "bunka_selected";
+                }
+
+                strDatum = BO.Code.Bas.ObjectDate2String(d, "dd.MM.yyyy");
+                strCisloDne = BO.Code.Bas.ObjectDate2String(d, "dd");
+                strDatumID = strDatum.Replace(".", "");
+
+                if (x_ok % 2 == 0)
+                {
+                    @Html.Raw($"<tr class='agenda_row_suda {strClass}' data-d='{strDatum}' onmouseover='showcalmenu(event,this,\"{strDatum}\")'>")
+                }
+                else
+                {
+                    @Html.Raw($"<tr class='agenda_row_licha {strClass}' data-d='{strDatum}' onmouseover='showcalmenu(event,this,\"{strDatum}\")'>")
+                }
+
+                //if (bolHoliday) strCisloDne += "🍷";
+                strCisloDne += " " + BO.Code.Bas.ObjectDate2String(d, "dddd");
+
+                if (d == DateTime.Today)
+                {
+                    strCisloDne += "<span class='material-icons-outlined' style='color:lime;'>star</span>";
+                }
+
+
+                if (bolHoliday)
+                {
+                    strCisloDne += "<br>🍷<small>" + BO.Code.Bas.OM2(Model.lisC26.First(p => p.c26Date == d).c26Name, 15) + "</small>";
+                }
+                if (Model.lisC23.Any(p => p.c23Date == d))
+                {
+                    strC24Color = $"background-color:{Model.lisC23.First(p => p.c23Date == d).c24Color}";
+                }
+                else
+                {
+                    strC24Color = null;
+                }
+
+                var firstP12 = Model.lisP12.FirstOrDefault(p => p.p12Date == d);
+
+                if (firstP12 != null)
+                {
+                    strClass += " tecka";
+                }
+
+                @Html.Raw($"<td class='{strClass}' style='border-right:solid 1px #DCDCDC;{strC24Color}'>")
+
+
+                @Html.Raw($"<div class='mt_scheduler-day-link-container'>")
+
+                if (d == Model.d0 && x > 8)
+                {
+                    Model.jump2row = x;
+                }
+                @Html.Raw($"<a style='color:navy;' id='jump2row{x}'>{strCisloDne}</a>")
+
+                @Html.Raw("</div>")
+
+                if (firstP12 != null)
+                {
+                    @Html.Raw($"<span class='{firstP12.StatusCssClass}'></span>")
+                }
+
+                @Html.Raw("</td>")
+
+
+
+                qryP11 = Model.lisP11.Where(p => p.p11Date == d);
+                dblPrestavka = 0; dblVPraciVcPrestavek = 0; dblVPraci = 0; dblFond = 0; strPrichod = null; strOdchod = null; strPrestavky = null; dblPrescas = 0;
+                dblNepritomnost = Model.lisP31.Where(p => p.p31Date == d && p.p32AbsenceFlag > 0 && p.p32AbsenceBreakFlag == 0).Sum(p => p.p31Hours_Orig);
+                dblSum_Nepritomnost += dblNepritomnost;
+                if (qryP11.Count() > 0)
+                {
+                    strPrichod = BO.Code.Bas.ObjectDateTime2String(qryP11.First().p11TodayStart, "HH:mm");
+                    strOdchod = BO.Code.Bas.ObjectDateTime2String(qryP11.First().p11TodayEnd, "HH:mm");
+                    strPrestavky = qryP11.First().Prestavky_Inline;
+                    if (!string.IsNullOrEmpty(strPrestavky))
+                    {
+                        strPrestavky = strPrestavky.Replace(",", "<br>");
+                        dblPrestavka = qryP11.First().Hodiny_Prestavka;
+                        dblSum_Prestavka += dblPrestavka;
+                    }
+                    dblVPraci = qryP11.First().Hodiny_VPraci;
+                    dblSum_VPraci += dblVPraci;
+                    dblVPraciVcPrestavek = qryP11.First().Hodiny_VPraciVcPrestavek;
+                    dblSum_VPraciVcPrestavek += dblVPraciVcPrestavek;
+
+                }
+
+                qryC22 = Model.lisC22.Where(p => p.c22Date == d);
+
+                @Html.Raw($"<td>{strPrichod}</td>")
+                @Html.Raw($"<td>{strOdchod}</td>")
+                @Html.Raw($"<td>{strPrestavky}</td>")
+                @Html.Raw($"<td>{Model.FT(dblPrestavka)}</td>")
+                @Html.Raw($"<td>{Model.FT(dblVPraci)}</td>")
+                @Html.Raw($"<td>{Model.FT(dblVPraciVcPrestavek)}</td>")
+
+                if (qryC22.Count() > 0)
+                {
+                    dblFond = qryC22.First().c22Hours_Work;
+                    dblSum_Fond += dblFond;
+                    @Html.Raw($"<td>{Model.FT(dblFond)}</td>")
+
+                }
+                else
+                {
+                    @Html.Raw("<td></td>")
+                }
+
+                qryP31 = Model.lisP31.Where(p => p.p31Date == d);
+
+                switch (Model.JakPocitatPrescas)
+                {
+                    case "prescas1":
+                        var dblHodiny = qryP31.Sum(p => p.p31Hours_Orig);
+                        if (dblHodiny - dblPrestavka - dblFond > 0)
+                        {
+                            dblPrescas = dblHodiny - dblPrestavka - dblFond;
+                        }
+                        break;
+                    case "prescas2":
+                        if (dblVPraci - dblFond > 0)
+                        {
+                            dblPrescas = dblVPraci - dblFond;
+                        }
+
+                        break;
+                    case "prescas3":
+                        if (dblVPraciVcPrestavek - dblFond > 0)
+                        {
+                            dblPrescas = dblVPraciVcPrestavek - dblFond;
+                        }
+                        break;
+                }
+
+
+                dblSum_Prescas += dblPrescas;
+
+                @Html.Raw($"<td>{Model.FT(dblPrescas)}</td>")
+                @Html.Raw($"<td>{Model.FT(dblNepritomnost)}</td>")
+
+                @foreach (var c in Model.lisP32FUT_OsaX)
+                {
+                    qryP31 = Model.lisP31.Where(p => p.p32ID == c.pid && p.p31Date == d);
+                    if (qryP31.Count() > 0)
+                    {
+                        if (c.p32Color != null)
+                        {
+                            @Html.Raw($"<td style='background-color:{c.p32Color}'>{Model.FT(qryP31.Sum(p => p.p31Hours_Orig))}</td>")
+                        }
+                        else
+                        {
+                            @Html.Raw($"<td>{Model.FT(qryP31.Sum(p => p.p31Hours_Orig))}</td>")
+                        }
+
+                    }
+                    else
+                    {
+                        @Html.Raw("<td></td>")
+                    }
+                }
+
+                qryP31 = Model.lisP31.Where(p => p.p31Date == d);
+                if (qryP31.Count() > 0)
+                {
+                    @Html.Raw($"<td><a class='mt_scheduler_valuelink' onclick='re(this,\"{strDatum}\")'>{Model.FT(qryP31.Sum(p => p.p31Hours_Orig))}</a></td>")
+                }
+                else
+                {
+                    @Html.Raw("<td></td>")
+                }
+                qryP31 = Model.lisP31.Where(p => p.p32IsBillable == true && p.p31Date == d);
+                if (qryP31.Count() > 0)
+                {
+                    @Html.Raw($"<td>{Model.FT(qryP31.Sum(p => p.p31Hours_Orig))}</td>")
+                }
+                else
+                {
+                    @Html.Raw("<td></td>")
+                }
+                qryP31 = Model.lisP31.Where(p => p.p32IsBillable == false && p.p31Date == d);
+                if (qryP31.Count() > 0)
+                {
+                    @Html.Raw($"<td>{Model.FT(qryP31.Sum(p => p.p31Hours_Orig))}</td>")
+                }
+                else
+                {
+                    @Html.Raw("<td></td>")
+                }
+
+                if (strC24Color != null)
+                {
+                    @Html.Raw($"<td style='{strC24Color}'></td>")
+                }
+                else
+                {
+                    @Html.Raw("<td></td>")
+                }
+
+                x_ok += 1;
+
+
+                intLastM = d.Month;
+
+                if (Model.IsAgendaDescending)
+                {
+                    d = d.AddDays(-1);
+                }
+                else
+                {
+                    d = d.AddDays(1);
+                }
+
+                if (d < Model.d1 || d > Model.d2)
+                {
+                    break;
+                }
+
+            }
+        </tbody>
+        <tfoot>
+            <tr>
+                <td><myicon symbol="functions"></myicon></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>
+                    @Model.FT(dblSum_Prestavka)
+                </td>
+                <td>
+                    @Model.FT(dblSum_VPraci)
+                </td>
+                <td>
+                    @Model.FT(dblSum_VPraciVcPrestavek)
+                </td>
+                <td>
+                    @Model.FT(dblSum_Fond)
+                </td>
+                <td>
+                    @Model.FT(dblSum_Prescas)
+                </td>
+                <td>
+                    @Model.FT(dblSum_Nepritomnost)
+                </td>
+                @foreach (var c in Model.lisP32FUT_OsaX)
+                {
+                    qryP31 = Model.lisP31.Where(p => p.p32ID == c.pid);
+                    if (qryP31.Count() > 0)
+                    {
+                        @Html.Raw($"<th>{Model.FT(qryP31.Sum(p => p.p31Hours_Orig))}</th>")
+                    }
+                    else
+                    {
+                        @Html.Raw("<th></th>")
+                    }
+                }
+                <td>
+                    @Model.FT(Model.lisP31.Sum(p => p.p31Hours_Orig))
+                </td>
+                <td>
+                    @Model.FT(Model.lisP31.Where(p => p.p32IsBillable == true).Sum(p => p.p31Hours_Orig))
+                </td>
+                <td>
+                    @Model.FT(Model.lisP31.Where(p => p.p32IsBillable == false).Sum(p => p.p31Hours_Orig))
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+
+
+
+<!-- Nabídka Více -->
+<div class="offcanvas offcanvas-start" tabindex="-1" data-bs-scroll="true" data-bs-backdrop="true" data-bs-keyboard="true" id="offcanvas_more">
+
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title">
+            <a href="javascript:reload()" title="Občerstvit">
+                <myicon symbol="refresh"></myicon>
+            </a>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+
+    <div class="offcanvas-body p-0 m-0" id="offcanvas_more_body">
+
+        <div style="margin:5px;">
+            @if (_f.CurrentUser.TestPermission(BO.PermValEnum.GR_x31_Personal))
+            {
+
+                <button type="button" class="btn bog" onclick="report()"><span class="material-icons-outlined-btn">print</span> @_f.tra("Tisková sestava")</button>
+
+            }
+
+            <button type="button" class="btn bog" title="Odeslat E-mail" onclick="javascript:_html2mail('divTabContainer','Docházka-@(Model.m0)/@(Model.y0)','send_message_template_calendar.html')"><span class="material-icons-outlined-btn">alternate_email</span> @_f.tra("Odeslat přes e-mail")</button>
+
+        </div>
+
+        <div style="margin:5px;">
+            <select class="form-select" asp-for="IsAgendaDescending" onchange="change_agenda_descending(this)">
+                <option value="false">@_f.tra("Třídit vzestupně")</option>
+                <option value="true">@_f.tra("Třídit sestupně")</option>
+            </select>
+        </div>
+        <div style="margin:5px;">
+            <select class="form-select" asp-for="JakPocitatPrescas" onchange="change_agenda_prescas(this)">
+                <option value="prescas1">#1 @_f.tra("Přesčas počítat jako [Vykazáné hodiny] - [Fond] - [Přestávky]")</option>
+                <option value="prescas2">#2 @_f.tra("Přesčas počítat jako [Odchod - Příchod] - [Fond] - [Přestávky]")</option>
+                <option value="prescas3">#3 @_f.tra("Přesčas počítat jako [Odchod - Příchod] - [Fond]")</option>
+            </select>
+        </div>
+        <div style="margin-top:20px;"></div>
+
+        @Html.EditorFor(m => Model.LeftPanel, "~/Views/Shared/_CalendarPanel.cshtml")
+
+    </div>
+</div>
+
+<script type="text/javascript">
+    var _j02id = "@Model.j02ID";
+    var _current_mouseover_date = null;
+    var _current_abs_focused = false;
+    var _zoomwin = document.getElementById("zoomwin");
+    var _lasturl = "";
+    var _lastctl = null;
+    var _prichod = "@Model.Prichod";
+    var _odchod = "@Model.Odchod";
+
+
+    $(document).ready(function () {
+        $("#cmdabsence").addClass("active");
+        $("#cmdCalendarPanel2").css("display", "none");
+
+        abs_init_intervals("PrichodHeader", "06:00|06:30|07:00|07:30|08:00|08:30|09:00|09:30|10:00|10:30|11:00|11:30|12:00|12:30|13:00|13:30|14:00|14:30|15:00|15:30|16:00|16:30|17:00|17:30|18:00");
+        abs_init_intervals("OdchodHeader", "12:00|12:30|13:00|13:30|14:00|14:30|15:00|15:30|16:00|16:30|17:00|17:30|18:00|18:30|19:00|19:30|20:00|20:30|21:00|21:30|22:00|22:30|23:00|23:30");
+        abs_init_intervals("Prichod", "06:00|06:30|07:00|07:30|08:00|08:30|09:00|09:30|10:00|10:30|11:00|11:30|12:00|12:30|13:00|13:30|14:00|14:30|15:00|15:30|16:00|16:30|17:00|17:30|18:00");
+        abs_init_intervals("Odchod", "12:00|12:30|13:00|13:30|14:00|14:30|15:00|15:30|16:00|16:30|17:00|17:30|18:00|18:30|19:00|19:30|20:00|20:30|21:00|21:30|22:00|22:30|23:00|23:30");
+
+        $("#d0helper").change(function () {
+            reload();
+        });
+
+        $("#divLeftPanel").click(function (event) {
+            event.stopPropagation();
+        });
+
+        $(document).on("keydown", function (e) {
+            if (e.keyCode == 27 && _zoomwin.style.display == "block") {   //klávese ESCAPE
+                zoom_close();
+            }
+
+        });
+
+        $(document).on("click", function (e) {
+            if ($(e.target).hasClass("mt_scheduler_valuelink") || $(e.target).hasClass("stat_link")) {
+                return;
+            }
+            zoom_close();
+
+        });
+
+        var offset = $("#divTabContainer").offset();
+        var hh = window.innerHeight - offset.top;
+        $("#divTabContainer").css("height", hh.toFixed(0) + "px");
+
+        var jump2row = parseInt("@(Model.jump2row)");
+        if (jump2row > 0) {
+            var jumpto = document.getElementById("jump2row" + jump2row);
+            jumpto.scrollIntoView({ block: "start", behavior: "smooth" });
+        }
+
+
+    });
+
+    function abs_init_intervals(controlid, intervals) {
+        var arr = intervals.split("|");
+        $("#" + controlid).autocomplete({
+            source: [arr],
+            limit: 40,
+            visibleLimit: 40,
+            openOnFocus: true,
+            highlight: false,
+            autoselect: true
+        });
+
+        $("#" + controlid).prop("filled", true);
+
+        $("#" + controlid).on("focus", function (e, data) {
+            $(this).select();
+        });
+    }
+
+    function reload(d) {
+        if (d == undefined || d == null || d == "") {
+            d = $("#d0helper").val();
+        }
+
+
+        var url = "/Absence/Index?d=" + d;
+
+        _redirect(url);
+    }
+
+
+    function month_prev() {
+        var d0 = datepicker_get_value("d0");
+        if (d0 == null) {
+            d0 = new Date();
+        }
+        var d1 = new Date(d0.getFullYear(), d0.getMonth() - 1, 1);
+
+
+        datepicker_set_value("d0", d1); //tímto se spustí se $("#d0helper").change
+
+
+    }
+    function month_next() {
+        var d0 = datepicker_get_value("d0");
+        if (d0 == null) {
+            d0 = new Date();
+        }
+
+        var d1 = new Date(d0.getFullYear(), d0.getMonth() + 1, 1);
+
+
+        datepicker_set_value("d0", d1); //tímto se spustí se $("#d0helper").change
+
+    }
+
+    function get_prev_days(d, days) {
+        for (var i = 0; i < days; i++) {
+            d = new Date(d.getTime() - 1 * 24 * 60 * 60 * 1000);
+        }
+        return (d);
+    }
+    function get_next_monday(d) {
+        for (var i = 0; i < 7; i++) {
+            d = new Date(d.getTime() + 1 * 24 * 60 * 60 * 1000);
+
+            if (d.getDay() == 1) {
+                return (d);
+            }
+        }
+
+        alert("get_next_monday");
+    }
+
+    function j02id_change(j02id) {
+        if (j02id == "0" || j02id == "") {
+            j02id = "@(_f.CurrentUser.j02ID)";
+        }
+
+        $.post(_ep("/Common/SetUserParam"), { key: "absence-j02id", value: j02id }, function (data) {
+            reload();
+
+        });
+
+
+    }
+
+    function abs_save_header() {
+        var d = $("#d0helper").val();
+
+        $.post(_ep("/p31calendar/SaveAbsRecord"), { d: d, prichod: $("#PrichodHeader").val(), odchod: $("#OdchodHeader").val(), j02id: _j02id }, function (data) {
+            if (data.message != null) {
+                alert(data.message);
+            } else {
+                reload();
+            }
+        });
+    }
+    function change_agenda_descending(cbx) {
+        $.post(_ep("/Common/SetUserParam"), { key: "absence-agendadescending", value: cbx.value }, function (data) {
+            reload();
+        });
+    }
+    function change_agenda_prescas(cbx) {
+        $.post(_ep("/Common/SetUserParam"), { key: "absence-jakpocitatprescas", value: cbx.value }, function (data) {
+            reload();
+        });
+    }
+
+    function calmenu_init_content() {
+
+        if ($("#divCal").css("display") == "none") {
+            $("#divCal").css("display", "block");
+        } else {
+            $("#divCal").css("display", "none");
+            return;
+        }
+
+        $.post(_ep("/p31calendar/LoadAbsRecord"), { d: _current_mouseover_date, j02id: _j02id }, function (data) {
+            $("#Prichod").val(data.prichod);
+            $("#Odchod").val(data.odchod);
+        });
+
+
+    }
+    function futc(p32id) {
+
+        $.post(_ep("/p31calendar/SaveFutRecord"), { d: _current_mouseover_date, p32id: p32id, j02id: _j02id }, function (data) {
+            if (data.message != null) {
+                if (data.message == "manual") {
+                    _notify_message("V nastavení aktivity není uvedena výchozí hodnota úkonu nebo projekt - proto nelze vykazovat úplně automaticky", "info");
+                    var url = "/p31/Record?j02id=" + _j02id + "&p32id=" + p32id + "&d=" + _current_mouseover_date;
+                    _window_open(url, 3);
+                    return;
+                }
+                alert(data.message);
+            } else {
+                reload(_current_mouseover_date);
+            }
+
+        });
+
+    }
+    function c24c(c24id) {
+
+        $.post(_ep("/p31calendar/SaveC23Record"), { d: _current_mouseover_date, c24id: c24id, j02id: _j02id }, function (data) {
+            reload(_current_mouseover_date);
+        });
+
+    }
+    function p31c(d, t1, t2, j02id) {
+        var url = "/p31/Record?j02id=" + j02id + "&d=" + d;
+        if (t1 != undefined && t1 != null) {
+            url = url + "&t1=" + t1 + "&t2=" + t2;
+        }
+
+        _window_open(url, 3);
+    }
+
+
+    function abs_init_intervals(controlid, intervals) {
+        var arr = intervals.split("|");
+        $("#" + controlid).autocomplete({
+            source: [arr],
+            limit: 30,
+            visibleLimit: 30,
+            openOnFocus: true,
+            highlight: false,
+            autoselect: true
+        });
+
+        $("#" + controlid).prop("filled", true);
+
+        $("#" + controlid).on("focus", function (e, data) {
+            $(this).select();
+        });
+    }
+    function abs_save() {
+
+        $.post(_ep("/p31calendar/SaveAbsRecord"), { d: _current_mouseover_date, prichod: $("#Prichod").val(), odchod: $("#Odchod").val(), j02id: _j02id }, function (data) {
+            if (data.message != null) {
+                alert(data.message);
+            } else {
+                reload(_current_mouseover_date);
+            }
+        });
+    }
+
+    function abs_focus() {
+        _current_abs_focused = true;
+    }
+    function abs_blur() {
+        _current_abs_focused = false;
+    }
+
+    function abs_needsave() {
+        $("#cmdUlozitZmeny").css("display", "block");
+    }
+
+    function showcalmenu(e, ctl, d) {
+        if (d == _current_mouseover_date || _current_abs_focused == true) {
+            return;
+        }
+
+        if ((d != _current_mouseover_date) && $("#divCal").css("display") == "block") {
+            $("#divCal").css("display", "none");
+        }
+
+        //$("#spanCurrentDate").text(d);
+        $("#aReCurrentDate").attr("onclick", "re(this,'" + d + "')");
+
+        _current_mouseover_date = d;
+
+        $("#cmdP31").prop("title", "Vykázat úkon do dne: " + d);
+        $("#cmdP31").prop("href", "javascript:p31c('" + d + "',null,null," + _j02id + ")");
+
+        var x = $(ctl).offset().left + 17;
+        //var x=e.pageX;
+        var y = $(ctl).offset().top + 5;
+
+        $("#calmenu1").css("background-color", "");
+
+        $("#calmenu1").css("display", "block");
+        $("#calmenu1").css("left", x + 10);
+        $("#calmenu1").css("top", y - 5);
+    }
+
+
+    function re(ctl, d) {
+        var url = _ep("/p31dayline/Zoom?j02id=" + _j02id + "&d=" + d);
+
+        zoom_open(ctl, url);
+    }
+    function zoom_open(ctl, url) {
+        if (_lasturl == url && _lastctl == ctl && $("#zoomwin").css("display") == "block") {
+            zoom_close();
+            return;
+        }
+        _lasturl = url;
+        _lastctl = ctl;
+
+        $(".zoom_ctl_current").removeClass("zoom_ctl_current");
+        $(ctl).addClass("zoom_ctl_current");
+
+        var c = $("#zoomwin");
+
+        var w = _device.innerWidth - 100;
+        var h = 450;
+        var y = $(ctl).offset().top + 20;
+        if (y + h + 20 > _device.innerHeight) {
+            y = $(ctl).offset().top - h - 2;
+        }
+
+        if (_device.innerWidth < w) w = _device.innerWidth;
+        if (_device.innerHeight < h) h = _device.innerHeight;
+        x = (_device.innerWidth - w) / 2;
+
+        if (x<0){
+            x=0;
+        }
+        if (y<0){
+            y=0;
+        }
+
+        $(c).css("display", "block");
+        $(c).css("width", w + "px");
+        $(c).css("height", h + "px");
+        $(c).css("left", x + "px");
+        $(c).css("top", y + "px");
+        $(c).html("<iframe id='frazoom' style='border:solid 1px gray;' width='" + (w - 50) + "px' height='" + (h - 40) + "px' src='" + url + "'></iframe>");
+
+    }
+    function zoom_close() {
+        if ($("#zoomwin").css("display") == "block") {
+            $("#zoomwin").css("display", "none");
+        }
+
+        $(".zoom_ctl_current").removeClass("zoom_ctl_current");
+    }
+    function report() {
+        _window_open("/ReportsClient/ReportContext?pid=" + _j02id + "&prefix=j02");
+    }
+
+    function p31bystat(prefix, pid) {
+
+        var url = "/p31/Record?j02id=" + _j02id + "&newrec_prefix=" + prefix + "&newrec_pid=" + pid;
+
+        _window_open(url, 3);
+    }
+
+
+    function zoom_stat(ctl, p32isbillable, iswip, p70id, isapproved_and_wait4invoice, p28id, p41id, p32id) {
+        var url = "/p31dayline/Zoom?j02id=" + _j02id+"&m=@(Model.d1.Month)&y=@(Model.d1.Year)";
+
+        if (p32isbillable != undefined || p32isbillable != null) {
+            url = url + "&p32isbillable=" + p32isbillable;
+        }
+        if (iswip != undefined || iswip != null) {
+            url = url + "&iswip=" + iswip;
+        }
+        if (isapproved_and_wait4invoice != undefined || isapproved_and_wait4invoice != null) {
+            url = url + "&isapproved_and_wait4invoice=" + isapproved_and_wait4invoice;
+        }
+        if (p70id != undefined || p70id != null) {
+            url = url + "&p70id=" + p70id;
+        }
+        if (p28id != undefined || p28id != null) {
+            url = url + "&p28id=" + p28id;
+        }
+        if (p41id != undefined || p41id != null) {
+            url = url + "&p41id=" + p41id;
+        }
+        if (p32id != undefined || p32id != null) {
+            url = url + "&p32id=" + p32id;
+        }
+
+        zoom_open(ctl, url);
+    }
+
+    function zoom_alldays(ctl) {
+        var url = "/p31dayline/Zoom?j02id=" + _j02id + "&m=@(Model.d1.Month)&y=@(Model.d1.Year)";
+
+        zoom_open(ctl, url);
+
+    }
+
+</script>

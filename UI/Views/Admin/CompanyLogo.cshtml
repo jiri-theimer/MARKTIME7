@@ -1,0 +1,51 @@
+﻿@model UI.Models.Admin.AdminCompanyLogo
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Nahrát grafické logo");
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageSymbol = "photo_library";
+}
+
+@addTagHelper *, UI
+
+
+<div class="bg-light" style="padding:10px;">
+    <button id="cmdSave" class="btn btn-success" onclick="_submit()">@_f.tra("Uložit změny")</button>
+    <button id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+
+
+
+</div>
+
+<form id="form1" asp-controller="Admin" asp-action="CompanyLogo" method="POST">
+    <input type="hidden" asp-for="@Model.UploadGuidLogo" />
+
+    <div class="modal_record_container">
+        <div>
+            <input type="checkbox" asp-for="@Model.IsMakeResize" />
+            <label class="col-form-label" for="IsMakeResize">@_f.tra("Automaticky zmenšit velikost obrázku na doporučenou velikost")</label>
+        </div>
+
+        <input type="hidden" asp-for="@Model.LogoFile" />
+
+        @if (!string.IsNullOrEmpty(Model.LogoFile))
+        {
+            <img src="@Model.LogoFile" />
+        }
+        <iframe id="fraUpload" src="/FileUpload/SingleUpload?guid=@Model.UploadGuidLogo" frameborder="0" scrolling="yes"></iframe>
+
+
+    </div>
+</form>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+        
+
+    })
+
+    
+</script>

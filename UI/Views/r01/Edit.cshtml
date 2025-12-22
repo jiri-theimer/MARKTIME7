@@ -1,0 +1,332 @@
+﻿@model UI.Models.capacity.EditViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = _f.tra("Upravit kapacitní plán");
+
+
+
+
+}
+
+@addTagHelper *, UI
+
+
+<div class="bg-light input-group">
+    <div>
+        @if (Model.Oper == "clear")
+        {
+            <button type="button" id="cmdClear" class="btn btn-danger" onclick="_submit()"><span class="material-icons-outlined-btn" style="color:white;">delete_outline</span>@_f.tra("Potvrdit vyčištění záznamů plánu")</button>
+        }
+        else
+        {
+            <button type="button" id="cmdSave" class="btn btn-success" onclick="_submit()"><span class="material-icons-outlined-btn">done</span>@_f.tra("Uložit změny")</button>
+        }
+
+    </div>
+    <div>
+        <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
+    </div>
+
+    <div>
+    </div>
+</div>
+
+<form id="form1" asp-controller="r01" asp-action="Edit" method="POST">
+    <input type="hidden" asp-for="Oper" />
+    <input type="hidden" asp-for="ItemsPrefix" />
+    <input type="hidden" asp-for="r02ID" />
+
+    <table id="tab1" class="table table-hover" style="table-layout: fixed;width:95%;">
+        <tr>
+            <th style="width:150px;">
+                @_f.tra("Personální zdroj")
+            </th>
+            <th style="width:200px;">
+                @_f.tra("Klient")
+            </th>
+            <th style="width:200px;">
+                @_f.tra("Projekt")
+            </th>
+
+            <th style="width:120px;">
+                Od
+            </th>
+            <th style="width:120px;">
+                Do
+            </th>
+            @if (Model.IsUseFaNefa)
+            {
+                <th style="width:80px;">
+                    Fa
+                </th>
+                <th style="width:80px;">
+                    Nefa
+                </th>
+            }
+            else
+            {
+                <th style="width:80px;">
+                    Hodiny
+                </th>
+            }
+            <th style="width:130px;"></th>
+            <th>
+
+            </th>
+            <th style="width:20px;">
+
+            </th>
+        </tr>
+        @for (int i = 0; i < Model.lisItems.Count; i++)
+        {
+            <tr style="@Model.lisItems[i].CssTempDisplay">
+                <td>
+                    <input type="hidden" asp-for="@Model.lisItems[i].j02id" />
+                    <input type="hidden" asp-for="@Model.lisItems[i].Person" />
+                    <input type="hidden" asp-for="@Model.lisItems[i].p41id" />
+                    <input type="hidden" asp-for="@Model.lisItems[i].r01id" />
+                    <input type="hidden" asp-for="@Model.lisItems[i].Project" />
+                    <input type="hidden" asp-for="@Model.lisItems[i].Client" />
+
+                    <span>@Model.lisItems[i].Person</span>
+
+
+                </td>
+                <td>
+                    @Model.lisItems[i].Client
+                </td>
+                <td>
+
+                    @Model.lisItems[i].Project
+
+                </td>
+                <td>
+                    <mydate asp-for="@Model.lisItems[i].d1"></mydate>
+                </td>
+                <td>
+                    <mydate asp-for="@Model.lisItems[i].d2"></mydate>
+                </td>
+                <td>
+                    <mynumber asp-for="@Model.lisItems[i].HoursFa" decimal-digits="0"></mynumber>
+                </td>
+                @if (Model.IsUseFaNefa)
+                {
+
+                    <td>
+                        <mynumber asp-for="@Model.lisItems[i].HoursNeFa" decimal-digits="0"></mynumber>
+                    </td>
+                }
+
+                <td>
+                    @Html.EditorFor(m => m.lisItems[i].Color, "~/Views/Shared/_ColorCombo.cshtml")
+                </td>
+
+
+                <td>
+                    <input class="form-control" asp-for="@Model.lisItems[i].Memo" placeholder="@_f.tra("Poznámka")" />
+                    <input type="hidden" asp-for="lisItems[i].IsTempDeleted" value="@Model.lisItems[i].IsTempDeleted" />
+                    <input type="hidden" asp-for="lisItems[i].TempGuid" value="@Model.lisItems[i].TempGuid" />
+
+
+                </td>
+                <td>
+                    @if (Model.Oper != "clear")
+                    {
+                        <button type="button" tabindex="-1" class="btn btn-danger" title="@_f.tra("Odstranit řádek")" onclick="handle_delete_row('@(Model.lisItems[i].TempGuid)')">x</button>
+                    }
+
+                </td>
+
+
+
+            </tr>
+        }
+    </table>
+
+</form>
+
+
+<table class="table table-hover" style="max-width:1200px;">
+    <tr style="background-color:aliceblue;">
+        <th>
+            @_f.tra("Personální zdroj")
+        </th>
+        <th>
+            @_f.tra("Klient")
+        </th>
+        <th>
+            @_f.tra("Projekt")
+        </th>
+        <th class="numcell" style="width:90px;">
+            @_f.tra("Naplánováno")
+        </th>
+
+        <th class="numcell" style="width:90px;">
+            @_f.tra("Strop")
+        </th>
+        <th class="numcell" style="width:90px;">
+            @_f.tra("Zbývá")
+        </th>
+
+        <th style="width:120px;">Plán od</th>
+        <th style="width:120px;">Plán do</th>
+    </tr>
+    @foreach (var c in Model.lisR04.Where(p => p.UserInsert == "rezerva"))
+    {
+        <tr>
+            <td>
+                @c.Person
+            </td>
+            <td>
+                @Model.lisR01.Where(p=>p.p41ID==c.p41ID).First().Client
+            </td>
+            <td>
+                @c.Project
+
+            </td>
+
+            @if (Model.IsUseFaNefa)
+            {
+                <td class="numcell">
+                    @(BO.Code.Bas.Number2String(Model.lisR01.Where(p => p.j02ID == c.j02ID && p.p41ID == c.p41ID).Sum(p => p.r01HoursFa)))
+                </td>
+
+                <td class="numcell">
+                    @(BO.Code.Bas.Number2String(c.r04HoursFa))
+                </td>
+
+                <td class="numcell">
+                    @(BO.Code.Bas.Number2String(Model.lisR01.Where(p => p.j02ID == c.j02ID && p.p41ID == c.p41ID).Sum(p => p.r01HoursNeFa)))
+
+                </td>
+                <td class="numcell">
+                    @(BO.Code.Bas.Number2String(c.r04HoursNeFa))
+                </td>
+            }
+            else
+            {
+                <td class="numcell">
+                    @(BO.Code.Bas.Number2String(Model.lisR01.Where(p => p.j02ID == c.j02ID && p.p41ID == c.p41ID).Sum(p => p.r01HoursTotal)))
+                </td>
+
+                <td class="numcell" style="color:red;">
+                    @if (c.FaZastropovan)
+                    {
+                        @(BO.Code.Bas.Number2String(c.r04HoursTotal))
+                    }
+                    else
+                    {
+                        <span>-</span>
+                    }
+                    
+                </td>
+                <td class="numcell" style="color:blueviolet;">
+                    @if (c.FaZastropovan)
+                    {
+                        @(BO.Code.Bas.Number2String(c.r04HoursTotal - Model.lisR01.Where(p => p.j02ID == c.j02ID && p.p41ID == c.p41ID).Sum(p => p.r01HoursTotal)))
+                    }
+                    else
+                    {
+                        <span>-</span>
+                    }
+                    
+                    
+                </td>
+
+            }
+            <td>
+                @BO.Code.Bas.ObjectDate2String(Model.lisR01.Where(p=>p.p41ID==c.p41ID).First().p41PlanFrom)
+            </td>
+            <td>
+                @BO.Code.Bas.ObjectDate2String(Model.lisR01.Where(p=>p.p41ID==c.p41ID).First().p41PlanUntil)
+            </td>
+        </tr>
+
+    }
+    <tr style="background-color:#F5F5F5;">
+        <th>
+
+        </th>
+        <th>
+
+        </th>
+        <th>
+
+        </th>
+
+
+        @if (Model.IsUseFaNefa)
+        {
+            <td class="numcell">
+                @(BO.Code.Bas.Number2String(Model.lisR01.Where(p => p.Rezerva).Sum(p => p.r01HoursFa)))
+            </td>
+
+            <td class="numcell">
+                @(BO.Code.Bas.Number2String(Model.lisR04.Where(p => p.UserInsert == "rezerva").Sum(p => p.r04HoursFa)))
+            </td>
+
+            <td class="numcell">
+                @(BO.Code.Bas.Number2String(Model.lisR01.Where(p => p.Rezerva).Sum(p => p.r01HoursNeFa)))
+
+            </td>
+
+            <td class="numcell">
+                @(BO.Code.Bas.Number2String(Model.lisR04.Where(p => p.UserInsert == "rezerva").Sum(p => p.r04HoursNeFa)))
+            </td>
+
+        }
+        else
+        {
+            <td class="numcell">
+                @(BO.Code.Bas.Number2String(Model.lisR01.Where(p => p.Rezerva).Sum(p => p.r01HoursTotal)))
+            </td>
+
+            <td class="numcell" style="color:red;">
+                @(BO.Code.Bas.Number2String(Model.lisR04.Where(p => p.UserInsert == "rezerva" && p.FaZastropovan).Sum(p => p.r04HoursTotal)))
+            </td>
+            <td class="numcell" style="color:blueviolet;">
+                @(BO.Code.Bas.Number2String(Model.lisR04.Where(p => p.UserInsert == "rezerva").Sum(p => p.r04HoursTotal) - Model.lisR01.Where(p => p.Rezerva).Sum(p => p.r01HoursTotal)))
+            </td>
+
+        }
+
+        <th></th>
+        <th></th>
+    </tr>
+</table>
+
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+
+
+
+
+
+
+    });
+
+
+
+
+
+
+    function handle_delete_row(guid) {
+        _postback("delete_row", "guid=" + guid);
+
+
+    }
+
+
+    function handle_clear_rows() {
+        _postback("clear_rows");
+
+    }
+
+
+</script>
+

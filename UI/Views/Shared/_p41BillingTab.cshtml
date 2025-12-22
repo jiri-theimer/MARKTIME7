@@ -1,0 +1,178 @@
+﻿@model UI.Models.Record.p41Record
+@inject BL.Factory _f
+
+
+@{
+
+
+
+}
+
+@addTagHelper *, UI
+
+<div class="row">
+    <div class="col-sm-7 col-md-7">
+        <div class="card">
+            <div class="card-header">
+                @_f.tra("Ceník fakturačních hodinových sazeb")
+            </div>
+            <div class="card-body">
+                <input type="radio" id="Radiop51Flag1" asp-for="@Model.Rec.p41BillingFlag" value="CenikDedit" onchange="_postback()">
+                <label for="Radiop51Flag1">
+                    @_f.tra("Projekt nemá vlastní ceník fakturačních sazeb, sazby se dědí z klienta nebo z ROOT ceníku")
+                    <mytooltip text="Fakturační sazby se dědí z ceníku klient projektu. Pokud klient nemá sazby, dědí se z ROOT ceníku."></mytooltip>
+                </label>
+                <br />
+                <input type="radio" id="Radiop51Flag2" asp-for="@Model.Rec.p41BillingFlag" value="CenikPrirazeny" onchange="_postback()">
+                <label for="Radiop51Flag2">@_f.tra("Svázat projekt s jedním z pojmenovaných (sdílených) ceníků")</label>
+                <br />
+                <input type="radio" id="Radiop51Flag3" asp-for="@Model.Rec.p41BillingFlag" value="CenikIndividualni" onchange="_postback()">
+                <label for="Radiop51Flag3">
+                    @_f.tra("Projekt má individuální hodinové sazby na míru")
+                    <mytooltip text="Sazby zde nadefinované platí pouze pro tento projekt."></mytooltip>
+                </label>
+
+
+            </div>
+            @if (Model.Rec.p41BillingFlag == BO.p41BillingFlagEnum.CenikPrirazeny)
+            {
+                <div>
+                    @_f.tra("Přiřazený ceník hodinových sazeb")
+                    <button type="button" onclick="p51_record_flag2()" class="btn btn-sm bog">@_f.tra("Upravit ceník")</button>
+                    <button type="button" onclick="p51_create_flag2()" class="btn btn-sm bog">@_f.tra("Založit ceník")</button>
+                </div>
+                <mycombo entity="p51PriceList" asp-for="@Model.SelectedP51ID_Flag2" placeholder="@_f.tra("Vyberte pojmenovaný ceník")" selectedtext="@Model.SelectedComboP51Name" myqueryinline="typeflag|int|1|iscustomtailor|bool|false"></mycombo>
+
+            }
+            @if (Model.Rec.p41BillingFlag == BO.p41BillingFlagEnum.CenikIndividualni)
+            {
+
+
+                <button type="button" onclick="p51_record_flag3()" class="btn btn-sm bog">@_f.tra("Sazby na míru")</button>
+                <input type="hidden" asp-for="@Model.SelectedP51ID_Flag3" value="@Model.SelectedP51ID_Flag3" />
+            }
+        </div>
+
+    </div>
+
+</div>
+
+<div class="row my-2">
+    <label class="col-sm-1 col-md-2 col-form-label">
+        @(_f.tra("Fakturační jazyk"))
+        <mytooltip text="Systém bude uživatelům indikovat jazyk (vlajkou státu), v kterém mají vykazovat úkony.<hr>Lze nastavit i v klientovi projektu."></mytooltip>
+    </label>
+    <div class="col-sm-2 col-md-2">
+        <select asp-for="@Model.Rec.p41BillingLangIndex" class="form-select">
+            <option value="0">
+                @(_f.Lic.x01CountryCode == "CZ" ? "CS" : _f.Lic.x01CountryCode)
+            </option>
+            <option value="1">#1 @_f.Lic.x01BillingLang1</option>
+            <option value="2">#2 @_f.Lic.x01BillingLang2</option>
+            <option value="3">#3 @_f.Lic.x01BillingLang3</option>
+            <option value="4">#4 @_f.Lic.x01BillingLang4</option>
+        </select>
+    </div>
+    <div class="col-sm-2 col-md-2">
+        @_f.tra("Výchozí splatnost faktury")
+        <mytooltip text="Dny bez ohledu na víkend/svátky. Splatnost lze definovat i ve fakturačním nastavení klienta projektu nebo v administraci (základní parametry databáze)."></mytooltip>
+    </div>
+    <div class="col-sm-1 col-md-1">
+        <mynumber asp-for="@Model.Rec.p41InvoiceMaturityDays" decimal-digits="0"></mynumber>
+    </div>
+    <label class="col-sm-2 col-md-2" for="numRec_p28Round2Minutes">
+        @_f.tra("Zaokrouhlování času na míru")
+        <mytooltip text="Definuje se v minutách.<hr>Výchozí jednotka zaokrouhlování hodin se definuje v administraci (základní parametry databáze)."></mytooltip>
+
+    </label>
+    <div class="col-sm-1 col-md-1">
+        <mynumber asp-for="@Model.Rec.p41Round2Minutes" decimal-digits="0"></mynumber>
+    </div>
+</div>
+
+
+<div class="row my-2">
+    <label class="col-sm-1 col-md-2 col-form-label">
+        @_f.tra("Výchozí typ faktury")
+        <mytooltip text="Lze nastavit i v klientovi projektu."></mytooltip>
+    </label>
+    <div class="col-sm-7 col-md-6">
+        <mycombo entity="p92InvoiceType" asp-for="@Model.Rec.p92ID" selectedtext="@Model.SelectedComboP92Name"></mycombo>
+    </div>
+</div>
+<div class="row my-2">
+    <label class="col-sm-1 col-md-2 col-form-label">
+        @_f.tra("Odběratel faktury")
+        <mytooltip text="Firma, na kterou se vystaví vyúčtování (faktura). Pokud není vyplněno, odběratelem je klient projektu."></mytooltip>
+    </label>
+    <div class="col-sm-7 col-md-6">
+        <mycombo entity="p28Contact" search-result-width="800" asp-for="@Model.Rec.p28ID_Billing" selectedtext="@Model.SelectedComboOdberatel" filter-flag="1" placeholder="Vyplnit, pokud se liší od klienta projektu"></mycombo>
+    </div>
+</div>
+<div class="row my-2">
+    <div class="col-sm-1 col-md-2">
+        @_f.tra("Předkontace v účetním IS"):
+        <mytooltip text="Slouží pro export faktury do účetního IS (POHODA)."></mytooltip>
+    </div>
+    <div class="col-sm-7 col-md-6">
+        <input class="form-control" asp-for="Rec.p41AccountingIds" />
+    </div>
+</div>
+
+
+
+
+
+
+<div class="form-floating my-2">
+    <textarea class="form-control" asp-for="@Model.Rec.p41InvoiceDefaultText1"></textarea>
+    <label for="Rec_p41InvoiceDefaultText1">@_f.tra("Předvyplněný hlavní text faktury")</label>
+</div>
+
+<div class="form-floating my-2">
+    <textarea class="form-control" asp-for="@Model.Rec.p41InvoiceDefaultText2"></textarea>
+    <label for="Rec_p41InvoiceDefaultText2">@_f.tra("Předvyplněný technický text faktury")</label>
+</div>
+
+
+
+<div class="card">
+    <div class="card-header">
+        @_f.tra("Automatické korekce pro časové aktivity")
+    </div>
+    <div class="card-body">
+
+        <div class="row my-2">
+            <label class="col-sm-2 col-md-3 col-form-label"><small>@_f.tra("Předvyplněná korekce pro Fa aktivity"):</small></label>
+            <div class="col-sm-2 col-md-2">
+                <select asp-for="@Model.Rec.p72ID_BillableHours" class="form-select">
+                    <option value="_NotSpecified"></option>
+                    <option value="ZahrnoutDoPausalu">@_f.tra("Zahrnout do paušálu")</option>
+                    <option value="ViditelnyOdpis">@_f.tra("Viditelný odpis")</option>
+                    <option value="SkrytyOdpis">@_f.tra("Skrytý odpis")</option>
+                </select>
+            </div>
+
+        </div>
+        <div class="row my-2">
+            <label class="col-sm-2 col-md-3 col-form-label"><small>@_f.tra("Předvyplněná korekce pro Nefa aktivity"):</small></label>
+            <div class="col-sm-2 col-md-2">
+                <select asp-for="@Model.Rec.p72ID_NonBillable" class="form-select">
+                    <option value="_NotSpecified"></option>
+                    <option value="ZahrnoutDoPausalu">@_f.tra("Zahrnout do paušálu")</option>
+                    <option value="ViditelnyOdpis">@_f.tra("Viditelný odpis")</option>
+                    <option value="SkrytyOdpis">@_f.tra("Skrytý odpis")</option>
+                </select>
+
+            </div>
+
+        </div>
+
+        <i>Při vykazování má uživatel možnost změnit korekci na jiný fakturační status.</i>
+    </div>
+</div>
+
+
+
+
+

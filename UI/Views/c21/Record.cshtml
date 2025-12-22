@@ -1,0 +1,101 @@
+﻿@model UI.Models.Record.c21Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Pracovní fond");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    Model.PageSymbol = "settings";
+}
+
+@addTagHelper *, UI
+
+<div class="modal_record_container">
+
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název"):</label>
+        <div class="col-sm-7 col-md-6">
+            <input class="form-control record_name" asp-for="Rec.c21Name" />
+        </div>
+        <label class="col-sm-1 col-md-1 col-form-label">@_f.tra("Index pořadí"):</label>
+        <div class="col-sm-1 col-md-1">
+            <mynumber asp-for="Rec.c21Ordinary" decimal-digits="0"></mynumber>
+        </div>
+    </div>
+
+
+    <div class="row my-2">
+        <div class="col-8">
+            <select asp-for="@Model.Rec.c21ScopeFlag" class="form-select" onchange="_postback()">
+                <option value="Basic">@_f.tra("Standardní pracovní kalendář")</option>
+                <option value="PerTimesheet">@_f.tra("Fond hodin je shodný s počtem vykázaných hodin")</option>
+            </select>
+        </div>
+
+    </div>
+    @if (Model.Rec.c21ScopeFlag == BO.c21ScopeFlagENUM.Basic)
+    {
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Pondělí"):</label>
+            <div class="col-sm-3 col-md-2">
+                <mynumber asp-for="Rec.c21Day1_Hours"></mynumber>
+            </div>
+        </div>
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Úterý"):</label>
+            <div class="col-sm-3 col-md-2">
+                <mynumber asp-for="Rec.c21Day2_Hours"></mynumber>
+            </div>
+        </div>
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Středa"):</label>
+            <div class="col-sm-3 col-md-2">
+                <mynumber asp-for="Rec.c21Day3_Hours"></mynumber>
+            </div>
+        </div>
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Čtvrtek"):</label>
+            <div class="col-sm-3 col-md-2">
+                <mynumber asp-for="Rec.c21Day4_Hours"></mynumber>
+            </div>
+        </div>
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Pátek"):</label>
+            <div class="col-sm-3 col-md-2">
+                <mynumber asp-for="Rec.c21Day5_Hours"></mynumber>
+            </div>
+        </div>
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Sobota"):</label>
+            <div class="col-sm-3 col-md-2">
+                <mynumber asp-for="Rec.c21Day6_Hours"></mynumber>
+            </div>
+        </div>
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Neděle"):</label>
+            <div class="col-sm-3 col-md-2">
+                <mynumber asp-for="Rec.c21Day7_Hours"></mynumber>
+            </div>
+        </div>
+    }
+
+
+
+    
+
+</div>
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+    });
+
+   
+
+    
+
+</script>
+

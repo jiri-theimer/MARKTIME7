@@ -1,0 +1,34 @@
+﻿@model BO.BaseBO
+@inject BL.Factory _f
+
+<div>
+    <small style="color:gray;" title="@_f.tra("Založení záznamu")">
+        @(Model.UserInsert + "/" + BO.Code.Time.GetTimestamp(Model.DateInsert))
+    </small>
+
+    @if (Model.DateUpdate > Model.DateInsert)
+    {
+        <small style="color:brown;margin-left:10px;" title="@_f.tra("Poslední aktualizace záznamu")">
+            @if(Model.UserInsert==Model.UserUpdate){
+                <span>**</span>@(BO.Code.Time.GetTimestamp(Model.DateUpdate))
+            }else{
+                @(Model.UserUpdate + "/" + BO.Code.Time.GetTimestamp(Model.DateUpdate))
+            }
+            
+
+        </small>
+
+    }
+    @if (_f.CurrentUser.IsAdmin && (Model.entity == "p28" || Model.entity == "p41" || Model.entity == "p91" || Model.entity == "o23" || Model.entity == "p56"))
+    {
+        <a style="font-size:80%;text-decoration:none;" href="javascript:_window_open('/ChangeLog/@(Model.entity)?pid=@(Model.pid)')">CHANGE-LOG</a>
+    }
+
+    @if (Model.isclosed)
+    {
+        <div>
+            <small>@_f.tra("Přesunuto do archivu"):</small>
+            <small style="color:brown;margin-left:10px;">@(BO.Code.Bas.ObjectDate2String(Model.ValidUntil,"dd.MM.yyyy hh:mm"))</small>
+        </div>
+    }
+</div>

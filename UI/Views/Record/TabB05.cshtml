@@ -1,0 +1,26 @@
+﻿@model UI.Models.Tab1.BaseTab1ViewModel
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+    if (Model == null) return;
+
+    var _lisB05 = _f.WorkflowBL.GetList_b05(Model.prefix, Model.pid, 0, 0,0);
+
+    
+    
+}
+
+@addTagHelper *, UI
+
+@if (Model.prefix == "p28" || Model.prefix == "p31" || BO.Code.Entity.GetPrefixDb(Model.prefix) == "p41" || Model.prefix == "p91" || Model.prefix == "p56" || Model.prefix == "o23" || Model.prefix == "p90")
+{
+    <div style="padding:10px;">
+        <button type="button" class="btn btn-light" onclick="_window_open('/workflow_dialog/Index?record_prefix=@(Model.prefix)&record_pid=@(Model.pid)')"><myicon symbol="speaker_notes"></myicon>Doplnit poznámku</button>
+
+    </div>
+}
+
+
+@await Html.PartialAsync("~/Views/Shared/_lisB05.cshtml",_lisB05)

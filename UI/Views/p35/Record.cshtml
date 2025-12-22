@@ -1,0 +1,32 @@
+﻿@model UI.Models.Record.p35Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Kusovníková jednotka");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    Model.PageSymbol = "settings";
+}
+
+@addTagHelper *, UI
+
+<div class="modal_record_container">
+
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název"):</label>
+        <div class="col-sm-11 col-md-10">
+            <input class="form-control record_name" asp-for="Rec.p35Name" />
+        </div>
+
+    </div>
+
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Kód"):</label>
+        <div class="col-sm-5 col-md-4">
+            <input class="form-control record_code" asp-for="Rec.p35Code" />
+
+        </div>
+
+    </div>
+
+</div>

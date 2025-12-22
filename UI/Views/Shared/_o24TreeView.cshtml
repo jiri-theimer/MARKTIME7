@@ -1,0 +1,55 @@
+﻿@model IEnumerable<BO.o24Reminder>
+
+
+@{
+
+
+    if (Model == null || Model.Count()==0)
+    {
+        return;
+    }
+
+    
+
+}
+
+
+<ul class="mytreeview">
+    <li>
+        <a class="mytreeview-toggle-kontejner" onclick="_treeview_toggle(this)">
+            <span class="material-icons-outlined-btn mytreeview-toggle-sipka">arrow_right</span>
+            <span class="material-icons-outlined-btn">notifications</span>
+            <span>Připomenutí (@(Model.Count()))</span>
+
+        </a>
+
+        <ul style="display:none;">
+            @foreach (var c in Model)
+            {
+                <li>
+                    @if (c.o24DatetimeProcessed == null)
+                    {
+                        <span>@c.CalcReminderDateString()</span>
+                    }
+                    else
+                    {
+                        <span style="text-decoration: line-through;">@c.CalcReminderDateString()</span>
+                    }
+                    <small style="color:green;"><i>@c.o24Memo</i></small>
+                    @if (c.j02ID > 0)
+                    {
+                        <code>@c.Person</code>
+                    }
+                    @if (c.j11ID > 0)
+                    {
+                        <code>@c.j11Name</code>
+                    }
+                    @if (c.x67ID > 0)
+                    {
+                        <code>@c.x67Name</code>
+                    }
+                </li>
+            }
+        </ul>
+    </li>
+</ul>

@@ -1,0 +1,157 @@
+﻿@model UI.Models.Record.x67Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Role");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+
+    IEnumerable<BO.a55RecPage> _lisA55 = _f.a55RecPageBL.GetList(new BO.myQuery("a55"));
+    
+    if (Model.Entity=="p41")
+    {
+        _lisA55 = _lisA55.Where(p => p.a55Entity.Contains("le"));
+    }
+    else
+    {
+        _lisA55 = _lisA55.Where(p => p.a55Entity == Model.Entity);
+    }
+    Model.PageSymbol = "manage_accounts";
+}
+
+@addTagHelper *, UI
+
+<div class="modal_record_container">
+    <input type="hidden" asp-for="@Model.Entity" />
+
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název"):</label>
+        <div class="col-sm-7 col-md-6">
+            <input class="form-control" asp-for="Rec.x67Name" />
+        </div>
+        <label class="col-sm-1 col-md-1 col-form-label">@_f.tra("Index pořadí"):</label>
+        <div class="col-sm-1 col-md-1">
+            <mynumber asp-for="Rec.x67Ordinary" decimal-digits="0"></mynumber>
+        </div>
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Entita"):</label>
+        <div class="col-sm-7 col-md-6">            
+            <select asp-for="@Model.Entity" class="form-select" disabled>
+                <option value="p41">@_f.tra("Projekt")</option>
+                <option value="p28">@_f.tra("Kontakt")</option>
+                <option value="p91">@_f.tra("Vyúčtování")</option>
+                <option value="p90">@_f.tra("Záloha")</option>                
+                <option value="o23">@_f.tra("Dokument")</option>
+                <option value="o17">@_f.tra("Menu dokumentu")</option>
+                <option value="p56">@_f.tra("Úkol")</option>
+                <option value="o22">@_f.tra("Termín/Lhůta")</option>
+                
+                <option value="x31">@_f.tra("Tisková sestava")</option>
+            </select>
+            
+        </div>
+
+    </div>
+
+    <div class="row my-2">
+        <div class="col-sm-1 col-md-2"></div>
+        <div class="col-auto">
+            <div class="card">
+                <div class="card-header">
+                    @_f.tra("Výčet možných oprávnění role")
+                </div>
+                <div class="card-body">
+                    <mycheckboxlist asp-for="@Model.SelectedPermNumbers" datasource="@Model.lisAllPermissions" valuefield="ValueInt" textfield="Name"></mycheckboxlist>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="my-2">
+        <input type="checkbox" asp-for="Rec.x67IsRequired" />
+        <label class="col-form-label" for="Rec_x67IsRequired">@_f.tra("Obsazení role v záznamu povinné")</label>
+    </div>
+
+    @if(Model.Entity=="o23" || Model.Entity=="p28" || Model.Entity=="p41")
+    {
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Individuální stránka záznamu"):</label>
+            <div class="col-sm-6 col-md-5">
+                    
+                <mydropdown asp-for="@Model.Rec.a55ID" isfirstemptyrow="true" firstemptyrowvalue="0" datasource="@_lisA55" textfield="a55Name" valuefield="pid"></mydropdown>
+            </div>
+
+
+        </div>
+    }
+
+    @if (Model.Entity == "p41")
+    {
+        <div class="card">
+            <div class="card-header">@_f.tra("Oprávnění k úkonům v projektu")</div>
+            <div class="card-body">
+                <table class="table table-sm table-hover">
+                    <tr>
+                        <th>@_f.tra("Sešit")</th>
+                        <th>@_f.tra("Vykazování úkonů v projektu")</th>
+                        <th>@_f.tra("Dohled na úkony ostatních lidí v projektu")</th>
+                    </tr>
+                    @for (int i = 0; i < Model.lisO28.Count(); i++)
+                    {
+                        <tr>
+                            <td>
+                                <span>@(Model.lisO28[i].p34Name+":")</span>
+                                <input type="hidden" asp-for="@Model.lisO28[i].p34ID" />
+                                <input type="hidden" asp-for="@Model.lisO28[i].p34Name" />
+                            </td>
+                            <td>
+                                <select class="form-select" asp-for="@Model.lisO28[i].o28EntryFlag">
+                                    <option value="NemaPravoZapisovatWorksheet">@_f.tra("Nemá oprávnění vykazovat úkony do projektu")</option>
+                                    <option value="ZapisovatDoProjektuIDoUloh">@_f.tra("Má oprávnění vykazovat úkony do projektu")</option>
+                                    <option value="ZapisovatDoProjektuNadrizenym">@_f.tra("Za uživatele vykazuje úkony jeho nadřízený")</option>
+                                </select>
+                            </td>
+                            <td>
+                                <select class="form-select" asp-for="@Model.lisO28[i].o28PermFlag">
+                                    <option value="PouzeVlastniWorksheet">@_f.tra("Pouze vlastní úkony")</option>
+                                    <option value="CistVseVProjektu">@_f.tra("Číst vše v rámci projektu")</option>
+                                    <option value="CistAEditVProjektu">@_f.tra("Číst a upravovat vše v rámci projektu")</option>
+                                    <option value="CistASchvalovatVProjektu">@_f.tra("Číst a schvalovat vše v rámci projektu")</option>
+                                    <option value="CistAEditASchvalovatVProjektu">@_f.tra("Číst, upravovat a schvalovat vše v rámci projektu")</option>
+                                </select>
+                            </td>
+                        </tr>
+                    }
+                </table>
+
+            </div>
+        </div>
+    }
+
+    
+    
+
+
+    
+
+
+</div>
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        document.addEventListener("form1_beforesave", function (e) {    //událost před uložením formuláře
+            e.detail.cancel = false;
+
+            $("input:disabled, select:disabled").each(function () {
+                $(this).prop("disabled", false);
+            });
+
+        });
+
+
+    });
+
+</script>

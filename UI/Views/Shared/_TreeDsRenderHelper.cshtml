@@ -1,0 +1,20 @@
+﻿@model IEnumerable<UI.Models.Asi.TreeNode>
+
+@foreach (var node in Model)
+{
+    if (node.Children.Any())
+    {
+        <details class="branch">
+            <summary class="fw-semibold cursor-pointer rounded p-1">
+                @node.Name
+            </summary>
+            @await Html.PartialAsync("_TreeDsRenderHelper", node.Children)
+        </details>
+    }
+    else
+    {
+        <div class="leaf rounded">
+            <a class="nav-link" href="#">@node.Name</a>
+        </div>
+    }
+}

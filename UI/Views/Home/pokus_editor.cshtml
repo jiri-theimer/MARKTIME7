@@ -1,0 +1,148 @@
+﻿@{
+    Layout = null;
+
+    ViewData["Title"] = "Home Page";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <link href="https://cdn.jsdelivr.net/npm/froala-editor@latest/css/froala_editor.pkgd.min.css" rel="stylesheet" type="text/css" />
+
+
+
+    <style>
+
+
+    </style>
+
+</head>
+
+<body>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/froala-editor@latest/js/froala_editor.pkgd.min.js"></script>
+
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/froala-editor@latest/js/plugins/files_manager.min.js"></script>
+
+
+
+    <span id="log1">nazdar</span>
+
+    <div class="sample">
+        <h2>File upload example.</h2>
+        <form>
+            <textarea id="edit" name="content"></textarea>
+        </form>
+    </div>
+
+
+    <script>
+        new FroalaEditor('#edit', {
+            //toolbarButtons: ['fullscreen', 'bold', 'italic', 'underline', 'strikeThrough', 'subscript', 'superscript', '|', 'fontFamily', 'fontSize', 'color', 'inlineStyle', 'paragraphStyle', '|', 'paragraphFormat', 'align', 'formatOL', 'formatUL', 'outdent', 'indent', 'quote', '-', 'insertLink', 'insertImage', 'insertVideo', 'insertFile', 'insertTable', '|', 'emoticons', 'specialCharacters', 'insertHR', 'selectAll', 'clearFormatting', '|', 'print', 'help', 'html', '|', 'undo', 'redo', 'trackChanges', 'markdown'],
+            toolbarButtons: {
+                'moreText': {
+
+                    'buttons': ['insertImage', 'insertFile', 'bold', 'italic', 'underline', 'strikeThrough', 'subscript', 'superscript', 'fontFamily', 'fontSize', 'textColor', 'backgroundColor', 'inlineClass', 'inlineStyle', 'clearFormatting']
+
+                },
+
+                'moreParagraph': {
+
+                    'buttons': ['alignLeft', 'alignCenter', 'formatOLSimple', 'alignRight', 'alignJustify', 'formatOL', 'formatUL', 'paragraphFormat', 'paragraphStyle', 'lineHeight', 'outdent', 'indent', 'quote']
+
+                },
+
+                'moreRich': {
+
+                    'buttons': ['insertLink', 'insertVideo', 'insertTable', 'emoticons', 'fontAwesome', 'specialCharacters', 'embedly', 'insertHR']
+
+                },
+
+                'moreMisc': {
+
+                    'buttons': ['undo', 'redo', 'fullscreen', 'print', 'spellChecker', 'selectAll', 'html', 'help'],
+
+                    'align': 'right',
+
+                    'buttonsVisible': 2
+
+                }
+
+            },
+            toolbarButtonsXS: {
+
+                'moreText': {
+
+                    'buttons': ['insertImage', 'insertFile','bold', 'italic', 'underline', 'strikeThrough', 'fontFamily', 'fontSize', 'textColor', 'backgroundColor', 'inlineClass', 'inlineStyle', 'clearFormatting'],
+
+                    'buttonsVisible': 6
+
+                }
+            },
+            toolbarInline: false,
+            //toolbarButtons: ['fullscreen', 'bold', 'italic', 'underline', 'strikeThrough', 'subscript', 'superscript', '|', 'fontFamily', 'fontSize', 'color', 'inlineClass', 'inlineStyle', 'paragraphStyle', 'lineHeight', '|', 'paragraphFormat', 'align', 'formatOL', 'formatUL', 'outdent', 'indent', 'quote', '-', 'insertLink', 'insertImage', 'insertVideo', 'embedly', 'insertFile', 'insertTable', '|', 'emoticons', 'fontAwesome', 'specialCharacters', 'insertHR', 'selectAll', 'clearFormatting', '|', 'print', 'help', 'html', '|', 'undo', 'redo'],
+            fileUploadParam: 'file',
+            fileUploadParams: { id: "hovado", o27guid: "debil" },
+            fileUploadURL: '/UploadFiles',
+            fileUploadMethod: 'POST',
+            fileMaxSize: 20 * 1024 * 1024,
+            fileAllowedTypes: ['*'],
+            imageUploadParam: 'file',
+            imageUploadURL: '/UploadFiles',
+            imageManagerLoadURL: "/UploadFiles",
+            imageUploadParams: { id: 'my_editor' },
+            imageUploadMethod: 'POST',
+            imageAllowedTypes: ['jpeg', 'jpg', 'png'],
+            imageMaxSize: 5 * 1024 * 1024,
+            imageAllowedTypes: ['jpeg', 'jpg', 'png'],
+            events: {
+                'file.beforeUpload': function (files) {
+                    // Return false if you want to stop the file upload.
+                    console.log("beforeUpload");
+                },
+                'file.uploaded': function (response) {
+                    // File was uploaded to the server.
+
+                    document.getElementById("log1").innerText += ", uploaded";
+                },
+                'file.inserted': function ($file, response) {
+                    // File was inserted in the editor.
+                    document.getElementById("log1").innerText += ", inserted";
+                }
+                , 'file.error': function (error, response) {
+
+                    document.getElementById("log1").innerText += ", error: " + error.code;
+
+                },
+                'image.beforeUpload': function (images) {
+                    // Return false if you want to stop the image upload.
+                    document.getElementById("log1").innerText += ", image.beforeUpload";
+                },
+                'image.uploaded': function (response) {
+                    // Image was uploaded to the server.
+                    document.getElementById("log1").innerText += ", image.uploaded";
+                },
+                'image.inserted': function ($img, response) {
+                    // Image was inserted in the editor.
+                    document.getElementById("log1").innerText += ", image.inserted";
+                },
+                'image.replaced': function ($img, response) {
+                    // Image was replaced in the editor.
+                    document.getElementById("log1").innerText += ", image.replaced";
+                },
+                'image.removed': function ($img) {
+                    // Do something here.
+                    // this is the editor instance.
+                    document.getElementById("log1").innerText += ", image.removed";
+                },
+                'image.error': function (error, response) {
+
+                    document.getElementById("log1").innerText += ", error: " + error.code;
+
+                }
+            }
+
+        })
+    </script>
+</body>
+</html>

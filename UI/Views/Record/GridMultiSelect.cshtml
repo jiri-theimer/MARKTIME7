@@ -1,0 +1,81 @@
+﻿@model GridMultiSelect
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Vybrat záznamy");
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+}
+
+
+
+@addTagHelper *,UI
+
+<div class="bg-light p-2">
+    <table>
+        <tr>
+            <td>
+                <button id="cmdOK" onclick="ok()" class="btn btn-success">@_f.tra("Vybrat")</button>
+            </td>
+            <td>
+                <mark>@(Model.entityTitle)</mark>
+            </td>
+            <td>
+                <div class="dropdown">
+                    <button class="btn btn-light dropdown-toggle" type="button" id="cmdGridMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span id="TheGridIcon" class="material-icons-outlined-nosize">grid_on</span>
+                        <span id="TheGridName">Grid<strong> & </strong>@_f.tra("Sloupce")</span>
+                    </button>
+                    <div id="divGridMenu" class="dropdown-menu" aria-labelledby="cmdGridMenu">
+                        Loading...
+                    </div>
+                </div>
+            </td>
+            <td>
+                <button id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+            </td>
+            <td>
+                <i style="margin-left:20px;">@_f.tra("Vyberte jeden nebo více záznamů")...</i>
+            </td>
+        </tr>
+    </table>
+</div>
+
+
+@await Component.InvokeAsync("myGrid",Model.gridinput)
+
+
+<script type="text/javascript">
+
+   
+
+    function ok() {
+        var pids = $("#tg_selected_pids").val();
+        if (pids === "") {
+            _notify_message("@_f.tra("Musíte vybrat minimálně jeden záznam.")");
+            return;
+        }
+
+       
+
+        
+        window.parent.hardrefresh(0, "multiselect|"+pids);
+        
+
+        _window_close();
+    }
+
+    function handle_dblclick(row) {        
+        ok();        
+    }
+
+
+    function change_grid(j72id) {
+            $.post("/Common/SetUserParam", { key: "GridMultiSelect-j72id-@(Model.prefix)",value:j72id  }, function (data) {
+                _redirect(location.href);
+
+            });
+        }
+
+</script>
+
+

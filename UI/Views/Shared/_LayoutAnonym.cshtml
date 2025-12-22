@@ -1,0 +1,78 @@
+﻿@model BaseViewModel
+@inject BL.Singleton.RunningApp _app
+
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    @if (_app.AllowGoogleLogin)
+    {
+        <meta name="google-signin-client_id" content="811901017740-0aajbhv1j9lsc9kussh19k9rojt93iq0.apps.googleusercontent.com">
+    }    
+
+    <title>@Model.PageTitle | MARKTIME</title>
+
+    <meta name="description" content="Jsme výrobci software MARKTIME pro advokáty, účetní, daňové poradce, auditory, projektanty. Neustále software vylepšujeme a přinášíme uživatelům nové funkce">
+    <meta name="keywords" content="software, pro, řízení, fakturaci, vykazování, plánování projektu, spisu, advokát, daňový poradce, účetní, kancelář, architekt">
+    <meta name="generator" content="MARKTIME">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    
+    <meta property="og:url" content="https://www.marktime.cz/">
+    <meta property="og:title" content="Jsme výrobci software MARKTIME pro advokáty, účetní, daňové poradce, auditory, konzultanty. Neustále software vylepšujeme a přinášíme uživatelům nové funkce">
+    <meta property="og:type" content="article">
+    <meta property="og:description" content="Software pro advokáty, účetní, daňové poradce, projektanty, verze zdarma">
+    <meta property="og:site_name" content="MARKTIME">
+
+
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="~/css/contextmenu.css" />
+    <link rel="stylesheet" href="~/css/anonym.css" />
+
+    <link rel="stylesheet" href="~/css/fontsize2.css" />
+
+    
+
+
+    @if (IsSectionDefined("header_content"))
+    {
+        @RenderSection("header_content")
+    }
+
+
+    
+</head>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+
+<body>
+    
+    <script type="text/javascript">
+        var _relpath = "@(Url.Content("~/favicon.ico").Replace("favicon.ico",""))";   //relativní cesta: detekce kvůli případnému IIS virtuálnímu adresáři
+    </script>
+    <div class="container">
+        <div id="divAnonymHeader">
+            <img id="imgAnonymHeader" src="/images/logo_default.png" />
+            
+        </div>
+        <main role="main">
+            @RenderBody()
+        </main>
+
+    </div>
+
+    <footer style="border-top:1px solid lightgray;position:relative;margin-top:100px;width:100%;">
+        <div style="margin:auto;max-width:500px;">
+            👌MARKTIME <small>@_app.AppVersion</small><small style="margin-left:10px;color:silver;" title="Current time: @DateTime.Now.ToString("dd.MM.yyyy HH:mm")">@_app.AppBuild</small>
+        </div>
+    </footer>
+
+
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

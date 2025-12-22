@@ -1,0 +1,178 @@
+﻿@model UI.Models.Record.p83Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Typ upomínky");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    Model.PageSymbol = "settings";
+}
+
+@addTagHelper *, UI
+
+<div class="modal_record_container">
+
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název šablony"):</label>
+        <div class="col-sm-8 col-md-7">
+            <input class="form-control record_name" asp-for="Rec.p83Name" />
+        </div>
+        <label class="col-sm-2 col-md-2 col-form-label">#@_f.tra("Pořadí v nabídce"):</label>
+        <div class="col-sm-1 col-md-1">
+            <mynumber asp-for="Rec.p83Ordinary" class="record_ordinary" decimal-digits="0"></mynumber>
+        </div>
+
+    </div>
+
+
+
+    <div class="tabs_container_record" style="margin-top:20px;">
+        <!-- Tab panes -->
+        <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item onetab" role="presentation">
+                <a id="link_tab1" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab1">@_f.tra("První upomínka")</a>
+            </li>
+            <li class="nav-item onetab" role="presentation">
+                <a id="link_tab2" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab2">@_f.tra("Druhá upomínka")</a>
+            </li>
+            <li class="nav-item onetab" role="presentation">
+                <a id="link_tab3" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab3">@_f.tra("Třetí upomínka")</a>
+            </li>
+        </ul>
+    </div>
+
+    @Html.Raw("<div class='tab-content'>")
+
+
+    <div class="tab-pane tab-pane-fixed" id="tab1" role="tabpanel">
+        <!-- Tab1 -->
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("E-mail šablona"):</label>
+            <div class="col-sm-11 col-md-10">
+                <mycombo entity="j61TextTemplate" asp-for="Rec.j61ID_Index1" selectedtext="@Model.ComboJ61_Index1" myqueryinline="entity|string|p84"></mycombo>
+            </div>
+
+        </div>
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Tisková sestava"):</label>
+            <div class="col-sm-11 col-md-10">
+                <mycombo entity="x31Report" asp-for="Rec.x31ID_Index1" selectedtext="@Model.ComboX31_Index1" myqueryinline="entity|string|p91"></mycombo>
+            </div>
+
+        </div>
+        
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Počet dní po splatnosti faktury"):</label>
+            <div class="col-sm-2 col-md-1">
+                <mynumber asp-for="Rec.p83Days_Index1" decimal-digits="0"></mynumber>
+            </div>
+
+        </div>
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název dokladu"):</label>
+            <div class="col-sm-11 col-md-10">
+                <input class="form-control" asp-for="Rec.p83Name_Index1" />
+            </div>
+
+        </div>
+        <div class="form-floating my-2">
+            <textarea class="form-control" asp-for="Rec.p83TextA_Index1"></textarea>
+            <label for="Rec_p83TextA_Index1">@_f.tra("Hlavní text na tiskové sestavě upomínky")</label>
+        </div>
+        <div class="form-floating my-2">
+            <textarea class="form-control" asp-for="Rec.p83TextB_Index1"></textarea>
+            <label for="Rec_p83TextB_Index1">@_f.tra("Technický text na tiskové sestavě upomínky")</label>
+        </div>
+
+    </div>
+
+    <div class="tab-pane tab-pane-fixed" id="tab2" role="tabpanel">
+        <!-- Tab2 -->
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("E-mail šablona"):</label>
+            <div class="col-sm-11 col-md-10">
+                <mycombo entity="j61TextTemplate" asp-for="Rec.j61ID_Index2" selectedtext="@Model.ComboJ61_Index2" myqueryinline="entity|string|p84"></mycombo>
+            </div>
+
+        </div>
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Tisková sestava"):</label>
+            <div class="col-sm-11 col-md-10">
+                <mycombo entity="x31Report" asp-for="Rec.x31ID_Index2" selectedtext="@Model.ComboX31_Index2" myqueryinline="entity|string|p91"></mycombo>
+            </div>
+
+        </div>
+
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Počet dní po první upomínce"):</label>
+            <div class="col-sm-2 col-md-1">
+                <mynumber asp-for="Rec.p83Days_Index2" decimal-digits="0"></mynumber>
+            </div>
+
+        </div>
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název dokladu"):</label>
+            <div class="col-sm-11 col-md-10">
+                <input class="form-control" asp-for="Rec.p83Name_Index2" />
+            </div>
+
+        </div>
+        <div class="form-floating my-2">
+            <textarea class="form-control" asp-for="Rec.p83TextA_Index2"></textarea>
+            <label for="Rec_p83TextA_Index2">@_f.tra("Hlavní text na tiskové sestavě upomínky")</label>
+        </div>
+        <div class="form-floating my-2">
+            <textarea class="form-control" asp-for="Rec.p83TextB_Index2"></textarea>
+            <label for="Rec_p83TextB_Index2">@_f.tra("Technický text na tiskové sestavě upomínky")</label>
+        </div>
+    </div>
+
+    <div class="tab-pane tab-pane-fixed" id="tab3" role="tabpanel">
+        <!-- Tab3 -->
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("E-mail šablona"):</label>
+            <div class="col-sm-11 col-md-10">
+                <mycombo entity="j61TextTemplate" asp-for="Rec.j61ID_Index3" selectedtext="@Model.ComboJ61_Index3" myqueryinline="entity|string|p84"></mycombo>
+            </div>
+
+        </div>
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Tisková sestava"):</label>
+            <div class="col-sm-11 col-md-10">
+                <mycombo entity="x31Report" asp-for="Rec.x31ID_Index3" selectedtext="@Model.ComboX31_Index3" myqueryinline="entity|string|p91"></mycombo>
+            </div>
+
+        </div>
+        
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Počet dní po druhé upomínce"):</label>
+            <div class="col-sm-2 col-md-1">
+                <mynumber asp-for="Rec.p83Days_Index3" decimal-digits="0"></mynumber>
+            </div>
+
+        </div>
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název dokladu"):</label>
+            <div class="col-sm-11 col-md-10">
+                <input class="form-control" asp-for="Rec.p83Name_Index3" />
+            </div>
+
+        </div>
+        <div class="form-floating my-2">
+            <textarea class="form-control" asp-for="Rec.p83TextA_Index3"></textarea>
+            <label for="Rec_p83TextA_Index3">@_f.tra("Hlavní text na tiskové sestavě upomínky")</label>
+        </div>
+        <div class="form-floating my-2">
+            <textarea class="form-control" asp-for="Rec.p83TextB_Index3"></textarea>
+            <label for="Rec_p83TextB_Index3">@_f.tra("Technický text na tiskové sestavě upomínky")</label>
+        </div>
+    </div>
+
+    @Html.Raw("</div>")
+
+    
+    
+    
+
+
+    
+</div>

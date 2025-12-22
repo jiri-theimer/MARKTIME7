@@ -1,0 +1,47 @@
+﻿@model UI.Models.FileUploadViewModel
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+}
+
+
+<div>
+    <a class="btn btn-light" href="/FileUpload/DoUpload?Guid=@Model.Guid&entity=@Model.Entity&recpid=@Model.RecPid">
+        <span class="material-icons-outlined">file_upload</span>
+        @_f.tra("Přidat přílohy")
+    </a>
+    
+
+    @Html.EditorFor(m => m, "~/Views/Shared/_lisO27.cshtml")
+
+</div>
+
+
+
+<script type="text/javascript">
+    $(document.body).css("overflow", "hidden");
+
+    function handle_delete_upload_row(fileguid) {
+        
+        $.post("/FileUpload/Delete2Temp", { fileguid: fileguid, guid: "@Model.Guid" }, function (data) {
+            
+            location.reload(location.href);
+
+        });
+    }
+    
+
+    function changelabel_saved(fileguid, current_label) {
+        var s = prompt("@_f.tra("Zadejte popis/název k příloze.")", current_label);
+        if (s != null) {
+            $.post("/FileUpload/ChangeFileLabel", { fileguid: fileguid, newlabel: s }, function (data) {
+
+                location.reload(location.href);
+
+
+            });
+        }
+    }
+</script>

@@ -1,0 +1,556 @@
+﻿@model UI.Models.Record.p28Record
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    if (Model.Rec == null) return;
+    Model.PageTitle = _f.tra("Karta kontaktu");
+    if (Model.RecP29 != null) Model.PageTitle = Model.RecP29.p29Name;
+    string _FirstTabCaption = Model.PageTitle;
+    if (Model.rec_pid > 0)
+    {
+        Model.PageTitle += ": " + Model.Rec.p28Name; ;
+    }
+
+    IEnumerable<BO.b05Workflow_History> _lisB05 = null;
+    if (Model.rec_pid > 0)
+    {
+        _lisB05 = _f.WorkflowBL.GetList_b05("p28", Model.rec_pid, 0, 0, 0).Where(p => BO.Code.Bas.bit_compare_or(p.b05Tab1Flag,4)==true);
+    }
+}
+@addTagHelper *, UI
+
+
+@section header_content
+{
+    <link rel="stylesheet" href="/lib/pell/pell.css" asp-append-version="true" />
+
+    <script src="~/lib/pell/pell.min.js"></script>
+    
+}
+
+<script src="~/js/rejstriky.js" asp-append-version="true"></script>
+
+
+<div class="tabs_container_record">
+    <!-- Tab panes -->
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab1" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab1">@(_FirstTabCaption)</a>
+        </li>
+        @if (Model.disp.IsBilling)
+        {
+            <li class="nav-item onetab" role="presentation">
+                <a id="link_tab2" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab2">@_f.tra(Model.disp.GetTabText(PosEnum.BillingTab))</a>                
+            </li>
+            <li class="nav-item onetab" role="presentation">
+                <a id="link_tab3" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab3">@_f.tra("Fakturační poznámka")</a>
+            </li>
+        }
+
+       
+        @if (Model.ff1.VisibleInputsCount > 0)
+        {
+            <li class="nav-item onetab" role="presentation">
+                <a id="link_tab4" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab4">@_f.tra("Uživatelská pole") (@Model.ff1.VisibleInputsCount)</a>
+            </li>
+        }
+
+        @if (Model.disp.IsRoles)
+        {
+            <li class="nav-item onetab" role="presentation">
+                <a id="link_tab5" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab5">@_f.tra(Model.disp.GetTabText(PosEnum.Roles))</a>
+            </li>
+        }
+
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab6" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab6">@_f.tra("Různé")</a>
+        </li>
+        <li style="margin-left:20px;">
+            @Html.EditorFor(m => Model.rec_entity,"~/Views/Shared/_cmdMoreButton.cshtml")
+
+        </li>
+
+    </ul>
+</div>
+
+<div id="divMore" class="card" style="display:none;background-color:#E6F0FF;">
+    <div style="width:350px;padding:30px;">
+        @Html.EditorFor(m => m.disp, "~/Views/Shared/_Dispozice.cshtml")
+
+    </div>
+</div>
+
+@Html.Raw("<div class='modal_record_container_flexi'>")
+@Html.Raw("<div class='tab-content'>")
+
+
+<div class="tab-pane tab-pane-fixed" id="tab1" role="tabpanel">
+    <!-- Tab1 -->
+    <div class="row">
+        <div class="col-sm-3 col-md-3">
+            <input type="radio" id="opgIsCompany1" asp-for="@Model.IsCompany" value="1" onchange="_postback('IsCompany')">
+            <label for="opgIsCompany1">@_f.tra("Společnost/právnická osoba")</label>
+            <br />
+            <input type="radio" id="opgIsCompany0" asp-for="@Model.IsCompany" value="0" onchange="_postback('IsCompany')">
+            <label for="opgIsCompany0">@_f.tra("Fyzická osoba")</label>
+        </div>
+        <div class="col-sm-2 col-md-2">
+            @Html.EditorFor(m => m.Rec.p28CountryCode, "~/Views/Shared/_CountryCodeCombo.cshtml")
+
+        </div>
+        <div class="col-sm-2 col-md-2">
+            <div class="dropdown float-end">
+                <button tabindex="-1" class="btn bog dropdown-toggle" type="button" id="dropdownMenuRejstriky" data-bs-toggle="dropdown" aria-expanded="false">
+                    @_f.tra("Rejstříky")
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="dropdownMenuRejstriky">
+                    @if (Model.Rec.p28CountryCode == "CZ")
+                    {
+                        <li><a class="dropdown-item" href="javascript:_rejstrik_justice('Rec_p28RegID')">JUSTICE.cz, Výpis z obchodního rejstříku podle IČO</a></li>
+                        <li><a class="dropdown-item" href="javascript:_rejstrik_aresinfo('Rec_p28RegID')">ARES Info podle IČO</a></li>
+                        <li><a class="dropdown-item" href="javascript:_rejstrik_kurzycz('Rec_p28RegID')">Profil subjektu na KURZY.cz podle IČO</a></li>
+                        <li><a class="dropdown-item" href="javascript:_rejstrik_insolvence('Rec_p28RegID')">INSOLVENCE podle IČO</a></li>
+                        <li><a class="dropdown-item" href="javascript:_rejstrik_adis('Rec_p28VatID')">@_f.tra("Ověření spolehlivého plátce DPH")</a></li>
+                        <li><a class="dropdown-item" href="javascript:_rejstrik_sverenecky_fond('Rec_p28RegID')">JUSTICE.cz, Svěřenecký fond</a></li>
+                        <li><hr /></li>
+                        <li><a class="dropdown-item" href="javascript:_postback('ares-ico')">@_f.tra("CZ: Import subjektu podle IČO")</a></li>
+                    }
+
+
+                    @if (Model.Rec.p28CountryCode == "SK")
+                    {
+                        <li><a class="dropdown-item" href="javascript:_rejstrik_obchodny_register('Rec_p28RegID')">SK: Obchodný register podle IČO</a></li>
+                        <li><a class="dropdown-item" href="javascript:_postback('ares-ico')">@_f.tra("SK: Import subjektu podle IČO")</a></li>
+                        <li><a class="dropdown-item" href="javascript:_postback('sk-dic')">@_f.tra("EU/VIES: Import subjektu podle IČ-DPH")</a></li>
+                    }
+                    else
+                    {
+                        <li><a class="dropdown-item" href="javascript:_postback('ares-dic')">@_f.tra("EU/VIES: Import subjektu podle DIČ")</a></li>
+                    }
+
+                </ul>
+            </div>
+        </div>
+
+
+    </div>
+
+    <div class="row">
+        <div class="col-sm-6 col-md-6">
+            <div id="divCompany1">
+                <div class="row my-2">
+                    <label for="Rec_p28CompanyName" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Společnost"):</label>
+                    <div class="col-sm-11 col-md-10">
+                        <input class="form-control record_name" asp-for="Rec.p28CompanyName" value="@Model.Rec.p28CompanyName" />
+                    </div>
+                </div>
+            </div>
+            <div id="divCompany0">
+                <div class="row my-2">
+                    <label for="Rec_p28TitleBeforeName" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Osoba"):</label>
+                    <div class="col-sm-11 col-md-10">
+                        <input class="form-control" asp-for="Rec.p28TitleBeforeName" placeholder="@_f.tra("Titul")" />
+
+                    </div>
+
+                </div>
+                <div class="row my-2">
+                    <div class="col-sm-1 col-md-2"></div>
+                    <div class="col-sm-11 col-md-10">
+                        <input class="form-control" asp-for="Rec.p28FirstName" placeholder="@_f.tra("Křestní jméno")" />
+                    </div>
+                </div>
+                <div class="row my-2">
+                    <div class="col-sm-1 col-md-2"></div>
+                    <div class="col-sm-11 col-md-10">
+                        <input class="form-control" asp-for="Rec.p28LastName" placeholder="@_f.tra("Příjmení")" />
+                    </div>
+                </div>
+                <div class="row my-2">
+                    <div class="col-sm-1 col-md-2"></div>
+                    <div class="col-sm-11 col-md-10">
+                        <input class="form-control" asp-for="Rec.p28TitleAfterName" placeholder="@_f.tra("Za jménem")" />
+
+                    </div>
+                </div>
+            </div>
+
+            <div class="row my-2">
+                <label for="Rec_p28RegID" class="col-sm-1 col-md-2 col-form-label">@_f.tra("IČO"):</label>
+                <div class="col-sm-5 col-md-4">
+                    <div class="input-group">
+                        <input class="form-control" asp-for="Rec.p28RegID" value="@Model.Rec.p28RegID" />
+                        <button type="button" tabindex="-1" id="cmdAresImport" onclick="_postback('ares-ico')" style="display:@(Model.Rec.p28CountryCode=="CZ" || Model.Rec.p28CountryCode=="SK"? "block": "none");" title="Naimportovat název firmy, adresu a DIČ z českých a slovenských rejstříků" class="btn bog"><myicon symbol="sync"></myicon> @Model.Rec.p28CountryCode</button>
+                    </div>
+                </div>
+                <label for="Rec_p28VatID" class="col-sm-1 md-1 col-form-label">@_f.tra("DIČ"):</label>
+                <div class="col-sm-5 col-md-5">
+                    <div class="input-group">
+
+                        <input class="form-control" asp-for="Rec.p28VatID" value="@Model.Rec.p28VatID" />
+                        <button type="button" id="cmdViesImport" tabindex="-1" onclick="_postback('ares-dic')" title="Naimportovat název firmy a adresu z EU registru VIES" class="btn bog" style="display:@(Model.Rec.p28CountryCode=="SK"? "none": "block");"><myicon symbol="sync"></myicon> VIES/EU</button>
+
+                    </div>
+
+                </div>
+            </div>
+            @if (Model.Rec.p28CountryCode == "SK")
+            {
+                <div class="row my-2">
+                    <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("IČ DPH (SK)"):</label>
+                    <div class="col-sm-5 col-md-4">
+                        <div class="input-group">
+                            <input class="form-control" asp-for="Rec.p28ICDPH_SK" value="@Model.Rec.p28ICDPH_SK" />
+                            <button type="button" onclick="_postback('sk-dic')" class="btn bog"><myicon symbol="sync"></myicon> SK</button>
+                        </div>
+                    </div>
+
+                </div>
+            }
+
+
+        </div>
+        <div class="col-sm-6 col-md-6">
+            <div class="row my-2">
+                <label for="cmdComboRec_p29ID" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Typ"):</label>
+                <div class="col-sm-11 col-md-10">
+                    <mycombo entity="p29ContactType" event_after_changevalue="p29id_change" asp-for="Rec.p29ID" selectedtext="@Model.SelectedComboP29Name"></mycombo>
+                </div>
+            </div>
+            <div class="row my-2">
+                
+                <div class="col-sm-1 col-md-2">
+                    @if (Model.rec_pid > 0)
+                    {
+                        @_f.tra("Kód")<span>:</span>
+                    }                    
+                </div>
+                <div class="col-sm-5 col-md-4">
+                    @if (Model.CanEditRecordCode)
+                    {
+                        <myval value="@Model.Rec.p28Code" hoversymol="@_f.tra("Upravit kód")" hoveronclick="true" hoverurl="javascript:_edit_code('p28',@Model.rec_pid)"></myval>
+                    }
+                    else
+                    {
+                        <myval value="@Model.Rec.p28Code"></myval>
+                    }
+                </div>
+                <div class="col-sm-6 col-md-6">
+                    <input class="form-control" asp-for="Rec.p28ShortName" placeholder="@_f.tra("Zkrácený (preferovaný) název")" />
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+
+
+
+
+
+
+
+    <div class="card">
+        <div class="card-header row mx-0 my-0">
+           <div class="col-sm-6 col-md-6">
+                <myicon symbol="home"></myicon> @_f.tra("Adresa") #1
+           </div>
+           <div class="col-sm-6 col-md-6">
+                <input type="text" class="form-control form-control-sm" asp-for="Rec.p28BeforeAddress1" placeholder="@_f.tra("Doplnění adresy")" />
+           </div>            
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-sm-3 col-md-4">
+                    <textarea asp-for="Rec.p28Street1" class="form-control" placeholder="@_f.tra("Ulice")"></textarea>
+
+                </div>
+                <div class="col-sm-3 col-md-4">
+                    <textarea class="form-control" asp-for="Rec.p28City1" placeholder="@_f.tra("Město")"></textarea>
+                </div>
+                <div class="col-sm-1 col-md-1">
+                    <input type="text" class="form-control" asp-for="Rec.p28PostCode1" placeholder="@_f.tra("PSČ")" value="@Model.Rec.p28PostCode1" />
+                </div>
+                <div class="col-sm-3 col-md-3">
+                    <input type="text" class="form-control" asp-for="Rec.p28Country1" placeholder="@_f.tra("Stát")" value="@Model.Rec.p28Country1" />
+                </div>
+            </div>
+            <div class="col-sm1 col-md-1">
+                <a tabindex="-1" class="dropdown-toggle" href="#" id="cmdAdresa2" style="text-decoration:none;color:black;">@_f.tra("Adresa") #2</a>
+            </div>
+            <div class="row" id="divAdresa2" style="display:@(Model.Rec.p28Street2==null && Model.Rec.p28City2==null ? "none": "");">
+                <div class="col-sm-3 col-md-4">
+                    <textarea class="form-control" asp-for="Rec.p28Street2" placeholder="@_f.tra("Ulice")"></textarea>
+
+                </div>
+                <div class="col-sm-3 col-md-4">
+                    <textarea class="form-control" asp-for="Rec.p28City2" placeholder="@_f.tra("Město")"></textarea>
+                </div>
+                <div class="col-sm-1 col-md-1">
+                    <input type="text" class="form-control" asp-for="Rec.p28PostCode2" placeholder="@_f.tra("PSČ")" />
+                </div>
+                <div class="col-sm-3 col-md-3">
+                    <input type="text" class="form-control" asp-for="Rec.p28Country2" placeholder="@_f.tra("Stát")" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    @if (Model.disp.IsContactMedia)
+    {
+        @Html.EditorFor(m => m, "~/Views/Shared/_p28ContactMedia.cshtml")
+    }
+    @if (Model.disp.IsContactPersons)
+    {
+        @Html.EditorFor(m => m, "~/Views/Shared/_p28ContactPersons.cshtml")
+    }
+
+
+    @Html.EditorFor(m => m.hlidac, "~/Views/Shared/_hlidac.cshtml")
+
+    @Html.EditorFor(m => m.reminder, "~/Views/Shared/_Reminder.cshtml")
+
+    <mystitky entity="p28Contact" asp-for="@Model.TagPids" tagnames="@Model.TagNames" taghtml="@Model.TagHtml" buttontext="@_f.tra("Oštítkovat")"></mystitky>
+
+    
+</div>
+
+@if (Model.disp.IsBilling)
+{
+    <div class="tab-pane tab-pane-fixed" id="tab2" role="tabpanel">
+        <!-- Tab2 -->
+        @Html.EditorFor(m => m, "~/Views/Shared/_p28BillingTab.cshtml")
+    </div>
+    <div class="tab-pane tab-pane-fixed" id="tab3" role="tabpanel">
+        <!-- Tab3 -->
+        @Html.EditorFor(m => m.BillingMemo, "~/Views/Shared/_PellEditor.cshtml")
+
+        <div style="margin-top:20px;">
+            @if (Model.rec_pid > 0)
+            {
+                <button type="button" class="bog" onclick="fp()">@_f.tra("Napsat další fakturační poznámku (Neomezený Notepad)")</button>
+                @if (_lisB05 != null)
+                {
+                    @await Html.PartialAsync("~/Views/Shared/_lisB05.cshtml", _lisB05)
+                }
+            }
+
+        </div>
+
+       
+
+        
+    </div>
+}
+
+
+
+
+
+@if (Model.ff1.VisibleInputsCount > 0)
+{
+    <div class="tab-pane tab-pane-fixed" id="tab4" role="tabpanel">
+        <!-- Tab4 -->
+        @Html.EditorFor(m => m.ff1, "~/Views/Shared/_FreeFields.cshtml")
+    </div>
+}
+
+
+@if (Model.disp.IsRoles)
+{
+    <div class="tab-pane tab-pane-fixed" id="tab5" role="tabpanel">
+        <!-- Tab4 -->
+
+        <div class="row" style="margin-bottom:10px;">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Vlastník záznamu"):</label>
+            <div class="col-sm-11 col-md-10">
+                <mycombo entity="j02User" asp-for="Rec.j02ID_Owner" selectedtext="@Model.SelectedComboOwner" view-flag="1"></mycombo>
+            </div>
+        </div>
+
+
+
+        @Html.EditorFor(m => m.roles, "~/Views/Shared/_RoleAssign.cshtml")
+    </div>
+}
+
+
+<div class="tab-pane tab-pane-fixed" id="tab6" role="tabpanel">
+    <!-- Tab5 -->
+
+    <div class="row my-2">
+        <label for="cmdComboRec_p28ParentID" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Stromově nadřízený Kontakt"):</label>
+        <div class="col-sm-11 col-md-10">
+            <mycombo entity="p28Contact" asp-for="Rec.p28ParentID" selectedtext="@Model.SelectedComboParentP28Name" view-flag="1"></mycombo>
+        </div>
+    </div>
+
+    <div class="row my-2">
+        <label for="Rec_p28ExternalCode" class="col-sm-1 col-md-2">@_f.tra("Externí kód"):</label>
+        <div class="col-sm-11 col-md-10">
+            <input class="form-control" asp-for="Rec.p28ExternalCode" />
+        </div>
+    </div>
+    <div class="row my-2">
+        <label for="Rec_p28BankAccount" class="col-sm-1 col-md-2">@_f.tra("Bankovní účet"):</label>
+        <div class="col-sm-4 col-md-3">
+            <input class="form-control" asp-for="Rec.p28BankAccount" />
+        </div>
+        <div class="col-sm-1 col-md-1">
+            <input class="form-control" asp-for="Rec.p28BankCode" placeholder="Kód banky" />
+        </div>
+        <div class="col-auto">
+            <i>Využívá se u párování úhrad klienta.</i>
+        </div>
+    </div>
+    <div class="row my-2">
+        <label for="Rec_p28Salutation" class="col-sm-1 col-md-2">@_f.tra("Oslovení"):</label>
+        <div class="col-sm-11 col-md-10">
+            <input class="form-control" asp-for="Rec.p28Salutation" />
+        </div>
+    </div>
+    <div class="row my-2">
+        <label for="Rec_p28JobTitle" class="col-sm-1 col-md-2">@_f.tra("Pozice na vizitce"):</label>
+        <div class="col-sm-11 col-md-10">
+            <input class="form-control" asp-for="Rec.p28JobTitle" />
+        </div>
+    </div>
+
+    @if (Model.disp.IsFiles)
+    {
+        <iframe id="fraUpload" src="/FileUpload/DoUpload?recpid=@Model.rec_pid&entity=p28&guid=@Model.UploadGuid" frameborder="0" scrolling="yes" style="max-width:1200px;height:60px;"></iframe>
+    }
+</div>
+
+
+
+@Html.Raw("</div>")
+@Html.Raw("</div>")
+
+
+<input type="hidden" asp-for="@Model.TempGuid" />
+<input type="hidden" asp-for="@Model.UploadGuid" />
+<input type="hidden" asp-for="@Model.Rec.p28Code" value="@Model.Rec.p28Code" />
+<input type="hidden" asp-for="@Model.CanEditRecordCode" />
+
+<script type="text/javascript">
+    var _is_local_company = "@Model.IsCompany";
+    var _is_local_postback = "@Model.IsPostback";
+
+    $(document).ready(function () {
+
+        $("#cmdAdresa2").click(function () {
+            $("#divAdresa2").toggle();
+        });
+
+        $("#cmdMore").click(function () {
+            $("#divMore").toggle();
+        });
+
+        myautocomplete_init_manual("Rec_p28TitleBeforeName", "@string.Join("|",Model.lisAutocomplete.Where(p=>p.o15Flag==BO.AutoCompleteFlag.TitulPred).Select(p=>p.o15Value))");
+        myautocomplete_init_manual("Rec_p28TitleAfterName", "@string.Join("|",Model.lisAutocomplete.Where(p=>p.o15Flag==BO.AutoCompleteFlag.TitulZa).Select(p=>p.o15Value))");
+        myautocomplete_init_manual("Rec_p28Country1", "@string.Join("|",Model.lisAutocomplete.Where(p=>p.o15Flag==BO.AutoCompleteFlag.Stat).Select(p=>p.o15Value))");
+        myautocomplete_init_manual("Rec_p28Country2", "@string.Join("|",Model.lisAutocomplete.Where(p=>p.o15Flag==BO.AutoCompleteFlag.Stat).Select(p=>p.o15Value))");
+
+
+
+        if (_is_local_postback == "True")   //textarea standardně nevloží hodnotu přes postback při ares funkci
+        {
+            $("#Rec_p28Street1").val("@Model.Rec.p28Street1");
+            $("#Rec_p28City1").val("@Model.Rec.p28City1");
+        }
+
+
+
+        if (_is_local_company == "1") {
+            $("#divCompany1").css("display", "block");
+            $("#divCompany0").css("display", "none");
+            $("#opgIsCompany1").prop("checked", true);
+        }
+        else {
+            $("#divCompany1").css("display", "none");
+            $("#divCompany0").css("display", "block");
+            $("#opgIsCompany0").prop("checked", true);
+        }
+
+
+    });
+
+
+    function handle_delete_p30(guid) {
+        _postback("delete_p30", "guid=" + guid);
+
+    }
+
+    function handle_delete_o32(guid) {
+        _postback("delete_o32", "guid=" + guid);
+
+    }
+
+
+
+    function hardrefresh(pid, flag) {
+        
+        if (flag != undefined) {
+            
+            if (flag.includes("b05")) {
+                _postback();
+                return
+            }
+            if (flag.includes("recordcode")) {
+                $("#Rec_p28Code").val(flag.split("|")[1]);
+            }
+
+        }
+
+
+        _postback();
+    }
+
+
+
+
+
+
+
+
+    function j02_append() {
+        _window_open("/Record/GridMultiSelect?prefix=j02", 2, "Přidat kontaktní osobu");
+
+    }
+
+
+
+    function p51_record_flag3() {
+        var p51id = $("#SelectedP51ID_Flag3").val();
+        
+        _window_open("/p51/Record?pid=" + p51id + "&iscustom=true&tempguid=@(Model.TempGuid)", 2, "Hodinové sazby na míru");
+    }
+    function p51_record_flag2() {
+        var p51id = $("#SelectedP51ID_Flag2").val();
+        if (p51id == "0") {
+            alert("Musíte vybrat ceník.");
+            return;
+        }
+        _window_open("/p51/Record?pid=" + p51id, 2);
+    }
+    function p51_create_flag2() {
+        _window_open("/p51/Record?pid=0", 2);
+    }
+
+    function p29id_change(p29id) {
+        _postback("p29id");
+    }
+
+    function fp() {
+        var pid = "@(Model.rec_pid)";
+        if (pid == "0") {
+            alert("Poznámku lze založit až po založení nového záznamu");
+            return;
+        }
+        _window_open("/b05/Record?recpid="+pid+"&recprefix=p28&tab1flag=6");
+    }
+</script>

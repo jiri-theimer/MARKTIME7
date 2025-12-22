@@ -1,0 +1,87 @@
+﻿@model DynamicMenuViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = null;
+
+}
+
+@addTagHelper *, UI
+
+<style type="text/css">
+    .local-header {
+        
+        color: silver;
+    }
+</style>
+
+<div id="divContainerGridMenu" class="dynamicmenu_container" style="min-width:500px;">
+
+    <div style="padding-left:10px;">
+        <a href="javascript:navrhar_sloupcu()">
+            @_f.tra("Návrhář sloupců")
+        </a>
+    </div>
+
+    <div class="input-group" style="padding-left:10px;padding-right:10px;margin-top:7px;">
+       
+        @if (!_f.CurrentUser.IsMobileDisplay())
+        {
+            <div id="divGridMenuPrehledy" style="margin-left:40px;">
+                <div class="local-header"><h5>@_f.tra("Pojmenované tabulky").ToUpper()</h5></div>
+
+                @Html.EditorFor(m => Model, "~/Views/Shared/_GridDynamicMenu.cshtml")
+
+
+
+            </div>
+        }
+      
+    </div>
+    @if (_f.CurrentUser.IsMobileDisplay())
+    {
+        <div id="divGridMenuPrehledy" style="padding-left:10px;">
+            <div class="local-header"><h5>@_f.tra("Pojmenované tabulky").ToUpper()</h5></div>
+
+            @Html.EditorFor(m => Model, "~/Views/Shared/_GridDynamicMenu.cshtml")
+
+        </div>
+    }
+
+   
+   
+    
+
+</div>
+
+
+<script type="text/javascript">
+
+    
+
+    
+
+
+    $(document).ready(function () {
+        $("#exportNadpis").html("REPORT/EXPORT (" + $("#tabgrid1_rows").text() + ")");
+
+        _adjust_divheight_small_display("divContainerGridMenu");
+        
+        if (location.href.indexOf("p31approve") > 0)
+        {
+            $("#divGridMenuPrehledy").css("display", "none") //u schvalování nenabízet možnost přepnout grid - pracuje se pouze s jedním gridem
+        }
+        if (window !== top) {   //voláno uvnitř iframe
+            $(".local-header").css("display", "none");
+        }
+    })
+
+    
+
+
+    
+    function navrhar_sloupcu() {
+        var s = location.pathname;
+        _window_open("/TheGridDesigner?j72id=" + _thegrid.j72id+"&pathname="+s, 2);
+    }
+</script>

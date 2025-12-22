@@ -1,0 +1,375 @@
+﻿@model ReportNoContextViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = null;
+}
+@addTagHelper *, UI
+
+
+<!DOCTYPE html>
+
+<html lang="cs">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Report</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link href="~/lib/datepicker/bootstrap-datepicker.min.css" rel="stylesheet" type="text/css" />
+    <link href="~/lib/qtip/jquery.qtip.css" rel="stylesheet" type="text/css" />
+
+    <style type="text/css">
+        :root {
+            --pozadi: @_f.CurrentUser.j02SkinBackColor;
+            --popredi: @_f.CurrentUser.j02SkinForeColor;
+            --oznaceno: @_f.CurrentUser.j02SkinSelColor;
+        }
+    </style>
+    <link rel="stylesheet" href="~/css/@_f.CurrentUser.getFontSizeCss()" />
+    <link rel="stylesheet" href="~/css/site.css" />
+
+    <link href="~/lib/telerik-reporting/styles/kendo-default-ocean-blue.css" rel="stylesheet" type="text/css" />
+
+    <script type="text/javascript">
+        var _relpath = "@(Url.Content("~/favicon.ico").Replace("favicon.ico", ""))";   //relativní cesta: detekce kvůli případnému IIS virtuálnímu adresáři
+    </script>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="~/lib/datepicker/bootstrap-datepicker.min.js"></script>
+    <script src="~/lib/datepicker/bootstrap-datepicker.cs.min.js"></script>
+    <script src="~/lib/qtip/jquery.qtip.min.js"></script>
+
+    @switch (_f.CurrentUser.j02LangIndex)
+    {
+        case 1:
+            <script src="~/lib/telerik-reporting/js/telerikReportViewer.stringResources-19.2.25.1001.js"></script>
+            break;
+
+        default:
+            <script src="~/lib/telerik-reporting/js/telerikReportViewer.stringResources-19.2.25.1001-cs.js"></script>
+
+            break;
+    }
+
+
+
+
+
+
+
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/mycombo.js" asp-append-version="true"></script>
+
+    <script src="~/js/contextmenu.js" asp-append-version="true"></script>
+    <script src="~/js/mycontrols.js" asp-append-version="true"></script>
+
+    <script src="/apix/reports/resources/js/telerikReportViewer"></script>
+    <style>
+        #reportViewer1 {
+            position: absolute;
+            left: 1px;
+            right: 1px;
+            top: 36px;
+            bottom: 3px;
+            overflow: hidden;
+            font-family: Verdana, Arial;
+        }
+    </style>
+
+</head>
+
+<body>
+
+
+    <script type="text/javascript">
+        @if (Model.Javascript_CallOnLoad != null)
+        {
+                        @Html.Raw(Model.Javascript_CallOnLoad)
+
+
+
+        }
+    </script>
+
+
+    <form id="form1" asp-controller="x31" asp-action="ReportNoContext" method="POST">
+
+        <input type="hidden" asp-for="SelectedX31ID" />
+        <input type="hidden" asp-for="IsPeriodFilter" />
+        <input type="hidden" asp-for="Translate" />
+        <input type="hidden" asp-for="LangIndex" />
+        <input type="hidden" asp-for="IsConfirmNeeded" />
+        <input type="hidden" asp-for="IsConfirmed" value="@Model.IsConfirmed" />
+        <input type="hidden" asp-for="caller_prefix" />
+        <input type="hidden" asp-for="caller_pids" />
+        <input type="hidden" asp-for="NoFramework" />
+
+        <input type="hidden" asp-for="ReportExportName" value="@Model.ReportExportName" />
+
+        <table>
+            <tr>
+
+
+                <td>
+                    <div class="dropdown">
+                        <button class="btn bog dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            @_f.tra("Překlad sestavy")
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li id="litrans_"><a class="dropdown-item" href="javascript:dotrans('')">Česky (originál)</a></li>
+                            <li id="litrans_en"><a class="dropdown-item" href="javascript:dotrans('en')">English</a></li>
+                            <li id="litrans_de"><a class="dropdown-item" href="javascript:dotrans('de')">Deutsch</a></li>
+                            <li id="litrans_sk"><a class="dropdown-item" href="javascript:dotrans('sk')">Slovenčina</a></li>
+
+                        </ul>
+                    </div>
+                </td>
+                <td style="width:40px;">
+                    <button id="cmdRefresh" type="button" onclick="reload()" class="btn btn-light"><span class="material-icons-outlined-btn">refresh</span></button>
+                </td>
+
+                @if (Model.IsPeriodFilter)
+                {
+                    <td>
+                        @await Component.InvokeAsync("myPeriod", Model.PeriodFilter)
+                    </td>
+
+
+                }
+
+
+                @if (Model.lisJ72 != null)
+                {
+                    <td>
+                        <mydropdown asp-for="SelectedJ72ID" bgcolor="@(Model.SelectedJ72ID > 0 ? "red" : null)" datasource="@Model.lisJ72" textfield="j72Name" valuefield="pid" firstemptyrowtext="--Pojmenovaný filtr--" firstemptyrowvalue="0" isfirstemptyrow="true" event_after_changevalue="j72id_change"></mydropdown>
+
+                    </td>
+                    <td style="width:20px;">
+                        <button type="button" id="cmdQueryBuilder" class="btn btn-light" onclick="querybuilder()" title="Návrhář pojmenovaného filtru">
+                            <span class="material-icons-outlined-btn">filter_alt</span>
+                        </button>
+                    </td>
+
+                }
+                else
+                {
+                    <input type="hidden" asp-for="SelectedJ72ID" />
+                }
+                <td>
+                    <button id="cmdSendByMail" type="button" class="btn btn-light" title="@_f.tra("Odeslat poštou")">
+                        <span class="material-icons-outlined-btn">email</span>
+
+                    </button>
+                </td>
+
+                @if (_f.CurrentUser.IsAdmin)
+                {
+                    <td class="nonmobile">
+                        <button id="cmdRecord" type="button" class="btn btn-light" title="@_f.tra("Administrace sestavy")"><span class="material-icons-outlined-btn">settings</span></button>
+                    </td>
+                }
+
+                <td>
+                    <button type="button" id="cmdClose" style="display:none" onclick="window.parent._window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+                </td>
+            </tr>
+        </table>
+
+
+
+
+        @if (Model.IsConfirmNeeded && !Model.IsConfirmed)
+        {
+            <div style="margin-top:50px;margin-left:10px;">
+
+                <button type="button" id="cmdConfirm" class="btn btn-outline-primary" onclick="doconfirm()" style="z-index:9999;">
+                    <h5>@_f.tra("Vygenerovat náhled sestavy podle aktuálního filtru?")</h5>
+                </button>
+                <hr>
+                <i class="nonmobile">@_f.tra("Potvrdíte klávesou ENTER.")</i>
+            </div>
+
+            <script type="text/javascript">
+
+                if (_device.isMobile) {
+                    window.parent.closeNav();
+                }
+                else {
+                    $("#cmdConfirm").focus();
+                }
+            </script>
+        }
+
+    </form>
+
+    @if (Model.ReportFileName != null && (!Model.IsConfirmNeeded || Model.IsConfirmed))
+    {
+
+        <div id="reportViewer1">
+            loading...
+        </div>
+
+    }
+
+
+    <script type="text/javascript">
+
+
+        $(document).ready(function () {
+            var d1;
+            var d2;
+            var noframework="@(Model.NoFramework.ToString())";
+
+
+            if ((window.parent && window.parent !== window) && noframework == "False")
+            {
+
+                window.parent.document.getElementById("j72id").value = "@Model.SelectedJ72ID";
+            }
+            else
+            {
+                $("#cmdClose").css("display","block");
+
+            }
+
+            $("#cmdRecord").on("click", function () {
+                var x31id=$("#SelectedX31ID").val();
+                window.parent._window_open("/x31/Record?pid=" + x31id, 3);
+            });
+
+            $("#cmdSendByMail").on("click", function () {
+                var j72id = $("#SelectedJ72ID").val();
+                var x31id=$("#SelectedX31ID").val();
+
+                window.parent._window_open("/Mail/SendMail?x31id=" + x31id+"&j72id="+j72id, 3);
+            });
+
+            $("#litrans_@Model.Translate").css("background-color", "lightblue");
+
+            
+
+
+        @if (Model.PeriodFilter != null)
+        {
+
+                        @:d1 = new Date("@Model.PeriodFilter.d1_iso");
+                        @:d2 = new Date("@Model.PeriodFilter.d2_iso");
+
+        }
+
+
+        @if (Model.ReportFileName != null && (!Model.IsConfirmNeeded || Model.IsConfirmed))
+        {
+                        <text>
+
+                                         if (_device.isMobile) {
+
+                                window.parent.closeNav();
+
+                            }
+
+
+                            $("#reportViewer1")
+                                .telerik_ReportViewer(
+                                    {
+                                        serviceUrl: "/apix/reports",
+                                        reportSource: {
+                                            report: "@(Model.ReportFileName + "###" + _f.CurrentUser.j02Login + "###" + Model.SelectedJ72ID + "###" + Model.ReportExportName + "###" + Model.Translate + "###" + Model.caller_prefix + "###" + Model.caller_pids + "###" + Model.RecX31.pid.ToString())",
+                                            parameters: { j02id: @_f.CurrentUser.j02ID, datFrom: d1, datUntil: d2, langindex: "@Model.LangIndex", langsource: "", l5: "@_f.getP07Level(5, true)", x01id: @_f.CurrentUser.x01ID }
+                                        },
+                                        viewMode: telerikReportViewer.ViewModes.INTERACTIVE,
+                                        scaleMode: telerikReportViewer.ScaleModes.SPECIFIC,
+                                        scale: 1.0,
+                                        enableAccessibility: false,
+                                        parameters: {
+                                            editors: {
+                                                singleSelect: telerikReportViewer.ParameterEditorTypes.COMBO_BOX, //  defineds the editor type for the single select parameters
+                                                multiSelect: telerikReportViewer.ParameterEditorTypes.COMBO_BOX, //defineds the editor type for the multi select parameters
+                                            }
+                                        },
+                                        sendEmail: { enabled: false },
+                                        ready: function () {
+
+                                            var splitter = $("#reportViewer1").find(".k-splitter").data("kendoSplitter");
+                                            if (splitter != undefined && screen.availWidth > 1000) {
+                                                splitter.options.panes[1].size = "420px";
+                                                splitter.resize(true);
+                                            }
+                                        },
+                                        renderingEnd: function (e, args) {
+
+                                            //okamžik, kdy je report vygenerován
+
+                                        }
+                                    }
+                                );
+
+                        </text>
+        }
+
+
+
+
+
+        @if (_f.CurrentUser.Messages4Notify != null)
+        {
+                        @foreach (var c in _f.CurrentUser.Messages4Notify)
+                        {  // <----  placed on the same line, WORKING !!!
+
+                                        @:_notify_message("@c.Value", "@c.Key");
+
+                        }
+        }
+
+
+
+
+
+
+
+
+                    });
+
+        function doconfirm() {
+
+            form1.action = _ep("/ReportsClient/ReportNoContext?oper=confirm");
+            form1.submit();
+        }
+
+        function x31id_change(x31id) {
+            form1.action = _ep("/ReportsClient/ReportNoContext?oper=change_x31id");
+            form1.submit();
+
+
+        }
+
+        function j72id_change(j72id) {
+            form1.action = _ep("/ReportsClient/ReportNoContext?oper=change_j72id");
+            form1.submit();
+        }
+        function reload() {
+            form1.action = _ep("/ReportsClient/ReportNoContext?oper=postback");
+            form1.submit();
+        }
+
+        function dotrans(lang) {
+
+            $("#Translate").val(lang);
+            form1.action = _ep("/ReportsClient/ReportNoContext?oper=translate");
+            form1.submit();
+        }
+
+
+        function querybuilder() {
+            var s = location.pathname;
+            var j72id = $("#SelectedJ72ID").val();
+
+            window.parent._window_open("/TheQueryDesigner/Index?j72id=" + j72id + "&prefix=p31&pathname=" + s, 3);
+        }
+
+    </script>
+
+
+</body>
+</html>

@@ -1,0 +1,222 @@
+﻿@model UI.Models.Record.p51Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Ceník sazeb");
+    if (Model.Rec.TypeAlias !=null){
+        Model.PageTitle = Model.Rec.TypeAlias;
+    }
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+
+    if (Model.Rec.pid > 0)
+    {
+        Model.PageTitle += ": " + Model.Rec.p51Name;
+    }
+
+}
+
+@addTagHelper *, UI
+
+<div class="modal_record_container">
+    @if (Model.Rec.p51IsCustomTailor && Model.Rec.pid>0)
+    {
+        
+        <div class="my-2">
+            <span class="badge-light">Individuální sazby na míru!</span>
+            
+            <button type="button" class="btn btn-sm bog" onclick="_postback('clear_tailor')">@_f.tra("Změnit na sdílený ceník")</button>
+        </div>
+        <hr />
+    }
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Druh sazeb"):</label>
+        <div class="col-sm-3 col-md-3">
+            <select asp-for="Rec.p51TypeFlag" class="form-select" onchange="_postback()">
+                <option value="BillingRates">@_f.tra("Fakturační hodinové sazby")</option>
+                @if (Model.TempGuid == null)
+                {
+                    <option value="RootBillingRates">@_f.tra("ROOT fakturační sazby")</option>
+                    <option value="CostRates">@_f.tra("Nákladové hodinové sazby")</option>
+                    <option value="OverheadRates">@_f.tra("Nákladové režijní hodinové sazby")</option>
+                    <option style="display:none;" value="EfectiveRates">@_f.tra("Globální sazby k výpočtu efektivních sazeb z pevných odměn")</option>
+                }
+
+            </select>
+        </div>
+
+    </div>
+    @if (Model.TempGuid == null)
+    {
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název ceníku"):</label>
+            <div class="col-sm-9 col-md-8">
+                <input class="form-control record_name" asp-for="Rec.p51Name" />
+            </div>
+
+
+        </div>
+    }
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Měna sazeb"):</label>
+        <div class="col-sm-3 col-md-3">
+            <mycombo entity="j27Currency" asp-for="Rec.j27ID" selectedtext="@Model.ComboJ27Code" view-flag="2"></mycombo>
+        </div>
+
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Výchozí sazba"):</label>
+        <div class="col-sm-3 col-md-3">
+            <mynumber asp-for="Rec.p51DefaultRateT" decimal-digits="2"></mynumber>
+
+
+        </div>
+    </div>
+    
+    @if (!Model.Rec.p51IsCustomTailor)
+    {
+        <div class="my-2">
+            <input type="checkbox" asp-for="Rec.p51IsFPR" />
+            <label class="col-form-label" for="Rec_p51IsFPR">@_f.tra("Vzorový ceník pro výpočet efektivních sazeb z paušálních odměn")</label>
+        </div>
+    }
+    
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Platí od"):</label>
+        <div class="col-sm-4 col-md-3">
+            <mydate asp-for="@Model.d1"></mydate>
+
+        </div>
+
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Platí do"):</label>
+        <div class="col-sm-4 col-md-3">
+            <mydate asp-for="@Model.d2"></mydate>
+
+        </div>
+
+    </div>
+
+
+
+
+</div>
+
+
+<div class="card">
+    <div class="card-header">
+        @_f.tra("Položkové sazby (výjimky z výchozí (nejpoužívanější sazby)")
+
+        <button type="button" class="btn btn-outline-primary btn-sm" onclick="handle_add_row()">@_f.tra("Přidat řádek")</button>
+        <button type="button" class="btn btn-outline-danger btn-sm" onclick="handle_clear_rows()" style="margin-left:100px;">@_f.tra("Vyčistit řádky")</button>
+    </div>
+    <div class="card-body">
+        <table class="table-hover table" style="table-layout: fixed;min-width:1000px;">
+            <tr>
+                <th style="width:100px;"></th>
+                <th>@_f.tra("Pozice/Jméno")</th>
+                <th style="width:100px;">@_f.tra("Sazba")</th>
+                <th style="width:140px;">@_f.tra("Sešit/Aktivita")</th>
+                <th></th>
+                <th style="width:40px;"></th>
+                <th style="width:40px;"></th>
+            </tr>
+            @for (int i = 0; i < Model.lisP52.Count; i++)
+            {
+                <tr style="@(Model.lisP52[i].CssTempDisplay)">
+                    <td>
+                        <input type="hidden" asp-for="lisP52[i].IsTempDeleted" value="@Model.lisP52[i].IsTempDeleted" />
+                        <input type="hidden" asp-for="lisP52[i].TempGuid" value="@Model.lisP52[i].TempGuid" />
+
+                        <select class="form-select" asp-for="@Model.lisP52[i].RowPrefixWho" onchange="_postback()">
+                            <option value="j02">@_f.tra("Jméno")</option>
+                            <option value="j07">@_f.tra("Pozice")</option>
+                            <option value="all">@_f.tra("Všichni")</option>
+                        </select>
+                    </td>
+                    <td>
+                        @if (Model.lisP52[i].RowPrefixWho == "j02")
+                        {
+                            <mycombo entity="j02User" asp-for="@Model.lisP52[i].j02ID" selectedtext="@Model.lisP52[i].ComboPerson" view-flag="1"></mycombo>
+                        }
+                        @if (Model.lisP52[i].RowPrefixWho == "j07")
+                        {
+                            <mycombo entity="j07PersonPosition" asp-for="@Model.lisP52[i].j07ID" selectedtext="@Model.lisP52[i].ComboJ07Name" view-flag="2"></mycombo>
+                        }
+
+                    </td>
+                    <td>
+                        <mynumber asp-for="@Model.lisP52[i].p52Rate" decimal-digits="2"></mynumber>
+                    </td>
+                    <td>
+                        <select class="form-select" asp-for="@Model.lisP52[i].RowPrefixActivity" onchange="_postback()">
+                            <option value="p32">@_f.tra("Jedna aktivita")</option>
+                            <option value="p34">@_f.tra("Jeden sešit")</option>
+                            <option value="all">@_f.tra("Všechny časové aktivity")</option>
+                        </select>
+                    </td>
+                    <td>
+                        @if (Model.lisP52[i].RowPrefixActivity == "p32")
+                        {
+                            <mycombo entity="p32Activity" asp-for="@Model.lisP52[i].p32ID" selectedtext="@Model.lisP52[i].ComboP32Name" view-flag="2" myqueryinline="ismoneyinput|bool|0"></mycombo>
+                        }
+                        @if (Model.lisP52[i].RowPrefixActivity == "p34")
+                        {
+                            <mycombo entity="p34ActivityGroup" asp-for="@Model.lisP52[i].p34ID" selectedtext="@Model.lisP52[i].ComboP34Name" view-flag="2" myqueryinline="ismoneyinput|bool|0"></mycombo>
+                        }
+                    </td>
+
+                    <td>
+                        <button type="button" class="btn btn-danger" title="@_f.tra("Odstranit řádek")" onclick="handle_delete_row('@(Model.lisP52[i].TempGuid)')">x</button>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-default" title="@_f.tra("Kopírovat řádek")" onclick="handle_clone_row('@(Model.lisP52[i].TempGuid)')"><span class="material-icons-outlined-btn">content_copy</span></button>
+                    </td>
+                </tr>
+            }
+        </table>
+    </div>
+</div>
+
+
+
+
+
+<input type="hidden" asp-for="Rec.p51IsCustomTailor" value="@Model.Rec.p51IsCustomTailor" />
+<input type="hidden" asp-for="TempGuid" value="@Model.TempGuid" />
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+
+    });
+
+
+
+
+    function handle_delete_row(guid) {
+        _postback("delete_row","guid="+guid);
+        
+
+    }
+    function handle_add_row() {
+        _postback("add_row");
+      
+    }
+
+    function handle_clear_rows() {
+        _postback("clear_rows");
+       
+    }
+    function handle_clone_row(guid) {
+        _postback("clone_row", "guid=" + guid);
+       
+    }
+
+    
+</script>

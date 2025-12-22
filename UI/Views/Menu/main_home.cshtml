@@ -1,0 +1,955 @@
+﻿@inject BL.Factory _f
+
+@{
+    Layout = null;
+    var cmenu = new UI.Menu.TheMenuSupport(_f);
+
+    IEnumerable<BO.p07ProjectLevel> _lisP07 = _f.lisP07.Where(p => !p.isclosed);
+
+    string _GridUrlO22 = cmenu.GetMainmenuEntityUrl("o22");
+
+    string _GridUrlP15 = null;
+    if (_f.CurrentUser.j04IsModule_p41 && _f.CurrentUser.TestPermission(BO.PermValEnum.p41_Owner))
+    {
+        _GridUrlP15 = cmenu.getGridUrl("p15");
+    }
+
+
+    string _GridUrlO43 = null;
+    if (_f.CurrentUser.j04IsModule_o43)
+    {
+        _GridUrlO43 = cmenu.GetMainmenuEntityUrl("o43");
+    }
+
+    string _GridUrlP24 = null;
+    if (_f.CurrentUser.j04IsModule_p28)
+    {
+        _GridUrlP24 = cmenu.getGridUrl("p24");
+    }
+
+    List<string> _menulinks = BO.Code.Bas.ConvertString2List(_f.CurrentUser.j02MyMenuLinks, "|");
+
+    string _GridUrlP58 = cmenu.GetMainmenuEntityUrl("p58");
+    string _GridUrlB05 = null;
+    if (_f.CurrentUser.j04IsModule_p28 || _f.CurrentUser.j04IsModule_p41 || _f.CurrentUser.j04IsModule_p56 || _f.CurrentUser.TestPermission(BO.PermValEnum.GR_b05ReadAll))
+    {
+        _GridUrlB05 = cmenu.GetMainmenuEntityUrl("b05");
+    }
+    string _GridUrlP55 = cmenu.GetMainmenuEntityUrl("p55");
+
+
+    string _pripnout_tooltip = _f.tra("Připnout odkaz do MENU");
+    string _odepnout_tooltip = _f.tra("Odepnout odkaz z MENU");
+
+    IEnumerable<BO.o17DocMenu> _lisO17 = null;
+    if (_f.CurrentUser.j04IsModule_o23)
+    {
+        _lisO17 = _f.GetListO17().Where(p => p.x01ID == _f.CurrentUser.x01ID);
+        if (_lisO17.Count() > 0 && !_f.CurrentUser.IsAdmin)
+        {
+            string strO17IDs = "," + _f.CurrentUser.o17IDs + ",";
+            _lisO17 = _lisO17.Where(p => strO17IDs.Contains("," + p.pid.ToString() + ","));
+        }
+    }
+
+}
+
+@addTagHelper *, UI
+
+<style type="text/css">
+
+    .menu-section-title {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: .05em;
+        color: #6b7280; /* neutral */
+        margin: 16px 0 8px;
+    }
+
+
+
+    a.locallink500 {
+        text-decoration: none;
+        font-weight: 500 !important;
+        word-break: keep-all;
+        padding: 5px;
+    }
+
+        a.locallink500:hover {
+            background-color: var(--oznaceno) !important;
+            color: var(--popredi) !important;
+            border-radius: 5px;
+        }
+
+    a.locallink {
+        text-decoration: none;
+        font-weight: normal !important;
+        word-break: keep-all;
+        padding: 5px;
+    }
+
+        a.locallink:hover {
+            background-color: var(--oznaceno) !important;
+            color: var(--popredi) !important;
+            border-radius: 5px;
+        }
+
+
+    button.pin {
+        visibility: hidden;
+        background-color: transparent !important;
+        border: none;
+        padding: 0px;
+        color: navy;
+        margin-top: 0px;
+        margin-bottom: 0px;
+    }
+
+
+        button.pin:hover {
+            color: var(--popredi) !important;
+        }
+</style>
+
+
+<div id="divHomeMenu" style="-webkit-transform: translate3d(0,0,0);">
+
+    <table class="table-hover table" id="tableMenu" style="border:solid 1px var(--oznaceno);">
+        <tr>
+
+
+            <td colspan="3" style="padding:20px;background-color:#f5f8ff">
+                <h6>
+                    @if (_f.CurrentUser.j02HomePageUrl != null && !_f.CurrentUser.j02HomePageUrl.Contains("Widgets"))
+                    {
+                        <a id="linkHome" class="locallink" href="@(_f.CurrentUser.j02HomePageUrl)">
+                            <span class="material-icons-outlined-btn">home</span>
+                            @_f.tra("Domovská stránka") (home)
+                        </a>
+                        <button type="button" class="btn btn-sm" onclick="clear_home_page()" title="@_f.tra("Vyčistit paměť na domovskou stránku")"><span class="material-icons-outlined-btn" style="color:red;">clear</span></button>
+
+
+
+                    }
+                    @if (_f.CurrentUser.j04IsModule_Widgets)
+                    {
+                        <a id="linkDashboard" class="locallink" href="/Widgets/Index">
+                            <span class="material-icons-outlined-btn">dashboard</span>
+                            Dashboard
+                        </a>
+                        <button type="button" data-key="dashboard" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
+                    }
+
+
+
+                    @if (_f.CurrentUser.j04IsModule_p31 || _f.CurrentUser.j04IsModule_p56 || _f.CurrentUser.j04IsModule_p41)
+                    {
+
+                        <a id="linkCalendar" class="locallink" href="/p31calendar/Index">
+                            <span class="material-icons-outlined-btn">event</span>
+                            @_f.tra("Kalendář")
+                        </a>
+                        <button type="button" data-key="p31calendar" class="pin btn btn-sm"><span class="material-icons-outlined">push_pin</span></button>
+
+                        <a id="linkDayline" class="locallink" href="/p31dayline/Index">
+                            <span class="material-icons-outlined-btn">apps</span>
+                            Dayline
+                        </a>
+                        <button type="button" data-key="p31dayline" class="pin btn btn-sm"><span class="material-icons-outlined">push_pin</span></button>
+                    }
+
+                </h6>
+            </td>
+        </tr>
+
+        @if (_f.CurrentUser.j04IsModule_p31)
+        {
+            <tr>
+                <td>
+                    <span class="material-icons-outlined-btn">more_time</span>
+                    <span class="menu-section-title">
+                        ÚKONY
+                    </span>
+                    <h6>
+                        <a id="linkGridP31" class="locallink500" href="/TheGrid/FlatView?prefix=p31">
+
+                            @_f.tra("Tabulka")
+                        </a>
+                        <button type="button" data-key="p31grid" class="pin btn btn-sm"><span class="material-icons-outlined">push_pin</span></button>
+
+
+                    </h6>
+                </td>
+                <td>
+                </td>
+
+                <td style="padding:20px;">
+                    <h6>
+                        <a id="linkTotals" class="locallink" href="/p31totals/Index">
+                            <span class="material-icons-outlined-btn">functions</span>
+                            @_f.tra("Součty")
+                        </a>
+                        <button type="button" data-key="p31totals" class="pin btn btn-sm"><span class="material-icons-outlined">push_pin</span></button>
+
+                        @if (_f.CurrentUser.IsApprovingPerson)
+                        {
+
+                            <a id="linkApproving" class="locallink" href="/TheGrid/ApproveView">
+                                <span class="material-icons-outlined-btn">approval</span>
+                                @_f.tra("Schvalování")<span style="margin-left:3px;padding-left:4px;padding-right:4px;border-radius:4px;background-color:lightskyblue;color:white;">All-in-one</span>
+                            </a>
+                            <button type="button" data-key="approving" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
+                        }
+
+
+                        @if (_f.CurrentUser.TestPermission(BO.PermValEnum.GR_p51_Admin))
+                        {
+                            <a id="linkCeniky" class="locallink" href="@cmenu.GetMainmenuEntityUrl("p51")">
+                                <span class="material-icons-outlined-btn">price_change</span>
+                                @_f.tra("Ceníky")
+                            </a>
+                            <button type="button" data-key="p51" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
+                        }
+                        @if (_f.CurrentUser.IsRatesAccess && _f.CurrentUser.TestPermission(BO.PermValEnum.GR_p41_Reader))
+                        {
+                            <a id="linkP40" class="locallink" href="@cmenu.GetMainmenuEntityUrl("p40")">
+                                <span class="material-icons-outlined-btn">repeat_on</span>
+                                @_f.tra("Opakované odměny/paušály")
+                            </a>
+                            <button type="button" data-key="p40" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
+                        }
+
+
+
+                        @if (_f.CurrentUser.j04IsModule_p11)
+                        {
+                            <p></p>
+                            <a id="linkAbsence" class="locallink" href="/Absence/Index">
+                                <span class="material-icons-outlined-btn">hourglass_top</span>
+                                @_f.tra("Docházka")
+                            </a>
+                            <button type="button" data-key="absence" class="pin btn btn-sm"><span class="material-icons-outlined">push_pin</span></button>
+
+                            <a id="linkP11" class="locallink" href="/TheGrid/FlatView?prefix=p11">
+                                <span class="material-icons-outlined-btn">hourglass_bottom</span>
+                                @_f.tra("Záznamy docházky")
+                            </a>
+                            <button type="button" data-key="p11" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
+
+
+
+                        }
+                        @if (_f.CurrentUser.IsMasterPerson || _f.CurrentUser.IsAdmin)
+                        {
+                            <a id="linkP12" class="locallink" href="/p12/Index">
+                                <span class="material-icons-outlined-btn">thumb_up</span>
+                                @_f.tra("Interní schvalování")
+                            </a>
+                            <button type="button" data-key="p12" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
+                        }
+
+                    </h6>
+                </td>
+            </tr>
+        }
+        @if (_f.CurrentUser.j04IsModule_p41)
+        {
+            <tr>
+                <td>
+                    <span class="material-icons-outlined-btn">work_outline</span>
+                    <span class="menu-section-title">
+                        @_f.tra("PROJEKTY")
+                    </span>
+                    <h6>
+                        <a id="linkGridP41" class="locallink500" href="@(cmenu.GetMainmenuEntityUrl("p41"))">
+
+                            @_f.tra("Tabulka")
+                        </a>
+                        <button type="button" data-key="p41" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
+                    </h6>
+
+
+
+                </td>
+                <td>
+                </td>
+                <td style="padding:20px;">
+                    <h6>
+                        @if (_f.CurrentUser.TestPermission(BO.PermValEnum.GR_p41_Reader))
+                        {
+                            <a id="linkP44" class="locallink" href="@cmenu.getGridUrl("p44")">
+                                <span class="material-icons-outlined-btn">copy_all</span>
+                                @_f.tra("Projektové šablony")
+                            </a>
+                        }
+
+                        @if (_f.CurrentUser.j04IsModule_r01)
+                        {
+                            <a id="linkCapacityTimeline" class="locallink" href="/captml/Index">
+                                <span class="material-icons-outlined-btn">online_prediction</span>
+                                Kapacitní plány
+                            </a>
+                            <button type="button" data-key="captml" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
+                        }
+                        @if (_f.CurrentUser.j04IsModule_p49)
+                        {
+                            <a id="linkP49" class="locallink" href="@cmenu.GetMainmenuEntityUrl("p49")">
+                                <span class="material-icons-outlined-btn">energy_savings_leaf</span>
+                                @_f.tra("Finanční plány (FP)")
+                            </a>
+                            <button type="button" data-key="p49" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
+
+                            <a id="linkFpView" class="locallink" href="/TheGrid/FpView">
+                                <span class="material-icons-outlined-btn">energy_savings_leaf</span>
+                                @_f.tra("FP statistiky")
+                            </a>
+                            <button type="button" data-key="fpview" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
+                        }
+
+                    </h6>
+                </td>
+            </tr>
+
+
+
+        }
+
+        @if (_f.CurrentUser.j04IsModule_p56)
+        {
+            <tr>
+                <td>
+                    <span class="material-icons-outlined-btn">task</span>
+                    <span class="menu-section-title">
+                        @_f.tra("ÚKOLY")
+                    </span>
+                    <h6>
+                        <a id="linkGridP56" class="locallink500" href="@(cmenu.GetMainmenuEntityUrl("p56"))">
+
+                            @_f.tra("Tabulka")
+                        </a>
+                        <button type="button" data-key="p56" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
+
+
+                    </h6>
+
+                </td>
+                <td style="width:20px;">
+                </td>
+
+                <td style="padding:20px;">
+                    <h6>
+                        @if (_GridUrlP58 != null)
+                        {
+
+                            <a id="linkOpakovaneUkoly" class="locallink" href="@(_GridUrlP58)">
+                                <span class="material-icons-outlined-btn">published_with_changes</span>
+                                Opakované úkoly
+                            </a>
+                            <button type="button" data-key="p58" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
+                        }
+                        @if (_GridUrlP55 != null)
+                        {
+                            <a id="linkTodolist" class="locallink" href="@(_GridUrlP55)">
+                                <span class="material-icons-outlined-btn">control_point_duplicate</span>
+                                Todo-list
+                            </a>
+                            <button type="button" data-key="p55" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
+                        }
+                        <a id="linkSablonyUkolu" class="locallink" href="/TheGrid/FlatView?prefix=p60">
+                            <span class="material-icons-outlined-btn">copy_all</span>
+                            Šablony úkolů
+                        </a>
+
+                        <button type="button" data-key="p58" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
+
+                    </h6>
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    <span class="material-icons-outlined-btn">today</span>
+                    <span class="menu-section-title">
+                        @_f.tra("TERMÍNY/LHůTY")
+                    </span>
+                    <h6>
+
+                        @if (_GridUrlO22 != null)
+                        {
+
+                            <a id="linkTerminy" class="locallink500" href="@(_GridUrlO22)">
+
+                                Tabulka
+                            </a>
+                            <button type="button" data-key="o22" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
+
+                        }
+                    </h6>
+
+                </td>
+                <td style="width:20px;">
+                </td>
+
+                <td style="padding:20px;">
+                </td>
+            </tr>
+        }
+        @if (_f.CurrentUser.j04IsModule_p28)
+        {
+            <tr>
+                <td>
+                    <span class="material-icons-outlined-btn">contacts</span>
+                    <span class="menu-section-title">
+                        @_f.tra("KONTAKTY")
+                    </span>
+                    <h6>
+                        <a id="linkGridP28" class="locallink500" href="@(cmenu.GetMainmenuEntityUrl("p28"))">
+
+                            @_f.tra("Tabulka")
+                        </a>
+                        <button type="button" data-key="p28" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
+
+                    </h6>
+
+                </td>
+                <td style="width:20px;">
+                </td>
+
+                <td style="padding:20px;">
+                    <h6>
+                        @if (_GridUrlP24 != null)
+                        {
+                            <a id="linkSkupinyKontaktu" class="locallink" href="@(_GridUrlP24)">
+                                <span class="material-icons-outlined-btn">contacts</span>
+                                Skupiny kontaktů
+                            </a>
+
+                        }
+                    </h6>
+                </td>
+            </tr>
+        }
+        @if (_f.CurrentUser.j04IsModule_j02)
+        {
+            <tr>
+                <td>
+                    <span class="material-icons-outlined-btn">face</span>
+                    <span class="menu-section-title">
+                        @_f.tra("UŽIVATELÉ")
+                    </span>
+
+                    <h6>
+                        <a id="linkGridJ02" class="locallink500" href="@(cmenu.GetMainmenuEntityUrl("j02"))">
+
+                            @_f.tra("Tabulka")
+                        </a>
+                        <button type="button" data-key="j02" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
+                    </h6>
+                </td>
+                <td>
+                </td>
+
+                <td></td>
+            </tr>
+        }
+
+        @if (_f.CurrentUser.j04IsModule_p91)
+        {
+            <tr>
+                <td>
+                    <span class="material-icons-outlined-btn">receipt_long</span>
+                    <span class="menu-section-title">
+                        @_f.tra("VYÚČTOVÁNÍ")
+                    </span>
+                    <h6>
+
+                        <a id="linkGridP91" class="locallink500" href="@(cmenu.GetMainmenuEntityUrl("p91"))">
+
+                            @_f.tra("Tabulka")
+                        </a>
+                        <button type="button" data-key="p91" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
+
+                    </h6>
+                </td>
+                <td>
+                </td>
+
+                <td style="padding:20px;">
+                    <h6>
+                        @if (_f.CurrentUser.TestPermission(BO.PermValEnum.GR_P91_Owner))
+                        {
+                            <a id="linkP75" class="locallink" href="@cmenu.GetMainmenuEntityUrl("p75")">
+                                <span class="material-icons-outlined-btn">repeat_on</span>
+                                @_f.tra("Opakovaná vyúčtování")
+                            </a>
+                            <button type="button" data-key="p75" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
+                        }
+                        @if (_f.CurrentUser.j04IsModule_p90)
+                        {
+
+                            <a id="linkP90" class="locallink" href="@(cmenu.GetMainmenuEntityUrl("p90"))">
+                                <span class="material-icons-outlined-btn">receipt</span>
+                                @_f.tra("Zálohy")
+                            </a>
+                            <button type="button" data-key="p90" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
+                        }
+
+                        <a id="linkP84" class="locallink" href="@(cmenu.GetMainmenuEntityUrl("p84"))">
+                            <span class="material-icons-outlined-btn">gavel</span>
+                            @_f.tra("Upomínky")
+                        </a>
+                        <button type="button" data-key="p84" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
+
+                        @if (_f.CurrentUser.TestPermission(BO.PermValEnum.GR_P91_Owner))
+                        {
+                            <a id="linkBanka" class="locallink" href="/BankaImport/Index">
+                                <span class="material-icons-outlined-btn">sync</span>
+                                @_f.tra("Import bankovních výpisů")
+                            </a>
+
+                            <a class="locallink" href="/p91MultiReport">
+                                <span class="material-icons-outlined-btn">picture_as_pdf</span>
+                                Rekonstrukční report
+                            </a>
+                        }
+                    </h6>
+                </td>
+            </tr>
+        }
+
+        @if (_f.CurrentUser.j04IsModule_o23)
+        {
+            <tr>
+                <td>
+                    <span class="material-icons-outlined-btn">file_present</span>
+                    <span class="menu-section-title">
+                        @_f.tra("DOKUMENTY")
+                    </span>
+                    <h6>
+                        <a id="lisO23" class="locallink500" href="@(cmenu.GetMainmenuEntityUrl("o23"))">
+                            @_f.tra("Tabulka")
+                        </a>
+                        <button type="button" data-key="o23" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
+                    </h6>
+                </td>
+                <td>
+                </td>
+                <td style="padding:20px;" title="Odkazy z Menu dokumentů">
+                    @if (_lisO17 != null && _lisO17.Count() > 1)
+                    {
+                        @foreach (var recO17 in _lisO17)
+                        {
+                            <a id="linkO23@(recO17.pid)" class="locallink" href="@(cmenu.GetMainmenuEntityUrl("o23") + "&rez=" + recO17.pid.ToString())">
+                                <span class="material-icons-outlined-btn">file_present</span>
+                                @recO17.o17Name
+                            </a>
+                            <button type="button" data-key="rez-@(recO17.pid)" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
+                        }
+                    }
+
+                </td>
+            </tr>
+        }
+
+        <tr id="trRuzne">
+            <td>
+                <span class="material-icons-outlined-btn">more_vert</span>
+                <span class="menu-section-title">
+                    @_f.tra("Různé")
+                </span>
+                <h6>
+                </h6>
+            </td>
+
+            <td></td>
+            <td style="padding:20px;">
+                <h6>
+
+                    @if (_f.CurrentUser.j04IsModule_x31)
+                    {
+
+                        <a id="linkX31" class="locallink" href="/ReportsClient/ReportNoContextFramework">
+                            <span class="material-icons-outlined-btn">print</span>
+                            @_f.tra("Pevné tiskové sestavy")
+                        </a>
+                        <button type="button" data-key="x31" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
+                    }
+                    @if (_GridUrlB05 != null)
+                    {
+                        <a id="linkPoznamky" class="locallink" href="@(_GridUrlB05)">
+                            <span class="material-icons-outlined-btn">rate_review</span>
+                            @_f.tra("Poznámky"), workflow historie
+                        </a>
+                        <button type="button" data-key="b05" class="pin btn btn-sm"><span class="material-icons-outlined-btn">speaker_notes</span></button>
+                    }
+
+                    @if (_GridUrlO43 != null)
+                    {
+                        <a id="linkInbox" class="locallink" href="@(_GridUrlO43)">
+                            <span class="material-icons-outlined-btn">forward_to_inbox</span>
+                            Inbox
+                        </a>
+                        <button type="button" data-key="o43" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
+                    }
+                    @if (_GridUrlP15 != null)
+                    {
+
+                        <a id="linkP15" class="locallink" href="@(_GridUrlP15)">
+                            <span class="material-icons-outlined-btn">location_on</span>
+                            Lokality
+                        </a>
+                        <button type="button" data-key="p15" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
+                    }
+
+
+                </h6>
+            </td>
+        </tr>
+
+        @if (_f.CurrentUser.IsAdmin)
+        {
+            <tr>
+                <td>
+                    <span class="material-icons-outlined-btn">settings</span>
+                    <span class="menu-section-title">
+                        @_f.tra("Administrace").ToUpper()
+                    </span>
+                    
+                    <h6>
+                        <a id="linkAdmin" class="locallink500" href="/Admin/Index">
+
+                            Admin Home
+                        </a>
+                        <button type="button" data-key="admin" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
+
+                    </h6>
+                </td>
+
+                <td></td>
+                <td style="padding:10px;">
+                    <h6>
+                        <a id="linkAdminOneWebPage" class="locallink" href="/Admin/Page?area=mails&prefix=x40">
+                            <span class="material-icons-outlined-btn">outbox</span>
+                            OUTBOX
+                        </a>
+
+                        <a id="linkStitky" class="locallink" href="@(cmenu.GetMainmenuEntityUrl("o51"))">
+                            <span class="material-icons-outlined-btn">local_offer</span>
+                            @_f.tra("Položky štítků")
+                        </a>
+
+                        <a id="linkO53" class="locallink" href="/TheGrid/FlatView?prefix=o53">
+                            <span class="material-icons-outlined-btn">local_offer</span>
+                            Skupiny štítků
+                        </a>
+
+
+                        <a id="linkWorkflow" class="locallink" href="/workflow_designer/Index">
+                            <span class="material-icons-outlined-btn">schema</span>
+                            @_f.tra("Návrhář workflow šablon")
+                        </a>
+
+
+                        <a id="linkAdminOneWebPage" class="locallink" href="/AdminOneWebpage/Index" style="display:none;">
+                            <span class="material-icons-outlined-btn">language</span>
+                            @_f.tra("Návrhář stránek záznamů")
+                        </a>
+
+                    </h6>
+                </td>
+            </tr>
+        }
+
+    </table>
+
+
+
+
+
+
+
+
+
+
+
+</div>
+
+<script type="text/javascript">
+    var _pripnout_tooltip = "@_pripnout_tooltip";
+    var _odepnout_tooltip = "@_odepnout_tooltip";
+    var _menukeys = "@(_f.CurrentUser.j02MyMenuLinks)";
+    var _arr = _menukeys.split("|");
+
+
+
+    $(document).ready(function () {
+        _adjust_divheight_small_display("divHomeMenu");
+
+        var intRows = document.getElementById("tableMenu").rows.length;
+
+        $(".locallink").mouseover(function (e) {
+            $(this).next(".pin").css("visibility", "visible");
+        });
+        $(".locallink").mouseout(function (e) {
+
+            $(this).next(".pin").css("visibility", "hidden");
+        });
+
+        $(".pin").mouseover(function (e) {
+            var c = $(this).prev(".locallink");
+
+            $(this).css("visibility", "visible");
+        });
+        $(".pin").mouseout(function (e) {
+
+            $(this).css("visibility", "hidden");
+        });
+
+        $(".pin").click(function (e) {
+            var c = $(this).prev(".locallink");
+        });
+
+        if (location.href.toLowerCase().indexOf("/home/index") > 0) {
+            $("#linkSaveAsHomePage").css("display", "none");
+        }
+
+        var ruzne = $("#trRuzne .locallink");
+        if (ruzne.length == 0) {
+            $("#trRuzne").css("display", "none");
+        }
+
+        $(".pin").each(function () {
+
+            var menukey = $(this).attr("data-key");
+
+
+            if (_menukeys.indexOf(menukey) > -1) {
+                $(this).prop("title", _odepnout_tooltip);
+
+                $(this).html("<span class='material-icons-outlined' style='color:red;'>clear</span>");
+
+                $(this).click(function () {
+                    remove_from_menu($(this));
+                });
+            }
+            else {
+                $(this).prop("title", _pripnout_tooltip);
+
+                $(this).html("<span class='material-icons-outlined'>push_pin</span>");
+
+                $(this).click(function () {
+                    append_to_menu($(this));
+                });
+            }
+
+
+
+        });
+
+    });
+
+
+
+
+    var url = window.location.pathname + window.location.search;
+    var urllower = url.toLowerCase();
+    var homeurl = "@(_f.CurrentUser.j02HomePageUrl)";
+
+    if (urllower.indexOf(homeurl.toLowerCase()) >= 0) {
+        $("#linkHome").addClass("active");
+    }
+
+    if (urllower.indexOf("reportnocontextframework") > 0) {
+        $("#linkX31").addClass("active");
+    }
+    if (urllower.indexOf("flatview?prefix=p31") > 0) {
+        $("#linkGridP31").addClass("active");
+    }
+    if (urllower.indexOf("view?prefix=p41") > 0) {
+        $("#linkGridP41").addClass("active");
+    }
+    if (urllower.indexOf("view?prefix=le5") > 0) {
+        $("#linkGridLE5").addClass("active");
+    }
+    if (urllower.indexOf("view?prefix=le4") > 0) {
+        $("#linkGridLE4").addClass("active");
+    }
+    if (urllower.indexOf("view?prefix=le3") > 0) {
+        $("#linkGridLE3").addClass("active");
+    }
+    if (urllower.indexOf("view?prefix=le2") > 0) {
+        $("#linkGridLE2").addClass("active");
+    }
+    if (urllower.indexOf("view?prefix=j02") > 0) {
+        $("#linkGridJ02").addClass("active");
+    }
+    if (urllower.indexOf("view?prefix=p28") > 0) {
+        $("#linkGridP28").addClass("active");
+    }
+    if (urllower.indexOf("view?prefix=p56") > 0) {
+        $("#linkGridP56").addClass("active");
+    }
+    if (url.indexOf("o22") > 0) {
+        $("#linkTerminy").addClass("active");
+    }
+
+    if (url.indexOf("p15") > 0) {
+        $("#linkP15").addClass("active");
+    }
+    if (url.indexOf("p44") > 0) {
+        $("#linkP44").addClass("active");
+    }
+
+    if (url.indexOf("o51") > 0) {
+        $("#linkStitky").addClass("active");
+    }
+    if (url.indexOf("o53") > 0) {
+        $("#linkO53").addClass("active");
+    }
+
+    if (url.indexOf("o43") > 0) {
+        $("#linkInbox").addClass("active");
+    }
+
+    if (url.indexOf("calendar") > 0) {
+        $("#linkCalendar").addClass("active");
+    }
+
+    if (url.indexOf("dayline") > 0) {
+        $("#linkDayline").addClass("active");
+    }
+
+    if (url.indexOf("p51") > 0) {
+        $("#linkCeniky").addClass("active");
+    }
+    if (url.indexOf("p40") > 0) {
+        $("#linkP40").addClass("active");
+    }
+    if (url.indexOf("p75") > 0) {
+        $("#linkP75").addClass("active");
+    }
+    if (url.indexOf("totals") > 0) {
+        $("#linkTotals").addClass("active");
+    }
+    if (url.indexOf("Absence") > 0) {
+
+        $("#linkAbsence").addClass("active");
+    }
+    if (url.indexOf("ApproveView") > 0) {
+
+        $("#linkApproving").addClass("active");
+    }
+    if (url.indexOf("FpView") > 0) {
+
+        $("#linkFpView").addClass("active");
+    }
+    if (url.indexOf("p49") > 0) {
+
+        $("#linkP49").addClass("active");
+    }
+
+    if (urllower.indexOf("widgets/index") > 0) {
+
+        $("#linkDashboard").addClass("active");
+    }
+    if (url.indexOf("p90") > 0) {
+        $("#linkP90").addClass("active");
+    }
+
+    if (urllower.indexOf("thegrid/masterview?prefix=p91") > 0) {
+        $("#linkGridP91").addClass("active");
+    }
+
+    if (url.indexOf("p84") > 0) {
+        $("#linkP84").addClass("active");
+    }
+
+    if (urllower.indexOf("admin/index") > 0) {
+        $("#linkAdmin").addClass("active");
+    }
+
+    if (urllower.indexOf("admin/index") > 0) {
+        $("#linkAdmin").addClass("active");
+    }
+
+    if (urllower.indexOf("workflow_designer") > 0) {
+        $("#linkWorkflow").addClass("active");
+    }
+
+
+    if (urllower.indexOf("adminonewebpage") > 0) {
+        $("#linkAdminOneWebPage").addClass("active");
+    }
+
+    if (url.indexOf("p58") > 0) {
+        $("#linkOpakovaneUkoly").addClass("active");
+    }
+    if (url.indexOf("p55") > 0) {
+        $("#linkTodolist").addClass("active");
+    }
+    if (url.indexOf("b05") > 0) {
+        $("#linkPoznamky").addClass("active");
+    }
+
+    if (url.indexOf("captml") > 0) {
+        $("#linkCapacityTimeline").addClass("active");
+    }
+
+    if (url.indexOf("prefix=o23") > 0) {
+        var rez = _get_request_param("rez");
+        $("#linkO23" + rez).addClass("active");
+    }
+
+
+    function append_to_menu(cmd) {
+        var menukey = $(cmd).attr("data-key");
+
+        $.post("/Home/AppendMenuLink", { menukey: menukey }, function (data) {
+            if (data.issuccess) {
+                location.replace(window.location.href);
+            }
+
+        });
+    }
+    function remove_from_menu(cmd) {
+        var menukey = $(cmd).attr("data-key");
+
+        $.post("/Home/RemoveMenuLink", { menukey: menukey }, function (data) {
+            if (data.issuccess) {
+                location.replace(window.location.href);
+            }
+
+        });
+    }
+
+    function save_as_home_page() {
+        var url = location.href.replace(location.host, "").replace(location.protocol, "").replace("///", "");
+        url = _removeUrlParam("go2pid", url);
+
+        if (url.toLowerCase().substring(0, 4) == "home") {
+            alert("Tuto stránku nelze uložit jako domovskou.");
+            return;
+        }
+
+        $.post("/Home/SaveCurrentUserHomePage", { homepageurl: url }, function (data) {
+            if (data.flag === 1) {
+                location.replace(location.href);
+
+            }
+
+        });
+    }
+
+
+
+
+    function clear_home_page() {
+        $.post("/Home/SaveCurrentUserHomePage", { homepageurl: "" }, function (data) {
+            if (data.flag === 1) {
+
+                location.replace(location.protocol + "//" + location.host);
+            }
+
+        });
+    }
+</script>

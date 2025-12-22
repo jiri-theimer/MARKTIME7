@@ -1,0 +1,104 @@
+﻿@model UI.Models.capacity.ProjectPlanViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = _f.tra("Kapacitní plán projektu") + ": " + Model.RecP41.FullName;
+
+
+    Model.PageSymbol = "online_prediction";
+
+
+}
+
+@addTagHelper *, UI
+
+@section header_content{
+
+    <link rel="stylesheet" href="~/css/capacity.css" />
+
+}
+
+
+<div>
+    <ul class="nav nav-tabs">
+        <li class="onetab">
+            <a class="nav-link active" href="/r01/ProjectPlan?p41id=@Model.p41ID">@_f.tra("Kapacitní plán projektu")</a>
+        </li>
+        <li class="onetab">
+            <a class="nav-link" href="/r01/ProjectResources?p41id=@Model.p41ID">@_f.tra("Personální zdroje pro plánování")</a>
+        </li>        
+        <li class="onetab">
+            <a class="nav-link" href="/r01/Move?p41id=@Model.p41ID">@_f.tra("Posunout plán období")</a>
+        </li>
+        <li style="margin-left:40px;">
+            <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
+        </li>
+        <li style="margin-left:20px;">
+            @Html.DisplayFor(m => m.RecP41, "~/Views/Shared/_ProjectPlanPeriod.cshtml")
+        </li>
+    </ul>
+</div>
+
+
+
+
+
+<form id="form1" onmouseover="form1_onmouseover(this)" asp-controller="r01" asp-action="ProjectPlan" method="POST">
+
+    <input type="hidden" asp-for="p41ID" />
+
+
+</form>
+
+
+@Html.EditorFor(m => m.timeline, "~/Views/Shared/_CapacityTimelineJ02.cshtml")
+
+
+@if (Model.timeline.lisR04.Count() == 0)
+{
+    <code>
+        Pro možnost plánování je třeba do projektu vložit personální zdroje plánu (uživatele).
+    </code>
+}
+
+
+<script type="text/javascript">
+
+
+
+    $(document).ready(function () {
+
+
+
+       
+
+
+
+    });
+
+
+
+
+    function save_oddo() {
+        var d1 = _format_date(datepicker_get_value("p41PlanFrom"), false);
+        var d2 = _format_date(datepicker_get_value("p41PlanUntil"), false);
+
+        $.post(_ep("/r01/UpdatePeriod"), { p41id: _p41id, d1: d1, d2: d2 }, function (data) {
+            if (data == 0) {
+                _notify_message("Zadané období není korektní.");
+                return;
+            }
+            location.reload(location.href);
+
+        });
+    }
+
+    function hardrefresh(pid, flag) {
+        _postback("refresh");
+    }
+
+
+
+
+</script>

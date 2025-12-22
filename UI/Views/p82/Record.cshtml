@@ -1,0 +1,109 @@
+﻿@model UI.Models.Record.p82Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Úhrada zálohy");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    Model.PageSymbol = "money";
+}
+
+@addTagHelper *, UI
+
+<div class="modal_record_container">
+
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Datum úhrady"):</label>
+        <div class="col-sm-4 col-md-3">
+            <mydate asp-for="Rec.p82Date"></mydate>
+        </div>
+
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Datum dokladu"):</label>
+        <div class="col-sm-4 col-md-3">
+            <mydate asp-for="Rec.p82DateIssue"></mydate>
+        </div>
+
+    </div>
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Včetně DPH"):</label>
+        <div class="col-sm-4 col-md-3">
+            <mynumber asp-for="Rec.p82Amount"></mynumber>
+        </div>
+
+    </div>
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Bez DPH"):</label>
+        <div class="col-sm-4 col-md-3">
+            <mynumber asp-for="Rec.p82Amount_WithoutVat"></mynumber>
+        </div>
+        <div class="col-sm-2 col-md-2">
+            <mytooltip text="Systém dopočítá pokud ručně zadaná částka [Bez DPH] a [Částka DPH] nesouhlasí s [Včetně vč. DPH]"></mytooltip>
+           
+        </div>
+    </div>
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Částka DPH"):</label>
+        <div class="col-sm-4 col-md-3">
+            <mynumber asp-for="Rec.p82Amount_Vat"></mynumber>
+        </div>
+        <div class="col-sm-2 col-md-2">
+            <mytooltip text="Systém dopočítá pokud ručně zadaná částka [Bez DPH] a [Částka DPH] nesouhlasí s [Včetně vč. DPH]"></mytooltip>
+        </div>
+    </div>
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Kód dokladu"):</label>
+        <div class="col-sm-4 col-md-3">
+            @if (Model.CanEditRecordCode && Model.rec_pid>0)
+            {                
+                <myval value="@Model.Rec.p82Code" hoversymol="@_f.tra("Upravit kód")" hoveronclick="true" hoverurl="javascript:_edit_code('p82',@Model.rec_pid)"></myval>
+            }
+            else
+            {
+                <myval value="@Model.Rec.p82Code"></myval>
+            }
+        </div>
+      
+        
+    </div>
+
+    <textarea asp-for="Rec.p82Text" class="form-control" placeholder="@_f.tra("Text k dokladu o přijaté platbě")"></textarea>
+
+</div>
+
+
+<input type="hidden" asp-for="@Model.p90ID" />
+<input type="hidden" asp-for="@Model.Rec.p82Code" value="@Model.Rec.p82Code" />
+<input type="hidden" asp-for="@Model.CanEditRecordCode" />
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+
+    });
+
+
+
+
+    
+
+
+    function hardrefresh(pid, flag) {
+        if (flag != undefined) {
+            if (flag.includes("recordcode")) {
+                $("#Rec_p82Code").val(flag.split("|")[1]);
+            }
+
+        }
+
+
+        _postback();
+    }
+
+</script>

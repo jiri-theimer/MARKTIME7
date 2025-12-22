@@ -1,0 +1,17 @@
+﻿.column {
+    float: left;
+}
+
+div.portlet {
+    padding: 1px;
+    margin-bottom:6px;
+}
+
+div.portlet_simulation {
+    padding: 1px;
+    margin-bottom: 6px;
+    border: dashed 1px silver;
+}
+
+
+

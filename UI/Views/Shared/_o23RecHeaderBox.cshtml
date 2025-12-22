@@ -1,0 +1,216 @@
+﻿@model BO.o23Doc
+
+@inject BL.Factory _f
+
+@{
+
+
+    if (Model == null)
+    {
+        return;
+    }
+
+    var _lisO16 = _f.o18DocTypeBL.GetList_o16(Model.o18ID);
+    IEnumerable<BO.RoleAssignedToRecord> _lisRoles = _f.x67EntityRoleBL.GetRolesAssignedToRecord(Model.pid, "o23");
+
+    var _recO18 = _f.o18DocTypeBL.Load(Model.o18ID);
+    IEnumerable<BO.j28Barcode> _lisJ28 = null;
+    if (_recO18.o18BarcodeFlag == BO.o18BarcodeFlagEnum.BarcodeSupport)
+    {
+        _lisJ28 = _f.j28BarcodeBL.GetList("o23", Model.pid);
+    }
+    string _j27code = null;
+    if (Model.j27ID_Expense > 0)
+    {
+        _j27code = _f.FBL.LoadCurrencyByID(Model.j27ID_Expense).j27Code;
+    }
+
+    //int _b05Count = _f.WorkflowBL.GetB05CommentsCount("o23", Model.pid);
+
+}
+
+@addTagHelper *, UI
+
+<table class="table table-hover">
+    @if (Model.o18ID > 0)
+    {
+        <tr>
+            @if (Model.Rezerva == "Tab1" && _f.CurrentUser.j04IsModule_o23)
+            {
+                <td colspan="2" class="@(Model.isclosed ? "tdarchiv": "tdval")" onmouseover="_handle_mywrk_mouseover(this)" onmouseout="_handle_mywrk_mouseout(this)">
+                    <span class="material-icons-outlined">file_present</span>
+                    @BO.Code.Bas.OM2(Model.o18Name,20)
+                    @if(Model.o23Code != null)
+                    {
+                        <sup title="Kód">@Model.o23Code</sup>
+                    }
+                    <mywrkbutton prefix="o23" showcopyurl="true" pid="@Model.pid" b02id="@Model.b02ID" langindex="@_f.CurrentUser.j02LangIndex"></mywrkbutton>
+
+                </td>
+            }
+            else
+            {
+                <td colspan="2" class="@(Model.isclosed ? "tdarchiv": "tdval")">
+                    <span class="material-icons-outlined">file_present</span>
+                    @Model.o18Name                    
+                </td>
+            }
+
+        </tr>
+
+    }
+
+    @if (Model.o23Name != null)
+    {
+        <tr>
+            <td class="tdlab">
+                @(_f.tra("Název")):
+            </td>
+            <td class="tdval">
+                @Model.o23Name
+            </td>
+        </tr>
+
+    }
+    
+    @if (Model.b02ID > 0)
+    {
+        <tr>
+            <td class="tdlab">
+                @_f.tra("Aktuální stav"):
+            </td>
+            <td class="tdval">
+                <myval value="@Model.b02Name" hoverurl="/b02/Info?prefix=o23&pid=@Model.pid" valueafter="@UI.Code.basUI.HtmlColorStrip(Model.b02Color)"></myval>
+            </td>
+        </tr>
+    }
+    @if (_recO18.o18TemplateFlag == BO.o18TemplateENUM.Uctenka)
+    {
+        <tr>
+            <td class="tdlab">
+                Datum:
+            </td>
+            <td class="tdval">
+                <myval datatype="date" value="@(Model.o23FreeDate01)"></myval>
+            </td>
+        </tr>
+        <tr>
+            <td class="tdlab">
+                Vč.DPH:
+            </td>
+            <td class="tdval">
+                <myval datatype="num" value="@(Model.o23FreeNumber01)" valueafter="@_j27code"></myval>
+            </td>
+        </tr>
+        <tr>
+            <td class="tdlab">
+                DPH %:
+            </td>
+            <td class="tdval">
+                <myval datatype="num" value="@(Model.o23FreeNumber02)" valueafter="%"></myval>
+            </td>
+        </tr>
+        <tr>
+            <td class="tdlab">
+                Bez DPH:
+            </td>
+            <td class="tdval">
+                <myval datatype="num" value="@(Model.o23FreeNumber03)" valueafter="@_j27code"></myval>
+            </td>
+        </tr>
+        <tr>
+            <td class="tdlab">
+                DPH:
+            </td>
+            <td class="tdval">
+                <myval datatype="num" value="@(Model.o23FreeNumber04)" valueafter="@_j27code"></myval>
+            </td>
+        </tr>
+        @if(Model.o23FreeText01 != null)
+        {
+            <tr>
+                <td class="tdlab">
+                    Obchod/dodavatel:
+                </td>
+                <td class="tdval">
+                    @Model.o23FreeText01
+                </td>
+            </tr>
+        }
+    }
+
+    @foreach (var c in _lisRoles)
+    {
+        <tr>
+            <td class="tdlab">
+                @(c.x67Name):
+            </td>
+            <td class="tdval">
+                @c.Receivers
+
+            </td>
+
+        </tr>
+    }
+
+    @foreach (var c in _lisO16)
+    {
+        <tr>
+            <td class="tdlab">
+                @(c.o16Name):
+            </td>
+            <td>
+                @switch (c.FieldTypeAlias)
+                {
+                    @case "num":
+                        <myval datatype="num" value="@(BO.Code.Reflexe.GetPropertyValue(Model, c.o16Field))"></myval>
+                        break;
+
+
+                    @case "datetime":
+                        <myval datatype="date" value="@(BO.Code.Reflexe.GetPropertyValue(Model, c.o16Field))"></myval>
+                        break;
+
+
+                    @case "boolean":
+                        <myval datatype="boolean" value="@(BO.Code.Reflexe.GetPropertyValue(Model, c.o16Field))"></myval>
+
+
+                        break;
+
+                    @default:
+                        <myval value="@(BO.Code.Reflexe.GetPropertyValue(Model, c.o16Field))"></myval>
+                        break;
+                }
+
+            </td>
+        </tr>
+
+
+    }
+
+    @if (_recO18.o18BarcodeFlag == BO.o18BarcodeFlagEnum.BarcodeSupport)
+    {
+        <tr>
+            <td class="tdlab">
+                @_f.tra("Čárový kód"):
+            </td>
+            <td class="tdval">
+                <myval value="@(BO.Code.Entity.GetBarcode("o23",Model.pid))" hoverurl="/Record/Barcode?value=@(BO.Code.Entity.GetBarcode("o23",Model.pid))"></myval>
+
+                @if (_lisJ28 != null)
+                {
+                    @foreach (var c in _lisJ28)
+                    {
+                        <myval value="@(c.j28Value)" hoverurl="/Record/Barcode?value=@(c.j28Value)"></myval>
+
+                    }
+                }
+
+            </td>
+        </tr>
+    }
+
+
+
+</table>

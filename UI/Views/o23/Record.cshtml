@@ -1,0 +1,502 @@
+﻿@model UI.Models.Record.o23Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = Model.RecO18.o18Name;
+    string _FirstTabCaption = Model.PageTitle;
+    if (Model.rec_pid > 0 && Model.Rec.o23Name != null && Model.Rec.o23Name != Model.RecO18.o18Name)
+    {
+        Model.PageTitle += ": " + BO.Code.Bas.OM2(Model.Rec.o23Name, 25);
+    }
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    
+}
+
+@addTagHelper *, UI
+
+
+
+@section header_content
+    {
+
+    @if (Model.Notepad != null && Model.Notepad.SelectedX04ID > 0)
+    {
+        <link href="~/lib/froala-editor/css/froala_editor.pkgd.min.css" rel="stylesheet" type="text/css" />
+    }
+}
+
+    
+
+    <div class="tabs_container_record">
+        <!-- Tab panes -->
+        <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item onetab" role="presentation">
+                <a id="link_tab1" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab1">
+                    @_FirstTabCaption
+                </a>
+            </li>
+        @if (Model.disp.IsNotepad && Model.RecO18.o18IsSeparatedNotepadTab)
+        {
+            <li class="nav-item onetab" role="presentation">
+                <a id="link_tab2" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab2">Notepad</a>
+            </li>
+        }
+
+        @if (Model.disp.IsRoles)
+        {
+            <li class="nav-item onetab" role="presentation">
+                <a class="nav-link" id="link_tab3" data-bs-toggle="tab" href="#tab3" role="tab">@Model.disp.GetTabText(PosEnum.Roles)</a>
+            </li>
+        }
+
+        <li style="margin-left:20px;">
+            @Html.EditorFor(m => Model.rec_entity,"~/Views/Shared/_cmdMoreButton.cshtml")
+        </li>
+
+    </ul>
+
+    <div id="divMore" class="card" style="display:none;background-color:#E6F0FF;">
+        <div style="width:300px;padding:30px;">
+            @Html.EditorFor(m => m.disp, "~/Views/Shared/_Dispozice.cshtml")
+        </div>
+    </div>
+
+</div>
+
+<input type="hidden" asp-for="UploadGuid" />
+<input type="hidden" asp-for="o18ID" />
+<input type="hidden" asp-for="IsPasswordPassed" />
+<input type="hidden" asp-for="Rec.o23BitStream" />
+
+<input type="hidden" asp-for="SelectedBindEntity" value="@Model.SelectedBindEntity" />
+<input type="hidden" asp-for="SelectedBindName" value="@Model.SelectedBindName" />
+
+<input type="hidden" asp-for="current_user_lon" />
+<input type="hidden" asp-for="current_cuser_lat" />
+<input type="hidden" asp-for="o43id_source" />
+
+@Html.Raw("<div class='modal_record_container_flexi'>")
+@Html.Raw("<div class='tab-content'>")
+
+
+<div class="tab-pane" id="tab1" role="tabpanel">
+    <!-- Tab1 -->
+    <div class="input-group">
+        @if (Model.lisO20.Count() > 0)
+        {
+            <div>
+                <button class="btn btn-sm bog dropdown-toggle" type="button" id="cmdCollapseO20">
+                    @_f.tra("Vazby")
+                </button>
+            </div>
+            @if (Model.RecO18.o18BarcodeFlag == BO.o18BarcodeFlagEnum.BarcodeSupport)
+            {
+                <div style="margin-left:20px;">
+                @Html.EditorFor(m => m.barcodes, "~/Views/Shared/_Barcodes.cshtml")
+                </div>
+            }
+        }
+
+    </div>
+
+    @if (Model.lisO20.Count() > 0)
+    {
+        <div id="divCollapseO20" class="alert alert-primary" role="alert" style="display:none;">
+            <div class="card-body">
+                <div>
+                    <myradiolist asp-for="SelectedO20ID" repeat-horizontal="true" datasource="@Model.lisO20" textfield="BindName" valuefield="pid" event_after_changevalue="o20id_onchange"></myradiolist>
+                </div>
+
+                <div style="background-color:white;">
+                    @if (Model.SelectedO20ID > 0)
+                    {
+                        <mycombo entity="@Model.SelectedBindEntity" asp-for="SelectedBindPid" placeholder="@Model.SelectedBindName" selectedtext="@Model.SelectedBindText" myqueryinline="@Model.SelectedBindMyQueryInline" filter-flag="1" view-flag="1" event_after_changevalue="bindrec_onchange"></mycombo>
+
+                        
+                        
+                    }
+                </div>
+
+
+            </div>
+
+        </div>
+    }
+
+
+    <table class="table table-hover" style="table-layout: fixed;">
+        @for (int i = 0; i < Model.lisO19.Count; i++)
+        {
+            <tr style="@(Model.lisO19[i].CssTempDisplay)">
+                <td style="width:150px;">
+                    @(Model.lisO19[i].SelectedO20Name + ":")
+                </td>
+                <td>
+                    <strong>@Model.lisO19[i].SelectedBindText</strong>
+                    <input type="hidden" asp-for="lisO19[i].IsTempDeleted" value="@Model.lisO19[i].IsTempDeleted" />
+                    <input type="hidden" asp-for="lisO19[i].TempGuid" value="@Model.lisO19[i].TempGuid" />
+                    <input type="hidden" asp-for="lisO19[i].pid" value="@Model.lisO19[i].pid" />
+                    <input type="hidden" asp-for="lisO19[i].SelectedBindText" value="@Model.lisO19[i].SelectedBindText" />
+                    <input type="hidden" asp-for="lisO19[i].o19RecordPid" value="@Model.lisO19[i].o19RecordPid" />
+                    <input type="hidden" asp-for="lisO19[i].o20ID" value="@Model.lisO19[i].o20ID" />
+                    <input type="hidden" asp-for="lisO19[i].SelectedO20Name" value="@Model.lisO19[i].SelectedO20Name" />
+                    
+                </td>
+
+                <td style="width:70px;">
+                    <button type="button" class="btn btn-sm btn-danger" title="@_f.tra("Odstranit řádek")" onclick="handle_delete_o19('@(Model.lisO19[i].TempGuid)')">x</button>
+                </td>
+            </tr>
+        }
+    </table>
+
+    @if (Model.RecO18.o18EntryNameFlag == BO.o18EntryNameENUM.Manual)
+    {
+        <div class="row my-2">
+            <div class="col-sm-12 col-md-12">
+                <input class="form-control record_name" asp-for="Rec.o23Name" placeholder="@_f.tra("Název")" />
+            </div>
+        </div>
+    }
+
+
+    @for (int i = 0; i < Model.lisFields.Count(); i++)
+    {
+        <div class="row my-2" style="max-width:1050px;">
+            @if (Model.lisFields[i].FieldType == BO.x24IdENUM.tBoolean)
+            {
+                <div class="col-sm-1 col-md-2"></div>
+                <div class="col-sm-7 col-md-7">
+                    <input type="checkbox" asp-for="@Model.lisFields[i].CheckInput" />
+                    <label class="col-sm-1 col-md-2 col-form-label" for="lisFields_@(i)__CheckInput">
+                    @(Model.lisFields[i].o16Name)
+                    @if (Model.lisFields[i].o16HelpText != null)
+                    {
+                        <mytooltip text="@(Model.lisFields[i].o16HelpText)"></mytooltip>
+                        
+                    }
+                    :
+                    </label>
+                </div>
+            }
+            else
+            {
+                <label class="col-sm-1 col-md-2 col-form-label recpagelabel" style="color:@(Model.lisFields[i].o16IsEntryRequired ? "red": "black")">
+                    @(Model.lisFields[i].o16Name)
+                    @if(Model.lisFields[i].o16HelpText != null)
+                    {
+                        <mytooltip text="@(Model.lisFields[i].o16HelpText)"></mytooltip>
+                        
+                    }
+                    :
+                </label>
+            }
+
+
+            @if (Model.lisFields[i].FieldType == BO.x24IdENUM.tDate)
+            {
+                <div class="col-sm-3 col-md-3">
+                    <mydate asp-for="@Model.lisFields[i].DateInput"></mydate>
+                </div>
+
+            }
+            @if (Model.lisFields[i].FieldType == BO.x24IdENUM.tDateTime)
+            {
+                <div class="col-sm-3 col-md-3">
+                    <mydate asp-for="@Model.lisFields[i].DateInput" include-time="true"></mydate>
+                </div>
+
+            }
+            @if ((Model.lisFields[i].FieldType == BO.x24IdENUM.tDateTime || Model.lisFields[i].FieldType == BO.x24IdENUM.tDate) && Model.lisFields[i].o16ReminderNotifyBefore > 0)
+            {
+                <div class="col-sm-1 col-md-1">
+                    <small>reminder:-@(Model.lisFields[i].o16ReminderNotifyBefore)h</small>
+                </div>
+            }
+            @if (Model.lisFields[i].FieldType == BO.x24IdENUM.tDecimal)
+            {
+                <div class="col-sm-3 col-md-3">
+                    <mynumber asp-for="@Model.lisFields[i].NumInput" decimal-digits="2"></mynumber>
+                </div>
+            }
+            
+            @if (Model.lisFields[i].FieldType == BO.x24IdENUM.tString)
+            {
+                <div class="col-sm-11 col-md-10">
+                    @if (Model.lisFields[i].o16DataSource == null)
+                    {
+                        if (Model.lisFields[i].o16TextboxHeight > 0 || Model.lisFields[i].o16Field == "o23BigText")
+                        {
+                            <textarea class="form-control" asp-for="@Model.lisFields[i].StringInput"></textarea>
+
+                        }
+                        else
+                        {
+                            <input class="form-control" asp-for="@Model.lisFields[i].StringInput" />
+                        }
+
+                    }
+                    else
+                    {
+                        @if (Model.lisFields[i].o16IsFixedDataSource)
+                        {
+                            <select class="form-select" asp-for="@Model.lisFields[i].StringInput">
+                                <option value=""></option>
+                                @foreach (string ss in BO.Code.Bas.ConvertString2List(Model.lisFields[i].o16DataSource, ";"))
+                                {
+                                    <option value="@ss">@ss</option>
+                                }
+
+                            </select>
+                        }
+                        else
+                        {
+                            <input list="list@(i)" class="form-control" asp-for="@Model.lisFields[i].StringInput" />
+                            <datalist id="list@(i)">
+                                @foreach (string ss in BO.Code.Bas.ConvertString2List(Model.lisFields[i].o16DataSource, ";"))
+                                {
+                                    <option value="@ss">@ss</option>
+                                }
+                            </datalist>
+
+                        }
+                    }
+                </div>
+            }
+
+        </div>
+        <input type="hidden" asp-for="lisFields[i].o16Field" />
+        <input type="hidden" asp-for="lisFields[i].o16Name" />
+        <input type="hidden" asp-for="lisFields[i].o16DataSource" />
+        <input type="hidden" asp-for="lisFields[i].o16IsFixedDataSource" />
+        <input type="hidden" asp-for="lisFields[i].o16IsEntryRequired" />
+        <input type="hidden" asp-for="lisFields[i].o16TextboxHeight" />
+        <input type="hidden" asp-for="lisFields[i].o16HelpText" />
+        <input type="hidden" asp-for="lisFields[i].o16ReminderNotifyBefore" />
+        
+
+    }
+
+    @if (Model.RecO18.o18EntryCodeFlag == BO.o18EntryCodeENUM.Manual)
+    {
+        <div class="row my-2" style="max-width:1050px;">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Kód"):</label>
+            <div class="col-sm-3 col-md-3">
+                <input class="form-control record_code" asp-for="Rec.o23Code" />
+            </div>
+        </div>
+    }
+    
+    @if (Model.RecO18.o18EntryCodeFlag == BO.o18EntryCodeENUM.X38ID)
+    {
+        <div class="row my-2" style="max-width:1050px;">
+                
+                <div class="col-sm-1 col-md-2">
+                    @if (Model.rec_pid > 0)
+                    {
+                        @_f.tra("Kód")<span>:</span>
+                    }                    
+                </div>
+                <div class="col-sm-3 col-md-3">
+                    @if (Model.CanEditRecordCode)
+                    {
+                        <myval value="@Model.Rec.o23Code" hoversymol="@_f.tra("Upravit kód")" hoveronclick="true" hoverurl="javascript:_edit_code('o23',@Model.rec_pid)"></myval>
+                    }
+                    else
+                    {
+                        <myval value="@Model.Rec.o23Code"></myval>
+                    }
+                </div>
+            </div>
+    }
+
+
+
+
+    @if (Model.disp.IsNotepad && !Model.RecO18.o18IsSeparatedNotepadTab)
+    {
+        @Html.EditorFor(m => m.Notepad, "~/Views/Shared/_Notepad.cshtml")
+
+    }
+
+
+
+    @if (Model.RecO18.o18IsAllowEncryption)
+    {
+        <table>
+            <tr>
+                <td>
+                    <input type="checkbox" asp-for="@Model.Rec.o23IsEncrypted" onchange="_postback('encrypt')" />
+                    <label for="Rec_o23IsEncrypted" style="padding-left:6px;">@_f.tra("Notepad zašifrovat a ochránit heslem")</label>
+                </td>
+
+                @if (Model.Rec.o23IsEncrypted)
+                {
+                    <td>
+                        <input type="text" asp-for="@Model.PasswordNew" class="form-control" placeholder="Heslo pro zašifrování" />
+                    </td>
+                    <td>
+                        <input type="text" asp-for="@Model.PasswordVerify" class="form-control" placeholder="Ověření hesla" />
+                    </td>
+                }
+
+            </tr>
+        </table>
+
+
+    }
+
+    @if (Model.disp.IsTags)
+    {
+        <div class="my-2">
+            <mystitky entity="o23Doc" asp-for="@Model.TagPids" tagnames="@Model.TagNames" taghtml="@Model.TagHtml" buttontext="@_f.tra("Oštítkovat")"></mystitky>
+        </div>
+    }
+
+    @Html.EditorFor(m => m.reminder, "~/Views/Shared/_Reminder.cshtml")
+
+
+
+
+
+    @if (Model.disp.IsFiles)
+    {
+        <iframe id="fraUpload" src="/FileUpload/DoUpload?recpid=@Model.rec_pid&entity=o23&guid=@Model.UploadGuid" frameborder="0" style="max-width:1200px;height:60px;" scrolling="yes"></iframe>
+    }
+
+
+
+</div>
+
+
+
+@if (Model.disp.IsNotepad && Model.RecO18.o18IsSeparatedNotepadTab)
+{
+    <div class="tab-pane" id="tab2" role="tabpanel">
+        <!-- Tab2 Notepad -->
+    @Html.EditorFor(m => m.Notepad, "~/Views/Shared/_Notepad.cshtml")
+
+    </div>
+}
+
+
+@if (Model.disp.IsRoles)
+{
+    <div class="tab-pane tab-pane-fixed" id="tab3" role="tabpanel">
+        <!-- Tab3 -->
+
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Vlastník záznamu"):</label>
+            <div class="col-sm-11 col-md-10">
+                <mycombo entity="j02User" asp-for="Rec.j02ID_Owner" selectedtext="@Model.SelectedComboOwner" view-flag="2"></mycombo>
+            </div>
+        </div>
+
+
+
+        @Html.EditorFor(m => m.roles, "~/Views/Shared/_RoleAssign.cshtml")
+    </div>
+}
+
+
+
+@Html.Raw("</div>")
+@Html.Raw("</div>")
+
+@if (Model.RecO18.o18GeoFlag == BO.o18GeoFlagEnum.LoadFromCurrentUser)
+{
+    <iframe id="mapa" style="border:none;width:100%;height:500px;display:none;"></iframe>
+}
+
+
+<script type="text/javascript">
+    $(document).ready(function () {                
+
+        $("#cmdMore").click(function () {
+            $("#divMore").toggle();
+        });
+
+        $("#cmdCollapseO20").click(function () {
+            $("#divCollapseO20").toggle();
+        });
+
+      
+
+    @if (Model.Rec.j95ID == 0 && Model.RecO18.o18GeoFlag == BO.o18GeoFlagEnum.LoadFromCurrentUser)
+    {
+        <text>
+                getLocation();
+        </text>
+    }
+
+    @if (Model.IsAutoCollapseO20)
+    {
+        @:$("#divCollapseO20").css("display", "block");
+    }
+
+        
+
+
+
+    });
+
+
+    function o20id_onchange(o20id) {
+        _postback("o20ID")
+
+    }
+    function bindrec_onchange(pid) {
+        _postback("bindrec");
+    }
+
+    function handle_delete_o19(guid) {
+        _postback("delete_o19", "guid=" + guid);
+
+    }
+
+
+    function getLocation() {
+        _notify_message("Načítám souřadnice polohy...", "info");
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(showPosition);
+        } else {
+            x.innerHTML = "Geolocation is not supported by this browser.";
+        }
+    }
+
+    function showPosition(position) {
+
+        $("#current_user_lon").val(position.coords.longitude);
+        $("#current_cuser_lat").val(position.coords.latitude);
+
+        showMap();
+    }
+
+
+    function showMap() {
+        _notify_message("Poloha: " + $("#current_user_lon").val() + " - " + $("#current_cuser_lat").val(), "info");
+        $("#mapa").css("display", "block");
+        var x = $("#current_user_lon").val();
+        var y = $("#current_cuser_lat").val();
+        document.getElementById("mapa").src = "https://frame.mapy.cz/turisticka?source=coor&id=" + x + "%2C" + y + "&ds=1&x=" + x + "&y=" + y + "&z=17";
+
+    }
+
+
+    function hardrefresh(pid, flag) {
+        
+        if (flag != undefined) {
+            
+            
+            if (flag.includes("recordcode")) {
+                $("#Rec_o23Code").val(flag.split("|")[1]);
+            }
+
+        }
+
+
+        _postback();
+    }
+
+</script>

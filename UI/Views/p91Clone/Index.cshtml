@@ -1,0 +1,114 @@
+﻿@model UI.Models.p91oper.p91CloneViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = _f.tra("Kopírovat vyúčtovaní") + ": " + Model.recOrigP91.p91Code;
+
+
+}
+
+@addTagHelper *, UI
+
+
+<div class="bg-light" style="padding:10px;">
+    <button id="cmdSave" class="btn btn-success" onclick="_submit()">@_f.tra("Uložit změny")</button>
+    <button id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+</div>
+
+
+
+
+
+
+<form id="form1" asp-controller="p91Clone" asp-action="Index" method="POST">
+   
+    <input type="hidden" asp-for="pid" />
+
+    <div>
+
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>@_f.tra("Datum")</th>
+                    <th>@_f.tra("Projekt")</th>
+                    <th>@_f.tra("Jméno")</th>
+                    <th>@_f.tra("Aktivita")</th>
+                    <th style="text-align:right;">@_f.tra("Hodiny")</th>
+                    <th style="text-align:right;">@_f.tra("Bez DPH")</th>
+                   
+                    <th>@_f.tra("Text")</th>
+                </tr>
+            </thead>
+            @for (int i = 0; i < Model.lisDestP31.Count; i++)
+            {
+                <tr>
+                    <td style="width:20px;"><span class="a@((int)Model.lisDestP31[i].recOrig.p70ID)"></span></td>
+                    <td style="width:120px;">
+                        <mydate asp-for="@Model.lisDestP31[i].p31Date"></mydate>
+                        <input type="hidden" asp-for="@Model.lisDestP31[i].p31ID" />
+                        
+                        
+                    </td>
+                    <td style="color:blue;">
+                        @Model.lisDestP31[i].recOrig.p41Name
+                        @if (Model.lisDestP31[i].recOrig.p28ID_Client>0 && Model.recOrigP91.p28ID != Model.lisDestP31[i].recOrig.p28ID_Client)
+                        {
+                            <code>
+                                @Model.lisDestP31[i].recOrig.ClientName
+                            </code>
+                            
+                        }
+                    </td>
+                    <td>
+                        @Model.lisDestP31[i].recOrig.Person
+                        
+                    </td>
+                    <td>
+                        @Model.lisDestP31[i].recOrig.p32Name
+                    </td>
+                    <td class="tdnum">
+                        @BO.Code.Bas.Num2StringNull(Model.lisDestP31[i].recOrig.p31Hours_Invoiced)
+                    </td>
+                    <td class="tdnum">
+                        @BO.Code.Bas.Num2StringNull(Model.lisDestP31[i].recOrig.p31Amount_WithoutVat_Invoiced)
+                        @if (Model.lisDestP31[i].recOrig.p31Amount_WithoutVat_Invoiced != 0)
+                        {
+                            <small>@(Model.recOrigP91.j27Code)</small>
+                        }
+                    </td>
+                    <td>
+                        <textarea class="form-control" asp-for="@Model.lisDestP31[i].p31Text"></textarea>
+                    </td>
+                </tr>
+            }
+        </table>
+
+
+
+
+    </div>
+
+</form>
+
+<div class="alert alert-info nonmobile nontablet" role="alert" style="width:500px;left:20px;top:20px;">
+    
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+
+
+
+    })
+
+   
+
+</script>
+
+
+

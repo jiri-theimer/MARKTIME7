@@ -1,0 +1,175 @@
+﻿@model UI.Models.Record.a58Record
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    if (Model.Rec == null) return;
+    Model.PageTitle = _f.tra("Funkční prvek plochy");
+}
+@addTagHelper *, UI
+
+@section header_content
+    {
+
+    <link href="~/lib/froala-editor/css/froala_editor.pkgd.min.css" rel="stylesheet" type="text/css" />
+}
+
+    <script type="text/javascript" src="/lib/froala-editor/js/froala_editor.pkgd.min.js"></script>
+
+
+
+
+    <input type="hidden" asp-for="@Model.Rec.a59ID" />
+
+
+
+    <div class="modal_record_container">
+
+
+        <div class="row">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název prvku"):</label>
+            <div class="col-sm-8 col-md-7">
+                <input class="form-control" asp-for="Rec.a58Name" />
+
+            </div>
+            <label class="col-auto col-form-label">@_f.tra("Kód prvku"):</label>
+            <div class="col-sm-3 col-md-2">
+                <input class="form-control" asp-for="Rec.a58Code" />
+
+            </div>
+        </div>
+
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Typ prvku"):</label>
+            <div class="col-sm-8 col-md-7">
+                <select class="form-select" asp-for="@Model.Rec.a58ContentFlag" onchange="_postback()">
+                    <option value="_OnlyHtmlText">Pouze Notepad prvku</option>
+                    <option value="ButtonWorkflowDialog">Tlačítko: Dialog [Posunout/Doplnit]</option>
+                    <option value="ButtonReportDialog">Tlačítko: Dialog [Tisková sestava]</option>
+
+                    <option value="ButtonOneReport">Tlačítko: Otevřít vybranou tiskovou sestavu</option>
+                    <option value="ButtonOneWorkflowStep">Tlačítko: Spustit vybraný workflow krok</option>
+                    <option value="ButtonUploadO27">Tlačítko: Nahrát dokument/přílohu</option>
+                    <option value="RecHeaderBox">Hlavička záznamu</option>
+                    <option value="RecNotepad">Notepad záznamu</option>
+                    <option value="RecTags">Štítky</option>
+                    <option value="o27List">Seznam nahraných příloh/souborů</option>
+                    <option value="RolesAssigned">Obsazené role v záznamu</option>
+
+                    <option value="o23Vazby">Vazby dokumentu na entity (Dokument)</option>
+                    <option value="o32List">Kontaktní média (Kontakt)</option>
+                    <option value="p30List">Kontaktní osoby (Kontakt)</option>
+                    <option value="p28Address1">Adresa #1 (Kontakt)</option>
+                    <option value="p28ActivityStat">Statistika aktivit klienta (Kontakt)</option>
+                    <option value="p41List">Seznam otevřených projektů (Kontakt)</option>
+                    <option value="p91CenovyRozpis">Cenový rozpis faktury (Faktura)</option>
+                    <option value="p91Datumy">Datumy faktury (Faktura)</option>
+                    <option value="p91Castky">Částky faktury (Faktura)</option>
+                    <option value="p91Klient">Klient faktury (Faktura)</option>
+                    <option value="p91Text">Text faktury (Faktura)</option>
+                    <option value="p91Uhrady">Úhrady faktury (Faktura)</option>
+                    <option value="p91Zalohy">Spárované zálohy s fakturou (Faktura)</option>
+                    <option value="p91Stat">Statistika vyúčtování (Faktura)</option>
+                    <option value="p41ActivityStat">Statistika aktivit projektu (Projekt)</option>
+                    <option value="j02ActivityStat">Statistika aktivit uživatele (Uživatel)</option>
+                    <option value="p41RecBillingBox">Fakturační nastavení projektu (Projekt)</option>
+                    <option value="p28RecBillingBox">Fakturační nastavení klienta (Kontakt)</option>
+                </select>
+
+            </div>
+
+        </div>
+
+    @if (Model.Rec.IsButton())
+    {
+        <div class="row">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Text tlačítka"):</label>
+            <div class="col-sm-11 col-md-10">
+                <input class="form-control" asp-for="Rec.a58ButtonText" />
+
+            </div>
+        </div>
+
+        @if (Model.Rec.a58ContentFlag == BO.a58ContentFlagEnum.ButtonOneWorkflowStep)
+        {
+            <div class="row my-2">
+
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Spustit workflow krok"):</label>
+                <div class="col-sm-11 col-md-10">
+                    <mydropdown asp-for="@Model.Rec.b06ID_Button" datasource="@Model.lisB06" textfield="NameWithStatus" valuefield="pid" firstemptyrowvalue="0" firstemptyrowtext="" isfirstemptyrow="true"></mydropdown>
+
+
+
+                </div>
+            </div>
+        }
+
+        @if (Model.Rec.a58ContentFlag == BO.a58ContentFlagEnum.ButtonOneReport)
+        {
+            <div class="row my-2">
+
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Tisková sestava"):</label>
+                <div class="col-sm-11 col-md-10">
+                    <mydropdown asp-for="@Model.Rec.x31ID_Button" datasource="@Model.lisX31" textfield="x31Name" valuefield="pid" firstemptyrowvalue="0" firstemptyrowtext="" isfirstemptyrow="true"></mydropdown>
+
+                </div>
+            </div>
+        }
+    }
+
+    <p></p>
+    <p></p>
+    @Html.EditorFor(m => m.Notepad, "~/Views/Shared/_Notepad.cshtml")
+    <p></p>
+    <p></p>
+
+
+
+
+
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název CSS stylu"):</label>
+        <div class="col-sm-11 col-md-10">
+            <input class="form-control" asp-for="Rec.a58CssClassName" />
+
+        </div>
+    </div>
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Doplňující příznak"):</label>
+        <div class="col-sm-11 col-md-10">
+            <input class="form-control" asp-for="Rec.a58ControlFlag" />
+
+        </div>
+    </div>
+
+
+
+
+
+</div>
+
+
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+
+    });
+
+
+
+
+    function change_editor(chk) {
+        _postback();
+    }
+
+</script>
+
+
+
+

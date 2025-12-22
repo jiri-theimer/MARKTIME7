@@ -1,0 +1,47 @@
+﻿@model UI.Models.Record.p28Record
+@inject BL.Factory _f
+
+@{
+
+    
+    string _placeholderName = @_f.tra("Pozice/vztah...");
+}
+
+
+@addTagHelper *, UI
+
+<div class="card my-2">
+    <div class="card-header">
+        <span class="material-icons-outlined">face</span>
+        @_f.tra("Kontaktní osoby")
+        <button type="button" class="btn btn-sm bog" tabindex="-1" onclick="_postback('add_p30')">@_f.tra("Přidat")</button>
+        <button class="btn btn-sm bog" tabindex="-1" onclick="_window_open('/p28/Record?pid=0&kontaktniosoba=true',3)" style="margin-left:100px;">@_f.tra("Nový kontakt")</button>
+    </div>
+    <div class="card-body p-1 div-over-table-scrolling">
+        <table class="table table-hover" style="table-layout: fixed;min-width:600px;">
+            @for (int i = 0; i < Model.lisP30.Count; i++)
+            {
+                <tr style="@(Model.lisP30[i].CssTempDisplay)">
+                    <td style="width:170px;">
+                        <input type="hidden" asp-for="@Model.lisP30[i].IsTempDeleted" value="@Model.lisP30[i].IsTempDeleted" />
+                        <input type="hidden" asp-for="@Model.lisP30[i].TempGuid" value="@Model.lisP30[i].TempGuid" />
+                        <input type="hidden" asp-for="@Model.lisP30[i].pid" value="@Model.lisP30[i].pid" />
+
+                        <input class="form-control" asp-for="@Model.lisP30[i].p30Name" placeholder="@(_placeholderName)" />
+                    </td>
+
+                    <td style="width:450px;">
+                        <mycombo entity="p28Contact" placeholder="Najít kontaktní osobu..." asp-for="@Model.lisP30[i].p28ID_Person" selectedtext="@Model.lisP30[i].ComboPerson" filter-flag="1" myqueryinline="p28iscompany|bool|0"></mycombo>
+                    </td>
+                   
+
+                    <td style="width:70px;">
+                        <button type="button" class="btn btn-sm btn-danger" title="@_f.tra("Odstranit řádek")" onclick="handle_delete_p30('@(Model.lisP30[i].TempGuid)')">x</button>
+                    </td>
+                </tr>
+            }
+        </table>
+        
+    </div>
+</div>
+

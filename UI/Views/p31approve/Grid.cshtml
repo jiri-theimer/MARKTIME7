@@ -1,0 +1,531 @@
+﻿@model UI.Models.p31approve.GridViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = _f.tra("Schvalování nevyúčtovaných úkonů");
+    Model.PageSymbol = "approval";
+    int _intBoxPozice = _f.CBL.LoadUserParamInt("approve-gridbox-position", 1);   //0:nezobrazovat, 1:vlevo, 2:vpravo
+
+    if (_f.CurrentUser.j02Ping_InnerWidth < 1200)
+    {
+        _intBoxPozice = 0;
+    }
+
+
+    List<SelectListItem> _p72Query = new List<SelectListItem>();
+    _p72Query.Add(new SelectListItem() { Text = _f.tra("Filtrovat podle stavu"), Value = "0" });
+    _p72Query.Add(new SelectListItem() { Text = "Fakturovat", Value = "4" });
+    _p72Query.Add(new SelectListItem() { Text = "Zahrnout do paušálu", Value = "6" });
+    _p72Query.Add(new SelectListItem() { Text = "Odpis", Value = "23" });
+    _p72Query.Add(new SelectListItem() { Text = "Fakturovat později", Value = "7" });
+
+    if (Model.p72Query != "0" && _p72Query.Any(p => p.Value == Model.p72Query))
+    {
+        _p72Query.First(p => p.Value == Model.p72Query).Selected = true;
+    }
+
+    IEnumerable<BO.b05Workflow_History> _lisB05 = null;
+    int _pocetFakturanichPoznamek = 0;
+    if (Model.lisP41 != null && Model.lisP41.Count() > 0)
+    {
+        _lisB05 = _f.WorkflowBL.GetList_b05_p41_p28(Model.lisP41.Select(p => p.pid).ToList(), Model.lisP41.Select(p => p.p28ID_Client).ToList()).Where(p => BO.Code.Bas.bit_compare_or(p.b05Tab1Flag, 4) == true);
+        _pocetFakturanichPoznamek = _lisB05.Count();
+        _pocetFakturanichPoznamek += Model.lisP41.Where(p => p.p41BillingMemo200 != null).Count();
+        _pocetFakturanichPoznamek += Model.lisP41.Where(p => p.p28BillingMemo200 != null).Count();
+    }
+
+
+
+}
+
+@addTagHelper *, UI
+
+<link href="~/lib/qtip/jquery.qtip.css" rel="stylesheet" type="text/css" />
+<script src="~/lib/qtip/jquery.qtip.min.js"></script>
+
+
+<script type="text/javascript">
+    var _guid = "@Model.p31guid";
+
+</script>
+
+<script src="~/js/p31approve.js" asp-append-version="true"></script>
+
+<form id="form1" asp-controller="p31approve" asp-action="Grid" method="POST">
+    <div class="input-group" style="border-bottom:solid 1px silver;">
+        <div style="margin-left:2px;">
+            <ul class="nav nav-tabs">
+                <li class="onetab">
+                    <a class="nav-link" id="linkGo2Inline" href="javascript: go2inline()">INLINE</a>
+                </li>
+                <li class="onetab">
+                    <a class="nav-link active">GRID</a>
+                </li>
+            </ul>
+        </div>
+        <div style="margin-left:20px;">
+            @if (Model.p91id == 0)
+            {
+                <button type="button" id="cmdSaveOnly" class="btn btn-info" onclick="_postback('saveonly')">@_f.tra("Pouze uložit schvalování")</button>
+                <button type="button" id="cmdSaveAndBilling" class="btn btn-success" onclick="_postback('saveandbilling')">@_f.tra("Uložit schvalování a pokračovat vyúčtováním")</button>
+            }
+            else
+            {
+                <button type="button" id="cmdAppend2Invoice" class="btn btn-success m-1" onclick="_postback('append2invoice')">@_f.tra("Vložit úkony do vyúčtování") @(Model.RecP91_Append2Invoice.p91Code)</button>
+            }
+
+        </div>
+        <div style="margin-left:20px;">
+            <select id="cbxP72ID" asp-items="@_p72Query" class="form-select" onchange="change_query_p72id()">
+            </select>
+        </div>
+        <div style="margin-left:20px;">
+            <button type="button" class="btn descreet_link_over_grid" onclick="statistika(this,event,'@(Model.p31guid)')" title="@_f.tra("Rychlá statistika")">
+                <span class="material-icons-outlined-btn">auto_graph</span>
+            </button>
+        </div>
+        @if (_lisB05 != null && _lisB05.Count() > 0)
+        {
+            <div>
+                <button type="button" class="btn descreet_link_over_grid" onclick="memos(this,event,'@(Model.p31guid)')" title="@_f.tra("Fakturační poznámky")">
+                    <myicon symbol="speaker_notes"></myicon>
+                    @(_pocetFakturanichPoznamek)
+                </button>
+            </div>
+        }
+        <myshowmore></myshowmore>
+
+        <div class="showmore">
+            <a class="btn descreet_link_over_grid nonmobile" href="javascript:report('@(Model.p31guid)')" title="@_f.tra("Tisková sestava")"><span class="material-icons-outlined-btn">print</span></a>
+        </div>
+
+        <div class="showmore">
+            @Html.EditorFor(m => Model.PageTitle, "~/Views/Shared/_ButtonGridDesigner.cshtml")
+        </div>
+        
+        <div class="showmore" style="margin-left:10px;">
+            <a id="cmdOffCanvas" class="btn bog dropdown-toggle" tabindex="-1" role="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvas_more">
+
+                Report/Export
+                
+            </a>
+        </div>
+
+        <div class="showmore" style="margin-left:10px;">
+            <a class="btn descreet_link_over_grid nonmobile" href="javascript:p31_create()" title="@_f.tra("Přidat/vykázat nový úkon")"><span class="material-icons-outlined-btn">more_time</span></a>
+        </div>
+
+        <div style="margin-left:20px;">
+            <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
+        </div>
+        <div style="margin-left:auto;" class="nonmobile">
+            <button id="cmdSetting" class="btn bog" type="button" tabindex="-1" onclick="_window_open('/p31hes/Index?tabindex=2',3)">
+                ☰
+                @_f.tra("Nastavení")
+            </button>
+        </div>
+    </div>
+    <div class="input-group" style="border-bottom:solid 1px silver;margin-top:10px;">
+        <div>
+            <ul class="nav nav-tabs">
+                @foreach (var tab in Model.OverGridTabs)
+                {
+                    <li class="onetab">
+                        <a class="@tab.CssClass" id="@tab.Entity" href="@tab.Url">
+                            @{
+                                @Html.Raw(tab.Name)
+                                if (tab.Badge != null)
+                                {
+                                    @Html.Raw(tab.Badge)
+                                }
+                            }
+                        </a>
+                    </li>
+
+                }
+            </ul>
+        </div>
+
+
+
+        <div style="margin-left:30px;">
+            <button class="btn btn-sm btn-outline-primary bog dropdown-toggle" type="button" id="cmdMore">
+
+                <span class="material-icons-outlined-btn">playlist_add_check</span>
+                @_f.tra("Akce pro vybrané")
+                
+            </button>
+        </div>
+
+
+        <div style="margin-left:16px;">
+            <a class="btn btn-sm bog" href="javascript:tg_select_bycss('hours')" title="Zaškrtnout hodiny">
+                <span class="material-icons-outlined-btn">check_box</span>
+                @_f.tra("Hodiny")
+            </a>
+        </div>
+        <div>
+            <a class="btn btn-sm bog" href="javascript:tg_select_bycss('trexp')" title="Zaškrtnout výdaje">
+                <span class="material-icons-outlined-btn">check_box</span>
+                @_f.tra("Výdaje")
+            </a>
+        </div>
+        <div>
+            <a class="btn btn-sm bog" href="javascript:tg_select_bycss('trfee')" title="Zaškrtnout pevné odměny">
+                <span class="material-icons-outlined-btn">check_box</span>
+                @_f.tra("Odměny")
+            </a>
+        </div>
+        <div>
+            <a class="btn btn-sm bog" href="javascript:tg_select_bycss('trpc')" title="Zaškrtnout kusovníkové úkony">
+                <span class="material-icons-outlined-btn">check_box</span>
+                @_f.tra("Kusovník")
+            </a>
+        </div>
+
+    </div>
+
+    
+
+    <div id="divMore" style="background-color:aliceblue;display:none;padding:10px;border-radius:5px;border:solid 1px silver;margin-bottom:10px;margin-top:5px;">
+        <div>
+            <button type="button" class="btn btn-sm bog" id="cmdBatch4" onclick="batch(1,4)"><span class="material-icons-outlined-btn" style="color:green;">approval</span>@_f.tra("Fakturovat")</button>
+            <button type="button" class="btn btn-sm bog" id="cmdBatch6" onclick="batch(1,6)" style="margin-left:20px;"><span class="material-icons-outlined-btn" style="color:pink;">approval</span>@_f.tra("Zahrnout do paušálu")</button>
+            <button type="button" class="btn btn-sm bog" id="cmdBatch2" onclick="batch(1,2)"><span class="material-icons-outlined-btn" style="color: red;">approval</span>@_f.tra("Viditelný odpis")</button>
+            <button type="button" class="btn btn-sm bog" id="cmdBatch3" onclick="batch(1,3)"><span class="material-icons-outlined-btn" style="color: brown;">approval</span>@_f.tra("Skrytý odpis")</button>
+            <button type="button" class="btn btn-sm bog" id="cmdBatch7" onclick="batch(1,7)" style="margin-left:20px;"><span class="material-icons-outlined-btn" style="color: gold;">approval</span>@_f.tra("Fakturovat později")</button>
+
+            <button type="button" class="btn btn-sm bog" id="cmdBatch0" onclick="batch(0,0)" style="margin-left:20px;"><span class="material-icons-outlined-btn">edit</span>@_f.tra("Vrátit do rozpracovanosti")</button>
+
+        </div>
+
+        <table>
+            <tr>
+                <td>
+                    @_f.tra("Výběru záznamů nahodit fakturační sazbu"):
+                </td>
+                <td>
+                    <mynumber asp-for="@Model.BatchInvoiceRate"></mynumber>
+                </td>
+                <td>
+                    <button type="button" class="btn bog" onclick="batch_rate()">OK</button>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @_f.tra("Výběru záznamů nahodit schvalovací úroveň"):
+                </td>
+                <td>
+                    <select class="form-select" asp-for="@Model.BatchApproveLevel">
+                        <option value="0">#0</option>
+                        <option value="1">#1</option>
+                        <option value="2">#2</option>
+                    </select>
+                </td>
+                <td>
+                    <button type="button" class="btn bog" onclick="batch_approvinglevel()">OK</button>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+
+
+
+    <input type="hidden" asp-for="p31guid" />
+    <input type="hidden" asp-for="j72ID" />
+
+    <input type="hidden" asp-for="SelectedTab" />
+
+    <input type="hidden" asp-for="batchpids" />
+    <input type="hidden" asp-for="p91id" />
+    <input type="hidden" asp-for="p31RecordsCount" value="@Model.p31RecordsCount" />
+    <input type="hidden" id="hidTotoJeGrid" />
+
+
+</form>
+@if (_intBoxPozice == 2)
+{
+    <div class="row m-0 p-0" style="overflow-x:hidden">
+        <div class="col-sm-10 col-md-10 m-0 p-0">
+            @await Component.InvokeAsync("myGrid", Model.gridinput)
+
+        </div>
+        <div class="col-sm-2 col-md-2 m-0 p-0" style="border-left:solid 1px #E5E5E5;">
+            @Html.EditorFor(m => Model, "~/Views/Shared/_p31approveRecord.cshtml")
+        </div>
+    </div>
+}
+@if (_intBoxPozice == 1)
+{
+    <div class="row m-0 p-0">
+        <div class="col-sm-2 col-md-2 m-0 p-0">
+            @Html.EditorFor(m => Model, "~/Views/Shared/_p31approveRecord.cshtml")
+        </div>
+        <div class="col-sm-10 col-md-10 m-0 p-0" style="border-left:solid 1px #E5E5E5;">
+            @await Component.InvokeAsync("myGrid", Model.gridinput)
+        </div>
+    </div>
+
+
+}
+
+
+@if (_intBoxPozice == 0)
+{
+    @await Component.InvokeAsync("myGrid", Model.gridinput)
+}
+
+
+
+<div class="offcanvas offcanvas-start" tabindex="-1" data-bs-scroll="true" data-bs-backdrop="true" data-bs-keyboard="true" id="offcanvas_more">
+
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title">
+            
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+
+    <div class="offcanvas-body p-0 m-0" id="offcanvas_more_body">
+    </div>
+</div>
+
+
+<script type="text/javascript">
+    let _offcanvasIsLoaded=false;
+
+    $(document).ready(function () {
+        if ($(window).width() < 1200) {
+            parent.window._window_toggle();
+        }
+
+        $("#cmdMore").click(function () {
+            $("#divMore").toggle();
+            tg_adjust_for_screen();
+            
+        });
+
+
+        if (document.getElementById("tabRecord"))
+        {
+            _adjust_divheight_small_display("tabRecord");
+        }
+        
+
+        $("#offcanvas_more").on("show.bs.offcanvas", function () {
+            if (_offcanvasIsLoaded)
+            {
+                RefreshExportAccording();   //js var _GridExport.cshtml
+                return;
+            }
+
+            _offcanvasIsLoaded = true;
+
+            render_menu("cmdOffCanvas","offcanvas_more_body","/Menu/grid_extension?prefix=p31");
+
+
+
+        });
+
+
+       
+        document.addEventListener("thegrid_rowselect", function (e) {       //změna řádku gridu: automaticky vyvolávaná událost z gridu
+            thegrid_handle_rowselect(e.detail.pid);
+        });
+
+
+        document.addEventListener("thegrid_rebound", event => {
+            LocalAfterGridRefresh();
+        });
+
+
+        _resize_textareas();
+
+        var seltab = "@Model.SelectedTab";
+        if (seltab == "") seltab = "zero";
+        $("#" + seltab).addClass("active");   //označit vybranou záložku
+
+
+        if ($("#cbxP72ID").val() != "0") {
+            $("#cbxP72ID").css("background-color", "red");
+        }
+
+        
+
+        if ($("#batchpids").val() == "" && ($("#Rec_pid").val() == "0" || $("#Rec_pid").val() == "")) {
+            //automaticky označit první záznam v gridu
+            var rows = $('#tabgrid1 tr');
+            if (rows.length > 0) {
+                var pid = rows[0].id.replace("r", "");
+                $("#Rec_pid").val(pid);
+            }
+        }
+        LocalAfterGridRefresh();
+
+        $("#container_vScroll").css("overflow-x", "auto");
+        $("#divPagerContainer").css("overflow-x", "hidden");
+
+
+    });
+
+
+    function thegrid_handle_rowselect(pid) {
+        if (pid == undefined || !document.getElementById("tabRecord") || pid == "" || pid == "0") {
+            return;
+        }
+        if (!tg_exist_pid(pid)) return;
+
+        $("#tabRecord").css("display", "block");
+        $("#recNadpis").css("display", "none");
+        $("#batchpids").val(pid);
+
+        handle_rec_load(pid, _guid);
+    }
+
+
+
+
+
+
+    function changetab(tab) {
+        $("#SelectedTab").val(tab);
+        $("#Rec_pid").val("0");
+        _postback();
+    }
+
+    function hardrefresh(pid, flag) {
+        if (flag.toLowerCase().indexOf("p31/record") > 0) {
+
+            tg_post_handler("refresh");
+            return;
+        }
+
+
+        _postback();
+    }
+
+
+
+
+
+    function LocalAfterGridRefresh() {
+        var pids = $("#batchpids").val();
+        if (pids != "") {
+            tg_select_explicit_pids(pids, true);
+            var arr = pids.split(",");
+            $("#Rec_pid").val(arr[0]);
+            thegrid_handle_rowselect(arr[0]);
+            return;
+        }
+
+        var pid = $("#Rec_pid").val();
+        if (pid != "" && pid != "0") {
+            tg_go2pid(pid);
+            thegrid_handle_rowselect(pid);
+        }
+
+
+    }
+
+    function edit_source_rec() {
+        var pid = $("#Rec_pid").val();
+        _window_open("/p31/Record?pid=" + pid + "&approve_guid=" + _guid);
+
+    }
+
+
+    function batch(p71id, p72id) {
+        var pids = $("#tg_selected_pids").val();
+        if (pids === "") {
+            _notify_message(_tg_musite_vybrat_zaznam);
+            return;
+        }
+        $("#batchpids").val(pids);
+        _loading_show("postback");
+
+        $.post(_ep("/p31approve/SaveTempBatch"), { pids: pids, p71id: p71id, p72id: p72id, guid: _guid }, function (data) {
+            _loading_hide();
+            if (data.message != null) {
+                _notify_message(data.message);
+            }
+
+            tg_post_handler("refresh");
+
+
+
+        });
+    }
+
+    function p31text_temp(txt, p31id) {
+        var s = $(txt).val();
+
+        $.post(_ep("/p31approve/UpdateTempText"), { p31id: p31id, s: s, guid: _guid }, function (data) {
+            if (data.flag == 0) {
+                _notify_message(data.flag + ", message: " + data.message);
+            } else {
+                _notify_message("Úpravy uloženy.", "info");
+            }
+
+        });
+    }
+
+    function batch_rate() {
+        var pids = $("#tg_selected_pids").val();
+        if (pids === "") {
+            _notify_message(_tg_musite_vybrat_zaznam);
+            return;
+        }
+        $("#batchpids").val(pids);
+        _postback("rate");
+
+
+    }
+
+    function batch_approvinglevel() {
+        var pids = $("#tg_selected_pids").val();
+        if (pids === "") {
+            _notify_message(_tg_musite_vybrat_zaznam);
+            return;
+        }
+        $("#batchpids").val(pids);
+        _postback("approvinglevel");
+
+
+    }
+
+    function save_selected_temp_record() {
+        save_temp_record($("#Rec_pid").val(), $("#p31guid").val()); //volá se p31approve.js
+    }
+
+
+    function cm_p31_local(e) {     //vyvolání kontextového menu k vybranému úkonu
+        var link = e.target;
+        var pid = link.parentNode.parentNode.id.replace("r", "");
+
+        _cm(e, "p31approve", pid, "grid", _guid);
+    }
+
+    function go2inline(link)
+    {
+        var pocet = parseInt($("#p31RecordsCount").val());
+        if (pocet > 2000)
+        {
+            _notify_message("V INLINE rozhraní je možné pracovat maximálně s 2.000 úkony.");
+            return;
+        }
+        $("#linkGo2Inline").text("Processing...")
+        $("#linkGo2Inline").attr("disabled", true);
+        _loading_show("postback");
+
+        location.replace("/p31approve/Inline?p31guid=@(Model.p31guid)&p91id=@(Model.p91id)");
+    }
+
+    function change_query_p72id()
+    {
+        $.post(_ep("/Common/SetUserParam"), { key: "p31approve-query-p72id", value: $("#cbxP72ID").val() }, function (data) {
+            _postback();
+        });
+    }
+</script>

@@ -1,0 +1,71 @@
+﻿@model UI.Models.p91oper.p31move2invoiceViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = _f.tra("Přesunout položku z vyúčtování") + ": " + Model.RecP91.p92Name + " / " + Model.RecP91.p91Code + " (" + Model.RecP91.p91Client + ")";
+    Model.PageSymbol = "content_cut";
+}
+
+@addTagHelper *, UI
+
+
+
+
+<div class="tabs_container_record">
+    <div style="padding:10px;">
+        <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+    </div>
+    <!-- Tab panes -->
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab1" class="nav-link" href="/p91oper/p31edit?p31id=@Model.p31ID">@_f.tra("Upravit položku vyúčtování")</a>
+        </li>
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab4" class="nav-link" href="/p91oper/p31info?p31id=@Model.p31ID">@_f.tra("Detail položky")</a>
+        </li>
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab2" class="nav-link" href="/p91oper/p31remove?p31id=@Model.p31ID">@_f.tra("Vyjmout položku z vyúčtování")</a>
+        </li>
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab3" class="nav-link active">@_f.tra("Přesunout do jiného vyúčtování")</a>
+        </li>
+        
+    </ul>
+</div>
+
+<div class="my-4">
+    <button type="button" id="cmdOK" class="btn btn-success" onclick="_submit()">@_f.tra("Potvrdit")</button>
+</div>
+
+
+<form id="form1" asp-controller="p91oper" asp-action="p31move2invoice" method="POST">
+
+    <div class="modal_record_container">
+
+        <div class="row">
+            <div class="col-sm-2 col-md-2">
+                @_f.tra("Cílové vyúčtování (faktura)"):
+            </div>
+            <div class="col-sm-10 col-md-10">
+                <mycombo entity="p91Invoice" asp-for="@Model.SelectedP91ID" selectedtext="@Model.SelectedP91Alias" view-flag="1"></mycombo>
+            </div>
+        </div>
+        
+    </div>
+
+    <input type="hidden" asp-for="@Model.p31ID" />
+</form>
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        
+
+    })
+
+
+
+
+</script>

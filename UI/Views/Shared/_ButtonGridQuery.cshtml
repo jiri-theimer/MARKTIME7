@@ -1,0 +1,29 @@
+﻿@model UI.Models.TheGridQueryViewModel
+@inject BL.Factory _f
+
+
+<input type="hidden" id="TheGridQueryParamKey" value="@Model.paramkey" />
+<input type="hidden" id="TheGridQueryPrefix" value="@Model.prefix" />
+
+<div class="dropdown" style="margin-left:8px;">
+    @if(Model.j72id>0)
+    {
+        <button type="button" id="cmdgridquerymenu" class="btn dropdown-toggle bog" style="background-color:red;color:white;" role="button" data-bs-toggle="dropdown" aria-expanded="false" tabindex="-1">
+            <span id="TheGridQueryIcon" class="material-icons-outlined-nosize">filter_alt</span>
+            <span id="TheGridQueryName">@(Model.j72name)</span>
+        </button>
+    }else
+    {
+        <button type="button" id="cmdgridquerymenu" class="btn dropdown-toggle bog" role="button" data-bs-toggle="dropdown" aria-expanded="false" tabindex="-1">
+            <span id="TheGridQueryIcon" class="material-icons-outlined-nosize">filter_alt</span>
+            <span id="TheGridQueryName"></span>
+        </button>
+    }
+    
+    
+    <div id="cmdgridquerymenu_menu" class="dropdown-menu">
+        loading...
+    </div>
+</div>
+
+

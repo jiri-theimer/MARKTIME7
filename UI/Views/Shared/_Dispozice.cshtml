@@ -1,0 +1,60 @@
+﻿@model UI.Models.DispoziceViewModel
+
+
+@{
+    if (Model.Items == null)
+    {
+        return;
+    }
+
+
+
+}
+
+@addTagHelper *, UI
+
+<input type="hidden" asp-for="@Model.IsInhaled" value="@Model.IsInhaled" />
+
+@for (int i = 0; i < Model.Items.Count(); i++)
+{
+
+    <input type="hidden" asp-for="@Model.Items[i].ItemPos" value="@Model.Items[i].ItemPos" />
+    <input type="hidden" asp-for="@Model.Items[i].DefValue" value="@Model.Items[i].DefValue" />
+    <input type="hidden" asp-for="@Model.Items[i].ItemName" />
+
+    <p></p>
+    @if (Model.Items[i].DefValue == 3)
+    {
+        <myicon symbol="check"></myicon>
+    }
+    @if (Model.Items[i].DefValue == 2)
+    {
+        <myicon symbol="hide_source"></myicon>
+    }
+    @if (Model.Items[i].DefValue == 0 || Model.Items[i].DefValue == 1)
+    {
+        @if (Model.Items[i].IsChecked)
+        {
+            <input type="checkbox" id="chkDispozice@(i)" checked onchange="vypnout(@i)" />
+        }
+        else
+        {
+            <input type="checkbox" id="chkDispozice@(i)" onchange="zapnout(@i)" />
+        }
+
+
+    }
+    <input type="hidden" id="DispoziceIsChecked@(i)" asp-for="@Model.Items[i].IsChecked" value="@Model.Items[i].IsChecked" />
+    <label for="chkDispozice@(i)">[@(Model.Items[i].ItemName)]</label>
+}
+
+<script type="text/javascript">
+    function zapnout(index) {
+        $("#DispoziceIsChecked" + index).val("true");
+        _postback("dispozice");
+    }
+    function vypnout(index) {
+        $("#DispoziceIsChecked" + index).val("false");
+        _postback("dispozice");
+    }
+</script>

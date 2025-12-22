@@ -1,0 +1,1112 @@
+﻿@model UI.Models.p31view.daylineViewModel
+@inject BL.Factory _f
+
+@{
+
+    Layout = _f.CurrentUser.GetLayoutPerDisplay();
+
+    Model.PageTitle = "DAYLINE";
+
+    string strClass = null;
+    string strTitle = null;
+    double dblHours = 0;
+    string strHours = null;
+    string strStyle = null;
+    string strDatum = null;
+
+    bool _bolMobile = _f.CurrentUser.IsMobileDisplay();
+
+    bool _isCanSeeAllUsers = _f.CurrentUser.TestPermission(BO.PermValEnum.GR_P31_Reader);
+}
+
+@addTagHelper *, UI
+
+@section header_content {
+
+    <link rel="stylesheet" href="~/css/dayline.css" asp-append-version="true" />
+    @if (Model.IsJustXlsExporting)
+    {
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    }
+
+}
+
+
+
+<div class="input-group" style="margin-top:6px;margin-bottom:1px;">
+    <div class="nonmobile nontablet">
+        <ul class="nav nav-tabs">
+            <li class="onetab">
+
+                <a id="cmdMore" class="nav-link onetab-offcanvas" tabindex="-1" role="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvas_more">
+                    Dayline
+                    <span class="onetab-caret">▼</span>
+                </a>
+
+            </li>
+        </ul>
+
+
+    </div>
+
+    <div style="margin-left:6px;">
+        <button title="@_f.tra("Předchozí")" type="button" class="btn bog px-2" onclick="month_prev()"><i class="material-icons-outlined-btn">first_page</i></button>
+    </div>
+    <div style="width:130px;">
+        <mydate asp-for="@Model.d0"></mydate>
+    </div>
+    <div>
+        <button title="@_f.tra("Další")" type="button" class="btn bog px-2" onclick="month_next()"><i class="material-icons-outlined-btn">last_page</i></button>
+    </div>
+
+    <div style="max-width:80px;">
+        <select class="form-select" asp-for="ScaleIndex" onchange="save_setting_and_reload()">
+            <option value="0">@_f.tra("Měsíc")</option>
+            <option value="1">@_f.tra("Týden")</option>
+            <option value="2">@_f.tra("2 týdny")</option>
+            <option value="3">@_f.tra("3 týdny")</option>
+        </select>
+    </div>
+
+
+    <div>
+        <myshowmore></myshowmore>
+    </div>
+
+
+
+    @if (_f.CurrentUser.j04IsModule_p31)
+    {
+        <div class="showmore dog">
+            @Html.EditorFor(m => Model.p31statequery, "~/Views/Shared/_p31StateQuery.cshtml")
+        </div>
+    }
+
+    @if (Model.TheGridQueryButton != null)
+    {
+        <div class="showmore dog">
+            @Html.EditorFor(m => Model.TheGridQueryButton, "~/Views/Shared/_ButtonGridQuery.cshtml")
+        </div>
+
+    }
+
+
+
+
+    <div class="showmore dog" id="divQueryJ02" style="margin-left:10px;">
+        <mycombochecklist asp-for="@Model.j02IDs" entity="j02User" placeholder="@_f.tra("Uživatelé")" placeholder_icon="filter_alt" selectedtext="@Model.SelectedPersons" event_after_changevalue="handle_can_reload"></mycombochecklist>
+    </div>
+    <div class="showmore dog" id="divQueryJ07">
+        <mycombochecklist asp-for="@Model.j07IDs" entity="j07PersonPosition" placeholder="@_f.tra("Pozice")" placeholder_icon="filter_alt" selectedtext="@Model.SelectedPositions" event_after_changevalue="handle_can_reload"></mycombochecklist>
+    </div>
+    <div class="showmore dog" id="divQueryJ11">
+        <mycombochecklist asp-for="@Model.j11IDs" entity="j11Team" placeholder="@_f.tra("Týmy")" placeholder_icon="filter_alt" selectedtext="@Model.SelectedTeams" event_after_changevalue="handle_can_reload"></mycombochecklist>
+    </div>
+
+
+
+    <div class="dog">
+        <button type="button" id="cmdRefresh" class="btn btn-primary" style="display:none;margin-left:10px;" onclick="save_setting_and_reload()">@_f.tra("Občerstvit")</button>
+    </div>
+
+
+
+
+
+
+</div>
+
+
+
+<div class="timeline_container">
+    <table id="timeline_table1" class="timeline_table">
+        <thead>
+            <tr>
+                <th class="th_position"></th>
+                <th class="th_person">@(BO.Code.Bas.ObjectDate2String(Model.d1, "MMMM - yyyy"))</th>
+                <th class="th_sum"><span class="material-icons-outlined-nosize">functions</span></th>
+                @for (DateTime d = Model.d1; d <= Model.d2; d = d.AddDays(1))
+                {
+                    strClass = "th_day";
+                    if (Model.ScaleIndex == 1 || Model.ScaleIndex == 2)
+                    {
+                        strClass = "th_day_week";
+                    }
+                    strTitle = BO.Code.Bas.ObjectDate2String(d, "dd.MM.yyyy ddd");
+                    if (d == DateTime.Today)
+                    {
+                        strClass += " th_today";
+                    }
+                    else
+                    {
+                        if (d.DayOfWeek == DayOfWeek.Saturday || d.DayOfWeek == DayOfWeek.Sunday)
+                        {
+                            strClass += " th_weekend";
+                        }
+                    }
+
+                    <th class="@strClass" title="@strTitle">
+                        @BO.Code.Bas.ObjectDate2String(d, "dd")
+                        <br />
+                        @BO.Code.Bas.ObjectDate2String(d, "ddd")
+
+                        @if (Model.lisC26.Any(p => p.c26Date == d))
+                        {
+                            <span title="@(Model.lisC26.First(p => p.c26Date == d).c26Name)">🍷</span>
+                        }
+                    </th>
+                }
+            </tr>
+        </thead>
+        <tbody id="timeline_tbody1">
+            @foreach (BO.j02User recJ02 in Model.lisJ02)
+            {
+                recJ02.j18ID = 1;
+                dblHours = Model.lisSums.Where(p => p.j02ID == recJ02.pid).Sum(p => p.Hours);
+                if (dblHours == 0 && recJ02.pid != _f.CurrentUser.pid && !_isCanSeeAllUsers)
+                {
+                    recJ02.j18ID = 0;
+                    if (Model.lisC23.Any(p => p.j02ID == recJ02.pid))
+                    {
+                        recJ02.j18ID = 1;
+                    }
+                    else
+                    {
+                        if (Model.ShowP56 && Model.lisP56.Any(p => p.j02ID == recJ02.pid))
+                        {
+                            recJ02.j18ID = 1;
+                        }
+                        else
+                        {
+                            if (Model.ShowO22 && Model.lisO22_Udalosti.Any(p => p.j02ID == recJ02.pid))
+                            {
+                                recJ02.j18ID = 1;
+                            }
+                        }
+                    }
+                }
+                if (recJ02.j18ID == 0)
+                {
+                    continue;
+                }
+                strClass = "";
+                if (dblHours > 0 && Model.GroupBy != UI.Models.p31view.daylineGroupBy.None) strClass = "tr_person_projekty";
+
+                if (recJ02.c21ScopeFlag == BO.c21ScopeFlagENUM.PerTimesheet)
+                {
+                    recJ02.Rezerva = dblHours;
+                }
+
+                <tr class="@(strClass)">
+                    <td class="td_position">
+                        @(BO.Code.Bas.OM2(recJ02.j07Name, 12))
+                    </td>
+                    <td class="td_person" title="@(recJ02.FullNameAsc)">
+                        @(recJ02.FullNameAsc)
+                    </td>
+                    <td class="td_sum">
+                        @if (dblHours != 0)
+                        {
+
+                            @if (recJ02.Rezerva > 0)
+                            {
+                                <var style="padding-right:11px;" title="@(recJ02.c21Name)">
+                                    @($"{Math.Round(dblHours, 1)}/{Math.Round(recJ02.Rezerva, 1)}={Math.Round(100 * (dblHours / recJ02.Rezerva), 0)}%")
+                                </var>
+                            }
+                            <a class="hz" onclick="zoom_allmonth(this,@(recJ02.pid))" style="color:navy;font-weight:bold;">@(BO.Code.Time.FormatNumeric(dblHours, Model.ShowHHMM))</a>
+
+
+
+
+                        }
+                    </td>
+                    @for (DateTime d = Model.d1; d <= Model.d2; d = d.AddDays(1))
+                    {
+                        strDatum = BO.Code.Bas.ObjectDate2String(d, "dd.MM.yyyy");
+                        var qry = Model.lisSums.Where(p => p.j02ID == recJ02.pid && p.p31Date == d);
+                        strClass = "td_day";
+                        if (Model.ScaleIndex == 1 || Model.ScaleIndex == 2)
+                        {
+                            strClass = "td_day_week";
+                        }
+                        if (d.DayOfWeek == DayOfWeek.Saturday || d.DayOfWeek == DayOfWeek.Sunday)
+                        {
+                            strClass += " td_weekend";
+                        }
+                        if (qry.Count() == 0 || _bolMobile) strClass += " dc";
+
+                        strStyle = null;
+                        strTitle = null;
+                        var firstC23 = Model.lisC23.FirstOrDefault(p => p.j02ID == recJ02.pid && p.c23Date == d);
+                        if (firstC23 != null)
+                        {
+                            strStyle = "background-color:" + firstC23.c24Color;
+                            strTitle = firstC23.c24Name;
+                        }
+                        var firstP12 = Model.lisP12.FirstOrDefault(p => p.j02ID == recJ02.pid && p.p12Date == d);
+                        if (firstP12 != null)
+                        {
+                            strClass += " tecka";
+                        }
+
+                        <td class="@strClass" data-j02id="@recJ02.pid" data-d="@(BO.Code.Bas.ObjectDate2String(d, "dd.MM.yyyy"))" style="@(strStyle)" title="@(strTitle)" onmouseover="showcalmenu(event,this,'@(strDatum)',@(recJ02.pid))">
+                            @if (qry.Count() > 0)
+                            {
+                                var rec = qry.First();
+                                <a class="hz" onclick="re(this,@(recJ02.pid),'@(rec.p31DateString)')" style="@rec.CssStyle">@(rec.HoursFormatted)</a>
+
+                            }
+
+                            @if (Model.GroupBy == UI.Models.p31view.daylineGroupBy.NoneRecs)
+                            {
+                                var qryP31 = Model.lisP31.Where(p => p.j02ID == recJ02.pid && p.p31Date == d);
+
+                                foreach (var recP31 in qryP31)
+                                {
+                                    strClass = "afa";
+                                    if (!recP31.p32IsBillable)
+                                    {
+                                        strClass = "anefa";
+                                    }
+                                    if (Model.ShowHHMM)
+                                    {
+                                        strHours = recP31.p31HHMM_Orig;
+                                    }
+                                    else
+                                    {
+                                        strHours = BO.Code.Bas.Number2String(recP31.p31Hours_Orig);
+
+                                    }
+
+                                    strTitle = recP31.p32Name + ": " + recP31.ClientName + " - " + recP31.p41Name;
+
+                                    <div class="dd">
+                                        <a class="@(strClass)" href="javascript:p31_rec(@(recP31.pid))" title="@(strTitle)">@(strHours)</a>
+                                    </div>
+
+
+                                }
+                            }
+                            @if (Model.ShowP56)
+                            {
+                                @foreach (var recP56 in Model.lisP56.Where(p => (p.j02ID == recJ02.pid || p.x69IsAllUsers || (p.j11ID > 0 && recJ02.j02Cache_j11IDs != null && ("," + recJ02.j02Cache_j11IDs + ",").Contains(p.j11ID.ToString()))) && Convert.ToDateTime(p.p56PlanUntil) >= d && Convert.ToDateTime(p.p56PlanUntil) < d.AddDays(1)))
+                                {
+                                    <div style="white-space: nowrap;" title="@recP56.p56Name">
+                                        <a class="cm" onclick="reccmp56(event,@(recP56.pid))">&#9776;</a>
+                                        <span class="material-icons-outlined" style="color:@recP56.ForeColor">task</span>
+                                        <div style="font-size:70%;width:42px;overflow: hidden;"><a href="#" onclick="_zoom(event,'p56',@(recP56.pid))">@recP56.p56Name</a></div>
+                                    </div>
+                                }
+                            }
+                            @if (Model.ShowO22)
+                            {
+                                @foreach (var recO22 in Model.lisO22_Udalosti.Where(p => (p.j02ID == recJ02.pid || p.x69IsAllUsers) && p.o22PlanFrom.Value < d.AddDays(1) && p.o22PlanUntil.Value >= d))
+                                {
+                                    <div style="white-space: nowrap;" title="@recO22.o22Name">
+                                        <a class="cm" onclick="reccmo22(event,@(recO22.pid))">&#9776;</a>
+                                        <span class="material-icons-outlined" style="color:@recO22.ForeColor">event</span>
+
+                                        <div style="font-size:70%;width:42px;overflow: hidden;"><a href="#" onclick="_zoom(event,'o22',@(recO22.pid))">@recO22.o22Name</a></div>
+                                    </div>
+                                }
+                                @foreach (var recO22 in Model.lisO22_MimoUdalosti.Where(p => (p.j02ID == recJ02.pid || p.x69IsAllUsers || (p.j11ID > 0 && recJ02.j02Cache_j11IDs != null && ("," + recJ02.j02Cache_j11IDs + ",").Contains(p.j11ID.ToString()))) && Convert.ToDateTime(p.o22PlanUntil) >= d && Convert.ToDateTime(p.o22PlanUntil) < d.AddDays(1)))
+                                {
+                                    <div style="white-space: nowrap;" title="@recO22.o22Name">
+                                        <a class="cm" onclick="reccmo22(event,@(recO22.pid))">&#9776;</a>
+                                        <span class="material-icons-outlined" style="color:@recO22.ForeColor">event</span>
+
+                                        <div style="font-size:70%;width:42px;overflow: hidden;"><a href="#" onclick="_zoom(event,'o22',@(recO22.pid))">@recO22.o22Name</a></div>
+                                    </div>
+                                }
+                            }
+                            @if (firstP12 != null)
+                            {
+                                <span class="@(firstP12.StatusCssClass)"></span>
+                            }
+                        </td>
+                    }
+                </tr>
+
+                @if (Model.GroupBy == UI.Models.p31view.daylineGroupBy.p28)
+                {
+                    var grpsp28 = Model.lisP31.Where(p => p.j02ID == recJ02.pid).GroupBy(p => p.p28ID_Client);
+                    foreach (var grp in grpsp28)
+                    {
+                        double hodiny = grp.Sum(p => p.p31Hours_Orig);
+
+                        <tr>
+                            <td class="td_client" colspan="2">@(BO.Code.Bas.OM2(grp.First().ClientName, 30))</td>
+                            <td class="td_sum">
+                                @if (hodiny != 0)
+                                {
+                                    <a class="hz" onclick="zoom_allmonth_p28(this,@(recJ02.pid),@(grp.First().p28ID_Client))">@(BO.Code.Time.FormatNumeric(hodiny, Model.ShowHHMM))</a>
+
+                                }
+                            </td>
+                            @for (DateTime d = Model.d1; d <= Model.d2; d = d.AddDays(1))
+                            {
+                                hodiny = grp.Where(p => p.p31Date == d).Sum(p => p.p31Hours_Orig);
+                                <td class="td_day">
+                                    @if (hodiny != 0)
+                                    {
+                                        @(BO.Code.Time.FormatNumeric(hodiny, Model.ShowHHMM))
+
+                                    }
+                                </td>
+                            }
+                        </tr>
+                    }
+                }
+
+                @if (Model.GroupBy == UI.Models.p31view.daylineGroupBy.p41)
+                {
+                    var grpsp41 = Model.lisP31.Where(p => p.j02ID == recJ02.pid).GroupBy(p => p.p41ID);
+                    foreach (var grp in grpsp41)
+                    {
+                        double hodiny = grp.Sum(p => p.p31Hours_Orig);
+
+                        <tr>
+                            <td class="td_project" colspan="2" title="@(grp.First().ClientName + " - " + grp.First().p41Name)">
+                                @(BO.Code.Bas.OM2(grp.First().ClientName, 25) + " - ")
+                                @(BO.Code.Bas.OM2(grp.First().p41Name, 15))
+                            </td>
+                            <td class="td_sum">
+                                @if (hodiny != 0)
+                                {
+                                    <a class="hz" onclick="zoom_allmonth_p41(this,@(recJ02.pid),@(grp.First().p41ID))">@(BO.Code.Time.FormatNumeric(hodiny, Model.ShowHHMM))</a>
+                                }
+                            </td>
+                            @for (DateTime d = Model.d1; d <= Model.d2; d = d.AddDays(1))
+                            {
+                                hodiny = grp.Where(p => p.p31Date == d).Sum(p => p.p31Hours_Orig);
+                                <td class="td_day">
+                                    @if (hodiny != 0)
+                                    {
+                                        @(BO.Code.Time.FormatNumeric(hodiny, Model.ShowHHMM))
+
+                                    }
+                                </td>
+                            }
+                        </tr>
+                    }
+                }
+
+                @if (Model.GroupBy == UI.Models.p31view.daylineGroupBy.p28Recs)
+                {
+                    var grpsp28 = Model.lisP31.Where(p => p.j02ID == recJ02.pid).GroupBy(p => p.p28ID_Client);
+                    foreach (var grp in grpsp28)
+                    {
+                        double hodiny = grp.Sum(p => p.p31Hours_Orig);
+
+                        <tr>
+                            <td class="td_client" colspan="2">@(BO.Code.Bas.OM2(grp.First().ClientName, 30))</td>
+                            <td class="td_sum">
+                                @if (hodiny != 0)
+                                {
+                                    <a class="hz" onclick="zoom_allmonth_p28(this,@(recJ02.pid),@(grp.First().p28ID_Client))">@(BO.Code.Time.FormatNumeric(hodiny, Model.ShowHHMM))</a>
+                                }
+                            </td>
+                            @for (DateTime d = Model.d1; d <= Model.d2; d = d.AddDays(1))
+                            {
+
+                                <td class="td_day">
+                                    @if (1 == 1)
+                                    {
+                                        var qryP31 = Model.lisP31.Where(p => p.j02ID == recJ02.pid && p.p28ID_Client == grp.First().p28ID_Client && p.p31Date == d);
+
+                                        foreach (var recP31 in qryP31)
+                                        {
+                                            strClass = "afa";
+                                            if (!recP31.p32IsBillable)
+                                            {
+                                                strClass = "anefa";
+                                            }
+                                            if (Model.ShowHHMM)
+                                            {
+                                                strHours = recP31.p31HHMM_Orig;
+                                            }
+                                            else
+                                            {
+                                                strHours = BO.Code.Bas.Number2String(recP31.p31Hours_Orig);
+
+                                            }
+                                            strTitle = recP31.p32Name + ": " + recP31.p41Name;
+
+                                            <div class="dd">
+                                                <a class="@(strClass)" href="javascript:p31_rec(@(recP31.pid))" title="@(strTitle)">@(strHours)</a>
+                                            </div>
+
+
+                                        }
+                                    }
+                                </td>
+                            }
+                        </tr>
+                    }
+                }
+
+
+                @if (Model.GroupBy == UI.Models.p31view.daylineGroupBy.p41Recs)
+                {
+                    var grpsp41 = Model.lisP31.Where(p => p.j02ID == recJ02.pid).GroupBy(p => p.p41ID);
+                    foreach (var grp in grpsp41)
+                    {
+                        double hodiny = grp.Sum(p => p.p31Hours_Orig);
+
+                        <tr>
+                            <td class="td_project" colspan="2" title="@(grp.First().ClientName + " - " + grp.First().p41Name)">
+                                @(BO.Code.Bas.OM2(grp.First().ClientName, 25) + " - ")
+                                @(BO.Code.Bas.OM2(grp.First().p41Name, 15))
+                            </td>
+                            <td class="td_sum">
+                                @if (hodiny != 0)
+                                {
+                                    <a class="hz" onclick="zoom_allmonth_p41(this,@(recJ02.pid),@(grp.First().p41ID))">@(BO.Code.Time.FormatNumeric(hodiny, Model.ShowHHMM))</a>
+                                }
+                            </td>
+                            @for (DateTime d = Model.d1; d <= Model.d2; d = d.AddDays(1))
+                            {
+
+                                <td class="td_day">
+                                    @if (1 == 1)
+                                    {
+                                        var qryP31 = Model.lisP31.Where(p => p.j02ID == recJ02.pid && p.p41ID == grp.First().p41ID && p.p31Date == d);
+
+                                        foreach (var recP31 in qryP31)
+                                        {
+                                            strClass = "afa";
+                                            if (!recP31.p32IsBillable)
+                                            {
+                                                strClass = "anefa";
+                                            }
+                                            if (Model.ShowHHMM)
+                                            {
+                                                strHours = recP31.p31HHMM_Orig;
+                                            }
+                                            else
+                                            {
+                                                strHours = BO.Code.Bas.Number2String(recP31.p31Hours_Orig);
+
+                                            }
+                                            strTitle = recP31.p32Name + ": " + recP31.p41Name;
+
+                                            <div class="dd">
+                                                <a class="@(strClass)" href="javascript:p31_rec(@(recP31.pid))" title="@(strTitle)">@(strHours)</a>
+                                            </div>
+
+
+                                        }
+                                    }
+                                </td>
+                            }
+                        </tr>
+                    }
+                }
+
+            }
+        </tbody>
+    </table>
+</div>
+
+<div id="zoomwin" style="position:absolute;top:0px;left:0px;z-index:1000;display:none;"></div>
+
+
+<table id="calmenu1" class="calmenu">
+    <tr>
+        <td>
+            <a id="cmdNew" class="calmenu_btn" onclick="calmenu_init_content()" title="Nový"><span class="material-icons-outlined-btn">add_circle_outline</span></a>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <div id="divCal" style="display:none;padding:8px;">
+                <div class="row">
+                    @if (_f.CurrentUser.j04IsModule_p31)
+                    {
+                        <div class="col-auto p-2">
+                            <a id="cmdP31" class="calmenu_btn" title="Vykázat úkon"><span class="material-icons-outlined-btn">more_time</span><span id="spanCurrentDate"></span></a>
+                        </div>
+                    }
+
+                    @if (Model.ShowP56 && _f.CurrentUser.j04IsModule_p56)
+                    {
+                        <div class="col-auto p-2">
+                            <a id="cmdP56" class="calmenu_btn"><span class="material-icons-outlined-btn">task</span>@_f.tra("Úkol")</a>
+                        </div>
+
+                    }
+                    @if (Model.ShowO22)
+                    {
+                        <div class="col-auto p-2">
+                            <a id="cmdO22" class="calmenu_btn"><span class="material-icons-outlined-btn">event</span>@_f.tra("Termín/lhůta")</a>
+                        </div>
+
+                    }
+                </div>
+
+                @if (_f.CurrentUser.j04IsModule_p31)
+                {
+                    <hr />
+                    <strong>Nepřítomnost:</strong>
+                    @foreach (var c in Model.lisP32FUT)
+                    {
+
+                        <br />
+                        <a style="padding:4px;" href="javascript:futc(@(c.pid))">
+                            @if (c.p32AbsenceBreakFlag != BO.p32AbsenceBreakFlagENUM._None)
+                            {
+                                <span style="background-color:@(c.p32Color)" class="material-icons-outlined">pause</span>
+                            }
+                            else
+                            {
+                                <span style="background-color:@(c.p32Color)" class="material-icons-outlined">work_off</span>
+                            }
+                            @c.p32Name
+                        </a>
+                        @if (c.p32Value_Default > 0)
+                        {
+                            <span style="color:red;">@(c.p32Value_Default)</span>
+                        }
+                    }
+                }
+
+                <br />
+                <strong>Barva dne:</strong>
+                <br />
+                <a style="padding-left:14px;padding-bottom:4px;" href="javascript:c24c(0)">Bez barvy</a>
+                @foreach (var c in Model.lisC24)
+                {
+                    <br />
+                    <a style="padding:4px;" href="javascript:c24c(@(c.pid))"><span style="background-color:@(c.c24Color)">&nbsp;&nbsp;&nbsp;&nbsp;</span>@(c.c24Name)</a>
+                }
+            </div>
+        </td>
+    </tr>
+
+</table>
+
+<!-- Nabídka Více -->
+<div class="offcanvas offcanvas-start" tabindex="-1" data-bs-scroll="true" data-bs-backdrop="true" data-bs-keyboard="true" id="offcanvas_more">
+
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title">
+            <a href="javascript:reload()" title="Občerstvit">
+                <myicon symbol="refresh"></myicon>
+            </a>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+
+    <div class="offcanvas-body p-0 m-0" id="offcanvas_more_body">
+
+        <div style="margin:6px;">
+            <button title="Aktuálně zobrazenou DAYLINE odeslat přes e-mail" type="button" class="btn bog px-2" onclick="_html2mail('timeline_table1','DAYLINE','send_message_template_dayline.html')"><i class="material-icons-outlined-btn">alternate_email</i> @_f.tra("Odeslat přes e-mail")</button>
+        </div>
+        <div style="margin:6px;">
+            <button type="button" class="btn bog px-2" onclick="export_to_xls()">MS-EXCEL Export</button>
+
+        </div>
+
+        <div style="margin:6px;">
+            <button class="btn bog" onclick="ical_generator()" style="margin-right:10px;">
+                <strong>iCal</strong>
+                <small>Integrace s Google/Outlook kalendářem</small>
+            </button>
+        </div>
+
+        <div style="margin:6px;">
+            <mytooltip text="@(_f.tra("Dvojklikem na buňku vykážete úkon pro daný den."))"></mytooltip>
+        </div>
+
+        <div class="card">
+
+            <div class="card-body">
+
+
+
+                @if (_f.CurrentUser.j04IsModule_p31)
+                {
+
+                    <input type="radio" asp-for="@Model.GroupBy" id="opg1" value="None" onchange="reload_setting(this)" />
+                    <label for="opg1">@_f.tra("Zobrazovat pouze denní součty hodin")</label>
+                    <br />
+                    <input type="radio" asp-for="@Model.GroupBy" id="opg2" value="NoneRecs" onchange="reload_setting(this)" />
+                    <label for="opg2">@_f.tra("Zobrazovat odkazy na časové úkony")</label>
+                    <br />
+                    <input type="radio" asp-for="@Model.GroupBy" id="opg3" value="p41" onchange="reload_setting(this)" />
+                    <label for="opg3">@_f.tra("Rozepisovat sumy hodin podle projektů")</label>
+                    <br />
+                    <input type="radio" asp-for="@Model.GroupBy" id="opg4" value="p41Recs" onchange="reload_setting(this)" />
+                    <label for="opg4">@_f.tra("Rozepisovat odkazy na časové úkony podle projektů")</label>
+                    <br />
+                    <input type="radio" asp-for="@Model.GroupBy" id="opg5" value="p28" onchange="reload_setting(this)" />
+                    <label for="opg5">@_f.tra("Rozepisovat sumy hodin podle klientů")</label>
+                    <br />
+                    <input type="radio" asp-for="@Model.GroupBy" id="opg6" value="p28Recs" onchange="reload_setting(this)" />
+                    <label for="opg6">@_f.tra("Rozepisovat odkazy na časové úkony podle klientů")</label>
+
+                    <br />
+                    <hr />
+                }
+
+                <table>
+                    <tr>
+                        <td colspan="2">
+                            <input type="checkbox" id="chkShowP56" asp-for="@Model.ShowP56" onchange="showp56_setting()" />
+                            <label for="chkShowP56">@_f.tra("Zobrazovat otevřené úkoly")</label>
+                        </td>
+
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <input type="checkbox" id="chkShowO22" asp-for="@Model.ShowO22" onchange="showo22_setting()" />
+                            <label for="chkShowO22" style="margin-right:10px;">@_f.tra("Zobrazovat termíny/lhůty/události")</label>
+                        </td>
+
+                    </tr>
+
+                    @if (Model.ShowP56)
+                    {
+                        <tr>
+                            <td>Zobrazovat roli v úkolu:</td>
+                            <td>
+                                <mydropdown asp-for="x67ID_p56" datasource="@Model.lisX67_p56" textfield="x67Name" valuefield="pid" event_after_changevalue="handle_can_reload"></mydropdown>
+                            </td>
+                        </tr>
+
+                    }
+                    @if (Model.ShowP56)
+                    {
+                        <tr>
+                            <td>Zobrazovat roli v termínu/události:</td>
+                            <td>
+                                <mydropdown asp-for="x67ID_o22" datasource="@Model.lisX67_o22" textfield="x67Name" valuefield="pid" event_after_changevalue="handle_can_reload"></mydropdown>
+                            </td>
+                        </tr>
+
+                    }
+
+
+                </table>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script type="text/javascript">
+    var _zoomwin = document.getElementById("zoomwin");
+    var _lasturl = "";
+    var _lastctl = null;
+    var _current_mouseover_date = null;
+    var _currrent_mouseover_j02id = null;
+    var _j02ids = "@Model.j02IDs";
+    var _j11ids = "@Model.j11IDs";
+    var _j07ids = "@Model.j07IDs";
+    var _statequery = "@Model.p31statequery.Value";
+    var _ismobile = "@_f.CurrentUser.IsMobileDisplay()";
+    var _scaleindex = "@Model.ScaleIndex";
+    var _j72id = "@Model.TheGridQueryButton.j72id";
+    var _isxls = "@Model.IsJustXlsExporting";
+
+    $(document).ready(function () {
+
+
+        //_mainmenu_highlight_current("cmdp31", "p31dayline_mylink");
+        $("#cmdp31_dayline").addClass("active");
+        $("#cmddayline").addClass("active");
+
+
+        $("#d0helper").change(function () {
+            reload();
+        });
+
+        $(".dc").dblclick(function () {
+            var j02id = $(this).attr("data-j02id");
+            var d = $(this).attr("data-d");
+            _window_open("/p31/Record?j02id=" + j02id + "&d=" + d, 3);
+        });
+
+        if (_ismobile == "True") {
+            $(".hz").attr("onclick", "");
+            $(".hz").css("cursor", "default");
+            $(".hz").css("text-decoration", "none");
+
+            $(".hz").removeClass("hz");
+        }
+
+
+
+
+        $(document).on("keydown", function (e) {
+            if (e.keyCode == 27 && _zoomwin.style.display == "block") {   //klávese ESCAPE
+                zoom_close();
+            }
+
+        });
+
+        $(document).on("click", function (e) {
+            if ($(e.target).hasClass("hz") == false) {
+                zoom_close();
+            }
+
+
+        });
+
+        register_menu("cmdgridquerymenu", "cmdgridquerymenu_menu", "/Menu/grid_query?prefix=p31&j72id=@(Model.TheGridQueryButton.j72id)");
+
+        var h = _device.innerHeight - $("#timeline_tbody1").offset().top;
+        //h = h - 50;
+        h = h - 20;
+        $("#timeline_tbody1").height(h);
+
+        if (_j02ids != "" || _j11ids != "" || _j07ids != "" || _statequery != "0" || _j72id != "0") {
+            $(".showmore").toggle();
+        }
+
+
+
+        handle_table_width();
+
+
+        if (_isxls == "True")
+        {
+            exportTableToExcel("timeline_table1");  //spustit export do xls
+        }
+
+    });
+
+
+
+    function _save_param_and_reload(url, mykey, myval) {
+        if (mykey == undefined || myval == undefined) {
+            _redirect(url);
+            return;
+        }
+        $.post("/Common/SetUserParam", { key: mykey, value: myval }, function (data) {
+            _redirect(url);
+        });
+
+        alert("save_param_and_reload: ERROR");
+    }
+    function month_prev() {
+        var d0 = datepicker_get_value("d0");
+        if (d0 == null) {
+            d0 = new Date();
+        }
+        var d1 = new Date(d0.getFullYear(), d0.getMonth() - 1, 1);
+        datepicker_set_value("d0", d1); //tímto se spustí se $("#d0helper").change
+
+
+    }
+    function month_next() {
+        var d0 = datepicker_get_value("d0");
+        if (d0 == null) {
+            d0 = new Date();
+        }
+        var d1 = new Date(d0.getFullYear(), d0.getMonth() + 1, 1);
+        datepicker_set_value("d0", d1); //tímto se spustí se $("#d0helper").change
+
+
+
+    }
+
+    function reload() {
+        var d = $("#d0helper").val();
+        _redirect("/p31dayline/Index?d=" + d);
+    }
+
+    function showp56_setting() {
+
+        var s = "false";
+        if ($("#chkShowP56").prop("checked") == true) {
+            s = "true";
+        }
+        $.post(_ep("/Common/SetUserParam"), { key: "dayline-showp56", value: s }, function (data) {
+            reload();
+        });
+
+
+    }
+    function showo22_setting() {
+
+        var s = "false";
+        if ($("#chkShowO22").prop("checked") == true) {
+            s = "true";
+        }
+        $.post(_ep("/Common/SetUserParam"), { key: "dayline-showo22", value: s }, function (data) {
+            reload();
+        });
+
+
+    }
+
+    function reload_setting(opg) {
+
+
+
+        $.post(_ep("/Common/SetUserParam"), { key: "dayline-groupby", value: opg.value }, function (data) {
+            reload();
+
+        });
+    }
+
+    function handle_can_reload(s) {
+        $("#cmdRefresh").css("display", "block");
+    }
+
+    function save_setting_and_reload() {
+        var k = [];
+        var v = [];
+        k.push("dayline-j02ids");
+        v.push($("#j02IDs").val());
+        k.push("dayline-j07ids");
+        v.push($("#j07IDs").val());
+        k.push("dayline-j11ids");
+        v.push($("#j11IDs").val());
+        k.push("dayline-x67id_p56");
+        v.push($("#x67ID_p56").val());
+        k.push("dayline-x67id_o22");
+        v.push($("#x67ID_o22").val());
+        k.push("dayline-scaleindex");
+        v.push($("#ScaleIndex").val());
+
+        $.post("/Common/SetUserParams", { keys: k, values: v }, function (data) {
+
+            reload();
+
+        });
+
+
+
+    }
+
+    function re(ctl, j02id, d) {
+        var url = _ep("/p31dayline/Zoom?j02id=" + j02id + "&d=" + d);
+        zoom_open(ctl, url);
+    }
+
+    function zoom_allmonth(ctl, j02id) {
+        var url = _ep("/p31dayline/Zoom?j02id=" + j02id + "&m=@(Model.d0.Month)&y=@(Model.d0.Year)");
+        zoom_open(ctl, url);
+
+    }
+    function zoom_allmonth_p28(ctl, j02id, p28id) {
+        var url = _ep("/p31dayline/Zoom?j02id=" + j02id + "&p28id=" + p28id + "&m=@(Model.d0.Month)&y=@(Model.d0.Year)");
+        zoom_open(ctl, url);
+    }
+    function zoom_allmonth_p41(ctl, j02id, p41id) {
+        var url = _ep("/p31dayline/Zoom?j02id=" + j02id + "&p41id=" + p41id + "&m=@(Model.d0.Month)&y=@(Model.d0.Year)");
+        zoom_open(ctl, url);
+    }
+
+    function zoom_open(ctl, url) {
+        if (_lasturl == url && _lastctl == ctl && $("#zoomwin").css("display") == "block") {
+            zoom_close();
+            return;
+        }
+        _lasturl = url;
+        _lastctl = ctl;
+
+        $(".zoom_ctl_current").removeClass("zoom_ctl_current");
+        $(ctl).addClass("zoom_ctl_current");
+
+        var c = $("#zoomwin");
+
+        var w = _device.innerWidth - 100;
+        var h = 450;
+        var y = $(ctl).offset().top + 20;
+        if (y + h + 20 > _device.innerHeight) {
+            y = $(ctl).offset().top - h - 2;
+        }
+
+        if (_device.innerWidth < w) w = _device.innerWidth;
+        if (_device.innerHeight < h) h = _device.innerHeight;
+        x = (_device.innerWidth - w) / 2;
+
+        if (x < 0) {
+            x = 0;
+        }
+        if (y < 0) {
+            y = 0;
+        }
+
+        $(c).css("display", "block");
+        $(c).css("width", w + "px");
+        $(c).css("height", h + "px");
+        $(c).css("left", x + "px");
+        $(c).css("top", y + "px");
+        $(c).html("<iframe id='frazoom' style='border:solid 1px gray;' width='" + (w - 50) + "px' height='" + (h - 40) + "px' src='" + url + "'></iframe>");
+    }
+
+    function zoom_close() {
+        if ($("#zoomwin").css("display") == "block") {
+            $("#zoomwin").css("display", "none");
+        }
+
+        $(".zoom_ctl_current").removeClass("zoom_ctl_current");
+    }
+
+
+
+    function handle_table_width() {
+        var w = ($(".th_day").length * 45) + ($(".th_day_empty").length * 30);
+        if (_scaleindex == "1" || _scaleindex == "2") {
+            w = ($(".th_day_week").length * 100) + ($(".th_day_empty").length * 30);
+        }
+
+
+        w = w + 80 + 120 + 180;
+        w = w + 30;
+
+        $("#timeline_table1").width(w);
+
+
+        var offset_container = $("#timeline_tbody1").offset();
+        var h = _device.innerHeight - offset_container.top - 20;
+
+
+        $("#timeline_tbody1").height(h);
+    }
+
+
+    function p31c(d, t1, t2, j02id) {
+        var url = "/p31/Record?j02id=" + j02id + "&d=" + d;
+        if (t1 != undefined && t1 != null) {
+            url = url + "&t1=" + t1 + "&t2=" + t2;
+        }
+
+        _window_open(url, 3);
+    }
+    function p56c(d, t1, t2, j02id) {
+        var url = "/p56/Record?j02id=" + j02id + "&d=" + d;
+
+        _window_open(url, 3);
+    }
+    function o22c(d, t1, t2, j02id) {
+        var url = "/o22/Record?j02id=" + j02id + "&d=" + d;
+
+        _window_open(url, 3);
+    }
+
+    function showcalmenu(e, ctl, d, j02id) {
+
+        if (d == _current_mouseover_date && j02id == _currrent_mouseover_j02id) {
+            return;
+        }
+
+        if ((d != _current_mouseover_date || j02id != _currrent_mouseover_j02id) && $("#divCal").css("display") == "block") {
+            $("#divCal").css("display", "none");
+        }
+
+        $("#spanCurrentDate").text(d);
+
+        _current_mouseover_date = d;
+        _currrent_mouseover_j02id = j02id;
+        $("#cmdP31").prop("title", "Vykázat úkon do dne: " + d);
+        $("#cmdP31").prop("href", "javascript:p31c('" + d + "',null,null," + j02id + ")");
+        $("#cmdP56").prop("href", "javascript:p56c('" + d + "',null,null," + j02id + ")");
+        $("#cmdO22").prop("href", "javascript:o22c('" + d + "',null,null," + j02id + ")");
+
+        var x = $(ctl).offset().left + 17;
+        if (_scaleindex == "1" || _scaleindex == "2") {
+            x = x - 20;
+        }
+        var y = $(ctl).offset().top + 5;
+
+        $("#calmenu1").css("background-color", "");
+
+        $("#calmenu1").css("display", "block");
+        $("#calmenu1").css("left", x + 10);
+        $("#calmenu1").css("top", y - 5);
+    }
+
+    function calmenu_init_content() {
+
+        if ($("#divCal").css("display") == "none") {
+            $("#divCal").css("display", "block");
+        } else {
+            $("#divCal").css("display", "none");
+        }
+
+    }
+
+    function c24c(c24id) {
+
+        $.post(_ep("/p31calendar/SaveC23Record"), { d: _current_mouseover_date, c24id: c24id, j02id: _currrent_mouseover_j02id }, function (data) {
+            reload();
+        });
+
+    }
+
+    function futc(p32id) {
+
+        $.post(_ep("/p31calendar/SaveFutRecord"), { d: _current_mouseover_date, p32id: p32id, j02id: _currrent_mouseover_j02id }, function (data) {
+            if (data.message != null) {
+                if (data.message == "manual") {
+                    _notify_message("V nastavení aktivity není uvedena výchozí hodnota úkonu nebo projekt - proto nelze vykazovat úplně automaticky", "info");
+                    var url = "/p31/Record?j02id=" + _currrent_mouseover_j02id + "&p32id=" + p32id + "&d=" + _current_mouseover_date;
+                    _window_open(url, 3);
+                    return;
+                }
+                alert(data.message);
+            } else {
+                reload();
+            }
+
+        });
+
+    }
+
+    function reccmp56(e, p56id) {
+        _cm(e, "p56Task", p56id, "task");
+    }
+    function reccmo22(e, o22id) {
+        _cm(e, "o22Milestone", o22id, "calendar");
+    }
+
+
+    function ical_generator() {
+        _window_open("/icalgen/Index", 3);
+    }
+
+    function p31_rec(pid) {
+        _window_open("/p31/Record?pid=" + pid, 3);
+    }
+
+
+    function exportTableToExcel(tableId, filename = "dayline.xlsx") {
+        var table = document.getElementById(tableId);
+
+
+        var tab0 = document.createElement("table");
+        $(tab0).html($(table).html());
+
+        document.body.appendChild(tab0);
+
+        $(tab0).find(".cm").remove();
+
+
+
+
+
+        var wb = XLSX.utils.book_new();
+        var ws = XLSX.utils.table_to_sheet(tab0);
+
+        XLSX.utils.book_append_sheet(wb, ws, "List1");
+        XLSX.writeFile(wb, filename);
+
+
+        document.body.removeChild(tab0);
+    }
+
+
+    function export_to_xls() {
+        var d = $("#d0helper").val();
+        _redirect("/p31dayline/Index?d=" + d+"&export_to_xls=true");
+    }
+
+</script>
+

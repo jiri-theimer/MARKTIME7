@@ -1,0 +1,151 @@
+﻿@model UI.Models.p31view.p31DayViewModel
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+
+    if (Model.j02id == 0)
+    {
+        Model.j02id = _f.CurrentUser.pid;
+    }
+    if (Model.d == null)
+    {
+        Model.d = DateTime.Today.ToString("dd.MM.yyyy");
+    }
+
+    BO.j02User _recJ02 = _f.j02UserBL.Load(Model.j02id);
+
+    var mq = new BO.myQueryP31() { j02id = Model.j02id };
+    mq.global_d1 = BO.Code.Bas.String2Date(Model.d);
+    mq.global_d2 = mq.global_d1;
+    IEnumerable<BO.p31Worksheet> _lisP31 = _f.p31WorksheetBL.GetList(mq);
+
+    bool _showRates = _f.CurrentUser.IsRatesAccess;
+
+    
+
+}
+
+@addTagHelper *, UI
+
+
+
+<h4>
+    @_recJ02.FullNameAsc
+    <span class="badge-def">@(BO.Code.Bas.ObjectDate2String(Model.d))</span>
+</h4>
+
+
+<table class="table table-sm table-hover">
+    <tr>
+        <th></th>
+        <th></th>
+        <th></th>
+        <th>
+            Klient
+        </th>
+        <th>
+            Projekt
+        </th>
+        <th>
+            Aktivita
+        </th>
+        <th>
+            Hodiny
+        </th>
+        @if (_showRates)
+        {
+            <th>Sazba</th>
+            <th>Bez DPH</th>
+            <th></th>
+        }
+        <th>Text</th>
+    </tr>
+    @foreach (var c in _lisP31)
+    {
+        <tr class="@(UI.Code.TheGridRowSymbol.p31_tr_cssclass(c))">
+            <td style="width:20px;" class="@(UI.Code.TheGridRowSymbol.p31_td_cssclass(c))">
+                @(Html.Raw(UI.Code.TheGridRowSymbol.p31_symbol(c)))
+            
+                
+            </td>
+            <td style="width:20px;">
+                <button type="button" class="btn btn-sm btn-default" onclick="handle_edit(@c.pid)"><span class="material-icons-outlined-btn">edit_note</span></button>
+            </td>
+            <td style="width:20px;">
+                <button type="button" class="btn btn-sm btn-default" title="@_f.tra("Kopírovat")" onclick="handle_clone(@c.pid)"><span class="material-icons-outlined-btn">content_copy</span></button>
+            </td>
+            <td>
+                @c.ClientName
+            </td>
+            <td>
+                @c.p41Name
+            </td>
+            <td>
+                @c.p32Name
+            </td>
+            <td style="width:50px;text-align:right;padding-right:10px;">
+                @BO.Code.Bas.Num2StringNull(c.p31Hours_Orig)
+            </td>
+            @if (_showRates)
+            {
+                <td style="width:50px;text-align:right;padding-right:10px;">
+                    @BO.Code.Bas.Num2StringNull(c.p31Rate_Billing_Orig)
+                </td>
+                <td style="width:60px;text-align:right;padding-right:10px;">
+                    @BO.Code.Bas.Num2StringNull(c.p31Amount_WithoutVat_Orig)
+                </td>
+                <td style="width:50px;">
+                    @c.j27Code_Billing_Orig
+                </td>
+            }
+            <td>
+                <i>
+                    @c.p31Text
+                </i>
+            </td>
+        </tr>
+    }
+    @if (_lisP31.Count() > 0)
+    {
+        <tfoot>
+            <tr>
+                <th></th>
+                <th></th>
+                <th></th>
+                <th>
+                    
+                </th>
+                <th>
+                    
+                </th>
+                <th>
+                    
+                </th>
+                <th style="width:60px;text-align:right;padding-right:10px;">
+                    @BO.Code.Bas.Num2StringNull(_lisP31.Sum(p=>p.p31Hours_Orig))
+                </th>
+                @if (_showRates)
+                {
+                    <th></th>
+                    <th style="width:60px;text-align:right;padding-right:10px;">@BO.Code.Bas.Num2StringNull(_lisP31.Sum(p=>p.p31Amount_WithoutVat_Orig))</th>
+                    <th></th>
+                }
+                <th></th>
+            </tr>
+        </tfoot>
+    }
+</table>
+
+
+
+<script type="text/javascript">
+
+    function handle_clone(pid) {
+        window.parent.location.replace("/p31/Record?isclone=true&pid=" + pid);
+    }
+    function handle_edit(pid) {
+        window.parent.location.replace("/p31/Record?pid=" + pid);
+    }
+</script>

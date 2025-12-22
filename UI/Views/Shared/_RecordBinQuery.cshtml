@@ -1,0 +1,61 @@
+﻿@model RecordBinQueryViewModel
+@inject BL.Factory _f
+
+@{
+
+  
+
+
+}
+
+
+<div class="dropdown" style="margin-left:8px;">
+    <button class="btn dropdown-toggle bog" type="button" id="cmdRecordBinQuery" data-bs-toggle="dropdown" aria-expanded="false" title="@(Model.getStateAlias())">
+        <span class="material-icons-outlined-nosize">filter_alt</span>
+
+        @switch (Model.Value)
+        {
+            case 1:
+                <span title="Otevřené záznamy" class="material-icons-outlined-btn" style="color:blue;">layers</span>
+                break;
+            case 2:
+                <span title="Záznamy v archivu" class="material-icons-outlined-btn" style="color:red;">layers_clear</span>
+                break;
+            default:
+                <span class="material-icons-outlined-btn" style="color:darkorange;">layers</span>
+                break;
+        }
+
+    </button>
+    <ul class="dropdown-menu" aria-labelledby="cmdRecordBinQuery">
+        @if(Model.Prefix != "p31")
+        {
+            <li><a class="@(Model.Value==0 ? "dropdown-item active": "dropdown-item")" href="javascript:handle_recordbinquery_change(0)"><span class="material-icons-outlined-btn" style="color:darkorange;">layers</span>Otevřené i v archivu</a></li>
+        }
+        
+        <li><a class="@(Model.Value==1 ? "dropdown-item active": "dropdown-item")" href="javascript:handle_recordbinquery_change(1)"><span class="material-icons-outlined-btn" style="color:blue;">layers</span>Pouze otevřené záznamy</a></li>
+        <li><a class="@(Model.Value==2 ? "dropdown-item active": "dropdown-item")" href="javascript:handle_recordbinquery_change(2)"><span class="material-icons-outlined-btn" style="color:red;">layers_clear</span>Pouze záznamy v archivu</a></li>
+    </ul>
+</div>
+
+
+<script type="text/javascript">
+
+    var _RecordBinQuery_Value = "@(Model.Value)";
+    var _RecordBinQuery_ParamKey = "@(Model.UserParamKey)";
+
+
+    function handle_recordbinquery_change(val) {     //filtrování otevřenosti záznamu
+
+        
+        $.post(_ep("/Common/SetUserParam"), { key: _RecordBinQuery_ParamKey, value: val }, function (data) {
+            var url = location.href;
+
+
+
+            location.replace(url);
+
+        });
+    }
+
+</script>

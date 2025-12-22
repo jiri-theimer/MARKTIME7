@@ -1,0 +1,139 @@
+﻿@model BaseViewModel
+@inject BL.Factory _f
+
+<!DOCTYPE html>
+
+<html lang="cs">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@Model.PageTitle</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link href="~/lib/datepicker/bootstrap-datepicker.min.css" rel="stylesheet" type="text/css" />
+    <link href="~/lib/qtip/jquery.qtip.css" rel="stylesheet" type="text/css" />
+    <style type="text/css">
+        :root {
+            --pozadi: @_f.CurrentUser.j02SkinBackColor;
+            --popredi: @_f.CurrentUser.j02SkinForeColor;
+            --oznaceno: @_f.CurrentUser.j02SkinSelColor;
+        }
+    </style>
+    <link rel="stylesheet" href="~/css/@_f.CurrentUser.getFontSizeCss()" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/contextmenu.css" />
+    
+    <link rel="stylesheet" href="~/css/thegrid.css" asp-append-version="true" />
+
+    @if (IsSectionDefined("header_content"))
+    {
+        @RenderSection("header_content")
+    }
+</head>
+
+<body>
+    <script type="text/javascript">
+        var _relpath = "@(Url.Content("~/favicon.ico").Replace("favicon.ico",""))";   //relativní cesta: detekce kvůli případnému IIS virtuálnímu adresáři
+    </script>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/splitter/jquery-resizable.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="~/lib/datepicker/bootstrap-datepicker.min.js"></script>
+    @switch (_f.CurrentUser.j02LangIndex)
+    {
+        case 0:
+            <script src="~/lib/datepicker/bootstrap-datepicker.cs.min.js"></script>
+            break;
+        case 2:
+            <script src="~/lib/datepicker/bootstrap-datepicker.ua.min.js"></script>
+            break;
+        case 4:
+            <script src="~/lib/datepicker/bootstrap-datepicker.cs.min.js"></script>
+            break;
+        default:
+            break;
+    }
+    <script src="~/lib/qtip/jquery.qtip.min.js"></script>
+
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/mycombo.js" asp-append-version="true"></script>
+    <script src="~/js/thegrid.js" asp-append-version="true"></script>
+    <script src="~/js/contextmenu.js" asp-append-version="true"></script>
+    <script src="~/js/mycontrols.js" asp-append-version="true"></script>
+    <script src="~/js/layoutshare.js" asp-append-version="true"></script>
+
+    <script type="text/javascript">
+        @if(Model.Javascript_CallOnLoad != null)
+    {
+        @Html.Raw(Model.Javascript_CallOnLoad);
+
+
+    }
+    </script>
+
+    <div id="loading_container" class="loader_topleft"></div>
+    
+    <div>
+        @RenderBody()
+    </div>
+
+
+
+    <script type="text/javascript">
+
+    
+
+    $(document).ready(function ()
+    {
+        
+
+        $(document).on("keydown", function (e) {
+            if (e.keyCode == 27) {   //klávese ESCAPE zavře modální okno
+                var modalwindow = window.parent.document.getElementById("myModalContainer");
+                if (modalwindow && modalwindow.style.display=="block"){
+                    window.parent._window_close();
+                }
+
+
+            }
+
+        });
+
+
+        @if (_f.CurrentUser.Messages4Notify != null) {
+            @foreach (var c in _f.CurrentUser.Messages4Notify) {  // <----  placed on the same line, WORKING !!!
+            
+                @:_notify_message("@c.Value","@c.Key");
+            
+            }
+        }
+
+        if (_device.isMobile) {
+            _init_elements_for_mobile();
+        } else {
+            _init_qtip_onpage(document);
+        }  
+        
+        
+
+        _loading_hide();
+    });
+
+
+        function _window_open(url, flag, header) {
+            var layout = null;
+            if (window !== top) {
+                layout = "subform";    //stránka v iframe
+                
+            }
+            
+            window.parent._window_open(url, flag, header, layout);
+        }
+
+
+      
+    </script>
+
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

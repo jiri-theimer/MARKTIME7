@@ -1,0 +1,159 @@
+﻿@model UI.Models.Record.p34Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Sešit aktivit");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    Model.PageSymbol = "settings";
+}
+
+@addTagHelper *, UI
+
+<div class="modal_record_container">
+
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název"):</label>
+        <div class="col-sm-6 col-md-5">
+            <input class="form-control record_name" asp-for="Rec.p34Name" />
+        </div>
+        <label class="col-sm-2 col-md-2 col-form-label">@_f.tra("Pořadí v nabídce sešitů"):</label>
+        <div class="col-sm-1 col-md-1">
+            <mynumber asp-for="Rec.p34Ordinary" decimal-digits="0"></mynumber>
+        </div>
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Formát vykazování"):</label>
+        <div class="col-sm-6 col-md-5">
+            <select asp-for="Rec.p33ID" class="form-select">
+                <option value="Cas">@_f.tra("Čas")</option>
+                <option value="PenizeBezDPH">@_f.tra("Peníze bez rozpisu DPH")</option>                
+                <option value="PenizeVcDPHRozpisu">@_f.tra("Peníze s rozpisem DPH")</option>
+                <option value="Kusovnik">@_f.tra("Kusovník")</option>
+            </select>
+        </div>
+        <label class="col-sm-2 col-md-2 col-form-label">@_f.tra("Kód sešitu"):</label>
+        <div class="col-sm-1 col-md-1">
+            <input class="form-control record_code" asp-for="Rec.p34Code" />
+
+        </div>
+
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Vykazování aktivity"):</label>
+        <div class="col-sm-6 col-md-5">
+            <select asp-for="Rec.p34ActivityEntryFlag" class="form-select" onchange="_postback()">
+                <option value="AktivitaJePovinna">@_f.tra("Ruční výběr z nabídky aktivit")</option>
+                <option value="AktivitaSeNezadava">@_f.tra("Bez ručního výběru z nabídky aktivit")</option>
+
+            </select>
+
+        </div>
+        <div class="col-auto">
+            <select asp-for="@Model.Rec.p34IncomeStatementFlag" class="form-select">
+                <option value="Vydaj">@_f.tra("Pro výpočet výsledovky má povahu nákladu")</option>
+                <option value="Prijem">@_f.tra("Pro výpočet výsledovky má povahu výnosu")</option>
+
+            </select>
+
+        </div>
+    </div>
+    @if (Model.Rec.p34ActivityEntryFlag == BO.p34ActivityEntryFlagENUM.AktivitaSeNezadava)
+    {
+        <div class="card">
+            <div class="card-header">
+                @_f.tra("Na pozadí ukládaná (skrytá) aktivita")
+            </div>
+            <div class="card-body">
+                <i>@_f.tra("Technicky je nutné, aby v záznamu úkonu systém na pozadí nějakou aktivitu uložil.")</i>
+                <br />
+                <i>@_f.tra("Jedná se o první ze záznamů aktivit sešitu podle pořadí aktivit:")</i>
+                @if(Model.RecP32FirstByOrdinary !=null)
+                {
+                    
+                    <h5 style="color:navy;">
+                        @Model.RecP32FirstByOrdinary.p32Name
+                    </h5>
+                }
+                <div>
+                    <i>@_f.tra("Pořadí aktivit definujete přes [Index pořadí] v nastavení aktivity.")</i>
+                </div>
+            </div>
+        </div>
+    }
+
+    
+
+    <div class="card">
+        <div class="card-header">
+            @_f.tra("Rozšíření pro formulář vykazování úkonu")
+        </div>
+        <div class="card-body">
+            <table>
+                <tr>
+                   
+                    <td colspan="2">
+                        <select asp-for="Rec.p34TextInternalFlag" class="form-select">
+                            <option value="0">@_f.tra("Nenabízet interní text úkonu")</option>
+                            <option value="1">@_f.tra("Nabízet interní text jako textové pole")</option>
+                            <option value="2">@_f.tra("Nabízet interní text jako poznámkové pole")</option>
+                            
+                        </select>
+                       
+                        
+                    </td>
+                </tr>
+               
+                <tr>
+                    <td>
+                        <label>@_f.tra("Nahrávání příloh v kartě úkonu"):</label>
+                    </td>
+                    <td>
+                        @Html.EditorFor(m => m.Rec.p34FilesFlag, "~/Views/Shared/_BitStreamFlag.cshtml")
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label>@_f.tra("Korekce hodin a výdajů"):</label>
+                    </td>
+                    <td>
+                        @Html.EditorFor(m => m.Rec.p34TrimmingFlag, "~/Views/Shared/_BitStreamFlag.cshtml")
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label>@_f.tra("Štítky"):</label>
+                    </td>
+                    <td>
+                        @Html.EditorFor(m => m.Rec.p34TagsFlag, "~/Views/Shared/_BitStreamFlag.cshtml")
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label>Inbox:</label>
+                    </td>
+                    <td>
+                        @Html.EditorFor(m => m.Rec.p34InboxFlag, "~/Views/Shared/_BitStreamFlag.cshtml")
+                    </td>
+                </tr>
+               
+                
+            </table>
+
+
+
+        </div>
+    </div>
+  
+</div>
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+    });
+
+
+
+
+
+</script>

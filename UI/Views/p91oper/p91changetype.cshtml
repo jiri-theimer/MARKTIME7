@@ -1,0 +1,187 @@
+﻿@model UI.Models.p91oper.p91changetypeViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    if (Model.lisP91.Count() == 1)
+    {
+        Model.PageTitle = $"{_f.tra("Změnit typ faktury")}: {Model.lisP91.First().p92Name}/{Model.lisP91.First().p91Code} ({Model.lisP91.First().p91Client})";
+    }
+    else
+    {
+        Model.PageTitle = _f.tra("Změnit typ faktury");
+    }
+
+
+
+}
+
+@addTagHelper *, UI
+
+<div class="bg-light" style="padding:10px;">
+    <button type="button" id="cmdOK" class="btn btn-success">@_f.tra("Potvrdit")</button>
+
+    <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+
+
+
+</div>
+
+<form id="form1" asp-controller="p91oper" asp-action="p91changetype" method="POST">
+    <div class="modal_record_container">
+        <div style="background-color:aliceblue;padding:10px;border:solid 1px silver;border-radius:5px;">
+            <strong style="margin:4px;">
+                @_f.tra("Vyberte nový typ faktury")
+            </strong>
+            <mydropdown asp-for="@Model.SelectedP92ID" isfirstemptyrow="false" datasource="@Model.lisP92" textfield="p92Name" valuefield="pid" event_after_changevalue="p92id_change"></mydropdown>
+
+        </div>
+
+        <table class="table table-hover">
+           
+            <tr>
+                <td>
+                    Nový vystavovatel:
+                </td>
+                <td>
+                    
+                    @(Model.RecP93.p93Company)
+                </td>
+            </tr>
+            <tr>
+
+                <td colspan="2">
+                    <input type="checkbox" asp-for="IsUpdateIssuer" />
+                    <label for="IsUpdateIssuer">Aktualizovat vystavovatele <span class="badge-def">@(Model.lisP91.Count())x</span></label>
+                    <p></p>
+
+                </td>
+                
+
+
+            </tr>
+            <tr>
+                <td style="max-width:80px;">
+                    @_f.tra("Číselná řada faktury"):
+                </td>
+                <td>
+                    <strong>@(Model.RecX38.x38Name)</strong>
+                    @if (Model.lisP91.Where(p =>!p.p91IsDraft && p.x38ID != Model.RecP92.x38ID).Count() > 0)
+                    {
+                        <p></p>
+                        <input type="checkbox" asp-for="IsUpdateP91Code" />
+                        <label for="IsUpdateP91Code" style="color:red;">Aktualizovat číslo faktury</label>
+                        <p>
+                            První volné číslo: @(_f.x38CodeLogicBL.x38_get_freecode(Model.RecP92.x38ID,"p91",Model.lisP91.Where(p =>!p.p91IsDraft && p.x38ID != Model.RecP92.x38ID).First().pid))
+                        </p>
+                    }
+
+                </td>
+
+            </tr>
+            <tr>
+                <td style="max-width:80px;">
+                    @_f.tra("Výchozí měna faktury"):
+                </td>
+                <td>
+                    <strong>@(Model.RecP92.j27Code)</strong>
+                    @if (Model.lisP91.Where(p => p.j27ID != Model.RecP92.j27ID).Count() > 0)
+                    {
+                        <p></p>
+                        <input type="checkbox" asp-for="IsUpdateJ27ID" />
+                        <label for="IsUpdateJ27ID">Změnit měnu ve faktuře <span class="badge-def">@(Model.lisP91.Count())x</span></label>
+                    }
+
+                </td>
+
+            </tr>
+            <tr>
+                <td style="max-width:120px;">
+                    @_f.tra("Výchozí DPH sazba"):
+                </td>
+                <td>
+                    <strong>@(Model.RecP92.x15Name)</strong>
+
+                    <p></p>
+                    <label>Převést ve faktuře DPH sazby na hladinu: <span class="badge-def">@(Model.lisP91.Count())x</span></label>
+                    <select asp-for="@Model.SelectedX15ID" class="form-select">
+                        <option value="Nic"></option>
+                        <option value="BezDPH">@_f.tra("0% (Bez DPH)")</option>
+                        <option value="SnizenaSazba">@_f.tra("Snížená sazba DPH")</option>
+                        <option value="ZakladniSazba">@_f.tra("Základní sazba DPH")</option>
+                        <option value="SpecialniSazba">@_f.tra("Speciální sazba DPH")</option>
+                    </select>
+
+                </td>
+
+            </tr>
+        </table>
+
+        
+
+
+        @if (Model.lisP91.Count() == 1)
+        {
+            @await Html.PartialAsync("~/Views/Shared/_p91CenovyRozpis.cshtml",Model.lisP91.First().pid)
+        }
+        else
+        {
+            <table class="table table-hover" style="max-width:700px;">
+
+                @foreach (var c in Model.lisP91)
+                {
+                    <tr>
+                        <td style="width:100px;">
+                            @(c.p91Code)
+                        </td>
+                        <td style="width:100px;">
+                            @(BO.Code.Bas.ObjectDate2String(c.p91DateSupply))
+                        </td>
+                        <td>
+                            @(c.p92Name)
+                        </td>
+                        <td>
+                            @(c.p91Client)
+                        </td>
+                        <td style="width:80px;text-align:right;">
+                            @(BO.Code.Bas.Number2String(c.p91Amount_TotalDue))
+                        </td>
+                        <td style="width:80px;">
+                            @(c.j27Code)
+                        </td>
+                    </tr>
+                }
+            </table>
+        }
+
+    </div>
+
+
+    <input type="hidden" asp-for="pids" />
+</form>
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+        $("#cmdOK").click(function () {
+
+            $(this).text("Processing...");
+            $(this).attr("disabled", true);
+            form1.submit();
+
+
+        });
+
+
+
+    })
+
+
+    function p92id_change(cbx) {
+        _postback("refresh");
+    }
+
+</script>

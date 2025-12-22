@@ -1,0 +1,20 @@
+﻿@model BO.p28Contact
+
+@inject BL.Factory _f
+
+@{
+
+
+    if (Model == null || (Model.p28City1==null && Model.p28Street1==null))
+    {
+        return;
+    }
+
+}
+
+
+<div class="rowvalhover my-1">
+    <span>@Html.Raw(BO.Code.Bas.Text2Html(Model.GetFullAddressWithBreaks(1)))</span>
+    <a class="valhover_tooltip" target='_blank' href="https://mapy.cz/zakladni?q=@(Model.p28City1+"+"+Model.p28Street1)">mapy</a>
+    <a class="valhover_tooltip" target='_blank' href="https://www.google.com/maps/place/@(Model.p28City1+"+"+Model.p28Street1)">google</a>
+</div>

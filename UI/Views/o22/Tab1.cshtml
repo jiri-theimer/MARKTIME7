@@ -1,0 +1,46 @@
+﻿@model UI.Models.Tab1.o22Tab1
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+    if (Model.Rec == null) return;
+
+    var _lisO24 = _f.o24ReminderBL.GetList("o22", Model.pid);
+
+    var _NotepadLookAt = new UI.Models.Notepad.LookAtViewModel() { IsTab1 = true, prefix = "o22", pid = Model.Rec.pid, NotepadContent = Model.Rec.o22Notepad, x04ID = Model.Rec.x04ID };
+}
+
+@addTagHelper *, UI
+
+
+
+@Html.Raw("<div class='info_record_container'>")
+
+@await Html.PartialAsync("~/Views/Shared/_Tab1ButtonSetting.cshtml",Model.prefix)
+
+
+<div class="card recpagebox400">
+    <div class="card-body">
+        @await Html.PartialAsync("~/Views/Shared/_o22RecHeaderBox.cshtml",Model.Rec)
+
+       
+
+        @Html.EditorFor(m => m.Rec, "~/Views/Shared/_TimeStamp.cshtml")
+    </div>
+</div>
+
+@Html.Raw("<div id='divTree1Container' style='float: left;vertical-align: top;border:none;margin-left:4px;margin-top:4px;'>")
+@Html.EditorFor(m => _lisO24, "~/Views/Shared/_o24TreeView.cshtml")
+@Html.Raw("</div>")
+
+
+@Html.EditorFor(m => m, "~/Views/Shared/_lisO27Tab1.cshtml")
+
+
+@Html.Raw("</div>")
+
+<div style="clear:both;"></div>
+
+@Html.EditorFor(m => _NotepadLookAt, "~/Views/Shared/_NotepadRO.cshtml")
+

@@ -1,0 +1,42 @@
+﻿@model UI.Models.Record.p31Record
+@inject BL.Factory _f
+
+@{
+
+
+    if (Model == null)
+    {
+        return;
+    }
+
+
+}
+
+
+<div class="card">
+    <div class="card-header">
+        Česká pošta | Zásilka
+    </div>
+    <div class="card-body">
+        <div class="form-floating my-2">
+            <textarea class="form-control" asp-for="Rec.p31PostRecipient"></textarea>
+            <label for="Rec_p31Text">@_f.tra("Adresát zásilky (Česká pošta)")</label>
+        </div>
+        <div class="row my-2">
+            <label class="col-sm-2 col-md-2 col-form-label">@(_f.tra("Podací číslo zásilky")):</label>
+            <div class="col-sm-10 col-md-10">
+                <input type="text" class="form-control" asp-for="@Model.Rec.p31PostCode" />
+            </div>
+        </div>
+        <div class="row my-2">
+            <label class="col-sm-2 col-md-2 col-form-label">@(_f.tra("Typ psaní")):</label>
+            <div class="col-sm-10 col-md-10">
+                <select asp-for="@Model.Rec.p31PostFlag" class="form-select">
+                    <option value="0"></option>
+                    <option value="1">@_f.tra("Doporučené psaní")</option>
+                    <option value="2">@_f.tra("Doporučený balík")</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>

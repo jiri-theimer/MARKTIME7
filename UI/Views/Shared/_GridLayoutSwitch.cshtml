@@ -1,0 +1,106 @@
+﻿@model DynamicMenuViewModel
+@inject BL.Factory _f
+
+@{
+
+    var cmenu = new UI.Menu.TheMenuSupport(_f);
+    string _gridurl = cmenu.getGridUrl(Model.Prefix);
+
+}
+
+@addTagHelper *,UI
+
+
+<div style="width:100%;background-color:#F5F5F5;border-radius:4px;margin-top:70px;">
+    <h5 style="padding:10px;">
+        @_f.tra("Režim rozložení panelů na stránce")
+    </h5>
+</div>
+
+@if (BL.Code.UserUI.IsShowLeftPanel(Model.Prefix, _f.CurrentUser.j02UIBitStream))
+{
+   <div style="padding-left:10px;">
+        <input type="radio" id="opgSwitchToGrid" name="opgLayout" value="grid" onchange="change_layout(false)" />
+        <label for="opgSwitchToGrid">@_f.tra("Horní + spodní panel")</label>
+        <br />
+        <input type="radio" id="opgSwitchToMenu" name="opgLayout" value="menu" checked />
+        <label for="opgSwitchToMenu">
+            @_f.tra("Levý + pravý panel")
+        </label>
+        <br />
+        <input type="radio" id="opgSwitchToFlat" name="opgLayout" value="flat" onchange="switch_to_flat()" />
+        <label for="opgSwitchToFlat">
+            @_f.tra("Pouze jeden panel")
+        </label>
+   </div>
+}
+else
+{
+    <div style="padding-left:10px;">
+        <input type="radio" id="opgSwitchToGrid" name="opgLayout" value="grid" checked onchange="change_layout(false)" />
+        <label for="opgSwitchToGrid">@_f.tra("Horní + spodní panel")</label>
+        <br />
+        <input type="radio" id="opgSwitchToMenu" name="opgLayout" value="menu" onchange="change_layout(true)" />
+        <label for="opgSwitchToMenu">@_f.tra("Levý + pravý panel")</label>
+        <br />
+        <input type="radio" id="opgSwitchToFlat" name="opgLayout" value="flat" onchange="switch_to_flat()" />
+        <label for="opgSwitchToFlat">
+            @_f.tra("Pouze jeden panel")
+        </label>
+    </div>
+}
+
+
+
+
+<script type="text/javascript">
+    var flatvalue = "@BL.Code.UserUI.GetFlatViewValue(Model.Prefix)";
+
+    if ((window.location.pathname + window.location.search).indexOf("SlaveView") > 0) {
+        $("#divGridLayout").css("display", "none");
+    }
+    
+    
+    var urlx = window.location.pathname + window.location.search;
+    if (flatvalue != "0" && urlx.indexOf("FlatView") > 0)
+    {            
+        $("#opgSwitchToFlat").prop("checked", true);
+    }
+
+  
+
+    function change_layout(isleftpanel) {
+        var prefix = "@Model.Prefix";
+
+       
+        
+        $.post(_ep("/Home/SaveCurrentUserUI_LeftPanel"), { leftpanel: isleftpanel, prefix:prefix }, function (data) {
+           
+            if (isleftpanel) {
+                _redirect("/Record/RecPage?prefix=" + prefix);
+            }
+            else {
+                _redirect("/TheGrid/MasterView?prefix=" + prefix);
+                //_redirect("@_gridurl");
+            }
+
+            
+
+        });
+
+        
+    }
+
+    function switch_to_flat() {    //vypnout spodní panel
+        var prefix = "@(Model.Prefix)";
+
+        $.post(_ep("/Home/SaveCurrentUserUI_FlatView"), { flatview: true, prefix: prefix }, function (data) {
+
+            _redirect("/TheGrid/FlatView?prefix=" + prefix);
+
+            
+
+        });
+
+    }
+</script>

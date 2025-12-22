@@ -1,0 +1,63 @@
+﻿@model UI.Models.InfoButtonsViewModel
+@inject BL.Factory _f
+
+@{
+    if (Model.disp == null)
+    {
+        Model.disp = new BO.j02RecDisposition() { OwnerAccess = _f.CurrentUser.IsAdmin,ReadAccess=false };
+    }
+    bool _bolGridAccess = false;
+    bool _bolPageAccess = Model.disp.ReadAccess;
+    switch (Model.prefix)
+    {
+        case "j02":
+            _bolGridAccess = _f.CurrentUser.j04IsModule_j02; break;
+        case "p28":
+            _bolGridAccess = _f.CurrentUser.j04IsModule_p28; break;
+        case "p41":
+            _bolGridAccess = _f.CurrentUser.j04IsModule_p41; break;
+        case "p91":
+            _bolGridAccess = _f.CurrentUser.j04IsModule_p91; break;
+        case "p90":
+            _bolGridAccess = _f.CurrentUser.j04IsModule_p90; break;
+        case "o23":
+            _bolGridAccess = _f.CurrentUser.j04IsModule_o23; break;
+        case "p56":
+            _bolGridAccess = _f.CurrentUser.j04IsModule_p56; break;
+        case "o22":
+            _bolGridAccess = _f.CurrentUser.j04IsModule_o23; break;
+        default:
+            _bolGridAccess = _f.CurrentUser.IsAdmin; break;
+    }
+
+    string _GridUrl = null;
+    if (_bolGridAccess)
+    {
+        _GridUrl = new UI.Menu.TheMenuSupport(_f).GetMainmenuEntityUrl(Model.prefix);
+        
+        _GridUrl = $"{_GridUrl}&myqueryinline=pids|list_int|{Model.pid}";
+    }
+
+}
+
+
+
+@if (Model.disp.OwnerAccess)
+{
+    <a class="btn btn-light" href="javascript:_edit('@(Model.prefix)',@Model.pid)" title="@_f.tra("Upravit kartu záznamu")"><span class="material-icons-outlined-btn">edit_note</span></a>
+}
+
+@if (_bolGridAccess)
+{
+    <a class="btn btn-light" href="/Record/RecPage?prefix=@(Model.prefix)&pid=@Model.pid" title="@_f.tra("Stránka záznamu")" target="_top"><span class="material-icons-outlined-btn">maps_home_work</span></a>
+
+}
+@if (_bolGridAccess)
+{
+    <a class="btn btn-light" href="@(_GridUrl)" target="_top" title="Zobrazit v Tabulce"><span class="material-icons-outlined-btn">grid_view</span></a>
+}
+
+@if (Model.prefix == "p28" || Model.prefix == "le5" || Model.prefix == "le4" || Model.prefix == "p41")
+{
+    <a class="btn btn-light" href="javascript:_window_open('/p31/Record?pid=0&newrec_prefix=@(Model.prefix)&newrec_pid=@(Model.pid)',3)" title="@_f.tra("Vykázat úkon")"><span class="material-icons-outlined-btn">more_time</span></a>
+}

@@ -1,0 +1,94 @@
+﻿@model UI.Models.p31invoice.Append2InvoiceViewModel
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = _f.tra("Přidat do vybraného vyúčtování");
+    Model.PageSymbol = "p91";
+}
+
+@addTagHelper *, UI
+
+<div class="bg-light" style="padding:10px;">
+    <button type="button" id="cmdSave" class="btn btn-success"><span class="material-icons-outlined-btn">done</span>@_f.tra("Pokračovat")</button>
+
+    <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
+
+
+</div>
+
+<form id="form1" asp-controller="p31invoice" asp-action="Append2Invoice" method="POST">
+    <div style="max-width:1200px;">
+        <mycombo entity="p91Invoice" asp-for="@Model.SelectedInvoiceP91ID" selectedtext="@Model.SelectedInvoiceText" event_after_changevalue="p91id_onchange" placeholder="@_f.tra("Vyberte cílové vyúčtování")" filter-flag="1"></mycombo>
+        
+    </div>
+    
+
+
+    <input type="hidden" asp-for="@Model.pids" />
+
+
+    @if(Model.Rec != null)
+    {
+        
+        <div class="card recpagebox400">
+            <div class="card-body">
+                @await Html.PartialAsync("~/Views/Shared/_p91RecHeaderBox.cshtml", Model.Rec)                
+
+                @Html.EditorFor(m => m.Rec, "~/Views/Shared/_TimeStamp.cshtml")
+            </div>
+        </div>
+        <div class="card recpageboxauto" style="width:290px;">
+            <div class="card-body">
+                @await Html.PartialAsync("~/Views/Shared/_p91RecCastkyBox.cshtml", Model.Rec)
+            </div>
+        </div>
+
+
+        <div class="card recpageboxauto" style="width:290px;">
+            <div class="card-body">
+                @await Html.PartialAsync("~/Views/Shared/_p91RecDatumyBox.cshtml", Model.Rec)
+            </div>
+        </div>
+
+        
+        <div style="clear:both;"></div>
+        <p></p>
+        @await Html.PartialAsync("~/Views/Shared/_p91CenovyRozpis.cshtml", Model.Rec.pid)
+    }
+
+</form>
+
+
+<script type="text/javascript">
+    
+    $(document).ready(function () {
+
+
+       
+
+        $("#cmdSave").click(function () {
+            $(this).text("Processing...");
+            $(this).attr("disabled", true);
+
+            
+            form1.submit();
+        });
+
+       
+
+
+
+    });
+
+
+    function p91id_onchange(j02id) {
+        _postback("refresh");
+    }
+    
+
+    
+
+
+</script>

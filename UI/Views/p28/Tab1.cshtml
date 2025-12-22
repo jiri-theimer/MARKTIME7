@@ -1,0 +1,626 @@
+﻿@model UI.Models.Tab1.p28Tab1
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+    if (Model.Rec == null) return;
+
+    var _lisO24 = _f.o24ReminderBL.GetList("p28", Model.pid);
+    IEnumerable<BO.b05Workflow_History> _lisB05 = _f.WorkflowBL.GetList_b05("p28", Model.pid, 0, 0, 0).Where(p => BO.Code.Bas.bit_compare_or(p.b05Tab1Flag, 2) == true);
+
+    bool _bolIsMobile = _f.CurrentUser.IsMobileDisplay();
+    string _strRecPage = "RecPage";
+    if (_bolIsMobile)
+    {
+        _strRecPage = "RecPageMobile";
+    }
+
+    var _lisO32 = _f.p28ContactBL.GetList_o32(Model.pid, 0,0);
+
+    var _lisP30 = _f.p28ContactBL.GetList_p30(Model.pid);
+    bool bolIsKontaktniOsoba = false;
+    List<int> p28ids_mother = null;
+    if (_lisP30.Count() == 0)
+    {
+        _lisP30 = _f.p28ContactBL.GetList_p30_mother(Model.pid); //p30 záznamy, kde je kontakt kontaktní osobou
+        if (_lisP30.Count() > 0)
+        {
+            bolIsKontaktniOsoba = true;
+            p28ids_mother = _lisP30.Select(p => p.p28ID).ToList();
+            _lisP30 = _f.p28ContactBL.GetList_p30(p28ids_mother);
+        }
+    }
+
+
+
+
+    string _strBadgeHeader = null;
+    var _lisP41 = _f.p41ProjectBL.GetList_p41InProjectBox(Model.pid);
+
+    if (_lisP41.Count() == 0 && bolIsKontaktniOsoba)
+    {
+        _lisP41 = _f.p41ProjectBL.GetList_p41InProjectBox(p28ids_mother);
+    }
+
+    int intOtevrene = _lisP41.Where(p => p.p41ValidUntil > DateTime.Now).Count();
+    if (_lisP41.Count() == intOtevrene)
+    {
+        _strBadgeHeader = intOtevrene.ToString();
+    }
+    else
+    {
+        _strBadgeHeader = $"{intOtevrene}+{(_lisP41.Count() - intOtevrene)}";
+    }
+
+    if (!Model.Rec.isclosed)
+    {
+        _lisP41 = _lisP41.Where(p => p.p41ValidUntil > DateTime.Today);
+    }
+
+    var _lisP26 = _f.p28ContactBL.GetList_p26(Model.pid);
+
+    var _lisP24 = _f.p24ContactGroupBL.GetList(new BO.myQueryP24() { p28id = Model.pid });
+
+    IEnumerable<BO.p40WorkSheet_Recurrence> _lisP40 = null;
+    if (_f.CurrentUser.IsRatesAccess)
+    {
+        _lisP40 = _f.p40WorkSheet_RecurrenceBL.GetList(new BO.myQueryP40() { p28id = Model.pid });
+    }
+
+
+    IEnumerable<BO.o23Doc> _lisO23 = null;
+    if (_f.CurrentUser.j04IsModule_o23)
+    {
+        _lisO23 = _f.o23DocBL.GetList(new BO.myQueryO23() { p28id = Model.pid, IsRecordValid = true,MyRecordsDisponible=true });
+    }
+
+    IEnumerable<BO.p91Invoice> _lisP91 = null;
+    if (_f.CurrentUser.j04IsModule_p91)
+    {
+        _lisP91 = _f.p91InvoiceBL.GetList(new BO.myQueryP91() { p28id = Model.pid, MyRecordsDisponible = true });
+    }
+
+    var _lisB20 = _f.b20HlidacBL.GetListB21("p28", Model.pid);
+
+    BO.TaggingHelper _tg = null;
+    if (Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.tags))
+    {
+        _tg = _f.o51TagBL.GetTagging("p28", Model.pid);
+    }
+
+    IEnumerable<BO.p28Contact> _lisTree = null;
+
+    if (Model.Rec.p28ParentID>0 || Model.Rec.p28TreeNext > Model.Rec.p28TreePrev)
+    {
+        var recTop = _f.p28ContactBL.LoadTreeTopRec(Model.Rec);
+        _lisTree = _f.p28ContactBL.GetList(new BO.myQueryP28() {IsRecordValid=null, treeprev = recTop.p28TreePrev, treenext = recTop.p28TreeNext });
+    }
+}
+
+@addTagHelper *, UI
+@section header_content {
+
+
+    <link rel="stylesheet" href="/css/htmltable.css" />
+
+
+}
+
+
+
+<script src="~/js/rejstriky.js" asp-append-version="true"></script>
+
+@await Html.PartialAsync("~/Views/Shared/_Tab1ButtonSetting.cshtml", Model.prefix)
+
+@Html.Raw("<div class='info_record_container'>")
+
+@if (Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.recheader))
+{
+    <div class="card recpagebox400" id="divRecPageBox1">
+        <div class="card-body">
+            @Html.EditorFor(m => m.Rec, "~/Views/Shared/_p28RecHeaderBox.cshtml")
+
+            @Html.EditorFor(m => m.ff1, "~/Views/Shared/_FreeFieldsRO.cshtml")
+
+            @if (_tg != null && _tg.TagHtml != null)
+            {
+                @Html.Raw(_tg.TagHtml)
+
+
+            }
+
+            @Html.EditorFor(m => m.Rec, "~/Views/Shared/_TimeStamp.cshtml")
+        </div>
+    </div>
+
+}
+
+@if (Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.navigor))
+{
+    <div id="divTree1Container" style="float: left;vertical-align: top;border:none;margin-left:4px;margin-top:4px;">
+        @Html.EditorFor(m => _lisO24, "~/Views/Shared/_o24TreeView.cshtml")
+        @Html.EditorFor(m => _lisB20, "~/Views/Shared/_b20TreeView.cshtml")
+
+
+        
+
+        @if (_lisP41 != null && _lisP41.Count() > 0)
+        {
+            <ul class="mytreeview">
+                <li>
+                    <a class="mytreeview-toggle-kontejner" onclick="_treeview_toggle(this,'tab1-p28-toggle-p41')">
+                        <span class="material-icons-outlined-btn mytreeview-toggle-sipka">@(UI.Code.basKendoTreeViewSupport.Get_Arrow_LastState(_f, "tab1-p28-toggle-p41"))</span>
+                        <span class="material-icons-outlined-btn">work_outline</span>
+                        <span>@_f.tra("Projekty klienta") (@_strBadgeHeader) </span>
+
+                    </a>
+
+                    <ul style="display:@(UI.Code.basKendoTreeViewSupport.Get_UL_LastState(_f,"tab1-p28-toggle-p41"))">
+                        @foreach (var c in _lisP41)
+                        {
+                            <li>
+                                @if (_f.CurrentUser.j04IsModule_p41)
+                                {
+                                    <myval value="@(BO.Code.Bas.OM2(c.Project, 35))" hoverprefix="p41" hoverpid="@c.p41ID" datatype="link" linktarget="_top" linkurl="/Record/RecPage?prefix=p41&pid=@(c.p41ID)"></myval>
+
+                                    
+                                }
+                                else
+                                {
+                                    <small title="@(c.Project.Length>35 ? c.Project : null)">@(BO.Code.Bas.OM2(c.Project, 35))</small>
+                                }
+
+                                @if (c.p28ID_Client != Model.pid)
+                                {
+                                    <a class="treeview-link" style="margin-left:6px;;" target="_top" href="/Record/@(_strRecPage)?prefix=p28&pid=@(c.p28ID_Client)">@(BO.Code.Bas.OM2(c.Client, 20))</a>
+                                }
+                            </li>
+                        }
+
+                    </ul>
+
+                </li>
+            </ul>
+        }
+
+        
+
+        @if (_lisO32.Count() > 0)
+        {
+            <ul class="mytreeview">
+                <li>
+                    <a class="mytreeview-toggle-kontejner" onclick="_treeview_toggle(this,'tab1-p28-toggle-o32')">
+                        <span class="material-icons-outlined-btn mytreeview-toggle-sipka">@(UI.Code.basKendoTreeViewSupport.Get_Arrow_LastState(_f, "tab1-p28-toggle-o32"))</span>
+                        <span class="material-icons-outlined-btn">alternate_email</span>
+                        <span>@_f.tra("Kontaktní média") (@(_lisO32.Count()))</span>
+
+                    </a>
+
+                    <ul style="display:@(UI.Code.basKendoTreeViewSupport.Get_UL_LastState(_f,"tab1-p28-toggle-o32"))">
+                        @foreach (var c in _lisO32)
+                        {
+                            <li>
+                                @switch (c.o33ID)
+                                {
+                                    case BO.o33FlagEnum.URL:
+                                        <a href="@c.o32Value" target="_blank">@c.o32Value</a>
+                                        break;
+                                    case BO.o33FlagEnum.Email:
+                                    case BO.o33FlagEnum.EmailBCC:
+                                    case BO.o33FlagEnum.EmailCC:
+                                        <a href="mailto: @c.o32Value">@c.o32Value</a>
+                                        break;
+
+                                    default:
+                                        <span>@c.o32Value</span>
+                                        break;
+                                }
+                                @if (c.o32Person != null)
+                                {
+                                    <code>@c.o32Person</code>
+                                }
+                                @if (c.o32Description != null)
+                                {
+                                    <val>@c.o32Description</val>
+                                }
+                                @switch (c.o33ID)
+                                {
+                                    case BO.o33FlagEnum.EmailBCC:
+                                        <var>BCC</var>
+                                        break;
+                                    case BO.o33FlagEnum.EmailCC:
+                                        <var>CC</var>
+                                        break;
+
+                                }
+
+                                @if (c.o32IsDefaultInInvoice)
+                                {
+                                    <mark>F</mark>
+                                }
+                            </li>
+                        }
+
+                    </ul>
+
+                </li>
+            </ul>
+        }
+
+        @if (_lisP30.Count() > 0)
+        {
+            <ul class="mytreeview">
+                <li>
+                    <a class="mytreeview-toggle-kontejner" onclick="_treeview_toggle(this,'tab1-p28-toggle-p30')">
+                        <span class="material-icons-outlined-btn mytreeview-toggle-sipka">@(UI.Code.basKendoTreeViewSupport.Get_Arrow_LastState(_f, "tab1-p28-toggle-p30"))</span>
+                        <span class="material-icons-outlined-btn">face</span>
+                        <span>@_f.tra("Kontaktní osoby") (@(_lisP30.Count()))</span>
+
+                    </a>
+
+
+                    <ul style="display:@(UI.Code.basKendoTreeViewSupport.Get_UL_LastState(_f,"tab1-p28-toggle-p30"))">
+                        @foreach (var c in _lisP30)
+                        {
+                            <li>
+                                @if (_f.CurrentUser.j04IsModule_p28)
+                                {
+                                    @if (c.p28ID_Person == Model.pid)
+                                    {
+                                        <a class="treeview-link active" target="_top" href="/Record/@(_strRecPage)?prefix=p28&pid=@(c.p28ID_Person)">@c.Person</a>
+                                    }
+                                    else
+                                    {
+                                        <a class="treeview-link" target="_top" href="/Record/@(_strRecPage)?prefix=p28&pid=@(c.p28ID_Person)">@c.Person</a>
+                                    }
+
+                                }
+                                else
+                                {
+                                    <small>@c.Person</small>
+                                }
+                                @if(c.p30Name != null)
+                                {
+                                    <var>@c.p30Name</var>
+                                }
+
+                                @if (Model.pid != c.p28ID)
+                                {
+                                    <a class="treeview-link" style="margin-left:6px; color:green;" target="_top" href="/Record/@(_strRecPage)?prefix=p28&pid=@(c.p28ID)">@(BO.Code.Bas.OM2(c.Mother, 20))</a>
+                                }
+
+                            </li>
+                        }
+
+                    </ul>
+
+                </li>
+            </ul>
+        }
+
+
+
+        @if (_lisP40 != null && _lisP40.Count() > 0)
+        {
+            <ul class="mytreeview">
+                <li>
+                    <a class="mytreeview-toggle-kontejner" onclick="_treeview_toggle(this,'tab1-p28-toggle-p40')">
+                        <span class="material-icons-outlined-btn mytreeview-toggle-sipka">@(UI.Code.basKendoTreeViewSupport.Get_Arrow_LastState(_f, "tab1-p28-toggle-p40", "collapsed"))</span>
+                        <span class="material-icons-outlined-btn">repeat_on</span>
+                        <span>@_f.tra("Opakované odměny") (@(_lisP40.Count()))</span>
+
+                    </a>
+
+                    <ul style="display:@(UI.Code.basKendoTreeViewSupport.Get_UL_LastState(_f,"tab1-p28-toggle-p40","collapsed"))">
+                        @foreach (var c in _lisP40)
+                        {
+                            <li>
+                                <a class="treeview-link" target="_top" title="@c.Project" href="/Record/@(_strRecPage)?prefix=p40&pid=@(c.pid)">@(BO.Code.Bas.OM2(c.p40Name, 20))</a>
+                                <small style="color:green;">
+                                    @(BO.Code.Bas.Number2String(c.p40Value)) @c.j27Code
+                                </small>
+                                @if (c.p40LastSupplyDate < DateTime.Now)
+                                {
+                                    <small class="badge text-bg-warning">Expirovalo</small>
+                                }
+                            </li>
+                        }
+
+                    </ul>
+
+                </li>
+            </ul>
+        }
+
+        @if (_lisP26.Count() > 0)
+        {
+            <ul class="mytreeview">
+                <li>
+                    <a class="mytreeview-toggle-kontejner" onclick="_treeview_toggle(this,'tab1-p28-toggle-p26')">
+                        <span class="material-icons-outlined-btn mytreeview-toggle-sipka">@(UI.Code.basKendoTreeViewSupport.Get_Arrow_LastState(_f, "tab1-p28-toggle-p26"))</span>
+                        <span class="material-icons-outlined-btn">work_outline</span>
+                        <span>@_f.tra("Ostatní vazby s projekty") (@(_lisP26.Count()))</span>
+
+                    </a>
+
+                    <ul style="display:@(UI.Code.basKendoTreeViewSupport.Get_UL_LastState(_f,"tab1-p28-toggle-p26"))">
+                        @foreach (var c in _lisP26)
+                        {
+                            <li>
+                                @c.p26Name
+                                <myval value="@c.p41Name" hoverprefix="p41" hoverpid="@c.p41ID"></myval>
+                            </li>
+                        }
+
+                    </ul>
+
+                </li>
+            </ul>
+        }
+
+        @if(_lisTree != null)
+        {
+            <ul class="mytreeview">
+                <li>
+                    <a class="mytreeview-toggle-kontejner" onclick="_treeview_toggle(this,'tab1-p28-toggle-tree')">
+                        <span class="material-icons-outlined-btn mytreeview-toggle-sipka">@(UI.Code.basKendoTreeViewSupport.Get_Arrow_LastState(_f, "tab1-p28-toggle-tree"))</span>
+                        <span class="material-icons-outlined-btn" onclick="_treeview_toggle(this)">account_tree</span>
+                        <span>@_f.tra("Stromová struktura") (@(_lisTree.Count()))</span>
+
+                    </a>
+
+                    <ul id="ulTree1" style="display:@(UI.Code.basKendoTreeViewSupport.Get_UL_LastState(_f,"tab1-p28-toggle-tree"))">
+
+
+                        <ul class="mytreeview">
+                            @foreach (var c0 in _lisTree.Where(p => p.p28TreeLevel == 0))
+                            {
+                                <li>
+
+                                    @if (c0.p28TreeNext > c0.p28TreePrev)
+                                    {
+                                        <span class="material-icons-outlined-btn mytreeview-toggle-sipka" onclick="_treeview_toggle(this)">arrow_drop_down</span>
+                                        <span class="material-icons-outlined-btn">folder</span>
+                                    }
+
+                                    <a class="treeview-link" style="@(c0.ValidUntil<DateTime.Now ? "text-decoration: line-through": null)" id="p28tree@(c0.pid)" target="_top" href="/Record/@(_strRecPage)?prefix=p28&pid=@(c0.pid)">@(c0.p28Name)</a>
+
+
+                                    @if (c0.p28TreeNext > c0.p28TreePrev)
+                                    {
+                                        <ul>
+                                            @foreach (var c1 in _lisTree.Where(p => p.p28ParentID == c0.pid))
+                                            {
+                                                <li>
+                                                    @if (c1.p28TreeNext > c1.p28TreePrev)
+                                                    {
+                                                        <span class="material-icons-outlined-btn mytreeview-toggle-sipka" onclick="_treeview_toggle(this)">arrow_drop_down</span>
+                                                        <span class="material-icons-outlined-btn">folder</span>
+                                                    }
+
+                                                    <a class="treeview-link" id="p28tree@(c1.pid)" style="@(c1.ValidUntil<DateTime.Now ? "text-decoration: line-through": null)" target="_top" href="/Record/@(_strRecPage)?prefix=p28&pid=@(c1.pid)">@(c1.p28Name)</a>
+
+
+                                                    @if (c1.p28TreeNext > c1.p28TreePrev)
+                                                    {
+                                                        <ul>
+                                                            @foreach (var c2 in _lisTree.Where(p => p.p28ParentID == c1.pid))
+                                                            {
+                                                                <li>
+                                                                    @if (c2.p28TreeNext > c2.p28TreePrev)
+                                                                    {
+                                                                        <span class="material-icons-outlined-btn mytreeview-toggle-sipka" onclick="_treeview_toggle(this)">arrow_drop_down</span>
+                                                                        <span class="material-icons-outlined-btn">folder</span>
+                                                                    }
+
+                                                                    <a class="treeview-link" id="p28tree@(c2.pid)" target="_top" style="@(c2.ValidUntil<DateTime.Now ? "text-decoration: line-through": null)" href="/Record/@(_strRecPage)?prefix=p28&pid=@(c2.pid)">@(c2.p28Name)</a>
+                                                                    @if (c2.p28TreeNext > c2.p28TreePrev)
+                                                                    {
+                                                                        <ul>
+                                                                            @foreach (var c3 in _lisTree.Where(p => p.p28ParentID == c2.pid))
+                                                                            {
+                                                                                <li>
+                                                                                    <a class="treeview-link" id="p28tree@(c3.pid)" style="@(c3.ValidUntil<DateTime.Now ? "text-decoration: line-through": null)" target="_top" href="/Record/@(_strRecPage)?prefix=p28&pid=@(c3.pid)">@(c3.p28Name)</a>
+                                                                                </li>
+                                                                            }
+                                                                        </ul>
+                                                                    }
+                                                                </li>
+
+                                                            }
+                                                        </ul>
+                                                    }
+                                                </li>
+                                            }
+                                        </ul>
+                                    }
+                                </li>
+                            }
+                        </ul>
+
+                    </ul>
+
+                </li>
+            </ul>
+        }
+
+        @if (_lisP24.Count() > 0)
+        {
+            <ul class="mytreeview">
+                <li>
+                    <a class="mytreeview-toggle-kontejner" onclick="_treeview_toggle(this,'tab1-p28-toggle-p24')">
+                        <span class="material-icons-outlined-btn mytreeview-toggle-sipka">@(UI.Code.basKendoTreeViewSupport.Get_Arrow_LastState(_f, "tab1-p28-toggle-p24"))</span>
+                        <span class="material-icons-outlined-btn" onclick="_treeview_toggle(this)">groups</span>
+                        <span>@_f.tra("Zařazení do skupin kontaktů") (@(_lisP24.Count()))</span>
+
+                    </a>
+
+                    <ul style="display:@(UI.Code.basKendoTreeViewSupport.Get_UL_LastState(_f,"tab1-p28-toggle-p24"))">
+                        @foreach (var c in _lisP24)
+                        {
+                            <li>
+                                <a class="treeview-link" href="javascript:_window_open('/p24/Record?pid=@(c.pid)')">@c.p24Name</a>
+
+                            </li>
+                        }
+
+                    </ul>
+
+                </li>
+            </ul>
+        }
+
+        @if (_lisO23 != null && _lisO23.Count() > 0)
+        {
+            <ul class="mytreeview">
+                <li>
+                    <a class="mytreeview-toggle-kontejner" onclick="_treeview_toggle(this,'tab1-p28-toggle-o23')">
+                        <span class="material-icons-outlined-btn mytreeview-toggle-sipka">@(UI.Code.basKendoTreeViewSupport.Get_Arrow_LastState(_f, "tab1-p28-toggle-o23"))</span>
+                        <span class="material-icons-outlined-btn" onclick="_treeview_toggle(this)">file_present</span>
+                        <span>@_f.tra("Dokumenty") (@(_lisO23.Count()))</span>
+                    </a>
+                    <ul style="display:@(UI.Code.basKendoTreeViewSupport.Get_UL_LastState(_f,"tab1-p28-toggle-o23","collapsed"))">
+                        @foreach (var c in _lisO23)
+                        {
+                            <li>
+                                <a class="treeview-link" target="_top" title="@c.o18Name" href="/Record/@(_strRecPage)?prefix=o23&pid=@(c.pid)">@(BO.Code.Bas.OM2(c.o23Name, 35))</a>
+                                
+                            </li>
+                        }
+
+                    </ul>
+
+                </li>
+            </ul>
+        }
+
+        @if (_lisP91 != null && _lisP91.Count() > 0)
+        {
+            <ul class="mytreeview">
+                <li>
+                    <a class="mytreeview-toggle-kontejner" onclick="_treeview_toggle(this,'tab1-p28-toggle-p91')">
+                        <span class="material-icons-outlined-btn mytreeview-toggle-sipka">@(UI.Code.basKendoTreeViewSupport.Get_Arrow_LastState(_f, "tab1-p28-toggle-p91"))</span>
+                        <span class="material-icons-outlined-btn" onclick="_treeview_toggle(this)">receipt_long</span>
+                        <span>@_f.tra("Vyúčtování") (@(_lisP91.Count()))</span>
+                    </a>
+                    <ul style="display:@(UI.Code.basKendoTreeViewSupport.Get_UL_LastState(_f,"tab1-p28-toggle-p91","collapsed"))">
+                        <li>
+
+                            <table class="table-sm table-hover table">
+                                @foreach (var c in _lisP91)
+                                {
+                                    <tr>
+                                        <td style="background-color: @(c.p91Amount_Debt > 1 && DateTime.Today>c.p91DateMaturity ? "red": "none")">
+                                            <a class="treeview-link" target="_top" href="/Record/@(_strRecPage)?prefix=p91&pid=@(c.pid)">@c.p91Code</a>
+                                        </td>
+                                        <td>
+                                            @(BO.Code.Bas.ObjectDate2String(c.p91DateSupply, "dd.MM.yyyy"))
+                                        </td>
+                                        <td class="tdcastka" style="text-align:right;">
+
+                                            @(BO.Code.Bas.Number2String(c.p91Amount_WithoutVat)) @c.j27Code
+
+                                        </td>
+
+
+
+
+                                    </tr>
+                                }
+                            </table>
+                        </li>
+
+                    </ul>
+
+                </li>
+            </ul>
+        }
+    </div>
+
+    
+        
+}
+
+
+
+
+@if (Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.p28billingbox) && _f.CurrentUser.IsRatesAccess && (Model.Rec.p29ScopeFlag == BO.p29ScopeFlagENUM.Anyone || Model.Rec.p29ScopeFlag == BO.p29ScopeFlagENUM.Client || Model.Rec.p29ScopeFlag == BO.p29ScopeFlagENUM.ClientOrSupplier))
+{
+    
+    <div class="card recpageboxauto">
+        <div class="card-body">
+
+            @await Html.PartialAsync("~/Views/Shared/_p28RecBillingBox.cshtml", Model.Rec)
+
+        </div>
+    </div>
+}
+
+
+
+@if (Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.quickstat) && _f.CurrentUser.j04IsModule_p31 && _f.CBL.LoadUserParamBool($"p28-quickstat-immediately", false))
+{
+    <div class="recpageboxauto">
+        @await Html.PartialAsync("~/Views/Shared/_TabStat.cshtml", Model)
+    </div>
+
+
+}
+
+
+@if (Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.o27list))
+{
+    @Html.EditorFor(m => m, "~/Views/Shared/_lisO27Tab1.cshtml")
+}
+
+
+@Html.Raw("</div>")
+
+@if (Model.Rec.p28BillingMemo200 != null)
+{
+    <div class="recpageboxauto" style="background-color:#DFFFE9;padding:3px;" title="Fakturační poznámka">
+        @Html.Raw(_f.p28ContactBL.LoadBillingMemo(Model.Rec.pid))
+    </div>
+}
+
+@if (_lisB05.Count() > 0)
+{
+    <div class="recpageboxauto">
+        @await Html.PartialAsync("~/Views/Shared/_lisB05.cshtml", _lisB05)
+    </div>
+}
+
+
+
+
+
+<script type="text/javascript">
+
+
+    $(document).ready(function () {
+
+        if (document.getElementById("divTree1Container")) {
+
+
+            _adjust_divheight_small_display("divTree1Container");
+
+        }
+
+        if (document.getElementById("divRecPageBox1")) {
+            _adjust_divheight_small_display("divRecPageBox1");
+        }
+
+
+        if (document.getElementById("ulTree1"))
+        {
+            $("#p28tree@(Model.pid)").addClass("active");
+        }
+
+    });
+
+
+
+
+
+</script>

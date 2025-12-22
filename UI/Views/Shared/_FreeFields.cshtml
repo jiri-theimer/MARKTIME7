@@ -1,0 +1,145 @@
+﻿@model FreeFieldsViewModel
+
+@{
+    if (Model == null || Model.inputs == null)
+    {
+        return;
+    }
+    string _labelclassname = "col-sm-2 col-md-3 col-form-label recpagelabel";
+    if (Model.caller == "p31record")
+    {
+        _labelclassname = "col-sm-2 col-md-2 col-form-label recpagelabel";
+    }
+
+}
+
+@addTagHelper *, UI
+
+@for (int i = 0; i <= Model.inputs.Count() - 1; i++)
+{
+    <div class="row my-2" style="@Model.inputs[i].CssDisplay">
+        @switch (Model.inputs[i].TypeName)
+        {
+            @case "integer":
+            @case "decimal":
+                <label for="numff1_inputs_@(i)__NumInput" class="@(_labelclassname)">@(Model.inputs[i].x28Name):</label>
+                break;
+            @case "date":
+            @case "datetime":
+                <label for="ff1_inputs_@(i)__DateInputhelper" class="@(_labelclassname)">@(Model.inputs[i].x28Name):</label>
+                break;
+            @case "boolean":
+                break;
+            @default:
+                <label for="ff1_inputs_@(i)__StringInput" class="@(_labelclassname)">@(Model.inputs[i].x28Name):</label>
+                break;
+        }
+
+
+
+        <div class="@(Model.inputs[i].TypeName == "string" ? "col-sm-10 col-md-9" : "col-sm-4 col-md-3")">
+
+            @switch (Model.inputs[i].TypeName)
+            {
+                @case "integer":
+                    <mynumber decimal-digits="0" asp-for="inputs[i].NumInput" elementid-prefix="@Model.elementidprefix"></mynumber>
+                    break;
+
+                @case "decimal":
+                    <mynumber decimal-digits="2" asp-for="inputs[i].NumInput" elementid-prefix="@Model.elementidprefix"></mynumber>
+                    break;
+
+                @case "date":
+                    <mydate asp-for="inputs[i].DateInput" elementid-prefix="@Model.elementidprefix"></mydate>
+                    break;
+
+                @case "datetime":
+                    <mydate asp-for="inputs[i].DateInput" include-time="true" elementid-prefix="@Model.elementidprefix"></mydate>
+                    break;
+
+                @case "boolean":
+                    <input type="checkbox" asp-for="inputs[i].CheckInput" />
+                    <label for="ff1_inputs_@(i)__CheckInput">@Model.inputs[i].x28Name</label>
+                    break;
+
+                @default:
+                    @if (Model.inputs[i].x28IsFixedDataSource)
+                    {
+                        <select class="form-select" asp-for="inputs[i].StringInput">
+                            @foreach (var xx in BO.Code.Bas.ConvertString2List(Model.inputs[i].x28DataSource, ";"))
+                            {
+                                <option value="@(xx)">@(xx)</option>
+                            }
+
+                        </select>
+                    }
+                    else
+                    {
+                        @if (Model.inputs[i].TextboxHeight > 0)
+                        {
+                            <textarea class="form-control" asp-for="inputs[i].StringInput"></textarea>
+                        }
+                        else
+                        {
+                            
+
+                            @if (Model.inputs[i].x28DataSource != null)
+                            {
+                                <div class="row">
+                                    <div class="col m-0 p-0">
+                                        <input type="text" class="form-control" asp-for="inputs[i].StringInput" />
+                                    </div>
+
+                                    <div class="col m-0 p-0">
+                                        <button type="button" class="btn bog" onclick="_window_open('/Record/FreeFieldsAutoComplete?x28field=@(Model.inputs[i].x28Field)&header=@(Model.inputs[i].x28Name)&controlid=ff1_inputs_@(i)__StringInput')">...</button>
+                                    </div>
+                                    
+                                </div>
+
+                                <script type="text/javascript">
+                                    _autocomplete_setup("ff1_inputs_@(i)__StringInput", "@(Model.inputs[i].x28DataSource)", ";")
+
+                                </script>
+                            }
+                            else
+                            {
+                                <div class="input-group mb-3">
+                                    <input type="text" class="form-control" asp-for="inputs[i].StringInput" />
+
+                                    <button type="button" class="btn btn-sm bog" onclick="_window_open('/Record/FreeFieldsAutoComplete?x28field=@(Model.inputs[i].x28Field)&header=@(Model.inputs[i].x28Name)&controlid=ff1_inputs_@(i)__StringInput')">...</button>
+                                </div>
+                            }
+                        }
+
+                    }
+
+                    break;
+            }
+
+
+
+
+        </div>
+
+        @if (Model.inputs[i].x28ReminderNotifyBefore > 0)
+        {
+            <div class="col-sm-6 col-md-5">
+                <mark>reminder:</mark>
+                <code>- @(Model.inputs[i].x28ReminderNotifyBefore) h.</code>
+
+            </div>
+        }
+
+    </div>
+    <input type="hidden" asp-for="inputs[i].IsVisible" value="@Model.inputs[i].IsVisible" />
+    <input type="hidden" asp-for="inputs[i].x28DataSource" />
+    <input type="hidden" asp-for="inputs[i].x28IsFixedDataSource" />
+    <input type="hidden" asp-for="inputs[i].x28IsRequired" />
+    <input type="hidden" asp-for="inputs[i].x28Field" />
+    <input type="hidden" asp-for="inputs[i].x28Name" />
+    <input type="hidden" asp-for="inputs[i].TypeName" />
+    <input type="hidden" asp-for="inputs[i].x28Entity" />
+    <input type="hidden" asp-for="inputs[i].x24ID" />
+    <input type="hidden" asp-for="inputs[i].x28ReminderNotifyBefore" />
+    <input type="hidden" asp-for="inputs[i].TextboxHeight" />
+}

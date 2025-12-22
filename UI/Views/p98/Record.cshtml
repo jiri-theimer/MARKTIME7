@@ -1,0 +1,104 @@
+﻿@model UI.Models.Record.p98Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Matematické zaokrouhlení");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    Model.PageSymbol = "settings";
+}
+
+@addTagHelper *, UI
+
+<div class="row modal_record_container">
+
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název"):</label>
+        <div class="col-sm-11 col-md-10">
+            <input class="form-control" asp-for="Rec.p98Name" />
+        </div>
+
+    </div>
+    <div class="my-2">
+        <input type="checkbox" asp-for="Rec.p98IsDefault" />
+        <label class="col-form-label" for="Rec_p98IsDefault">@_f.tra("Výchozí pravidlo pro všechny faktury bez určeného zaokrouhlování")</label>
+    </div>
+    <div class="my-2" style="display:none;">
+        <input type="checkbox" asp-for="Rec.p98IsIncludeInVat" />
+        <label class="col-form-label" for="Rec_p98IsIncludeInVat">@_f.tra("U faktur s DZP od 30.09.2019 počítat DPH z haléřového zaokrouhlení")</label>
+    </div>
+
+
+
+</div>
+
+<div class="card">
+    <div class="card-header">
+        @_f.tra("Nastavení měn faktur")
+        <button type="button" class="btn btn-outline-primary btn-sm" onclick="handle_add_row()">@_f.tra("Přidat řádek")</button>
+    </div>
+    <div class="card-body">
+        <table class="table table-hover" style="table-layout: fixed;">
+            <tr>
+                <th>@_f.tra("Měna faktury")</th>
+                <th>@_f.tra("Druh částky")</th>
+                <th>@_f.tra("Na kolik míst zaokrouhlit")</th>
+                <th style="width:40px;"></th>
+            </tr>
+            @for (int i = 0; i < Model.lisP97.Count; i++)
+            {
+        <tr style="@(Model.lisP97[i].CssTempDisplay)">
+            <td>
+                <input type="hidden" asp-for="lisP97[i].IsTempDeleted" value="@Model.lisP97[i].IsTempDeleted" />
+                <input type="hidden" asp-for="lisP97[i].TempGuid" value="@Model.lisP97[i].TempGuid" />
+
+                <mycombo entity="j27Currency" asp-for="@Model.lisP97[i].j27ID" selectedtext="@Model.lisP97[i].ComboJ27" view-flag="2"></mycombo>
+            </td>
+            <td>
+                <select asp-for="lisP97[i].p97AmountFlag" class="form-select">
+                    <option value="WithoutVAT">@_f.tra("Částka bez DPH")</option>
+                    <option value="WithVAT">@_f.tra("Částka vč. DPH")</option>
+                    <option value="VAT">@_f.tra("Částka DPH")</option>
+                </select>
+            </td>
+            <td>
+                <select asp-for="lisP97[i].p97Scale" class="form-select">
+                    <option value="0">0</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                </select>
+            </td>
+
+            <td>
+                <button type="button" class="btn btn-danger" title="@_f.tra("Odstranit řádek")" onclick="handle_delete_row('@(Model.lisP97[i].TempGuid)')">x</button>
+            </td>
+
+        </tr>
+            }
+        </table>
+    </div>
+</div>
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+    });
+
+
+
+
+
+    
+
+    function handle_delete_row(guid) {
+        _postback("delete_row", "guid=" + guid);
+      
+
+    }
+    function handle_add_row() {
+        _postback("add_row");
+       
+    }
+
+</script>

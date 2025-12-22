@@ -1,0 +1,490 @@
+﻿@model UI.Models.Record.j02Record
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    if (Model.Rec == null) return;
+    Model.PageTitle = _f.tra("Karta uživatele");
+    if (Model.RecJ04 != null)
+    {
+        Model.PageTitle = Model.RecJ04.j04Name;
+    }
+    string _FirstTabCaption = Model.PageTitle;
+    if (Model.rec_pid > 0)
+    {
+        Model.PageTitle += ": " + Model.Rec.FullNameAsc;
+    }
+
+
+
+}
+@addTagHelper *, UI
+
+
+
+
+<div class="tabs_container_record">
+    <!-- Tab panes -->
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab1" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab1">@_FirstTabCaption</a>
+        </li>
+
+        @if (Model.ff1.VisibleInputsCount > 0)
+        {
+            <li class="nav-item onetab" role="presentation">
+                <a id="link_tab3" class="nav-link" tabindex="-1" data-bs-toggle="tab" role="tab" href="#tab3">@_f.tra("Uživatelská pole") (@Model.ff1.VisibleInputsCount)</a>
+            </li>
+        }
+
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab4" class="nav-link" tabindex="-1" data-bs-toggle="tab" role="tab" href="#tab4">@_f.tra("Různé")</a>
+        </li>
+
+        <li style="margin-left:20px;">
+            @Html.EditorFor(m => Model.rec_entity, "~/Views/Shared/_cmdMoreButton.cshtml")
+        </li>
+    </ul>
+</div>
+
+<div id="divMore" class="card" style="display:none;background-color:#E6F0FF;">
+    <div style="width:300px;padding:30px;">
+        @Html.EditorFor(m => m.disp, "~/Views/Shared/_Dispozice.cshtml")
+
+
+    </div>
+</div>
+
+@Html.Raw("<div class='modal_record_container_flexi'>")
+@Html.Raw("<div class='tab-content'>")
+
+
+<div class="tab-pane tab-pane-fixed" id="tab1" role="tabpanel">
+    <!-- Tab1 -->
+
+    <div class="row">
+        <div class="col-sm-3 col-md-3">
+            <div class="row">
+
+                <div class="col-sm-12 col-md-12">
+                    <input class="form-control" asp-for="Rec.j02TitleBeforeName" placeholder="@_f.tra("Titul")" />
+
+                </div>
+
+            </div>
+            <div class="row my-2">
+
+                <div class="col-sm-12 col-md-12">
+                    <input class="form-control" asp-for="Rec.j02FirstName" placeholder="@_f.tra("Křestní jméno")" />
+                </div>
+            </div>
+            <div class="row my-2">
+
+                <div class="col-sm-12 col-md-12">
+                    <input class="form-control record_name" asp-for="Rec.j02LastName" placeholder="@_f.tra("Příjmení")" />
+                </div>
+            </div>
+            <div class="row my-2">
+
+                <div class="col-sm-12 col-md-12">
+                    <input class="form-control" asp-for="Rec.j02TitleAfterName" placeholder="@_f.tra("Za jménem")" />
+
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-6 col-md-6">
+            @if (Model.rec_pid > 0 && !Model.IsChangeLogin)
+            {
+                <div class="row">
+                    <label class="col-sm-3 col-md-4 col-form-label">
+                        @_f.tra("Uživatelské jméno"):
+                    </label>
+                    <div class="col-sm-7 col-md-8">
+                        <myval value="@Model.Rec.j02Login"></myval>
+                        <input type="hidden" asp-for="Rec.j02Login" />
+                    </div>
+                </div>
+            }
+            @if (Model.rec_pid == 0 || Model.IsChangeLogin)
+            {
+                <div class="alert alert-primary" role="alert">
+                    <div class="row">
+                        <label class="col-sm-3 col-md-4 col-form-label">
+                            @_f.tra("Nové uživatelské jméno"):
+
+                        </label>
+                        <div class="col-sm-7 col-md-6">
+                            <input class="form-control" asp-for="@Model.Rec.j02Login" value="@Model.Rec.j02Login" placeholder="@_f.tra("Login")" />
+                        </div>
+                    </div>
+
+                </div>
+            }
+            @if (Model.IsDefinePassword)
+            {
+                <div id="divNewPwd" class="alert alert-primary" role="alert" style="margin-top:10px;">
+                    <div class="row">
+                        <label class="col-sm-3 col-md-4 col-form-label">@_f.tra("Nové přístupové heslo"):</label>
+                        <div class="col-sm-7 col-md-6">
+                            <input class="form-control" autocomplete="off" asp-for="@Model.NewPassword" value="@Model.NewPassword" />
+
+                        </div>
+                        <div class="col-auto">
+                            <button type="button" tabindex="-1" class="btn btn-sm" title="@_f.tra("Navrhnout jiné heslo")" onclick="_postback('newpwd')"><myicon symbol="refresh"></myicon></button>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <label class="col-sm-3 col-md-4 col-form-label">@_f.tra("Ověření nového hesla"):</label>
+                        <div class="col-sm-7 col-md-6">
+                            <input class="form-control" autocomplete="off" asp-for="@Model.VerifyPassword" value="@Model.VerifyPassword" />
+
+                        </div>
+                    </div>
+                </div>
+            }
+
+
+            <div class="row my-2">
+                <label for="cmdComboRec_j04ID" class="col-sm-3 col-md-4 col-form-label">@_f.tra("Aplikační role"):</label>
+                <div class="col-sm-7 col-md-8">
+                    @if (_f.CurrentUser.IsAdmin)
+                    {
+                        <mycombo entity="j04UserRole" asp-for="Rec.j04ID" selectedtext="@Model.ComboJ04Name" view-flag="2" event_after_changevalue="j04id_change"></mycombo>
+                    }
+                    else
+                    {
+                        <myval value="@Model.ComboJ04Name"></myval>
+                        <input type="hidden" asp-for="Rec.j04ID" />
+                        
+                    }
+                </div>
+            </div>
+
+            <div class="row my-2">
+                <label for="Rec_j02LangIndex" class="col-sm-3 col-md-4 col-form-label">@_f.tra("Jazyk"):</label>
+                <div class="col-sm-7 col-md-8">
+                    <select class="form-select" asp-for="Rec.j02LangIndex">
+                        <option value="0">Česky</option>
+                        <option value="1">English</option>
+                        <option value="4">Slovenčina</option>
+                    </select>
+                </div>
+
+            </div>
+            <div class="row my-2">
+                <label for="Rec_j02TwoFactorVerifyFlag" class="col-sm-3 col-md-4 col-form-label">@_f.tra("2-faktorové SMS ověření"):</label>
+                <div class="col-sm-7 col-md-8">
+                    <select asp-for="@Model.Rec.j02TwoFactorVerifyFlag" class="form-select">
+                        <option value="None">@_f.tra("Nevyžadovat")</option>
+                        <option value="AlwaysAfterLogin">@_f.tra("Vyžadovat při každém přihlášení")</option>
+                        <option value="IfChangedUserAgend">@_f.tra("Vyžadovat po změně prohlížeče nebo lokality")</option>
+                    </select>
+
+                </div>
+            </div>
+
+
+
+        </div>
+
+        <div class="col-sm-3 col-md-3">
+
+            @if (Model.Rec.j02IsLoginAutoLocked)
+            {
+                <div class="alert alert-warning" role="alert">
+                    <strong>@_f.tra("Zablokovaný účet")</strong>
+                    <p>
+                        @_f.tra("Došlo k automatickému zablokování účtu po neúspěšných pokusech o přihlášení do aplikace!")
+                    </p>
+
+                    <button type="button" onclick="_postback('unblock')" class="btn btn-primary">@_f.tra("Odblokovat účet")</button>
+                </div>
+            }
+            else
+            {
+                <div class="my-2">
+                    <input type="radio" tabindex="-1" value="False" id="IsLoginManualLockedFalse" asp-for="@Model.Rec.j02IsLoginManualLocked" onchange="_postback()" /><label for="IsLoginManualLockedFalse">@_f.tra("Účet otevřený pro přihlašování")</label>
+                    <br />
+                    <input type="radio" tabindex="-1" value="True" id="IsLoginManualLockedTrue" asp-for="@Model.Rec.j02IsLoginManualLocked" onchange="_postback()" /><label for="IsLoginManualLockedTrue">@_f.tra("Účet uzavřený pro přihlašování")</label>
+                </div>
+                <div class="my-2">
+                    <input type="checkbox" tabindex="-1" asp-for="@Model.Rec.j02IsMustChangePassword" />
+                    <label for="Rec_j02IsMustChangePassword">@_f.tra("Uživatel si musí změnit heslo")</label>
+                </div>
+                @if (_f.CurrentUser.IsAdmin)
+                {
+                    <div class="my-2">
+                        @if (!Model.IsDefinePassword)
+                        {
+                            <hr />
+                            <button id="cmdNewPassword" tabindex="-1" type="button" class="btn btn-sm bog" onclick="_postback('newpwd')">@_f.tra("Vygenerovat nové přístupové heslo")</button>
+                        }
+                        @if (Model.rec_pid > 0 && !Model.IsChangeLogin)
+                        {
+                            <p></p>
+                            <button id="cmdChangeLogin" tabindex="-1" type="button" class="btn btn-sm bog" onclick="_postback('changelogin')">@_f.tra("Změnit uživatelské jméno")</button>
+                        }
+                    </div>
+                }
+                
+
+            }
+
+
+
+        </div>
+    </div>
+
+
+
+
+    <div class="row" style="margin-top:40px;">
+
+        <label for="Rec_j02Email" class="col-sm-1 col-md-2 col-form-label">@_f.tra("E-mail"):</label>
+        <div class="col-sm-4 col-md-4">
+            <input class="form-control" type="email" asp-for="Rec.j02Email" />
+
+        </div>
+        <label for="Rec_j02Code" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Kód/Osobní číslo"):</label>
+        <div class="col-sm-5 col-md-4">
+            <input class="form-control" asp-for="Rec.j02Code" />
+        </div>
+
+
+
+
+    </div>
+
+    <div class="row my-2">
+        <label for="cmdComboRec_j07ID" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Pozice"):</label>
+        <div class="col-sm-5 col-md-4">
+            <mycombo entity="j07PersonPosition" asp-for="Rec.j07ID" selectedtext="@Model.ComboJ07Name" view-flag="2" event_after_changevalue="j07id_change"></mycombo>
+        </div>
+        <label for="Rec_j02Mobile" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Mobil"):</label>
+        <div class="col-sm-5 col-md-4">
+            <input class="form-control" placeholder="@_f.tra("Mobil")" type="tel" asp-for="Rec.j02Mobile" />
+
+        </div>
+
+    </div>
+
+
+    <div class="row my-2">
+        <label for="cmdComboRec_c21ID" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Pracovní fond"):</label>
+        <div class="col-sm-5 col-md-4">
+            <mycombo entity="c21FondCalendar" asp-for="Rec.c21ID" selectedtext="@Model.ComboC21Name" view-flag="2"></mycombo>
+        </div>
+        <label for="cmdComboRec_j18ID" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Středisko"):</label>
+        <div class="col-sm-5 col-md-4">
+            <mycombo entity="j18CostUnit" asp-for="Rec.j18ID" selectedtext="@Model.ComboJ18Name" view-flag="2"></mycombo>
+
+        </div>
+
+    </div>
+
+
+
+
+
+
+    <hr />
+    <mystitky entity="j02User" asp-for="@Model.TagPids" tagnames="@Model.TagNames" taghtml="@Model.TagHtml" buttontext="@_f.tra("Oštítkovat")"></mystitky>
+
+
+
+    @if (Model.disp.IsFiles)
+    {
+        <iframe id="fraUpload" src="/FileUpload/DoUpload?recpid=@Model.rec_pid&entity=j02&guid=@Model.UploadGuid" frameborder="0" scrolling="yes" style="max-width:1200px;height:60px;"></iframe>
+    }
+
+</div>
+
+
+
+@if (Model.ff1.VisibleInputsCount > 0)
+{
+    <div class="tab-pane tab-pane-fixed" id="tab3" role="tabpanel">
+        <!-- Tab3 -->
+        @Html.EditorFor(m => m.ff1, "~/Views/Shared/_FreeFields.cshtml")
+
+    </div>
+}
+
+
+
+
+
+<div class="tab-pane tab-pane-fixed" id="tab4" role="tabpanel">
+    <!-- Tab4 -->
+    @if (_f.CurrentUser.j04IsModule_p31)
+    {
+        <div class="card">
+            <div class="card-header">
+                @_f.tra("Omezit zpětně vykazovat hodiny nebo kusovník")
+            </div>
+            <div class="card-body input-group">
+                <div>
+                    <select asp-for="@Model.Rec.j02TimesheetEntryDaysBackLimit" class="form-select">
+                        <option value="0">@_f.tra("Bez omezení")</option>
+                        <option value="999">Povolen pouze aktuální týden</option>
+                        <option value="1">-1 @_f.tra("den")</option>
+                        <option value="2">-2 @_f.tra("dny")</option>
+                        <option value="3">-3 @_f.tra("dny")</option>
+                        <option value="4">-4 @_f.tra("dny")</option>
+                        <option value="5">-5 @_f.tra("dní")</option>
+                        <option value="6">-6 @_f.tra("dní")</option>
+                        <option value="7">-7 @_f.tra("dní")</option>
+                        <option value="7">-8 @_f.tra("dní")</option>
+                        <option value="9">-9 @_f.tra("den")</option>
+                        <option value="10">-10 @_f.tra("dny")</option>
+                        <option value="14">-14 @_f.tra("dny")</option>
+                        <option value="20">-20 @_f.tra("dny")</option>
+                        <option value="30">-30 @_f.tra("dní")</option>
+
+                    </select>
+                </div>
+                <div>
+                    <mycombochecklist asp-for="Rec.j02TimesheetEntryDaysBackLimit_p34IDs" entity="p34ActivityGroup" selectedtext="@Model.p34Names" myqueryinline="ismoneyinput|bool|0" placeholder="@_f.tra("Vybrané sešity")..."></mycombochecklist>
+                </div>
+            </div>
+        </div>
+
+        <div class="row my-2">
+            <label class="col-sm-2 col-md-3 col-form-label">@_f.tra("Preferovaný formát hodin"):</label>
+            <div class="col-sm-2 col-md-2">
+                <select asp-for="Rec.j02DefaultHoursFormat" class="form-select">
+                    <option value="N">@_f.tra("Dekadické číslo (např. 1,5)")</option>
+                    <option value="T">@_f.tra("HH:MM (např. 01:30)")</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="row my-2">
+            <label class="col-sm-2 col-md-3 col-form-label">@_f.tra("Simulační nákladová sazba"):</label>
+            <div class="col-sm-2 col-md-2">
+                <mynumber asp-for="Rec.j02Plan_Internal_Rate" decimal-digits="2"></mynumber>
+            </div>
+        </div>
+
+        <div class="row my-2">
+            <label class="col-sm-2 col-md-3 col-form-label">@_f.tra("Fakturační status pro vykázané Nefa hodiny"):</label>
+            <div class="col-sm-10 col-md-9">
+                <select asp-for="Rec.p72ID_NonBillable" class="form-select">
+                    <option value="0">@_f.tra("Rozhodne systém")</option>
+                    <option value="6">@_f.tra("Zahrnout do paušálu")</option>
+                    <option value="2">@_f.tra("Viditelný odpis")</option>
+                    <option value="3">@_f.tra("Skrytý odpis")</option>
+
+                </select>
+
+            </div>
+
+        </div>
+        <div class="row my-2">
+            <label class="col-sm-2 col-md-3 col-form-label">@_f.tra("Další omezení"):</label>
+            <div class="col-sm-10 col-md-9">
+                <select asp-for="Rec.j02WorksheetOperFlag" class="form-select">
+                    <option value="None"></option>
+                    <option value="ZakazPrekrocitFond">@_f.tra("Zákaz vykázat hodiny nad denní fond")</option>
+                    <option value="ZakazVidetVyuctovaneUkony">@_f.tra("Skrýt před uživatelem vyúčtované úkony")</option>
+                </select>
+
+            </div>
+
+        </div>
+
+
+
+    }
+
+
+    <div class="form-floating my-2">
+        <textarea class="form-control" asp-for="Rec.j02EmailSignature"></textarea>
+        <label for="Rec_j02EmailSignature">@_f.tra("Podpis pro e-mail zprávy")</label>
+    </div>
+    <div class="form-floating my-2">
+        <textarea class="form-control" asp-for="Rec.j02InvoiceSignatureText"></textarea>
+        <label for="Rec_j02InvoiceSignatureText">@_f.tra("Podpis do vystavené faktury")</label>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            @_f.tra("Obrázek podpisu do faktury")
+        </div>
+        <div class="card-body p-0 m-0">
+            <input type="hidden" asp-for="@Model.SignatureInvoiceFile" />
+            <input type="hidden" asp-for="@Model.Rec.j02InvoiceSignatureFile" value="@Model.Rec.j02InvoiceSignatureFile" />
+            <input type="hidden" asp-for="@Model.IsDeleteSignature" value="@Model.IsDeleteSignature" />
+
+            <input type="hidden" asp-for="@Model.UploadGuidSignature" />
+            @if (!string.IsNullOrEmpty(Model.SignatureInvoiceFile))
+            {
+                <button type="button" id="cmdDeleteSignature" class="btn btn-danger" onclick="_postback('delete_signature');">@_f.tra("Odstranit obrázek")</button>
+                <img src="@Model.SignatureInvoiceFile" />
+            }
+            <iframe id="fraUpload" src="/FileUpload/SingleUpload?guid=@Model.UploadGuidSignature" frameborder="0" scrolling="yes"></iframe>
+        </div>
+    </div>
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">
+            @_f.tra("Kód státu"):
+
+        </label>
+        <div class="col-sm-2 col-md-3">
+            @Html.EditorFor(m => m.Rec.j02CountryCode, "~/Views/Shared/_CountryCodeCombo.cshtml")
+        </div>
+        <div class="col-auto">
+        </div>
+    </div>
+
+
+</div>
+
+
+
+@Html.Raw("</div>")
+@Html.Raw("</div>")
+
+
+
+
+
+<input type="hidden" asp-for="@Model.TempGuid" />
+<input type="hidden" asp-for="@Model.UploadGuid" />
+<input type="hidden" asp-for="@Model.IsDefinePassword" value="@Model.IsDefinePassword" />
+<input type="hidden" asp-for="@Model.IsChangeLogin" value="@Model.IsChangeLogin" />
+<input type="hidden" asp-for="@Model.Rec.j02IsLoginAutoLocked" />
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $("#cmdMore").click(function () {
+            $("#divMore").toggle();
+        });
+
+        myautocomplete_init_manual("Rec_j02TitleBeforeName", "@string.Join("|", Model.lisAutocomplete.Where(p => p.o15Flag == BO.AutoCompleteFlag.TitulPred).Select(p => p.o15Value))");
+        myautocomplete_init_manual("Rec_j02TitleAfterName", "@string.Join("|", Model.lisAutocomplete.Where(p => p.o15Flag == BO.AutoCompleteFlag.TitulZa).Select(p => p.o15Value))");
+
+    });
+
+    function j07id_change(j07id) {
+        _postback();
+    }
+
+    function j04id_change(j04id) {
+        _postback("j04id");
+    }
+
+    function handle_delete_j14(guid) {
+        _postback("delete-j14", "guid=" + guid);
+
+    }
+
+    function handle_delete_j15(guid) {
+        _postback("delete-j15", "guid=" + guid);
+
+    }
+</script>

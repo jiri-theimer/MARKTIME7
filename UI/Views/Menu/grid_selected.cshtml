@@ -1,0 +1,514 @@
+﻿@model DynamicMenuViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = null;
+    var _lisX31 = _f.x31ReportBL.GetList(new BO.myQueryX31() { IsRecordValid = true, MyRecordsDisponible = true});
+    IEnumerable<BO.x31Report> _lisX31_Kontext = null;
+    if (Model.Prefix == "p28")
+    {
+        _lisX31_Kontext = _lisX31.Where(p => p.x31QueryFlag == BO.x31QueryFlagENUM.p31 || p.x31QueryFlag == BO.x31QueryFlagENUM.p28 || p.x31QueryFlag == BO.x31QueryFlagENUM.p91);
+    }
+    if (Model.Prefix == "p41")
+    {
+        _lisX31_Kontext = _lisX31.Where(p => p.x31QueryFlag == BO.x31QueryFlagENUM.p31 || p.x31QueryFlag == BO.x31QueryFlagENUM.p41 || p.x31QueryFlag == BO.x31QueryFlagENUM.p91);
+    }
+    if (Model.Prefix == "p91")
+    {
+        _lisX31_Kontext = _lisX31.Where(p => p.x31QueryFlag == BO.x31QueryFlagENUM.p31 || p.x31QueryFlag == BO.x31QueryFlagENUM.p91);
+    }
+    if (Model.Prefix == "p56")
+    {
+        _lisX31_Kontext = _lisX31.Where(p => p.x31QueryFlag == BO.x31QueryFlagENUM.p31 || p.x31QueryFlag == BO.x31QueryFlagENUM.p56 || p.x31QueryFlag == BO.x31QueryFlagENUM.p91);
+    }
+    if (Model.Prefix == "j02")
+    {
+        _lisX31_Kontext = _lisX31.Where(p => p.x31QueryFlag == BO.x31QueryFlagENUM.p31 || p.x31QueryFlag == BO.x31QueryFlagENUM.j02 || p.x31QueryFlag == BO.x31QueryFlagENUM.p91);
+    }
+    if (Model.Prefix == "p31")
+    {
+        _lisX31_Kontext = _lisX31.Where(p => p.x31QueryFlag == BO.x31QueryFlagENUM.p31);
+    }
+
+    int _recordbinquery = _f.CBL.LoadUserParamInt($"grid-{Model.Prefix}-recordbinquery");
+    if (!string.IsNullOrEmpty(Model.MasterPrefix))
+    {
+        _recordbinquery = _f.CBL.LoadUserParamInt($"grid-{Model.Prefix}-{Model.MasterPrefix}-recordbinquery");  //2: v přehledu má uživatel archivované úkony
+    }
+
+
+
+}
+
+@addTagHelper *, UI
+
+<style type="text/css">
+    .local-header {
+        padding: 10px;
+        color: silver;
+    }
+</style>
+
+
+
+
+
+<div id="divContainerGridSel" class="dynamicmenu_container" style="min-width:500px;">
+
+    <div class="row" style="padding-left:10px;padding-right:10px;">
+       
+        <div class="col-auto" id="divAkceGridSel">
+            
+            <div class="local-header"><h5>@_f.tra("Vybrané záznamy") <span class="badge bg-primary" id="akceSelPocet"></span></h5> </div>
+            <small>(výběr pomocí myši nebo checkboxů)</small>
+
+            <div id="divSchvalovani" style="background-color:#DFFFE9;border-radius:6px;margin-bottom:10px;">
+                @if (_f.CurrentUser.j04IsModule_p31 && _f.CurrentUser.IsApprovingPerson && Model.MasterPrefix != "p91" && _recordbinquery < 2)
+                {
+
+                    @if ("p31,p41,j02,o23,le1,le2,le3,le4,le5,p56,p28".Contains(Model.Prefix))
+                    {
+
+                        <a class="nav-link" href="javascript:tg_approve()" title="Klávesová zkratka: Alt+S nebo Alt+R">
+                            <span style="color:green;" class="material-icons-outlined">
+                                approval
+                            </span>
+                            @_f.tra("Schválit/Vyúčtovat")                            
+                        </a>
+                        
+
+                    }
+                    @if (Model.Prefix == "p31" && (_f.CurrentUser.TestPermission(BO.PermValEnum.GR_P91_Creator, BO.PermValEnum.GR_P91_Draft_Creator)) && _recordbinquery < 2)
+                    {
+
+
+                        <a class="nav-link" href="javascript:tg_append2invoice()"><myicon color="green" symbol="arrow_right_alt"></myicon> @_f.tra("Přidat do vybraného vyúčtování")</a>
+
+                    }
+
+                    @if ("p31,p41,j02,le1,le2,le3,le4,le5,p56,p28".Contains(Model.Prefix) && _recordbinquery < 2)
+                    {
+
+
+                        <a class="nav-link" href="javascript:p31_excludebilling_batch(1,'@(Model.Prefix)')"><myicon symbol="delete_sweep"></myicon> Úkony přesunout do/z [Vyloučené z vyúčtování]</a>
+                    }
+
+
+
+                }
+            </div>
+
+            @if (Model.Prefix == "p56")
+            {
+                <a class="nav-link" href="javascript:local_p56_clone()"><myicon symbol="content_copy"></myicon> Kopírovat vybrané úkoly</a>
+            }
+
+            @if (Model.Prefix == "p31" && Model.MasterPrefix != "p91" && _recordbinquery < 2)
+            {
+
+                <a class="nav-link" href="javascript:_p31_batch_clone()"><myicon symbol="content_copy"></myicon> Kopírovat vybrané úkony</a>
+
+                <a class="nav-link" href="javascript:_p31_move_to_project()"><myicon symbol="content_cut"></myicon> Přesunout rozpracovanost na jiný projekt</a>
+
+
+                <a class="nav-link" href="javascript:_p31_batch_recalc()"><myicon symbol="price_check"></myicon> Přepočítat hodinové/kusovníkové sazby</a>
+                @if (_f.CurrentUser.TestPermission(BO.PermValEnum.GR_P31_Owner))
+                {
+                    <a class="nav-link" href="javascript:_window_open_from_grid_selected('/p31korekce/Index', 'pids', 2);"><myicon symbol="downloading"></myicon>Hromadná korekce rozpracovaných úkonů</a>
+                }
+                
+
+
+            }
+            @if (Model.Prefix == "p31" && Model.MasterPrefix == "p91" && _recordbinquery < 2)
+            {
+
+
+                <a class="nav-link" style="color:darkviolet;" href="javascript:p91oper_p31operbatch('remove')"><myicon color="darkviolet" symbol="content_cut"></myicon> Vyjmout úkony z vyúčtování</a>
+
+
+                <a class="nav-link" style="color:pink;" href="javascript:p91oper_p31operbatch('p70-6')"><myicon color="pink" symbol="trending_down"></myicon> Zahrnout do paušálu</a>
+
+
+                <a class="nav-link" style="color:brown;" href="javascript:p91oper_p31operbatch('p70-2')"><myicon color="brown" symbol="trending_down"></myicon> Viditelný odpis</a>
+
+
+                <a class="nav-link" style="color:red;" href="javascript:p91oper_p31operbatch('p70-3')"><myicon color="red" symbol="trending_down"></myicon> Skrytý odpis</a>
+                <p></p>
+
+            }
+            @if (Model.Prefix == "p91")
+            {
+
+                <a class="nav-link" href="javascript:p91_sendmail()"><myicon symbol="alternate_email"></myicon> @_f.tra("Odeslat elektronickou poštou")</a>
+
+                <a href="javascript:p91_export()" class="nav-link"><img src="/images/isdoc_icon.png" /> @_f.tra("Export faktur do účetního IS")</a>
+
+
+                <a class="nav-link" href="javascript:p91_checkaddress()"><myicon color="violet" symbol="in_home_mode"></myicon> @_f.tra("Kontrola rozdílů klientů vůči rejstříku")</a>
+
+                <a class="nav-link" href="javascript:p91_upominky()"><myicon symbol="gavel"></myicon> @_f.tra("Vygenerovat upomínky")</a>
+            }
+            @if (Model.Prefix == "p90")
+            {                
+                <a href="javascript:p90_export()" class="nav-link"><myicon symbol="cloud_upload"></myicon> @_f.tra("Export záloh do účetního IS")</a>
+                
+            }
+            @if (Model.Prefix == "p28")
+            {
+
+
+                <a class="nav-link" href="javascript:p28_checkaddress()"><myicon color="violet" symbol="in_home_mode"></myicon> @_f.tra("Kontrola rozdílů vůči rejstříku")</a>
+            }
+
+            <div style="background-color:#F5F5F5;border-radius:6px;background-color:seashell;margin-bottom:10px;">
+                @if ("p41,p28,j02,p91,o23,le1,le2,le3,le4,le5,p56,o22,p40,p90".Contains(Model.Prefix))
+                {
+                    <a class="nav-link" href="javascript:batchupdate()"><myicon symbol="edit"></myicon> Hromadné úpravy</a>
+
+                }
+                @if ("p31,p41,p28,j02,p91,o23,le1,le2,le3,le4,le5,p56,p90".Contains(Model.Prefix) && !(Model.Prefix == "p31" && _recordbinquery == 2))
+                {
+                    <a class="nav-link" href="javascript:tagging()"><myicon symbol="local_offer"></myicon> Oštítkovat</a>
+                }
+            </div>
+
+            @if ("p31,p28,p41,le5,p91,o23".Contains(Model.Prefix))
+            {
+                <div class="nonmobile" style="background-color:lightyellow;border-radius:6px;margin-bottom:10px;">
+
+                    <myicon symbol="palette"></myicon>
+
+                    <span>Barva záznamu</span>
+                    
+                   
+                    <a title="Zelená Alt+Shift+1" href="javascript:local_rowcolor(1)" style="background-color:YellowGreen;text-decoration:none;border-radius:1px;">#1</a>
+                    <a title="Žlutá Alt+Shift+2" href="javascript:local_rowcolor(2)" style="background-color:yellow;text-decoration:none;border-radius:1px;">#2</a>
+                    <a title="Fialová Alt+Shift+3" style="background-color:violet;text-decoration:none;border-radius:1px;" href="javascript:local_rowcolor(3)">#3</a>
+
+                    <a title="Modrá Alt+Shift+4" style="background-color:deepskyblue;text-decoration:none;border-radius:1px;" href="javascript:local_rowcolor(4)">#4</a>
+                    <a title="Stříbrná Alt+Shift+5" style="background-color:silver;text-decoration:none;border-radius:1px;" href="javascript:local_rowcolor(5)">#5</a>
+
+                    <a href="javascript:local_clear_rowcolor()" title="Vyčistit barvu Alt+Shift+6"><myicon symbol="cleaning_services"></myicon></a>
+
+                </div>
+            }
+
+            @if ("p41,p28,p91,o23,le1,le2,le3,le4,le5,p56".Contains(Model.Prefix))
+            {
+
+
+                <a class="nav-link" href="javascript:workflow_batch()"><myicon symbol="task_alt"></myicon>Hromadně posunout/doplnit (workflow)</a>
+            }
+
+
+
+            @if (Model.Prefix == "p40")
+            {
+
+                <a class="nav-link" href="javascript:p40postgenerate()"><myicon symbol="flash_on"></myicon> Hromadně vygenerovat chybějící odměny</a>
+            }
+
+            <div style="background-color:#F5F5F5;border-radius:6px;">
+
+                @if (Model.Prefix != "p31" && Model.Prefix != "p91" && Model.Prefix != "p11" && Model.Prefix != "x40" && Model.Prefix != "j92" && Model.Prefix != "j90" && Model.Prefix != "j05" && Model.Prefix != "j06" && Model.Prefix != "x97")
+                {
+
+
+                    <a class="nav-link" href="javascript:batchdelete('archive')">
+                        <span style="color:orange;" class="material-icons-outlined">
+                            delete_sweep
+                        </span>
+                        Přesunout do archivu
+                    </a>
+
+
+                    <a class="nav-link" href="javascript:batchdelete('restore')">
+                        <span style="color:forestgreen;" class="material-icons-outlined">
+                            restore_from_trash
+                        </span>
+                        Obnovit z archivu
+                    </a>
+
+                }
+                @if (Model.Prefix == "p31" && _f.CurrentUser.TestPermission(BO.PermValEnum.GR_P31_Owner) && _recordbinquery != 2)
+                {
+
+
+                    <a class="nav-link" href="javascript:p31del('archive')">
+                        <span style="color:orange;" class="material-icons-outlined">
+                            cleaning_services
+                        </span>
+                        Přesunout úkony do archivu
+                    </a>
+
+
+                }
+                @if (Model.Prefix == "p31" && _f.CurrentUser.TestPermission(BO.PermValEnum.GR_P31_Owner) && _recordbinquery == 2)
+                {
+
+
+                    <a class="nav-link" href="javascript:p31del('restore')">
+                        <span style="color:blue;" class="material-icons-outlined">
+                            restore_from_trash
+                        </span>
+                        Obnovit úkony z archivu
+                    </a>
+
+                }
+
+                @if (!(Model.Prefix == "p91" || Model.Prefix == "p11" || Model.Prefix == "x40" || (Model.Prefix == "p31" && _recordbinquery == 2)))
+                {
+
+                    <a class="nav-link" href="javascript:batchdelete('delete')">
+                        <span style="color:red;" class="material-icons-outlined">
+                            delete_forever
+                        </span>
+                        Odstranit vybrané záznamy
+                    </a>
+                }
+            </div>
+
+
+            
+        </div>
+
+
+        <div class="col-auto nonmobile">
+            <div class="local-header"><h5>@_f.tra("VYBRAT/ZAŠKRTNOUT")</h5></div>
+            @if (Model.Prefix == "p31")
+            {
+
+                <a class="nav-link" href="javascript:tg_select_bycss('hours')">
+                    <myicon symbol="check_box"></myicon>
+                    @_f.tra("Pouze hodiny")
+                </a>
+
+                <a class="nav-link" href="javascript:tg_select_bycss('trexp')">
+                    <myicon symbol="check_box"></myicon>
+                    @_f.tra("Pouze výdaje")
+                </a>
+
+                <a class="nav-link" href="javascript:tg_select_bycss('trfee')">
+                    <myicon symbol="check_box"></myicon>
+                    @_f.tra("Pouze odměny")
+                </a>
+
+                <a class="nav-link" href="javascript:tg_select_bycss('trpc')">
+                    <myicon symbol="check_box"></myicon>
+                    @_f.tra("Pouze kusovníky")
+                </a>
+                <hr />
+            }
+
+            <a class="nav-link" href="javascript:tg_select(20)">
+                <myicon symbol="check_box"></myicon>
+                @_f.tra("Prvních #20")
+            </a>
+
+            <a class="nav-link" href="javascript:tg_select(50)">
+                <myicon symbol="check_box"></myicon>
+                @_f.tra("Prvních #50")
+            </a>
+
+            <a class="nav-link" href="javascript:tg_select(100)">
+                <myicon symbol="check_box"></myicon>
+                @_f.tra("Prvních #100")
+            </a>
+
+
+        </div>
+
+
+    </div>
+
+
+
+</div>
+
+
+
+<script type="text/javascript">
+    var _MusiteVybratZaznam = "@(_f.tra("Musíte vybrat minimálně jeden záznam."))";
+
+
+    $(document).ready(function () {
+        divContainerGridSel
+        _adjust_divheight_small_display("divContainerGridSel");
+
+        if (location.href.indexOf("p31approve") > 0) {
+            $("#divAkceGridSel").css("display", "none") //u schvalování nenabízet akce nad výběrem označených
+        }
+
+        if ($("#divSchvalovani").html() == "") {
+            $("#divSchvalovani").css("display", "none");
+        }
+        if (window !== top) {   //voláno uvnitř iframe
+            $(".local-header").css("display", "none");
+        }
+    })
+
+    
+
+   
+
+    function p31_excludebilling_batch(flag, prefix) {
+       
+        var url = "/p31excludebilling/Index?flag=" + flag + "&prefix=" + prefix;
+
+        _window_open_from_grid_selected(url, "pids", 2);
+        
+    }
+
+
+
+    function tagging() {
+        var url = "/o51/Batch?j72id=" + _j72id;
+        
+        _window_open_from_grid_selected(url, "pids", 2);
+       
+
+    }
+
+    function workflow_batch() {
+        var prefix = _tg_entity.substr(0, 3);
+        var url = "/workflow_batch/Index?prefix=" + prefix;
+
+        _window_open_from_grid_selected(url, "pids", 2);
+
+    }
+
+    function p91_export() {
+        var url = "/p91export/Index";
+
+        _window_open_from_grid_selected(url, "p91ids", 2);
+
+        
+    }
+    function p90_export() {
+        var url = "/p90export/Index";
+        _window_open_from_grid_selected(url, "p90ids", 2);
+
+        
+    }
+    function p91_sendmail() {
+        var url = "/p91sendmail/Index";
+        var pids = $("#tg_selected_pids").val();
+        if (pids === "") {
+            _notify_message(_MusiteVybratZaznam);
+
+            return;
+        }
+        url = url + "?p91ids=" + pids;
+        _window_open(url, 2);
+    }
+
+    function p91_checkaddress() {
+        var url = "/p91oper/checkaddress?pids_prefix=p91";
+        _window_open_from_grid_selected(url, "pids", 2);
+       
+    }
+    function p91_upominky() {
+        var url = "/p84/Create";
+        _window_open_from_grid_selected(url, "p91ids", 2);
+    }
+
+    function p28_checkaddress() {
+        var url = "/p91oper/checkaddress?pids_prefix=p28";
+        _window_open_from_grid_selected(url, "pids", 2);
+        
+    }
+
+    function batchdelete(oper) {
+        var url = "/BatchDelete/Index?j72id=" + _thegrid.j72id + "&entity=" + _thegrid.entity + "&source=" + location.href;
+        
+        if (oper != undefined) {
+            url = url + "&oper=" + oper
+        }
+
+        _window_open_from_grid_selected(url, "pids", 2);
+
+       
+    }
+
+    function p31del(oper) {
+        var url = "/p31delbatch/Index";       
+        url = url + "?j72id=" + _thegrid.j72id + "&oper=" + oper + "&source=" + location.href;
+
+        _window_open_from_grid_selected(url, "pids", 2);
+        
+    }
+
+    function p40postgenerate() {
+        var url = "/p40/PostGenerate";
+        var pids = $("#tg_selected_pids").val();
+        if (pids === "") {
+            _notify_message(_MusiteVybratZaznam);
+
+            return;
+        }
+        url = url + "?p40ids=" + pids + "&j72id=" + _thegrid.j72id + "&source=" + location.href;
+
+
+        _window_open(url, 2);
+    }
+
+    function batchupdate() {
+        var prefix = "@Model.Prefix";
+        if (prefix == "le5" || prefix == "le4") {
+            prefix = "p41";
+        }
+
+        var url = "/BatchUpdate/Index";        
+        url = url + "?j72id=" + _thegrid.j72id + "&prefix=" + prefix + "&source=" + location.href;
+
+        _window_open_from_grid_selected(url, "pids", 2);
+        
+    }
+
+
+    function ical() {
+        var prefix = _tg_entity.substr(0, 3);
+        var url = "/iCalendar/" + prefix + "?disposition=attachment";
+        var pids = $("#tg_selected_pids").val();
+        if (pids === "") {
+            _notify_message(_MusiteVybratZaznam);
+
+            return;
+        }
+        url = url + "&pids=" + pids;
+        location.replace(url);
+
+    }
+
+
+    function local_rowcolor(colorindex) {
+        var prefix = _tg_entity.substr(0, 3);
+        var pids = $("#tg_selected_pids").val();
+        $.post("/Common/UpdateRowColor", { prefix: prefix, pids: pids, colorindex: colorindex }, function (data) {
+
+            location.replace(location.href);
+
+
+        });
+    }
+
+    function local_clear_rowcolor() {
+        var prefix = _tg_entity.substr(0, 3);
+        var pids = $("#tg_selected_pids").val();
+        $.post("/Common/ClearRowColor", { prefix: prefix, pids: pids }, function (data) {
+
+            location.replace(location.href);
+
+        });
+    }
+
+    function local_p56_clone() {
+        var url = "/p56CloneBatch/Index";        
+
+        _window_open_from_grid_selected(url, "pids", 2);
+
+        
+    }
+
+</script>

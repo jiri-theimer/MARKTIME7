@@ -1,0 +1,365 @@
+﻿@model UI.Models.p31oper.p68ViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = "Stopky";
+    if (Model.TimeApiRecord != null)
+    {
+        Model.PageTitle = $"Stopky [{Model.TimeApiRecord.day}.{Model.TimeApiRecord.month}.{Model.TimeApiRecord.year}]";
+    }
+
+
+
+    Model.PageSymbol = "history_toggle_off";
+
+
+}
+
+@addTagHelper *, UI
+
+<div class="bg-light input-group">
+
+
+
+    <div>
+        <button type="button" class="btn bog" onclick="handle_add_row()"><span class="material-icons-outlined-btn" style="color:green;">add_circle_outline</span>@_f.tra("Přidat")</button>
+    </div>
+    <div style="margin-left:20px;">
+        <button type="button" class="btn bog" onclick="reload()"><span class="material-icons-outlined-btn">refresh</span>@_f.tra("Občerstvit")</button>
+    </div>
+    <div style="margin-left:40px;">
+        <button type="button" class="btn bog" onclick="handle_clear()"><span class="material-icons-outlined-btn" style="color:red;">delete</span>@_f.tra("Vyčistit")</button>
+    </div>
+
+    <div style="margin-left:20px;">
+        <button type="button" id="cmdOpenNewTab" onclick="window.open('/p68/Index');_window_close();" class="btn btn-light"><span class="material-icons-outlined-btn">open_in_new</span>@_f.tra("Otevřít v nové záložce")</button>
+    </div>
+
+    <div style="margin-left:20px;">
+        <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
+    </div>
+
+ 
+
+
+</div>
+
+<div id="divMore" style="display:none;">
+</div>
+
+
+
+<form id="form1" asp-controller="p68" asp-action="Index" method="POST" style="width:99%;">
+
+
+
+
+    @for (int i = 0; i < Model.lisRows.Count; i++)
+    {
+        <div style="height:19px;">
+            <a name="anchor@(Model.lisRows[i].pid)"></a>
+        </div>
+        <div class="row px-0 py-2" style="background-color:#F5F5F5;border-top:solid 1px silver;">
+            <div class="col-sm-1 col-md-1 nonmobile">
+                #@(Model.lisRows[i].p68Ordinary)
+            </div>
+            <div class="col-sm-1 col-md-1">
+                @if (!Model.lisRows[i].p68IsRunning)
+                {
+                    <button type="button" class="btn bog" title="Uložit jako časový úkon" onclick="handle_p31_save(@(Model.lisRows[i].pid))"><span class="material-icons-outlined-btn" style="color:green;">save</span></button>
+                }
+            </div>
+            <div class="col-sm-7 col-md-7"></div>
+            <div class="col-sm-3 col-md-3">
+                <div class="input-group">
+                    <div>
+                        <button type="button" tabindex="-1" class="btn btn-default" title="@_f.tra("Kopírovat řádek")" onclick="handle_clone_row('@(Model.lisRows[i].pid)')"><span class="material-icons-outlined-btn">content_copy</span></button>
+                    </div>
+                    <div>
+                        <button type="button" tabindex="-1" class="btn btn-default" title="@_f.tra("Odstranit řádek")" onclick="handle_delete_row('@(Model.lisRows[i].pid)')"><span style="color:red;" class="material-icons-outlined-btn">delete</span></button>
+                    </div>
+                    <div class="nonmobile" style="width:60px;">
+                        <mynumber asp-for="@Model.lisRows[i].p68Ordinary" decimal-digits="0" event_after_changevalue="p68ordinary_change(@(i),@(Model.lisRows[i].pid))"></mynumber>
+                    </div>
+                </div>
+                
+            </div>
+            
+        </div>
+
+        <div class="row p-0" style="background-color:aliceblue;">
+            <div class="col-sm-1 col-md-1">
+                @if (!Model.lisRows[i].p68IsRunning)
+                {
+                    <button type="button" class="btn bog" title="Zapnout stopky" onclick="handle_start(@(Model.lisRows[i].pid))"><span class="material-icons-outlined-btn">not_started</span></button>
+                }
+                @if (Model.lisRows[i].p68IsRunning)
+                {
+                    <button type="button" class="btn bog" title="Zastavit stopky" onclick="handle_stop(@(Model.lisRows[i].pid))"><span class="material-icons-outlined-btn" style="color:darkred">pause_circle</span></button>
+                }
+            </div>
+            <div class="col-sm-1 col-md-1">
+                @if (Model.lisRows[i].p68IsRunning)
+                {
+                    <mark id="stopwatch" style="font-weight:bold;" title="Poslední start: @(BO.Code.Bas.ObjectDate2String(Model.lisRows[i].p68LastStart,"HH:mm"))"></mark>
+                    <span id="miliseconds" style="font-size:65%"></span>
+
+
+                }
+                @if (!Model.lisRows[i].p68IsRunning)
+                {
+                    <input type="text" asp-for="lisRows[i].duration_hhmm" value="@Model.lisRows[i].duration_hhmm" onchange="durhhmm_ischange(@i)" onblur="handle_save(@i,this)" class="form-control" autocomplete="off" />
+                    <script type="text/javascript">
+                        var clisRows_@(i)__duration_hhmm = { controlid: "lisRows_@(i)__duration_hhmm", entryformat: "T", intervals: "00:30|01:00|01:30|02:00|02:30|03:00|03:30|04:00|04:30|05:00|05:30|06:00|06:30|07:00|07:30|08:00" };
+                        myhours_init(clisRows_@(i)__duration_hhmm);
+                    </script>
+
+                }
+
+            </div>
+            <div class="col-sm-6 col-md-6;">
+                <mycombo entity="p41" search-result-width="900" combo-height="500" placeholder="Projekt..." asp-for="lisRows[i].p41ID" selectedtext="lisRows[i].Project" filter-flag="1" view-flag="1" myqueryinline="p07level|int|5|p33id_for_p31_entry|int|1" event_after_changevalue="p41id_change(#pid#,@(Model.lisRows[i].pid))"></mycombo>
+            </div>
+            <div class="col-sm-4 col-md-4">
+                @if (Model.lisRows[i].p41ID > 0)
+                {
+                    <mycombo entity="p32Activity" asp-for="lisRows[i].p32ID" combo-height="500" selectedtext="lisRows[i].Activity" myqueryinline="p33id|int|1|p41id|int|@(Model.lisRows[i].p41ID)|p61id|int|@(Model.lisRows[i].p61ID)" event_after_changevalue="p32id_change(#pid#,@(i),this)"></mycombo>
+                }
+                
+            </div>
+        </div>
+
+        <div style="background-color:aliceblue;padding-top:3px;">
+            <textarea class="form-control" asp-for="lisRows[i].p68Text" placeholder="Text" onchange="p68text_ischange(@i)" onblur="handle_save(@i,this)"></textarea>
+
+            <input type="hidden" asp-for="lisRows[i].pid" value="@Model.lisRows[i].pid" />
+            <input type="hidden" asp-for="lisRows[i].Activity" />
+            <input type="hidden" asp-for="lisRows[i].p68IsRunning" value="@Model.lisRows[i].p68IsRunning" />
+
+            <input type="hidden" id="rowindex@(i)" value="@i" />
+        </div>
+
+
+
+
+
+    }
+
+
+    <hr />
+    <input class="form-check-input" type="checkbox" asp-for="IsUseTimeApi" tabindex="-1" onchange="_postback('IsUseTimeApi')" style="display:none;" />
+    <label for="IsUseTimeApi" style="display:none;">
+        @_f.tra("Používat službu")
+        <span>: https://timeapi.io</span>
+    </label>
+    <p id="debuglog"></p>
+</form>
+
+
+<script type="text/javascript">
+    var _rowscount = @(Model.lisRows.Count());
+    var _rowindex_p68text_ischange = -1;
+    var _rowindex_durhhmm_ischange = -1;
+    var _jump2pid = "@Model.Jump2Pid";
+    var _StartStopWatchUtc = "@Model.StartStopWatchUtc";
+    //var jsUncTime = new Date().toISOString();
+
+    //$("#debuglog").text("_StartStopWatchUtc: "+_StartStopWatchUtc+", jsUncTime: "+jsUncTime);
+
+    
+    var _startTime; // to keep track of the start time
+    var _stopwatchInterval; // to keep track of the interval
+    var _elapsedPausedTime = 0; // to keep track of the elapsed time while stopped
+
+    $(document).ready(function () {
+
+        _resize_textareas();
+
+
+
+    @for (int i = 0; i < Model.lisRows.Count; i++)
+    {
+        @if (Model.lisRows[i].p68Text != null)
+        {
+            <text>
+                    $("#lisRows_@(i)__p68Text").val("@(Model.lisRows[i].p68Text)".replaceAll("&#xA;", "\r\n"));
+            </text>
+        }
+
+    }
+
+
+
+            $("#cmdMore").click(function () {
+                $("#divMore").toggle();
+            });
+
+
+        if (_jump2pid != "0") {
+            window.location.href = "#anchor" + _jump2pid;
+        }
+
+        if (window == top) {
+            $("#cmdOpenNewTab").css("display", "none");
+        }
+
+        if (document.getElementById("stopwatch")) {
+            startStopwatch();
+        }
+
+
+    });
+
+    function reload() {
+        location.replace("/p68/Index");
+    }
+
+    function handle_add_row() {
+        _postback("add_row");
+    }
+
+    function handle_clear() {
+        if (_rowscount > 1) {
+            if (!confirm("Opravdu nenávratně odstranit všechny řádky?")) {
+                return;
+            }
+        }
+        _postback("clear");
+    }
+
+    function handle_delete_row(pid) {
+
+        _postback("delete_row", "p68id=" + pid);
+
+
+    }
+
+
+
+    function handle_clone_row(pid) {
+        _postback("clone_row", "p68id=" + pid);
+
+    }
+
+    function p68text_ischange(rowindex) {
+        _rowindex_p68text_ischange = rowindex;
+    }
+    function durhhmm_ischange(rowindex) {
+        _rowindex_durhhmm_ischange = rowindex;
+    }
+    function p41id_change(p41id, pid) {
+        _postback("p41id", "p68id=" + pid + "&p41id=" + p41id);
+    }
+    function p32id_change(p32id, rowindex,ctl) {
+        
+        handle_save(rowindex);
+    }
+    function p68ordinary_change(rowindex, pid) {
+        var p68ordinary = $("#numlisRows_" + rowindex + "__p68Ordinary").val();
+        _postback("ordinary", "p68id=" + pid + "&p68ordinary=" + p68ordinary);
+    }
+
+    function handle_save(rowindex, ctl) {
+        if (ctl != undefined && ctl.id.indexOf("p68Text") > 0 && _rowindex_p68text_ischange != rowindex) {
+            return;
+        }
+
+        var durhhmm = "";
+
+        if (ctl != undefined && ctl.id.indexOf("duration_hhmm") > 0) {
+            if (_rowindex_durhhmm_ischange != rowindex) {
+                return;
+            } else {
+                //ruční změna hodin
+                durhhmm = $("#lisRows_" + rowindex + "__duration_hhmm").val();
+                
+            }
+
+        }
+
+        var pid = $("#lisRows_" + rowindex + "__pid").val();
+        var p68text = $("#lisRows_" + rowindex + "__p68Text").val();
+        var p68ordinary = $("#numlisRows_" + rowindex + "__p68Ordinary").val();
+        var p32id = 0;
+        if (document.getElementById("lisRows_" + rowindex + "__p32ID")){
+            p32id = $("#lisRows_" + rowindex + "__p32ID").val();
+        }
+        
+
+
+        $.post(_ep("/p68/SaveClientChanges"), { pid: pid, p68text: p68text, p68ordinary: p68ordinary, durhhmm: durhhmm,p32id:p32id }, function (data) {
+
+            if (durhhmm != "") {
+                $("#lisRows_" + rowindex + "__duration_hhmm").val(data.duration_hhmm);
+            }
+            
+        });
+
+    }
+
+    function handle_start(pid) {
+        _postback("start", "p68id=" + pid);
+
+    }
+    function handle_stop(pid) {
+        _postback("stop", "p68id=" + pid);
+
+    }
+
+
+
+    function startStopwatch() {
+        if (!_stopwatchInterval) {
+            _startTime = new Date(_StartStopWatchUtc).getTime() - _elapsedPausedTime; // get the starting time by subtracting the elapsed paused time from the current time
+            
+            _stopwatchInterval = setInterval(updateStopwatch, 100); // update every second
+        }
+    }
+
+    function stopStopwatch() {
+        clearInterval(_stopwatchInterval); // stop the interval
+        _elapsedPausedTime = new Date().getTime() - _startTime; // calculate elapsed paused time
+        _stopwatchInterval = null; // reset the interval variable
+    }
+
+    function resetStopwatch() {
+        stopStopwatch(); // stop the interval
+        _elapsedPausedTime = 0; // reset the elapsed paused time variable
+        document.getElementById("stopwatch").innerHTML = "00:00:00"; // reset the display
+    }
+
+    function updateStopwatch() {
+        var currentTime = new Date().getTime(); // get current time in milliseconds        
+        var elapsedTime = currentTime - _startTime; // calculate elapsed time in milliseconds
+        
+        
+        var miliseconds = Math.floor(elapsedTime) % 1000; // calculate miliseconds
+
+        //$("#debuglog").text("currentTime: "+currentTime+", _startTime: "+_startTime+", elapsedTime: "+elapsedTime+", miliseconds: "+miliseconds);
+        var seconds = Math.floor(elapsedTime / 1000) % 60; // calculate seconds
+        var minutes = Math.floor(elapsedTime / 1000 / 60) % 60; // calculate minutes
+        var hours = Math.floor(elapsedTime / 1000 / 60 / 60); // calculate hours
+        var displayTime = pad(hours) + ":" + pad(minutes) + ":" + pad(seconds); // format display time
+        document.getElementById("stopwatch").innerHTML = displayTime; // update the display
+        document.getElementById("miliseconds").innerHTML = miliseconds; // update the display
+
+    }
+
+    function pad(number) {
+        // add a leading zero if the number is less than 10
+        return (number < 10 ? "0" : "") + number;
+    }
+
+
+    function handle_p31_save(pid) {
+        _window_open("/p31/Record?pid=0&p68id=" + pid, 3);
+    }
+
+    function hardrefresh(pid, flag) {
+
+        reload();
+    }
+
+
+</script>

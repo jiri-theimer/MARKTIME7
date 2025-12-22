@@ -1,0 +1,179 @@
+﻿@model UI.Models.Admin.p07ProjectLevelsViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Vertikální úrovně projektů");
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageSymbol = "settings";
+}
+
+@addTagHelper *, UI
+
+
+<div class="bg-light" style="padding:10px;">
+    <button id="cmdSave" class="btn btn-success" onclick="_submit()">@_f.tra("Uložit změny")</button>
+    <button id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+
+
+
+</div>
+
+<form id="form1" asp-controller="p07" asp-action="ProjectLevels" method="POST">
+    <input type="hidden" asp-for="RecL1.pid" />
+    <input type="hidden" asp-for="RecL2.pid" />
+    <input type="hidden" asp-for="RecL3.pid" />
+    <input type="hidden" asp-for="RecL4.pid" />
+    <input type="hidden" asp-for="RecL5.pid" />
+
+    <div class="modal_record_container">
+
+        <table class="table table-hover">
+
+            <tr class="bg-light">
+                <th></th>
+                <th>
+                    @_f.tra("Jednotné číslo")
+                </th>
+                <th>
+                    @_f.tra("Množné číslo")
+                </th>
+                <th>
+                    @_f.tra("Koho čeho (skloňování)")
+                </th>
+                <th></th>
+            </tr>
+            <tr>
+                <td>
+                    @_f.tra("Úroveň") L1:
+                </td>
+                <td>
+                    <input class="form-control" asp-for="@Model.RecL1.p07Name" />
+                </td>
+                <td>
+                    <input class="form-control" asp-for="@Model.RecL1.p07NamePlural" />
+                </td>
+                <td>
+                    <input class="form-control" asp-for="@Model.RecL1.p07NameInflection" />
+                </td>
+                <td>
+                    <input type="checkbox" id="chkUseL1" asp-for="@Model.UseL1" onchange="_postback()" />
+                    <label for="chkUseL1">@_f.tra("Využívat úroveň") #1</label>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    --@_f.tra("Úroveň") L2:
+                </td>
+                <td>
+                    <input class="form-control" asp-for="@Model.RecL2.p07Name" />
+                </td>
+                <td>
+                    <input class="form-control" asp-for="@Model.RecL2.p07NamePlural" />
+                </td>
+                <td>
+                    <input class="form-control" asp-for="@Model.RecL2.p07NameInflection" />
+                </td>
+                <td>
+                    <input type="checkbox" id="chkUseL2" asp-for="@Model.UseL2" onchange="_postback()" />
+                    <label for="chkUseL2">@_f.tra("Využívat úroveň") L2</label>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    ----@_f.tra("Úroveň") L3:
+                </td>
+                <td>
+                    <input class="form-control" asp-for="@Model.RecL3.p07Name" />
+                </td>
+                <td>
+                    <input class="form-control" asp-for="@Model.RecL3.p07NamePlural" />
+                </td>
+                <td>
+                    <input class="form-control" asp-for="@Model.RecL3.p07NameInflection" />
+                </td>
+                <td>
+                    <input type="checkbox" id="chkUseL3" asp-for="@Model.UseL3" onchange="_postback()" />
+                    <label for="chkUseL3">@_f.tra("Využívat úroveň") L3</label>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    ------@_f.tra("Úroveň") L4:
+                </td>
+                <td>
+                    <input class="form-control" asp-for="@Model.RecL4.p07Name" />
+                </td>
+                <td>
+                    <input class="form-control" asp-for="@Model.RecL4.p07NamePlural" />
+                </td>
+                <td>
+                    <input class="form-control" asp-for="@Model.RecL4.p07NameInflection" />
+                </td>
+                <td>
+                    <input type="checkbox" id="chkUseL4" asp-for="@Model.UseL4" onchange="_postback()" />
+                    <label for="chkUseL4">@_f.tra("Využívat úroveň") L4</label>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    --------@_f.tra("Úroveň") L5:
+                </td>
+                <td>
+                    <input class="form-control" asp-for="@Model.RecL5.p07Name" />
+                </td>
+                <td>
+                    <input class="form-control" asp-for="@Model.RecL5.p07NamePlural" />
+                </td>
+                <td>
+                    <input class="form-control" asp-for="@Model.RecL5.p07NameInflection" />
+                </td>
+
+                <td>
+                    <input type="checkbox" id="chkUseL5" asp-for="@Model.UseL5" disabled="disabled" checked="checked" />
+                    <label for="chkUseL5">@_f.tra("Využívat úroveň") L5</label>
+                </td>
+
+            </tr>
+        </table>
+
+
+
+
+
+    </div>
+</form>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        @if (!Model.UseL1)
+        {
+            @:$("#RecL1_p07Name").css("visibility", "hidden");
+            @:$("#RecL1_p07NamePlural").css("visibility", "hidden");
+            @:$("#RecL1_p07NameInflection").css("visibility", "hidden");
+        }
+        @if (!Model.UseL2)
+        {
+            @:$("#RecL2_p07Name").css("visibility", "hidden");
+            @:$("#RecL2_p07NamePlural").css("visibility", "hidden");
+            @:$("#RecL2_p07NameInflection").css("visibility", "hidden");
+        }
+        @if (!Model.UseL3)
+        {
+            @:$("#RecL3_p07Name").css("visibility", "hidden");
+            @:$("#RecL3_p07NamePlural").css("visibility", "hidden");
+            @:$("#RecL3_p07NameInflection").css("visibility", "hidden");
+        }
+        @if (!Model.UseL4)
+        {
+            @:$("#RecL4_p07Name").css("visibility", "hidden");
+            @:$("#RecL4_p07NamePlural").css("visibility", "hidden");
+            @:$("#RecL4_p07NameInflection").css("visibility", "hidden");
+        }
+
+       
+
+    })
+
+    
+</script>

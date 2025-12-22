@@ -1,0 +1,27 @@
+﻿a.topmenulink_active {
+    padding-bottom: 5px;
+    padding-top: 5px;
+    color: var(--popredi) !important;
+    background-color: var(--oznaceno);
+    text-transform: uppercase;
+}
+
+    a.topmenulink_active:hover {
+        background-color: var(--oznaceno) !important;
+        color: var(--popredi);
+    }
+
+a.topmenulink {   
+    background-color: var(--pozadi);
+    color: var(--popredi) !important;
+    padding-bottom: 5px;
+    padding-top: 5px;      
+    text-transform: uppercase;
+    
+}
+
+    a.topmenulink:hover {
+        color: var(--popredi) !important;
+        background-color: var(--oznaceno) !important;
+    }
+

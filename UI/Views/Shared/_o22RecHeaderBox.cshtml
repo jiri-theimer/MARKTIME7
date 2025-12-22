@@ -1,0 +1,169 @@
+﻿@model BO.o22Milestone
+
+@inject BL.Factory _f
+
+@{
+
+
+    if (Model == null)
+    {
+        return;
+    }
+
+    bool _bolRowHover = UI.Code.basUI.DetectIfCanRowHover(_f, Context, true);
+
+    BO.p41Project _recP41 = null;
+    if (Model.p41ID > 0)
+    {
+        _recP41 = _f.p41ProjectBL.Load(Model.p41ID);
+    }
+
+    BO.o21MilestoneType _recO21 = _f.o21MilestoneTypeBL.Load(Model.o21ID);
+
+    IEnumerable<BO.RoleAssignedToRecord> _lisRoles = _f.x67EntityRoleBL.GetRolesAssignedToRecord(Model.pid, "o22");
+
+    string _wrk_record_alias = null;
+    if (Model.b05RecordEntity != null && Model.b05RecordPid > 0)
+    {
+        _wrk_record_alias = _f.CBL.GetObjectAlias(Model.b05RecordEntity, Model.b05RecordPid);
+    }
+    int _b05Count = _f.WorkflowBL.GetB05CommentsCount("o22", Model.pid);
+}
+
+@addTagHelper *, UI
+
+<table class="table table-hover">
+    <tr>
+        <td colspan="2" class="@(Model.isclosed ? "tdarchiv": "tdval")" onmouseover="_handle_mywrk_mouseover(this)" onmouseout="_handle_mywrk_mouseout(this)">
+            <span class="material-icons-outlined" style="color:@Model.ForeColor">event</span>
+            @Model.o21Name
+            <mywrkbutton prefix="o22" pid="@Model.pid" showcopyurl="true" b02id="0" langindex="@_f.CurrentUser.j02LangIndex" showcount="@_b05Count"></mywrkbutton>
+        </td>
+    </tr>
+    <tr>
+        <td class="tdlab">
+            @_f.tra("Název"):
+        </td>
+        <td class="tdval">
+            @Model.o22Name
+        </td>
+    </tr>
+    @if(Model.o22Location !=null)
+    {
+        <tr>
+            <td class="tdlab">
+                @_f.tra("Lokalita") (text):
+            </td>
+            <td class="tdval">
+                @Model.o22Location
+            </td>
+        </tr>
+    }
+   
+
+    @if (Model.o22PlanFrom != null)
+    {
+        <tr>
+            <td class="tdlab">
+                @_f.tra("Začátek"):
+            </td>
+            <td class="tdval tddatum">
+
+                @BO.Code.Bas.ObjectDateTime2String(Model.o22PlanFrom)
+            </td>
+        </tr>
+    }
+
+    @if (Model.o22PlanUntil != null)
+    {
+        <tr>
+            <td class="tdlab">
+                
+                @(Model.o21TypeFlag == BO.o21TypeFlagEnum.Milnik  ? _f.tra("Datum") : _f.tra("Konec")):
+            </td>
+            <td class="tdval" style="color:red;">
+                @BO.Code.Bas.ObjectDateTime2String(Model.o22PlanUntil)
+            </td>
+        </tr>
+    }
+    @if (Model.o21TypeFlag != BO.o21TypeFlagEnum.Milnik &&  Model.o22DurationCount>0)
+    {
+        <tr>
+            <td class="tdlab">
+                @_f.tra("Délka"):
+            </td>
+            <td class="tdval" style="color:grey;">
+                @Model.Duration
+            </td>
+        </tr>
+    }
+    @if (Model.o21TypeFlag != BO.o21TypeFlagEnum.Milnik && Model.o22DurationCount == 0)
+    {
+        <tr>
+            <td class="tdlab">
+                @_f.tra("Trvá"):
+            </td>
+            <td class="tdval" style="color:gray;">
+                @BO.Code.Time.DurationFormatted(Convert.ToDateTime(Model.o22PlanFrom),Convert.ToDateTime(Model.o22PlanUntil),false)
+            </td>
+        </tr>
+    }
+    
+
+    @if (_recP41 != null)
+    {
+        <tr>
+            <td class="tdlab">
+                @(_recP41.p07Name):
+            </td>
+            <td class="tdval">
+                @if (_bolRowHover)
+                {
+                    <myval value="@_recP41.FullName" hoverprefix="p41" hoverpid="@Model.p41ID"></myval>
+                }
+                else
+                {
+                    <myval value="@_recP41.FullName"></myval>
+                }
+
+            </td>
+        </tr>
+    }
+    @if (_wrk_record_alias != null)
+    {
+        <tr>
+            <td class="tdlab">
+                @(BO.Code.Entity.GetAlias(Model.b05RecordEntity)):
+            </td>
+            <td class="tdval">
+                @if (_bolRowHover)
+                {
+                    <myval value="@_wrk_record_alias" hoverprefix="@Model.b05RecordEntity" hoverpid="@Model.b05RecordPid"></myval>
+                }
+                else
+                {
+                    <myval value="@_wrk_record_alias"></myval>
+                }
+
+            </td>
+        </tr>
+    }
+   
+
+    @foreach (var c in _lisRoles)
+    {
+        <tr>
+            <td class="tdlab">
+                @(c.x67Name):
+            </td>
+            <td class="tdval">
+                @c.Receivers
+
+            </td>
+
+        </tr>
+    }
+
+
+</table>
+

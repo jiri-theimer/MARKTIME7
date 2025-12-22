@@ -1,0 +1,38 @@
+﻿@model UI.Models.Tab1.BaseTab1ViewModel
+
+@inject BL.Factory _f
+
+@{
+
+
+    if (Model == null)
+    {
+        return;
+    }
+
+    IEnumerable<BO.RoleAssignedToRecord> _lisRoles = _f.x67EntityRoleBL.GetRolesAssignedToRecord(Model.pid, Model.prefix);
+
+    if (_lisRoles.Count()==0)
+    {
+        return;
+    }
+}
+
+@addTagHelper *, UI
+
+<table class="table table-hover">
+    @foreach (var c in _lisRoles)
+    {
+        <tr>
+            <td class="tdlab">
+                @(c.x67Name):
+            </td>
+            <td class="tdval">
+                @c.Receivers
+
+            </td>
+
+        </tr>
+    }
+
+</table>

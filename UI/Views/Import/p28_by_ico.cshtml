@@ -1,0 +1,116 @@
+﻿@model ImportViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = _f.tra("Import kontaktů z IČO seznamu");
+
+    Model.PageSymbol = "approval";
+
+    var _lisP29 = _f.p29ContactTypeBL.GetList(new BO.myQuery("p29"));
+}
+
+@addTagHelper *, UI
+
+
+<div class="bg-light" style="padding:10px;">
+    @if (Model.StepIndex == 0)
+    {
+        <button id="cmdSave" class="btn btn-success" onclick="_postback('prepare')">@_f.tra("Připravit data")</button>
+    }
+    @if (Model.StepIndex == 1)
+    {
+        <button id="cmdSave" class="btn btn-success" onclick="_submit()">@_f.tra("Dokončit import")</button>
+    }
+    <button id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+
+
+
+</div>
+
+<form id="form1" asp-controller="Import" asp-action="p28_by_ico" method="POST">
+
+
+    <input type="hidden" asp-for="Prefix" />
+
+    <table>
+        <tr>
+            <td>
+                ISO kód importovaných kontaktů:
+            </td>
+            <td>
+                <select asp-for="CountryCode" class="form-select">
+                    <option value="CZ">CZ</option>
+                    <option value="SK">SK</option>
+                </select>
+            </td>
+            <td>
+                Typ kontaktů:
+            </td>
+            <td>
+                <select asp-for="SelectedP29ID" class="form-select">
+                    @foreach(var c in _lisP29)
+                    {
+                        <option value="@c.pid">@c.p29Name</option>
+                    }
+                </select>
+            </td>
+        </tr>
+    </table>
+    
+
+
+    <div class="my-2">
+        <textarea asp-for="Clipboard" class="form-control" style="height:300px;overflow:auto;" placeholder="Sem vložte ze schránky (CTRL+V) seznam IČO."></textarea>
+
+    </div>
+
+    <input type="hidden" asp-for="StepIndex" />
+
+</form>
+
+@if (Model.lisRejstrik != null && Model.lisRejstrik.Count() > 0)
+{
+    <strong>Vyhovující záznamy pro import:</strong>
+    <table class="table table-hover table-sm">
+        @foreach (var c in Model.lisRejstrik)
+        {
+            <tr>
+                <td>
+                    @(c.ico)
+                </td>
+                <td>
+                    @(c.dic)
+                </td>
+                <td>
+                    @(c.name)
+                </td>
+                <td>
+                    @c.pravniforma
+                </td>
+                <td>
+                    @(c.fulladdress)
+                </td>
+            </tr>
+        }
+    </table>
+}
+
+
+
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+
+
+
+
+
+    })
+
+
+
+</script>
+

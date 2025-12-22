@@ -1,0 +1,86 @@
+﻿@model IEnumerable<BO.o19DocTypeEntity_Binding>
+
+@inject BL.Factory _f
+
+@{
+
+
+    if (Model == null || Model.Count()==0)
+    {
+        return;
+    }
+
+    List<BO.o19DocTypeEntity_Binding> _lisO19 = Model.ToList();
+    foreach(var c in _lisO19)
+    {
+        c.o20Entity = BO.Code.Entity.GetPrefixDb(c.o20Entity);
+        
+        
+    }
+
+    
+    bool _bolRowHover = UI.Code.basUI.DetectIfCanRowHover(_f, Context,true);
+
+}
+
+
+<table class="table table-hover">
+    @for (int i = 0; i < _lisO19.Count(); i++)
+    {
+        <tr>
+            <td style="width:20px;">
+                @if(_lisO19[i].o20Entity=="j02")
+                {
+                    <span class="material-icons-outlined" style="color:gray;">face</span>
+                }
+                @if (_lisO19[i].o20Entity == "p41")
+                {
+                    <span class="material-icons-outlined" style="color:gray;">work_outline</span>
+                }
+                @if (_lisO19[i].o20Entity == "p28")
+                {
+                    <span class="material-icons-outlined" style="color:gray;">contacts</span>
+                }
+                @if (_lisO19[i].o20Entity == "p15")
+                {
+                    <span class="material-icons-outlined" style="color:gray;">location_on</span>
+                }
+            </td>
+            <td>
+                @if (i == 0 || _lisO19[i - 1].o20Name != _lisO19[i].o20Name)
+                {
+                    @if (_lisO19[i].o20Name != null)
+                    {
+                        @(_lisO19[i].o20Name)
+                    }
+                    else
+                    {
+                        @(BO.Code.Entity.GetAlias(_lisO19[i].o20Entity))
+                    }
+                    <span>:</span>
+
+                }
+
+            </td>
+            <td>
+                
+            </td>
+
+            @if (_bolRowHover)
+            {
+                <td class="rowvalhover">
+                    @(_f.CBL.GetObjectAlias(_lisO19[i].o20Entity, _lisO19[i].o19RecordPid))
+
+                    <a class="reczoom" data-rel="/@_lisO19[i].o20Entity/Info?pid=@(_lisO19[i].o19RecordPid)&hover_by_reczoom=1">ℹ</a>
+                </td>
+            }
+            else
+            {
+                <td>
+                    @(_f.CBL.GetObjectAlias(_lisO19[i].o20Entity, _lisO19[i].o19RecordPid))
+                </td>
+            }
+
+        </tr>
+    }
+</table>

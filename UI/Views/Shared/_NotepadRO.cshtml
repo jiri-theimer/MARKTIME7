@@ -1,0 +1,58 @@
+﻿@model UI.Models.Notepad.LookAtViewModel
+
+
+@{
+
+    if (string.IsNullOrEmpty(Model.NotepadContent))
+    {
+        return;
+    }
+
+
+}
+
+
+@if (Model.NotepadIsBillingMemo)
+{
+    @Html.Raw("<div id='divNotepadRO' style='background-color:#DFFFE9;overflow:auto;'>")
+}
+else
+{
+    @Html.Raw("<div id='divNotepadRO' style='overflow:auto;'>")
+}
+
+
+
+
+@if (Model.pid > 0 && Model.prefix != null)
+{
+
+    <a class="nonmobile" href="/Record/NotepadPreview?prefix=@Model.prefix&pid=@Model.pid" target="_blank" title="V novém okně"><span class="material-icons-outlined">open_in_new</span></a>
+
+}
+
+@if (Model.x04ID > 0)
+{
+    @Html.Raw(Model.NotepadContent)
+}
+else
+{
+    @Html.Raw(BO.Code.Bas.Text2Html(Model.NotepadContent))
+}
+
+@Html.Raw("</div>")
+
+
+
+
+
+<script type="text/javascript">
+    $("#divNotepadRO").css("max-height", "300px");
+    var s = window.parent.location.href;
+    
+    if (s.indexOf("RecPage") > 0) {
+        $("#divNotepadRO").css("max-height", "");
+    }
+
+
+</script>

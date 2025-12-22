@@ -1,0 +1,48 @@
+﻿@model UI.Models.Record.p54Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Hladina sazby");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    Model.PageSymbol = "settings";
+}
+
+@addTagHelper *, UI
+
+<div class="modal_record_container">
+
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název"):</label>
+        <div class="col-sm-7 col-md-6">
+            <input class="form-control record_name" asp-for="Rec.p54Name" />
+        </div>
+        <label class="col-sm-1 col-md-1 col-form-label">@_f.tra("Index pořadí"):</label>
+        <div class="col-sm-1 col-md-1">
+            <mynumber asp-for="Rec.p54Ordinary" decimal-digits="0"></mynumber>
+        </div>
+    </div>
+    <div class="card" style="margin-top:10px;">
+        <div class="card-header">
+            @_f.tra("Vliv na hodinové sazby")
+        </div>
+        <div class="card-body">
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Násobek fakturační sazby"):</label>
+                <div class="col-sm-4 col-md-3">
+                    <mynumber asp-for="Rec.p54BillingRate" decimal-digits="3"></mynumber>
+                </div>
+
+            </div>
+
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Násobek nákladové sazby"):</label>
+                <div class="col-sm-4 col-md-3">
+                    <mynumber asp-for="Rec.p54InternalRate" decimal-digits="3"></mynumber>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    
+
+</div>

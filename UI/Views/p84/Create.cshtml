@@ -1,0 +1,114 @@
+﻿@model UI.Models.p84CreateViewModel
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = _f.tra("Vygenerovat upomínky");
+    Model.PageSymbol = "p84";
+}
+
+@addTagHelper *, UI
+
+<div class="bg-light" style="padding:10px;">
+    <button type="button" id="cmdSave" class="btn btn-success"><span class="material-icons-outlined-btn">done</span>@_f.tra("Potvrdit")</button>
+
+    <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
+
+
+</div>
+
+@Html.Raw("<div class='modal_record_container'>")
+
+@if(Model.RetErrors !=null && Model.RetErrors.Count() > 0)
+{
+    foreach(var c in Model.RetErrors)
+    {
+        <div class="alert alert-danger" role="alert">
+            <strong>@c.Key</strong>
+            <i>
+                @Html.Raw(c.Value)
+            </i>
+        </div>
+    }
+}
+
+<form id="form1" asp-controller="p84" asp-action="Create" method="POST">
+
+
+    <input type="hidden" asp-for="p91ids" />
+
+    <table class="table table-hover">
+        @foreach (var c in Model.lisP91)
+        {
+            <tr>
+                <td>
+                    @c.p91Code
+                </td>
+                <td>
+                    @c.p92Name
+                    <br />
+                    @c.p91Client
+                </td>
+                <td>
+                </td>
+                <td>
+                    @BO.Code.Bas.ObjectDate2String(c.p91DateMaturity)
+                </td>
+
+                <td style="width:90px;color:red;text-align:right;">
+                    <strong>
+                        @BO.Code.Bas.Number2String(c.p91Amount_Debt)
+                    </strong>
+                </td>
+                <td>
+                    @c.j27Code
+                </td>
+                <td style="width:100px;">
+                    @(BO.Code.Time.DurationFormatted(c.p91DateMaturity, DateTime.Now, true))
+                </td>
+                <td>
+                    <code>Stupeň upomínky: #</code>
+                    @(_f.p84UpominkaBL.GetFirstFreeUpominkaIndex(c))
+                    
+                </td>
+            </tr>
+        }
+    </table>
+
+
+</form>
+
+@Html.Raw("</div>")
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+
+
+
+        $("#cmdSave").click(function () {
+            $(this).text("Processing...");
+            $(this).attr("disabled", true);
+
+
+            form1.submit();
+        });
+
+
+
+
+
+    });
+
+
+    function p91id_onchange(j02id) {
+        _postback("refresh");
+    }
+
+
+
+
+
+</script>

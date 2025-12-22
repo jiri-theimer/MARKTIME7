@@ -1,0 +1,10 @@
+﻿@model BO.x15IdEnum
+@inject BL.Factory _f
+
+<select asp-for="@Model" class="form-select">
+    <option value="Nic"></option>
+    <option value="BezDPH">@_f.tra("0% (Bez DPH)")</option>
+    <option value="SnizenaSazba">@_f.tra("Snížená sazba DPH")</option>
+    <option value="ZakladniSazba">@_f.tra("Základní sazba DPH")</option>
+    <option value="SpecialniSazba">@_f.tra("Speciální sazba DPH")</option>
+</select>

@@ -1,0 +1,94 @@
+﻿@model UI.Models.Tab1.BaseTab1ViewModel
+@inject BL.Factory _f
+
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+
+    Model.PageTitle = _f.CBL.GetObjectAlias(BO.Code.Entity.GetPrefixDb(Model.prefix), Model.pid);
+
+    Model.caller = "QuickStat"; //tím říkáme, že se zde má brát v potaz filtrované období
+    var _periodinput = new UI.Views.Shared.Components.myPeriod.myPeriodViewModel() { UserParamKey = "tabstat-period" };
+    _periodinput.PeriodValue = _f.CBL.LoadUserParamInt("tabstat-period", 0);
+}
+
+@addTagHelper *, UI
+
+@section header_content {
+
+
+    <link rel="stylesheet" href="/css/htmltable.css" />
+
+
+}
+
+
+
+<form id="form1" asp-controller="Record" asp-action="QuickStat" method="POST">
+    <div class="bg-light input-group" style="margin-bottom:20px;">
+        @if (Model.p31guid == null)
+        {
+            <div>
+                @await Component.InvokeAsync("myPeriod", _periodinput)
+            </div>
+        }
+
+        <div style="margin-left:10px;">
+            @if (_f.CBL.LoadUserParamBool($"{Model.prefix}-quickstat-immediately", false))
+            {
+                <input type="checkbox" id="chkTurnOff" onchange="turn_off_immediately(this)" checked="checked" class="form-check-input" />
+            }
+            else
+            {
+                <input type="checkbox" id="chkTurnOff" onchange="turn_off_immediately(this)" class="form-check-input" />
+            }
+            
+            
+            <label for="chkTurnOff">@_f.tra("Statistiku generovat automaticky na stránce záznamu")</label>
+        </div>
+
+        <div style="margin-left:40px;">
+            <button id="cmdClose" onclick="close_and_refresh()" class="btn btn-light">@_f.tra("Zavřít")</button>
+        </div>
+
+    </div>
+
+    <input type="hidden" asp-for="prefix" />
+    <input type="hidden" asp-for="pid" />
+    <input type="hidden" asp-for="p31guid" />
+
+
+    @await Html.PartialAsync("~/Views/Shared/_TabStat.cshtml", Model)
+
+
+</form>
+
+<script type="text/javascript">
+    
+    function close_and_refresh() {
+
+
+        if (window.parent.document.getElementById("zoom_okno")) {
+            window.parent.document.getElementById("zoom_okno").style.display = "none";  //např. statistika ve schvalovacím dialogu
+            return;
+        }
+        if (window.parent.document.getElementById("linkOpenInNewWindow")) {
+            window.parent.hardrefresh();
+        }
+
+        _window_close();
+    }
+
+    function turn_off_immediately(chk) {
+        var prefix = "@Model.prefix";
+        var val="0";
+        if (chk.checked){
+            val = "1";
+        }
+       
+        $.post("/Common/SetUserParam", { key: prefix + "-quickstat-immediately", value: val }, function (data) {
+            
+            window.parent.document.location.href = window.parent.document.location.href;
+        });
+    }
+</script>

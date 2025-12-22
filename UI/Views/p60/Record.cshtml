@@ -1,0 +1,257 @@
+﻿@model UI.Models.Record.p60Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Šablona úkolu");
+    if (Model.Rec.p41ID > 0)
+    {
+        Model.PageTitle += " (" + Model.ProjectCombo.SelectedProject + ")";
+    }
+
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+
+}
+
+@addTagHelper *, UI
+
+
+
+
+@section header_content
+{
+
+    @if (Model.Notepad.SelectedX04ID > 0)
+    {
+        <link href="~/lib/froala-editor/css/froala_editor.pkgd.min.css" rel="stylesheet" type="text/css" />
+    }
+}
+
+
+<div class="tabs_container_record">
+    <!-- Tab panes -->
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab1" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab1">@_f.tra("Úkol")</a>
+        </li>
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab2" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab2">@_f.tra("Notepad")</a>
+        </li>
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab3" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab3">@_f.tra("Plán/Rozpočet")</a>
+        </li>
+
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab4" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab4">@_f.tra("Různé")</a>
+        </li>
+
+
+    </ul>
+</div>
+
+
+
+
+@Html.Raw("<div class='modal_record_container_flexi'>")
+@Html.Raw("<div class='tab-content'>")
+
+<div class="tab-pane tab-pane-fixed" id="tab1" role="tabpanel">
+    <!-- Tab1 -->
+
+    <div class="row my-2">
+        <div class="col-sm-9 col-md-9">
+            <input class="form-control record_name" asp-for="Rec.p60Name" placeholder="@_f.tra("Název úkolu")" />
+        </div>
+
+
+
+    </div>
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Typ úkolu"):</label>
+        <div class="col-sm-4 col-md-4">
+            <mycombo entity="p57TaskType" asp-for="Rec.p57ID" selectedtext="@Model.ComboP57" event_after_changevalue="change_p57id"></mycombo>
+
+        </div>
+    </div>
+
+
+    @Html.EditorFor(m => m.roles, "~/Views/Shared/_RoleAssign.cshtml")
+
+
+    <div class="my-2">
+        @Html.EditorFor(m => m.ProjectCombo, "~/Views/Shared/_ProjectCombo.cshtml")
+    </div>
+
+
+
+
+
+</div>
+
+<div class="tab-pane tab-pane-fixed" id="tab2" role="tabpanel">
+    <!-- Tab2 -->
+    @Html.EditorFor(m => m.Notepad, "~/Views/Shared/_Notepad.cshtml")
+</div>
+
+<div class="tab-pane tab-pane-fixed" id="tab3" role="tabpanel">
+    <!-- Tab3 -->
+    <div class="row my-2">
+
+
+        <label class="col-sm-1 col-md-2 col-form-label recpagelabel">@(_f.tra("Plánované zahájení")):</label>
+        <div class="col-sm-1 col-md-1">
+            <mynumber asp-for="Rec.p60PlanFrom_UC" decimal-digits="0"></mynumber>
+        </div>
+        <div class="col-sm-1 col-md-1">
+            <select asp-for="Rec.p60PlanFrom_Unit" class="form-select">
+                <option value=""></option>
+                <option value="d">dní</option>
+                <option value="e">pracovních dní</option>
+                <option value="w">týdnů</option>
+                <option value="m">měsíců</option>
+                <option value="y">roků</option>
+            </select>
+        </div>
+        <div class="col-sm-2 col-md-2">
+            <code>(+- vůči dnes)</code>
+        </div>
+
+    </div>
+
+    <div class="row my-2">
+
+
+        <label class="col-sm-1 col-md-2 col-form-label recpagelabel">@(_f.tra("Plánované dokončení")):</label>
+        <div class="col-sm-1 col-md-1">
+            <mynumber asp-for="Rec.p60PlanUntil_UC" decimal-digits="0"></mynumber>
+        </div>
+        <div class="col-sm-1 col-md-1">
+            <select asp-for="Rec.p60PlanUntil_Unit" class="form-select">
+                <option value=""></option>
+                <option value="d">dní</option>
+                <option value="e">pracovních dní</option>
+                <option value="w">týdnů</option>
+                <option value="m">měsíců</option>
+                <option value="y">roků</option>
+            </select>
+        </div>
+        <div class="col-sm-2 col-md-2">
+            <code>(+- vůči dnes)</code>
+        </div>
+
+
+    </div>
+
+    <div class="card my-2">
+        <div class="card-body">
+            <div class="card-header">
+                <span>Plán/Limit rozpracovaných hodin a výdajů</span>
+            </div>
+            <div class="card-body">
+                <div class="row my-2">
+                    <label class="col-sm-1 col-md-2 col-form-label">@(_f.tra("Plán hodin")):</label>
+                    <div class="col-sm-2 col-md-2">
+                        <mynumber asp-for="Rec.p60Plan_Hours" decimal-digits="2"></mynumber>
+                    </div>
+
+
+                </div>
+                <div class="row my-2">
+                    <label class="col-sm-1 col-md-2 col-form-label">@(_f.tra("Plán ceny hodin")):</label>
+                    <div class="col-sm-2 col-md-2">
+                        <mynumber asp-for="Rec.p60Plan_Internal_Fee" decimal-digits="2"></mynumber>
+                    </div>
+
+
+                </div>
+                <div class="row my-2">
+                    <label class="col-sm-1 col-md-2 col-form-label recpagelabel">@(_f.tra("Plán výdajů")):</label>
+                    <div class="col-sm-2 col-md-2">
+                        <mynumber asp-for="Rec.p60Plan_Expenses" decimal-digits="2"></mynumber>
+                    </div>
+
+                </div>
+
+                <div class="row my-2">
+                    <label class="col-sm-1 col-md-2 col-form-label recpagelabel">@(_f.tra("Plán odměn")):</label>
+                    <div class="col-sm-2 col-md-2">
+                        <mynumber asp-for="Rec.p60Plan_Revenue" decimal-digits="2"></mynumber>
+                    </div>
+                </div>
+
+                <div class="row my-2">
+                    <select asp-for="@Model.Rec.p60PlanFlag" class="form-select">
+                        <option value="0"></option>
+                        <option value="ZastropovatHodiny">@_f.tra("Zákaz vykázat hodiny nad Plán")</option>
+                        <option value="ZastropovatVydaje">@_f.tra("Zákaz vykázat výdaje nad Plán")</option>
+                        <option value="ZastropovatHodinyVydaje">@_f.tra("Zákaz vykázat hodiny i výdaje nad Plán")</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+</div>
+
+<div class="tab-pane tab-pane-fixed" id="tab4" role="tabpanel">
+    <!-- Tab4 -->
+
+    <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Vlastník záznamu"):</label>
+    <div class="col-sm-6 col-md-5">
+        <mycombo entity="j02User" asp-for="Rec.j02ID_Owner" selectedtext="@Model.ComboOwner" view-flag="2"></mycombo>
+    </div>
+    <div class="my-2">
+        <input type="checkbox" asp-for="Rec.p60IsPublic" />
+        <label for="Rec_p60IsPublic">@_f.tra("Přístupné pro všechny uživatele")</label>
+    </div>
+
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Lokalita"):</label>
+        <div class="col-sm-5 col-md-4">
+            <mycombo entity="p15Locality" asp-for="Rec.p15ID" selectedtext="@Model.ComboP15"></mycombo>
+        </div>
+    </div>
+
+    <div class="my-2">
+        <input type="checkbox" asp-for="Rec.p60IsStopNotify" />
+        <label for="Rec_p60IsStopNotify">@_f.tra("V úkolu vypnout automatické notifikace")</label>
+    </div>
+</div>
+
+
+
+
+@Html.Raw("</div>")
+@Html.Raw("</div>")
+
+
+
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+
+
+    });
+
+
+    function hardrefresh(pid, flag) {
+
+
+        _postback();
+    }
+
+
+
+
+    function change_p57id(p57id) {
+        _postback("p57id");
+    }
+</script>
+

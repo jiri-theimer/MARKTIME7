@@ -1,0 +1,214 @@
+﻿@model UI.Models.BarcodesViewModel
+@inject BL.Factory _f
+
+@{
+    if (Model == null || Model.record_prefix == null)
+    {
+        return;
+    }
+
+
+
+    if (Model.postback_par == "start_scanner")
+    {        
+        Model.IsBCScanner = true;
+
+    }
+    if (Model.postback_par == "scanner_success")
+    {        
+        var duplrec = _f.j28BarcodeBL.LoadByValue(Model.BarcodeValue, 0);
+        if (duplrec != null)
+        {
+            //nedojde k uložení čárového kódu
+            Model.UserMessage = "Tento kód již existuje u záznamu:<br>" + _f.CBL.GetObjectAlias(duplrec.j28RecordEntity, duplrec.j28RecordPid);
+            if (duplrec.j28RecordPid==Model.record_pid && duplrec.j28RecordEntity==Model.record_prefix){
+                Model.UserMessage = "Tento kód již existuje u tohoto záznamu.";
+            }
+            Model.IsPlayBeepError = true;
+        }
+        else
+        {
+            var rec = new BO.j28Barcode() { j28RecordEntity = Model.record_prefix, j28RecordPid = Model.record_pid, j28Value = Model.BarcodeValue, j28TempGuid = Model.TempGuid };
+
+            _f.j28BarcodeBL.Save(rec);
+            Model.IsPlayBeepSuccess = true;
+            Model.UserMessage = "Uloženo.";
+        }
+
+
+
+    }
+
+    if (Model.postback_par == "delete_barcode")
+    {
+        _f.CBL.DeleteRecord("j28", Convert.ToInt32(Model.postback_guid));
+        Model.UserMessage = "Odstraněno.";
+    }
+    
+    if (Model.lisJ28 == null)
+    {
+        Model.lisJ28 = _f.j28BarcodeBL.GetList(Model.record_prefix, Model.record_pid,Model.TempGuid);
+    }
+
+    if (!string.IsNullOrEmpty(Model.postback_par))
+    {
+        Model.postback_par = null;
+        Model.postback_guid = null;
+    }
+    
+
+}
+
+
+
+@if (Model.IsBCScanner)
+{
+    <script src="/lib/barcode/html5-qrcode.min.js"></script>
+}
+
+
+    @addTagHelper *, UI
+
+<div class="input-group">
+    <div>
+        <button type="button" class="btn bog" tabindex="-1" onclick="barcode_start_scanner()">
+            <myicon symbol="qr_code_scanner"></myicon>
+            @_f.tra("Přidat čárový kód")
+        </button>
+    </div>
+        
+        @if(Model.record_pid>0)
+        {
+        <div style="text-align:center;margin-left:10px;padding-left:6px;padding-right:6px;border-radius:10px;border:solid 1px gray;">
+            <small>@_f.tra("Výchozí kód")</small>
+            <myval value="@(BO.Code.Entity.GetBarcode(Model.record_prefix,Model.record_pid))" hoverurl="/Record/Barcode?value=@(BO.Code.Entity.GetBarcode(Model.record_prefix,Model.record_pid))"></myval>
+            
+            </div>
+        }
+    
+    @foreach (var c in Model.lisJ28)
+    {
+        <div style="margin-left:10px;border-radius:10px;background-color:khaki;padding-left:6px;padding-right:6px;border:solid 1px gray;">
+            <span title="@c.j28Value">
+
+                <myval value="@(BO.Code.Bas.OM2(c.j28Value, 20))" hoverurl="/Record/Barcode?value=@(c.j28Value)"></myval>
+
+            </span>
+
+            <a href="javascript:delete_barcode(@(c.pid))" title="Odstranit">
+                <myicon symbol="delete_forever" color="red"></myicon>
+            </a>
+        </div>
+        
+    }
+</div>
+
+@if (Model.IsBCScanner)
+{
+    <div class="card">
+        <div class="card-header">
+            <input type="text" asp-for="@Model.BarcodeValue" value="@Model.BarcodeValue" oninput="barcode_manual_ischanged()" placeholder="@_f.tra("Načtený kód, lze zadat i ručně.")" style="width:200px;" />
+            
+            <span id="infoMessage" style="color:red;">@(Html.Raw(Model.UserMessage))</span>
+            <button type="button" id="cmdBarcodeManualSave" onclick="barcode_handle_manual_save()" style="visibility:hidden;">@_f.tra("Uložit")</button>
+            
+        </div>
+        <div class="card-body">
+
+            <div style="width: 500px" id="reader"></div>
+
+            
+
+        </div>
+    </div>
+}
+
+
+<input type="hidden" asp-for="@Model.record_prefix" />
+<input type="hidden" asp-for="@Model.record_pid" />
+<input type="hidden" asp-for="@Model.postback_par" value="@Model.postback_par" />
+<input type="hidden" asp-for="@Model.postback_guid" value="@Model.postback_guid" />
+<input type="hidden" asp-for="@Model.IsBCScanner" value="@Model.IsBCScanner" />
+<input type="hidden" asp-for="@Model.LastScannedValue" value="@Model.LastScannedValue" />
+<input type="hidden" asp-for="@Model.TempGuid" />
+
+
+
+<script type="text/javascript">
+        
+    @if (Model.IsPlayBeepError)
+    {
+        <text>
+        var snd = new Audio("/wav/beep-error.wav");
+        snd.play();
+        </text>
+    }
+    @if (Model.IsPlayBeepSuccess)
+    {
+        <text>
+        
+        var snd = new Audio("/wav/beep-beep-6151.mp3");
+        snd.play();
+
+        </text>
+    }
+
+    @if (Model.IsBCScanner)
+    {
+        <text>
+        var _html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: 250, rememberLastUsedCamera: true, aspectRatio: 1.7777778 });
+        _html5QrcodeScanner.render(onScanSuccess);
+
+        
+        function onScanSuccess(decodedText, decodedResult) {
+            // Handle on success condition with the decoded text or result.
+
+            if (decodedText == $("#barcodes_LastScannedValue").val())
+            {
+                
+                return; //sken naposledy zpracovaného kódu - již nezpracovávat
+            }
+            document.getElementById("barcodes_BarcodeValue").value = decodedText;
+            $("#barcodes_LastScannedValue").val(decodedText);
+            
+                        
+            $("#barcodes_postback_par").val("scanner_success");
+            _postback("scanner_success");
+        }
+
+
+        </text>
+
+
+    }
+
+    
+
+
+
+        function barcode_start_scanner() {
+            $("#barcodes_postback_par").val("start_scanner");
+            _postback("start_scanner");
+        }
+
+    function delete_barcode(j28id)
+    {
+        $("#barcodes_postback_par").val("delete_barcode");
+        $("#barcodes_postback_guid").val(j28id);
+        $("#barcodes_LastScannedValue").val("");
+        _postback("delete_barcode");
+    }
+    function barcode_manual_ischanged()
+    {
+        $("#cmdBarcodeManualSave").css("visibility","visible");
+        $("#infoMessage").text("");
+    }
+
+    function barcode_handle_manual_save()
+    {
+        
+        $("#barcodes_postback_par").val("scanner_success");
+        _postback("scanner_success");
+    }
+
+</script>

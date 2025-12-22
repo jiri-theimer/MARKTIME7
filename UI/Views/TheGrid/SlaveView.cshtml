@@ -1,0 +1,347 @@
+﻿@model TheGridViewModel
+@inject BL.Factory _f
+
+@{
+    bool _isMobile = _f.CurrentUser.IsMobileDisplay();
+    if (_isMobile)
+    {
+        Layout = "~/Views/Shared/_LayoutSubformMobile.cshtml";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+    }
+    
+
+    if (Model.entity == null || Model.master_pid == 0)
+    {
+        return;
+    }
+
+}
+
+@addTagHelper *,UI
+
+
+<div id="divToolbarOverGrid" class="input-group m-0" style="padding-top:1px;">
+    <div class="tabovergrid" style="margin-left:1px;">
+        
+
+        <a id="cmdMore" class="nav-link onetab-offcanvas-slaveview" tabindex="-1" role="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvas_more">
+
+            <span id="tabText"></span>
+            <span id="TheGridRows" class="badge bg-primary"></span>
+            <span class="onetab-caret">▼</span>
+
+        </a>
+
+    </div>
+    @if (_isMobile)
+    {
+        <myshowmore></myshowmore>
+        @if (_f.CurrentUser.j04IsModule_p31 && Model.gridinput.master_entity !="p91Invoice" && (Model.prefix == "p28" || Model.prefix == "le5" || Model.prefix == "le4" || Model.prefix == "p31" || Model.prefix == "p56"))
+        {
+            <div>
+                <a class="btn descreet_link_over_grid" href="javascript:_p31_entry_from_grid()" title="Vykázat úkon, klávesová zkratka: Alt+W"><span class="material-icons-outlined-btn menu_new_record">more_time</span></a>
+            </div>
+        }
+        @if (_f.CurrentUser.TestPermission(BO.PermValEnum.GR_GridColumnDesigner))
+        {
+            <div class="showmore dog">
+                @Html.EditorFor(m => Model.PageTitle, "~/Views/Shared/_ButtonGridDesigner.cshtml")
+            </div>
+        }
+        <div class="showmore dog">
+            @Html.EditorFor(m => Model.PageTitle,"~/Views/Shared/_ButtonGridSelMenu.cshtml")
+        </div>
+
+        <div class="showmore dog">
+            @Html.EditorFor(m => Model.TheGridQueryButton, "~/Views/Shared/_ButtonGridQuery.cshtml")
+        </div>
+        
+        @if (Model.periodinput != null)
+        {
+            <div class="showmore dog">
+                @await Component.InvokeAsync("myPeriod",Model.periodinput)
+            </div>
+
+        }
+        @if (Model.recordbinquery != null)
+        {
+            <div class="showmore dog">
+                @Html.EditorFor(m => Model.recordbinquery,"~/Views/Shared/_RecordBinQuery.cshtml")
+            </div>
+        }
+    }
+    else
+    {
+        @if (_f.CurrentUser.TestPermission(BO.PermValEnum.GR_GridColumnDesigner))
+        {
+            @Html.EditorFor(m => Model.PageTitle, "~/Views/Shared/_ButtonGridDesigner.cshtml")
+        }
+
+        @if (_f.CurrentUser.TestPermission(BO.PermValEnum.GR_GridExports) || _f.CurrentUser.IsApprovingPerson || _f.CurrentUser.IsBillingPerson)
+        {
+            @Html.EditorFor(m => Model.PageTitle,"~/Views/Shared/_ButtonGridSelMenu.cshtml")
+        }
+
+        @Html.EditorFor(m => Model.TheGridQueryButton, "~/Views/Shared/_ButtonGridQuery.cshtml")
+
+        @if (Model.periodinput != null)
+        {
+            <div>
+                @await Component.InvokeAsync("myPeriod",Model.periodinput)
+            </div>
+
+        }
+        @if (Model.p31statequery != null)
+        {
+            @Html.EditorFor(m => Model.p31statequery,"~/Views/Shared/_p31StateQuery.cshtml")
+        }
+        @if (Model.recordbinquery != null)
+        {
+            @Html.EditorFor(m => Model.recordbinquery,"~/Views/Shared/_RecordBinQuery.cshtml")
+        }
+
+        @if (Model.prefix == "p56")
+        {
+            <div class="nonmobile">
+                <a class="btn descreet_link_over_grid" href="javascript:_workflow_batch('@(Model.prefix)')" title="Hromadně posunout/doplnit"><span class="material-icons-outlined-btn">task_alt</span></a>
+            </div>
+        }
+
+        @if (Model.prefix != "p91" && Model.prefix != "p39" && Model.prefix != "p31" && Model.prefix != "x40" && Model.prefix != "o43" && Model.prefix != "j92" && Model.prefix != "j90")
+        {
+            <div class="nonmobile">
+                <a class="btn descreet_link_over_grid" href="javascript:slave_new_rec()" title="@_f.tra("Nový")"><span class="material-icons-outlined-btn menu_new_record">add_circle_outline</span></a>
+            </div>
+        }
+
+        @if (_f.CurrentUser.j04IsModule_p31 && (Model.prefix == "p28" || Model.prefix == "le5" || Model.prefix == "le4" || Model.prefix == "p31" || Model.prefix == "p56"))
+        {
+            <div>
+                <a class="btn descreet_link_over_grid" href="javascript:_p31_entry_from_grid()" title="@_f.tra("Vykázat úkon")"><span class="material-icons-outlined-btn menu_new_record">more_time</span></a>
+            </div>
+        }
+        @if ((_f.CurrentUser.IsApprovingPerson && Model.prefix == "p31" || Model.prefix == "le5" || Model.prefix == "p28" || Model.prefix == "p56") && Model.recordbinquery.Value != 2)
+        {
+            <div>
+                <a class="btn descreet_link_over_grid" href="javascript:tg_approve()" title="Schválit/Vyúčtovat vybrané"><span class="material-icons-outlined-btn" style="color:green;">approval</span></a>
+            </div>
+        }
+        @if (Model.prefix == "p31" && ( Model.gridinput.master_entity == "le4" || Model.gridinput.master_entity == "le3"))
+        {
+            <div>
+                <input type="checkbox" asp-for="show_podrizene" onchange="change_show_podrizene(this)" />
+                <label for="show_podrizene">@_f.tra("Včetně podřízených projektů")</label>
+                
+            </div>
+            
+        }
+
+
+        @if (Model.IsCanbeMasterView)
+        {
+            <div style="margin-left:auto;margin-right:10px;" class="nonmobile" title="Více nastavení stránky">
+
+
+                <button id="cmdext" class="btn bog" role="button" data-bs-toggle="dropdown" aria-expanded="false" tabindex="-1">
+                    <myicon symbol="more_horiz"></myicon>
+
+                </button>
+                <div id="cmdext_menu" class="dropdown-menu">
+                    loading...
+                </div>
+            </div>
+
+        }
+    }
+    
+
+    
+
+</div>
+
+
+@await Component.InvokeAsync("myGrid",Model.gridinput)
+
+
+
+<div class="offcanvas offcanvas-start" tabindex="-1" data-bs-scroll="true" data-bs-backdrop="true" data-bs-keyboard="true" id="offcanvas_more">
+
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title">
+            <a href="javascript:reload()" title="Občerstvit">
+                <myicon symbol="refresh"></myicon>
+            </a>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+
+    <div class="offcanvas-body p-0 m-0" id="offcanvas_more_body">
+    </div>
+</div>
+
+
+@section Scripts{
+
+    <script type="text/javascript">
+        let _offcanvasIsLoaded = false;
+        var _pageprefix = "@Model.prefix";
+        var _pagemasterprefix = "@Model.gridinput.master_entity.Substring(0,3)";
+        var _pagemasterpid = "@Model.master_pid";
+        var _binquery = "@(Model.recordbinquery != null ? Model.recordbinquery.Value : null)";
+        var _caller = "@Model.caller";
+
+
+        $(document).ready(function () {
+
+            $("#offcanvas_more").on("show.bs.offcanvas", function () {
+                if (_offcanvasIsLoaded)
+                {
+                    RefreshExportAccording();   //js var _GridExport.cshtml
+                    return;
+                }
+
+                _offcanvasIsLoaded = true;
+
+                render_menu("cmdMore","offcanvas_more_body","/Menu/grid_extension?prefix=" + _pageprefix);
+
+
+            });
+
+            if ($("#FilterMyInvolvement").val() != "") {
+                $("#FilterMyInvolvement").css("background-color", "red");
+            }
+
+
+
+            if (document.getElementById("cmdext")) {
+                register_menu("cmdext", "cmdext_menu", "/Menu/grid_extension?prefix=" + _pageprefix);
+            }
+
+
+
+            var s = $(window.parent.document).find("#navtabs .active").text();    //text v záložce převzít z aktuální záložky v MasterView
+            if (s != null && s != "") {
+                s = s.replace(/\d+/g, "").replaceAll("+", "");
+                $("#tabText").text(s);
+            }
+
+            if (_caller == "hybrid") {
+                $("#cmdPeriodMore").css("visibility", "hidden");
+            }
+
+            if (_binquery == "0" || _binquery == "2") {
+                $("#divBinQuery").removeClass("showmore");
+
+                if (_binquery == "2") {
+                    $("#divToolbarOverGrid").css("background-color", "black");
+                }
+            }
+            
+        });
+
+
+
+
+        function reload() {
+            _showloading();
+            var url = "/TheGrid/SlaveView?prefix=@Model.prefix&master_entity=@Model.gridinput.master_entity&master_pid=" + _pagemasterpid;
+            url += "&myqueryinline=@Model.myqueryinline";
+
+            _redirect(url);
+
+        }
+
+
+
+        function change_grid(j72id) {
+            var strKey = "slaveview-j72id-@(Model.prefix)-@(Model.gridinput.master_entity)";
+
+            $.post("/Common/SetUserParam", { key: strKey, value: j72id }, function (data) {
+                reload();
+
+            });
+        }
+
+        function change_show_podrizene(chk) {
+            var strKey = "slaveview-show-podrizene";
+
+            $.post("/Common/SetUserParam", { key: strKey, value: $(chk).prop("checked") }, function (data) {
+                var url = "/TheGrid/SlaveView?prefix=@Model.prefix&master_entity=@Model.gridinput.master_entity&master_pid=" + _pagemasterpid;
+                _redirect(url);
+
+            });
+        }
+
+        function grid_dblclick(row) {
+            var pid = row.id.replace("r", "");
+
+            if (_pageprefix == "x40") {
+                _edit(_pageprefix, pid);
+                return;
+            }
+
+            var strDblSetting = "@Model.dblClickSetting";
+            if (strDblSetting == "recpage" || _device.isMobile) {
+                window.open("/Record/RecPage?prefix=" + _pageprefix + "&pid=" + pid, "_top");
+                return;
+            }
+
+            if (_pagemasterprefix == "p91" && _pageprefix == "p31") {
+                _window_open("/p91oper/p31edit?p31id=" + pid, 3);
+                return;
+            }
+
+            _edit(_pageprefix, pid);
+        }
+
+
+        function p91oper_p31operbatch(baseoper) {
+            var pids = $("#tg_selected_pids").val();
+            if (pids === "") {
+                _notify_message(_tg_musite_vybrat_zaznam);
+                return;
+            }
+
+            _window_open("/p91oper/p31operbatch?baseoper=" + baseoper + "&p31ids=" + pids + "&p91id=" + _pagemasterpid);
+
+        }
+
+        function slave_new_rec() {
+            var url = "/" + _pageprefix + "/Record?pid=0";
+            if (_pageprefix == "p31") {
+                url = url + "&newrec_prefix=" + _pagemasterprefix + "&newrec_pid=" + _pagemasterpid
+            }
+            if (_pageprefix == "o23") {
+                url = url + "&prefix=" + _pagemasterprefix + "&recpid=" + _pagemasterpid
+            }
+            if (_pageprefix == "p90" && _pagemasterprefix == "p28") {
+                url = url + "&p28id=" + _pagemasterpid
+            }
+            if (_pageprefix == "p56") {
+                url = url + "&wrk_record_prefix=" + _pagemasterprefix + "&wrk_record_pid=" + _pagemasterpid;
+            }
+            if (_pageprefix == "p49" && (_pagemasterprefix == "p41" || _pagemasterprefix=="le5")) {
+                url = url + "&p41id=" + _pagemasterpid;
+            }
+            if (_pageprefix == "p49" && _pagemasterprefix == "p56") {
+                url = url + "&p56id=" + _pagemasterpid;
+            }
+            if (_pageprefix == "p41" || _pageprefix == "le5" || _pageprefix == "le4" || _pageprefix == "le3" || _pageprefix == "le2") {
+                url = "/p41/Record?pid=0"; 
+                
+                if (_pagemasterprefix == "p28") {
+                    url = url + "&p28id=" + _pagemasterpid;
+                }
+            }
+            
+            _window_open(url);
+        }
+
+
+    </script>
+
+}
+

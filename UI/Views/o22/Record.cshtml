@@ -1,0 +1,276 @@
+﻿@model UI.Models.Record.o22Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Termín");
+    if (Model.RecO21 != null)
+    {
+        Model.PageTitle = Model.RecO21.o21Name;
+    }
+    if (Model.ProjectCombo != null && Model.ProjectCombo.SelectedP41ID > 0)
+    {
+        Model.PageTitle += " (" + Model.ProjectCombo.SelectedProject + ")";
+    }
+    else
+    {
+        if (Model.b05RecordEntity != null && Model.b05RecordPid > 0)
+        {
+            Model.PageTitle += " (" + _f.CBL.GetObjectAlias(Model.b05RecordEntity, Model.b05RecordPid) + ")";
+        }
+    }
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+
+}
+
+
+@addTagHelper *, UI
+
+@section header_content{
+
+    @if (Model.IsShowMore && Model.Notepad.SelectedX04ID > 0)
+    {
+        <link href="~/lib/froala-editor/css/froala_editor.pkgd.min.css" rel="stylesheet" type="text/css" />
+    }
+}
+
+
+
+@Html.Raw("<div class='modal_record_container'>")
+
+<div class="row">
+    <div class="col-sm-8 col-md-8">
+        <input class="form-control record_name" asp-for="Rec.o22Name" placeholder="@_f.tra("Název")" />
+    </div>
+
+    <div class="col-sm-4 col-md-4">
+        <mycombo entity="o21MilestoneType" placeholder="@_f.tra("Typ lhůty/události")" asp-for="@Model.Rec.o21ID" selectedtext="@Model.ComboO21" myqueryinline="o21isusercombo|bool|1" event_after_changevalue="change_o21id"></mycombo>
+
+    </div>
+
+
+</div>
+
+@if (Model.RecO21 != null && Model.RecO21.o21TypeFlag == BO.o21TypeFlagEnum.Lhuta)
+{
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label recpagelabel">@(_f.tra("První den lhůty")):</label>
+        <div class="col-sm-2 col-md-2">
+            <mydate asp-for="@Model.Rec.o22PlanFrom" include-time="false"></mydate>
+        </div>
+
+    </div>
+
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label recpagelabel">@(_f.tra("Délka lhůty")):</label>
+        @if (Model.Rec.o22DurationCalcFlag == BO.o22DurationCalcFlagEnum.Pocitat)
+        {
+            <div class="col-sm-1 col-md-1">
+                <mynumber asp-for="Rec.o22DurationCount" event_after_changevalue="recalc_duration()" decimal-digits="0"></mynumber>
+            </div>
+            <div class="col-sm-1 col-md-1">
+                <select asp-for="Rec.o22DurationUnit" class="form-select" onchange="recalc_duration()">
+                    <option value="d">dní</option>
+                    <option value="e">pracovních dní</option>
+                    <option value="w">týdnů</option>
+                    <option value="m">měsíců</option>
+                    <option value="y">roků</option>
+                </select>
+            </div>
+        }
+
+
+        <div class="col-auto">
+            <select asp-for="Rec.o22DurationCalcFlag" class="form-select" onchange="_postback()">
+                <option value="Pocitat">Konec počítat</option>
+                <option value="Rucne">Konec zadat ručně</option>
+            </select>
+        </div>
+        <div class="col-sm-3 col-md-3">
+            <div id="divO22PlanUtil" style="display:@(Model.Rec.o22DurationCalcFlag==BO.o22DurationCalcFlagEnum.Pocitat ? "none": "block");">
+                <mydate asp-for="@Model.Rec.o22PlanUntil" include-time="true"></mydate>
+            </div>
+
+            <strong id="calc_o22PlanUntil"></strong>
+
+        </div>
+    </div>
+}
+
+
+
+@if (Model.RecO21 != null && Model.RecO21.o21TypeFlag == BO.o21TypeFlagEnum.Udalost)
+{
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-1 col-form-label">@(_f.tra("Začátek")):</label>
+        <div class="col-sm-3 col-md-3">
+            <mydate asp-for="@Model.Rec.o22PlanFrom" include-time="true"></mydate>
+        </div>
+        <label class="col-sm-1 col-md-1 col-form-label">@(_f.tra("Konec")):</label>
+        <div class="col-sm-3 col-md-3">
+            <mydate asp-for="@Model.Rec.o22PlanUntil" include-time="true"></mydate>
+        </div>
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-1 col-form-label">@(_f.tra("Lokalita")):</label>
+        <div class="col-sm-7 col-md-7">
+            <input type="text" asp-for="@Model.Rec.o22Location" class="form-control">
+        </div>
+
+    </div>
+}
+
+@if (Model.RecO21 != null && Model.RecO21.o21TypeFlag == BO.o21TypeFlagEnum.Milnik)
+{
+    <div class="row my-2">
+
+        <label class="col-sm-1 col-md-1 col-form-label">@(_f.tra("Datum")):</label>
+        <div class="col-sm-3 col-md-3">
+            <mydate asp-for="@Model.Rec.o22PlanUntil" include-time="true"></mydate>
+        </div>
+    </div>
+}
+
+
+@Html.EditorFor(m => m.roles, "~/Views/Shared/_RoleAssign.cshtml")
+
+
+<div class="my-2">
+    @Html.EditorFor(m => m.ProjectCombo, "~/Views/Shared/_ProjectCombo.cshtml")
+</div>
+
+@Html.EditorFor(m => m.reminder, "~/Views/Shared/_Reminder.cshtml")
+
+<div style="padding-top:5px;">
+    <button id="cmdMore" type="button" class="btn dropdown-toggle bog" onclick="_postback('more')">
+        <myicon symbol="more_horiz"></myicon>
+    </button>
+</div>
+
+
+
+<div class="divMore">
+
+
+    @if (Model.IsShowMore)
+    {
+        @Html.EditorFor(m => m.Notepad, "~/Views/Shared/_Notepad.cshtml")
+
+
+        <mystitky entity="o22Milestone" asp-for="@Model.TagPids" tagnames="@Model.TagNames" taghtml="@Model.TagHtml" buttontext="@_f.tra("Oštítkovat")"></mystitky>
+
+
+
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Zadavatel (Vlastník záznamu)"):</label>
+            <div class="col-sm-4 col-md-4">
+                <mycombo entity="j02User" asp-for="Rec.j02ID_Owner" selectedtext="@Model.ComboOwner" view-flag="1"></mycombo>
+            </div>
+        </div>
+    }
+    else
+    {
+
+        <input type="hidden" asp-for="Rec.j02ID_Owner" value="@Model.Rec.j02ID_Owner" />
+        <input type="hidden" asp-for="ComboOwner" value="@Model.ComboOwner" />
+
+    }
+</div>
+
+@if (Model.UploadGuid != null)
+{
+    <iframe id="fraUpload" src="/FileUpload/DoUpload?recpid=@Model.rec_pid&entity=o22&guid=@Model.UploadGuid" frameborder="0" scrolling="yes" style="max-width:1200px;height:60px;"></iframe>
+}
+
+
+@Html.Raw("</div>")
+
+<input type="hidden" asp-for="j02id_create_taskfor" />
+<input type="hidden" asp-for="b05RecordPid" />
+<input type="hidden" asp-for="b05RecordEntity" />
+<input type="hidden" asp-for="IsShowMore" value="@Model.IsShowMore" />
+<input type="hidden" asp-for="o43id_source" />
+<input type="hidden" asp-for="UploadGuid" value="@Model.UploadGuid" />
+
+
+
+
+<script type="text/javascript">
+    var _prepocet = "@Model.Rec.o22DurationCalcFlag.ToString()";
+    _typeflag = "@(Model.RecO21 != null ? Model.RecO21.o21TypeFlag.ToString() : "")";
+
+    $(document).ready(function () {
+        
+        recalc_duration();
+
+
+        $("#Rec_o22PlanFromhelper").on("change", function () {
+            recalc_duration();
+        })
+
+        if (_prepocet == "Rucne") {
+            $("#Rec_o22PlanUntilhelper").on("change", function () { show_duration(); })
+        }
+
+
+
+
+    });
+
+
+    function hardrefresh(pid, flag) {
+
+
+        _postback();
+    }
+
+
+
+
+    function change_o21id(o21id) {
+        _postback("o21id");
+    }
+
+
+    function recalc_duration() {
+        if (_typeflag == "Udalost") {
+            var dd1 = datepicker_get_value("Rec_o22PlanFrom");
+            datepicker_set_value("Rec_o22PlanUntil", dd1);
+        }
+        if ((_typeflag == "Lhuta" && _prepocet == "Rucne") || _typeflag == "Udalost" || _typeflag == "Milnik") {
+            show_duration();
+            return;
+        }
+
+        
+
+        var delka = $("#numRec_o22DurationCount").val();
+        var start = $("#Rec_o22PlanFromhelper").val();
+        var jednotka = $("#Rec_o22DurationUnit").val();
+
+        $.post(_ep("/o22/CalcDuration"), { start: start, delka: delka, jednotka: jednotka }, function (data) {
+            //spočítat konec lhůty
+
+            var d1 = new Date(Date.parse(data));
+
+            if (document.getElementById("calc_o22PlanUntil")) {
+                $("#calc_o22PlanUntil").html("Konec lhůty: <span style='color:red;'>" + _format_date(d1, false) + " 23:59</span>");
+            }
+
+            datepicker_set_value("Rec_o22PlanUntil", d1);
+            _toolbar_warn2save_changes("");
+
+        });
+    }
+
+    function show_duration() {
+        var start = $("#Rec_o22PlanFromhelper").val();
+        var end = $("#Rec_o22PlanUntilhelper").val();
+
+        $.post(_ep("/o22/ShowDuration"), { d1: start, d2: end }, function (data) {
+
+            $("#calc_o22PlanUntil").html("Délka lhůty: <span style='color:red;'>" + data + "</span>");
+
+        });
+    }
+</script>

@@ -1,0 +1,54 @@
+﻿@model UI.Models.Tab1.p84Tab1
+@inject BL.Factory _f
+
+@{
+    
+    BO.p92InvoiceType _recP92 = _f.p92InvoiceTypeBL.Load(Model.RecP91.p92ID);
+    
+
+   
+
+}
+
+
+
+@if (Model.Rec.p84Index==1 && Model.RecP83.x31ID_Index1 > 0)
+{
+    <button type="button" class="btn btn-sm bog" onclick="p91report(@(Model.RecP83.x31ID_Index1),@Model.Rec.p91ID)"><span class="material-icons-outlined-btn">print</span> @_f.tra("Upomínka") #1</button>
+}
+@if (Model.Rec.p84Index == 2 && Model.RecP83.x31ID_Index2 > 0)
+{
+    <button type="button" class="btn btn-sm bog" onclick="p91report(@(Model.RecP83.x31ID_Index2),@Model.Rec.p91ID)"><span class="material-icons-outlined-btn">print</span> @_f.tra("Upomínka") #2</button>
+}
+@if (Model.Rec.p84Index == 3 && Model.RecP83.x31ID_Index3 > 0)
+{
+    <button type="button" class="btn btn-sm bog" onclick="p91report(@(Model.RecP83.x31ID_Index3),@Model.Rec.p91ID)"><span class="material-icons-outlined-btn">print</span> @_f.tra("Upomínka") #3</button>
+}
+
+
+@if (_recP92.x31ID_Invoice > 0 || _recP92.x31ID_Attachment > 0)
+{
+    <button type="button" class="btn btn-sm bog" onclick="p91report(@(_recP92.x31ID_Invoice),@Model.Rec.p91ID)"><span class="material-icons-outlined-btn">print</span> @_f.tra("Doklad faktury")</button>
+}
+else
+{
+    <button type="button" class="btn btn-sm bog" onclick="_window_open('/ReportsClient/ReportContext?pid=@(Model.Rec.p91ID)&prefix=p91')"><span class="material-icons-outlined-btn">print</span> @_f.tra("Tisková sestava faktury")</button>
+}
+
+
+@if (_recP92.x31ID_Attachment > 0)
+{
+    <button type="button" class="btn btn-sm bog" style="color:green;" onclick="p91report(@(_recP92.x31ID_Attachment),@Model.Rec.p91ID)"><span class="material-icons-outlined-btn">print</span> @_f.tra("Příloha faktury")</button>
+}
+
+
+
+
+
+
+
+<button type="button" class="btn btn-sm btn-light" title="E-mail" onclick="_window_open('/Mail/SendMail?record_entity=p84&record_pid=@Model.pid')"><span class="material-icons-outlined-btn">alternate_email</span></button>
+
+<button type="button" class="btn btn-sm btn-light" title="Kontrola rozdílů klienta vůči rejistříku" onclick="_window_open('/p91oper/checkaddress?pids_prefix=p91&pids=@Model.Rec.p91ID')"><span class="material-icons-outlined-btn" style="color:violet">in_home_mode</span></button>
+
+<button type="button" class="btn btn-sm btn-light" title="PDF archiv" onclick="_window_open('/p91oper/p96?p91id=@Model.Rec.p91ID',3)"><span class="material-icons-outlined-btn">folder_open</span></button>

@@ -1,0 +1,270 @@
+﻿@model UI.Models.Record.b05Record
+@inject BL.Factory _f
+
+
+@{
+
+    Model.PageTitle = "Notapd";
+
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageSymbol = "speaker_notes";
+
+
+    if (Model.RecB05.b05RecordEntity != null)
+    {
+        Model.PageTitle = _f.CBL.GetObjectAlias(Model.RecB05.b05RecordEntity, Model.RecB05.b05RecordPid);
+
+    }
+    if (Model.b05ID == 0)
+    {
+        Model.PageTitle = _f.CurrentUser.FullnameDesc;
+    }
+
+}
+
+@addTagHelper *, UI
+
+
+@if (Model.Notepad.SelectedX04ID > 0)
+{
+    @section header_content {
+    <link href="~/lib/froala-editor/css/froala_editor.pkgd.min.css" rel="stylesheet" type="text/css" />
+    }
+}
+
+
+<div class="bg-light input-group" style="padding:10px;">
+    <div>
+        <button id="cmdSave" class="btn btn-success" onclick="_submit()">
+            <span class="material-icons-outlined-btn" style="color:lime;">save</span>
+            @_f.tra("Uložit změny")
+        </button>
+
+    </div>
+    <div style="margin-left:10px;">
+        <button id="cmdSaveAndNotify" class="btn btn-info" onclick="_postback('mail')">
+            <span class="material-icons-outlined-btn">alternate_email</span>
+
+            @_f.tra("Uložit a notifikovat")
+        </button>
+
+
+    </div>
+    @if (Model.b05ID > 0 && (Model.RecB05.j02ID_Sys == _f.CurrentUser.pid || _f.CurrentUser.IsAdmin || _f.CurrentUser.TestPermission(BO.PermValEnum.GR_b05OwnerAll)))
+    {
+        <div style="margin-left:10px;">
+            <button id="cmdDelete" class="btn btn-danger" onclick="trydelete()">@_f.tra("Odstranit záznam")</button>
+
+        </div>
+    }
+
+    <div style="margin-left:10px;">
+        <button id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+    </div>
+
+
+</div>
+
+@Html.Raw("<div class='modal_record_container'>")
+
+<form id="form1" asp-controller="b05" asp-action="Record" method="POST">
+
+    @if (Model.b05ID == 0)
+    {
+
+        <div class="row my-2">
+            <div class="col-sm-1 col-md-2">
+                <select class="form-select" asp-for="RecPrefix" onchange="_postback('prefix')">
+                    <option value="j02">@_f.tra("Bez vazby")</option>                    
+                    <option value="p41">@_f.tra("Projekt")</option>
+                    <option value="p28">@_f.tra("Kontakt")</option>
+                    
+                    @if (_f.CurrentUser.j04IsModule_p56)
+                    {
+
+                        <option value="p56">@_f.tra("Úkol")</option>
+                    }
+                    @if (_f.CurrentUser.j04IsModule_p91)
+                    {
+                        <option value="p91">@_f.tra("Vyúčtování")</option>
+
+                    }
+
+                </select>
+            </div>
+
+
+            <div class="col-sm-11 col-md-10">
+                @if (Model.RecPrefix == "p41")
+                {
+                    @Html.EditorFor(m => m.ProjectCombo, "~/Views/Shared/_ProjectCombo.cshtml")
+
+                }
+                @if (Model.RecPrefix == "p28" || Model.RecPrefix == "p56" || Model.RecPrefix == "p91")
+                {
+                    <mycombo entity="@Model.RecPrefix" asp-for="RecPid" placeholder="Vyberte záznam..." selectedtext="@Model.RecAlias" filter-flag="1"></mycombo>
+                }
+                
+            </div>
+        </div>
+
+
+    }
+
+    @if (Model.RecB05.b06Name != null)
+    {
+        <mark>@(Model.RecB05.b06Name)</mark>
+    }
+
+    @if (Model.RecB05.b02Name_From != null || Model.RecB05.b02Name_To != null)
+    {
+        <h5>
+            @(Model.RecB05.b02Name_From) -> @(Model.RecB05.b02Name_To)
+        </h5>
+
+    }
+
+
+
+    
+
+
+
+
+
+
+    @if (Model.Notepad != null)
+    {
+        @Html.EditorFor(m => m.Notepad, "~/Views/Shared/_Notepad.cshtml")
+    }
+
+
+    
+    
+        <div class="row my-2">
+        <div class="col-sm-6 col-md-5">
+            <input type="text" asp-for="b05Name" placeholder="@_f.tra("Název")" class="form-control" />
+        </div>
+
+        <div class="col-sm-2 col-md-2" title="Datum záznamu">
+            <mydate asp-for="b05Date" include-time="false"></mydate>
+        </div>
+        <div class="col-sm-4 col-md-5">
+            @if (Model.RecB05.pid > 0 && (Model.RecB05.b05RecordEntity != "j02" && Model.RecB05.b05RecordEntity != "p31") || (Model.RecB05.pid == 0 && Model.RecPrefix != null && Model.RecPrefix != "j02" && Model.RecPrefix != "p31"))
+            {
+                <div>
+                    <input id="chkIsTab1" type="checkbox" asp-for="IsTab1" />
+                    <label for="chkIsTab1" style="font-size:90%;">
+                        @_f.tra("Připnout na první záložku")
+                        @if (Model.RecB05.b05RecordEntity != null)
+                        {
+                            <code>@(BO.Code.Entity.GetAlias(Model.RecB05.b05RecordEntity))</code>
+                        }
+                        else
+                        {
+                            <code>@(BO.Code.Entity.GetAlias(Model.RecPrefix))</code>
+                        }
+
+                    </label>
+
+                </div>
+                @if (Model.RecPrefix == "p28" || Model.RecPrefix == "p41" || (Model.RecB05.pid > 0 && Model.RecB05.b05RecordEntity == "p28") || (Model.RecB05.pid > 0 && Model.RecB05.b05RecordEntity == "p41"))
+                {
+                    <div>
+                        <input id="chkIsBillingMemo" type="checkbox" asp-for="IsBillingMemo" />
+                        <label for="chkIsBillingMemo" style="font-size:90%;">
+                            @_f.tra("Fakturační poznámka")
+
+                        </label>
+
+                    </div>
+                }
+
+                <div>
+                    <input id="chkIsPortalAccess" type="checkbox" asp-for="IsPortalAccess" />
+                    <label for="chkIsPortalAccess" style="font-size:90%;">@_f.tra("Publikovatelné na klientském portálu")</label>
+
+                </div>
+            }
+        </div>
+
+    </div>
+    
+
+
+    
+
+    @Html.EditorFor(m => m.reminder, "~/Views/Shared/_Reminder.cshtml")
+
+
+    
+
+
+
+    <input type="hidden" asp-for="b05ID" />
+    <input type="hidden" asp-for="o43ID_Source" />
+    <input type="hidden" asp-for="UploadGuid" value="@Model.UploadGuid" />
+</form>
+@if (Model.b05ID > 0)
+{
+    @Html.EditorFor(m => m.RecB05, "~/Views/Shared/_TimeStamp.cshtml")
+}
+
+@if (Model.UploadGuid != null)
+{
+    <iframe id="fraUpload" src="/FileUpload/DoUpload?recpid=@Model.b05ID&entity=b05&guid=@Model.UploadGuid" frameborder="0" scrolling="yes" style="max-width:1200px;height:60px;"></iframe>
+}
+
+@if (Model.lisO27_CanDelete != null && Model.lisO27_CanDelete.Count() > 0)
+{
+    <table class="table table-hover" style="max-width:800px;">
+        @foreach (var c in Model.lisO27_CanDelete)
+        {
+            <tr>
+                <td>
+                    @(c.o27OriginalFileName)
+                </td>
+                <td style="width:100px;">
+                    @(BO.Code.Bas.FormatFileSize(c.o27FileSize))
+                </td>
+                <td>
+                    <button type="button" class="btn btn-sm btn-danger" title="@_f.tra("Odstranit")" onclick="handle_delete_file(@(c.pid))">x</button>
+                </td>
+            </tr>
+        }
+    </table>
+}
+
+
+@Html.Raw("</div>")
+
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+
+
+
+    })
+
+    
+
+    function trydelete() {
+        if (confirm("Opravdu nenávratně odstranit tento záznam?")) {
+            _postback("delete");
+        }
+    }
+
+    function handle_delete_file(o27id) {
+
+        if (confirm("Opravdu odstranit tuto souborovou přílohu?")) {
+            _postback("delete-o27id", "o27id=" + o27id);
+        }
+
+
+    }
+
+
+
+</script>

@@ -1,0 +1,54 @@
+﻿@model UI.Views.Shared.Components.myPeriod.myPeriodViewModel
+@inject BL.Factory _f
+
+
+
+
+
+
+<div class="dropdown" style="margin-left:8px;">
+    <button type="button" id="cmdPeriodMore" class="btn dropdown-toggle bog @(Model.PeriodValue>0 ? "filtered": null)" role="button" data-bs-toggle="dropdown" aria-expanded="false" tabindex="-1">
+        <span class="material-icons-outlined-nosize">filter_alt</span>
+        <span id="span1">@(Model.PeriodFieldAlias) </span>
+        <span id="span2"> * @(Model.PeriodAlias)</span>
+    </button>
+    
+
+    <div id="divPeriodMore" class="dropdown-menu">
+        loading...
+    </div>
+</div>
+
+<input type="hidden" id="d1_iso" value="@Model.d1_iso" />
+<input type="hidden" id="d2_iso" value="@Model.d2_iso" />
+
+<script type="text/javascript">
+    var _periodvalue = "@(Model.PeriodValue)";
+    var _periodprefix = "@(Model.prefix)";
+    var _periodUserParamKey = "@(Model.UserParamKey)";
+    var _periodfield = "@(Model.PeriodField)";
+
+    if (_periodvalue == "0")
+    {
+        $("#span2").css("display", "none");
+    }
+
+    register_menu("cmdPeriodMore", "divPeriodMore", "/myPeriod/selector?prefix=" + _periodprefix + "&userparamkey=" + _periodUserParamKey+"&periodvalue="+_periodvalue);
+
+
+    function _period_get_as_string()
+    {
+        var s = _periodprefix+"|"+_periodfield+"|"+_periodvalue;
+        if ((_periodvalue == "1" || _periodvalue>"60") && $("#d1_iso").val() !="" && $("#d2_iso").val() !="")
+        {
+            s=s+"|"+$("#d1_iso").val().substring(8,10)+"."+$("#d1_iso").val().substring(5,7)+"."+$("#d1_iso").val().substring(0,4);
+            s=s+"|"+$("#d2_iso").val().substring(8,10)+"."+$("#d2_iso").val().substring(5,7)+"."+$("#d2_iso").val().substring(0,4);
+        }else
+        {
+            s=s+"||";
+        }
+       
+        return s;
+        
+    }
+</script>

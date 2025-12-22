@@ -1,0 +1,120 @@
+﻿@model UI.Models.Admin.p31ArchiveOperViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = _f.tra("Archiv úkonů");
+    Model.PageSymbol = "cleaning_services";
+
+}
+
+@addTagHelper *, UI
+
+
+<div class="bg-light" style="padding:10px;">
+    <button id="cmdSave" class="btn btn-success" onclick="_submit()">@_f.tra("Spustit")</button>
+    <button id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+</div>
+
+
+
+
+<div class="modal_record_container">
+
+    <form id="form1" asp-controller="p31ArchiveOper" asp-action="Index" method="POST">
+
+
+        <input type="radio" id="opg1" asp-for="oper" value="archive" onchange="_postback('refresh')">
+        <label for="opg1">@_f.tra("Přesunout úkony do archivu")</label>
+        <p></p>
+        <input type="radio" id="opg0" asp-for="oper" value="restore" onchange="_postback('refresh')">
+        <label for="opg0">@_f.tra("Obnovit úkony z archivu")</label>
+
+        <hr />
+
+        <div class="row my-2">
+            @if (Model.oper == "archive")
+            {
+                <label class="col-auto col-form-label">@_f.tra("Do archivu přesunout úkony z roku"):</label>
+            }
+            else
+            {
+                <label class="col-auto col-form-label">@_f.tra("Z archivu obnovit úkony z roku"):</label>
+            }
+
+
+            <div class="col-sm-1 col-md-2">
+
+                <select class="form-select" asp-for="SelectedYear">
+                    @for (int i = 2010; i <= DateTime.Now.Year - 1; i++)
+                    {
+                        <option value="@i">@i</option>
+                    }
+
+                </select>
+
+            </div>
+
+
+
+        </div>
+
+        <table class="table table-hover caption-top" style="max-width:300px;">
+            @if (Model.oper == "restore")
+            {
+                <caption>Statistika úkonů v archivu</caption>
+            }
+            else
+            {
+                <caption>Statistika úkonů</caption>
+            }
+            <thead>
+                <tr>
+                    <th>Rok</th>
+                    <th>Počet záznamů</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in Model.lisStat)
+                {
+                    <tr>
+                        <td>
+                            @(c.Rok)
+                        </td>
+                        <td class="tdnum">
+                            @(BO.Code.Bas.Integer2String(c.Pocet))
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+
+
+    </form>
+
+</div>
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+
+
+
+    })
+
+    function p41id_change(p41id) {
+        _postback("p41id");
+
+    }
+    function levelindex_change() {
+        _postback("levelindex");
+    }
+
+</script>
+
+
+

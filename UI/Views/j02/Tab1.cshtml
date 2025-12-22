@@ -1,0 +1,130 @@
+﻿@model UI.Models.Tab1.j02Tab1
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+    if (Model.Rec == null) return;
+
+    string _Teams = Model.GetTeams();
+    
+
+    
+    BO.TaggingHelper _tg = null;
+    if (Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.tags))
+    {
+        _tg = _f.o51TagBL.GetTagging("j02", Model.pid);
+    }
+}
+
+@addTagHelper *, UI
+@section header_content{
+
+
+    <link rel="stylesheet" href="/css/htmltable.css" />
+
+
+}
+
+@if (Model.Rec.j02IsLoginAutoLocked)
+{
+    <div class="alert alert-danger" role="alert">
+        <myicon symbol="warning"></myicon>
+        <span class="badge-def">@(Model.Rec.j02AutoLockedWhen)</span>
+        <a href="javascript:_edit('j02',@Model.Rec.pid)">
+            Došlo k automatickému zablokování účtu po neúspěšných pokusech o přihlášení do aplikace!
+        </a>
+        
+    </div>
+}
+@if (Model.Rec.j02IsLoginManualLocked)
+{
+    <div class="alert alert-warning" role="alert">
+        <myicon symbol="warning"></myicon>
+        Účet je uzavřený pro přihlašování.
+    </div>
+}
+
+@await Html.PartialAsync("~/Views/Shared/_Tab1ButtonSetting.cshtml",Model.prefix)
+
+@Html.Raw("<div class='info_record_container'>")
+
+@if (Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.recheader))
+{
+    <div class="card recpagebox400" id="divRecPageBox1">
+        <div class="card-body">
+            @await Html.PartialAsync("~/Views/Shared/_j02RecHeaderBox.cshtml",Model.Rec)
+
+            @await Html.PartialAsync("~/Views/Shared/_FreeFieldsRO.cshtml",Model.ff1)
+
+            @Html.EditorFor(m => m.Rec, "~/Views/Shared/_TimeStamp.cshtml")
+        </div>
+    </div>
+
+
+    @if (Model.Rec.j02VirtualParentID == 0)
+    {
+        <div class="card recpagebox400" id="divRecPageBox1">
+            <div class="card-body">
+                @await Html.PartialAsync("~/Views/Shared/_j02RecUserBox.cshtml", Model.Rec)
+
+                @if (_tg != null && _tg.TagHtml != null)
+                {
+                    @Html.Raw(_tg.TagHtml)
+
+
+                }
+            </div>
+        </div>
+    }
+    
+}
+
+
+
+
+
+
+
+@if (Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.quickstat) && _f.CurrentUser.j04IsModule_p31 && _f.CBL.LoadUserParamBool($"j02-quickstat-immediately", false))
+{
+    <div class="card recpageboxauto">
+        <div class="card-body">
+            @await Html.PartialAsync("~/Views/Shared/_TabStat.cshtml",Model)
+
+        </div>
+    </div>
+
+
+}
+
+
+
+@if (Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.o27list))
+{
+    @Html.EditorFor(m => m, "~/Views/Shared/_lisO27Tab1.cshtml")
+}
+
+
+
+
+@Html.Raw("</div>")
+
+<div style="clear:both;"></div>
+
+
+<script type="text/javascript">
+
+    if (document.getElementById("divRecPageBox1")) {
+        _adjust_divheight_small_display("divRecPageBox1");
+    }
+</script>
+
+
+
+
+
+
+
+
+

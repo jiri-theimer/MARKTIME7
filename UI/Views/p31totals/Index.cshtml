@@ -1,0 +1,677 @@
+﻿@model UI.Models.p31view.totalsViewModel
+@inject BL.Factory _f
+
+@{
+
+    Layout = _f.CurrentUser.GetLayoutPerDisplay();
+    Model.PageTitle = _f.tra("SOUČTY");
+
+    bool _IsGrid = false;
+    bool _IsBlank = false;
+    if (Model.selected_pids != null || UI.Code.basUI.GetQueryValue(Context, "blank") == "1")
+    {
+        _IsBlank = true;
+        Layout = "~/Views/Shared/_LayoutModal.cshtml";
+        Model.PageSymbol = "functions";
+    }
+
+
+    if (Model.selected_entity != null && Model.selected_pids != null)
+    {
+        var arr = BO.Code.Bas.ConvertString2ListInt(Model.selected_pids);
+        if (arr.Count() == 1)
+        {
+            Model.PageTitleAfter = _f.CBL.GetObjectAlias(Model.selected_entity, arr.First());
+        }
+    }
+
+}
+
+@section header_content {
+
+
+    <link rel="stylesheet" href="/css/htmltable.css" />
+
+
+}
+
+
+
+@addTagHelper *, UI
+
+
+<div class="input-group m-0" style="padding-top:3px;">
+    <div>
+        <ul class="nav nav-tabs">
+            <li class="onetab">
+
+                <a id="cmdMore" class="nav-link onetab-offcanvas" tabindex="-1" role="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvas_more">
+                    @_f.tra("Součty")
+                    <span class="onetab-caret">▼</span>
+                </a>
+            </li>
+        </ul>
+
+
+    </div>
+    <div style="margin-left:5px;">
+        <select asp-for="SelectedJ79ID" class="form-select" onchange="j79id_onchange(this)">
+            @foreach (var c in Model.lisJ79)
+            {
+                <option value="@c.pid">@(BO.Code.Bas.OM2(c.j79Name, 60)) @(c.j02ID != _f.CurrentUser.pid ? "*" : null)</option>
+            }
+        </select>
+    </div>
+
+    <div>
+        @await Component.InvokeAsync("myPeriod", Model.periodinput)
+    </div>
+
+    @if (Model.IsAllowEditTemplate && Model.p31statequery != null)
+    {
+        @Html.EditorFor(m => Model.p31statequery, "~/Views/Shared/_p31StateQuery.cshtml")
+    }
+    @if (Model.TheGridQueryButton != null)
+    {
+        @Html.EditorFor(m => Model.TheGridQueryButton, "~/Views/Shared/_ButtonGridQuery.cshtml")
+    }
+
+
+
+
+    @if (_IsBlank)
+    {
+        <button type="button" id="cmdClose" style="margin-left:15px;border-radius:6px;margin-bottom:2px;" onclick="_window_close()" class="btn btn-sm bog"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
+    }
+
+
+
+
+
+
+
+
+
+    <div class="showmore">
+        <myhelpbutton></myhelpbutton>
+    </div>
+
+</div>
+
+
+
+<div class="row m-0" style="padding-top:10px;padding-bottom:10px;background-color:#F5F5F5;border:solid 1px silver;">
+
+    @if (Model.IsAllowEditTemplate)
+    {
+        <div class="col-auto" style="margin-left:0px;">
+            <button type="button" class="btn bog" onclick="grid_designer()">
+                @_f.tra("Sloupce")
+
+            </button>
+        </div>
+
+
+        <div class="col-auto">
+            <select class="form-select" asp-for="GroupField1" onchange="change_groupfield(this,1)">
+                <option value="">--Souhrn #1--</option>
+                @if (Model.lisGridColumns != null && Model.lisGridColumns.Count() > 0)
+                {
+                    @foreach (var col in Model.lisGridColumns.Where(p => !p.IsShowTotals))
+                    {
+                        <option value="@col.UniqueName">@col.Header</option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="col-auto">
+            <select class="form-select" asp-for="GroupField2" onchange="change_groupfield(this,2)">
+                <option value="">--Souhrn #2--</option>
+                @if (Model.lisGridColumns != null && Model.lisGridColumns.Count() > 0)
+                {
+                    @foreach (var col in Model.lisGridColumns.Where(p => !p.IsShowTotals))
+                    {
+                        <option value="@col.UniqueName">@col.Header</option>
+                    }
+
+                }
+            </select>
+        </div>
+        <div class="col-auto">
+            <select class="form-select" asp-for="GroupField3" onchange="change_groupfield(this,3)">
+                <option value="">--Souhrn #3--</option>
+                @if (Model.lisGridColumns != null && Model.lisGridColumns.Count() > 0)
+                {
+                    @foreach (var col in Model.lisGridColumns.Where(p => !p.IsShowTotals))
+                    {
+                        <option value="@col.UniqueName">@col.Header</option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="col-auto">
+            <select class="form-select" asp-for="PivotField" onchange="change_pivotfield(this)">
+                <option value="">--Pivot sloupec--</option>
+                @if (Model.lisGridColumns != null && Model.lisGridColumns.Count() > 0)
+                {
+                    @foreach (var col in Model.lisGridColumns.Where(p => !p.IsShowTotals))
+                    {
+                        <option value="@col.UniqueName">@col.Header</option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="col-auto">
+            <select class="form-select" asp-for="PivotValue" onchange="change_pivotvalue(this)">
+                <option value="">--Pivot veličina--</option>
+                @if (Model.lisGridColumns != null && Model.lisGridColumns.Count() > 0)
+                {
+                    @foreach (var col in Model.lisGridColumns.Where(p => p.IsShowTotals))
+                    {
+                        <option value="@col.UniqueName">@col.Header</option>
+                    }
+                }
+            </select>
+        </div>
+    }
+    else
+    {
+        <input type="hidden" asp-for="GroupField1" />
+        <input type="hidden" asp-for="GroupField2" />
+        <input type="hidden" asp-for="GroupField3" />
+    }
+    
+
+    <div class="col-auto" style="display:none;">
+        @if (Model.lisGridColumns != null && Model.lisGridColumns.Count() > 0)
+        {
+            @foreach (var col in Model.lisGridColumns)
+            {
+                <kbd style="margin-left:10px;background-color:gray;font-size:80%;">
+                    @(col.Header)
+                </kbd>
+            }
+        }
+    </div>
+
+</div>
+
+<input type="hidden" asp-for="GridColumns" />
+<input type="hidden" asp-for="SelectedJ79ID" />
+
+<button id="cmdMore" type="button" class="btn dropdown-toggle bog">
+    <myicon symbol="filter_alt"></myicon>
+    Sloupcový filtr
+
+</button>
+
+<div id="divMore" class="card" style="display:none;">
+
+    <div class="card-body">
+
+        <table>
+            @foreach (var c in Model.lisGridColumns.Where(p => p.FieldType == "string"))
+            {
+                <tr>
+                    <td>
+                        <label for="@(c.UniqueName)">@(c.Header):</label>
+
+                    </td>
+                    <td style="max-width:200px;">
+                        <input type="text" class="form-control addquery" onfocus="$(this).select()" id="@(c.UniqueName)" value="@(Model.FindAddQueryValue(c.UniqueName))" />
+                    </td>
+
+                </tr>
+            }
+            <tr>
+                <td colspan="2">
+                    <button type="button" onclick="save_setting_and_reload()" class="btn btn-sm bog">Občerstvit filtr</button>
+                    <button type="button" onclick="clear_addquery()" style="margin-right:20px;color:red;" class="btn btn-sm bog">Vyčistit filtr</button>
+                    <mytooltip text="V jednom filtrovacím poli můžete oddělit více hodnot středníkem (operátor OR)"></mytooltip>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+</div>
+
+<div id="container_grid">
+
+    @if (Model.HtmlVystup != null)
+    {
+        @Html.Raw(Model.HtmlVystup)
+    }
+</div>
+
+
+<!-- Nabídka Více -->
+<div class="offcanvas offcanvas-start" tabindex="-1" data-bs-scroll="true" data-bs-backdrop="true" data-bs-keyboard="true" id="offcanvas_more">
+
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title">
+            <a href="javascript:reload()" title="Občerstvit">
+                <myicon symbol="refresh"></myicon>
+            </a>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+
+    <div class="offcanvas-body p-0 m-0" id="offcanvas_more_body">
+
+        <table cellpadding="2">
+            <tr>
+                <td>
+                    @if (Model.IsShared)
+                    {
+                        <myicon symbol="share"></myicon>
+                    }
+                </td>
+                <td>
+                    
+                    <h3>
+                        <myicon symbol="functions"></myicon>
+                        @if (Model.SelectedTemplate.j79IsSystem)
+                        {
+                            @_f.tra("Výchozí šablona statistiky")
+                        }
+                        else
+                        {
+                            @Model.SelectedTemplate.j79Name
+                        }
+
+                    </h3>
+                </td>
+
+
+
+
+            </tr>
+
+        </table>
+
+        @if (!Model.SelectedTemplate.j79IsSystem && (Model.SelectedTemplate.j02ID == _f.CurrentUser.pid || _f.CurrentUser.IsAdmin))
+        {
+            <div style="padding:6px;">
+                <button type="button" id="cmdEdit" onclick="edit_template()" class="btn btn-primary" style="min-width:150px;">@_f.tra("Upravit/Nasdílet")</button>
+            </div>
+
+        }
+
+        <div style="padding:6px;">
+            @if (Model.SelectedTemplate.j79IsSystem)
+            {
+                <button type="button" id="cmdSaveAs" onclick="saveas()" class="btn btn-success">@_f.tra("Uložit aktuální statistiku jako pojmenovanou šablonu")</button>
+            }
+            else
+            {
+                <button type="button" id="cmdSaveAs" onclick="saveas()" class="btn btn-success" style="min-width:150px;">@_f.tra("Uložit jako")</button>
+            }
+        </div>
+
+        
+
+        @if (Model.IsAllowEditTemplate)
+        {
+            @if (!Model.SelectedTemplate.j79IsSystem)
+            {
+                <div style="padding:6px;">
+                    <button type="button" class="btn btn-danger" onclick="delete_template()" style="min-width:150px;">@_f.tra("Odstranit šablonu")</button>
+                </div>
+            }
+            
+
+            <h5 style="text-decoration:underline;padding:6px;">@_f.tra("Doplňující filtr")</h5>
+            @if (Model.p31tabquery != null)
+            {
+                <div style="padding:6px;">
+                    @Html.EditorFor(m => Model.p31tabquery, "~/Views/Shared/_p31TabQuery.cshtml")
+                </div>
+            }
+            <div class="dog" id="divQueryJ02" style="padding:6px;">
+                <mycombochecklist asp-for="@Model.j02IDs" entity="j02User" placeholder="@_f.tra("Uživatelé")" placeholder_icon="filter_alt" selectedtext="@Model.SelectedPersons" event_after_changevalue="handle_can_reload"></mycombochecklist>
+            </div>
+            <div class="dog" id="divQueryJ07" style="padding:6px;">
+                <mycombochecklist asp-for="@Model.j07IDs" entity="j07PersonPosition" placeholder="@_f.tra("Pozice")" placeholder_icon="filter_alt" selectedtext="@Model.SelectedPositions" event_after_changevalue="handle_can_reload"></mycombochecklist>
+            </div>
+            <div class="dog" id="divQueryJ11" style="padding:6px;">
+                <mycombochecklist asp-for="@Model.j11IDs" entity="j11Team" placeholder="@_f.tra("Týmy")" placeholder_icon="filter_alt" selectedtext="@Model.SelectedTeams" event_after_changevalue="handle_can_reload"></mycombochecklist>
+            </div>
+            <div class="dog" style="padding:6px;">
+                <button type="button" id="cmdRefresh" class="btn btn-primary" style="display:none;margin-left:10px;" onclick="save_setting_and_reload()">@_f.tra("Občerstvit")</button>
+            </div>
+        }
+
+
+        <hr />
+        @Html.EditorFor(m => _IsGrid, "~/Views/Shared/_TableLayoutDeisgner.cshtml")
+
+    </div>
+</div>
+
+
+<script type="text/javascript">
+    var _tg_entity = "p31Worksheet";
+    var _j79id = "@Model.SelectedJ79ID";
+
+
+    var _tableid = "@Model.TableClientID";
+    var _j02ids = "@Model.j02IDs";
+    var _j11ids = "@Model.j11IDs";
+    var _j07ids = "@Model.j07IDs";
+    var _tabquery = "@(Model.p31tabquery != null ? Model.p31tabquery.Value : null)";
+    var _datatables = "False";
+
+    $(document).ready(function () {
+
+        $("#cmdtotals").addClass("active");
+
+
+        if (_datatables == "True") {
+            datatables_init_nobuttons("cs");
+        }
+
+
+
+        register_menu("cmdgridquerymenu", "cmdgridquerymenu_menu", "/Menu/grid_query?prefix=p31&j72id=@(Model.TheGridQueryButton.j72id)");
+
+
+        $("#cmdTableLayout").click(function () {
+            $("#divTableLayout").toggle();
+        });
+
+        if ($("#GroupField1").val() != "") {
+            $("#GroupField1").css("background-color", "#87CEFA");
+        }
+        if ($("#GroupField2").val() != "") {
+            $("#GroupField2").css("background-color", "#87CEFA");
+        }
+        if ($("#GroupField3").val() != "") {
+            $("#GroupField3").css("background-color", "#87CEFA");
+        }
+        if ($("#PivotField").val() != "") {
+            $("#PivotField").css("background-color", "khaki");
+        }
+        if ($("#PivotValue").val() != "") {
+            $("#PivotValue").css("background-color", "khaki");
+        }
+
+
+        $("#SelectedJ72ID").mouseover(function (e) {
+            $("#cmdQueryBuilder").css("visibility", "visible");
+
+        });
+
+        $("#cmdQueryBuilder").children().mouseout(function (e) {
+            $("#cmdQueryBuilder").css("visibility", "hidden");
+
+        });
+
+        $("#cmdMore").click(function () {
+            $("#divMore").toggle();
+        });
+
+        $(".addquery").on("keydown", function (event) {
+            if (event.key === "Enter" || event.keyCode === 13) {
+                save_setting_and_reload();
+            }
+        });
+
+        $(".addquery").each(function () {
+            var ctl = $(this);
+            if ($(ctl).val() != "") {
+                $(ctl).css("background-color", "red");
+                $("#divMore").css("display", "block");
+                $(ctl).select();
+                $(ctl).focus();
+
+            }
+
+
+
+
+        });
+    });
+
+    function datatables_init_nobuttons(lang) {
+        $("#" + _tableid).DataTable({
+            stateSave: true,
+            language: {
+                url: "/lib/datatables/localisation/" + lang + ".json"
+
+            },
+            dom: "Blfrtip",
+            paging: true
+
+        });
+    }
+
+
+    function grid_designer() {
+
+        var cols = $("#GridColumns").val();
+
+        _window_open("/TheGridDesigner?prefix=p31&cols=" + cols + "&pathname=p31totals", 3);
+
+
+    }
+
+    function reload_after_griddesigner(pid, cols) {
+
+        //změna sloupců
+        $.post("/p31totals/SaveColumns", { j79id: _j79id, cols: cols }, function (data) {
+            reload();
+            if (window === top) {
+                window.parent._window_close();
+            }
+        });
+
+
+    }
+
+    function change_groupfield(cbx, index) {
+        var field = $(cbx).val();
+        if (window === top) {
+            window.parent._window_close();
+        }
+
+
+        $.post("/p31totals/SaveGroupField", { j79id: _j79id, groupfield_index: index, groupfield_value: field }, function (data) {
+            reload();
+
+        });
+    }
+
+    function change_pivotfield(cbx, index) {
+        var field = $(cbx).val();
+        if (window === top) {
+            window.parent._window_close();
+        }
+
+        $.post("/p31totals/SavePivotField", { j79id: _j79id, pivotfield: field }, function (data) {
+            reload();
+
+        });
+    }
+    function change_pivotvalue(cbx, index) {
+        var field = $(cbx).val();
+
+        if (window === top) {
+            window.parent._window_close();
+        }
+
+        $.post("/p31totals/SavePivotValue", { j79id: _j79id, pivotvalue: field }, function (data) {
+            reload();
+
+        });
+    }
+
+    function change_tabquery(val) {
+        $.post("/p31totals/SaveTabQuery", { j79id: _j79id, tabquery: val }, function (data) {
+            reload();
+
+        });
+    }
+    function change_statequery(val) {
+        $.post("/p31totals/SaveStateQuery", { j79id: _j79id, statequery: val }, function (data) {
+            reload();
+
+        });
+    }
+
+    function reload() {
+        location.replace(location.href);
+    }
+    function reload_explicit_j79id(j79id) {
+        var url = _removeUrlParam("j79id", location.href);
+        if (url.indexOf("?") == -1) {
+            url = url + "?j79id=" + j79id;
+        } else {
+            url = url + "&j79id=" + j79id;
+        }
+        location.replace(url);
+    }
+
+
+    function get_all_tgi_params() {
+
+        var params = {
+            entity: "p31Worksheet",
+            j72id: 0,
+            go2pid: 0,
+            master_entity: "",
+            oncmclick: "",
+            ondblclick: "",
+            fixedcolumns: "",
+            viewstate: [],
+            master_pid: 0,
+            myqueryinline: "",
+            isperiodovergrid: false,
+            pathname: location.pathname,
+            currentpid: 0,
+            reczoomflag: null,
+            is_enable_selecting: false
+
+        }
+
+
+        return params;
+    }
+
+    function handle_can_reload(s) {
+        $("#cmdRefresh").css("display", "block");
+    }
+
+    function save_setting_and_reload() {
+        var j72id = $("#SelectedJ72ID").val();
+
+        $.post("/p31totals/SaveSettings", { j79id: _j79id, j02ids: $("#j02IDs").val(), j07ids: $("#j07IDs").val(), j11ids: $("#j11IDs").val(), j72id: j72id, addquery: get_addquery() }, function (data) {
+            reload();
+
+        });
+
+
+
+    }
+
+    function get_addquery() {
+
+        var s = "";
+        $(".addquery").each(function () {
+            var ctl = $(this);
+            if (s != "") {
+                s = s + "|";
+            }
+
+            s = s + $(ctl).attr("id") + "###" + $(ctl).val();
+
+
+        });
+
+
+
+
+
+        return s;
+    }
+
+    function saveas() {
+        var s = prompt("@_f.tra("Zadejte název šablony")");
+        if (s.length > 0) {
+            $.post("/p31totals/SaveAs", { j79name: s, j79id: _j79id }, function (data) {
+                var j79id = data;
+                reload_explicit_j79id(j79id);
+
+            });
+
+        }
+    }
+    function rename_template() {
+        var s = prompt("@_f.tra("Zadejte nový název šablony")");
+        if (s.length > 0) {
+            $.post("/p31totals/Rename", { j79name: s, j79id: _j79id }, function (data) {
+                reload();
+
+            });
+
+        }
+    }
+    function delete_template() {
+        if (confirm("Opravdu odstranit tuto šablonu?") == true) {
+            $.post("/p31totals/Delete", { j79id: _j79id }, function (data) {
+                reload();
+
+            });
+        }
+
+    }
+
+    function newwindow() {
+        window.open(location.href, "_blank");
+    }
+    function j79id_onchange(cbx) {
+        var prefix = "@Model.record_prefix";
+        var mykey = "p31totals-" + prefix + "-j79id";
+
+        $.post("/Common/SetUserParam", { key: mykey, value: cbx.value, prefix }, function (data) {
+            reload_explicit_j79id(cbx.value);
+        });
+
+
+    }
+
+    function j72id_change(cbx) {
+        save_setting_and_reload();
+    }
+
+    function change_design(cbx) {
+
+        $.post("/Common/SetUserParam", { key: "p31totals-OutputDesign", value: cbx.value }, function (data) {
+            reload();
+        });
+    }
+
+    function edit_template() {
+        _window_open("/j79/Record?pid=" + _j79id, 3);
+    }
+
+    function querybuilder() {
+        var s = location.pathname;
+        var j72id = $("#SelectedJ72ID").val();
+
+        _window_open("/TheQueryDesigner/Index?j72id=" + j72id + "&prefix=p31&pathname=" + s, 2);
+    }
+
+    function clear_addquery() {
+        $(".addquery").each(function () {
+            $(this).val("");
+
+
+
+        });
+
+        save_setting_and_reload();
+
+    }
+
+
+</script>

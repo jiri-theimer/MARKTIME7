@@ -1,0 +1,329 @@
+﻿@model UI.Models.p31view.calendarViewModel
+@inject BL.Factory _f
+
+@{
+    string _strMesic = $"{Model.d1.Month}/{Model.d1.Year}";
+
+    string strClass = null;
+    string strTitle = null;
+    bool bolWeekendDay = false;
+    bool bolHoliday = false;
+    bool bolOK = false;
+    string strStyle = null;
+    int x = 1;
+    //string strTitleVykazatDo = _f.tra("Vykázat do");
+    string strTitleSouceHodiny = _f.tra("Součet hodin");
+    string strCisloDne = null;
+    string strDatum = null;
+    bool bolOutMonth = false;
+    DateTime datFirstDayOfMonth = new DateTime(Model.d0.Year, Model.d0.Month, 1);
+    DateTime datLastDayOfMonth = datFirstDayOfMonth.AddMonths(1).AddDays(-1);
+    string strHodiny = null;
+
+    var qryP31 = Model.lisP31;
+    IEnumerable<BO.p56Task> qryP56 = null;
+    IEnumerable<BO.o22Milestone> qryO22 = null;
+    bool bolRenderP11 = false;
+    IEnumerable<BO.p11Attendance> qryP11 = null;
+    if (Model.lisP11 !=null && Model.lisP11.Count()>0)
+    {
+        bolRenderP11 = true;
+    }
+    BO.p31WorksheetTimelineDay _recFirst = null;
+}
+
+
+
+<table border="0" id="mt_scheduler_calendar" >
+    @{
+        strStyle = "14%";
+        if (!Model.ShowWeekend) strStyle = "20%";
+    }
+    <tr>
+        <th style="@(strStyle)">Po</th>
+        <th style="@(strStyle)">Út</th>
+        <th style="@(strStyle)">St</th>
+        <th style="@(strStyle)">Čt</th>
+        <th style="@(strStyle)">Pá</th>
+        @if (Model.ShowWeekend)
+        {
+            <th>So</th>
+            <th>Ne</th>
+        }
+    </tr>
+
+    @Html.Raw("<tr>")
+
+    @for (DateTime d = Model.d1; d <= Model.d2; d = d.AddDays(1))
+    {
+        strClass = "mt_scheduler-day-out-month"; bolWeekendDay = false; bolOutMonth = true; bolHoliday = false;
+
+        if (d.Month == Model.m0 && d.Year == Model.y0)
+        {
+            strClass = "mt_scheduler-day-in-month";
+            bolOutMonth = false;
+        }
+        if (d.DayOfWeek == DayOfWeek.Saturday || d.DayOfWeek == DayOfWeek.Sunday)
+        {
+            bolWeekendDay = true;
+            strClass = "mt_scheduler-day-weekend";
+            //if (d.Month == Model.m0 && d.Year == Model.y0)
+            //{
+
+            //}
+
+        }
+        if (Model.lisC26.Any(p => p.c26Date == d))
+        {
+            bolHoliday = true;
+            strClass = "mt_scheduler-day-holiday";
+        }
+        if (d == DateTime.Today)
+        {
+            strClass = "mt_scheduler-today";
+        }
+        strClass += " dc";
+        bolOK = true;
+        if (bolWeekendDay && !Model.ShowWeekend)
+        {
+            bolOK = false;
+        }
+        if (bolOK)
+        {
+            strStyle = null;
+            strTitle = null;
+            if (Model.lisC23.Any(p=>p.c23Date==d))
+            {
+                strStyle = "background-color:" + Model.lisC23.First(p => p.c23Date == d).c24Color;
+                strTitle = Model.lisC23.First(p => p.c23Date == d).c24Name;
+            }
+            strDatum = BO.Code.Bas.ObjectDate2String(d, "dd.MM.yyyy");
+            if (d.DayOfWeek == DayOfWeek.Monday)
+            {
+                strCisloDne = BO.Code.Bas.ObjectDate2String(d, "dd.MMM");
+            }
+            else
+            {
+                strCisloDne = BO.Code.Bas.ObjectDate2String(d, "dd");
+            }
+            @Html.Raw($"<td class='{strClass}' data-d='{strDatum}' onmouseover='showcalmenu(event,this,\"{strDatum}\",\"calendar\")' style='{strStyle}' title='{strTitle}'>")
+
+            strTitle = null;
+            strStyle = null;
+            strClass = "mt_scheduler-day-link";
+            if (bolOutMonth)
+            {
+                strClass += " out-month";
+            }
+            if (d == datFirstDayOfMonth || d == datLastDayOfMonth)
+            {
+                @Html.Raw("<div class='mt_scheduler-day-header' style='background-color:khaki;'>");
+            }
+            else
+            {
+                @Html.Raw("<div class='mt_scheduler-day-header'>");
+            }
+
+            if (d == DateTime.Today)
+            {
+                strCisloDne += "<span class='material-icons-outlined' style='color:lime;'>star</span>";
+            }
+
+            
+            //@Html.Raw($"<span class='cislodne' title='{strDatum}'>{strCisloDne}</span>")
+            @Html.Raw($"<a href=\"javascript:sd('{strDatum}')\" class='cislodne' title='{strDatum}'>{strCisloDne}</a>")
+            
+
+            if (bolHoliday)
+            {
+                @Html.Raw($"<span title='{Model.lisC26.First(p => p.c26Date == d).c26Name}'>🍷{BO.Code.Bas.OM2(Model.lisC26.First(p => p.c26Date == d).c26Name, 15)}</span>")
+            }
+
+            if (bolRenderP11)
+            {
+                qryP11 = Model.lisP11.Where(p => p.p11Date == d);
+                if (qryP11.Count()>0){
+                    @Html.Raw($"<span class='odchod-prichod'>{BO.Code.Bas.ObjectDateTime2String(qryP11.First().p11TodayStart,"HH:mm")} - {BO.Code.Bas.ObjectDateTime2String(qryP11.First().p11TodayEnd,"HH:mm")}</span>")
+                }
+                
+            }
+
+            @Html.Raw("</div>");
+
+            @Html.Raw($"<div class='mt_scheduler-day' >")
+            ;
+
+            var qry = Model.lisSums.Where(p => p.p31Date == d);
+            if (qry.Count() > 0)
+            {
+                strStyle = "color:blue;";
+                _recFirst = qry.First();
+                if (_recFirst.Hours_Billable == _recFirst.Hours)
+                {
+                    strStyle = "color:green;";
+                }
+                else
+                {
+                    if (_recFirst.Hours_Billable == 0)
+                    {
+                        strStyle = "color:red;";
+                    }
+                }
+                strStyle = $"{strStyle};margin-left:3px;";
+                strHodiny = BO.Code.Time.FormatNumeric(_recFirst.Hours, Model.ShowHHMM);
+                
+                if (_recFirst.Hours != 0)
+                {
+                    @Html.Raw($"<a title='{strTitleSouceHodiny}' onclick='re(this,{Model.j02ID},\"{strDatum}\")'  class='mt_scheduler_valuelink' style='{strStyle}' p31date='{strDatum}' j02id='{Model.j02ID}'>{strHodiny}</a>")
+                    if (_recFirst.Moneys != 0) //peněžní úkony
+                    {
+                        @Html.Raw($"<span class='mt_scheduler_money' title='Peněžní úkony'>{_recFirst.Moneys}</span>")
+                    }
+                    if (_recFirst.Pieces != 0) //peněžní úkony
+                    {
+                        @Html.Raw($"<span class='mt_scheduler_kusovnik' title='Kusovník' class='kusovnik'>{_recFirst.Pieces}</span>")
+                    }
+                }
+                else
+                {
+                    if (_recFirst.Moneys > 0) //peněžní úkony
+                    {
+                        @Html.Raw($"<a title='Peněžní úkony' onclick='re(this,{Model.j02ID},\"{strDatum}\")'  class='mt_scheduler_valuelink_money' p31date='{strDatum}' j02id='{Model.j02ID}'>{_recFirst.Moneys}</a>")
+                    }
+                    if (_recFirst.Pieces > 0) //peněžní úkony
+                    {
+                        @Html.Raw($"<a title='Kusovník' onclick='re(this,{Model.j02ID},\"{strDatum}\")'  class='mt_scheduler_valuelink_kusovnik' p31date='{strDatum}' j02id='{Model.j02ID}'>{_recFirst.Pieces}</a>")
+                    }
+                }
+                
+                
+
+                if (Model.ShowP31Recs)
+                {
+                    if (Model.ShowP31RecsNoTime)
+                    {
+                        qryP31 = Model.lisP31.Where(p => p.p31Date == d);
+                    }
+                    else
+                    {
+                        qryP31 = Model.lisP31.Where(p => p.p31Date == d && p.p33ID == BO.p33IdENUM.Cas);    //v rozpisu zobrazovat pouze časové úkony
+                    }
+
+                    foreach (var recP31 in qryP31)
+                    {
+                        strClass = "p31_rec_link";
+                        strTitle = recP31.p32Name + ": " + BO.Code.Bas.OM2(recP31.p31Text, 20);
+                        strStyle = "white-space: nowrap;";
+                        if (recP31.p32Color !=null){
+                            strStyle += "background-color:" + recP31.p32Color;
+                        }
+                        @Html.Raw($"<div style='{strStyle}'>")
+
+                        switch (recP31.p33ID)
+                        {
+                            case BO.p33IdENUM.Kusovnik:
+                                strHodiny = recP31.p31Value_Orig.ToString();
+                                strClass += " kusovnik";
+                                break;
+                            case BO.p33IdENUM.Cas:
+                                if (recP31.p33ID == BO.p33IdENUM.Cas)
+                                {
+                                    if (Model.ShowHHMM)
+                                    {
+                                        strHodiny = recP31.p31HHMM_Orig;
+                                    }
+                                    else
+                                    {
+                                        strHodiny = BO.Code.Bas.Num2StringNull(recP31.p31Hours_Orig);
+                                    }
+                                }
+                                break;
+
+                            default:
+                                strHodiny = recP31.j27Code_Billing_Orig;
+                                if (recP31.p34IncomeStatementFlag == BO.p34IncomeStatementFlagENUM.Prijem)
+                                {
+                                    strClass += " vydaj";
+                                }
+                                else
+                                {
+                                    strClass += " odmena";
+                                }
+                                break;
+                        }
+                        @Html.Raw($"<a class='cm' onclick='reccm(event,{recP31.pid})'>&#9776;</a>")
+
+                        @Html.Raw($"<a class='{strClass}' title='{strTitle}' onclick='p31_rec({recP31.pid})'>")
+
+                        strHodiny = "<span class='bunka_hodiny'>" + strHodiny + "</span>";
+
+                        @Html.Raw(strHodiny + UI.Code.TheGridRowSymbol.p31_symbol(recP31))
+                        if(recP31.p32AbsenceFlag>0)
+                        {
+                            @Html.Raw(BO.Code.Bas.OM2(recP31.p32Name, 20))
+                        }else
+                        {
+                            @Html.Raw(BO.Code.Bas.OM2(recP31.p41Name, 15))
+                            if (recP31.p28ID_Client > 0)
+                            {
+                                @Html.Raw(" (" + BO.Code.Bas.OM2(recP31.ClientName, 10) + ")")
+                            }
+                        }
+                        
+                        @Html.Raw("</a>");
+                        @Html.Raw("</div>")
+
+                    }
+                }
+
+            }
+
+
+            if (Model.ShowP56Recs)      //úkoly
+            {
+                qryP56 = Model.lisP56.Where(p => p.p56PlanUntil >= d && p.p56PlanUntil < d.AddDays(1));
+                foreach (var recP56 in qryP56)
+                {
+                    strClass = "p31_rec_link";
+                    strTitle = $"{recP56.p57Name}: {recP56.ProjectWithClient}";
+                    @Html.Raw("<div style='white-space: nowrap;'>")
+                    @Html.Raw($"<a class='cm' onclick='reccmp56(event,{recP56.pid})'>&#9776;</a>")
+                    //@Html.Raw($"<span class='material-icons-outlined' style='color:{recP56.b02Color};'>task</span>")
+                    @Html.Raw($"<span class='material-icons-outlined' style='color:{recP56.b02Color};'>task</span>")
+                    @Html.Raw($"<a class='{strClass}' title='{strTitle}' onclick=\"_zoom(event,'p56',{recP56.pid})\">{BO.Code.Bas.OM2(recP56.p56Name,25)}")
+                    @Html.Raw("</a>")
+                    @Html.Raw("</div>")
+                }
+            }
+            if (Model.ShowO22Recs)      //termíny/lhůty
+            {
+                qryO22 = Model.lisO22.Where(p => (p.o21TypeFlag == BO.o21TypeFlagEnum.Udalost && d.AddDays(1) > p.o22PlanFrom && p.o22PlanUntil >= d) || (p.o21TypeFlag != BO.o21TypeFlagEnum.Udalost && p.o22PlanUntil >= d && p.o22PlanUntil < d.AddDays(1)));
+                foreach (var recO22 in qryO22)
+                {
+                    strClass = "p31_rec_link";
+                    strTitle = $"{recO22.o21Name}: {recO22.ProjectWithClient}";
+                    @Html.Raw("<div style='white-space: nowrap;'>")
+                    @Html.Raw($"<a class='cm' onclick='reccmo22(event,{recO22.pid})'>&#9776;</a>")
+                    @Html.Raw($"<span class='material-icons-outlined' style='color:{recO22.ForeColor};'>event</span>")
+                    @Html.Raw($"<a class='{strClass}' title='{strTitle}' onclick=\"_zoom(event,'o22',{recO22.pid})\">{BO.Code.Bas.OM2(recO22.o22Name,25)}")
+                    @Html.Raw("</a>")
+                    @Html.Raw("</div>")
+                }
+            }
+
+            @Html.Raw("</div>");
+
+            @Html.Raw("</td>");
+
+        }
+        if (x == 7)
+        {
+            x = 0;
+            @Html.Raw("</tr>")
+            @Html.Raw("<tr>")
+
+        }
+        x += 1;
+    }
+
+</table>

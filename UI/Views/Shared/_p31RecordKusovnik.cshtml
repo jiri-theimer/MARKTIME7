@@ -1,0 +1,86 @@
+﻿@model UI.Models.Record.p31Record
+@inject BL.Factory _f
+
+@{
+
+
+    if (Model == null || Model.RecP41==null)
+    {
+        return;
+    }
+    if (Model.lisKusovnik == null)
+    {
+        Model.lisKusovnik = new List<UI.Models.Record.KusovnikInline>();
+    }
+    var lisP34 = _f.p34ActivityGroupBL.GetList_WorksheetEntryIn_OneProject(Model.RecP41, Model.Rec.j02ID).Where(p => p.p33ID == BO.p33IdENUM.Kusovnik);
+    if (lisP34.Count() == 0)
+    {
+        return;
+    }
+    if (Model.p34ID_Kusovnik == 0)
+    {
+
+        Model.p34ID_Kusovnik = lisP34.First().pid;
+    }
+
+    if (Model.p34ID_Kusovnik == 0)
+    {
+        return;
+    }
+
+    var lisP32 = _f.p32ActivityBL.GetList(new BO.myQueryP32() { p34id = Model.p34ID_Kusovnik });
+
+}
+
+@addTagHelper *, UI
+
+
+
+        <div class="row">
+           
+            <div class="col-auto">
+                <select class="form-select" asp-for="@Model.p34ID_Kusovnik" onchange="_postback('kusovnik_p34id')">
+                    @foreach (var c in lisP34)
+                    {
+                        <option value="@c.pid">@c.p34Name</option>
+                    }
+                </select>
+            </div>
+    <div class="col-auto">
+        <button type="button" class="btn btn-sm bog" title="Přidat" onclick="_postback('kusovnik_add')">
+            <span class="material-icons-outlined-btn">add_circle_outline</span>
+            @_f.tra("Přidat")
+        </button>
+    </div>
+        </div>
+        
+
+        
+
+        <table class="table-hover table" style="table-layout: fixed;min-width:600px;">
+            @for (int i = 0; i < Model.lisKusovnik.Count; i++)
+            {
+                <tr>
+                    <td>
+                        
+
+                        <select class="form-select" asp-for="lisKusovnik[i].p32ID">
+                            @foreach(var c in lisP32)
+                            {
+                                <option value="@c.pid">@c.p32Name</option>
+                            }
+                        </select>
+
+                    </td>
+                    <td style="width:80px;">
+                        <mynumber asp-for="lisKusovnik[i].Pocet"></mynumber>
+                    </td>
+                    <td>
+                        <input class="form-control" asp-for="lisKusovnik[i].p31Text" placeholder="@_f.tra("Text")" />
+                    </td>
+                  
+
+                    
+                </tr>
+            }
+        </table>

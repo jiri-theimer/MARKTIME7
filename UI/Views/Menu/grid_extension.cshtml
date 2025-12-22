@@ -1,0 +1,114 @@
+﻿@model DynamicMenuViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = null;
+
+    bool _IsGrid = true;
+
+    string _DblClickValue = _f.CBL.LoadUserParam($"grid-{Model.Prefix}-dblclick", "edit");
+
+    
+
+}
+
+@addTagHelper *, UI
+
+
+<div id="divMenuContainerGridExt" class="dynamicmenu_container" style="min-width:380px;">
+
+
+
+
+    <div>
+        @Html.EditorFor(m => Model, "~/Views/Shared/_GridExport.cshtml")
+      
+        @if (BL.Code.UserUI.GetLeftPanelValue(Model.Prefix) > 0)
+        {
+            
+
+            
+            @Html.EditorFor(m => Model,"~/Views/Shared/_GridLayoutSwitch.cshtml")
+        }
+        
+       
+    </div>
+
+    <div>
+        <myshowmore isvertical="true" label="@_f.tra("Další nastavení")"></myshowmore>
+    </div>
+
+    <div class="showmore">
+
+        @if (BL.Code.UserUI.GetLeftPanelValue(Model.Prefix) > 0)
+        {
+            <div style="width:100%;background-color:#F5F5F5;border-radius:4px;margin-top:10px;">
+                <h5 style="padding:10px;">
+                    @_f.tra("Dvojklik na záznam v přehledu")
+                </h5>
+            </div>
+
+            <div style="padding-left:10px;">
+                <input type="radio" id="opgEdit" name="hovado" value="edit" onchange="dblclick_save_setting('edit')" @(_DblClickValue == "edit" ? "checked" : "") />
+                <label for="opgEdit">@_f.tra("Dvojklikem otevírat kartu záznamu pro jeho editaci")</label>
+                <br />
+                <input type="radio" id="opgRecpage" name="hovado" value="recpage" onchange="dblclick_save_setting('recpage')" @(_DblClickValue == "recpage" ? "checked" : "") />
+                <label for="opgRecpage">@_f.tra("Dvojklikem přejít na stránku záznamu")</label>
+            </div>
+        }
+        
+
+
+        <div style="width:100%;background-color:#F5F5F5;border-radius:4px;margin-top:20px;">
+            <h5 style="padding:10px;">
+                @_f.tra("Vzhled tabulky")
+            </h5>
+
+        </div>
+
+        <div style="margin-left:10px;">
+            @Html.EditorFor(m => _IsGrid, "~/Views/Shared/_TableLayoutDeisgner.cshtml")
+        </div>
+    </div>
+
+    
+
+
+</div>
+
+
+
+<script type="text/javascript">
+    var flatviewvalue = "@BL.Code.UserUI.GetFlatViewValue(Model.Prefix)";
+
+    var matka = document.getElementById("divMenuContainerGridExt");
+    var offset = $(matka).offset();
+
+    var new_left = _device.availWidth - ($(matka).width() + offset.left) - 22;
+
+    $(matka).css("left", new_left);
+
+    var url = window.location.pathname + window.location.search;
+
+
+    if (flatviewvalue !="0" && url.indexOf("MasterView") > 0) {
+        $("#cmdSwitch2Flat").css("display", "block");
+    }
+
+    if (flatviewvalue !="0" && url.indexOf("FlatView") > 0) {
+        $("#cmdSwitch2Master").css("display", "block");
+    }
+
+    
+
+
+    function dblclick_save_setting(val) {    //nastavení dvojkliku na grid záznamu
+        var prefix = _tg_entity.substr(0, 3);
+        $.post(_ep("/Common/SetUserParam"), { key: "grid-" + prefix + "-dblclick", value: val }, function (data) {
+            location.replace(location.href);
+        });
+    }
+
+    
+
+</script>

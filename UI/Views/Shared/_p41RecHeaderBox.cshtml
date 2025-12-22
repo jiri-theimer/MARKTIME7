@@ -1,0 +1,315 @@
+﻿@model BO.p41Project
+
+@inject BL.Factory _f
+
+@{
+
+
+    if (Model == null)
+    {
+        return;
+    }
+
+
+    bool _bolRowHover = UI.Code.basUI.DetectIfCanRowHover(_f, Context, _f.CurrentUser.j04IsModule_p41);
+
+
+    string _p61Name = null;
+    if (Model.p61ID > 0)
+    {
+        _p61Name = _f.p61ActivityClusterBL.Load(Model.p61ID).p61Name;
+    }
+
+
+
+    string _p15Name = null;
+    string _map = null;
+    if (Model.p15ID > 0)
+    {
+        var recP15 = _f.p15LocationBL.Load(Model.p15ID);
+        _p15Name = recP15.p15Name;
+        _map = recP15.getMapUrlClassic();
+    }
+
+    IEnumerable<BO.RoleAssignedToRecord> _lisRoles = _f.x67EntityRoleBL.GetRolesAssignedToRecord(Model.pid, "p41");
+    //int _intB05Count = _f.WorkflowBL.GetB05CommentsCount("p41", Model.pid);
+
+    BO.p41Project _uroven4 = null;
+    BO.p41Project _uroven3 = null;
+    BO.p41Project _uroven2 = null;
+    BO.p41Project _uroven1 = null;
+
+    if (Model.p41ID_P07Level4 > 0 && Model.p41ID_P07Level4 != Model.pid)
+    {
+        _uroven4 = _f.p41ProjectBL.Load(Model.p41ID_P07Level4);
+    }
+    if (Model.p41ID_P07Level3 > 0 && Model.p41ID_P07Level3 != Model.pid)
+    {
+        _uroven3 = _f.p41ProjectBL.Load(Model.p41ID_P07Level3);
+    }
+    if (Model.p41ID_P07Level2 > 0 && Model.p41ID_P07Level2 != Model.pid)
+    {
+        _uroven2 = _f.p41ProjectBL.Load(Model.p41ID_P07Level2);
+    }
+    if (Model.p41ID_P07Level1 > 0 && Model.p41ID_P07Level1 != Model.pid)
+    {
+        _uroven1 = _f.p41ProjectBL.Load(Model.p41ID_P07Level1);
+    }
+
+    
+
+
+
+
+
+
+}
+
+@addTagHelper *, UI
+
+<table class="table-hover table">
+    @if (_bolRowHover)
+    {
+        <tr>
+            <td colspan="2" class="@(Model.isclosed ? "tdarchiv" : "tdval")" onmouseover="_handle_mywrk_mouseover(this)" onmouseout="_handle_mywrk_mouseout(this)">
+                @if (Model.p07Level < 5)
+                {
+                    <kbd class="le@(Model.p07Level)">L@(Model.p07Level)</kbd>
+                }
+                else
+                {
+                    <span class="material-icons-outlined">work_outline</span>
+                }
+
+
+                @if (Model.p42Name.Length > 21)
+                {
+                    @(BO.Code.Bas.OM2(Model.p42Name, 22))
+                }
+                else
+                {
+                    @(Model.p42Name)
+
+                }
+
+
+                <mywrkbutton prefix="p41" showcopyurl="true" pid="@Model.pid" b02id="@Model.b02ID" langindex="@_f.CurrentUser.j02LangIndex"></mywrkbutton>
+
+            </td>
+        </tr>
+
+        <tr>
+            <td class="tdlab">
+                @_f.tra("Název"):
+            </td>
+            <td class="tdval">
+                @(Model.PrefferedName)
+                <sup title="Kód">@Model.p41Code</sup>
+            </td>
+
+
+        </tr>
+    }
+    else
+    {
+        <tr>
+            <td class="tdlab">
+                @if (Model.p42Name.ToLower() == Model.p41Name.ToLower())
+                {
+                    @(Model.p07Name)
+                }
+                else
+                {
+                    @(Model.p42Name)
+                }
+
+            </td>
+            <td class="tdval">
+                @(Model.PrefferedName)
+                <sup title="Kód projektu">@Model.p41Code</sup>
+            </td>
+
+        </tr>
+    }
+
+   
+
+
+    @if (_uroven1 != null)
+    {
+        <tr>
+            <td class="tdlab">
+
+                @(_uroven1.p07Name):
+            </td>
+            <td class="tdval">
+                @if (_bolRowHover)
+                {
+                    <myval value="@_uroven1.PrefferedName" hoverprefix="p41" hoverpid="@_uroven1.pid" datatype="link" linktarget="_top" linkurl="/Record/RecPage?prefix=p41&pid=@(_uroven1.pid)"></myval>
+                }
+                else
+                {
+                    <myval value="@_uroven1.PrefferedName"></myval>
+                }
+            </td>
+        </tr>
+    }
+    @if (_uroven2 != null)
+    {
+        <tr>
+            <td class="tdlab">
+
+                @(_uroven2.p07Name):
+            </td>
+            <td class="tdval">
+                @if (_bolRowHover)
+                {
+                    <myval value="@_uroven2.PrefferedName" hoverprefix="p41" hoverpid="@_uroven2.pid" datatype="link" linktarget="_top" linkurl="/Record/RecPage?prefix=p41&pid=@(_uroven2.pid)"></myval>
+                }
+                else
+                {
+                    <myval value="@_uroven2.PrefferedName"></myval>
+                }
+            </td>
+        </tr>
+    }
+    @if (_uroven3 != null)
+    {
+        <tr>
+            <td class="tdlab">
+
+                @(_uroven3.p07Name):
+            </td>
+            <td class="tdval">
+                @if (_bolRowHover)
+                {
+                    <myval value="@_uroven3.PrefferedName" hoverprefix="p41" hoverpid="@_uroven3.pid" datatype="link" linktarget="_top" linkurl="/Record/RecPage?prefix=p41&pid=@(_uroven3.pid)"></myval>
+                }
+                else
+                {
+                    <myval value="@_uroven3.PrefferedName"></myval>
+                }
+            </td>
+        </tr>
+    }
+    @if (_uroven4 != null)
+    {
+        <tr>
+            <td class="tdlab">
+
+                @(_uroven4.p07Name):
+            </td>
+            <td class="tdval">
+                @if (_bolRowHover)
+                {
+                    <myval value="@_uroven4.PrefferedName" hoverprefix="p41" hoverpid="@_uroven4.pid" datatype="link" linktarget="_top" linkurl="/Record/RecPage?prefix=p41&pid=@(_uroven4.pid)"></myval>
+                }
+                else
+                {
+                    <myval value="@_uroven4.PrefferedName"></myval>
+                }
+            </td>
+        </tr>
+    }
+    @if (Model.b02ID > 0)
+    {
+        <tr>
+            <td class="tdlab">
+                @_f.tra("Aktuální stav"):
+            </td>
+            <td class="tdval">
+                @if (_bolRowHover)
+                {
+                    <myval value="@Model.b02Name" hoverurl="/b02/Info?prefix=p41&pid=@Model.pid" valueafter="@UI.Code.basUI.HtmlColorStrip(Model.b02Color)"></myval>
+                }
+                else
+                {
+                    <myval value="@Model.b02Name" valueafter="@UI.Code.basUI.HtmlColorStrip(Model.b02Color)"></myval>
+                }
+
+            </td>
+        </tr>
+    }
+
+    @if (Model.p28ID_Client > 0)
+    {
+        <tr>
+            <td class="tdlab">
+                @_f.tra("Klient"):
+            </td>
+            <td class="tdval">
+                @if (_bolRowHover && _f.CurrentUser.j04IsModule_p28)
+                {
+                    <myval value="@Model.Client" hoverprefix="p28" hoverpid="@Model.p28ID_Client" datatype="@(_f.CurrentUser.j04IsModule_p28 ? "link" : "string")" linktarget="_top" linkurl="@(_f.CurrentUser.j04IsModule_p28 ? $"/Record/RecPage?prefix=p28&pid={Model.p28ID_Client}" : "")"></myval>
+                }
+                else
+                {
+                    <myval value="@Model.Client" linktarget="_top"></myval>
+                }
+            </td>
+        </tr>
+    }
+    @foreach (var c in _lisRoles)
+    {
+        <tr>
+            <td class="tdlab">
+                @(c.x67Name):
+            </td>
+            <td class="tdval">
+                @c.Receivers
+
+            </td>
+
+        </tr>
+    }
+
+    @if (Model.j18ID > 0)
+    {
+        <tr>
+            <td class="tdlab">
+                @_f.tra("Středisko"):
+            </td>
+            <td class="tdval">
+                <myval value="@Model.j18Name"></myval>
+            </td>
+        </tr>
+    }
+    @if (Model.p15ID > 0)
+    {
+        <tr>
+            <td class="tdlab">
+                @_f.tra("Lokalita"):
+                @if (_map != null)
+                {
+                    <a target="_blank" style="margin-left:6px;" href="@(_map)">Mapa</a>
+                }
+            </td>
+            <td class="tdval">
+                <myval value="@_p15Name"></myval>
+
+
+            </td>
+        </tr>
+    }
+    @if (Model.p61ID > 0)
+    {
+        <tr>
+            <td class="tdlab">
+                @_f.tra("Klastr aktivit"):
+            </td>
+            <td class="tdval">
+
+                @if (_bolRowHover)
+                {
+                    <myval value="@_p61Name" hoverprefix="p61" hoverpid="@Model.p61ID"></myval>
+                }
+                else
+                {
+                    <myval value="@_p61Name"></myval>
+                }
+            </td>
+        </tr>
+    }
+
+</table>
+

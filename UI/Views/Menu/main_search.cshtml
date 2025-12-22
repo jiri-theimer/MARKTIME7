@@ -1,0 +1,145 @@
+﻿@inject BL.Factory _f
+
+@{
+    Layout = null;
+
+  
+    int _Searched_ProjectID = 0;
+    string _Searched_ProjectText = null;
+    int _Searched_ContactID = 0;
+    string _Searched_ContactText = null;
+    int _Searched_TaskID = 0;
+    string _Searched_TaskText = null;
+    int _Searched_InvoiceID = 0;
+    string _Searched_InvoiceText = null;
+    int _Searched_PersonID = 0;
+    string _Searched_PersonText = null;
+}
+
+@addTagHelper *, UI
+
+
+<div class="dynamicmenu_container" id="container_search" style="-webkit-transform: translate3d(0,0,0);">
+
+    @if (_f.CurrentUser.j04IsModule_p41)
+    {
+        <div id="divMenuSearch_p41" class="bgp41 row" style="padding:10px;margin:6px;border-radius:5px;border:solid 1px silver;">
+            <div class="col-1">
+                <myicon prefix="p41"></myicon>
+            </div>
+            <div class="col-11">
+                <mycombo entity="p41" combo-height="700" asp-for="@_Searched_ProjectID" selectedtext="@_Searched_ProjectText" search-result-width="800" filter-flag="1" placeholder="@_f.tra("Najít") @_f.getP07Level(5,true)..." event_after_changevalue="p41_on_search" myqueryinline="MyRecordsDisponible|bool|1"></mycombo>
+            </div>
+
+
+        </div>
+    }
+    
+    @if (_f.CurrentUser.j04IsModule_p28)
+    {
+        <div id="divMenuSearch_p28" class="bgp28 row" style="padding:10px;margin:6px;border-radius:5px;border:solid 1px silver;">
+            <div class="col-1">
+                <myicon prefix="p28"></myicon>
+            </div>
+            <div class="col-11">
+                <mycombo entity="p28" asp-for="@_Searched_ContactID" combo-height="700" selectedtext="@_Searched_ContactText" search-result-width="800" filter-flag="1" placeholder="@_f.tra("Najít kontakt")..." event_after_changevalue="p28_on_search" myqueryinline="MyRecordsDisponible|bool|1"></mycombo>
+            </div>
+
+        </div>
+    }
+    
+    @if (_f.CurrentUser.j04IsModule_p56)
+    {
+        <div id="divMenuSearch_p56" class="bgp56 row" style="padding:10px;margin:6px;border-radius:5px;border:solid 1px silver;">
+            <div class="col-1">
+                <myicon prefix="p56"></myicon>
+            </div>
+            <div class="col-11">
+                <mycombo entity="p56" combo-height="700" asp-for="@_Searched_TaskID" selectedtext="@_Searched_TaskText" search-result-width="800" filter-flag="1" placeholder="@_f.tra("Najít úkol")..." event_after_changevalue="p56_on_search" myqueryinline="MyRecordsDisponible|bool|1"></mycombo>
+            </div>
+
+
+        </div>
+    }
+    
+    @if (_f.CurrentUser.j04IsModule_p91)
+    {
+        <div id="divMenuSearch_p91" class="bgp91 row" style="padding:10px;margin:6px;border-radius:5px;border:solid 1px silver;">
+            <div class="col-1">
+                <myicon prefix="p91"></myicon>
+            </div>
+            <div class="col-11">
+                <mycombo entity="p91" combo-height="700" asp-for="@_Searched_InvoiceID" selectedtext="@_Searched_InvoiceText" search-result-width="800" filter-flag="1" placeholder="@_f.tra("Najít vyúčtování/fakturu")..." event_after_changevalue="p91_on_search" myqueryinline="MyRecordsDisponible|bool|1"></mycombo>
+            </div>
+        </div>
+    }
+    
+    @if (_f.CurrentUser.j04IsModule_j02)
+    {
+        <div id="divMenuSearch_j02" class="nonmobile nontablet bgj02 row" style="padding:10px;margin:6px;border-radius:5px;border:solid 1px silver;">
+            <div class="col-1">
+                <myicon prefix="j02"></myicon>
+            </div>
+            <div class="col-11">
+                <mycombo entity="j02" asp-for="@_Searched_PersonID" selectedtext="@_Searched_PersonText" search-result-width="800" filter-flag="1" placeholder="@_f.tra("Najít uživatele")..." event_after_changevalue="j02_on_search" myqueryinline="MyRecordsDisponible|bool|1"></mycombo>
+            </div>
+
+
+        </div>
+    }
+    
+
+</div>
+
+
+<script type="text/javascript">
+    
+    $("#divMenuSearch_p41").on("click.bs.dropdown", function (e) {
+        e.stopPropagation(); 
+
+       
+
+        
+    });
+
+
+    function p41_on_search(pid) {
+        location.href = "/Record/RecPage?prefix=p41&pid=" + pid;
+    }
+
+    $("#divMenuSearch_p28").on("click.bs.dropdown", function (e) {
+        e.stopPropagation();                                    //click na dropdown oblast nemá zavírat dropdown div
+    });
+
+
+    function p28_on_search(pid) {
+        location.href = "/Record/RecPage?prefix=p28&pid=" + pid;
+    }
+
+    $("#divMenuSearch_p56").on("click.bs.dropdown", function (e) {
+        e.stopPropagation();                                    //click na dropdown oblast nemá zavírat dropdown div
+    });
+
+
+    function p56_on_search(pid) {
+        location.href = "/Record/RecPage?prefix=p56&pid=" + pid;
+    }
+
+    $("#divMenuSearch_p91").on("click.bs.dropdown", function (e) {
+        e.stopPropagation();                                    //click na dropdown oblast nemá zavírat dropdown div
+    });
+
+
+    function p91_on_search(pid) {
+        location.href = "/Record/RecPage?prefix=p91&pid=" + pid;
+    }
+
+    $("#divMenuSearch_j02").on("click.bs.dropdown", function (e) {
+        e.stopPropagation();                                    //click na dropdown oblast nemá zavírat dropdown div
+    });
+
+
+    function j02_on_search(pid) {
+        location.href = "/Record/RecPage?prefix=j02&pid=" + pid;
+    }
+</script>

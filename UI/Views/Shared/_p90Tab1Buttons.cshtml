@@ -1,0 +1,6 @@
+﻿@model UI.Models.Tab1.p90Tab1
+@inject BL.Factory _f
+
+<button type="button" class="btn btn-sm bog" onclick="_window_open('/ReportsClient/ReportContext?x31id=@(Model.Rec.x31ID)&prefix=p90&pid=@(Model.pid)')"><span class="material-icons-outlined-btn">print</span> @_f.tra("Sestava dokladu")</button>
+
+<button type="button" class="btn btn-sm bog" style="color:green;" onclick="_window_open('/Mail/SendMail?x29id=390&recpid=@(Model.pid)')"><span class="material-icons-outlined-btn">email</span> @_f.tra("Odeslat zprávu")</button>

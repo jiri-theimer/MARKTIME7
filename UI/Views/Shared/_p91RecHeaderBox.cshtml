@@ -1,0 +1,331 @@
+﻿@model BO.p91Invoice
+
+@inject BL.Factory _f
+
+@{
+
+
+    if (Model == null)
+    {
+        return;
+    }
+    
+    bool _bolRowHover = UI.Code.basUI.DetectIfCanRowHover(_f, Context, _f.CurrentUser.j04IsModule_p91);
+
+
+    var _recP93 = _f.p93InvoiceHeaderBL.Load(Model.p93ID);
+    var _recP86 = _f.p86BankAccountBL.LoadInvoiceAccount(Model.pid);
+
+    BO.p91Invoice _recOpravnyDoklad = null;
+    BO.p91Invoice _recOpravovanyDoklad = null;
+
+    if (Model.p92TypeFlag == BO.p92TypeFlagENUM.CreditNote && Model.p91ID_CreditNoteBind > 0)
+    {
+        //jedná se o dobropis (opravný doklad), v p91ID_CreditNoteBind je uložen odkaz na opravovanou fakturu
+        _recOpravovanyDoklad = _f.p91InvoiceBL.Load(Model.p91ID_CreditNoteBind);
+    }
+
+
+    if (Model.p92TypeFlag == BO.p92TypeFlagENUM.ClientInvoice)
+    {
+        _recOpravnyDoklad=_f.p91InvoiceBL.LoadCreditNote(Model.pid);        
+    }
+
+    IEnumerable<BO.RoleAssignedToRecord> _lisRoles = _f.x67EntityRoleBL.GetRolesAssignedToRecord(Model.pid, "p91");
+
+    BO.b02WorkflowStatus _recB02 = null;
+    if (Model.b02ID > 0)
+    {
+        _recB02 = _f.b02WorkflowStatusBL.Load(Model.b02ID);
+    }
+
+    IEnumerable<BO.x40MailQueue> _lisX40 = _f.MailBL.GetList(new BO.myQueryX40() { IsRecordValid = null, explicit_orderby = "a.x40ID DESC", p91id = Model.pid });
+    //int _b05Count = _f.WorkflowBL.GetB05CommentsCount("p91", Model.pid);
+}
+
+@addTagHelper *, UI
+
+<table class="table table-hover">
+    <tr>
+        <td colspan="2" class="@(Model.isclosed ? "tdarchiv": "tdval")" style="white-space: nowrap;" onmouseover="_handle_mywrk_mouseover(this)" onmouseout="_handle_mywrk_mouseout(this)">
+            <span class="material-icons-outlined">receipt_long</span>
+            @(Model.p91Code)
+            
+            
+
+            @if (BO.Code.Bas.bit_compare_or(Model.p91LockFlag, 2))
+            {
+                <span class="material-icons-outlined-nosize" style="color:black;">lock</span>
+            }
+            @if (BO.Code.Bas.bit_compare_or(Model.p91LockFlag, 4))
+            {
+                <span class="material-icons-outlined-nosize" style="color: blue;">lock</span>
+            }
+            @if (BO.Code.Bas.bit_compare_or(Model.p91LockFlag, 8))
+            {
+                <span class="material-icons-outlined-nosize" style="color: hotpink;">lock</span>
+            }
+
+            @if (_bolRowHover)
+            {
+                <mywrkbutton prefix="p91" showcopyurl="true" pid="@Model.pid" b02id="@Model.b02ID" langindex="@_f.CurrentUser.j02LangIndex"></mywrkbutton>
+            }
+        </td>
+    </tr>
+    <tr>
+        <td class="tdlab">
+            @_f.tra("Typ faktury"):
+        </td>
+        <td class="tdval">
+            @if (_bolRowHover)
+            {
+                <myval value="@Model.p92Name" hoverurl="/p92/Info?prefix=p92&pid=@Model.p92ID"></myval>
+            }
+            else
+            {
+                @(Model.p92Name)
+            }
+        </td>
+    </tr>
+    @if (_recB02 != null)
+    {
+        <tr>
+            <td class="tdlab">
+                @_f.tra("Aktuální stav"):
+            </td>
+            <td class="tdval">
+                <myval value="@_recB02.b02Name" hoverurl="/b02/Info?prefix=p91&pid=@Model.pid" valueafter="@(UI.Code.basUI.HtmlColorStrip(_recB02.b02Color))"></myval>
+
+            </td>
+        </tr>
+    }
+    @if (Model.p92TypeFlag == BO.p92TypeFlagENUM.ClientInvoice && _recOpravnyDoklad != null)
+    {
+        <tr>
+            <td class="tdlab">
+                @_f.tra("Opravný doklad"):
+            </td>
+            <td class="tdval">
+                @if (_bolRowHover)
+                {
+                    <myval value="@_recOpravnyDoklad.p91Code" hoverprefix="p91" hoverpid="@_recOpravnyDoklad.pid"></myval>
+                }
+                else
+                {
+                    <myval value="@_recOpravnyDoklad.p91Code"></myval>
+                }
+                
+            </td>
+        </tr>
+    }
+
+    @if (Model.p92TypeFlag == BO.p92TypeFlagENUM.CreditNote && _recOpravovanyDoklad != null)
+    {
+        <tr>
+            <td class="tdlab">
+                @(_f.tra("Opravovaný doklad")):
+            </td>
+            <td>
+                @if (_bolRowHover)
+                {
+                    <myval value="@_recOpravovanyDoklad.p91Code" hoverprefix="p91" hoverpid="@_recOpravovanyDoklad.pid"></myval>
+                }
+                else
+                {
+                    <myval value="@_recOpravovanyDoklad.p91Code"></myval>
+                }
+                
+                
+            </td>
+        </tr>
+
+    }
+
+    @if (_lisX40.Count() > 0)
+    {
+        <tr>
+            <td class="tdlab">
+                @_f.tra("Odeslání faktury"):
+            </td>
+            <td class="tdval">
+                @if (_bolRowHover)
+                {
+                    <a href="javascript:_window_open('/Mail/Record?pid=@_lisX40.First().pid')" style="text-decoration:none;">
+                        @(BO.Code.Bas.ObjectDateTime2String(_lisX40.First().x40DatetimeProcessed) + " (" + _lisX40.First().x40Recipient + ")")
+
+                    </a>
+                }
+                else
+                {
+                    @(BO.Code.Bas.ObjectDateTime2String(_lisX40.First().x40DatetimeProcessed) + " (" + _lisX40.First().x40Recipient + ")")
+                }
+                
+
+                @if (_lisX40.First().x40Status != BO.x40StateENUM.IsProceeded)
+                {
+                    <code>
+                        @_lisX40.First().StatusAlias
+                    </code>
+
+                }
+
+            </td>
+
+        </tr>
+    }
+
+    @if (_recP93 != null)
+    {
+        <tr>
+            <td class="tdlab">
+                @_f.tra("Vystavovatel"):
+            </td>
+            <td class="tdval">
+                @if (_bolRowHover)
+                {
+                    <myval value="@_recP93.p93Company" hoverurl="/p93/Info?prefix=p93&pid=@Model.p93ID"></myval>
+                }
+                else
+                {
+                    @(_recP93.p93Company)
+                }
+                
+                
+                
+            </td>
+        </tr>
+    }
+
+    @if (_recP86 != null)
+    {
+        <tr>
+            <td class="tdlab">
+                @_f.tra("Bankovní účet"):
+            </td>
+            <td class="tdval">
+                @(_recP86.p86Account + "/" + _recP86.p86Code)
+            </td>
+        </tr>
+    }
+    @if (Model.p91ExchangeRate != 1.00)
+    {
+        <tr>
+            <td class="tdlab">
+                @_f.tra("Měnový kurz"):
+            </td>
+            <td class="tdval">
+                @if (_bolRowHover)
+                {
+                    <myval value="@(Model.p91ExchangeRate.ToString()+" / "+BO.Code.Bas.ObjectDate2String(Model.p91DateExchange))" hoversymol="Aktualizovat" hoveronclick="true" hoverurl="javascript: recpage_exupdate(@Model.pid)"></myval>
+                }
+                else
+                {
+                    <myval value="@(Model.p91ExchangeRate.ToString()+" / "+BO.Code.Bas.ObjectDate2String(Model.p91DateExchange))"></myval>
+                }
+               
+                
+            </td>
+        </tr>
+
+    }
+    @foreach (var c in _lisRoles)
+    {
+        <tr>
+            <td class="tdlab">
+                @(c.x67Name):
+            </td>
+            <td class="tdval">
+                @c.Receivers
+
+            </td>
+
+        </tr>
+    }
+    <tr id="trKlient">
+        <td class="tdlab">
+            @_f.tra("Klient"):
+        </td>
+        <td class="tdval">
+            @if (_bolRowHover)
+            {
+                <myval value="@Model.p91Client" hoverprefix="p28" hoverpid="@Model.p28ID"></myval>
+            }
+            else
+            {
+                <myval value="@Model.p91Client"></myval>
+            }
+            
+            
+        </td>
+    </tr>
+    <tr id="trAdresa">
+        <td class="rowvalhover" colspan="2">
+            <small>@(Model.PrimaryAddress)</small>
+            <a class="valhover_tooltip" target='_blank' href="https://mapy.cz/zakladni?q=@(Model.p91ClientAddress1_City+"+"+Model.p91ClientAddress1_Street)">mapy</a>
+            <a class="valhover_tooltip" target='_blank' href="https://www.google.com/maps/place/@(Model.p91ClientAddress1_City+"+"+Model.p91ClientAddress1_Street)">google</a>
+        </td>
+
+    </tr>
+    <tr id="trICO">
+        <td class="tdlab">
+            @_f.tra("IČO"):
+        </td>
+
+        <td class="rowvalhover tdval">
+            @Model.p91Client_RegID
+
+            @if (Model.p28CountryCode == "SK")
+            {
+                <a class="valhover_tooltip" href="javascript:_rejstrik_obchodny_register('hidICO')">obchodný register</a>
+            }
+            else
+            {
+                <a class="valhover_tooltip" href="javascript: _rejstrik_justice('hidICO')">justice</a>
+                <a class="valhover_tooltip" href="javascript: _rejstrik_aresinfo('hidICO')">ares</a>
+                <a class="valhover_tooltip" href="javascript: _rejstrik_insolvence('hidICO')">insolvence</a>
+            }
+
+            <input type="hidden" id="hidICO" value="@Model.p91Client_RegID" />
+        </td>
+    </tr>
+    <tr id="trDIC">
+        <td class="tdlab">
+            DIČ:
+        </td>
+        <td class="tdval">
+            @Model.p91Client_VatID
+        </td>
+    </tr>
+    @if (Model.p91Client_ICDPH_SK != null)
+    {
+        <tr>
+            <td class="tdlab">
+                IČ DPH:
+            </td>
+            <td class="tdval">
+                @Model.p91Client_ICDPH_SK
+            </td>
+        </tr>
+
+    }
+
+
+</table>
+
+@if (Model.p91Text1 != null || Model.p91Text2 != null)
+{
+    <mark style="font-style:italic;">
+
+        @Html.Raw(BO.Code.Bas.Text2Html(Model.p91Text1))
+
+    </mark>
+
+    @if (Model.p91Text2 != null)
+    {
+        <br />
+
+        <q>
+            @Html.Raw(BO.Code.Bas.Text2Html(Model.p91Text2))
+        </q>
+    }
+}

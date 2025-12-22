@@ -1,0 +1,98 @@
+﻿@model UI.Models.Tags.TagsBatch
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Oštítkovat hromadně");
+
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageSymbol = "local_offer";
+}
+
+
+@addTagHelper *,UI
+
+
+
+
+<form id="form1" asp-controller="o51" asp-action="Batch" method="POST">
+
+    <div class="bg-light" style="padding:10px;">
+        <button type="submit" class="btn btn-primary" asp-route-oper="append" style="display:none;"><span class="material-icons-outlined-btn">done</span>@_f.tra("Oštítkovat záznamy")</button>
+
+        <button type="submit" class="btn btn-success" asp-route-oper="replace"><span class="material-icons-outlined-btn">sync</span>@_f.tra("V záznamech aktualizovat zvolený štítek")</button>
+
+        <button type="submit" class="btn btn-warning" asp-route-oper="remove" style="display:none;">@_f.tra("V záznamech vyjmout vybrané štítky")</button>
+
+        <button type="submit" class="btn btn-danger" asp-route-oper="clear"><span class="material-icons-outlined-btn">clear</span>@_f.tra("V záznamech vyčistit všechny položky vybraného štítku")</button>
+
+        <button type="button" onclick="_window_close()" class="btn btn-light"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
+
+
+
+    </div>
+    <div class="input-group">
+        <div class="card">
+            <div class="card-header">
+                @_f.tra("Vyberte štítek")
+            </div>
+            <div class="card-body">
+                <myradiolist asp-for="@Model.SelectedO53ID" textfield="o53Name" valuefield="pid" datasource="@Model.lisO53" event_after_changevalue="o53_change"></myradiolist>
+            </div>
+        </div>
+        @if (Model.RecO53 != null)
+        {
+            <div class="card" style="margin-left:10px;">
+                <div class="card-header">
+                    @_f.tra("Položky vybraného štítku")
+                </div>
+                <div class="card-body">
+                    @if (Model.RecO53.o53IsMultiSelect)
+                    {
+                    <mycheckboxlist asp-for="@Model.SelectedO51IDs" textfield="HtmlText" valuefield="pid" datasource="@Model.ApplicableTags"></mycheckboxlist>
+                    }
+                    else
+                    {
+                    <myradiolist asp-for="@Model.SelectedRadioO51ID" textfield="HtmlText" valuefield="pid" datasource="@Model.ApplicableTags"></myradiolist>
+                    }
+                </div>
+            </div>
+        }
+
+    </div>
+
+
+
+
+
+
+    <input type="hidden" asp-for="@Model.Record_Entity" />
+    <input type="hidden" asp-for="@Model.Record_Pids" />
+    <input type="hidden" asp-for="@Model.j72ID" />
+
+
+</form>
+
+<code>Vybrané záznamy:</code>
+@await Component.InvokeAsync("myGrid",Model.gridinput)
+
+<div id="divTableRecords"></div>
+
+
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $.post("/Common/GetWorkTable", { entity: "@Model.Record_Entity", pids:"@Model.Record_Pids"}, function (data) {
+            $("#divTableRecords").html(data);
+
+        });
+
+    });
+
+    function o53_change(o53id) {
+        form1.action = "/o51/Batch?oper=postback";
+        form1.submit();
+    }
+</script>

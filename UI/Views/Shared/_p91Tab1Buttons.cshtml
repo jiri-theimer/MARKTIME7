@@ -1,0 +1,114 @@
+﻿@model UI.Models.Tab1.p91Tab1
+@inject BL.Factory _f
+
+@{
+    int _intX31ID_DobropisovanaFaktura = 0;
+    int _intX31ID_DobropisovanaPriloha = 0;
+    int _intX31ID_OpravnyDoklad = 0;
+    int _intP91ID_OpravnyDoklad = 0;
+
+    BO.p92InvoiceType _recP92 = _f.p92InvoiceTypeBL.Load(Model.Rec.p92ID);
+
+    if (Model.Rec.p92TypeFlag == BO.p92TypeFlagENUM.CreditNote)
+    {
+        if (Model.Rec.p91ID_CreditNoteBind > 0)
+        {
+            var recOD = _f.p91InvoiceBL.Load(Model.Rec.p91ID_CreditNoteBind);
+            if (recOD != null)
+            {
+                var recP92 = _f.p92InvoiceTypeBL.Load(recOD.p92ID);
+                _intX31ID_DobropisovanaFaktura = recP92.x31ID_Invoice;
+                _intX31ID_DobropisovanaPriloha = recP92.x31ID_Attachment;
+            }
+            
+        }
+
+    }
+    else
+    {
+        var recOD = _f.p91InvoiceBL.LoadCreditNote(Model.Rec.pid);
+        if (recOD != null)
+        {
+            _intP91ID_OpravnyDoklad = recOD.pid;
+            var recP92 = _f.p92InvoiceTypeBL.Load(recOD.p92ID);
+            _intX31ID_OpravnyDoklad = recP92.x31ID_Invoice;
+        }
+
+    }
+
+}
+
+
+
+
+
+
+
+@if (_recP92.x31ID_Invoice>0 || _recP92.x31ID_Attachment>0)
+{
+    <button type="button" class="btn btn-sm bog" onclick="p91report(@(_recP92.x31ID_Invoice),@Model.pid)"><span class="material-icons-outlined-btn">print</span> @_f.tra("Doklad")</button>
+}
+else
+{
+    <button type="button" class="btn btn-sm bog" onclick="_window_open('/ReportsClient/ReportContext?pid=@(Model.pid)&prefix=p91')"><span class="material-icons-outlined-btn">print</span> @_f.tra("Tisková sestava (Doklad/Příloha)")</button>
+}
+
+
+@if (_recP92.x31ID_Attachment > 0)
+{
+    <button type="button" class="btn btn-sm bog" style="color:green;" onclick="p91report(@(_recP92.x31ID_Attachment),@Model.pid)"><span class="material-icons-outlined-btn">print</span> @_f.tra("Příloha")</button>
+}
+@if (_recP92.x31ID_Invoice>0 && _recP92.x31ID_Attachment > 0)
+{
+    <button type="button" title="PDF doklad+příloha" class="btn btn-sm bog" onclick="p91pdfpreview(@(Model.pid))"><span class="material-icons-outlined-btn" style="color:red;">picture_as_pdf</span></button>
+
+    <button type="button" class="btn btn-sm bog" style="color:green;" onclick="p91merge(@(_recP92.x31ID_Invoice),@(Model.pid),@(_recP92.x31ID_Attachment))"><span class="material-icons-outlined-btn">picture_as_pdf</span> @_f.tra("Doklad+Příloha")</button>
+    
+
+}
+@if (_recP92.x31ID_Letter > 0)
+{
+    <button type="button" class="btn btn-sm bog" onclick="p91report(@(_recP92.x31ID_Letter),@Model.pid)"><span class="material-icons-outlined-btn">print</span> @_f.tra("Průvodní dopis")</button>
+}
+
+
+
+
+@if (Model.Rec.p91IsDraft && _f.CurrentUser.j04IsModule_p91)
+{
+    <button type="button" class="btn btn-sm btn-primary" onclick="converfromdraft(@Model.pid)">@_f.tra("Převést DRAFT na oficiální doklad")</button>
+}
+
+@if (Model.Rec.p92TypeFlag == BO.p92TypeFlagENUM.CreditNote && Model.Rec.p91ID_CreditNoteBind > 0)
+{
+    <button type="button" class="btn btn-sm bog" onclick="_window_open('/ReportsClient/ReportContext?x31id=@(_intX31ID_DobropisovanaFaktura)&prefix=p91&pid=@(Model.Rec.p91ID_CreditNoteBind)')"><span class="material-icons-outlined-btn">print</span> @_f.tra("Opravovaný doklad")</button>
+    @if (_intX31ID_DobropisovanaPriloha > 0)
+    {
+        <button type="button" class="btn btn-sm bog" style="color:green;" onclick="_window_open('/ReportsClient/ReportContext?x31id=@(_intX31ID_DobropisovanaPriloha)&prefix=p91&pid=@(Model.Rec.p91ID_CreditNoteBind)')"><span class="material-icons-outlined-btn">print</span> @_f.tra("Příloha opravovaného dokladu")</button>
+    }
+
+
+}
+@if (_intP91ID_OpravnyDoklad > 0)
+{
+    <button type="button" class="btn btn-sm btn-danger" onclick="_window_open('/ReportsClient/ReportContext?x31id=@(_intX31ID_OpravnyDoklad)&prefix=p91&pid=@(_intP91ID_OpravnyDoklad)')"><span class="material-icons-outlined-btn">print</span> @_f.tra("Opravný doklad")</button>
+}
+
+<button type="button" class="btn btn-sm btn-light" title="E-mail" onclick="_window_open('/Mail/SendMail?record_entity=p91&record_pid=@Model.pid')"><span class="material-icons-outlined-btn">alternate_email</span></button>
+
+@if (!Model.Rec.p91IsDraft)
+{
+    <button type="button" class="btn btn-sm btn-light" title="Export faktury do ISDOC/POHODA" onclick="_window_open('/p91export/Index?p91ids=@Model.pid')"><img src="/images/isdoc_icon.png" /></button>
+}
+
+
+<button type="button" class="btn btn-sm btn-light" title="Kontrola rozdílů klienta vůči rejistříku" onclick="_window_open('/p91oper/checkaddress?pids_prefix=p91&pids=@Model.pid')"><span class="material-icons-outlined-btn" style="color:violet">in_home_mode</span></button>
+
+<button type="button" class="btn btn-sm btn-light" title="PDF archiv" onclick="_window_open('/p91oper/p96?p91id=@Model.pid',3)"><span class="material-icons-outlined-btn">folder_open</span></button>
+
+
+@if (_recP92.b01ID > 0)
+{
+    <button type="button" class="btn btn-sm bog" title="Posunout workflow stav" onclick="_window_open('/workflow_dialog/Index?record_prefix=p91&record_pid=@Model.pid')">Workflow</button>
+
+}

@@ -1,0 +1,511 @@
+﻿@model UI.Models.RecPageViewModel
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    bool _isshowleftpanel = Model.IsShowLeftPanel;
+
+    if (_isshowleftpanel)
+    {
+        Model.PageTitle = _f.EProvider.ByPrefix(Model.prefix).AliasPlural;
+    }
+    else
+    {
+        Model.PageTitle = Model.MenuCode;
+    }
+
+
+}
+
+@addTagHelper *, UI
+@Html.Raw("<div style='background-color:#F5F5F5'>")
+
+<div class="input-group" style="padding-top:8px;">
+    <ul class="nav nav-tabs">
+
+        <li class="onetab">
+            @if (_isshowleftpanel)
+            {
+                <a id="cmdMore" class="nav-link onetab-offcanvas" tabindex="-1" role="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvas_more">
+
+                    @Html.Raw(@Model.TabName)
+
+                    <span id="TheGridRows" class="badge bg-primary" style="margin-left:2px;">0</span>
+
+                    <span class="onetab-caret">▼</span>
+                </a>
+            }
+            else
+            {
+                <a class="nav-link active" tabindex="-1" role="button" href="javascript:reload()">
+
+                    @Html.Raw(@Model.TabName)
+
+                    
+                </a>
+            }
+            
+
+
+
+        </li>
+
+    </ul>
+
+
+    @if (_isshowleftpanel)
+    {
+
+        <div>
+            @Html.EditorFor(m => Model.PageTitle, "~/Views/Shared/_ButtonGridDesigner.cshtml")
+        </div>
+        <div>
+            @Html.EditorFor(m => Model.PageTitle, "~/Views/Shared/_ButtonGridSelMenu.cshtml")
+        </div>
+
+        @if (Model.TheGridQueryButton != null)
+        {
+            <div>
+                @Html.EditorFor(m => Model.TheGridQueryButton, "~/Views/Shared/_ButtonGridQuery.cshtml")
+            </div>
+        }
+
+
+        @if (Model.periodinput != null)
+        {
+            <div>
+                @await Component.InvokeAsync("myPeriod", Model.periodinput)
+            </div>
+        }
+
+        @if (Model.p31statequery != null)
+        {
+            <div>
+                @Html.EditorFor(m => Model.p31statequery, "~/Views/Shared/_p31StateQuery.cshtml")
+            </div>
+        }
+    }
+
+
+    @if (Model.prefix != "p91" && Model.prefix != "o43" && Model.prefix != "p84")
+    {
+        <div class="nonmobile">
+            <a class="btn descreet_link_over_grid" href="javascript:_edit('@(Model.prefix)',0,null,'@(Model.rez)')" title="@_f.tra("Nový")"><span class="material-icons-outlined-btn menu_new_record">add_circle_outline</span></a>
+        </div>
+        @if (Model.prefix == "p56")
+        {
+            <div>
+                <a class="btn descreet_link_over_grid" href="javascript:_window_open('/p56/TodoList',3)" title="Todo list"><span class="material-icons-outlined-btn menu_new_record">control_point_duplicate</span></a>
+            </div>
+        }
+    }
+
+    @if (_f.CurrentUser.IsApprovingPerson && (Model.prefix == "p28" || Model.prefix == "p41" || Model.prefix == "le5" || Model.prefix == "le4" || Model.prefix == "le3" || Model.prefix == "p56" || Model.prefix == "j02"))
+    {
+
+        <div>
+            <a class="btn descreet_link_over_grid" href="javascript:tg_approve()" title="Schválit/Vyúčtovat vybrané, klávesová zkratka: Alt+R"><span class="material-icons-outlined-btn" style="color:green;">approval</span></a>
+        </div>
+
+    }
+
+    @if (Model.recordbinquery != null)
+    {
+        <div>
+            <myshowmore></myshowmore>
+        </div>
+        <div class="showmore">
+            @Html.EditorFor(m => Model.recordbinquery, "~/Views/Shared/_RecordBinQuery.cshtml")
+        </div>
+    }
+
+
+
+
+
+
+
+
+
+
+
+</div>
+
+@if (!_isshowleftpanel && Model.pid > 0)
+{
+    <div id="divOverGrid" style="height:70px;">
+        @await Component.InvokeAsync("myGrid", Model.gridinput)
+    </div>
+}
+
+@Html.Raw("</div>")
+
+
+
+
+@if (!_isshowleftpanel)
+{
+    <div class="input-group bg-light m-0" style="padding-top:1px; padding-left:1px;">
+        <div id="layout_sidebar_contextmenu">
+            @if (Model.pid > 0)
+            {
+                <a id="layout_sidebar_contextmenu_link" class="cm h4 mx-0" title="@Model.MenuCode" onclick="_cm(event, '@Model.prefix',@Model.pid);">☰@(Model.MenuCode) </a>
+                <h4 id="layout_sidebar_contextmenu_onlytext"></h4>
+            }
+
+        </div>
+    </div>
+
+    @Html.Raw("<div id='layout_sidebar' class='cm_recpage'>Loading...</div>")
+
+    @Html.Raw("<div id='layout_main'>")
+}
+else
+{
+    @Html.Raw("<div id='splitter_container'>")
+
+
+    @Html.Raw("<div id='splitter_panel1'>")
+
+    @await Component.InvokeAsync("myGrid", Model.gridinput)
+
+    @Html.Raw("</div>")
+
+    <div id="splitter_resizer" class="splitter-resizer-left2right"></div>
+
+    @Html.Raw("<div id='splitter_panel2'>")
+}
+
+
+
+<div class="tabs_container bg@(Model.prefix)">
+    <ul id="navtabs" class="nav nav-tabs">
+        <li style="padding-top:6px;">
+            <a id="cmdRCM" class="cm" onclick="rcm_from_tabs(event)" title="MENU"><span class="material-icons-outlined">menu</span></a>
+        </li>
+        @foreach (var tab in Model.NavTabs)
+        {
+            <li class="nav-item onetab">
+                <a class="@tab.CssClass" id="tab@(tab.Entity)" href="@tab.Url" target="fra_subgrid" onclick="tabclick(this)" title="@tab.Tooltip">
+                    @Html.Raw(tab.Name)
+                    @if (tab.Badge != null)
+                    {
+                        @Html.Raw(tab.Badge)
+                    }
+                </a>
+            </li>
+        }
+    </ul>
+</div>
+
+<div id="divTabContent">
+    <iframe id="fra_subgrid" name="fra_subgrid" src="@Model.DefaultNavTabUrl" frameborder="0" scrolling="yes" style="width:100%;" onload="$('#divTabContent').css('background','none');"></iframe>
+</div>
+
+
+
+
+@Html.Raw("</div>")
+@if (_isshowleftpanel)
+{
+    @Html.Raw("</div>")
+
+
+}
+
+<div id="cmdQuickPageLayoutSwitch" onmouseout="_handle_onetab_mouseout_switch_layout(this)">
+    @if (_isshowleftpanel)
+    {
+        <a class="nav-link" href="javascript:_handle_quick_switch_page_layout('@(Model.prefix)',false)"><span class="material-icons-outlined-btn" style="margin-right:5px;">splitscreen_top</span>@_f.tra("Přepnout na režim: Horní+spodní panel")</a>
+
+    }
+    else
+    {
+        @if (Model.pid > 0)
+        {
+
+            <a class="nav-link" href="@Model.Go2GridUrl"><span class="material-icons-outlined-btn" style="margin-right:5px;">grid_view</span> @_f.tra("Tabulka") </a>
+
+        }
+    }
+
+
+
+
+
+
+
+
+
+</div>
+
+
+
+<div class="offcanvas offcanvas-start" tabindex="-1" data-bs-scroll="true" data-bs-backdrop="true" data-bs-keyboard="true" id="offcanvas_more">
+
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title">
+            <a href="javascript:reload()" title="Občerstvit">
+                <myicon symbol="refresh"></myicon>
+            </a>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+
+    <div class="offcanvas-body p-0 m-0" id="offcanvas_more_body">
+    </div>
+</div>
+
+
+<script type="text/javascript">
+    let _offcanvasIsLoaded = false;
+    var _prefix = "@Model.prefix";
+    var _entity = "@Model.entity";
+    var _pid = "@Model.pid";
+    var _is_left_panel = "@_isshowleftpanel";
+    var _statequery = "@(Model.p31statequery != null ? Model.p31statequery.Value : 0)";
+    var _local_periodvalue = "0";
+    _local_periodvalue = "@(Model.periodinput != null ? Model.periodinput.PeriodValue : 0)";
+    var _local_j72id_query = "@(Model.TheGridQueryButton != null ? Model.TheGridQueryButton.j72id : 0)";
+    var _currentloadingtabs = false;
+    var _local_binquery = "@(Model.recordbinquery != null ? Model.recordbinquery.Value : 0)";
+
+    $(document).ready(function () {
+
+
+        $("#offcanvas_more").on("show.bs.offcanvas", function () {
+            if (_offcanvasIsLoaded)
+            {
+                RefreshExportAccording();   //js var _GridExport.cshtml
+                return;
+            }
+
+            _offcanvasIsLoaded = true;
+
+            if (_is_left_panel=="True")
+            {
+                render_menu("cmdMore","offcanvas_more_body","/Menu/recpage_extension?prefix=" + _prefix);
+
+
+            }
+
+
+
+        });
+
+
+        if (document.getElementById("divOverGrid"))
+        {
+            $("#divOverGrid").height(30 + $("#tabgrid0").height());
+        }
+
+
+
+        if (_pid != "0" && _is_left_panel == "False") {
+            $.post("/Menu/ContextMenu", { source: "recpage", entity: _entity, pid: @Model.pid }, function (data) {
+
+                $("#layout_sidebar").html(data);
+
+            });
+        }
+
+        if (_pid == "0") {
+            $(".tabovergrid").css("visibility", "hidden");
+            $("#divPageCommands").css("visibility", "hidden");
+            $("#cmdRCM").css("visibility", "hidden");
+        }
+
+
+
+        if (_is_left_panel == "True") {
+            var key = _prefix + "-recpage_panel1_size";
+            var defWidth = localStorage.getItem(key);
+            if (defWidth == null) {
+                defWidth = 400;
+                localStorage.setItem(key, defWidth);
+            }
+            _splitter_init("2", _prefix + "-recpage");
+            _splitter_resize_after_init("2", defWidth);
+            tg_adjust_for_screen("splitter_panel1");
+
+
+        }
+
+        var offset = $("#divTabContent").offset();
+        var h_vertical = _device.innerHeight - offset.top;
+        h_vertical = parseInt(h_vertical);
+
+        if (_device.type === "Phone") {
+            h_vertical = 400;
+        }
+
+        $("#divTabContent").css("height", h_vertical + "px");
+
+        document.addEventListener("thegrid_rowselect", function (e) {       //změna řádku gridu: automaticky vyvolávaná událost z gridu
+            leftgrid_handle_rowselect(e.detail.pid);
+        });
+
+        _mainmenu_highlight_current("recpage" + _prefix, "cmd" + _prefix);
+
+        if (_pid != "0" && _is_left_panel == "False") {
+            tg_select(1);
+        }
+
+
+
+
+        if (_local_binquery != "1") {
+            $(".showmore").toggle();
+        }
+
+    });
+
+
+    function tabclick(tab) {    //uložit aktuální záložku do profilu uživatele
+        $("#navtabs .nav-link").removeClass("active");
+        $(tab).addClass("active");
+        $.post("/Common/SetUserParam", { key: "masterview-tab-" + _prefix, value: tab.id.replace("tab", "") }, function (data) {
+
+
+        });
+    }
+    function change_grid(j72id) {
+        $.post(_ep("/Common/SetUserParam"), { key: "masterview-j72id-" + _prefix, value: j72id }, function (data) {
+            reload();
+
+        });
+    }
+
+    function reload() {
+        _redirect("/Record/RecPage?prefix=" + _prefix + "&pid=" + _pid);
+    }
+
+
+
+
+
+    function grid_dblclick(row) {
+        var pid = row.id.replace("r", "");
+        _edit(_prefix, pid);
+    }
+
+    function rcm_from_tabs(e) {
+
+        e.target.setAttribute("menu_je_inicializovano", null);  //vyčistit paměť o inicializaci menu v rámci tohoto tlačítka
+
+        _cm(e, _prefix, _pid, "grid");
+    }
+
+
+
+
+    ///složité
+    function leftgrid_handle_rowselect(pid) {
+        if (_pid == "0" && pid != "0")  //ošetřit situaci, kdy stránka záznamu nemá vybraný záznam s hodnotou _pid
+        {
+            _pid = pid;
+            reload();
+            return;
+        }
+
+        var url = $("#fra_subgrid").attr("src");
+
+        var tabs = $(".nav-link.text-dark");
+        for (var i = 0; i < tabs.length; i++) {
+            url = $(tabs[i]).attr("href");
+
+            if (url.indexOf("caller") == -1) {
+                url = url + "&caller=grid";     //donutit cílovou stránku, aby si uložila naposledy navštívený záznam
+            }
+
+            url = url.replaceAll("pid=" + _pid, "pid=" + pid);
+
+
+            $(tabs[i]).attr("href", url);
+
+
+            if ($(tabs[i]).hasClass("active")) {
+                $("#fra_subgrid").attr("src", url);
+
+            }
+        }
+
+        if (tabs.length == 1) {
+            url = url.replaceAll("pid=" + _pid, "pid=" + pid);
+            $(tabs[0]).attr("href", url);
+            $("#fra_subgrid").attr("src", url);
+        }
+
+        if (document.getElementById("linkGo2Grid")) {
+            url = $("#linkGo2Grid").attr("href");
+            if (url != null) {
+                url = url.replaceAll("pid=" + _pid, "pid=" + pid);
+            }
+
+            $("#linkGo2Grid").attr("href", url);
+        }
+
+        if (document.getElementById("linkMainTab"))
+        {
+            url = $("#linkMainTab").attr("href");
+            url = url.replaceAll("pid=" + _pid, "pid=" + pid);
+            $("#linkMainTab").attr("href", url);
+        }
+        
+
+        _pid = pid;
+
+        handle_render_tabs(_pid);
+
+    }
+
+
+
+    function handle_render_tabs(pid) {
+        //Aktualizovat záložky
+        if (_currentloadingtabs) {
+            $("#tabtab1").html("Wait");
+        } else {
+            _currentloadingtabs = true;
+            //$("#tabtab1").html("-----");
+            $.post("/TheGrid/getTabs", { prefix: _prefix, pid: pid }, function (data) {
+                callback_render_tabs(data);
+
+            });
+            //_load_ajax_async("/TheGrid/getTabs", { prefix: _prefix, pid: pid }, callback_render_tabs);
+        }
+    }
+
+    function callback_render_tabs(data) {
+        //vykreslení obsahu záložek načtených přes load_ajax_async
+        _currentloadingtabs = false;
+        $("#tabtab1").html(data[0].name);
+        for (var i = 1; i < data.length; i++) {
+            if (document.getElementById("tab" + data[i].entity)) {
+                if (data[i].badge != null) {
+                    $("#tab" + data[i].entity).html(data[i].name + data[i].badge);
+                } else {
+                    $("#tab" + data[i].entity).html(data[i].name);
+                }
+            }
+
+        }
+    }
+
+
+
+    function rcm_from_tabs(e) {
+
+
+
+        e.target.setAttribute("menu_je_inicializovano", null);  //vyčistit paměť o inicializaci menu v rámci tohoto tlačítka
+
+        _cm(e, _prefix, _pid, "grid");
+    }
+
+</script>
+
+
+

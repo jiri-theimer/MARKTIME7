@@ -1,0 +1,368 @@
+﻿@model TheQueryDesignerViewModel
+@inject BL.Singleton.TheEntitiesProvider _ep
+@inject BL.Factory _f
+
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    
+    string _header = _ep.ByTable(Model.Rec.j72Entity).AliasPlural;
+    if (Model.Rec.j72Entity == "le5")
+    {
+        _header = _f.getP07Level(5, false);
+    }
+    if (_f.CurrentUser.j02LangIndex == 1)
+    {
+        _header = _ep.ByTable(Model.Rec.j72Entity).TranslateLang1;
+    }
+    if (_f.CurrentUser.j02LangIndex == 2)
+    {
+        _header = _ep.ByTable(Model.Rec.j72Entity).TranslateLang2;
+    }
+
+    if (Model.Rec == null)
+    {
+        return;
+    }
+
+
+
+}
+
+@addTagHelper *, UI
+
+
+
+
+<h4>
+    <span class="material-icons-outlined" style="font-size:170%;color:red;">filter_alt</span>
+
+    @_f.tra("Pojmenovaný filtr") [@_header]:
+    @if(Model.Rec.pid>0)
+    {
+        <i>@Model.Rec.GetName()</i>
+    }
+    
+</h4>
+
+
+
+<div class="bg-light" style="padding:10px;">
+    <button type="button" id="cmdSave" onclick="savechanges()" class="btn btn-success">@_f.tra("Uložit změny")</button>
+    @if(Model.Rec.pid>0)
+    {
+        @if (Model.HasOwnerPermissions)
+        {
+            <button type="button" id="cmdDelete" onclick="delete_record()" class="btn btn-danger">@_f.tra("Odstranit")</button>
+        }
+        <button type="button" id="cmdSaveAs" onclick="saveas()" class="btn bog">@_f.tra("Uložit jako")...</button>
+
+        <button type="button" id="cmdCreate" onclick="create()" class="btn bog">@_f.tra("Nový")</button>
+        
+    }
+
+    
+    
+
+    <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+
+</div>
+<form id="form1" asp-controller="TheQueryDesigner" asp-action="Index" method="POST">
+
+
+
+    <input type="hidden" asp-for="Rec.pid" />
+    <input type="hidden" asp-for="Rec.j72Entity" />
+    <input type="hidden" asp-for="Rec.j72MasterEntity" />
+    
+    <input type="hidden" asp-for="HasOwnerPermissions" />
+    <input type="hidden" asp-for="Rec.j72SystemFlag" />
+
+    
+    <input type="hidden" asp-for="CallerPathName" />
+
+
+    <div style="margin-top:10px;margin-bottom:10px;">
+        <input type="text" class="form-control" placeholder="Název filtru" asp-for="Rec.j72Name" value="@Model.Rec.j72Name" />
+    </div>
+
+    
+
+    @if (Model.lisQueryFields.Count() > 0)
+    {
+        <button type="button" class="btn btn-primary" onclick="handle_j73_append()">@_f.tra("Přidat řádek")</button>
+    }
+    else
+    {
+        <code>Systém pro tuto entitu nenabízí filtrovací pole pro pojmenované filtry! Oslovte dodavatele systému, aby požadovaná pole doplnil.</code>
+    }
+
+    <button type="button" class="btn btn-outline-danger" onclick="handle_j73_clear()" style="margin-left:100px;">@_f.tra("Vyčistit")</button>
+    <table class="table table-hover" style="table-layout: fixed;min-width:1200px;">
+        @for (var i = 0; i < Model.lisJ73.Count; i++)
+        {
+            <tr style="@(Model.lisJ73[i].CssTempDisplay)">
+                <td style="width:140px;">
+                    <input type="hidden" asp-for="lisJ73[i].IsTempDeleted" value="@Model.lisJ73[i].IsTempDeleted" />
+                    <input type="hidden" asp-for="lisJ73[i].j73ID" value="@Model.lisJ73[i].j73ID" />
+                    <input type="hidden" asp-for="lisJ73[i].MyQueryInline" value="@Model.lisJ73[i].MyQueryInline" />
+                    <input type="hidden" asp-for="lisJ73[i].j73IsOfferPersonsAdd" value="@Model.lisJ73[i].j73IsOfferPersonsAdd" />
+
+                    <input type="hidden" asp-for="lisJ73[i].TempGuid" value="@Model.lisJ73[i].TempGuid" />
+
+                    <select title="@_f.tra("Levá závorka")" asp-for="@Model.lisJ73[i].j73BracketLeft">
+                        <option value=""></option>
+                        <option value="(">(</option>
+                        <option value="((">((</option>
+                    </select>
+                    <select asp-for="@Model.lisJ73[i].j73Op">
+                        <option value="AND">@_f.tra("A zároveň")</option>
+                        <option value="OR">@_f.tra("Nebo")</option>
+                    </select>
+
+                </td>
+                <td style="width:250px;">
+                    <mydropdown asp-for="@Model.lisJ73[i].j73Column" datasource="@Model.lisQueryFields" valuefield="Field" textfield="Header" isfirstemptyrow="false" event_after_changevalue="handle_queryfield_change" datavalue="@Model.lisJ73[i].TempGuid"></mydropdown>
+
+                </td>
+                <td style="width:130px;">
+                    <select asp-for="@Model.lisJ73[i].j73Operator" class="form-select" onchange="handle_queryoperator_change(this)">
+                        @if (Model.lisJ73[i].FieldType == "number")
+                        {
+                            <option value="INTERVAL">@_f.tra("Je interval")</option>
+                            <option value="GREATERZERO">@_f.tra("Je větší než nula")</option>
+                            <option value="ISNULLORZERO">@_f.tra("Je nula nebo prázdné")</option>
+                        }
+                        @if (Model.lisJ73[i].FieldType == "date")
+                        {
+                            <option value="INTERVAL">@_f.tra("Je interval")</option>
+                        }
+                        @if (Model.lisJ73[i].FieldType != "date" && Model.lisJ73[i].FieldType != "number")
+                        {
+                            <option value="EQUAL">@_f.tra("Je rovno")</option>
+                        }
+                        @if (Model.lisJ73[i].FieldType != "bool" && Model.lisJ73[i].FieldType != "number" && Model.lisJ73[i].FieldType != "date" && Model.lisJ73[i].FieldType != "bool1" && Model.lisJ73[i].FieldType != "bool1x")
+                        {
+                            <option value="NOT-EQUAL">@_f.tra("Není rovno")</option>
+                        }
+
+                        @if (Model.lisJ73[i].FieldType != "bool" && Model.lisJ73[i].FieldType != "bool1" && Model.lisJ73[i].FieldType != "bool1x")
+                        {
+                            <option value="ISNULL">@_f.tra("Je prázdné")</option>
+                            <option value="NOT-ISNULL">@_f.tra("Není prázdné")</option>
+                        }
+
+                        @if (Model.lisJ73[i].FieldType == "string")
+                        {
+                            <option value="CONTAINS">@_f.tra("Obsahuje")</option>
+                            <option value="STARTS">@_f.tra("Začíná na")</option>
+                        }
+
+                    </select>
+                </td>
+                <td>
+                    @if (Model.lisJ73[i].j73Operator != "ISNULL" && Model.lisJ73[i].j73Operator != "NOT-ISNULL" && Model.lisJ73[i].j73Operator != "GREATERZERO" && Model.lisJ73[i].j73Operator != "ISNULLORZERO")
+                    {
+                        @if (Model.lisJ73[i].FieldType == "combo")
+                        {
+
+                            <mycombo asp-for="@Model.lisJ73[i].j73ComboValue" entity="@Model.lisJ73[i].FieldEntity" selectedtext="@Model.lisJ73[i].j73ValueAlias" filter-flag="1" masterprefix="@Model.lisJ73[i].MasterPrefix" masterpid="@Model.lisJ73[i].MasterPid" myqueryinline="@Model.lisJ73[i].MyQueryInline"></mycombo>
+
+
+                        }
+                        @if (Model.lisJ73[i].FieldType == "multi")
+                        {
+
+                            <mycombochecklist asp-for="@Model.lisJ73[i].j73Value" selectedtext="@Model.lisJ73[i].j73ValueAlias" entity="@Model.lisJ73[i].FieldEntity" masterprefix="@Model.lisJ73[i].MasterPrefix" masterpid="@Model.lisJ73[i].MasterPid" myqueryinline="@Model.lisJ73[i].MyQueryInline"></mycombochecklist>
+
+
+                        }
+                        @if (Model.lisJ73[i].FieldType == "string")
+                        {
+
+                            <input class="form-control" asp-for="@Model.lisJ73[i].j73Value" />
+
+                        }
+                        @if (Model.lisJ73[i].FieldType == "number")
+                        {
+                            <div class="row">
+                                <div class="col-auto">
+                                    <mynumber asp-for="@Model.lisJ73[i].j73Num1"></mynumber>
+                                </div>
+                                <div class="col-auto" style="text-align:center;"> ⮄⮆ </div>
+                                <div class="col-auto btn-group">
+                                    <mynumber asp-for="@Model.lisJ73[i].j73Num2"></mynumber>
+                                </div>
+                            </div>
+
+                        }
+                        @if (Model.lisJ73[i].FieldType == "date")
+                        {
+                            <div class="row">
+                                <div class="col-auto" title="@_f.tra("Pojmenované období")">
+                                    <mydropdown asp-for="@Model.lisJ73[i].j73DatePeriodFlag" datasource="@Model.lisPeriods" valuefield="pid" textfield="Header" isfirstemptyrow="false"></mydropdown>
+
+                                </div>
+                                <div class="col-auto" title="@_f.tra("Začátek období ručně")">
+
+                                    <mydate asp-for="@Model.lisJ73[i].j73Date1"></mydate>
+                                </div>
+                                <div class="col-auto" style="text-align:center;"> ⮄⮆ </div>
+                                <div class="col-auto" title="@_f.tra("Konec období ručně")">
+
+                                    <mydate asp-for="@Model.lisJ73[i].j73Date2"></mydate>
+                                </div>
+                            </div>
+
+
+                        }
+                        @if (Model.lisJ73[i].FieldType == "bool")
+                        {
+                            <select asp-for="@Model.lisJ73[i].j73Value" class="form-select">
+                                <option value="1">@_f.tra("ANO")</option>
+                                <option value="0">@_f.tra("NE")</option>
+                            </select>
+
+                        }
+
+                        @if (Model.lisJ73[i].FieldType == "bool1" || Model.lisJ73[i].FieldType == "bool1x")
+                        {
+                            <select asp-for="@Model.lisJ73[i].j73Value" class="form-select">
+                                <option value="1">@_f.tra("ANO")</option>
+
+                            </select>
+
+                        }
+                    }
+                </td>
+                <td>
+                    @if (Model.lisJ73[i].FieldType == "multi" && Model.lisJ73[i].j73IsOfferPersonsAdd)
+                    {
+
+                        <mycombochecklist asp-for="@Model.lisJ73[i].j02AddValue" selectedtext="@Model.lisJ73[i].j02AddValueAlias" entity="j02User" masterprefix="@Model.lisJ73[i].MasterPrefix" masterpid="@Model.lisJ73[i].MasterPid"></mycombochecklist>
+                        <mycombochecklist asp-for="@Model.lisJ73[i].j11AddValue" selectedtext="@Model.lisJ73[i].j11AddValueAlias" entity="j11Team" masterprefix="@Model.lisJ73[i].MasterPrefix" masterpid="@Model.lisJ73[i].MasterPid"></mycombochecklist>
+                    }
+                </td>
+
+
+                <td style="width:60px;">
+                    <select title="@_f.tra("Pravá závorka")" asp-for="@Model.lisJ73[i].j73BracketRight">
+                        <option value=""></option>
+                        <option value=")">)</option>
+                        <option value="))">))</option>
+                    </select>
+
+
+                </td>
+                <td style="width:60px;">
+                    <button type="button" class="btn btn-danger" title="@_f.tra("Odstranit řádek")" onclick="handle_delete_j73('@(Model.lisJ73[i].TempGuid)')">x</button>
+                </td>
+
+            </tr>
+        }
+    </table>
+
+    <input type="checkbox" asp-for="Rec.j72IsQueryNegation" />
+    <label class="col-form-label" for="Rec_j72IsQueryNegation">@_f.tra("Negovat podmínku filtru")</label>
+    
+    
+    <div class="card" style="margin-top:30px;">
+        <div class="card-header">
+            @_f.tra("Nasdílet filtr pro ostatní uživatele")
+        </div>
+        <div class="card-body">
+            <div>
+                <input type="checkbox" asp-for="Rec.j72IsPublic" />
+                <label class="col-form-label" for="Rec_j72IsPublic">@_f.tra("Přístupné pro všechny uživatele")</label>
+            </div>
+            <mycombochecklist asp-for="@Model.j04IDs" entity="j04UserRole" selectedtext="@Model.j04Names" placeholder="@_f.tra("Vybrat aplikační role")..."></mycombochecklist>
+
+
+        </div>
+    </div>
+</form>
+
+
+
+
+
+
+
+
+<script type="text/javascript">
+    var _sels = [];
+    var dosaveas = "@(Model.ForceSaveAsAtStart)";
+
+    $(document).ready(function () {
+
+
+        recovery_state();   //musí být spuštěno po naplnění stromu
+        refresh_state();
+
+
+
+
+        if (dosaveas == "True") {
+            saveas();
+        }
+    });
+
+
+
+    function saveas() {
+        var s = prompt("@_f.tra("Zadejte název nového Filtru")");
+        if (s.length > 0) {
+            _postback("saveas", "j72name=" + s)
+
+        }
+    }
+
+    function create() {
+        var s = prompt("@_f.tra("Zadejte název nového Filtru")");
+        if (s.length > 0) {
+            _postback("new", "j72name=" + s)
+
+        }
+    }
+   
+
+    function delete_record() {
+        if (confirm("@_f.tra("Opravdu chcete nenávratně odstranit tento Filtr?")")) {
+            _postback("delete");
+        }
+
+    }
+
+
+
+
+
+    function handle_j73_append() {
+        _postback("add_j73");
+    }
+    function handle_delete_j73(guid) {
+        _postback("delete_j73", "guid=" + guid);
+
+
+    }
+    function handle_queryfield_change(cbx) {
+        var guid = $(cbx).attr("data-value");
+        _postback("changefield", "guid=" + guid);
+
+    }
+    function handle_queryoperator_change(cbx) {
+        _postback();
+    }
+    function handle_j73_clear() {
+        _postback("clear_j73");
+    }
+
+    function savechanges() {
+        
+        _submit();
+    }
+</script>
+
+
+

@@ -1,0 +1,59 @@
+﻿@model UI.Models.BaseViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = _f.tra("Detail položky vyúčtování");
+    Model.PageSymbol = "p31";
+    int _p31id = BO.Code.Bas.InInt(UI.Code.basUI.GetQueryValue(Context,"p31id"));
+
+}
+
+@addTagHelper *, UI
+
+
+<div class="tabs_container_record">
+    <div style="padding:10px;">
+        <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+    </div>
+    <!-- Tab panes -->
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab1" class="nav-link" href="/p91oper/p31edit?p31id=@_p31id">@_f.tra("Upravit položku vyúčtování")</a>
+        </li>
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab4" class="nav-link active">@_f.tra("Detail položky")</a>
+        </li>
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab2" class="nav-link" href="/p91oper/p31remove?p31id=@_p31id">@_f.tra("Vyjmout položku z vyúčtování")</a>
+        </li>
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab3" class="nav-link" href="/p91oper/p31move2invoice?p31id=@_p31id">@_f.tra("Přesunout do jiného vyúčtování")</a>
+        </li>
+        
+    </ul>
+</div>
+
+
+<iframe id="fra1" src="/p31/Info?pid=@(_p31id)"></iframe>
+
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $("#fra1").css("width", "98%");
+
+        var offset = $("#fra1").offset();
+        var h_vertical = _device.innerHeight - offset.top-10;
+        h_vertical = parseInt(h_vertical);
+
+        $("#fra1").css("height", h_vertical+"px");
+
+    })
+
+
+
+
+</script>

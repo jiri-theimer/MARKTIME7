@@ -1,0 +1,58 @@
+﻿@model UI.Models.Record.o21Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Typ termínu");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    Model.PageSymbol = "settings";
+}
+
+@addTagHelper *, UI
+
+
+
+<div class="modal_record_container">
+
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název"):</label>
+        <div class="col-sm-7 col-md-6">
+            <input class="form-control" asp-for="Rec.o21Name" />
+        </div>
+        <label class="col-sm-1 col-md-1 col-form-label">@_f.tra("Index pořadí"):</label>
+        <div class="col-sm-1 col-md-1">
+            <mynumber asp-for="Rec.o21Ordinary" decimal-digits="0"></mynumber>
+        </div>
+    </div>
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Typ"):</label>
+        <div class="col-sm-4 col-md-3">
+            <select asp-for="@Model.Rec.o21TypeFlag" class="form-select" onchange="_postback()">                
+                <option value="Udalost">@_f.tra("Událost/Jednání od-do")</option>
+                <option value="Lhuta">@_f.tra("Lhůta")</option>
+                <option value="Milnik">@_f.tra("Milník/Termín")</option>
+                
+            </select>
+
+        </div>
+    </div>
+
+
+   
+
+
+    <div class="my-2">
+        <input type="checkbox" asp-for="@Model.Rec.o21IsP41Compulsory" />
+        <label class="col-form-label" for="Rec_o21IsP41Compulsory">@_f.tra("Povinná vazba na projekt")</label>
+    </div>
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Barva"):</label>
+        <div class="col-sm-4 col-md-3">
+            @Html.EditorFor(m => m.Rec.o21Color, "~/Views/Shared/_ColorCombo.cshtml")
+            
+        </div>
+    </div>
+
+
+</div>

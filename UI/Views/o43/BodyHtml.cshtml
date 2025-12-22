@@ -1,0 +1,41 @@
+﻿@model UI.Models.Imap.InboxRecordViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = null;
+}
+@addTagHelper *, UI
+
+
+<!DOCTYPE html>
+
+<html lang="cs">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Body</title>
+   
+   
+    
+
+
+</head>
+
+<style type="text/css">
+    html {
+        font-size: 0.75rem;
+    }
+
+    body {
+        margin: 0px;
+    }
+
+</style>
+
+<body>
+
+    @Html.Raw(Model.Rec.o43BodyHtml)
+    
+</body>
+</html>
+

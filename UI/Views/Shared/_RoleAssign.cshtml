@@ -1,0 +1,207 @@
+﻿@model UI.Models.RoleAssignViewModel
+@inject BL.Factory _f
+
+@{
+    if (Model==null || Model.RecPrefix == null)
+    {
+        return;
+    }
+
+    //string _lang_tymy = _f.tra("Týmy") + "...";
+    //string _lang_osoby = _f.tra("Osoby/Jednotlivci") + "...";
+    string _lang_vsichni = _f.tra("Všichni uživatelé");
+    string _lang_neobsazeno = _f.tra("Neobsazeno");
+    string _lang_uzivatele = _f.tra("Uživatelé");
+    string _lang_tymy = _f.tra("Týmy uživatelů");
+    string _lang_header = Model.Header;
+
+    if (string.IsNullOrEmpty(_lang_header))
+    {
+        switch (Model.RolePrefix)
+        {
+            case "p41":
+                _lang_header = _f.tra("Oprávnění") + ": " + _f.tra("Obsazení projektových rolí"); break;
+            case "p28":
+                _lang_header = _f.tra("Obsazení rolí v záznamu kontaktu"); break;
+            case "o23":
+                _lang_header = _f.tra("Obsazení rolí v záznamu dokumentu"); break;
+            case "p91":
+                _lang_header = _f.tra("Obsazení rolí v záznamu vyúčtování"); break;
+            case "p90":
+                _lang_header = _f.tra("Obsazení rolí v záznamu zálohové faktury"); break;
+            case "p56":
+                _lang_header = _f.tra("Obsazení rolí v záznamu úkolu"); break;
+            case "o22":
+                _lang_header = _f.tra("Obsazení rolí v záznamu termínu"); break;
+               
+        }
+    }
+
+
+    if (Model.lisRepeator == null)
+    {
+        List<BO.x69EntityRole_Assign> lisX69 = null;        
+        Model.lisRepeator = new List<RoleAssignRepeator>();
+        IEnumerable<BO.x67EntityRole> lisX67 = null;
+        if (Model.OnlyOne_x67ID>0){
+            //na výběr pouze jedna konkrétní role
+            lisX67 = _f.x67EntityRoleBL.GetList(new BO.myQuery("x67")).Where(p => p.pid == Model.OnlyOne_x67ID);
+        }
+        else
+        {
+            lisX67 = _f.x67EntityRoleBL.GetList(new BO.myQuery("x67") { explicit_orderby = "a.x67Entity,a.x67Ordinary" }).Where(p => p.x67Entity == Model.RolePrefix || p.x67Entity == Model.RolePrefixSecond);
+        }
+        
+        
+        if (Model.RecPid > 0)
+        {
+            lisX69 = _f.x67EntityRoleBL.GetList_X69(Model.RecPrefix, Model.RecPid).ToList();
+        }
+        else
+        {
+            if (Model.Default_j02ID > 0 || Model.Default_j11ID > 0)
+            {
+                if (Model.Default_x67ID == 0 && lisX67.Count()>0) Model.Default_x67ID = lisX67.First().pid; //pokud není určeno, pak výchozí role je ta první v pořadí
+                lisX69 = new List<BO.x69EntityRole_Assign>();
+                lisX69.Add(new BO.x69EntityRole_Assign() { x67ID = Model.Default_x67ID, j02ID = Model.Default_j02ID, j11ID = Model.Default_j11ID });
+            }
+        }
+        foreach (var c in lisX67)
+        {
+            var cc = new RoleAssignRepeator() { x67ID = c.pid, x67Name = c.x67Name, IsNone = true, x67Entity = c.x67Entity,x67IsRequired=c.x67IsRequired };
+            if (lisX69 != null)
+            {
+                var qry = lisX69.Where(p => p.x67ID == c.pid);
+                if (qry.Count() > 0)
+                {
+                    cc.IsNone = false;
+                    cc.x69IsAllUsers = qry.First().x69IsAllUsers;
+                    if (!cc.x69IsAllUsers)
+                    {
+                        if (qry.Any(p => p.j11ID > 0))
+                        {
+                            cc.j11IDs = string.Join(",", qry.Where(p => p.j11ID > 0).Select(p => p.j11ID));
+                            cc.Teams = string.Join(",", qry.Where(p => p.j11ID > 0).Select(p => p.j11Name));
+                            if (Model.RecPid == 0 && Model.Default_j11ID > 0 && Model.Default_x67ID == c.pid)
+                            {
+                                cc.Teams = Model.Default_Team;
+                            }
+                        }
+
+                        if (qry.Any(p => p.j02ID > 0))
+                        {
+                            cc.j02IDs = string.Join(",", qry.Where(p => p.j02ID > 0).Select(p => p.j02ID));
+                            cc.Persons = string.Join(",", qry.Where(p => p.j02ID > 0).Select(p => p.Person));
+                            if (Model.RecPid==0 && Model.Default_j02ID>0 && Model.Default_x67ID==c.pid)
+                            {
+                                cc.Persons = Model.Default_Person;
+                            }
+                        }
+                    }
+
+                }
+            }
+            Model.lisRepeator.Add(cc);
+        }
+    }
+
+    foreach (var c in Model.lisRepeator)
+    {
+        if (c.IsNone)
+        {
+            c.CssVisibility_j02 = "hidden";
+            c.CssVisibility_j11 = "hidden";
+            c.CssVisibility_all = "hidden";
+        }
+        else
+        {
+            if (c.x69IsAllUsers)
+            {
+                c.CssVisibility_j02 = "hidden";
+                c.CssVisibility_j11 = "hidden";
+            }
+        }
+
+    }
+
+
+}
+
+@addTagHelper *, UI
+
+<input type="hidden" asp-for="RolePrefix" />
+<input type="hidden" asp-for="RolePrefixSecond" />
+<input type="hidden" asp-for="RecPrefix" />
+<input type="hidden" asp-for="RecPid" />
+<input type="hidden" asp-for="Header" />
+
+
+<div class="div-over-table-scrolling">
+    @if (_lang_header !=null && _lang_header !=".")
+    {
+        <div style="font-weight:bold;">
+            @(_lang_header):
+        </div>
+    }
+    
+    <table class="table table-hover" style="min-width:600px;">
+        @for (int i = 0; i < Model.lisRepeator.Count(); i++)
+        {
+            <tr>
+                <td>
+                    <strong>@(Model.lisRepeator[i].x67Name):</strong>
+                    <div>
+                        <input type="checkbox" id="chkNone@(i)" asp-for="@Model.lisRepeator[i].IsNone" onchange="isnone_change(this,@(i))" />
+                        <label for="chkNone@(i)">@(_lang_neobsazeno)</label>
+                    </div>
+
+
+                    <input type="hidden" asp-for="@Model.lisRepeator[i].x67ID" />
+                    <input type="hidden" asp-for="@Model.lisRepeator[i].x67Name" />
+                    <input type="hidden" asp-for="@Model.lisRepeator[i].x67Entity" />
+                    <input type="hidden" asp-for="@Model.lisRepeator[i].x67IsRequired" />
+
+                </td>
+                <td id="divJ02@(i)" style="min-width:180px;visibility:@(Model.lisRepeator[i].CssVisibility_j02);">
+                    <mycombochecklist placeholder="@_lang_uzivatele" asp-for="@Model.lisRepeator[i].j02IDs" elementid-prefix="@(Model.elementidprefix)" entity="j02User" selectedtext="@Model.lisRepeator[i].Persons"></mycombochecklist>
+
+                </td>
+                <td id="divJ11@(i)" style="min-width:150px;visibility: @(Model.lisRepeator[i].CssVisibility_j11);">
+                    <mycombochecklist placeholder="@_lang_tymy" asp-for="@Model.lisRepeator[i].j11IDs" entity="j11Team" elementid-prefix="@(Model.elementidprefix)" selectedtext="@Model.lisRepeator[i].Teams"></mycombochecklist>
+                </td>
+                <td id="divAll@(i)" style="min-width:150px;visibility: @(Model.lisRepeator[i].CssVisibility_all);">
+                    <input type="checkbox" id="chkAll@(i)" asp-for="@Model.lisRepeator[i].x69IsAllUsers" onchange="allpersons_change(this,@(i))" />
+                    <label for="chkAll@(i)">@(_lang_vsichni)</label>
+                </td>
+              
+            </tr>
+
+        }
+    </table>
+</div>
+
+<script type="text/javascript">
+
+    function allpersons_change(chk, index) {
+        var s = "visible";
+        if ($(chk).prop("checked") == true) {
+            s = "hidden";
+        }
+        $("#divJ02" + index).css("visibility", s);
+        $("#divJ11" + index).css("visibility", s);
+    }
+
+    function isnone_change(chk, index) {
+        var s = "visible";
+        if ($(chk).prop("checked") == true) {
+            $("#divJ02" + index).css("visibility", "hidden");
+            $("#divJ11" + index).css("visibility", "hidden");
+            $("#divAll" + index).css("visibility", "hidden");
+        } else {
+            $("#divAll" + index).css("visibility", "visible");
+            allpersons_change($("#chkAll" + index), index);
+        }
+
+
+    }
+</script>

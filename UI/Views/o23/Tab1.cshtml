@@ -1,0 +1,201 @@
+﻿@model UI.Models.Tab1.o23Tab1
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+    if (Model.Rec == null) return;
+    Model.Rec.Rezerva = "Tab1";
+
+    List<BO.o19DocTypeEntity_Binding> _lisO19 = _f.o23DocBL.GetList_o19(Model.Rec.pid).ToList();
+    foreach (var c in _lisO19)
+    {
+        c.o20Entity = BO.Code.Entity.GetPrefixDb(c.o20Entity);
+    }
+    bool _bolRowHover = UI.Code.basUI.DetectIfCanRowHover(_f, Context, true);
+
+    var _NotepadLookAt = new UI.Models.Notepad.LookAtViewModel() { IsTab1 = true, prefix = "o23", pid = Model.Rec.pid, NotepadContent = Model.Rec.o23Notepad, x04ID = Model.Rec.x04ID };
+
+    UI.Models.Tab1.BaseTab1ViewModel _tabWeather = null;
+    if (Model.Rec.j95ID > 0)
+    {
+        _tabWeather = new UI.Models.Tab1.BaseTab1ViewModel() { prefix = "j95", pid = Model.Rec.j95ID };
+    }
+    UI.Models.Tab1.BaseTab1ViewModel _tabwrk = null;
+    if (Model.Rec.b02ID > 0)
+    {
+        _tabwrk = new UI.Models.Tab1.BaseTab1ViewModel() { prefix = "o23", pid = Model.Rec.pid };
+    }
+    
+    var _lisO24 = _f.o24ReminderBL.GetList_ddx_or_classic(Model.pid);
+
+    BO.TaggingHelper _tg = null;
+    if (Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.tags))
+    {
+        _tg = _f.o51TagBL.GetTagging("p91", Model.pid);
+    }
+}
+
+@addTagHelper *, UI
+
+@await Html.PartialAsync("~/Views/Shared/_Tab1ButtonSetting.cshtml", Model.prefix)
+
+@Html.Raw("<div class='info_record_container'>")
+
+@if (Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.recheader))
+{
+    <div class="card recpagebox400" id="divRecPageBox1">
+        <div class="card-body">
+            @Html.EditorFor(m => m.Rec, "~/Views/Shared/_o23RecHeaderBox.cshtml")
+
+            @if (_tg != null && _tg.TagHtml != null)
+            {
+                @Html.Raw(_tg.TagHtml)
+
+
+            }
+
+            @Html.EditorFor(m => m.Rec, "~/Views/Shared/_TimeStamp.cshtml")
+
+        </div>
+
+
+    </div>
+    
+}
+
+@Html.Raw("<div id='divTree1Container' style='float: left;vertical-align: top;border:none;margin-left:4px;margin-top:4px;'>")
+@Html.EditorFor(m => _lisO24, "~/Views/Shared/_o24TreeView.cshtml")
+@if (_lisO19.Count() > 0)
+{
+    <ul class="mytreeview">
+        <li>
+            <a class="mytreeview-toggle-kontejner" onclick="_treeview_toggle(this)">
+                <span class="material-icons-outlined-btn mytreeview-toggle-sipka">arrow_drop_down</span>
+                <span class="material-icons-outlined-btn">join</span>
+                <span>@_f.tra("Vazby dokumentu") (@(_lisO19.Count()))</span>
+
+            </a>
+
+            <ul style="display:block">
+                <li>
+                    <table class="table table-hover">
+                        @for (int i = 0; i < _lisO19.Count(); i++)
+                        {
+                            <tr>
+                                <td style="width:20px;">
+                                    @if (_lisO19[i].o20Entity == "j02")
+                                    {
+                                        <span class="material-icons-outlined" style="color:gray;">face</span>
+                                    }
+                                    @if (_lisO19[i].o20Entity == "p41")
+                                    {
+                                        <span class="material-icons-outlined" style="color:gray;">work_outline</span>
+                                    }
+                                    @if (_lisO19[i].o20Entity == "p28")
+                                    {
+                                        <span class="material-icons-outlined" style="color:gray;">contacts</span>
+                                    }
+                                    @if (_lisO19[i].o20Entity == "p15")
+                                    {
+                                        <span class="material-icons-outlined" style="color:gray;">location_on</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (i == 0 || _lisO19[i - 1].o20Name != _lisO19[i].o20Name)
+                                    {
+                                        @if (_lisO19[i].o20Name != null)
+                                        {
+                                            @(_lisO19[i].o20Name)
+                                        }
+                                        else
+                                        {
+                                            @(BO.Code.Entity.GetAlias(_lisO19[i].o20Entity))
+                                        }
+                                        <span>:</span>
+
+                                    }
+
+                                </td>
+
+
+                                @if (_bolRowHover)
+                                {
+                                    <td class="rowvalhover">
+                                        @(_f.CBL.GetObjectAlias(_lisO19[i].o20Entity, _lisO19[i].o19RecordPid))
+
+                                        <a class="reczoom" data-rel="/@_lisO19[i].o20Entity/Info?pid=@(_lisO19[i].o19RecordPid)&hover_by_reczoom=1">ℹ</a>
+                                    </td>
+                                }
+                                else
+                                {
+                                    <td>
+                                        @(_f.CBL.GetObjectAlias(_lisO19[i].o20Entity, _lisO19[i].o19RecordPid))
+                                    </td>
+                                }
+
+                            </tr>
+                        }
+                    </table>
+                </li>
+
+
+            </ul>
+
+        </li>
+    </ul>
+}
+
+
+@Html.Raw("</div")
+
+
+
+@if (Model.Rec.b02ID > 0)
+{
+    @await Html.PartialAsync("~/Views/Shared/_LastWorkflowStep.cshtml", _tabwrk)
+
+
+}
+
+
+
+
+@if (Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.o27list))
+{
+    @Html.EditorFor(m => m, "~/Views/Shared/_lisO27Tab1.cshtml")
+}
+
+@if (_tabWeather != null)
+{
+    @await Html.PartialAsync("~/Views/Shared/_WeatherBox.cshtml", _tabWeather)
+}
+
+
+
+@Html.Raw("</div>")
+
+
+
+
+
+<div style="clear:both;"></div>
+
+@if (Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.notepad))
+{
+    @if (!Model.Rec.o23IsEncrypted)
+    {
+
+
+        @Html.EditorFor(m => _NotepadLookAt, "~/Views/Shared/_NotepadRO.cshtml")
+    }
+
+}
+
+
+<script type="text/javascript">
+    
+    if (document.getElementById("divRecPageBox1")) {
+        _adjust_divheight_small_display("divRecPageBox1");
+    }
+</script>

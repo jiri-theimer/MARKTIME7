@@ -1,0 +1,81 @@
+﻿@model Boolean      //true: nastavení pro grid, false: nastavení pro htmltable
+@inject BL.Factory _f
+
+@{
+    BO.Model.Grid.HtmlTableLayout _setting = new BO.Model.Grid.HtmlTableLayout(_f.CurrentUser.j02GridCssBitStream, _f.CurrentUser.j02FontSizeFlag,Model);
+
+}
+
+
+
+<div class="row my-2">
+    <div class="col-3">
+        <span>@_f.tra("Výška řádku"):</span>
+    </div>
+    <div class="col-7">
+        <select id="tablelayout_lh" class="form-select" onchange="tablelayout_change()">
+            <option value="">1.0</option>
+            <option value="lh15">1.5</option>
+            <option value="lh20">2.0</option>
+
+        </select>
+    </div>
+    
+</div>
+<div class="my-2">
+    <input style="margin-left:20px;" type="checkbox" @(_setting.Stripped ? "checked='checked'" : null)) id="tablelayout_stripped" onchange="tablelayout_change()" />
+    <label for="tablelayout_stripped">Zebra+barvy</label>
+    @if (!Model)
+    {
+
+        <input style="margin:10px;" type="checkbox" @(_setting.Mrizka ? "checked='checked'" : null)) id="tablelayout_mrizka" onchange="tablelayout_change()" />
+        <label for="tablelayout_mrizka">@_f.tra("Mřížka")</label>
+
+    }
+</div>
+
+<div class="row my-2" style="visibility:@(Model==true ? "visible": "hidden")">
+    <div class="col-3">
+        <span>@_f.tra("Šířky sloupců"):</span>
+    </div>
+    <div class="col-7">
+        <select id="tablelayout_cols" class="form-select" onchange="tablelayout_change()">
+            <option value="resize">Šířky sloupců si mohu nastavovat sám</option>            
+            <option value="fixed">Systémem pevně navržené šířky sloupců</option>            
+        </select>
+    </div>
+</div>
+<!-- Tato volba byla dána pryč, nikomu snad nechybí
+<option value="auto">Automatická šířka sloupců na 100% plochu podkladu</option>
+ -->
+
+
+<script type="text/javascript">
+    $("#tablelayout_cols").val("@_setting.LayoutName");
+    $("#tablelayout_lh").val("@_setting.Lineheight");
+
+    function tablelayout_change()
+    {
+        
+        var s = "@Model.ToString()";
+        var grid = true;
+        if (s == "False") grid = false;
+
+        var zebra = $("#tablelayout_stripped").prop("checked");
+        var lineheight = $("#tablelayout_lh").val();
+        var mrizka = true;
+        if (document.getElementById("tablelayout_mrizka"))
+        {
+            mrizka=$("#tablelayout_mrizka").prop("checked");
+        }
+        
+
+        $.post(_ep("/Home/SaveCurrentUserTableLayout"), { grid: grid, layoutname: $("#tablelayout_cols").val(), zebra: zebra, mrizka: mrizka, lineheight: lineheight }, function (data) {
+            
+            location.replace(location.href);
+
+        });
+
+        
+    }
+</script>

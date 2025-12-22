@@ -1,0 +1,55 @@
+﻿@model UI.Models.Tab1.o22Tab1
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+    if (Model.Rec == null) return;
+    if (Model.ff1 != null) Model.ff1.caller = "info";
+
+    var _disp = _f.o22MilestoneBL.InhaleRecDisposition(Model.Rec.pid, Model.Rec);
+    InfoButtonsViewModel _buttons = new InfoButtonsViewModel() { prefix = Model.prefix, pid = Model.pid, disp = _disp };
+}
+
+@addTagHelper *, UI
+
+
+
+@Html.Raw("<div class='info_record_container'>")
+
+<div class="input-group my-2">
+    <div>
+        @Html.EditorFor(m => _buttons, "~/Views/Shared/_InfoButtons.cshtml")
+        
+    </div>
+    
+
+
+</div>
+
+
+<div class="card recpageboxauto">
+    <div class="card-body">
+        @Html.EditorFor(m => m.Rec, "~/Views/Shared/_o22RecHeaderBox.cshtml")
+
+        @Html.EditorFor(m => m.ff1, "~/Views/Shared/_FreeFieldsRO.cshtml")
+
+
+    </div>
+</div>
+
+
+
+
+
+
+
+@Html.EditorFor(m => m, "~/Views/Shared/_TagsTab1.cshtml")
+
+@Html.EditorFor(m => m, "~/Views/Shared/_lisO27Tab1.cshtml")
+
+
+
+@Html.Raw("</div>")
+
+<div style="clear:both;"></div>

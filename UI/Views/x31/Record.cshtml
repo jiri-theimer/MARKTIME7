@@ -1,0 +1,283 @@
+﻿@model UI.Models.Record.x31Record
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    if (Model.Rec == null) return;
+    Model.PageTitle = _f.tra("Tisková sestava");
+    Model.PageSymbol = "settings";
+}
+@addTagHelper *, UI
+
+<input type="hidden" asp-for="@Model.UploadGuid" />
+
+<div class="modal_record_container">
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název"):</label>
+        <div class="col-sm-9 col-md-8">
+            <input class="form-control" asp-for="Rec.x31Name" />
+
+        </div>
+        <label class="col-sm-1 col-md-1 col-form-label">@_f.tra("Index pořadí"):</label>
+        <div class="col-sm-1 col-md-1">
+            <mynumber asp-for="Rec.x31Ordinary" decimal-digits="0"></mynumber>
+        </div>
+
+
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Formát"):</label>
+        <div class="col-sm-3 col-md-3">
+            <select asp-for="Rec.x31FormatFlag" class="form-select" onchange="_postback()">
+                <option value="Telerik">@_f.tra("Tisková setava")</option>
+                <option value="DOCX">DOCX</option>
+                <option value="XLSX">XLSX</option>
+
+            </select>
+        </div>
+        <label class="col-sm-1 col-md-1 col-form-label">@_f.tra("Kód sestavy"):</label>
+        <div class="col-sm-7 col-md-6">
+            <input class="form-control" asp-for="Rec.x31Code" value="@Model.Rec.x31Code" />
+
+        </div>
+    </div>
+    
+
+
+
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Kontext (Entita)"):</label>
+        <div class="col-sm-5 col-md-4">
+
+            <select class="form-select" asp-for="Rec.x31Entity" onchange="_postback()">
+                <option value="">@_f.tra("Sestava bez kontextu k záznamu")</option>
+                <option value="p41">@_f.tra("Projekt")</option>
+                <option value="p28">@_f.tra("Kontakt")</option>
+                <option value="p56">@_f.tra("Úkol")</option>
+                <option value="j02">@_f.tra("Uživatel")</option>
+                <option value="p91">@_f.tra("Vyúčtování")</option>
+                <option value="p90">@_f.tra("Záloha")</option>
+                <option value="p82">@_f.tra("Úhrada zálohy")</option>                
+                <option value="p31">@_f.tra("Úkon")</option>
+                <option value="o23">@_f.tra("Dokument")</option>
+                <option value="app">@_f.tra("Schvalování")</option>
+
+            </select>
+        </div>
+        <label class="col-sm-2 col-md-2 col-form-label" style="display:none;">@_f.tra("Jazyková verze"):</label>
+        <div class="col-sm-4 col-md-4" style="display:none;">
+            <select asp-for="Rec.x31LangIndex" class="form-select" onchange="_postback()">
+                <option value="0">@_f.tra("Česky")</option>
+                <option value="1">Deutsch</option>
+                <option value="4">Slovenčina</option>
+
+            </select>
+        </div>
+    </div>
+
+
+    @if (Model.RecO27 != null)
+    {
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Soubor report šablony"):</label>
+            <div class="col-sm-10 col-md-10">
+                <a target="_blank" href="/FileUpload/FileDownloadInline?guid=@Model.RecO27.o27Guid">@Model.RecO27.o27OriginalFileName</a>
+            </div>
+        </div>
+    }
+    else
+    {
+        @if (Model.rec_pid > 0 && Model.Rec.x31FileName !=null)
+        {
+            <code>@(Model.Rec.x31FileName) ???</code>
+        }
+        
+    }
+    <hr />
+
+    <iframe id="fraUpload" src="/FileUpload/SingleUpload?guid=@Model.UploadGuid" height="350" scrolling="yes"></iframe>
+
+    
+
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Kategorie"):</label>
+        <div class="col-sm-11 col-md-10">
+            <mycombo entity="j25ReportCategory" asp-for="Rec.j25ID" selectedtext="@Model.ComboJ25Name" filter-flag="1"></mycombo>
+        </div>
+
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Export maska souboru"):</label>
+        <div class="col-sm-11 col-md-10">
+            <input class="form-control" asp-for="Rec.x31ExportFileNameMask" />
+
+        </div>
+
+    </div>
+    <div class="my-2">
+        <input type="checkbox" asp-for="Rec.x31IsPeriodRequired" />
+        <label class="col-form-label" for="Rec_x31IsPeriodRequired">@_f.tra("Sestava podporuje filtrování podle období")</label>
+    </div>
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">Cílová entita pro filtrování dat v reportu:</label>
+        <div class="col-sm-6 col-md-5">
+            @if (Model.Rec.x31Entity == null && Model.Rec.x31FormatFlag == BO.x31FormatFlagENUM.Telerik)
+            {
+                <select asp-for="Rec.x31QueryFlag" class="form-select">
+                    <option value="0"></option>
+                    <option value="331">Úkony</option>
+                    <option value="141">Projekty</option>
+                    <option value="328">Kontakty (klienti)</option>
+                    <option value="391">Vyúčtování (faktury)</option>
+                    <option value="356">Úkoly</option>
+                    <option value="102">Uživatelé</option>
+
+                </select>
+            }
+
+        </div>
+        <div class="col-sm-4 col-md-4">
+        
+        </div>
+    </div>
+    
+    @if((Model.Rec.x31Entity=="p91" || Model.Rec.x31Entity=="p90") && Model.Rec.FormatName != "XLSX")
+    {
+        <div class="my-2">
+            <input type="checkbox" asp-for="Rec.x31IsAllowPfx" />
+            <label class="col-form-label" for="Rec_x31IsAllowPfx">@_f.tra("Sestava podporuje kvalifikovaný elektronický podpis")</label>
+        </div>
+    }
+    
+
+    @if (string.IsNullOrEmpty(Model.Rec.x31Entity) || Model.Rec.x31Entity=="j02")
+    {
+        <div class="card">
+            <div class="card-header">
+                <input type="checkbox" asp-for="Rec.x31IsScheduling" onchange="_postback()" />
+                <label class="col-form-label" for="Rec_x31IsScheduling">@_f.tra("Sestavu bude aplikace pravidelně odesílat na e-mail")</label>
+            </div>
+            @if (Model.Rec.x31IsScheduling)
+            {
+                <div class="card-body">
+                    <input type="checkbox" asp-for="Rec.x31IsRunInDay1" />
+                    <label class="col-form-label" for="Rec_x31IsRunInDay1">@_f.tra("Pondělí")</label>
+                    <input type="checkbox" asp-for="Rec.x31IsRunInDay2" />
+                    <label class="col-form-label" for="Rec_x31IsRunInDay2">@_f.tra("Úterý")</label>
+                    <input type="checkbox" asp-for="Rec.x31IsRunInDay3" />
+                    <label class="col-form-label" for="Rec_x31IsRunInDay3">@_f.tra("Středa")</label>
+                    <input type="checkbox" asp-for="Rec.x31IsRunInDay4" />
+                    <label class="col-form-label" for="Rec_x31IsRunInDay4">@_f.tra("Čtvrtek")</label>
+                    <input type="checkbox" asp-for="Rec.x31IsRunInDay5" />
+                    <label class="col-form-label" for="Rec_x31IsRunInDay5">@_f.tra("Pátek")</label>
+                    <input type="checkbox" asp-for="Rec.x31IsRunInDay6" />
+                    <label class="col-form-label" for="Rec_x31IsRunInDay6">@_f.tra("Sobota")</label>
+                    <input type="checkbox" asp-for="Rec.x31IsRunInDay7" />
+                    <label class="col-form-label" for="Rec_x31IsRunInDay7">@_f.tra("Neděle")</label>
+                    <hr />
+                    <table class="table table-sm">
+                        <tr>
+                            <td width="150px">@_f.tra("Čas generování"):</td>
+                            <td>
+                                <input type="text" class="form-control" asp-for="@Model.Rec.x31RunInTime" placeholder="HH:MM" />
+                            </td>
+                            <td>
+                                @if(Model.Rec.x31LastScheduledRun != null)
+                                {
+                                    <button type="button" class="btn btn-sm bog" onclick="_postback('Clear_x31LastScheduledRun')">Vyčistit paměť notifikace<br /><span class="badge-light">@(Model.Rec.x31LastScheduledRun)</span></button>
+                                }
+                                
+                            </td>
+                            <td width="150px">@_f.tra("Příjemci mail zprávy"):</td>
+                            <td>
+                                <input type="text" class="form-control" asp-for="@Model.Rec.x31SchedulingReceivers" placeholder="e-mail" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                @_f.tra("Časové období v sestavě"):
+                            </td>
+                            <td>
+                                <mydropdown asp-for="@Model.Rec.x21ID_Scheduling" datasource="@Model.lisPeriodSource" valuefield="pid" textfield="PeriodName" isfirstemptyrow="true" firstemptyrowvalue="0" firstemptyrowtext=""></mydropdown>
+                            </td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                    </table>
+                </div>
+            }
+
+        </div>
+    }
+
+    @if (Model.Rec.x31FormatFlag == BO.x31FormatFlagENUM.DOCX)
+    {
+        <div class="card">
+            <div class="card-header">
+                @_f.tra("Nastavení DOCX šablony")
+            </div>
+            <div class="card-body">
+                <div>
+                    <textarea asp-for="Rec.x31DocSqlSource" class="form-control" placeholder="@_f.tra("Na míru DOCX SQL zdroj sestavy")"></textarea>
+
+                </div>
+                <div>
+                    <textarea asp-for="Rec.x31DocSqlSourceTabs" class="form-control" placeholder="@_f.tra("SQL vnořených tabulek (Název oblasti|SQL dotaz + ENTER)")"></textarea>
+
+                </div>
+            </div>
+        </div>
+    }
+    @if (Model.Rec.x31FormatFlag == BO.x31FormatFlagENUM.XLSX)
+    {
+        <div class="card">
+            <div class="card-header">
+                @_f.tra("Nastavení XLS šablony")
+            </div>
+            <div class="card-body">
+                <div>
+                    <textarea asp-for="Rec.x31DocSqlSource" class="form-control" placeholder="@_f.tra("SQL zdroj výstupu pro List1")"></textarea>
+
+                </div>
+                <div>
+                    <textarea asp-for="Rec.x31DocSqlSourceTabs" class="form-control" placeholder="@_f.tra("SQL zdroj výstupu List2")"></textarea>
+
+                </div>
+            </div>
+        </div>
+    }
+
+
+    <div class="card">
+        <div class="card-header">
+            Oprávnění
+        </div>
+        <div class="card-body">
+            @Html.EditorFor(m => m.roles, "~/Views/Shared/_RoleAssign.cshtml")
+        </div>
+    </div>
+
+
+</div>
+
+
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+    });
+
+
+</script>
+
+
+

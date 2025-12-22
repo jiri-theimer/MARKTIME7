@@ -1,0 +1,18 @@
+﻿@model string
+@inject BL.Factory _f
+@{
+
+
+   
+
+}
+
+@addTagHelper *,UI
+
+<div style="position:absolute;top:1px;right:10px;z-index:9000;" class="nonmobile" title="Nastavení stránky [Summary]">
+    <button id="cmdSetting" class="btn bog" type="button" tabindex="-1" onclick="_window_open('/j02/Tab1Setting?prefix=@(Model)',3)">
+        
+        ☰
+        @_f.tra("Více")
+    </button>
+</div>

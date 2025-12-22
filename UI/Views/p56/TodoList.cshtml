@@ -1,0 +1,206 @@
+﻿@model UI.Models.p56TodoListViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = "Todo-list";
+
+    if (Model.RecordEntity != null && Model.RecordPid > 0)
+    {
+        Model.PageTitle += " (" + _f.CBL.GetObjectAlias(Model.RecordEntity, Model.RecordPid) + ")";
+    }
+
+    Model.PageSymbol = "control_point_duplicate";
+
+
+}
+
+@addTagHelper *, UI
+
+<div class="bg-light input-group">
+    <div>
+        <button type="button" id="cmdSave" class="btn btn-success" onclick="_submit()"><span class="material-icons-outlined-btn">done</span>@_f.tra("Uložit změny")</button>
+    </div>
+    <div>
+        <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
+    </div>
+    <myshowmore></myshowmore>
+    <div class="showmore" style="margin-left:10px;">
+        <label>Příjemce úkolu obdrží roli:</label>
+    </div>
+    <div class="showmore">
+        <mydropdown asp-for="@Model.SelectedX67ID" datasource="@Model.lisX67" textfield="x67Name" valuefield="pid"></mydropdown>
+    </div>
+    <div class="showmore">
+        <label>Role v úkolu</label>
+    </div>
+    <div class="showmore">
+        <mydropdown asp-for="@Model.SelectedP57ID" datasource="@Model.lisP57" textfield="p57Name" valuefield="pid"></mydropdown>
+    </div>
+
+    <div class="showmore" style="margin-left:10px;">
+        <myhelpbutton></myhelpbutton>
+    </div>
+
+
+
+</div>
+
+
+<form id="form1" asp-controller="p56" asp-action="TodoList" method="POST">
+    <div style="width:95%;padding:10px;">
+
+
+        <div class="input-group">
+            <div>
+                <button type="button" class="btn bog" onclick="handle_add_row()">@_f.tra("Přidat úkol")</button>
+            </div>
+
+
+
+            <div style="margin-left:10px;" title="Todo-list název">
+                <input class="form-control" asp-for="@Model.p55Name" value="@Model.p55Name" placeholder="@_f.tra("Todo-list název")" />
+            </div>
+            <div style="margin-left:10px;">
+                <button type="button" id="cmdMore" class="btn btn-light dropdown-toggle">@_f.tra("Todo-list šablona")</button>
+            </div>
+            <div style="margin-left:10px;">
+                <mycombo entity="p55TodoList" placeholder="@_f.tra("Zkopírovat úkoly z uloženého Todo-listu")" search-result-width="400" asp-for="@Model.SelectedP55ID" selectedtext="@Model.SelectedP55Name" view-flag="2" event_after_changevalue="p55id_change"></mycombo>
+            </div>
+            
+            @if (Model.lisP56.Count() > 0)
+            {
+                <div style="margin-left:10px;">
+                    <button type="button" class="btn btn-sm bog" onclick="_postback('clear')">@_f.tra("Vyčistit")</button>
+                </div>
+                <div style="margin-left:10px;">
+                    <button type="button" class="btn btn-sm bog" onclick="_postback('month')">Posunout termín o 1 měsíc</button>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-sm bog" onclick="_postback('year')">o 1 rok</button>
+                </div>
+            }
+            
+        </div>
+
+        <div id="divMore" style="display:none;">
+
+            <textarea asp-for="TodoListTemplate" class="form-control" placeholder="@_f.tra("Todo-list šablona")" style="margin-top:6px;min-height:200px;"></textarea>
+
+
+            <button type="button" class="btn btn-sm btn-primary" onclick="_postback('handle_template')">@_f.tra("Zpracovat šablonu")</button>
+            <div>
+                <mark>Příklad šablony:</mark>
+                <div style="background-color:lightyellow;">
+                    **Název Todo-listu
+                    <br />Úkol 1
+                    <br />==Novák;Rákosníková
+                    <br />Úkol 2
+                    <br />==Kodeš;tým Daňaři
+                </div>
+                
+            </div>
+        </div>
+
+
+        <table class="table table-hover" style="table-layout: fixed;min-width:1000px;">
+
+            @for (int i = 0; i < Model.lisP56.Count; i++)
+            {
+                <tr style="@(Model.lisP56[i].CssTempDisplay)">
+                    <td>
+                        <input class="form-control record_name" asp-for="@Model.lisP56[i].p56Name" placeholder="@_f.tra("Název úkolu")" />
+                        <input type="hidden" asp-for="lisP56[i].IsTempDeleted" value="@Model.lisP56[i].IsTempDeleted" />
+                        <input type="hidden" asp-for="lisP56[i].TempGuid" value="@Model.lisP56[i].TempGuid" />
+
+
+                    </td>
+
+                    <td style="width:120px;">
+                        <mydate asp-for="@Model.lisP56[i].p56PlanUntil" include-time="false"></mydate>
+                    </td>
+
+                    <td style="width:200px;">
+                        <mycombochecklist placeholder="Jednotlivci" asp-for="@Model.lisP56[i].Assign_j02IDs" entity="j02User" selectedtext="@Model.lisP56[i].Assign_Persons"></mycombochecklist>
+
+
+                    </td>
+                    <td style="width:100px;">
+                        <mycombochecklist placeholder="Týmy" asp-for="@Model.lisP56[i].Assign_j11IDs" entity="j11Team" selectedtext="@Model.lisP56[i].Assign_j11Names"></mycombochecklist>
+                    </td>
+
+                    <td style="width:30px;">
+                        <button type="button" tabindex="-1" class="btn btn-default" title="@_f.tra("Kopírovat řádek")" onclick="handle_clone_row('@(Model.lisP56[i].TempGuid)')"><span class="material-icons-outlined-btn">content_copy</span></button>
+                    </td>
+
+                    <td style="width:60px;" title="Pořadí mezi úkoly">
+                        <mynumber asp-for="@Model.lisP56[i].p56Ordinary" decimal-digits="0"></mynumber>
+                    </td>
+
+                    <td style="width:20px;">
+                        <button type="button" tabindex="-1" class="btn btn-danger" title="@_f.tra("Odstranit řádek")" onclick="handle_delete_row('@(Model.lisP56[i].TempGuid)')">x</button>
+                    </td>
+
+
+
+                </tr>
+            }
+        </table>
+
+        <p></p>
+        @Html.EditorFor(m => m.ProjectCombo, "~/Views/Shared/_ProjectCombo.cshtml")
+
+    </div>
+
+
+    <input type="hidden" asp-for="@Model.RecordEntity" />
+    <input type="hidden" asp-for="@Model.RecordPid" />
+
+</form>
+
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+
+        $("#cmdMore").click(function () {
+            $("#divMore").toggle();
+        });
+
+
+
+
+
+    });
+
+
+
+
+
+
+    function handle_delete_row(guid) {
+        _postback("delete_row", "guid=" + guid);
+
+
+    }
+    function handle_add_row() {
+        _postback("add_row");
+
+    }
+
+    function handle_clear_rows() {
+        _postback("clear_rows");
+
+    }
+    function handle_clone_row(guid) {
+        _postback("clone_row", "guid=" + guid);
+
+    }
+
+
+
+    function p55id_change(p55id) {
+        _postback("p55id");
+    }
+</script>

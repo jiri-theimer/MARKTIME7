@@ -1,0 +1,128 @@
+﻿@model UI.Models.Record.NajitTextViewModel
+@inject BL.Factory _f
+
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+
+    
+
+}
+
+@addTagHelper *, UI
+
+
+<form id="form1" asp-controller="Record" asp-action="NajitText" method="POST">
+    <div class="bg-light input-group" style="margin-bottom:20px;">
+        
+        <div>
+            <button type="button" onclick="ok()" class="btn btn-success">@_f.tra("OK (dvojklik)")</button>
+        </div>
+        <div>
+            <button type="button" onclick="local_zoom_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+
+
+        </div>
+
+    </div>
+
+    <input type="hidden" asp-for="prefix" />
+    <input type="hidden" asp-for="field" />
+
+    
+
+
+</form>
+
+@await Component.InvokeAsync("myGrid", Model.gridinput)
+
+
+
+<script type="text/javascript">
+    var prefix = "@Model.prefix";
+    var field = "@Model.field";
+    
+    function local_zoom_close() {
+        window.parent.document.getElementById("zoom_okno").style.display = "none";
+    }
+
+    function handle_ok(pid) {
+
+        if (field == "p31text") {
+            insert_p31text(pid);
+        }
+        if (field == "p91text1") {
+            insert_p91text1(pid);
+        }
+        if (field == "p91text2") {
+            insert_p91text2(pid);
+        }
+
+        local_zoom_close();
+    }
+
+    function ok() {
+        var pid = $("#tg_selected_pid").val();
+        handle_ok(pid);
+
+    }
+
+    function grid_dblclick(row) {
+        var pid = row.id.replace("r", "");
+        handle_ok(pid);
+        
+       
+    }
+
+    function insert_p31text(pid) {
+
+        $.post("/p31/GetText", { p31id: pid }, function (data) {
+            window.parent.document.getElementById("Rec_p31Text").value = data;
+            
+            var txt = window.parent.document.getElementById("Rec_p31Text");
+
+            handle_resize(txt);
+
+        });        
+        
+    }
+
+    function insert_p91text1(pid) {
+
+        $.post("/p91/GetText1", { p91id: pid }, function (data) {
+            window.parent.document.getElementById("Rec_p91Text1").value = data;
+
+            var txt = window.parent.document.getElementById("Rec_p91Text1");
+
+            handle_resize(txt);
+        });
+
+    }
+
+    function insert_p91text2(pid) {
+
+        $.post("/p91/GetText2", { p91id: pid }, function (data) {
+            
+            window.parent.document.getElementById("Rec_p91Text2").value = data;
+
+            var txt = window.parent.document.getElementById("Rec_p91Text2");
+
+            handle_resize(txt);
+        });
+
+    }
+
+
+    function handle_resize(txt)
+    {
+        txt.style.height = "auto";
+        txt.style.height = "auto";
+        txt.style.height = (txt.scrollHeight) + "px";
+
+        $(txt).on("input", function () {
+            this.style.height = "auto";
+            this.style.height = (this.scrollHeight) + "px";
+        });
+    }
+
+</script>

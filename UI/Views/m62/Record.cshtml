@@ -1,0 +1,64 @@
+﻿@model UI.Models.Record.m62Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Měnový kurz");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    Model.PageSymbol = "settings";
+}
+
+@addTagHelper *, UI
+
+<div class="modal_record_container">
+
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Typ kurzu"):</label>
+        <div class="col-sm-11 col-md-10">
+            <input type="radio" id="m62RateType1" asp-for="Rec.m62RateType" value="InvoiceRate">
+            <label for="m62RateType1">@_f.tra("Fakturační měnový kurz")</label>
+            
+            <input type="radio" id="m62RateType2" asp-for="Rec.m62RateType" value="FixedRate">
+            <label for="m62RateType2">@_f.tra("Fixní měnový kurz")</label>
+        </div>
+
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Datum"):</label>
+        <div class="col-sm-4 col-md-3">
+            <mydate asp-for="Rec.m62Date" include-time="false"></mydate>
+        </div>
+
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Zdrojová (domácí) měna"):</label>
+        <div class="col-sm-4 col-md-3">
+            <mycombo entity="j27Currency" asp-for="Rec.j27ID_Master" selectedtext="@Model.ComboJ27Master" filter-flag="1"></mycombo>
+        </div>
+
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Cílová (cizí) měna"):</label>
+        <div class="col-sm-4 col-md-3">
+            <mycombo entity="j27Currency" asp-for="Rec.j27ID_Slave" selectedtext="@Model.ComboJ27Slave" filter-flag="1"></mycombo>
+        </div>
+
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Kurz (cena) v domácí měně"):</label>
+        <div class="col-sm-4 col-md-3">
+            <mynumber asp-for="Rec.m62Rate" decimal-digits="3"></mynumber>
+        </div>
+
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Množství cílové (cizí) měny"):</label>
+        <div class="col-sm-4 col-md-3">
+            <mynumber asp-for="Rec.m62Units" decimal-digits="0"></mynumber>
+        </div>
+
+    </div>
+
+
+
+
+</div>

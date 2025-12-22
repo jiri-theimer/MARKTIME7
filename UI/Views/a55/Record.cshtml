@@ -1,0 +1,72 @@
+﻿@model UI.Models.Record.a55Record
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    if (Model.Rec == null) return;
+    Model.PageTitle = _f.tra("Šablona web stránky akce");
+}
+@addTagHelper *, UI
+
+@section header_content{
+
+
+}
+
+
+
+    <div class="modal_record_container">
+
+        <div class="row">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Kontext (Entita)"):</label>
+            <div class="col-sm-5 col-md-4">
+                <select class="form-select" asp-for="Rec.a55Entity" onchange="_postback()">
+                <option></option>
+                @foreach(var c in _f.lisP07.Where(p=>!p.isclosed))
+                {
+                    <option value="le@(c.p07Level)">@_f.getP07Level(c.p07Level,true)</option>
+                }               
+                <option value="o23">@_f.tra("Agenda")</option>
+                <option value="p28">@_f.tra("Kontakt")</option>
+                <option value="p91">@_f.tra("Vyúčtování")</option>
+                <option value="j02">@_f.tra("Uživatel")</option>
+                <option value="p56">@_f.tra("Úkol")</option>
+            </select>
+        </div>
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název"):</label>
+        <div class="col-sm-11 col-md-10">
+            <input class="form-control" asp-for="Rec.a55Name" />
+
+        </div>
+    </div>
+
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Individuální CSS soubor"):</label>
+        <div class="col-sm-11 col-md-10">
+            <input class="form-control" asp-for="Rec.a55CssFile" />
+
+        </div>
+    </div>
+
+</div>
+
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+    });
+
+
+
+</script>
+
+
+

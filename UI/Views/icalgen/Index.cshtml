@@ -1,0 +1,234 @@
+﻿@model UI.Models.iCalGenViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Konfigurátor iCal kalendáře");
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageSymbol = "calendar_today";
+}
+
+@addTagHelper *, UI
+
+
+<div class="bg-light" style="padding:10px;">
+
+    <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
+
+
+</div>
+
+
+<form id="form1" asp-controller="icalgen" asp-action="Index" method="POST">
+    <div class="modal_record_container">
+
+        <div style="width:100%;background-color:lightblue;font-weight:bold;color:navy;">
+            <div style="padding:12px;">
+                Rozsah dat pro export
+            </div>
+        </div>
+
+        <div class="input-group">
+            <div>
+                <input type="checkbox" id="chkJ02" asp-for="IsMe" onchange="refresh_cal_url()" />
+                <label class="col-form-label" for="chkJ02">@_f.tra("Pouze můj kalendář")</label>
+            </div>
+            <div style="width:350px;margin-left:20px;">
+                <select asp-for="PersonNameFormat" onchange="refresh_cal_url()" class="form-select">
+                    <option value="inicialy">Do názvů uvádět iniciály uživatelů</option>
+                    <option value="jmeno">Do názvů uvádět plné jméno uživatelů</option>
+                    <option value="nic">Do názvů neuvádět uživatele</option>
+                </select>
+            </div>
+        </div>
+
+        
+
+        @if (!Model.IsMe)
+        {
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-1 col-form-label">@_f.tra("Uživatel"):</label>
+                <div class="col-sm-4 col-md-4">
+                    <mycombo entity="j02User" asp-for="@(Model.j02ID)" selectedtext="@Model.ComboJ02ID" view-flag="1" event_after_changevalue="refresh_cal_url"></mycombo>
+                </div>
+                <div class="col-auto">
+                    nebo Tým:
+                </div>
+                <div class="col-sm-3 col-md-3">
+                    <mycombo entity="j11Team" asp-for="j11ID" selectedtext="@Model.ComboJ11ID" view-flag="2" event_after_changevalue="refresh_cal_url"></mycombo>
+                </div>
+
+            </div>
+        }
+
+
+        <div class="my-2">
+            <mycombo entity="le5" search-result-width="700" asp-for="p41ID" selectedtext="@Model.Project" view-flag="1" placeholder="@_f.tra("Všechny projekty")" event_after_changevalue="refresh_cal_url"></mycombo>
+
+        </div>
+
+
+
+        <div class="row my-2">
+            <label class="col-sm-2 col-md-2 col-form-label">@_f.tra("Časové období"):</label>
+            <div class="col-sm-4 col-md-3">
+                <mydate asp-for="d1" include-time="false"></mydate>
+            </div>
+            <div class="col-auto">
+                -
+            </div>
+            <div class="col-sm-4 col-md-3">
+                <mydate asp-for="d2" include-time="false"></mydate>
+            </div>
+          
+        </div>
+
+        @if (_f.CurrentUser.j04IsModule_p31)
+        {
+            <div style="width:100%;background-color:lightblue;margin-top:13px;font-weight:bold;color:navy;">
+                <div style="padding:12px;">
+                    <input type="checkbox" id="chkP31" asp-for="IsP31" onchange="refresh_cal_url()" />
+                    <label class="col-form-label" for="chkP31">@_f.tra("Časové úkony")</label>
+                </div>
+            </div>
+            @if (Model.IsP31)
+            {
+                <div class="my-2">
+
+                    <mycombochecklist asp-for="p32IDs" entity="p32Activity" placeholder="@_f.tra("Vybrané aktivity")" selectedtext="@Model.p32Names" event_after_changevalue="refresh_cal_url" myqueryinline="p33id|int|1"></mycombochecklist>
+
+                </div>
+                <div class="row my-2">
+                    <label class="col-sm-2 col-md-2 col-form-label">@_f.tra("Klastr aktivit"):</label>
+                    <div class="col-sm-4 col-md-3">
+                        <mydropdown asp-for="p61ID" datasource="@Model.lisP61" textfield="p61Name" firstemptyrowtext="" firstemptyrowvalue="0" isfirstemptyrow="true" valuefield="pid" event_after_changevalue="refresh_cal_url"></mydropdown>
+                    </div>
+
+                </div>
+            }
+        }
+        
+        
+
+       
+
+        <div style="width:100%;background-color:lightblue;margin-top:13px;font-weight:bold;color:navy;">
+            <div style="padding:12px;">
+                
+                <input type="checkbox" id="chkP56" asp-for="IsP56" onchange="refresh_cal_url()" />
+                <label class="col-form-label" for="chkP56">@_f.tra("Úkoly")</label>
+            </div>
+        </div>
+        @if (Model.IsP56)
+        {
+            <div class="row my-2">
+                <label class="col-sm-3 col-md-2 col-form-label">@_f.tra("Role v úkolu"):</label>
+                <div class="col-sm-4 col-md-3">
+                    <mydropdown asp-for="x67ID_p56" datasource="@Model.lisX67_p56" textfield="x67Name" valuefield="pid" event_after_changevalue="refresh_cal_url"></mydropdown>
+                </div>
+
+            </div>
+        }
+        
+
+        <div style="width:100%;background-color:lightblue;margin-top:13px;font-weight:bold;color:navy;">
+            <div style="padding:12px;">
+                <input type="checkbox" id="chkO22" asp-for="IsO22" onchange="refresh_cal_url()" />
+                <label class="col-form-label" for="chkO22">@_f.tra("Události/termíny/lhůty")</label>
+                
+            </div>
+        </div>
+        @if (Model.IsO22)
+        {
+            <div class="row my-2">
+                <label class="col-sm-3 col-md-2 col-form-label">@_f.tra("Role v záznamu"):</label>
+                <div class="col-sm-4 col-md-3">
+                    <mydropdown asp-for="x67ID_o22" datasource="@Model.lisX67_o22" textfield="x67Name" valuefield="pid" event_after_changevalue="refresh_cal_url"></mydropdown>
+                </div>
+
+            </div>
+        }
+        
+
+       
+
+        <p></p>
+        @if(Model.FinalUrl != null)
+        {
+            <div style="width:100%;background-color:lightgreen;margin-top:13px;font-weight:bold;color:navy;">
+                <div style="padding:12px;">
+                    Zkopírujte si iCalendar URL do cílového kalendáře
+
+                    <button type="button" id="cmdCopy" onclick="copy2clipboard()" class="btn btn-light" title="Zkopírovat do schránky"><span class="material-icons-outlined-btn">content_copy</span></button>
+
+                    <button type="button" id="cmdRefresh" onclick="refresh_cal_url()" class="btn btn-light" title="Občerstvit" style="margin-left:30px;"><span class="material-icons-outlined-btn">refresh</span></button>
+                </div>
+            </div>
+
+            <input asp-for="FinalUrl" value="@Model.FinalUrl" class="form-control" style="font-weight:bold;color:red;" placeholder="iCalendar URL" />
+
+            <ul>
+                <li>
+                    iCalendar URL si zkopírujte do schránky (CTRL+C).
+                </li>
+                <li>
+                    V cílovém kalendáři (Google/MS Outlook/Apple/Kalendář seznam.cz atd.) vytvořte nový kalendář formou zadání této iCal URL.
+                </li>
+                <li>
+                    Podporu iCal URL nabízí většina běžně používaných kalendářových aplikací.
+                </li>
+                <li>
+                    Cílový kalendář se již postará sám, aby se automaticky aktualizovat z MARKTIME (cca každé 2-3 hodiny).
+                </li>
+                <li>
+                    Kromě napojení je v MT i možnost vyexportovat záznamy do iCalendar formátu (soubor s příponou *.ics). ICS Soubor můžete ručně naimportovat v cílovém kalendáři.
+                </li>
+            </ul>
+        }
+        else
+        {
+            <code>Žádná data.</code>
+        }
+
+
+        
+
+    </div>
+</form>
+
+
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+
+
+
+
+
+    });
+
+
+
+
+    function refresh_cal_url(pid) {
+        _submit();
+    }
+
+    function copy2clipboard() {
+        // Get the text field
+        var copyText = document.getElementById("FinalUrl");
+
+        // Select the text field
+        copyText.select();
+        copyText.setSelectionRange(0, 99999); // For mobile devices
+
+        // Copy the text inside the text field
+        navigator.clipboard.writeText(copyText.value);
+
+        // Alert the copied text
+        _notify_message("Zkopírováno", "info");
+
+    }
+
+</script>

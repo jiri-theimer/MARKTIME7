@@ -1,0 +1,78 @@
+﻿@model UI.Models.Record.p41PageBoxViewModel
+@inject BL.Factory _f
+@{
+    if (Model == null)
+    {
+        return;
+    }
+
+
+    var _tab1 = new UI.Models.Tab1.p41Tab1() { prefix = "p41", pid = Model.rec_pid, Rec = Model.Rec };
+
+
+    BO.TaggingHelper _tg = null;
+    if (Model.RecA58.a58ContentFlag == BO.a58ContentFlagEnum.RecTags)
+    {
+        _tg = _f.o51TagBL.GetTagging("p41", Model.rec_pid);
+    }
+
+
+
+}
+
+@addTagHelper *, UI
+
+
+@if (Model.RecA58.a58HtmlText != null)
+{
+    @Html.Raw(Model.MergeStaticHtmlText(_f,Model.RecA58.a58HtmlText,Model.rec_pid))
+}
+
+
+
+@if (Model.RecA58.a58ContentFlag == BO.a58ContentFlagEnum.RecHeaderBox)
+{
+    @Html.EditorFor(m => m.Rec, "~/Views/Shared/_p41RecHeaderBox.cshtml")
+}
+
+@if (Model.RecA58.a58ContentFlag == BO.a58ContentFlagEnum.p41RecBillingBox)
+{
+    @Html.EditorFor(m => m.Rec, "~/Views/Shared/_p41RecBillingBox.cshtml")
+}
+
+
+@if (Model.RecA58.a58ContentFlag == BO.a58ContentFlagEnum.o32List && Model.Rec.p28ID_Client > 0)
+{
+    @await Html.PartialAsync("~/Views/Shared/_lisO32.cshtml",_f.p28ContactBL.GetList_o32(Model.Rec.p28ID_Client,0,0))
+}
+
+
+
+@if (Model.RecA58.a58ContentFlag == BO.a58ContentFlagEnum.p30List && Model.Rec.p28ID_Client > 0)
+{
+    @await Html.PartialAsync("~/Views/Shared/_lisP30.cshtml",_f.p28ContactBL.GetList_p30(Model.Rec.p28ID_Client))
+
+}
+
+@if (Model.RecA58.a58ContentFlag == BO.a58ContentFlagEnum.RolesAssigned)
+{
+    @await Html.PartialAsync("~/Views/Shared/_RoleAssignRO.cshtml",_tab1)
+}
+
+@if (Model.RecA58.a58ContentFlag == BO.a58ContentFlagEnum.RecTags)
+{
+    @Html.Raw(_tg.TagHtml)
+
+}
+
+
+@if (Model.RecA58.a58ContentFlag == BO.a58ContentFlagEnum.p41ActivityStat)
+{
+    @await Html.PartialAsync("~/Views/Shared/_TabStat.cshtml",_tab1)
+}
+
+@if (Model.RecA58.a58ContentFlag == BO.a58ContentFlagEnum.o27List)
+{
+    @await Html.PartialAsync("~/Views/Shared/_lisO27.cshtml",_tab1)
+
+}

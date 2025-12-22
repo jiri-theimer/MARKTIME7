@@ -1,0 +1,62 @@
+﻿@model UI.Models.Record.p28Record
+@inject BL.Factory _f
+
+@{
+
+    if (Model.lisO32 == null) return;
+}
+
+
+
+<div class="card my-2">
+    <div class="card-header">
+        <span class="material-icons-outlined">alternate_email</span>
+        @_f.tra("Kontaktní média")
+        <button type="button" class="btn btn-sm bog" tabindex="-1" onclick="_postback('add_o32')">@_f.tra("Přidat")</button>
+    </div>
+    <div class="card-body div-over-table-scrolling p-1">
+        <table class="table-hover table" style="table-layout: fixed;min-width:600px;">
+            @for (int i = 0; i < Model.lisO32.Count; i++)
+            {
+                <tr style="@(Model.lisO32[i].CssTempDisplay)">
+                    <td style="width:130px;">
+                        <input type="hidden" asp-for="@Model.lisO32[i].IsTempDeleted" value="@Model.lisO32[i].IsTempDeleted" />
+                        <input type="hidden" asp-for="@Model.lisO32[i].TempGuid" value="@Model.lisO32[i].TempGuid" />
+                        <input type="hidden" asp-for="@Model.lisO32[i].pid" value="@Model.lisO32[i].pid" />
+
+                        <select class="form-select" asp-for="@Model.lisO32[i].o33ID" onchange="_postback('o33id')">
+                            <option value="Email">E-MAIL</option>
+                            <option value="EmailCC">E-MAIL CC</option>
+                            <option value="EmailBCC">E-MAIL BCC</option>
+                            <option value="Tel">TEL</option>
+                            <option value="URL">URL</option>
+                            <option value="Other">@_f.tra("Jiné")</option>
+                        </select>
+
+                    </td>
+                    <td>
+                        <input class="form-control" asp-for="@Model.lisO32[i].o32Value" placeholder="@_f.tra("Číslo/Adresa")" />
+                    </td>
+                    <td>
+                        <input class="form-control" asp-for="@Model.lisO32[i].o32Person" placeholder="@_f.tra("Jméno")" />
+                    </td>
+                    <td>
+                        <input class="form-control" asp-for="@Model.lisO32[i].o32Description" placeholder="@_f.tra("Poznámka")" />
+                    </td>
+                    <td>
+                        @if (Model.lisO32[i].o33ID == BO.o33FlagEnum.Email || Model.lisO32[i].o33ID == BO.o33FlagEnum.EmailBCC || Model.lisO32[i].o33ID == BO.o33FlagEnum.EmailCC)
+                        {
+                            <input type="checkbox" asp-for="@Model.lisO32[i].o32IsDefaultInInvoice" />
+                            <label for="lisO32_@(i)__o32IsDefaultInInvoice">Fakturační e-mail</label>
+                        }
+
+                    </td>
+
+                    <td style="width:70px;">
+                        <button type="button" class="btn btn-sm btn-danger" title="@_f.tra("Odstranit řádek")" onclick="handle_delete_o32('@(Model.lisO32[i].TempGuid)')">x</button>
+                    </td>
+                </tr>
+            }
+        </table>
+    </div>
+</div>

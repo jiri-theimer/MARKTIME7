@@ -1,0 +1,115 @@
+﻿@model UI.Models.Tab1.p55Tab1
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+    if (Model.pid == 0) return;
+
+
+    
+    int _intRecFirstP41ID = 0;
+
+    if (Model.lisP56 !=null && Model.lisP56.Count() > 0)
+    {
+        
+        _intRecFirstP41ID = Model.lisP56.First().p41ID;
+    }
+
+
+   
+}
+
+@addTagHelper *, UI
+
+
+
+@Html.Raw("<div class='info_record_container'>")
+
+
+<div class="card recpagebox400">
+    <div class="card-body">
+        <div class="card-title recpagetitle bgp40">
+            @Model.Rec.p55Name
+        </div>
+
+        <div>
+            <a href="javascript:create()" style="padding:10px;">Nový Todo-list podle tohoto vzoru</a>
+        </div>
+
+        @if(Model.Rec.j02ID_Owner==_f.CurrentUser.pid || _f.CurrentUser.IsAdmin)
+        {
+            <div style="margin-top:10px;">
+                <a href="javascript:rename()" style="padding:10px;">@_f.tra("Přejmenovat")</a>
+            </div>
+        }
+        
+
+    </div>
+</div>
+
+
+<code>Úkoly v Todo-listu</code>
+
+<table class="table table-hover" style="max-width:1000px;">
+    @foreach (var c in Model.lisP56)
+    {
+        <tr style="@(c.isclosed ? "text-decoration: line-through;": "")">
+            <td style="width:20px;">
+                <a class="cm" onclick="_cm(event, 'p56' ,@c.pid)">☰</a>
+            </td>
+            <td>
+                @c.p56Name
+            </td>
+            <td>
+                @c.b02Name
+                @(Html.Raw(UI.Code.basUI.HtmlColorStrip(c.b02Color)))
+            </td>
+            <td>
+                @BO.Code.Bas.ObjectDateTime2String(c.p56PlanUntil)
+            </td>
+            <td>
+                @c.ProjectWithClient
+                @if (@c.p41Code != null)
+                {
+                    <code>@c.p41Code</code>
+                }
+
+            </td>
+        </tr>
+    }
+
+</table>
+
+
+
+@Html.Raw("</div>")
+
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+    });
+
+
+    function create() {
+        var url = "/p56/ToDoList?wrk_record_prefix=le5&wrk_record_pid=@(_intRecFirstP41ID)&p55id=@(Model.pid)";
+        _window_open(url, 3);
+    }
+
+    function rename() {
+        var s = prompt("@_f.tra("Zadejte nový název")");
+        if (s.length > 0) {
+            $.post("/p56/RenameToDoList", { newname: s, p55id: @(Model.pid) }, function (data) {
+                location.replace(location.href);
+
+            });
+
+        }
+    }
+    
+</script>

@@ -1,0 +1,287 @@
+﻿@model UI.Models.Record.x01Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Globální parametry databáze");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    Model.PageSymbol = "manufacturing";
+}
+
+@addTagHelper *, UI
+
+<input type="hidden" asp-for="ComboX04" />
+
+
+<div class="tabs_container_record">
+    <!-- Tab panes -->
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab1" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab1">@_f.tra("Karta licence")</a>
+        </li>
+      
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab2" class="nav-link" tabindex="-1" data-bs-toggle="tab" role="tab" href="#tab2">@_f.tra("Billing")</a>
+        </li>
+
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab3" class="nav-link" tabindex="-1" data-bs-toggle="tab" role="tab" href="#tab3">@_f.tra("Různé")</a>
+        </li>
+      
+    </ul>
+</div>
+
+@Html.Raw("<div class='modal_record_container_flexi'>")
+@Html.Raw("<div class='tab-content'>")
+
+<div class="tab-pane tab-pane-fixed" id="tab1" role="tabpanel">
+    <!-- Tab1 -->
+    <div class="row">
+        <label class="col-sm-2 col-md-3 col-form-label">@_f.tra("Název"):</label>
+        <div class="col-sm-10 col-md-9">
+            <input class="form-control record_name" asp-for="Rec.x01AppName" />
+        </div>
+
+    </div>
+
+    <div class="row my-2">
+        <label class="col-sm-2 col-md-3 col-form-label">@_f.tra("Veřejná URL adresa"):</label>
+        <div class="col-sm-10 col-md-9">
+            <input class="form-control" asp-for="Rec.x01AppHost" />
+        </div>
+
+    </div>
+
+    <div class="row my-2">
+        <label class="col-sm-2 col-md-3 col-form-label">@_f.tra("Výchozí aplikační jazyk"):</label>
+        <div class="col-sm-10 col-md-9">
+            <input type="radio" value="0" id="chkLang0" asp-for="@Model.Rec.x01LangIndex" />
+            <label for="chkLang0">
+                Česky<img src="/images/czechrepublic.gif" alt="" />
+            </label>
+
+            <input type="radio" value="1" id="chkLang1" asp-for="@Model.Rec.x01LangIndex" style="margin-left:30px;" />
+            <label for="chkLang1">
+                English<img src="/images/uk.gif" alt="" />
+            </label>
+
+            <input type="radio" value="4" id="chkLang4" asp-for="@Model.Rec.x01LangIndex" style="margin-left:30px;" />
+            <label for="chkLang4">
+                Slovenčina<img src="/images/slovakia.gif" alt="" />
+            </label>
+        </div>
+
+    </div>
+
+    <div class="row mt-4">
+        <label class="col-sm-2 col-md-3 col-form-label">ISO kód státu:</label>
+        <div class="col-sm-5 col-md-4">
+            @Html.EditorFor(m => m.Rec.x01CountryCode, "~/Views/Shared/_CountryCodeCombo.cshtml")
+
+        </div>
+
+    </div>
+
+
+    <div class="row mt-2">
+        <label class="col-sm-2 col-md-3 col-form-label">Domácí měna:</label>
+        <div class="col-sm-5 col-md-4">
+            <select class="form-select" asp-for="Rec.j27ID">
+                <option value="2">CZK</option>
+                <option value="3">EUR</option>
+                <option value="58">USD</option>
+                <option value="59">GBP</option>
+                <option value="56">CHF</option>
+                <option value="50">PLN</option>
+
+            </select>
+        </div>
+
+    </div>
+
+    <div class="row my-2">
+        <label class="col-sm-2 col-md-3 col-form-label">@_f.tra("Omezení provozu"):</label>
+        <div class="col-sm-5 col-md-4">
+            <select asp-for="Rec.x01LockFlag" class="form-select">
+                <option value="0">--Bez omezení--</option>
+                <option value="2">Povolen přístup pouze pro admina</option>
+                <option value="6">Povolen přístup pouze pro admina+vypnutý robot</option>
+                <option value="4">Vypnutý robot</option>
+            </select>
+        </div>
+       
+
+    </div>
+    
+
+    
+  
+    
+    <div class="row my-2">
+        <label class="col-sm-2 col-md-3 col-form-label">Robot login:</label>
+        <div class="col-sm-5 col-md-4">
+            <input class="form-control" asp-for="Rec.x01RobotLogin" />
+        </div>
+
+    </div>
+    
+
+    
+
+
+    <div class="card mt-2">
+        <div class="card-header">
+            @_f.tra("Kontrola záznamů v modulu Kontakty")
+        </div>
+        <div class="card-body">
+            <input type="checkbox" asp-for="Rec.x01IsAllowDuplicity_RegID" />
+            <label class="col-form-label" for="Rec_x01IsAllowDuplicity_RegID">@_f.tra("Povolit duplicity se shodným IČO")</label>
+
+            <input type="checkbox" asp-for="Rec.x01IsAllowDuplicity_VatID" style="margin-left:50px;" />
+            <label class="col-form-label" for="Rec_x01IsAllowDuplicity_VatID">@_f.tra("Povolit duplicity se shodným DIČ")</label>
+            <code>Duplicity ve skupinovém DIČ (CZ699) systém ignoruje.</code>
+        </div>
+    </div>
+
+    <div class="card mt-2">
+        <div class="card-header">
+            @_f.tra("Kontrola duplicity bankovních účtů")
+        </div>
+        <div class="card-body">
+            <input type="checkbox" asp-for="Rec.x01IsAllowDuplicity_p86" />
+            <label class="col-form-label" for="Rec_x01IsAllowDuplicity_p86">@_f.tra("U vystavovatelů faktur povolit duplicity v bankovních účtech")</label>
+
+            
+        </div>
+    </div>
+    
+</div>
+
+<div class="tab-pane tab-pane-fixed" id="tab2" role="tabpanel">
+    <!-- Tab2 -->
+
+    <div class="row mt-2">
+        <label class="col-sm-2 col-md-3 col-form-label">Zaokrouhlovat vykazovaný čas:</label>
+        <div class="col-sm-3 col-md-2">
+            <input class="form-control" type="number" asp-for="Rec.x01Round2Minutes" />
+        </div>
+        <div class="col-sm-5 co-md-5">
+            <i>Na kolik minut systém bude systém zaokrouhlovat vykázaný čas směrem nahoru.</i>
+        </div>
+    </div>
+
+    <div class="row my-2">
+        <label class="col-sm-2 col-md-3 col-form-label">Výchozí splatnost faktury:</label>
+        <div class="col-sm-3 col-md-2">
+            <input class="form-control" type="number" asp-for="Rec.x01InvoiceMaturityDays" />
+        </div>
+        <div class="col-sm-5 co-md-5">
+            <i>Dny</i>
+        </div>
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-2 col-md-3 col-form-label">@_f.tra("Výchozí sazba DPH"):</label>
+        <div class="col-sm-3 col-md-2">
+            @Html.EditorFor(m => m.Rec.x15ID, "~/Views/Shared/_x15Combo.cshtml")
+
+        </div>
+
+    </div>
+
+    
+
+    <div class="card" style="margin-top:20px;">
+        <div class="card-header">
+            @_f.tra("Nastavení ostatních fakturačních jazyků")
+
+            <code style="margin-left:30px;">@_f.tra("Domácí jazyk se zde neuvádí!")</code>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <label class="col-sm-1 col-md-2 col-form-label">@(_f.tra("Jazyk")) #1:</label>
+                <div class="col-sm-5 col-md-5">
+                    <input type="text" class="form-control" asp-for="Rec.x01BillingLang1" />
+
+                </div>
+                <div class="col-sm-5 col-md-5">
+                    <input type="text" class="form-control" asp-for="Rec.x01BillingFlag1" placeholder="@_f.tra("Obrázek vlajky")" />
+
+                </div>
+            </div>
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@(_f.tra("Jazyk")) #2:</label>
+                <div class="col-sm-5 col-md-5">
+                    <input type="text" class="form-control" asp-for="Rec.x01BillingLang2" />
+
+                </div>
+                <div class="col-sm-5 col-md-5">
+                    <input type="text" class="form-control" asp-for="Rec.x01BillingFlag2" placeholder="@_f.tra("Obrázek vlajky")" />
+
+                </div>
+
+            </div>
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@(_f.tra("Jazyk")) #3:</label>
+                <div class="col-sm-5 col-md-5">
+                    <input type="text" class="form-control" asp-for="Rec.x01BillingLang3" />
+
+                </div>
+                <div class="col-sm-5 col-md-5">
+                    <input type="text" class="form-control" asp-for="Rec.x01BillingFlag3" placeholder="@_f.tra("Obrázek vlajky")" />
+
+                </div>
+            </div>
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@(_f.tra("Jazyk")) #4:</label>
+                <div class="col-sm-5 col-md-5">
+                    <input type="text" class="form-control" asp-for="Rec.x01BillingLang4" />
+
+                </div>
+                <div class="col-sm-5 col-md-5">
+                    <input type="text" class="form-control" asp-for="Rec.x01BillingFlag4" placeholder="@_f.tra("Obrázek vlajky")" />
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="tab-pane tab-pane-fixed" id="tab3" role="tabpanel">
+    <!-- Tab3 -->
+
+    <div class="card mt-2">
+        <div class="card-header">
+            @_f.tra("Obnovení zapomenutého hesla")
+        </div>
+        <div class="card-body">
+            <input type="checkbox" id="chkIsAllowPasswordRecovery" asp-for="@Model.Rec.x01IsAllowPasswordRecovery" />
+            <label class="col-form-label" for="chkIsAllowPasswordRecovery">@_f.tra("Povolit uživatelům obnovu zapomenutého hesla")</label>
+
+            <textarea class="form-control" asp-for="Rec.x01PasswordRecovery_Question" placeholder="@_f.tra("Otázka pro žadatele před vygenerováním nového hesla.")"></textarea>
+            <br />
+            <textarea class="form-control" asp-for="Rec.x01PasswordRecovery_Answer" placeholder="@_f.tra("Správná odpověď, kterou musí žadatel napsat.")"></textarea>
+        </div>
+    </div>
+
+    <div class="row my-2">
+        <label class="col-sm-2 col-md-3 col-form-label">@_f.tra("Výchozí Notepad editor"):</label>
+        <div class="col-sm-5 col-md-4">
+            <mycombo entity="x04NotepadConfig" asp-for="Rec.x04ID_Default" selectedtext="@Model.ComboX04" filter-flag="1"></mycombo>
+        </div>
+
+    </div>
+
+    <div class="my-2">
+        <input type="checkbox" asp-for="@Model.Rec.x01IsCapacityFaNefa" />
+        <label class="col-form-label" for="Rec_x01IsCapacityFaNefa">@_f.tra("V plánování rozdělovat plán hodin na [Plán Fa hodin] a [Plán Nefa hodin]")</label>
+    </div>
+
+    <hr />
+    <button type="button" class="btn btn-sm btn-light" onclick="_postback('ping')">Poslat ping na MARKTIME cloud uložiště</button>
+</div>
+    
+@Html.Raw("</div>")
+@Html.Raw("</div>")
+
+
+

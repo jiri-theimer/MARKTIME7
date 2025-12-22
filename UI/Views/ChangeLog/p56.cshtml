@@ -1,0 +1,65 @@
+﻿@model UI.Models.changelogViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = "CHANGE-LOG";
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageSymbol = "timeline";
+    Model.lisData = _f.p56TaskBL.GetList(new BO.myQueryP56() { explicit_orderby = "a.RowID", pids = new List<int>() { Model.pid } }, true);
+
+
+
+    Model.AddField("p56Name", "Název");
+    Model.AddField("p57Name", "Typ úkolu");
+
+    Model.AddField("p55Name", "Todo List");
+    Model.AddField("b02Name", "Workflow stav");
+
+    Model.AddField("p41Name", "Projekt");
+    Model.AddField("ProjectClient", "Klient projektu");
+    Model.AddField("p56Code", "Kód záznamu");
+    
+    
+
+    Model.AddField("p56Plan_Hours", "Plán hodin");
+    Model.AddField("p56Plan_Expenses", "Plán výdajů");
+    Model.AddField("p56PlanFlag", "p56PlanFlag");
+
+    Model.AddField("p56PlanFrom", "Plánované zahájení");
+    Model.AddField("p56PlanUntil", "Plánované dokončení");
+   
+
+    Model.AddField("p41BillingFlag", "p41BillingFlag");
+    Model.AddField("Owner", "Vlastník záznamu");
+    Model.AddField("x38ID", "Číselná řada");
+    Model.AddField("b01ID", "Workflow šablona");
+    
+    Model.AddField("p56Notepad", "Notepad");
+
+
+    Model.AddField("ValidFrom", "Platnost od");
+    Model.AddField("ValidUntil", "Platnost do");
+
+}
+
+
+@section header_content{
+
+
+    <link rel="stylesheet" href="/css/htmltable.css" />
+
+
+}
+
+@addTagHelper *, UI
+
+
+<div class="bg-light" style="padding:10px;">
+
+    <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
+
+
+</div>
+
+@Html.EditorFor(m => Model,"~/Views/Shared/_ChangeLogTable.cshtml")
+

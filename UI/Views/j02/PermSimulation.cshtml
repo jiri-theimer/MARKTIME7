@@ -1,0 +1,70 @@
+﻿@model UI.Models.j02PermSimulation
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Simulace přístupových práv uživatele");
+    Model.PageSymbol = "domino_mask";
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+}
+
+@addTagHelper *, UI
+
+
+<div class="bg-light input-group" style="padding:5px;border-bottom:solid 1px silver;border-top:solid 1px silver;">
+
+   
+    <div style="margin-left:10px;">
+        <button id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+    </div>
+
+
+
+
+</div>
+
+<form id="form1" asp-controller="j02" asp-action="PermSimulation" method="POST">
+    <input type="hidden" asp-for="j02ID" />
+    
+    <div class="modal_record_container">
+        <h5>
+            @(_f.j02UserBL.Load(Model.j02ID).FullNameAsc)
+        </h5>
+        <div class="card">
+            <div class="card-header">
+                @_f.tra("Nabídka projektů pro vykazování")
+            </div>
+            <div class="card-body">
+
+                <div class="row my-2">
+                    <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Sešit"):</label>
+                    <div class="col-sm-5 col-md-4">
+                        <mycombo entity="p34ActivityGroup" asp-for="SelectedP34ID" selectedtext="SelectedP34Name" myqueryinline="j02id_query|int|@(Model.j02ID)|p41id|int|@(Model.ProjectCombo.SelectedP41ID)" event_after_changevalue="p34id_change" placeholder="@_f.tra("Sešit")"></mycombo>
+                    </div>
+
+                </div>
+
+                
+
+
+                <div>
+                    @Html.EditorFor(m => m.ProjectCombo, "~/Views/Shared/_ProjectCombo.cshtml")
+                </div>
+            </div>
+        </div>
+        
+
+    </div>
+</form>
+
+<script type="text/javascript">
+    var _j02id = "@Model.j02ID";
+    $(document).ready(function () {
+
+
+    })
+
+  
+    function p34id_change(p34id) {
+        _postback("p34id");
+    }
+</script>

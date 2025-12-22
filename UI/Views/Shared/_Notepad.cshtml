@@ -1,0 +1,261 @@
+﻿@model UI.Models.Notepad.EditorViewModel
+@inject BL.Factory _f
+
+@{
+
+    BO.x04NotepadConfig _recX04 = new BO.x04NotepadConfig() { x04PlaceHolder = _f.tra("Nejlepší html editor se sadou silných funkcí! Vložte Word/Excel (CTRL+V), nahrávejte obrázky a dokumenty, PDF export/tisk, video odkazy, fulltext a další.") };
+
+    IEnumerable<BO.x04NotepadConfig> _lisX04 = _f.x04NotepadConfigBL.GetList(new BO.myQuery("x04"));
+
+    if (Model.SelectedX04ID > 0 && !_lisX04.Any(p => p.pid == Model.SelectedX04ID))
+    {
+        Model.SelectedX04ID = 0;
+    }
+    if (Model.SelectedX04ID > 0)
+    {
+        _recX04 = _lisX04.First(p => p.pid == Model.SelectedX04ID);
+        
+    }
+
+    if (Model.ExternalConfig != null)
+    {
+        _recX04 = Model.ExternalConfig;
+
+    }
+    if (Model.PlaceHolder == null)
+    {
+        Model.PlaceHolder = _recX04.x04PlaceHolder;
+    }
+
+    if(string.IsNullOrEmpty(Model.TempGuid)){
+        Model.TempGuid = BO.Code.Bas.GetGuid();
+    }
+
+}
+
+@addTagHelper *, UI
+
+@if (Model.SelectedX04ID > 0 || Model.ExternalConfig != null)
+{
+    <script type="text/javascript" src="/lib/froala-editor/js/froala_editor.pkgd.min.js"></script>
+    @if(_f.CurrentUser.LangName !="EN")
+    {
+        <script type="text/javascript" src="/lib/froala-editor/js/languages/@(_f.CurrentUser.LangName.ToLower()).js"></script>
+    }
+    
+}
+
+<input type="hidden" asp-for="TempGuid" />
+<input type="hidden" asp-for="Prefix" />
+
+
+
+
+@if (Model.SelectedX04ID == 0 && Model.ExternalConfig == null)
+{
+    <textarea id="edi1" class="form-control" asp-for="HtmlContent" style="margin-top:10px;"></textarea>
+}
+else
+{
+    <textarea id="edi1" class="my-2" asp-for="HtmlContent" style="margin-top:10px;"></textarea>
+}
+
+
+
+<div class="nonmobile">
+    <myshowmore></myshowmore>
+
+    <button type="button" class="btn btn-sm btn-light py-0 showmore" tabindex="-1" onclick="editor_clear()" style="margin-left:15px;">Vyčistit</button>
+    @if (Model.SelectedX04ID > 0)
+    {
+        <button type="button" class="btn btn-sm btn-light py-0 showmore" tabindex="-1">PDF</button>
+    }
+    @if (Model.ExternalConfig == null)
+    {
+        <select class="showmore" style="border:solid 1px lightgrey;border-radius:3px;" tabindex="-1" onchange="_postback()" asp-for="SelectedX04ID" title="@_f.tra("Pojmenovaná Notepad konfigurace")">
+            <option value="0">-- @_f.tra("Pouze plain-text") --</option>
+            @foreach (var c in _lisX04)
+            {
+                @if (_recX04.pid == c.pid)
+                {
+                    <option selected value="@c.pid">@c.x04Name</option>
+                }
+                else
+                {
+                    <option value="@c.pid">@c.x04Name</option>
+                }
+
+            }
+        </select>
+    }
+</div>
+
+
+<script type="text/javascript">
+    var _edi;
+    var _x04id = "@Model.SelectedX04ID";
+    
+    @if (Model.SelectedX04ID > 0 || Model.ExternalConfig != null)
+    {
+        <text>
+            editor_init();
+        </text>
+    }
+
+
+
+        function editor_init() {
+            var btns = {
+                'moreText': {
+
+                    'buttons': ['insertImage', 'insertFile', 'bold', 'italic', 'underline', 'strikeThrough', 'subscript', 'superscript', 'fontFamily', 'fontSize', 'textColor', 'backgroundColor', 'inlineClass', 'inlineStyle', 'clearFormatting']
+
+                },
+
+                'moreParagraph': {
+
+                    'buttons': ['alignLeft', 'alignCenter', 'formatOLSimple', 'alignRight', 'alignJustify', 'formatOL', 'formatUL', 'paragraphFormat', 'paragraphStyle', 'lineHeight', 'outdent', 'indent', 'quote']
+
+                },
+
+                'moreRich': {
+
+                    'buttons': ['insertLink', 'insertVideo', 'insertTable', 'emoticons', 'fontAwesome', 'specialCharacters', 'embedly', 'insertHR']
+
+                },
+
+                'moreMisc': {
+
+                    'buttons': ['undo', 'redo', 'fullscreen', 'print', 'spellChecker', 'selectAll', 'html', 'help'],
+
+                    'align': 'right',
+
+                    'buttonsVisible': 2
+
+                }
+
+            };
+
+    @if (_recX04.x04ToolbarButtons != null)
+    {
+        <text>
+                    btns=@(Html.Raw(_recX04.x04ToolbarButtons));
+        </text>
+    }
+
+                
+
+                _edi = new FroalaEditor('#edi1', {
+                    key: "DUA2yE2D2C2A3B8C3B2qYFd1UQRFQIVb1MSMc2IWPNe1IFg1yD4C3D2F2C4B1F1H4B2B1==",
+                    attribution: false,                    
+                    toolbarButtons: btns,
+                    toolbarButtonsXS: {
+
+                        'moreText': {
+
+                            'buttons': ['insertImage', 'insertFile', 'bold', 'italic', 'underline', 'strikeThrough', 'fontFamily', 'fontSize', 'textColor', 'backgroundColor', 'inlineClass', 'inlineStyle', 'clearFormatting'],
+
+                            'buttonsVisible': 6
+
+                        }
+                    },
+                    toolbarInline: @(_recX04.x04IsToolbarInline ? "true" : "false"),
+                    toolbarSticky: @(_recX04.x04IsToolbarSticky ? "true" : "false"),
+                    placeholderText: "@(Model.PlaceHolder)",
+                    //toolbarButtons: ['fullscreen', 'bold', 'italic', 'underline', 'strikeThrough', 'subscript', 'superscript', '|', 'fontFamily', 'fontSize', 'color', 'inlineClass', 'inlineStyle', 'paragraphStyle', 'lineHeight', '|', 'paragraphFormat', 'align', 'formatOL', 'formatUL', 'outdent', 'indent', 'quote', '-', 'insertLink', 'insertImage', 'insertVideo', 'embedly', 'insertFile', 'insertTable', '|', 'emoticons', 'fontAwesome', 'specialCharacters', 'insertHR', 'selectAll', 'clearFormatting', '|', 'print', 'help', 'html', '|', 'undo', 'redo'],
+                    fileUploadParam: "file",
+                    fileUploadParams: { what: "file", x04id: "@(_recX04.pid)",prefix: "@Model.Prefix",tempguid:"@Model.TempGuid" },
+                    fileUploadURL: '/Notepad/UploadFiles',
+                    fileUploadMethod: 'POST',                    
+                    language: "@(_f.CurrentUser.j02LangIndex !=1 ? _f.CurrentUser.LangName.ToLower() : "")",
+                    fileMaxSize: 20 * 1024 * 1024,
+                    fileAllowedTypes: ['*'],
+                    imageUploadParam: 'file',
+                    charCounterCount: false,
+                    imageUploadURL: '/Notepad/UploadImages',
+                    imageManagerLoadURL: "/Notepad/UploadImages",
+                    imageUploadParams: { what: "image", x04id: "@(_recX04.pid)", prefix: "@Model.Prefix", tempguid: "@Model.TempGuid" },
+                    imageUploadMethod: 'POST',
+                    imageAllowedTypes: ['jpeg', 'jpg', 'png'],
+                    imageMaxSize: 5 * 1024 * 1024,
+                    imageAllowedTypes: ['jpeg', 'jpg', 'png'],
+                    events: {
+                        'file.beforeUpload': function (files) {
+                            // Return false if you want to stop the file upload.
+                            console.log("beforeUpload");
+                        },
+                        'file.uploaded': function (response) {
+                            // File was uploaded to the server.
+
+                            
+                        },
+                        'file.inserted': function ($file, response) {
+                            // File was inserted in the editor.
+                            
+                        }
+                        , 'file.error': function (error, response) {
+                            var arr = response.split("####");                           
+                            alert(arr[1]);
+                            
+                            
+
+                        },
+                        'image.beforeUpload': function (images) {
+                            // Return false if you want to stop the image upload.
+                            
+                        },
+                        'image.uploaded': function (response) {
+                            // Image was uploaded to the server.
+                            
+                        },
+                        'image.inserted': function ($img, response) {
+                            // Image was inserted in the editor.
+                            
+                        },
+                        'image.replaced': function ($img, response) {
+                            // Image was replaced in the editor.
+                            
+                        },
+                        'image.removed': function ($img) {
+                            // Do something here.
+                            // this is the editor instance.
+                            
+                        },
+                        'image.error': function (error, response) {
+                            var arr = response.split("####");
+                            alert(arr[1]);
+                            
+
+                        }
+                    }
+
+                })
+        }
+
+
+
+
+    function editor_clear() {
+        if (_x04id != "0") {
+            _edi.html.set("");
+            $("#Notepad_SelectedX04ID").focus();
+            _edi.events.focus();
+            
+        } else {
+            $("#edi1").val("");
+        }
+
+
+    }
+
+    function editor_setcontent(html)
+    {
+        if (_x04id != "0") {            
+            _edi.html.set(html);
+            _edi.events.focus();    //musí být focus, aby postback udržel hodnotu            
+            $("#Notepad_SelectedX04ID").focus();
+        } else {
+            $("#edi1").val(html);
+        }
+    }
+</script>

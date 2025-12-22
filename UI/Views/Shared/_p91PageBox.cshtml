@@ -1,0 +1,169 @@
+﻿@model UI.Models.Record.p91PageBoxViewModel
+@inject BL.Factory _f
+@{
+    if (Model == null)
+    {
+        return;
+    }
+
+
+    var _tab1 = new UI.Models.Tab1.p91Tab1() { prefix = "p91", pid = Model.rec_pid, Rec = Model.Rec };
+ 
+
+    BO.TaggingHelper _tg = null;
+    if (Model.RecA58.a58ContentFlag == BO.a58ContentFlagEnum.RecTags)
+    {
+        _tg = _f.o51TagBL.GetTagging("p91", Model.rec_pid);
+    }
+
+    IEnumerable<BO.p94Invoice_Payment> _lisP94 = null;
+    if (Model.RecA58.a58ContentFlag == BO.a58ContentFlagEnum.p91Uhrady)
+    {
+        _lisP94 = _f.p91InvoiceBL.GetList_p94(Model.rec_pid);
+    }
+
+    IEnumerable<BO.p99Invoice_Proforma> _lisP99 = null;
+    if (Model.RecA58.a58ContentFlag == BO.a58ContentFlagEnum.p91Zalohy)
+    {
+        _lisP99 = _f.p91InvoiceBL.GetList_p99(0,Model.rec_pid,0);
+    }
+
+}
+
+@addTagHelper *, UI
+
+
+@if (Model.RecA58.a58HtmlText != null)
+{
+    @Html.Raw(Model.MergeStaticHtmlText(_f,Model.RecA58.a58HtmlText,Model.rec_pid))
+}
+
+
+
+@if (Model.RecA58.a58ContentFlag == BO.a58ContentFlagEnum.RecHeaderBox)
+{
+    @Html.EditorFor(m => m.Rec, "~/Views/Shared/_p91RecHeaderBox.cshtml")
+}
+
+@if (Model.RecA58.a58ContentFlag == BO.a58ContentFlagEnum.p91Text && Model.Rec.p91Text1 !=null)
+{
+    <div>
+        <myicon symbol="format_quote" color="gray"></myicon>
+        <i>
+            @BO.Code.Bas.Text2Html(Model.Rec.p91Text1)
+        </i>
+    </div>
+}
+@if (Model.RecA58.a58ContentFlag == BO.a58ContentFlagEnum.p91Text && Model.Rec.p91Text2 != null)
+{
+    <div style="color:red;">
+        <myicon symbol="format_quote" color="red"></myicon>
+        <i>
+            @BO.Code.Bas.Text2Html(Model.Rec.p91Text2)
+        </i>
+    </div>
+}
+
+@if (Model.RecA58.a58ContentFlag == BO.a58ContentFlagEnum.p91Uhrady && _lisP94 != null && _lisP94.Count() > 0)
+{
+    <table class="table table-hover">
+        @foreach (var c in _lisP94)
+        {
+            <tr>
+                <td class="tdlab">
+                    @BO.Code.Bas.ObjectDate2String(c.p94Date)
+                </td>
+                <td class="tdval tdcastka">
+                    @BO.Code.Bas.Number2String(c.p94Amount)
+                </td>
+                <td>
+                    <i>Úhrada</i>
+                    @c.p94Description
+                </td>
+            </tr>
+        }
+    </table>
+}
+@if (Model.RecA58.a58ContentFlag == BO.a58ContentFlagEnum.p91Zalohy && _lisP99 != null && _lisP99.Count() > 0)
+{
+    <table class="table table-hover">
+        @foreach (var c in _lisP99)
+        {
+            <tr>
+                <td title="Číslo daňového dokladu o úhradě zálohy">
+                    @c.p82Code
+                </td>
+                <td class="tdcastka">
+                    @BO.Code.Bas.Number2String(c.p99Amount_WithoutVat)
+                </td>
+                <td title="Číslo zálohové faktury">
+                    
+                    @c.p90Code
+                </td>
+            </tr>
+        }
+    </table>
+}
+
+@if (Model.RecA58.a58ContentFlag == BO.a58ContentFlagEnum.p91Datumy)
+{
+    @await Html.PartialAsync("~/Views/Shared/_p91RecDatumyBox.cshtml",Model.Rec)
+}
+
+@if (Model.RecA58.a58ContentFlag == BO.a58ContentFlagEnum.p91Castky)
+{
+    @await Html.PartialAsync("~/Views/Shared/_p91RecCastkyBox.cshtml",Model.Rec)
+}
+@if (Model.RecA58.a58ContentFlag == BO.a58ContentFlagEnum.p91Klient)
+{
+    @await Html.PartialAsync("~/Views/Shared/_p91RecKlientBox.cshtml",Model.Rec)
+}
+
+@if (Model.RecA58.a58ContentFlag == BO.a58ContentFlagEnum.p91CenovyRozpis)
+{
+    @await Html.PartialAsync("~/Views/Shared/_p91CenovyRozpis.cshtml",Model.Rec.pid)
+
+}
+
+@if(Model.RecA58.a58ContentFlag==BO.a58ContentFlagEnum.p91Stat)
+{
+    @await Html.PartialAsync("~/Views/Shared/_p91TabStat.cshtml",Model.Rec)
+}
+
+@if (Model.RecA58.a58ContentFlag == BO.a58ContentFlagEnum.o32List)
+{
+    @await Html.PartialAsync("~/Views/Shared/_lisO32.cshtml",_f.p28ContactBL.GetList_o32(Model.Rec.p28ID,0,0))
+}
+
+@if (Model.RecA58.a58ContentFlag == BO.a58ContentFlagEnum.p41List)
+{
+    @await Html.PartialAsync("~/Views/Shared/_lisP41.cshtml",_f.p41ProjectBL.GetList(new BO.myQueryP41("p41"){IsRecordValid=true, p28id = Model.rec_pid}))
+}
+
+@if (Model.RecA58.a58ContentFlag == BO.a58ContentFlagEnum.p30List)
+{
+    @await Html.PartialAsync("~/Views/Shared/_lisP30.cshtml",_f.p28ContactBL.GetList_p30(Model.Rec.p28ID))
+
+}
+
+@if (Model.RecA58.a58ContentFlag == BO.a58ContentFlagEnum.RolesAssigned)
+{
+    @await Html.PartialAsync("~/Views/Shared/_RoleAssignRO.cshtml",_tab1)
+}
+
+@if (Model.RecA58.a58ContentFlag == BO.a58ContentFlagEnum.RecTags)
+{
+    @Html.Raw(_tg.TagHtml)
+
+}
+
+
+
+
+
+@if (Model.RecA58.a58ContentFlag == BO.a58ContentFlagEnum.o27List)
+{
+    @await Html.PartialAsync("~/Views/Shared/_lisO27.cshtml",_tab1)
+
+}
+

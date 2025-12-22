@@ -1,0 +1,83 @@
+﻿@model IEnumerable<BO.o32Contact_Medium>
+
+@inject BL.Factory _f
+
+@{
+
+
+    if (Model == null || Model.Count() == 0)
+    {
+        return;
+    }
+
+}
+
+<table class="table table-hover">
+    @foreach (var c in Model)
+    {
+        <tr>
+
+            <td style="width:20px;">
+                @switch (c.o33ID)
+                {
+                    case BO.o33FlagEnum.URL:
+                        <span class="material-icons-outlined" style="color:gray;">language</span>
+                        break;
+                    case BO.o33FlagEnum.Email:
+                    case BO.o33FlagEnum.EmailBCC:
+                    case BO.o33FlagEnum.EmailCC:
+                        <span class="material-icons-outlined" style="@(c.o32IsDefaultInInvoice ? "color:green;":"color:gray;")">alternate_email</span>
+                        break;
+                   
+                    case BO.o33FlagEnum.Tel:
+                        <span class="material-icons-outlined" style="color:gray;">phone</span>
+                        break;
+
+                }
+            </td>
+            <td>
+                @switch (c.o33ID)
+                {
+                    case BO.o33FlagEnum.URL:
+                        <a href="@c.o32Value" target="_blank">@c.o32Value</a>
+                        break;
+                    case BO.o33FlagEnum.Email:
+                    case BO.o33FlagEnum.EmailBCC:
+                    case BO.o33FlagEnum.EmailCC:
+                        <a href="mailto: @c.o32Value">@c.o32Value</a>
+                        break;                   
+                    
+                    default:
+                        <span>@c.o32Value</span>
+                        break;
+                }
+
+
+            </td>
+            <td>
+                @if (c.o32Description != null)
+                {
+                    <i>@c.o32Description</i>
+                }
+                @switch (c.o33ID)
+                {                    
+                    case BO.o33FlagEnum.EmailBCC:                        
+                        <var>BCC</var>
+                        break;
+                    case BO.o33FlagEnum.EmailCC:                        
+                        <var>CC</var>
+                        break;
+                    
+                }
+            </td>
+            <td style="width:10px;">
+                @if (c.o32IsDefaultInInvoice)
+                {
+                    <mark>F</mark>
+                }
+            </td>
+
+        </tr>
+    }
+
+</table>

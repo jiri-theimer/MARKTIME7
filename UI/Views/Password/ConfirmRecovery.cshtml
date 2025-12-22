@@ -1,0 +1,34 @@
+﻿@model PasswordViewModel
+@inject BL.Factory _f
+
+
+@{
+    Model.PageTitle = _f.trawi("Obnovení zapomenutého hesla", Model.LangIndex);
+    Layout = "~/Views/Shared/_LayoutAnonym.cshtml";
+
+    var _returnurl = @Context.Request.Query["returnurl"];
+}
+
+@addTagHelper *, UI
+
+
+<div class="container" style="max-width:800px;">
+
+
+    <h4>@_f.trawi("Vygenerování nového hesla", Model.LangIndex)</h4>
+
+
+    @if (Model.ErrorMessage != null)
+    {
+        <div class="alert alert-danger" role="alert">
+            <h4>@Html.Raw(Model.ErrorMessage)</h4>
+        </div>
+    }
+    @if (Model.SuccessMessage != null)
+    {
+        <div class="alert alert-success" role="alert">
+            <h4>@Html.Raw(Model.SuccessMessage)</h4>
+        </div>
+    }
+
+</div>

@@ -1,0 +1,204 @@
+﻿@model BaseViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Nezapomeň!");
+    Model.PageSymbol = "notifications_active";
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+
+    int intSkrytPid = BO.Code.Bas.InInt(UI.Code.basUI.GetQueryValue(Context, "skryt"));
+    if (intSkrytPid > 0)
+    {
+        _f.FBL.SetHidden_j97(intSkrytPid, true);
+    }
+    int intZobrazitPid = BO.Code.Bas.InInt(UI.Code.basUI.GetQueryValue(Context, "zobrazit"));
+    if (intZobrazitPid > 0)
+    {
+        _f.FBL.SetHidden_j97(intZobrazitPid, false);
+    }
+
+    bool _bolShowAll = false;
+    string _strView = UI.Code.basUI.GetQueryValue(Context, "view");
+    if (_strView == "showall")
+    {
+        _bolShowAll = true;
+    }
+
+    var _lis = _f.FBL.GetList_j97(_f.CurrentUser.pid, (_bolShowAll ? null : false));
+}
+
+
+
+<div class="bg-light" style="padding:5px;border-bottom:solid 1px silver;border-top:solid 1px silver;">
+
+    <select id="cbxView" onchange="refresh(this)">
+        <option value="">@_f.tra("Nezobrazovat skryté položky")</option>
+        <option value="showall">@_f.tra("Zobrazovat i skryté položky")</option>
+    </select>
+    <button id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+
+</div>
+
+<form id="form1" asp-controller="Home" asp-action="Bells" method="POST">
+    <div class="modal_record_container">
+
+        @if (_lis.Count() == 0)
+        {
+            <div>
+                <img src="/images/pandulak/16452374_s.jpg" width="100" height="133" />
+            </div>            
+            <code>Ani jedno upozornění.</code>
+        }
+
+        <table class="table table-sm table-hover">
+            <tr>
+                <th style="width:30px;">
+
+                </th>
+                <th style="width:150px;">
+                   
+                </th>
+                <th style="width:20px;">
+
+                </th>
+                <th style="width:150px;">
+                    
+                </th>
+                <th style="width:200px;">
+
+                </th>
+                <th>
+
+                </th>
+                <th>
+
+                </th>
+                
+            </tr>
+            @foreach(var c in _lis)
+            {
+                @if (c.j97RecordEntity == "dd2") c.j97RecordEntity = "o23";
+                <tr>
+                    <td>
+                        @if (!c.j97IsHidden)
+                        {
+                            <button type="button" class="btn btn-sm btn-light" title="Skrýt" onclick="skryt(@(c.pid))">
+                                <span class="material-icons-outlined-btn">visibility_off</span>
+                            </button>
+                        }
+                        else
+                        {
+                            <button type="button" class="btn btn-sm btn-light" title="Zviditelnit" onclick="zobrazit(@(c.pid))">
+                                <span class="material-icons-outlined-btn">visibility</span>
+                            </button>
+                        }
+                    </td>
+                    <td style="@(c.j97IsHidden ? "text-decoration:line-through" : null)">
+                        @if (c.j97Date > DateTime.Now)
+                        {
+                            <span style="color:green">
+                                @BO.Code.Bas.ObjectDateTime2String(c.j97Date)
+                            </span>
+                            <small style="color:forestgreen;">      
+                                [
+                                @BO.Code.Time.DurationFormatted(DateTime.Now, c.j97Date, true)
+                                ]
+                            </small>
+                        }
+                        else
+                        {
+                            <span style="color:silver">
+                                @BO.Code.Bas.ObjectDateTime2String(c.j97Date)
+                            </span>
+                            <small style="color:gray;">
+                                [-
+                                @BO.Code.Time.DurationFormatted(c.j97Date, DateTime.Now, true)
+                                ]
+                        
+                            </small>
+                        }
+                        
+                        
+                        
+                    </td>
+                    <td>
+                        @if (c.j97RecordEntity == "p31")
+                        {
+                            <a href="/TheGrid/FlatView?prefix=@(c.j97RecordEntity)&myqueryinline=pids|list_int|@(c.j97RecordPid)" target="_top">
+                                <span class="material-icons-outlined-btn">grid_view</span>
+                            </a>
+                        }
+                        else
+                        {
+                            <a href="/Record/RecPage?prefix=@(c.j97RecordEntity)&pid=@(c.j97RecordPid)" target="_top">
+                                <span class="material-icons-outlined-btn">maps_home_work</span>
+                            </a>
+                            
+                        }
+                        
+                    </td>
+                    <td>
+                        @(BO.Code.Entity.GetAlias(c.j97RecordEntity))
+                    </td>
+                    <td>
+                        @if (c.j97UserInsert == "p41PlanUntil-j02id" || c.j97UserInsert == "p41PlanUntil-j11id")
+                        {
+                            <code>Termín projektu</code>
+                        }
+                        @if (c.j97UserInsert == "p56PlanUntil-j02id" || c.j97UserInsert == "p56PlanUntil-j11id")
+                        {
+                            <code>Termín úkolu</code>
+                        }
+                        @if (c.j97UserInsert == "o22PlanUntil-j02id" || c.j97UserInsert == "o22PlanUntil-j11id")
+                        {
+                            <code>Termín</code>
+                        }
+                        @if (c.j97UserInsert == "o24-j02id" || c.j97UserInsert == "o24-j11id")
+                        {
+                            <code>Připomenutí</code>
+                        }
+                        @if (c.j97RecordEntity == "p40")
+                        {
+                            <code>Skluz generování</code>
+                        }
+                    </td>
+                    <td>
+                        @(c.j97Text)
+                        @if(c.j97AfterText != null)
+                        {
+                            <span class="badge-light">
+                                @c.j97AfterText
+                            </span>
+                        }
+                    </td>
+                    
+                </tr>
+            }
+        </table>
+
+
+
+
+    </div>
+</form>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#cbxView").val("@(_strView)");
+
+    })
+
+
+    function skryt(pid) {
+        var showall = $("#cbxView").val();
+        location.replace("Bells?skryt=" + pid+"&view="+showall);
+    }
+    function zobrazit(pid) {
+        var showall = $("#cbxView").val();
+        location.replace("Bells?zobrazit=" + pid + "&view=" + showall);
+    }
+    function refresh(cbx) {
+        location.replace("Bells?view=" + $(cbx).val());
+    }
+</script>
+

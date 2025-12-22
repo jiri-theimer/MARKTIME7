@@ -1,0 +1,511 @@
+﻿.calmenu {
+    position: absolute;
+    display: none;
+    z-index: 100;
+    background-color: whitesmoke;
+    border-radius: 5px;
+    border: solid 1px #CCCCCC;
+    padding-top:4px;
+    
+}
+
+@media only screen and (max-width: 700px) {
+
+    .calmenu {
+        min-width: 70px;
+        
+    }
+}
+
+.cislodne
+{
+color:cornflowerblue;
+}
+.odchod-prichod
+{
+    
+    float:right;
+    margin-right:20px;
+    color:mediumvioletred;
+}
+
+
+
+#mt_scheduler_calendar {
+    width: 100%;    
+    table-layout: fixed;
+}
+
+    #mt_scheduler_calendar tr {
+        vertical-align: top;
+    }
+
+
+    #mt_scheduler_calendar td {
+        color: #A9A9A9;
+        text-align: left;
+        border-left: solid 1px #DCDCDC;
+    }
+
+        #mt_scheduler_calendar td:hover {
+            background-color: aliceblue;
+        }
+
+    #mt_scheduler_calendar th {
+        text-align: center;
+        background-color: white;
+    }
+
+.agenda_row_suda {
+    background-color: none;
+}
+
+.agenda_row_licha {
+    background-color: #F7F7F7;
+}
+
+.agenda_row_divider_week {
+    border-top: dashed 2px #82CAFA;
+    
+}
+
+.agenda_row_divider_month {
+    border-top: solid 7px khaki;
+    
+}
+
+#mt_scheduler_agenda {
+    width: 100%;
+}
+
+    #mt_scheduler_agenda tr {
+        vertical-align: top;
+    }
+
+        #mt_scheduler_agenda tr:hover {
+            background-color: aliceblue;
+        }
+
+    #mt_scheduler_agenda td {
+        color: #A9A9A9;
+        text-align: left;
+    }
+
+
+
+
+
+    #mt_scheduler_agenda th {
+        text-align: center;
+        background-color: white;
+        border-bottom: solid 1px gray;
+    }
+
+.mt_scheduler-day-in-month {
+    background-color: transparent;
+    
+}
+
+.mt_scheduler-day-out-month {
+    background-color: #DDDDDD;
+}
+
+.mt_scheduler-day-holiday {
+    background-color: #ffe1f0;
+}
+
+.mt_scheduler-day-weekend {
+    background-color: #fff0f7;
+}
+
+.out-month {
+    color:gray;
+}
+
+
+
+.mt_scheduler-today {
+    background-color: lightskyblue;
+    border-radius: 5px;
+}
+
+
+div.mt_scheduler-day {
+    min-height: 50px;
+    max-height: 300px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+
+
+.mt_scheduler-p31text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-style: italic;
+    color: gray;
+    max-width: 400px;
+    margin-left: 10px;
+}
+
+
+div.mt_scheduler-day-header {
+    width: 100%;
+    background-color: #E8E8E8;
+}
+
+
+
+a.mt_scheduler-day-link {
+    padding: 4px;
+    text-decoration:none;
+    
+}
+
+    a.mt_scheduler-day-link:hover {
+        color: white;
+        background-color: #2D89EF;
+        border-radius:4px;
+        text-decoration:underline;
+    }
+
+
+
+
+
+a.p31_rec_link {
+    cursor: pointer;
+    color: black;
+    text-decoration: none;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+    a.p31_rec_link:hover {
+        text-decoration: underline;
+    }
+
+
+a.p31_rec_link_agenda {
+    cursor: pointer;
+    color: black;
+    text-decoration: none;
+    overflow: hidden;
+    white-space: nowrap;
+    display: inline-block;
+    text-overflow: ellipsis;
+    width: 220px;
+    vertical-align:bottom;
+}
+
+    a.p31_rec_link_agenda:hover {
+        text-decoration: underline;
+    }
+
+
+
+.mt_scheduler-caption {
+    color: black;
+}
+
+.mt_scheduler_total {
+    font-size: 100%;
+}
+
+span.mt_scheduler_money {
+    text-decoration: none;
+    background-color: #A52A2A;
+    color: white;
+    padding-left: 3px;
+    padding-right: 3px;
+    border-radius: 4px;
+    margin-left: 3px;
+}
+span.mt_scheduler_kusovnik {
+    text-decoration: none;
+    background-color: #9400D3;
+    color: white;
+    padding-left: 3px;
+    padding-right: 3px;
+    border-radius: 4px;
+    margin-left: 3px;
+}
+
+a.mt_scheduler_valuelink_money {
+    text-decoration: none;
+    background-color: #A52A2A;
+    color: white;
+    padding-left: 3px;
+    padding-right: 3px;
+    border-radius: 4px;
+    margin-left: 3px;
+}
+    a.mt_scheduler_valuelink_money:hover {        
+        cursor: pointer;
+    }
+
+a.mt_scheduler_valuelink_kusovnik {
+    text-decoration: none;
+    background-color: #9400D3;
+    color: white;
+    padding-left: 3px;
+    padding-right: 3px;
+    border-radius: 4px;
+    margin-left: 3px;
+}
+
+    a.mt_scheduler_valuelink_kusovnik:hover {
+        cursor: pointer;
+    }
+
+
+a.mt_scheduler_valuelink {
+    font-weight: bold;
+    text-decoration:none;
+}
+
+
+
+a.mt_scheduler_valuelink:hover {    
+    text-decoration: underline;
+    cursor:pointer;
+}
+
+    
+
+
+
+a.mt_scheduler_valuelink_deadline {
+    color: black;
+    background-color: #87CEFA;
+    font-weight: normal;
+    border-radius: 6px;
+    padding-left: 4px;
+    padding-right: 4px;
+    margin-right: 4px;
+    margin-top: 1px;
+}
+
+
+
+
+
+
+/*styly pro denní, přesný kalendář: */
+.grid-day-container {
+    display: grid;
+    grid-column-gap: 2px;
+    padding: 0px;
+    width: 575px;
+}
+
+
+.hour_slot {
+    width: 50px;
+    background-color: #F7F7F7;
+    text-align: center;
+    border-top: solid 1px silver;
+    
+}
+
+.minute_slot {
+    width: 50px;
+    background-color: #F7F7F7;
+    text-align: center;
+    border-top: none;
+    border-bottom: solid 1px silver;
+    border-right: solid 1px silver;
+    cursor: grab;
+    
+}
+
+.data_slot {
+    background-color: #FBFBEF;
+    border: solid 1px silver;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.data_slot_mobile {
+    background-color: #FBFBEF;
+    border: solid 1px silver;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.nodata_slot {
+    background-color: white;
+}
+
+a.exactdayp31reclink{
+    text-decoration:none;
+    cursor:pointer;
+
+}
+a.exactdayp31reclink:hover {
+    text-decoration: underline;
+}
+
+.bunka_selected {
+    
+    border:dashed 1px red;
+}
+
+a.link-daycolor_calendar {
+    color: #2D89EF;
+    border-radius: 3px;
+    float: right;
+}
+
+
+a.link-daycolor_agenda {
+    color: #2D89EF;
+    border-radius: 3px;
+}
+
+    a.link-daycolor_agenda:hover {
+        color: white;
+        background-color: #2D89EF;
+        padding: 2px;
+    }
+
+.zoom_ctl_current{
+    border:solid 1px blue;
+    border-radius:4px;    
+    
+}
+
+a.stat_link {
+    cursor: pointer;
+    text-decoration: none;
+    padding: 2px;
+}
+
+    a.stat_link:hover {
+        text-decoration: underline;
+        background-color: #2D89EF;
+        border-radius:4px;
+        color:white;
+        
+    }
+
+
+.bunka_hodiny{
+    display:inline-block;
+    width:30px;
+}
+
+#divLeftPanel {
+    position: absolute;
+    width: 412px;
+    border-right: solid 2px silver;
+    
+
+    
+}
+
+#cmdCalendarPanel{
+    display:none;
+    
+}
+
+
+#divRightPanel {
+    position: absolute;
+    overflow: auto;
+    right: 0px;
+    left: 418px;
+}
+
+#divOnlyOnePanel{
+    overflow:auto;
+    
+}
+
+@media screen and (max-width: 1100px) {
+    #divLeftPanel {
+        display:none;
+    }
+
+    #divRightPanel {
+        
+        left: 0px;
+    }
+
+    #cmdCalendarPanel {
+        
+        display:block;
+    }
+}
+
+@media screen and (min-width: 1100px) {
+    #divLeftPanel {
+        display: block;
+    }
+
+    #cmdCalendarPanel {
+       
+        display: none;
+    }
+}
+
+
+div.mt_scheduler-day-link-container {
+    width: 100%;
+    
+    color: black;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    
+}
+
+
+a.calmenu_btn {
+    padding: 2px;
+    cursor: pointer;
+    border: solid 1px transparent;
+    border-radius: 6px;
+}
+
+    a.calmenu_btn:hover {
+        background-color: #DCDCDC;
+        border: solid 1px silver;
+        
+    }
+
+
+
+#mt_minicalendar {
+    width: 100%;
+    table-layout: fixed;
+}
+
+    #mt_minicalendar tr {
+        vertical-align: top;
+    }
+
+
+    #mt_minicalendar td {
+        color: #A9A9A9;
+        text-align: left;
+        
+    }
+
+        
+
+    #mt_minicalendar th {
+        text-align: center;
+        background-color: white;
+    }
+
+.odchod-prichod-mini {
+    font-size: 85%;
+    
+    text-align:left;
+    margin-top: 4px;
+    color: mediumvioletred;
+    
+}

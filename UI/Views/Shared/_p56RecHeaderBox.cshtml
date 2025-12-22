@@ -1,0 +1,228 @@
+﻿@model BO.p56Task
+
+@inject BL.Factory _f
+
+@{
+
+
+    if (Model == null)
+    {
+        return;
+    }
+
+    bool _bolRowHover = UI.Code.basUI.DetectIfCanRowHover(_f, Context, _f.CurrentUser.j04IsModule_p56);
+
+    BO.p41Project _recP41 = null;
+    if (Model.p41ID > 0)
+    {
+        _recP41 = _f.p41ProjectBL.Load(Model.p41ID);
+    }
+
+    IEnumerable<BO.RoleAssignedToRecord> _lisRoles = _f.x67EntityRoleBL.GetRolesAssignedToRecord(Model.pid, "p56");
+
+    string _wrk_record_alias = null;
+    if (Model.b05RecordEntity != null && Model.b05RecordPid > 0 && Model.b05RecordEntity !="p41")
+    {
+        _wrk_record_alias = _f.CBL.GetObjectAlias(Model.b05RecordEntity, Model.b05RecordPid);
+    }
+
+    var _lisP59 = _f.p58TaskRecurrenceBL.GetList_p59(0, 0, Model.pid);
+
+    string _p15Name = null;
+    string _map = null;
+    if (Model.p15ID>0)
+    {
+        var recP15 = _f.p15LocationBL.Load(Model.p15ID);
+        _p15Name = recP15.p15Name;
+        _map = recP15.getMapUrlClassic();
+    }
+    int _b05Count = _f.WorkflowBL.GetB05CommentsCount("p56", Model.pid);
+}
+
+@addTagHelper *, UI
+
+<table class="table-hover table">
+    @if (_bolRowHover)
+    {
+        <tr>
+            <td colspan="2" class="@(Model.isclosed ? "tdarchiv": "tdval")" onmouseover="_handle_mywrk_mouseover(this)" onmouseout="_handle_mywrk_mouseout(this)">
+                <span class="material-icons-outlined" style="color:@Model.ForeColor">task</span>
+                @Model.p57Name
+                <sup title="Kód">@Model.p56Code</sup>
+                <mywrkbutton prefix="p56" pid="@Model.pid" showcopyurl="true" b02id="@Model.b02ID" langindex="@_f.CurrentUser.j02LangIndex" showcount="@_b05Count"></mywrkbutton>
+            </td>
+        </tr>
+    }
+   
+    <tr>
+        <td class="tdlab">
+            @_f.tra("Název"):
+        </td>
+        <td class="tdval">
+            @Model.p56Name
+        </td>
+    </tr>
+    @if (Model.b02ID > 0)
+    {
+        <tr>
+            <td class="tdlab">
+                @_f.tra("Aktuální stav"):
+            </td>
+            <td class="tdval">             
+                @if (_bolRowHover)
+                {
+                    <myval value="@Model.b02Name" hoverurl="/b02/Info?prefix=p56&pid=@Model.pid" valueafter="@UI.Code.basUI.HtmlColorStrip(Model.b02Color)"></myval>
+                    
+                }
+                else
+                {
+                    <myval value="@Model.b02Name" valueafter="@(UI.Code.basUI.HtmlColorStrip(Model.b02Color))"></myval>
+                }
+                
+            </td>
+        </tr>
+    }
+    @if (!_bolRowHover && Model.p57Name !="Úkol")
+    {
+        <tr>
+            <td class="tdlab">
+                @_f.tra("Typ"):
+            </td>
+            <td class="tdval">
+                @Model.p57Name
+            </td>
+        </tr>
+    }
+
+    @if (Model.p56PlanFrom != null)
+    {
+        <tr>
+            <td class="tdlab">
+                @_f.tra("Plán.zahájení"):
+            </td>
+            <td class="tdval tddatum">
+                @BO.Code.Bas.ObjectDate2String(Model.p56PlanFrom)
+            </td>
+        </tr>
+    }
+
+    @if (Model.p56PlanUntil != null)
+    {
+        <tr>
+            <td class="tdlab">
+                @_f.tra("Plán.dokončení"):
+            </td>
+            <td class="tdval" style="color:red;">
+                @BO.Code.Bas.ObjectDate2String(Model.p56PlanUntil)
+            </td>
+        </tr>
+    }
+
+    @if (_recP41 != null)
+    {
+        <tr>
+            <td class="tdlab">
+                @(_recP41.p07Name):
+            </td>
+            <td class="tdval">
+                @if (_bolRowHover && _f.CurrentUser.j04IsModule_p41)
+                {
+                    <myval value="@_recP41.FullName" hoverprefix="p41" hoverpid="@Model.p41ID"></myval>
+                }
+                else
+                {
+                    <myval value="@_recP41.FullName"></myval>
+                }
+
+            </td>
+        </tr>
+    }
+    @if (_wrk_record_alias != null)
+    {
+        <tr>
+            <td class="tdlab">
+                @(BO.Code.Entity.GetAlias(Model.b05RecordEntity)):
+            </td>
+            <td class="tdval">
+                @if (_bolRowHover)
+                {
+                    <myval value="@_wrk_record_alias" hoverprefix="@Model.b05RecordEntity" hoverpid="@Model.b05RecordPid"></myval>
+                }
+                else
+                {
+                    <myval value="@_wrk_record_alias"></myval>
+                }
+
+            </td>
+        </tr>
+    }
+    @if (Model.p55ID > 0)
+    {
+        <tr>
+            <td class="tdlab">
+                Todo-list:
+            </td>
+            <td class="tdval">
+                @if (_bolRowHover)
+                {
+                    <myval value="@Model.p55Name" hoverurl="/p55/Info?pid=@Model.p55ID"></myval>
+                }
+                else
+                {
+                    <myval value="@Model.p55Name"></myval>
+                }
+
+            </td>
+        </tr>
+    }
+    @if (Model.p15ID > 0)
+    {
+        <tr>
+            <td class="tdlab">
+                @_f.tra("Lokalita"):
+                @if (_map != null)
+                {
+                    <a target="_blank" style="margin-left:6px;" href="@(_map)">Mapa</a>
+                }
+            </td>
+            <td class="tdval">
+                <myval value="@_p15Name"></myval>
+
+
+            </td>
+        </tr>
+    }
+    
+
+    @foreach (var c in _lisRoles)
+    {
+        <tr>
+            <td class="tdlab">
+                @(c.x67Name):
+            </td>
+            <td class="tdval">
+                @c.Receivers
+
+            </td>
+
+        </tr>
+    }
+
+    @if (_lisP59.Count() > 0)
+    {
+        <tr>
+            <td class="tdlab">
+                Opakovaný úkol:
+            </td>
+            <td class="tdval">
+                <myval value="@(_lisP59.First().p58Name)" hoverurl="/p58/Info?pid=@_lisP59.First().p58ID"></myval>
+                
+            </td>
+        </tr>
+    }
+
+</table>
+
+
+
+

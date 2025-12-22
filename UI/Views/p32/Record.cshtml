@@ -1,0 +1,317 @@
+﻿@model UI.Models.Record.p32Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Aktivita");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    Model.PageSymbol = "settings";
+}
+
+@addTagHelper *, UI
+
+<div class="modal_record_container">
+
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název"):</label>
+        <div class="col-sm-6 col-md-5">
+            <input class="form-control record_name" asp-for="Rec.p32Name" />
+        </div>
+        <label class="col-sm-2 col-md-2 col-form-label">#@_f.tra("Pořadí v nabídce"):</label>
+        <div class="col-sm-1 col-md-1">
+            <mynumber asp-for="Rec.p32Ordinary" class="record_ordinary" decimal-digits="0"></mynumber>
+        </div>
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Sešit"):</label>
+        <div class="col-sm-6 col-md-5">
+            <mycombo entity="p34ActivityGroup" asp-for="@Model.Rec.p34ID" selectedtext="@Model.ComboP34Name" event_after_changevalue="change_p34id"></mycombo>
+
+        </div>
+
+        <div class="col-auto">
+            <input type="checkbox" asp-for="Rec.p32IsSupplier" />
+            <label class="col-form-label" for="Rec_p32IsSupplier">@_f.tra("Při vykazování nabízet vazbu na dodavatele")</label>
+        </div>
+
+
+    </div>
+    <div class="row my-2">
+        <div class="col-sm-2 col-md-2">
+            <input type="checkbox" asp-for="@Model.Rec.p32IsBillable" />
+            <label class="col-form-label" for="Rec_p32IsBillable">@_f.tra("Fakturovatelné")</label>
+        </div>
+        <div class="col-sm-5 col-md-5">
+            <input type="checkbox" asp-for="@Model.Rec.p32IsTextRequired" />
+            <label class="col-form-label" for="Rec_p32IsTextRequired">@_f.tra("Při vykazování je povinný podrobný popis")</label>
+        </div>
+
+        <label class="col-sm-2 col-md-2 col-form-label">@_f.tra("Výchozí hodnota úkonu"):</label>
+        <div class="col-sm-2 col-md-2">
+            <mynumber asp-for="Rec.p32Value_Default" decimal-digits="2"></mynumber>
+            
+        </div>
+        <div class="col-sm-1 col-md-1">
+            <mytooltip text="Pro časové aktivity se jedná o výchozí počet hodin, které systém předvyplní při vykazování úkonu.<hr>Pro kusovníkový úkon je to výchozí počet kusů.<hr>Pro peněžní úkon výchozí částka bez dph."></mytooltip>
+        </div>
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Fakturační oddíl"):</label>
+        <div class="col-sm-6 col-md-5">
+            <mycombo entity="p95InvoiceRow" asp-for="@Model.Rec.p95ID" selectedtext="@Model.ComboP95Name"></mycombo>
+        </div>
+        <label class="col-sm-2 col-md-2 col-form-label">@_f.tra("Minimální povolená hodnota"):</label>
+        <div class="col-sm-2 col-md-2">
+            <mynumber asp-for="Rec.p32Value_Minimum" decimal-digits="2"></mynumber>
+        </div>
+
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Odvětví aktivity"):</label>
+        <div class="col-sm-6 col-md-5">
+            <mycombo entity="p38ActivityTag" asp-for="@Model.Rec.p38ID" selectedtext="@Model.ComboP38Name"></mycombo>
+        </div>
+        <label class="col-sm-2 col-md-2 col-form-label">@_f.tra("Maximální povolená hodnota"):</label>
+        <div class="col-sm-2 col-md-2">
+            <mynumber asp-for="Rec.p32Value_Maximum" decimal-digits="2"></mynumber>
+        </div>
+
+    </div>
+    <div class="row my-2">
+
+
+
+        <label class="col-sm-2 col-md-2 col-form-label">@_f.tra("Výchozí DPH sazba"):</label>
+        <div class="col-sm-2 col-md-2">
+            @Html.EditorFor(m => m.Rec.x15ID, "~/Views/Shared/_x15Combo.cshtml")
+        </div>
+
+    </div>
+
+    <div class="row my-2">
+
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Barva úkonu v kalendáři"):</label>
+        <div class="col-sm-4 col-md-3">
+            @Html.EditorFor(m => m.Rec.p32Color, "~/Views/Shared/_ColorCombo.cshtml")
+
+        </div>
+    </div>
+
+
+
+    <div class="tabs_container_record">
+        <!-- Tab panes -->
+        <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item onetab">
+                <a id="link_tab1" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab1">@_f.tra("Překlady do fakturačních jazyků")</a>
+            </li>
+            <li class="nav-item onetab">
+                <a id="link_tab2" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab2">@_f.tra("Výchozí text pro vykazování")</a>
+            </li>
+            <li class="nav-item onetab">
+                <a id="link_tab3" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab3">@_f.tra("Docházka a nepřítomnost")</a>
+            </li>
+            <li class="nav-item onetab">
+                <a id="link_tab4" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab4">@_f.tra("Ostatní")</a>
+            </li>
+            <li class="nav-item onetab">
+                <a id="link_tab5" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab5">@_f.tra("Nápověda")</a>
+            </li>
+        </ul>
+    </div>
+
+
+    <div class="tab-content">
+        <div class="tab-pane" id="tab1" role="tabpanel">
+            <div class="row">
+                <label class="col-sm-1 col-md-2 col-form-label">@(_f.Lic.x01BillingLang1):</label>
+                <div class="col-sm-11 col-md-10">
+                    <input class="form-control" asp-for="Rec.p32Name_BillingLang1" />
+
+                </div>
+
+            </div>
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@(_f.Lic.x01BillingLang2):</label>
+                <div class="col-sm-11 col-md-10">
+                    <input class="form-control" asp-for="Rec.p32Name_BillingLang2" />
+
+                </div>
+
+            </div>
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@(_f.Lic.x01BillingLang3):</label>
+                <div class="col-sm-11 col-md-10">
+                    <input class="form-control" asp-for="Rec.p32Name_BillingLang3" />
+
+                </div>
+
+            </div>
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@(_f.Lic.x01BillingLang4):</label>
+                <div class="col-sm-11 col-md-10">
+                    <input class="form-control" asp-for="Rec.p32Name_BillingLang4" />
+
+                </div>
+
+            </div>
+        </div>
+        <div class="tab-pane" id="tab2" role="tabpanel">
+            <div class="row">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Výchozí text úkonu"):</label>
+                <div class="col-sm-11 col-md-10">
+                    <textarea class="form-control" asp-for="Rec.p32DefaultWorksheetText"></textarea>
+                </div>
+
+            </div>
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@(_f.Lic.x01BillingLang1):</label>
+                <div class="col-sm-11 col-md-10">
+                    <textarea class="form-control" asp-for="Rec.p32DefaultWorksheetText_Lang1"></textarea>
+                </div>
+
+            </div>
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@(_f.Lic.x01BillingLang2):</label>
+                <div class="col-sm-11 col-md-10">
+                    <textarea class="form-control" asp-for="Rec.p32DefaultWorksheetText_Lang2"></textarea>
+
+                </div>
+
+            </div>
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@(_f.Lic.x01BillingLang3):</label>
+                <div class="col-sm-11 col-md-10">
+                    <textarea class="form-control" asp-for="Rec.p32DefaultWorksheetText_Lang3"></textarea>
+
+                </div>
+
+            </div>
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@(_f.Lic.x01BillingLang4):</label>
+                <div class="col-sm-11 col-md-10">
+                    <textarea class="form-control" asp-for="Rec.p32DefaultWorksheetText_Lang4"></textarea>
+
+                </div>
+
+            </div>
+        </div>
+
+        <div class="tab-pane" id="tab3" role="tabpanel">
+
+
+            <div class="row my-2">
+                <label class="col-sm-2 col-md-3 col-form-label">@_f.tra("Druh nepřítomnosti"):</label>
+                <div class="col-sm-10 col-md-9">
+                    <select class="form-select" asp-for="@Model.Rec.p32AbsenceFlag">
+                        <option value="_None"></option>                        
+                        <option value="Nemoc">@_f.tra("Nemoc")</option>
+                        <option value="Dovolena">@_f.tra("Dovolená")</option>
+                        <option value="Ocr">Ošetřování člena rodiny (OČR)</option>                        
+                        <option value="SickDay">SickDay</option>
+                        <option value="Paragraf">Lékař</option>
+                        <option value="Obed">@_f.tra("Oběd")</option>
+                        <option value="RodicovskaDovolena">Rodičovská dovolená</option>
+                        <option value="DarovaniKrve">Darování krve</option>
+                        <option value="NahradniVolnoZaPrescas">Náhradní volno za přesčas</option>
+                        <option value="NeplaceneVolno">Neplacené volno</option>
+                        <option value="Svatek">Svátek</option>
+                        <option value="VojenskeCviceni">Vojenské cvičení</option>
+                        <option value="MaterskaDovolena">Mateřská dovolená</option>
+                        <option value="Other">@_f.tra("Ostatní nepřítomnost nebo přestávka")</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row my-2">
+                <label class="col-sm-2 col-md-3 col-form-label">@_f.tra("Jedná se o přestávku v docházce"):</label>
+                <div class="col-sm-10 col-md-9">
+                    <select class="form-select" asp-for="@Model.Rec.p32AbsenceBreakFlag">
+                        <option value="_None"></option>
+                        <option value="WorkBreak">@_f.tra("Přestávka v práci")</option>
+                        <option value="SafetyBreak">@_f.tra("Bezpečnostní přestávka")</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    Předvyplněný projekt
+                </div>
+                <div class="card-body">
+                    @Html.EditorFor(m => m.ProjectCombo, "~/Views/Shared/_ProjectCombo.cshtml")
+                </div>
+            </div>
+
+        </div>
+
+        <div class="tab-pane" id="tab4" role="tabpanel">
+
+            <input type="radio" id="p32ManualFeeFlag0" asp-for="@Model.Rec.p32ManualFeeFlag" value="0" onchange="_postback()">
+            <label for="p32ManualFeeFlag0">@_f.tra("Honorář časového úkonu počítá systém automaticky násobkem hodin a fakturační hodinové sazby")</label>
+            <br />
+            <input type="radio" id="p32ManualFeeFlag1" asp-for="@Model.Rec.p32ManualFeeFlag" value="1" onchange="_postback()">
+            <label for="p32ManualFeeFlag1">@_f.tra("Výši honoráře zadává uživatel ručně ve formuláři časového úkonu jako [Pevný honorář]")</label>
+            <br />
+            @if (Model.Rec.p32ManualFeeFlag == 1)
+            {
+                <div class="row my-2">
+                    <label class="col-sm-2 col-md-2 col-form-label">@_f.tra("Výchozí hodnota pevného honoráře"):</label>
+                    <div class="col-sm-4 col-md-4">
+                        <mynumber asp-for="Rec.p32ManualFeeDefAmount" decimal-digits="2"></mynumber>
+                    </div>
+                </div>
+            }
+            <div class="my-2">
+                <input type="checkbox" asp-for="Rec.p32IsCP" />
+                <label class="col-form-label" for="Rec_p32IsCP">@_f.tra("Při vykazování zadávat informace o poštovní zásilce")</label>
+
+            </div>
+
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Interní kód"):</label>
+                <div class="col-sm-3 col-md-3">
+                    <input class="form-control record_code" asp-for="Rec.p32Code" />
+                </div>
+            </div>
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Externí kód"):</label>
+                <div class="col-sm-3 col-md-3">
+                    <input class="form-control" asp-for="Rec.p32ExternalCode" />
+                </div>
+            </div>
+
+        </div>
+        
+        <div class="tab-pane" id="tab5" role="tabpanel">
+            <p></p>
+            <textarea class="form-control" asp-for="Rec.p32HelpText" placeholder="Text uživatelské nápovědy/metodiky"></textarea>
+        </div>
+    </div>
+</div>
+
+
+
+<myglobalparams prefix="p32" pid="@Model.rec_pid"></myglobalparams>
+
+
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+
+
+
+    });
+
+
+    function change_p34id(p34id) {
+        _postback();
+    }
+
+
+
+
+</script>

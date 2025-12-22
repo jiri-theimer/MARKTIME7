@@ -1,0 +1,525 @@
+﻿@model UI.Models.Tab1.p91Tab1
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+    if (Model.Rec == null) return;
+
+    bool _bolIsMobile = _f.CurrentUser.IsMobileDisplay();
+    string _strRecPage = "RecPage";
+    if (_bolIsMobile)
+    {
+        _strRecPage = "RecPageMobile";
+    }
+
+    IEnumerable<BO.b05Workflow_History> _lisB05 = _f.WorkflowBL.GetList_b05("p91", Model.pid, 0, 0, 0).Where(p => BO.Code.Bas.bit_compare_or(p.b05Tab1Flag, 2) == true);
+
+    IEnumerable<BO.p84Upominka> _lisP84 = null;
+    BO.p83UpominkaType _recP83 = null;
+
+    if (!Model.Rec.p91IsDraft)
+    {
+        _lisP84 = _f.p84UpominkaBL.GetList(new BO.myQueryP84() { p91id = Model.pid });
+        if (_lisP84.Count() > 0 && Model.Rec.p83ID > 0)
+        {
+            _recP83 = _f.p83UpominkaTypeBL.Load(Model.Rec.p83ID);
+        }
+    }
+
+    var _lisP91 = _f.p91InvoiceBL.GetList(new BO.myQueryP91() { p28id = Model.Rec.p28ID }).Where(p => p.p28ID != 0);
+
+
+    BO.TaggingHelper _tg = null;
+    if (Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.tags))
+    {
+        _tg = _f.o51TagBL.GetTagging("p91", Model.pid);
+    }
+    
+    var _lisP41 = _f.p41ProjectBL.GetList(new BO.myQueryP41("p41"){IsRecordValid=null, p91id=Model.pid});
+
+}
+
+@addTagHelper *, UI
+
+<script src="~/js/rejstriky.js" asp-append-version="true"></script>
+
+
+
+<div class="input-group">
+    <div style="margin-right:40px;">
+        @Html.EditorFor(m => m, "~/Views/Shared/_p91Tab1Buttons.cshtml")
+    </div>
+
+
+</div>
+
+@await Html.PartialAsync("~/Views/Shared/_Tab1ButtonSetting.cshtml", Model.prefix)
+
+@Html.Raw("<div class='info_record_container'>")
+
+
+@if (Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.recheader))
+{
+    <div class="card recpagebox400" id="divRecPageBox1">
+        <div class="card-body">
+            @await Html.PartialAsync("~/Views/Shared/_p91RecHeaderBox.cshtml", Model.Rec)
+
+            @await Html.PartialAsync("~/Views/Shared/_FreeFieldsRO.cshtml", Model.ff1)
+
+            @if (_tg != null && _tg.TagHtml != null)
+            {
+                @Html.Raw(_tg.TagHtml)
+
+
+            }
+
+            @Html.EditorFor(m => m.Rec, "~/Views/Shared/_TimeStamp.cshtml")
+        </div>
+    </div>
+    <div id="divRecCastkyBox1" class="card recpageboxauto">
+        <div class="card-body">
+            @await Html.PartialAsync("~/Views/Shared/_p91RecCastkyBox.cshtml", Model.Rec)
+            @if (_lisP84 != null && _lisP84.Count() > 0)
+            {
+                <table>
+                    @foreach (var c in _lisP84)
+                    {
+                        <tr style="vertical-align:top;" title="Upomínka #@(c.p84Index): @BO.Code.Bas.ObjectDate2String(c.p84Date)">
+                            <td>
+                                <myicon symbol="gavel"></myicon>
+                            </td>
+                            <td class="td2" style="width:20px;"><a class="cm" onclick="_cm(event, 'p84', @(c.pid),'grid',null)">&#9776;</a></td>
+                            <td>
+                                <i>
+                                    @(BO.Code.Bas.OM2(c.p84Name, 20))
+                                </i>
+                            </td>
+
+
+                            <td>
+                                @if (c.j61ID_Index1 > 0 && c.p84Index == 1)
+                                {
+                                    <button type="button" class="btn btn-sm bog" onclick="p84sendmail(@(c.j61ID_Index1),@c.pid)"><span class="material-icons-outlined-btn">alternate_email</span></button>
+                                }
+                                @if (c.j61ID_Index2 > 0 && c.p84Index == 2)
+                                {
+                                    <button type="button" class="btn btn-sm bog" onclick="p84sendmail(@(c.j61ID_Index2),@c.pid)"><span class="material-icons-outlined-btn">alternate_email</span></button>
+                                }
+                                @if (c.j61ID_Index3 > 0 && c.p84Index == 3)
+                                {
+                                    <button type="button" class="btn btn-sm bog" onclick="p84sendmail(@(c.j61ID_Index3),@c.pid)"><span class="material-icons-outlined-btn">alternate_email</span></button>
+                                }
+                            </td>
+                            <td>
+                                @if (c.x31ID_Index1 > 0 && c.p84Index == 1)
+                                {
+                                    <button type="button" class="btn btn-sm bog" onclick="p91report(@(c.x31ID_Index1),@c.p91ID)"><span class="material-icons-outlined-btn">print</span></button>
+                                }
+                                @if (c.x31ID_Index2 > 0 && c.p84Index == 2)
+                                {
+                                    <button type="button" class="btn btn-sm bog" onclick="p91report(@(c.x31ID_Index2),@c.p91ID)"><span class="material-icons-outlined-btn">print</span></button>
+                                }
+                                @if (c.x31ID_Index3 > 0 && c.p84Index == 3)
+                                {
+                                    <button type="button" class="btn btn-sm bog" onclick="p91report(@(c.x31ID_Index3),@c.p91ID)"><span class="material-icons-outlined-btn">print</span></button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </table>
+            }
+            @if (_lisP84 != null)
+            {
+                @if (!Model.Rec.p91IsDraft && DateTime.Today > Model.Rec.p91DateMaturity && Model.Rec.p91Amount_Debt > 1 && _lisP84.Count() == 0)
+                {
+                    <myicon symbol="gavel" color="red"></myicon>
+                    <a href="javascript:_window_open('/p84/Create?p91ids=@(Model.Rec.pid)')">@_f.tra("Vygenerovat upomínku #1")!</a>
+                }
+                @if (_recP83 != null && !Model.Rec.p91IsDraft && Model.Rec.p91Amount_Debt > 1 && _lisP84.Count() > 0 && _lisP84.Max(p => p.p84Index) == 1 && (DateTime.Today - _lisP84.Last().p84Date).Days >= _recP83.p83Days_Index2)
+                {
+                    <myicon symbol="gavel" color="red"></myicon>
+                    <a href="javascript:_window_open('/p84/Create?p91ids=@(Model.Rec.pid)')">@_f.tra("Vygenerovat upomínku #2")!</a>
+                }
+                @if (_recP83 != null && !Model.Rec.p91IsDraft && Model.Rec.p91Amount_Debt > 1 && _lisP84.Count() > 0 && _lisP84.Max(p => p.p84Index) == 2 && (DateTime.Today - _lisP84.Last().p84Date).Days >= _recP83.p83Days_Index3)
+                {
+                    <myicon symbol="gavel" color="red"></myicon>
+                    <a href="javascript:_window_open('/p84/Create?p91ids=@(Model.Rec.pid)')">@_f.tra("Vygenerovat upomínku #3")!</a>
+                }
+            }
+
+        </div>
+    </div>
+
+
+
+}
+
+
+
+
+@if (Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.p91clientbox))
+{
+    <div id="divTree1Container" style="float: left;vertical-align: top;border:none;margin-left:4px;margin-top:4px;">
+
+        <ul class="mytreeview">
+            <li>
+                <a class="mytreeview-toggle-kontejner" onclick="_treeview_toggle(this,'tab1-p91-toggle-rozpis')">
+                    <span class="material-icons-outlined-btn mytreeview-toggle-sipka">@(UI.Code.basKendoTreeViewSupport.Get_Arrow_LastState(_f, "tab1-p91-toggle-rozpis", "expanded"))</span>
+                    <span class="material-icons-outlined-btn">list</span>
+                    <span>@_f.tra("Cenový rozpis faktury")</span>
+
+                </a>
+
+                <ul style="display:@(UI.Code.basKendoTreeViewSupport.Get_UL_LastState(_f,"tab1-p91-toggle-rozpis","expanded"))">
+                    <li>
+                        <div style="max-width:500px;">
+                            @await Html.PartialAsync("~/Views/Shared/_p91CenovyRozpis.cshtml", Model.Rec.pid)
+                        </div>
+                    </li>
+                    
+                    
+                </ul>
+            </li>
+        </ul>
+
+        <ul class="mytreeview">
+            <li>
+                <a class="mytreeview-toggle-kontejner" onclick="_treeview_toggle(this,'tab1-p91-toggle-p28')">
+                    <span class="material-icons-outlined-btn mytreeview-toggle-sipka">@(UI.Code.basKendoTreeViewSupport.Get_Arrow_LastState(_f, "tab1-p91-toggle-p28", "collapsed"))</span>
+                    <span class="material-icons-outlined-btn">contacts</span>                    
+                    <span>@_f.tra("Klient faktury")</span>
+
+                </a>
+
+                <ul style="display:@(UI.Code.basKendoTreeViewSupport.Get_UL_LastState(_f,"tab1-p91-toggle-p28","collapsed"))">
+                    <li>
+                        
+
+                        <table class="table-hover table">
+                            <tr>
+                                <td colspan="2">
+                                    <myval value="@Model.Rec.p91Client" hoverprefix="p28" hoverpid="@Model.Rec.p28ID"></myval>
+                                </td>
+                            </tr>
+                            
+                            <tr>
+                                <td colspan="2">
+                                    <small>@(BO.Code.Bas.OM2(Model.Rec.PrimaryAddress, 40))</small>
+
+                                </td>
+
+                            </tr>
+                            <tr>
+                                <td>
+                                    @_f.tra("IČO"):
+                                </td>
+
+                                <td class="rowvalhover tdval">
+                                    @Model.Rec.p91Client_RegID
+
+                                    @if (Model.Rec.p28CountryCode == "SK")
+                                    {
+                                        <a class="valhover_tooltip" href="javascript:_rejstrik_obchodny_register('hidICO')">obchodný register</a>
+                                    }
+                                    else
+                                    {
+                                        <a class="valhover_tooltip" href="javascript: _rejstrik_justice('hidICO')">justice</a>
+                                        <a class="valhover_tooltip" href="javascript: _rejstrik_aresinfo('hidICO')">ares</a>
+                                        <a class="valhover_tooltip" href="javascript: _rejstrik_insolvence('hidICO')">insolvence</a>
+                                    }
+
+                                    <input type="hidden" id="hidICO" value="@Model.Rec.p91Client_RegID" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    DIČ:
+                                </td>
+                                <td class="tdval">
+                                    @Model.Rec.p91Client_VatID
+                                </td>
+                            </tr>
+                            @if (Model.Rec.p91Client_ICDPH_SK != null)
+                            {
+                                <tr>
+                                    <td>
+                                        IČ DPH:
+                                    </td>
+                                    <td class="tdval">
+                                        @Model.Rec.p91Client_ICDPH_SK
+                                    </td>
+                                </tr>
+
+                            }
+
+
+                        </table>
+                    </li>
+                </ul>
+
+            </li>
+        </ul>
+        
+
+        @if (_lisP41.Count() > 0)
+        {
+            <ul class="mytreeview">
+                <li>
+                    <a class="mytreeview-toggle-kontejner" onclick="_treeview_toggle(this,'tab1-p91-toggle-p41')">
+                        <span class="material-icons-outlined-btn mytreeview-toggle-sipka">@(UI.Code.basKendoTreeViewSupport.Get_Arrow_LastState(_f, "tab1-p91-toggle-p41", "collapsed"))</span>
+                        <span class="material-icons-outlined-btn">work_outline</span>
+                        <span>@_f.tra("Projekty") (@(_lisP41.Count()))</span>
+
+                    </a>
+
+                    <ul style="display:@(UI.Code.basKendoTreeViewSupport.Get_UL_LastState(_f,"tab1-p91-toggle-p41","collapsed"))">
+                        <li>
+                            <table class="table-sm table-hover table">
+                                @foreach (var c in _lisP41)
+                                {
+                                    <tr>
+                                        <td>
+                                            
+                                            <myval datatype="link" value="@c.p41Name" valueafter="@c.p41Code" hoverprefix="p41" linktarget="_top" hoverpid="@c.pid" linkurl="/Record/@(_strRecPage)?prefix=p41&pid=@c.pid"></myval>
+                                        </td>
+                                        
+                                    </tr>
+                                }
+                            </table>
+                        </li>
+
+                    </ul>
+
+                </li>
+            </ul>
+
+        }
+
+        @if (_lisP91.Count() > 0)
+        {
+            <ul class="mytreeview">
+                <li>
+                    <a class="mytreeview-toggle-kontejner" onclick="_treeview_toggle(this,'tab1-p91-toggle-p91list')">
+                        <span class="material-icons-outlined-btn mytreeview-toggle-sipka">@(UI.Code.basKendoTreeViewSupport.Get_Arrow_LastState(_f, "tab1-p91-toggle-p91list", "collapsed"))</span>
+                        <span class="material-icons-outlined-btn">folder</span>
+                        <span>@_f.tra("Faktury klienta") (@(_lisP91.Count()))</span>
+
+                    </a>
+
+                    <ul style="display:@(UI.Code.basKendoTreeViewSupport.Get_UL_LastState(_f,"tab1-p91-toggle-p91list","collapsed"))">
+                        <li>
+                            <table class="table-sm table-hover table">
+
+                                @foreach (var c in _lisP91)
+                                {
+                                    <tr>
+                                      
+                                        <td title="Splatnost: @c.p91DateMaturity.ToString("dd.MM.yyyy ddd"), @(c.p92Name)" style="width:80px;@(c.p91Amount_Debt>1 && DateTime.Today>c.p91DateMaturity && !c.p91IsDraft ? "background-color:red;" : "")">
+                                            <a id="p91@(c.pid)" class="treeview-link" href="/Record/@(_strRecPage)?prefix=p91&pid=@c.pid" target="_top">
+                                                @c.p91Code
+                                            </a>
+
+                                        </td>
+                                        <td class="tddatum">
+                                            @c.p91DateSupply.ToString("dd.MM.yyyy")
+                                        </td>
+                                        <td class="tdnum tdcastka">
+                                            @BO.Code.Bas.Number2String(c.p91Amount_TotalDue)
+                                            @c.j27Code
+                                        </td>
+                                        
+
+                                    </tr>
+                                }
+                            </table>
+                        </li>
+
+                    </ul>
+
+                </li>
+            </ul>
+
+        }
+
+
+
+    </div>
+
+
+    
+}
+
+<div id="divClearBothForMasterView" style="clear:both;"></div>
+
+
+
+@if (Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.quickstat))
+{
+    <div id="divTabStat" class="recpagebox400">
+        @await Html.PartialAsync("~/Views/Shared/_p91TabStat.cshtml", Model.Rec)
+    </div>
+}
+
+
+
+
+
+
+
+
+
+
+@if (Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.o27list))
+{
+    @Html.EditorFor(m => m, "~/Views/Shared/_lisO27Tab1.cshtml")
+}
+
+@Html.Raw("</div>")
+
+
+
+
+@if (_lisB05.Count() > 0)
+{
+    @await Html.PartialAsync("~/Views/Shared/_lisB05.cshtml", _lisB05)
+}
+@if (_lisP41.Any(p => p.p28BillingMemo200 != null) || _lisP41.Any(p => p.p41BillingMemo200 != null))
+{
+    <table class="table-sm table-hover table">
+        @foreach (var c in _lisP41.Where(p => p.p28BillingMemo200 != null))
+        {
+            <tr style="background-color:#DFFFE9;">
+                <td>
+                    @Html.Raw(_f.p28ContactBL.LoadBillingMemo(c.p28ID_Client))
+                </td>
+            </tr>
+        }
+        @foreach (var c in _lisP41.Where(p => p.p41BillingMemo200 != null))
+        {
+            <tr style="background-color:#DFFFE9;">
+                <td>
+                    @Html.Raw(_f.p41ProjectBL.LoadBillingMemo(c.pid))
+                </td>
+            </tr>
+        }
+    </table>    
+    
+}
+@if (!_lisP41.Any(p => p.p28ID_Client==Model.Rec.p28ID))
+{
+    var recP28 = _f.p28ContactBL.Load(Model.Rec.p28ID);
+    if (recP28.p28BillingMemo200 != null)
+    {
+        <table class="table-sm table-hover table">
+            <tr style="background-color:#DFFFE9;">
+                <td>
+                    @Html.Raw(_f.p28ContactBL.LoadBillingMemo(recP28.pid))
+                </td>
+            </tr>
+        </table>
+    }
+}
+
+
+<script type="text/javascript">
+    
+    if (parent.window.location.href.indexOf("MasterView") > 0) {
+
+        $("#divTabStat").css("width", "auto");
+        $("#divClearBothForMasterView").css("display", "none");
+
+        if (document.getElementById("divTree1Container")) {
+            _adjust_divheight_small_display("divTree1Container");
+        }
+        if (document.getElementById("divRecPageBox1")) {
+            _adjust_divheight_small_display("divRecPageBox1");
+        }
+
+        if (document.getElementById("divRecCastkyBox1")) {
+            _adjust_divheight_small_display("divRecCastkyBox1");
+        }
+    }
+
+    
+
+    if (window.parent.window.location.href != undefined) {
+        if (window.parent.window.location.href.indexOf("RecPage") > 0) {
+            $("#cmdRecPage").css("display", "none");
+            $("#cmdCM").css("display", "none");
+        }
+    }
+
+    if (document.getElementById("divTree1Container")) {
+        
+
+        $("#p91@(Model.pid)").addClass("active");
+
+        $("#divTree1Container").animate(
+            {
+                scrollTop: $("#p91@(Model.pid)").offset().top - $("#divTree1Container").offset().top,
+            },
+            250
+        );
+    }
+
+    
+
+    
+
+
+
+    $("#trICO").html("");
+    $("#trDIC").html("");
+    $("#trAdresa").html("");
+
+    function recpage_p94(p91id) {
+        _window_open("/p91oper/p94?p91id=" + p91id);
+    }
+    function recpage_exupdate(p91id) {
+        _window_open("/p91oper/exupdate?p91id=" + p91id);
+    }
+
+    function converfromdraft(p91id) {
+        $.post(_ep("/p91oper/converfromdraft"), { p91id: p91id }, function (data) {
+            if (data == "0") {
+                alert("Error");
+            }
+            //location.reload(location.href);
+            var strHref = window.parent.location.href;
+            window.parent.location.reload(strHref);
+
+        });
+    }
+
+    function p91report(x31id, p91id) {
+        _window_open("/ReportsClient/ReportContext?prefix=p91&pid=" + p91id + "&x31id=" + x31id);
+    }
+    function p91merge(x31id, p91id, x31id_direct_merge1) {
+        _window_open("/ReportsClient/ReportContext?prefix=p91&pid=" + p91id + "&x31id=" + x31id + "&x31id_direct_merge1=" + x31id_direct_merge1);
+    }
+    function p91pdfpreview(p91id) {
+        _window_open("/p91/PdfPreview?pid=" + p91id);
+    }
+    function p91sendmail(p91id) {
+        _window_open("/Mail/SendMail?record_entity=p91&record_pid=" + p91id);
+    }
+    function p84sendmail(j61id, p84id) {
+        _window_open("/Mail/SendMail?record_entity=p84&record_pid=" + p84id + "&j61id=" + j61id);
+    }
+
+    function chkOstatniFaktury_Change(chk) {
+        var b = $(chk).prop("checked");
+
+        var key = "p91RecKlientBox-show-p91list";
+
+        $.post("/Common/SetUserParam", { key: key, value: b }, function (data) {
+            location.replace(location.href);
+        });
+    }
+</script>
+
+
+
+
+

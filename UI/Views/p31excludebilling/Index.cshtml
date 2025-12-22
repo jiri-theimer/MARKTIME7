@@ -1,0 +1,82 @@
+﻿@model UI.Models.p31oper.p31ExcludeBillingViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    if (Model.p31ExcludeBillingFlag == 1)
+    {
+        Model.PageTitle = _f.tra("Úkony změnit na [Vyloučené z vyúčtování]");
+    }
+    else
+    {
+        Model.PageTitle = _f.tra("Úkony změnit na [Rozpracované]");
+    }
+
+    Model.PageSymbol = "delete_sweep";
+
+}
+
+@addTagHelper *, UI
+
+
+<div class="bg-light" style="padding:10px;">
+    <button id="cmdSave" class="btn btn-success" onclick="_submit()">@(Model.PageTitle)</button>
+    <button id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+</div>
+
+
+
+<form id="form1" asp-controller="p31excludebilling" asp-action="Index" method="POST">
+
+    <input type="hidden" asp-for="pids" />
+    <input type="hidden" asp-for="prefix" />
+    
+   
+
+    <div style="margin:10px;">
+        <table>
+            <tr>
+                
+                <td>
+                    <input type="radio" id="opg1" asp-for="p31ExcludeBillingFlag" value="1" onchange="_postback('refresh')">
+                    <label for="opg1">@_f.tra("Zobrazit rozpracované úkony")</label>
+                    <p></p>
+                    <input type="radio" id="opg0" asp-for="p31ExcludeBillingFlag" value="0" onchange="_postback('refresh')">
+                    <label for="opg0">@_f.tra("Zobrazit úkony vyloučené z vyúčtování")</label>
+                </td>
+                @if(Model.prefix != "p31")
+                {
+                    <td>
+                        @await Component.InvokeAsync("myPeriod",Model.periodinput)
+                    </td>
+                }
+                
+                <td>
+                    <input type="checkbox" asp-for="IsOnlyHours" onchange="_postback('refresh')" />
+                    <label class="col-form-label" for="IsOnlyHours">@_f.tra("Odfiltrovat pouze hodiny")</label>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    
+
+</form>
+
+@await Component.InvokeAsync("myGrid",Model.gridinput)
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+
+
+
+    })
+
+   
+
+</script>
+

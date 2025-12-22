@@ -1,0 +1,48 @@
+﻿@model UI.Models.BaseViewModel
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+
+
+    string _barcode = ViewBag.value;
+}
+
+@addTagHelper *, UI
+
+
+<script src="/lib/barcode/JsBarcode.code128.min.js"></script>
+
+
+@Html.Raw("<div class='info_record_container'>")
+
+
+<svg id="barcode_preview"></svg>
+
+<code id="infoMessage"></code>
+@Html.Raw("</div>")
+
+
+<script type="text/javascript">
+    var s = "@(_barcode)";
+
+    if (s != remove_non_ascii_chars(s))
+    {
+        $("#infoMessage").text("Kód obsahuje znaky, které nelze zobrazit průmyslovým standardem EAN128.");
+    }else
+    {
+        JsBarcode("#barcode_preview", s, { displayValue: true, height: 30 });
+    }
+    
+
+
+    
+
+    function remove_non_ascii_chars(s) {        
+        s = s.replace(/[^\x00-\x7F]/g, "");
+
+        return s;
+    }
+
+</script>

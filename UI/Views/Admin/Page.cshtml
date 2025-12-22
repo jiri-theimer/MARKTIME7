@@ -1,0 +1,263 @@
+﻿@model UI.Models.Admin.AdminPage
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Administrace");
+    string _MenuTitle = Model.PageTitle;
+    if (!string.IsNullOrEmpty(Model.entityTitle))
+    {
+        Model.PageTitle += ": " + Model.entityTitle;
+        _MenuTitle = Model.entityTitle;
+    }
+    Layout = _f.CurrentUser.GetLayoutPerDisplay();
+    bool _isMobile = _f.CurrentUser.IsMobileDisplay();
+
+}
+
+@addTagHelper *, UI
+
+@section header_content{
+
+
+}
+
+
+<div class="input-group">
+    <div id="layout_sidebar_contextmenu" style="width:230px !important">
+        <button type="button" id="cmdShowHideTreeMenu" class="btn bog" onclick="show_hide_tree_menu()" style="display:none;">☰MENU</button>
+        
+    </div>
+
+    <ul class="nav nav-tabs">
+        <li class="onetab">
+            
+            <a id="cmdMore" class="nav-link onetab-offcanvas" tabindex="-1" role="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvas_more">
+
+                @{
+                    @Html.Raw(@Model.entityTitle)
+                    <span id="TheGridRows" class="badge bg-primary"></span>
+                }
+                <span class="onetab-caret">▼</span>
+            </a>
+
+        </li>
+    </ul>
+
+    @if (_isMobile)
+    {
+        <myshowmore></myshowmore>
+        <div class="showmore">
+            @Html.EditorFor(m => Model.PageTitle, "~/Views/Shared/_ButtonGridDesigner.cshtml")
+        </div>
+        
+        <div class="showmore">
+            @Html.EditorFor(m => Model.PageTitle,"~/Views/Shared/_ButtonGridSelMenu.cshtml")
+        </div>
+        
+
+        @if (Model.recordbinquery != null)
+        {
+            <div class="showmore">
+                @Html.EditorFor(m => Model.recordbinquery,"~/Views/Shared/_RecordBinQuery.cshtml")
+            </div>
+            
+        }
+
+
+
+        <div class="showmore">
+            <a class="btn descreet_link_over_grid nonmobile" href="/Admin/Page?area=@(Model.area)&prefix=@(Model.prefix)" title="@_f.tra("Občerstvit")"><span class="material-icons-outlined-btn">refresh</span></a>
+        </div>
+    }
+    else
+    {
+        @Html.EditorFor(m => Model.PageTitle, "~/Views/Shared/_ButtonGridDesigner.cshtml")
+
+        @Html.EditorFor(m => Model.PageTitle,"~/Views/Shared/_ButtonGridSelMenu.cshtml")
+
+        @if (Model.recordbinquery != null)
+        {
+            @Html.EditorFor(m => Model.recordbinquery,"~/Views/Shared/_RecordBinQuery.cshtml")
+        }
+
+
+
+        <div>
+            <a class="btn descreet_link_over_grid nonmobile" href="/Admin/Page?area=@(Model.area)&prefix=@(Model.prefix)" title="@_f.tra("Občerstvit")"><span class="material-icons-outlined-btn">refresh</span></a>
+        </div>
+    }
+
+    
+
+    @if (Model.prefix != "j92" && Model.prefix != "j90" && Model.prefix != "j93" && Model.prefix != "x40" && Model.prefix != "o24")
+    {
+        <div>
+            <button id="cmdCreate" type="button" class="btn descreet_link_over_grid" title="@_f.tra("Nový záznam")"><span class="material-icons-outlined-btn">add_circle_outline</span>@(_f.tra("Nový"))</button>
+        </div>
+    }
+
+    @if (Model.prefix == "m62")
+    {
+        <div class="ml-2">
+            <button type="button" class="btn bog" onclick="_window_open('/m62/Settings',1)">@_f.tra("Import kurzů z ČNB")</button>
+        </div>
+    }
+
+    
+
+</div>
+
+<div id="layout_sidebar" style="overflow:auto;width:230px !important;@(!_isMobile ? "top: 40px;": null)">
+    @await Html.PartialAsync("~/Views/Shared/_TreeAdminMenu.cshtml", Model)
+</div>
+
+
+
+<div id="layout_main" style="margin-left:230px !important;">
+
+    @if (Model.entity != null)
+    {
+        @await Component.InvokeAsync("myGrid",Model.gridinput)
+    }
+    else
+    {
+        <h4 style="margin:20px;">@Model.PageTitle</h4>
+    }
+
+
+
+
+</div>
+
+
+<div class="offcanvas offcanvas-start" tabindex="-1" data-bs-scroll="true" data-bs-backdrop="true" data-bs-keyboard="true" id="offcanvas_more">
+
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title">
+            <a href="/Admin/Page?area=@(Model.area)&prefix=@(Model.prefix)" title="Občerstvit">
+                <myicon symbol="refresh"></myicon>
+            </a>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+
+    <div class="offcanvas-body p-0 m-0" id="offcanvas_more_body">
+    </div>
+</div>
+
+
+
+<script type="text/javascript">
+    let _offcanvasIsLoaded = false;
+    var _prefix = "@(Model.prefix)";
+    var _area = "@(Model.area)";
+    var _local_ismobile = "@(_isMobile)";
+    if (_device.isMobile) {
+        _local_ismobile = "True";
+    }
+    $(document.body).css("overflow", "hidden");
+
+    $(document).ready(function () {
+
+        $("#offcanvas_more").on("show.bs.offcanvas", function () {
+            if (_offcanvasIsLoaded)
+            {
+                RefreshExportAccording();   //js var _GridExport.cshtml
+                return;
+            }
+
+            _offcanvasIsLoaded = true;
+
+            render_menu("cmdMore","offcanvas_more_body","/Menu/grid_extension?prefix=" + _prefix);
+
+
+
+        });
+
+        $("#cmdCreate").click(function () {
+            var url = "/" + _prefix + "/Record?pid=0";
+            if (_prefix == "x67" || _prefix == "x28" || _prefix == "j61") {
+                if (_area == "billing") url = url + "&prefix=p91";
+                if (_area == "contacts") url = url + "&prefix=p28";
+                if (_area == "projects") url = url + "&prefix=p41";
+                if (_area == "users") url = url + "&prefix=j02";
+                if (_area == "worksheet") url = url + "&prefix=p31";
+                if (_area == "proforma") url = url + "&prefix=p90";
+                if (_area == "docs") url = url + "&prefix=o23";
+                if (_area == "reps") url = url + "&prefix=x31";
+                if (_area == "tasks") {
+                    url = url + "&prefix=p56";
+                }
+                if (_area == "o22s") {
+                    url = url + "&prefix=o22";
+                }
+
+            }
+
+            var winflagsize = 1;
+
+            if (_prefix == "x04") {
+                winflagsize = 2;
+            }
+
+            _window_open(url, winflagsize, "@Model.entityTitle");
+        });
+
+
+        _mainmenu_highlight_current("cmdadmin", "cmdadmin" + _prefix + "_mylink");
+
+        
+
+        var offset = $("#layout_sidebar").offset();
+        var h_vertical = _device.innerHeight - offset.top;
+        h_vertical = parseInt(h_vertical) + 10;
+        $("#layout_sidebar").css("height", h_vertical + "px");
+
+        
+        if (_local_ismobile == "True") {
+            $("#layout_sidebar").css("display", "none");
+            $("#layout_main").css("margin-left", "0px");
+            $("#cmdShowHideTreeMenu").css("display", "block");
+
+        }
+
+    });
+
+
+    function change_grid(j72id) {
+        $.post("/Common/SetUserParam", { key: "Admin/@(Model.prefix)-j72id", value: j72id }, function (data) {
+
+            _redirect("/Admin/Page?area=@(Model.area)&prefix=@(Model.prefix)");
+
+        });
+    }
+
+    function handle_dblclick(row) {
+        var prefix = "@Model.prefix";
+        var pid = row.id.replace("r", "");
+
+        _edit(prefix, pid);
+    }
+
+    function show_hide_tree_menu() {
+        if ($("#layout_sidebar").css("display") == "none")
+        {
+            $("#layout_sidebar").css("display", "block");
+            $("#layout_main").css("margin-left", "230px");
+        } else {
+            $("#layout_main").css("margin-left", "0px");
+            $("#layout_sidebar").css("display", "none");
+        }
+        
+        tg_adjust_parts_width();
+        
+    }
+
+
+
+</script>
+
+
+
+
+

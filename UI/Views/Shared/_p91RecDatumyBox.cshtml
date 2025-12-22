@@ -1,0 +1,61 @@
+﻿@model BO.p91Invoice
+
+@inject BL.Factory _f
+
+@{
+
+
+    if (Model == null)
+    {
+        return;
+    }
+
+   
+
+}
+
+
+<table class="table table-hover">
+   
+    <tr>
+        <td class="tdlab">
+            @_f.tra("Datum vystavení"):
+        </td>
+        <td class="tdval tddatum">
+            @BO.Code.Bas.ObjectDate2String(Model.p91Date)
+        </td>
+    </tr>
+    <tr>
+        <td class="tdlab">
+            @_f.tra("Datum plnění"):
+        </td>
+        <td class="tdval tddatum">
+            @BO.Code.Bas.ObjectDate2String(Model.p91DateSupply)
+        </td>
+    </tr>
+    <tr>
+        <td class="tdlab">
+            @_f.tra("Datum splatnosti"):
+        </td>
+        <td class="tdval tddatum">
+            @BO.Code.Bas.ObjectDate2String(Model.p91DateMaturity)
+        </td>
+    </tr>
+   
+    @if (Model.p91DateExchange != null)
+    {
+        <tr>
+            <td class="tdlab">
+                @_f.tra("Měnový kurz"):
+            </td>
+            <td class="tdval tddatum">
+                @BO.Code.Bas.ObjectDate2String(Model.p91DateExchange)
+                
+                
+            </td>
+        </tr>
+
+
+        
+    }
+</table>

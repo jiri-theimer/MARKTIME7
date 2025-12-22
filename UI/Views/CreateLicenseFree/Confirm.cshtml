@@ -1,0 +1,46 @@
+﻿@model UI.Models.Guru.LicenseFreeConfirmViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = "Databáze založena.";
+
+    Layout = "~/Views/Shared/_LayoutAnonym.cshtml";
+
+    if (Model.RecX01 == null || Model.RecJ02==null)
+    {
+        return;
+    }
+}
+
+<div style="margin:auto;max-width:900px;">
+
+
+    <h4>Databáze založena.</h4>
+
+    <div class="alert alert-info" role="alert" style="max-width:800px;">
+
+        <p>
+            <span class="material-icons-outlined-btn" style="font-size:150%">info</span>
+            Potvrzujeme, že v čase <strong>@Model.RecX01.DateInsert</strong> došlo k založení nové databáze v systému MARKTIME.
+            
+        </p>
+        <p>
+            Název databáze: <strong>@(Model.RecX01.x01Name)</strong>
+        </p>
+        <p>
+            Uživatelské jméno: <input type="text" readonly value="@(Model.RecJ02.j02Login)"/>
+        </p>
+        <p>
+            Na e-mail adresu <strong>@Model.RecJ02.j02Email</strong> byla odeslána podrobnější zpráva o přihlášení do systému.
+        </p>
+        <p>
+            Přihlásit do systému se můžete přes jakýkoliv internet prohlížeč z PC/tabletu nebo mobilního telefonu.
+        </p>
+
+        <div style="margin-top:20px;">
+            <a href="/Login/UserLogin" class="btn btn-primary">Přihlásit se</a>
+        </div>
+
+    </div>
+
+</div>

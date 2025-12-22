@@ -1,0 +1,86 @@
+﻿@model BaseViewModel
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    Model.PageTitle = _f.tra("O aplikaci");
+}
+@addTagHelper *, UI
+
+
+
+
+<div class="modal_record_container">
+    <h4>@Model.PageTitle</h4>
+
+
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Verze"):</label>
+        <div class="col-sm-7 col-md-6">
+            <myval value="@_f.App.AppVersion"></myval>
+        </div>
+
+    </div>
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">Build:</label>
+        <div class="col-sm-7 col-md-6">
+            <myval value="@_f.App.AppBuild"></myval>
+
+        </div>
+
+    </div>
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("E-mail podpora"):</label>
+        <div class="col-sm-7 col-md-6">
+            <myval value="@("info@marktime.cz")" datatype="link" linkurl="mailto:info@marktime.cz"></myval>
+
+
+        </div>
+
+    </div>
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Telefon"):</label>
+        <div class="col-sm-7 col-md-6">
+            <myval value="@("+420 605 047 298")"></myval>
+
+        </div>
+
+    </div>
+
+
+    <div class="row my-2 my-4">
+        <i>
+            Za vývoj jádra systému odpovídá Jiří Theimer (Marktime Software s.r.o.)
+        </i>
+    </div>
+
+    
+
+    <div class="my-2">
+        <button class="btn bog" type="button" onclick="_news()"><span class="material-icons-outlined-btn">brand_awareness</span> @_f.tra("Novinky | Blog")</button>
+    </div>
+    
+    <img src="/images/logo_default.png" />
+</div>
+
+
+
+
+
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        _mainmenu_highlight_current("cmdme");
+
+
+    });
+    
+    
+  
+</script>

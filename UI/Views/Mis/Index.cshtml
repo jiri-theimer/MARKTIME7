@@ -1,0 +1,133 @@
+﻿@model UI.Models.Guru.MigrationViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = "Migrace dat";
+
+    Layout = "~/Views/Shared/_LayoutAnonym.cshtml";
+
+
+}
+
+
+<div style="margin:auto;max-width:900px;">
+
+    @if (Model.Message != null)
+    {
+        <div class="alert alert-danger" role="alert">
+            <h4>@Html.Raw(Model.Message)</h4>
+        </div>
+    }
+
+    <form id="form1" asp-controller="Mis" asp-action="Index" method="post">
+        
+        <h4>Migrace dat</h4>
+
+        <div class="row">
+            <label class="col-sm-1 col-md-2 col-form-label">Název zdrojové databáze:</label>
+            <div class="col-sm-5 col-md-4">
+                <input class="form-control" asp-for="SourceDbName" />
+            </div>
+
+        </div>
+
+
+        <div class="row">
+            <label class="col-sm-1 col-md-2 col-form-label">Název cílové databáze:</label>
+            <div class="col-sm-5 col-md-4">
+                <input class="form-control" asp-for="DestDbName" />
+            </div>
+
+        </div>
+
+        <div class="row">
+            <label class="col-sm-1 col-md-2 col-form-label">Cílové X01ID:</label>
+            <div class="col-sm-1 col-md-1">
+                <input class="form-control" asp-for="DestX01ID" />
+            </div>
+
+        </div>
+
+
+        <div class="row">
+            <label class="col-sm-1 col-md-2 col-form-label">Doména:</label>
+            <div class="col-sm-4 col-md-5">
+                <input class="form-control" asp-for="x01LoginDomain" />
+            </div>
+
+        </div>
+
+        <div class="row">
+            <label class="col-sm-1 col-md-2 col-form-label">Výchozí heslo:</label>
+            <div class="col-sm-4 col-md-5">
+                <input class="form-control" asp-for="DestPassword" />
+            </div>
+
+        </div>
+
+        <div class="row">
+            <label class="col-sm-1 col-md-2 col-form-label">Country code:</label>
+            <div class="col-sm-4 col-md-5">
+                <select asp-for="CountryCode">
+                    <option value="CZ">CZ</option>
+                    <option value="SK">SK</option>
+                </select>
+            </div>
+
+        </div>
+
+
+        <div class="row" style="margin-top:10px;">
+            <div class="col-auto">
+                <input type="submit" value="Vygenerovat skript" class="btn btn-default btn-success" />
+            </div>
+
+        </div>
+
+    </form>
+
+
+    
+
+    @if (Model.Errors != null)
+    {
+        <table class="table table-hover table-stripped">
+            @for (int i = 0; i < Model.Errors.Count(); i++)
+            {
+                <tr>
+                    <td style="width:60px;">
+                        #@(i + 1)
+                    </td>
+                    <td>
+                        @(Model.Errors[i])
+                    </td>
+                </tr>
+            }
+        </table>
+    }
+
+</div>
+
+
+
+<textarea asp-for="Vysledek" class="form-control" style="height:500px;overflow:scroll;"></textarea>
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+
+
+    });
+
+    function postback() {
+
+        form1.action = "/Mis/Index?oper=postback";
+        form1.submit();
+    }
+
+
+</script>

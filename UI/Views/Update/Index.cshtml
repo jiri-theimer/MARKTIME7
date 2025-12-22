@@ -1,0 +1,109 @@
+﻿@model UI.Models.UpdateViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = "Aktualizace verze";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+}
+@addTagHelper *, UI
+
+
+<button type="button" onclick="_postback('rozdily')">1) Hledat rozdíly ve vybrané db</button>
+<button type="button" onclick="_postback('rozdily-alldbs')">1) Hledat rozdíly ve všech db najednou</button>
+
+
+
+@if(Model.RunResult != null && Model.ResultFlag=="rozdily")
+{
+    <button type="button" style="margin-left:150px;" onclick="_postback('runresult')"><b>Spustit výsledek</b></button>
+}
+
+<form id="form1" asp-action="Index">
+    <input type="text" asp-for="MyPassword" placeholder="Tajné heslo" />
+
+    <table>
+        <tr>
+            <td>
+                Cílová databáze:
+            </td>
+            <td>
+                @if (_f.App.HostingMode == BL.Singleton.HostingModeEnum.SharedApp)
+                {
+                    <select class="form-select" asp-for="DestDbName" onchange="_postback('changedb')">
+                        @foreach(var c in Model.lisX01_CloudHeader)
+                        {
+                            <option value="@c.CloudDatabaseName">@c.x01LoginDomain</option>
+                        }
+                    </select>
+                    
+                }
+                else
+                {
+                    <input type="text" class="form-control" asp-for="DestDbName" value="@Model.DestDbName" />
+                }
+                
+            </td>
+        </tr>
+    </table>
+    
+    <textarea class="form-control" id="txtResult" style="height:500px;overflow:auto !important;">
+        @Model.RunResult
+    </textarea>
+
+    <input type="hidden" asp-for="RunResult" value="@Model.RunResult" />
+</form>
+
+
+<button type="button" onclick="_postback('sql_sp_funct_views')">2) Aktualizovat sql_sp_funct_views ve vybrané db</button>
+<button type="button" onclick="_postback('sql_sp_funct_views-alldbs')">2) Aktualizovat sql_sp_funct_views ve všech db</button>
+
+<button type="button" style="margin-left:100px;" onclick="_postback('cleartempfiles')">Vyčistit TEMP složky</button>
+
+<button type="button" style="margin-left:100px;" onclick="_postback('navic')">Hledat nadbytečné objekty v db struktuře</button>
+
+<button type="button" style="margin-left:100px;" onclick="_postback('reports')">Reports-update z x31Report.json ve všech db</button>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        
+
+
+    });
+
+    
+    function openai_send() {
+        var q = $("#txtOpenAI_Question").val();
+
+        if (q.trim().length < 10) {
+            _notify_message("Zadejte delší otázku (minimálně 10 znaků).");
+            return;
+        }
+
+        $("#loading1").text("Processing...");
+
+        $("#cmdOpenAI").css("visibility", "hidden");
+        $("#txtOpenAI_Answer").css("visibility", "hidden");
+
+
+        $.post("/Home/OpenAIQuestion", { question: q, guid: "OUOU" }, function (data) {
+            $("#cmdOpenAI").css("visibility", "visible");
+            $("#txtOpenAI_Answer").css("visibility", "visible");
+
+            $("#txtOpenAI_Answer").text(data.message);
+            $("#loading1").text("");
+
+            openai_newrow(q, data.message);
+
+            _resize_textareas();
+        });
+    }
+
+   
+    function submit()
+    {
+        form1.submit();
+    }
+</script>
+
+

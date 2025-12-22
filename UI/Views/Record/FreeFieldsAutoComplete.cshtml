@@ -1,0 +1,66 @@
+﻿@model FreeFieldsAutoCompleteViewModel
+@inject BL.Factory _f
+
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+
+    Model.PageTitle = Model.header;
+
+}
+
+@addTagHelper *, UI
+
+<div class="bg-light" style="padding:10px;">
+    
+    <button id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+</div>
+
+
+<input type="text" class="form-control" id="searchInput" placeholder="@_f.tra("Najít...")" />
+<table class="table-hover table" id="tabValues">
+@foreach(var c in Model.Values)
+{
+    <tr>
+        <td>
+                <a href="javascript:set_val('@(c)')">@(c)</a>
+        </td>
+    </tr>
+}
+
+</table>
+
+
+<script>
+
+    $(document).ready(function() {
+
+    @if (Model.Values.Count() > 20)
+    {
+        <text>
+            $("#searchInput").focus();
+        </text>
+    }
+    
+
+        $("#searchInput").on("keyup", function() {
+            let value = $(this).val().toLowerCase().trim();
+
+            $("#tabValues tr").filter(function() {
+                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+            });
+        });
+    });
+
+
+    function set_val(val)
+    {
+        
+        const element=window.parent.document.getElementById("@(Model.controlid)");
+        
+        $(element).val(val);
+        _window_close();
+    }
+
+
+</script>

@@ -1,0 +1,60 @@
+﻿@model UI.Models.Tab1.p56Tab1
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+    if (Model.Rec == null) return;
+
+    UI.Models.Tab1.BaseTab1ViewModel _tabWeather = null;
+    if (Model.Rec.p15ID > 0)
+    {
+        _tabWeather = new UI.Models.Tab1.BaseTab1ViewModel() { prefix = "p15", pid = Model.Rec.p15ID };
+    }
+
+    var _NotepadLookAt = new UI.Models.Notepad.LookAtViewModel() { IsTab1 = true, prefix = "p56", pid = Model.Rec.pid, NotepadContent = Model.Rec.p56Notepad, x04ID = Model.Rec.x04ID };
+}
+
+@addTagHelper *, UI
+
+
+
+@Html.Raw("<div class='info_record_container'>")
+
+
+
+
+
+
+    <div class="card recpagebox400">
+        <div class="card-body">
+            @await Html.PartialAsync("~/Views/Shared/_p56RecHeaderBox.cshtml", Model.Rec)
+
+            @Html.EditorFor(m => m.ff1, "~/Views/Shared/_FreeFieldsRO.cshtml")
+
+
+            @Html.EditorFor(m => m.Rec, "~/Views/Shared/_TimeStamp.cshtml")
+        </div>
+    </div>
+
+
+
+@Html.EditorFor(m => m, "~/Views/Shared/_TagsTab1.cshtml")
+
+
+
+@Html.EditorFor(m => m, "~/Views/Shared/_lisO27Tab1.cshtml")
+
+@if (_tabWeather != null)
+{
+    @await Html.PartialAsync("~/Views/Shared/_WeatherBox.cshtml", _tabWeather)
+}
+
+@Html.Raw("</div>")
+
+<div style="clear:both;"></div>
+
+@Html.EditorFor(m => _NotepadLookAt, "~/Views/Shared/_NotepadRO.cshtml")
+
+
+

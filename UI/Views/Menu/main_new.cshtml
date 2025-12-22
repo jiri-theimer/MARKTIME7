@@ -1,0 +1,404 @@
+﻿@inject BL.Factory _f
+
+@{
+    Layout = null;
+
+    IEnumerable<BO.p34ActivityGroup> _lisP34 = null;
+    if (_f.CurrentUser.j04IsModule_p31)
+    {
+        _lisP34 = _f.p34ActivityGroupBL.GetList_WorksheetEntry_InAllProjects(_f.CurrentUser.pid);
+    }
+    IEnumerable<BO.p42ProjectType> _lisP42 = null;
+    IEnumerable <BO.p44ProjectTemplate> _lisP44 = null;
+    if (_f.CurrentUser.j04IsModule_p41)
+    {
+        _lisP42=_f.p42ProjectTypeBL.GetList_ProjectCreate();
+        _lisP44 = _f.p44ProjectTemplateBL.GetList_ProjectCreate();
+    }
+
+    var _lisP29 = _f.p29ContactTypeBL.GetList_ContactCreate();
+    var _lisO21 = _f.o21MilestoneTypeBL.GetList(new BO.myQuery("o21"));
+    var _lisO18 = _f.o18DocTypeBL.GetList_DocumentCreate();
+    var _lisJ04 = _f.j04UserRoleBL.GetList(new BO.myQueryJ04());
+    var _lisP57 = _f.p57TaskTypeBL.GetList(new BO.myQuery("p57"));
+    var _lisP60 = _f.p60TaskTemplateBL.GetList(new BO.myQuery("p60")).Where(p => p.p60IsPublic || p.j02ID_Owner == _f.CurrentUser.pid);
+
+    var _lisP51Root = _f.p51PriceListBL.GetList(new BO.myQueryP51() { typeflag = 5 });
+    var _lisP51Cost = _f.p51PriceListBL.GetList(new BO.myQueryP51() { typeflag = 2 });
+
+}
+
+@addTagHelper *, UI
+
+<style type="text/css">
+    #divMenuContainerNew .nav-link {
+        color: forestgreen;
+    }
+
+        #divMenuContainerNew .nav-link:hover {
+            background-color: var(--oznaceno);
+            color: var(--popredi) !important;
+        }
+</style>
+
+<div id="divMenuContainerNew" class="dynamicmenu_container" style="-webkit-transform: translate3d(0,0,0);">
+
+
+    <table class="table table-hover" id="tabmenuitems" style="line-height:25px;">       
+       
+        @if (_lisP34 != null && _lisP34.Count() > 0)
+        {
+            <tr>
+               
+                <td>
+                    <a class="nav-link" href="javascript:_window_open('/p31/Record?pid=0',3)">
+                        <myicon prefix="p31"></myicon>
+                        @_f.tra("Vykázat úkon")                        
+                    </a>
+                  
+                    @if (_lisP34.Count() <= 15)
+                    {
+                        @foreach (var c in _lisP34)
+                        {
+
+                            <a class="p-2 ss1" href="javascript:_window_open('/p31/Record?p34id=@(c.pid)',3)"><small>@c.p34Name</small></a>
+                            
+                        }
+                    }
+                    <br />
+                    <a class="ss1" style="font-size:80%;" href="javascript: _window_open('/Import/Index?prefix=p31')">Import hodin z XLS/Clipboard</a>
+                </td>
+                
+            </tr>
+
+        }
+
+        @if (_lisP42 !=null && _lisP42.Count() > 0)
+        {
+            <tr>
+              
+                <td>
+                    <a class="nav-link" href="javascript:_edit('p41',0)">
+                        <myicon prefix="p41"></myicon>
+                        @_f.getP07Level(5,true)
+                    </a>
+              
+                    <div>
+                        
+                        @if (_lisP44.Count() <= 15 && _lisP44.Count()>0)
+                        {
+                            @foreach (var c in _lisP44)
+                            {
+
+                                <a class="p-2 menu_new_record" href="javascript:_window_open('/p41cft/Index?p44id=@(c.pid)')">
+                                    <span class="material-icons-outlined-btn">copy_all</span>
+                                    <small style="white-space: nowrap;">@c.p44Name</small>
+                                </a>
+
+                            }
+                            
+                        }
+                        
+                    </div>
+                    <div>
+                        @if (_lisP42.Count() <= 10)
+                        {
+                            @foreach (var c in _lisP42)
+                            {
+
+                                <a class="p-2 ss1" href="javascript:_window_open('/p41/Record?p42id=@(c.pid)')"><small style="white-space: nowrap;">@c.p42Name</small></a>
+
+                            }
+                        }
+                    </div>
+                    @if (_lisP44.Count() == 0 && _f.CurrentUser.TestPermission(BO.PermValEnum.GR_p41_Creator))
+                    {
+                       
+                        <a class="ss1" href="javascript:_window_open('/p44/Record?pid=0')" style="font-size:80%;">Nová šablona pro zakládání projektů</a>
+                    }
+                </td>
+            </tr>
+
+        }
+        @if (_f.CurrentUser.TestPermission(BO.PermValEnum.GR_p28_Creator) && _lisP29.Count() > 0)
+        {
+            <tr>
+             
+                <td>
+                    <a class="nav-link" href="javascript:_edit('p28',0)">
+                        <myicon prefix="p28"></myicon>
+                        @_f.tra("Kontakt")
+                    </a>
+               
+                    @foreach (var c in _lisP29)
+                    {
+
+                        <a class="p-2 ss1" href="javascript:_window_open('/p28/Record?p29id=@(c.pid)')"><small style="white-space: nowrap;">@c.p29Name</small></a>
+
+                    }
+                    <br />
+                    <a class="ss1" style="font-size:80%;" href="javascript: _window_open('/Import/p28_by_ico')">Import kontaktů z IČO seznamu</a>
+                </td>
+            </tr>
+
+        }
+        <tr>
+            
+            <td>
+                <a class="nav-link" href="javascript:_edit('b05',0)">
+                    <myicon prefix="b05"></myicon>
+                    @_f.tra("Poznámka")
+                </a>
+            </td>
+          
+        </tr>
+
+        @if (_lisP60.Count() > 0)
+        {
+            <tr>
+
+                <td>
+                    <a class="nav-link" href="javascript:_edit('p56',0)">
+                        <myicon prefix="p56"></myicon>
+                        @_f.tra("Úkol")
+                    </a>
+               
+                    @foreach (var c in _lisP60)
+                    {
+
+                        <a class="p-2 ss1" href="javascript:_window_open('/p56/Record?p60id=@(c.pid)')"><small style="white-space: nowrap;">@BO.Code.Bas.OM2(c.p60Name,20)</small></a>
+
+                    }
+
+
+                    <a class="p-2 menu_new_record" href="javascript:_window_open('/p56/TodoList',3)">
+
+                        <span class="material-icons-outlined-btn">control_point_duplicate</span>
+                        <small>
+                            Todo-list
+                        </small>
+
+                    </a>
+
+                    <a class="p-2 menu_new_record" href="javascript:_window_open('/p58/Record',3)">
+                        <span class="material-icons-outlined-btn">published_with_changes</span>
+                        <small>
+                            @_f.tra("Opakovaný úkol")
+                        </small>
+
+                    </a>
+
+                </td>
+            </tr>
+
+        }
+
+        @if (_lisP60.Count()==0 && _lisP57.Count() > 0)
+        {
+            <tr>
+              
+                <td>
+                    <a class="nav-link" href="javascript:_edit('p56',0)">
+                        <myicon prefix="p56"></myicon>
+                        @_f.tra("Úkol")
+                    </a>
+                
+                    @if (_lisP57.Count() > 1)
+                    {
+                        @foreach (var c in _lisP57)
+                        {
+
+                            <a class="p-2 ss1" href="javascript:_window_open('/p56/Record?p57id=@(c.pid)')"><small style="white-space: nowrap;">@c.p57Name</small></a>
+
+                        }
+                    }
+
+
+                    <a class="p-2 menu_new_record" href="javascript:_window_open('/p56/TodoList',3)">
+
+                        <span class="material-icons-outlined-btn">control_point_duplicate</span>
+                        <small>
+                            Todo-list
+                        </small>
+
+                    </a>
+
+                    <a class="p-2 menu_new_record" href="javascript:_window_open('/p58/Record',3)">
+                        <span class="material-icons-outlined-btn">published_with_changes</span>
+                        <small>
+                            @_f.tra("Opakovaný úkol")
+                        </small>
+
+                    </a>
+
+                </td>
+            </tr>
+
+        }
+
+        @if (_lisO21.Count() > 0)
+        {
+            <tr>
+                
+                <td>
+                    <a class="nav-link" href="javascript:_edit('o22',0)">
+                        <myicon prefix="o22"></myicon>
+                        @_f.tra("Událost/Termín/Lhůta")
+                    </a>
+                    
+               
+                    @if (_lisO21.Count() > 1)
+                    {
+                        @foreach (var c in _lisO21)
+                        {
+
+                            <a class="p-2 ss1" href="javascript:_window_open('/o22/Record?o21id=@(c.pid)')"><small style="white-space: nowrap;">@c.o21Name</small></a>
+
+                        }
+                    }
+
+                </td>
+            </tr>
+
+        }
+
+        @if (_f.CurrentUser.j04IsModule_p90 && _f.CurrentUser.TestPermission(BO.PermValEnum.GR_p90_Creator))
+        {
+            <tr>
+                
+                <td>
+                    <a class="nav-link" href="javascript:_edit('p90',0)">
+                        <myicon prefix="p90"></myicon>
+                        @_f.tra("Zálohová faktura")
+                    </a>
+                </td>                
+                
+            </tr>
+        }
+
+
+        @if (_lisO18.Count() > 0)
+        {
+            <tr>
+               
+                <td>                    
+                    <a class="nav-link" href="javascript:_edit('o23',0)">
+                        <myicon prefix="o23"></myicon>
+                        @_f.tra("Dokument")
+                    </a>
+                
+                    @foreach (var c in _lisO18)
+                    {
+
+                        <a class="p-2 ss1" href="javascript:_window_open('/o23/Record?o18id=@(c.pid)')"><small style="white-space: nowrap;">@c.o18Name</small></a>
+
+                    }
+                </td>
+            </tr>
+
+        }
+
+
+        @if (_f.CurrentUser.j04IsModule_p31 && _f.CurrentUser.TestPermission(BO.PermValEnum.GR_p51_Admin))
+        {
+            <tr>
+               
+                <td>
+                    <a class="nav-link" href="javascript:_edit('p51',0)">
+                        <myicon symbol="price_change"></myicon>
+                        @_f.tra("Ceník sazeb")
+                    </a>
+               
+                    <a class="p-2 ss1" href="javascript:_window_open('/p51/Record?p51typeflag=1')"><small style="white-space: nowrap;">@_f.tra("Fakturační sazby")</small></a>
+                    @if (_lisP51Root.Count() == 0)
+                    {
+                        <a class="p-2 ss1" href="javascript:_window_open('/p51/Record?p51typeflag=5')"><small style="white-space: nowrap;">@_f.tra("Root ceník fakturačních sazeb")</small></a>
+                    }
+                    @if (_lisP51Cost.Count() == 0)
+                    {
+                        <a class="p-2 ss1" href="javascript:_window_open('/p51/Record?p51typeflag=2')"><small style="white-space: nowrap;">@_f.tra("Nákladové sazby")</small></a>
+                    }
+
+
+                </td>
+            </tr>
+
+
+        }
+
+        @if (_f.CurrentUser.j04IsModule_p31 && _f.CurrentUser.TestPermission(BO.PermValEnum.GR_p41_Creator))
+        {
+            <tr>
+               
+                <td>
+                    <a class="nav-link" href="javascript:_edit('p40',0)">
+                        <myicon symbol="repeat_on"></myicon>
+                        @_f.tra("Opakovaná odměna")
+                    </a>
+                </td>
+                
+            </tr>
+        }
+        @if (_f.CurrentUser.j04IsModule_p49)
+        {
+            <tr>
+               
+                <td>
+                    <a class="nav-link" href="javascript:_edit('p49',0)">
+                        <myicon symbol="energy_savings_leaf"></myicon>
+                        @_f.tra("Finanční plán")
+                    </a>
+                </td>
+                
+            </tr>
+        }
+
+        @if (_f.CurrentUser.IsAdmin && _lisJ04 != null && _lisJ04.Count() > 0)
+        {
+            <tr>
+                
+                <td>
+                    <a class="nav-link" href="javascript:_edit('j02',0)">
+                        <myicon prefix="j02"></myicon>
+                        @_f.tra("Uživatel")
+                    </a>
+               
+                    @foreach (var c in _lisJ04)
+                    {
+
+                        <a class="p-2 ss1" href="javascript:_window_open('/j02/Record?j04id=@(c.pid)')"><small style="white-space: nowrap;">@c.j04Name</small></a>
+
+                    }
+                </td>
+            </tr>
+
+        }
+
+
+
+    </table>
+
+</div>
+
+<script type="text/javascript">
+    $(".ss1").css("color", "white");
+
+    _adjust_divheight_small_display("divMenuContainerNew");
+        
+    
+    
+    $("#tabmenuitems tr").mouseover(function () {        
+        $(".ss1").css("color", "white");        
+        $(this).find(".ss1").css("color", "blue");
+        
+
+    });
+
+    $("#tabmenuitems").mouseout(function () {
+        
+        $(".ss1").css("color", "white");
+        
+
+    });
+    
+</script>

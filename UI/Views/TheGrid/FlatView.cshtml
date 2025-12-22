@@ -1,0 +1,284 @@
+﻿@model UI.Models.TheGridViewModel
+@inject BL.Factory _f
+
+@{
+
+    if (Model.entity == null)
+    {
+        return;
+    }
+
+    Model.PageTitle = Model.entityTitle;
+
+
+
+}
+
+@addTagHelper *,UI
+
+<link href="~/lib/qtip/jquery.qtip.css" rel="stylesheet" type="text/css" />
+<script src="~/lib/qtip/jquery.qtip.min.js"></script>
+
+
+
+
+<div id="divToolbarOverGrid" class="input-group" style="padding-top:8px;">
+    <div>
+        <ul class="nav nav-tabs">
+            @foreach (var tab in Model.OverGridTabs)
+            {
+                <li class="onetab">
+
+                    <a id="cmdMore" class="nav-link onetab-offcanvas" tabindex="-1" role="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvas_more">
+                        
+                        @{
+                            @Html.Raw(tab.Name.ToUpper())
+                            if (tab.Badge != null)
+                            {
+                                @Html.Raw(tab.Badge)
+                            }
+                        }
+                        <span class="onetab-caret">▼</span>
+                    </a>
+
+
+                </li>
+
+            }
+        </ul>
+
+    </div>
+
+
+
+    @if (_f.CurrentUser.TestPermission(BO.PermValEnum.GR_GridColumnDesigner))
+    {
+        @Html.EditorFor(m => Model.PageTitle, "~/Views/Shared/_ButtonGridDesigner.cshtml")
+    }
+
+
+    @Html.EditorFor(m => Model.PageTitle, "~/Views/Shared/_ButtonGridSelMenu.cshtml")
+
+    @Html.EditorFor(m => Model.TheGridQueryButton, "~/Views/Shared/_ButtonGridQuery.cshtml")
+
+
+    @if (Model.periodinput != null)
+    {
+        <div>
+            @await Component.InvokeAsync("myPeriod", Model.periodinput)
+
+        </div>
+
+    }
+
+    @if (Model.p31statequery != null)
+    {
+        @Html.EditorFor(m => Model.p31statequery, "~/Views/Shared/_p31StateQuery.cshtml")
+    }
+
+    @if (Model.IsCanbeMasterView)
+    {
+        <div>
+            <a class="btn descreet_link_over_grid" title="Stránka záznamu" href="javascript:_recpage_from_grid('@(Model.prefix)')"><span class="material-icons-outlined-btn">maps_home_work</span></a>
+        </div>
+    }
+
+    @if (Model.prefix != "x40" && Model.prefix != "o43" && Model.prefix != "p11" && Model.prefix != "p84")
+    {
+        <div class="nonmobile" title="@_f.tra("Nový")">
+            <a class="btn descreet_link_over_grid" href="javascript:_newrec_from_grid('@(Model.prefix)','@(Model.rez)')"><span class="material-icons-outlined-btn menu_new_record">add_circle_outline</span></a>
+
+        </div>
+    }
+
+
+
+    @if (_f.CurrentUser.IsApprovingPerson && (Model.prefix == "p31" || Model.prefix == "le5" || Model.prefix == "p28" || Model.prefix == "p56") && Model.recordbinquery.Value != 2)
+    {
+        <div>
+            <a class="btn descreet_link_over_grid" href="javascript:tg_approve()" title="Schválit/Vyúčtovat vybrané, klávesová zkratka: Alt+R"><span class="material-icons-outlined-btn" style="color:green;">approval</span></a>
+        </div>
+    }
+
+    <div>
+        <myshowmore></myshowmore>
+    </div>
+    @if (Model.prefix == "p41")
+    {
+        <div id="divTreeQuery" class="showmore">
+            @Html.EditorFor(m => Model.p41treequery, "~/Views/Shared/_ButtonProjectTreeQuery.cshtml")
+        </div>
+    }
+
+    @if (Model.p31tabquery != null)
+    {
+        <div id="divTabQuery" class="showmore">
+            @Html.EditorFor(m => Model.p31tabquery, "~/Views/Shared/_p31TabQuery.cshtml")
+        </div>
+    }
+    @if (Model.recordbinquery != null)
+    {
+        <div id="divBinQuery" class="showmore">
+            @Html.EditorFor(m => Model.recordbinquery, "~/Views/Shared/_RecordBinQuery.cshtml")
+        </div>
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+</div>
+
+@await Component.InvokeAsync("myGrid", Model.gridinput)
+
+@if (Model.IsCanbeMasterView)
+{
+    <div id="cmdQuickPageLayoutSwitch" onmouseout="_handle_onetab_mouseout_switch_layout(this)">
+
+
+        <a class="nav-link" href="javascript:_recpage_from_grid('@(Model.prefix)')"><span class="material-icons-outlined-btn" style="margin-right:5px;">maps_home_work</span>@_f.tra("Stránka záznamu")</a>
+
+
+
+    </div>
+}
+
+<div class="offcanvas offcanvas-start" tabindex="-1" data-bs-scroll="true" data-bs-backdrop="true" data-bs-keyboard="true" id="offcanvas_more">
+
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title">
+            <a href="javascript:reload()" title="Občerstvit">
+                <myicon symbol="refresh"></myicon>
+            </a>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+
+    <div class="offcanvas-body p-0 m-0" id="offcanvas_more_body">
+    </div>
+</div>
+
+<script type="text/javascript">
+    let _offcanvasIsLoaded = false;
+    var _pageprefix = "@Model.prefix";
+    var _rez = "@Model.rez";
+    var _tabquery = "@(Model.p31tabquery != null ? Model.p31tabquery.Value : null)";
+    var _binquery = "@(Model.recordbinquery != null ? Model.recordbinquery.Value : null)";
+    var _treequery = "@(_f.p07LevelsCount > 1 ? 1 : 0)";
+    var _canbeMasterView="@Model.IsCanbeMasterView";
+
+    //$(document.body).css("overflow", "hidden");
+
+
+
+
+
+    $(document).ready(function () {
+
+        $("#offcanvas_more").on("show.bs.offcanvas", function () {
+            if (_offcanvasIsLoaded)
+            {
+                RefreshExportAccording();   //js var _GridExport.cshtml
+                return;
+            }
+
+            _offcanvasIsLoaded = true;
+
+            render_menu("cmdMore","offcanvas_more_body","/Menu/grid_extension?prefix=" + _pageprefix);
+    
+            
+
+        });
+
+
+        _init_qtip_onpage();
+
+
+
+
+        _mainmenu_highlight_current("cmd" + _pageprefix+_rez);
+
+        if (_tabquery != "") {
+            $("#divTabQuery").removeClass("showmore");
+
+        }
+
+        if (_treequery == "1") {
+            $("#divTreeQuery").removeClass("showmore");
+
+        }
+
+        if (_binquery == "0" || _binquery == "2") {
+            $("#divBinQuery").removeClass("showmore");
+
+            if (_binquery == "2") {
+                $("#divToolbarOverGrid").css("background-color", "black");
+            }
+        }
+
+
+
+    });
+
+
+
+    function change_grid(j72id) {
+        $.post(_ep("/Common/SetUserParam"), { key: "flatview-j72id-" + _pageprefix, value: j72id }, function (data) {
+            reload();
+
+        });
+    }
+
+    function report_nocontext(x31id) {
+        _window_open("/x31/ReportNoContext?x31id=" + x31id, 2);
+    }
+
+
+    function reload() {
+        //_showloading();
+        _redirect("/TheGrid/FlatView?prefix=" + _pageprefix);
+    }
+
+
+
+
+
+
+
+
+    function grid_dblclick(row) {
+        var pid = row.id.replace("r", "");
+        var s = "@Model.dblClickSetting";
+
+        if (s == "recpage") {
+            _redirect("/Record/RecPage?prefix=" + _pageprefix + "&pid=" + pid);
+        } else {
+            _edit(_pageprefix, pid);
+        }
+    }
+
+    function tab_overgrid_click(tab) {    //uložit aktuální záložku do profilu uživatele
+        if (_pageprefix != "p31" && _pageprefix != "j02") {
+            return;
+        }
+        _load_ajax_async("/Common/SetUserParam", { key: "overgrid-tab-" + _pageprefix, value: tab.id.replace("tab", "") })
+
+    }
+
+
+    function change_p40filtrovani(cbx) {
+        $.post("/Common/SetUserParam", { key: "grid-p40-filtrovani", value: cbx.value }, function (data) {
+            reload();
+        });
+    }
+
+</script>
+

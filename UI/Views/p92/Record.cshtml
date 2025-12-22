@@ -1,0 +1,257 @@
+﻿@model UI.Models.Record.p92Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Typ faktury");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    Model.PageSymbol = "settings";
+}
+
+@addTagHelper *, UI
+
+<div class="modal_record_container">
+
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název pravidla"):</label>
+        <div class="col-sm-9 col-md-8">
+            <input class="form-control record_name" asp-for="Rec.p92Name" />
+        </div>
+        <label class="col-sm-1 col-md-1 col-form-label">@_f.tra("Index pořadí"):</label>
+        <div class="col-sm-1 col-md-1">
+            <mynumber asp-for="Rec.p92Ordinary" decimal-digits="0"></mynumber>
+        </div>
+    </div>
+    <div>
+        <input type="radio" id="p92InvoiceType1" asp-for="@Model.Rec.p92TypeFlag" value="ClientInvoice">
+        <label for="p92InvoiceType1">@_f.tra("Klientská faktura")</label>
+        <br />
+        <input type="radio" id="p92InvoiceType2" asp-for="@Model.Rec.p92TypeFlag" value="CreditNote">
+        <label for="p92InvoiceType2">@_f.tra("Opravný doklad (dobropis)")</label>
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Číselná řada faktury"):</label>
+        <div class="col-sm-11 col-md-10">
+            <mycombo entity="x38CodeLogic" asp-for="Rec.x38ID" selectedtext="@Model.ComboX38Name" myqueryinline="x38entity|string|p91"></mycombo>
+        </div>
+
+    </div>
+    @if (Model.Rec.p92TypeFlag == BO.p92TypeFlagENUM.CreditNote)
+    {
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Aktivita dobropisované částky"):</label>
+            <div class="col-sm-11 col-md-10">
+                <mycombo entity="p32Activity" asp-for="Rec.p32ID_CreditNote" selectedtext="@Model.ComboP32Name" myqueryinline="ismoneyinput|bool|1"></mycombo>
+            </div>
+
+        </div>
+    }
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Výchozí měna faktury"):</label>
+        <div class="col-sm-5 col-md-4">
+            <mycombo entity="j27Currency" asp-for="Rec.j27ID" selectedtext="@Model.ComboJ27Code"></mycombo>
+        </div>
+        <label class="col-sm-3 col-md-3 col-form-label">@_f.tra("Výchozí zaokrouhlovací pravidlo"):</label>
+        <div class="col-sm-3 col-md-3">
+            <mycombo entity="p98Invoice_Round_Setting_Template" asp-for="Rec.p98ID" selectedtext="@Model.ComboP98Name"></mycombo>
+        </div>
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Vystavovatel faktury"):</label>
+        <div class="col-sm-5 col-md-4">
+            <mycombo entity="p93InvoiceHeader" asp-for="Rec.p93ID" selectedtext="@Model.ComboP93Name"></mycombo>
+        </div>
+        <label class="col-sm-3 col-md-3 col-form-label">@_f.tra("Výchozí struktura cenového rozpisu"):</label>
+        <div class="col-sm-3 col-md-3">
+            <mycombo entity="p80InvoiceAmountStructure" asp-for="Rec.p80ID" selectedtext="@Model.ComboP80Name"></mycombo>
+        </div>
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Typ upomínek"):</label>
+        <div class="col-sm-5 col-md-4">
+            <mycombo entity="p83TypUpominka" asp-for="Rec.p83ID" selectedtext="@Model.ComboP83Name"></mycombo>
+        </div>
+        <label class="col-sm-3 col-md-3 col-form-label">@_f.tra("Workflow šablona"):</label>
+        <div class="col-sm-3 col-md-3">
+            <mycombo entity="b01WorkflowTemplate" asp-for="Rec.b01ID" selectedtext="@Model.ComboB01" view-flag="2" myqueryinline="b01entity|string|p91"></mycombo>
+        </div>
+    </div>
+  
+
+
+    @if (Model.Rec.p92TypeFlag == BO.p92TypeFlagENUM.ClientInvoice)
+    {
+        <div class="card">
+            <div class="card-header">
+                @_f.tra("DPH režim faktury")
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <label class="col-form-label col-auto">@_f.tra("U všech fakturovaných úkonů nahodit DPH sazbu"):</label>
+                    <div class="col-sm-3 col-md-3">
+                        @Html.EditorFor(m => m.Rec.x15ID, "~/Views/Shared/_x15Combo.cshtml")
+
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+    }
+
+    <p></p>
+    @Html.Raw("<div class='row'>")
+
+    @Html.Raw("<div class='col-auto'>")
+
+    <div class="card">
+        <div class="card-header">
+            @_f.tra("Výchozí Rozšíření karty vyúčtování")
+        </div>
+        <div class="card-body">
+            <table>
+               
+                <tr>
+                    <td>
+                        <label>@_f.tra("Nahrávání příloh v kartě faktury"):</label>
+                    </td>
+                    <td>
+                        @Html.EditorFor(m => m.Rec.p92FilesTab, "~/Views/Shared/_BitStreamFlag.cshtml")
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <label>@_f.tra("Role a oprávnění"):</label>
+                    </td>
+                    <td>
+                        @Html.EditorFor(m => m.Rec.p92RolesTab, "~/Views/Shared/_BitStreamFlag.cshtml")
+                    </td>
+                </tr>
+
+
+            </table>
+
+
+
+        </div>
+    </div>
+
+    @Html.Raw("</div>")
+    @Html.Raw("<div class='col-auto'>")
+    <table>
+        <tr>
+            <td>
+                @_f.tra("Výchozí sestava faktury"):
+            </td>
+            <td style="min-width:450px;">
+                <mycombo entity="x31Report" asp-for="Rec.x31ID_Invoice" selectedtext="@Model.ComboX31_Report" myqueryinline="entity|string|p91"></mycombo>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @_f.tra("Výchozí sestava přílohy faktury"):
+            </td>
+            <td style="min-width:450px;">
+                <mycombo entity="x31Report" asp-for="Rec.x31ID_Attachment" selectedtext="@Model.ComboX31_Attachment" myqueryinline="entity|string|p91"></mycombo>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @_f.tra("Výchozí průvodní dopis"):
+            </td>
+            <td style="min-width:450px;">
+                <mycombo entity="x31Report" asp-for="Rec.x31ID_Letter" selectedtext="@Model.ComboX31_Letter" myqueryinline="entity|string|p91"></mycombo>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @_f.tra("Šablona e-mail zprávy"):               
+            </td>
+            <td>
+                <mycombo entity="j61TextTemplate" asp-for="Rec.j61ID" selectedtext="@Model.ComboJ61Name" myqueryinline="entity|string|p91"></mycombo>
+            </td>
+        </tr>
+      
+        <tr>
+            <td>
+                @_f.tra("Qr kód na faktuře"):
+            </td>
+            <td>
+                <select class="form-select" asp-for="@Model.Rec.p92QrCodeFlag">
+                    <option value="_None">--- Nezobrazovat qr kód ---</option>
+                    <option value="QrPlatba">qr platba ČR</option>
+                    <option value="QrFaktura">qr faktura ČR</option>
+                    <option value="QrPlatbaBezSplatnosti">qr platba bez data splatnosti ČR</option>
+                    <option value="QrFakturaBezSplatnosti">qr faktura bez data splatnosti ČR</option>
+                    <option value="Slovensko">qr platba SK</option>
+                    <option value="SlovenskoBezSplatnosti">qr platba SK bez data splatnosti</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @_f.tra("Název na sestavě faktury"):
+            </td>
+            <td>
+                <input type="text" asp-for="Rec.p92RepDocName" class="form-control" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @_f.tra("Číslo na sestavě faktury"):
+            </td>
+            <td>
+                <input type="text" asp-for="Rec.p92RepDocNumber" class="form-control" />
+            </td>
+        </tr>
+    </table>
+
+
+    @Html.Raw("</div>")
+    @Html.Raw("</div>")
+
+
+
+
+    <div class="form-floating my-2">
+        <textarea class="form-control" asp-for="Rec.p92ReportConstantPreText1"></textarea>
+        <label for="Rec_p92ReportConstantPreText1">@_f.tra("Preambule hlavního textu faktury")</label>
+    </div>
+    <div class="form-floating my-2">
+        <textarea class="form-control" asp-for="Rec.p92InvoiceDefaultText1"></textarea>
+        <label for="Rec_p92InvoiceDefaultText1">@_f.tra("Výchozí hlavní text faktury")</label>
+    </div>
+    <div class="form-floating my-2">
+        <textarea class="form-control" asp-for="Rec.p92ReportConstantText"></textarea>
+        <label for="Rec_p92ReportConstantText">@_f.tra("Preambule technického textu")</label>
+    </div>
+    <div class="form-floating my-2">
+        <textarea class="form-control" asp-for="Rec.p92InvoiceDefaultText2"></textarea>
+        <label for="Rec_p92InvoiceDefaultText2">@_f.tra("Výchozí technický text")</label>
+    </div>
+
+
+    
+    
+    <myglobalparams prefix="p92" pid="@Model.rec_pid"></myglobalparams>
+</div>
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $("#p92InvoiceType1").on("change", function () {
+            _postback();
+        });
+        $("#p92InvoiceType2").on("change", function () {
+            _postback();
+        });
+
+
+    });
+
+
+
+
+</script>

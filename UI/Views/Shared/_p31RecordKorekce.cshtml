@@ -1,0 +1,67 @@
+﻿@model UI.Models.Record.p31Record
+@inject BL.Factory _f
+
+@{
+
+
+    if (Model == null)
+    {
+        return;
+    }
+
+   
+}
+
+
+<div class="card my-2">
+    <div class="card-header">
+        <input type="checkbox" id="chkIsValueTrimming" asp-for="@Model.IsValueTrimming" tabindex="-1" onchange="_postback('isvaluetrimming')" />
+        <label for="chkIsValueTrimming">@_f.tra("Zapsat korekci úkonu pro vyúčtování")</label>
+    </div>
+
+    @if (Model.IsValueTrimming)
+    {
+        <div class="card-body">
+            <input type="radio" id="chkp72ID_AfterTrimming4" asp-for="Rec.p72ID_AfterTrimming" value="Fakturovat" onchange="_postback('isvaluetrimming')" />
+            <label for="chkp72ID_AfterTrimming4" class="badge-a4">@_f.tra("Fakturovat")</label>
+
+            <input type="radio" id="chkp72ID_AfterTrimming6" asp-for="Rec.p72ID_AfterTrimming" value="ZahrnoutDoPausalu" onchange="_postback('isvaluetrimming')" style="margin-left:15px;" />
+            <label for="chkp72ID_AfterTrimming6" class="badge-a6">@_f.tra("Zahrnout do paušálu")</label>
+
+            <input type="radio" id="chkp72ID_AfterTrimming3" asp-for="Rec.p72ID_AfterTrimming" value="SkrytyOdpis" onchange="_postback('isvaluetrimming')" style="margin-left:15px;" />
+            <label for="chkp72ID_AfterTrimming3" class="badge-a3">@_f.tra("Skrytý odpis")</label>
+
+            <input type="radio" id="chkp72ID_AfterTrimming2" asp-for="Rec.p72ID_AfterTrimming" value="ViditelnyOdpis" onchange="_postback('isvaluetrimming')" style="margin-left:15px;" />
+            <label for="chkp72ID_AfterTrimming2" class="badge-a2">@_f.tra("Viditelný odpis")</label>
+
+
+            <div class="row" style="margin-top:10px;">
+                @if (Model.RecP34 != null && (Model.Rec.p72ID_AfterTrimming == BO.p72IdENUM.Fakturovat || Model.Rec.p72ID_AfterTrimming == BO.p72IdENUM.FakturovatPozdeji))
+                {
+                    <div class="col-auto">
+                        @if (Model.RecP34.p33ID == BO.p33IdENUM.Cas)
+                        {
+                            <span>@_f.tra("Hodiny k fakturaci"):</span>
+                        }
+                        @if (Model.RecP34.p33ID == BO.p33IdENUM.Kusovnik)
+                        {
+                            <span>@_f.tra("Počet k fakturaci"):</span>
+                        }
+                        @if (Model.RecP34.p33ID == BO.p33IdENUM.PenizeBezDPH || Model.RecP34.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu)
+                        {
+                            <span>@_f.tra("Částka k fakturaci"):</span>
+                        }
+                    </div>
+                    <div class="col-auto">
+                        <input type="text" class="form-control" asp-for="Rec.Value_Trimmed" value="@Model.Rec.Value_Trimmed" onchange="Rec_Value_Trimmed_onchange(this,@((int)Model.RecP34.p33ID))" />
+                    </div>
+                }
+            </div>
+
+
+
+
+        </div>
+    }
+
+</div>

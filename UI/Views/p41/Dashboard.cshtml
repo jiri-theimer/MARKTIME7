@@ -1,0 +1,38 @@
+﻿@model UI.Models.Tab1.p41Tab1
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+    if (Model.Rec == null) return;
+
+   
+    
+}
+
+@addTagHelper *, UI
+@section header_content {
+
+
+    <link rel="stylesheet" href="/css/htmltable.css" />
+
+
+}
+
+
+
+@Html.Raw("<div class='info_record_container'>")
+
+<div class="card recpagebox400">
+    <div class="card-body">
+        @Html.EditorFor(m => m.Rec, "~/Views/Shared/_p41RecHeaderBox.cshtml")
+
+        
+        
+    </div>
+</div>
+
+
+
+@Html.Raw("</div>")
+

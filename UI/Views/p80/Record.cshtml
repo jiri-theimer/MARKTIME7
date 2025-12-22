@@ -1,0 +1,61 @@
+﻿@model UI.Models.Record.p80Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Struktury rozpisu částky faktury");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    Model.PageSymbol = "settings";
+}
+
+@addTagHelper *, UI
+
+<div class="modal_record_container">
+
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název pravidla"):</label>
+        <div class="col-sm-7 col-md-6">
+            <input class="form-control" asp-for="Rec.p80Name" />
+        </div>
+        
+    </div>
+
+    <div class="card my-2">
+        <div class="card-header">
+            @_f.tra("Souhrny částek v cenovém rozpisu faktury")
+            <select asp-for="Rec.p80GroupByPrefix" onchange="_postback('refresh')">
+                <option value="p95">Fakturační oddíl + DPH sazba</option>
+                <option value="p41">Projekt + DPH sazba</option>
+                <option value="vat">Pouze DPH sazba</option>
+            </select>
+        </div>
+        <div class="card-body">
+
+            <div>
+                <select asp-for="Rec.p80IsExpenseSeparate" class="form-select">
+                    <option value="true">@_f.tra("Výdaje 1:1 po úkonech")</option>
+                    <option value="false">@_f.tra("Výdaje jako součet")</option>
+                </select>
+               
+            </div>
+            <div class="my-2">
+                <select asp-for="Rec.p80IsFeeSeparate" class="form-select">
+                    <option value="true">@_f.tra("Pevné (paušální) odměny 1:1 po úkonech")</option>
+                    <option value="false">@_f.tra("Pevné (paušální) odměny jako součet")</option>
+                </select>
+            </div>
+            <div class="my-2">
+                <select asp-for="Rec.p80IsTimeSeparate" class="form-select">
+                    <option value="true">@_f.tra("Hodiny 1:1 po úkonech")</option>
+                    <option value="false">@_f.tra("Hodiny jako součet")</option>
+                </select>
+
+                
+            </div>
+            <div class="alert alert-primary" style="display:none;">
+                @_f.tra(" Pokud nezaškrtnete ani jednu volbu, výsledek cenového rozpisu bude pouze jedna celková částka faktury bez uvedení fakturačního oddílu.")
+            </div>
+        </div>
+    </div>
+
+
+</div>

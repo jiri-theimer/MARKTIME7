@@ -1,0 +1,214 @@
+﻿@model UI.Models.Tab1.b05Tab1
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+    if (Model.Rec == null) return;
+    if (BO.Code.Bas.bit_compare_or(Model.Rec.b05Tab1Flag,4) && !_f.CurrentUser.TestPermission(BO.PermValEnum.GR_AllowRates))
+    {
+        return;
+    }
+
+
+    var _NotepadLookAt = new UI.Models.Notepad.LookAtViewModel() { IsTab1 = true, prefix = "b05", pid = Model.Rec.pid, NotepadContent = Model.Rec.b05Notepad, x04ID = Model.Rec.x04ID, NotepadIsBillingMemo = BO.Code.Bas.bit_compare_or(Model.Rec.b05Tab1Flag, 4) };
+
+    bool _bolIsMobile = _f.CurrentUser.IsMobileDisplay();
+    string _strRecPage = "RecPage";
+
+
+    if (_bolIsMobile)
+    {
+        _strRecPage = "RecPageMobile";
+    }
+
+    IEnumerable<BO.b05Workflow_History> _lisB05 = null;
+
+    string _strTreeHeader = null;
+    switch (Model.Rec.b05RecordEntity)
+    {
+        case "p28":
+        case "p41":
+        case "p91":
+        case "p56":
+        case "o23":
+
+            _lisB05 = _f.WorkflowBL.GetList_b05(Model.Rec.b05RecordEntity, Model.Rec.b05RecordPid, 0, 0, 0).Where(p => p.b05IsCommentOnly || p.b05Name != null || p.b05NotepadText200 != null);
+            if (_lisB05.Count() > 0)
+            {
+                _strTreeHeader = BO.Code.Bas.OM2(_f.CBL.GetObjectAlias(Model.Rec.b05RecordEntity, Model.Rec.b05RecordPid), 50);
+            }
+            
+            break;
+    }
+    
+
+}
+
+@addTagHelper *, UI
+
+
+
+@Html.Raw("<div class='info_record_container'>")
+
+
+<div class="card recpagebox400">
+    <div class="card-body">
+        @if (Model.Rec.b02ID_To > 0)
+        {
+            <div class="card-title recpagetitle bgp40">
+                @Html.Raw(Model.Rec.StatusMoveHtmlRed)
+
+            </div>
+        }
+        else
+        {
+            @if (Model.Rec.b06ID > 0)
+            {
+                <div class="card-title recpagetitle bgp40">
+                    @Html.Raw(Model.Rec.b06Name)
+
+                </div>
+            }
+        }
+
+        <table class="table table-hover">
+
+
+            @if (Model.Rec.b05Name != null)
+            {
+                <tr>
+                    <td class="tdlab">
+                        @_f.tra("Název"):
+                    </td>
+                    <td class="tdval">
+                        <myval value="@Model.Rec.b05Name"></myval>
+                    </td>
+                </tr>
+
+            }
+
+
+
+
+            @if (Model.Rec.b05Date != null)
+            {
+                <tr>
+                    <td class="tdlab">
+                        @_f.tra("Datum"):
+                    </td>
+                    <td class="tdval">
+                        <myval value="@Model.Rec.b05Date" datatype="date"></myval>
+                    </td>
+                </tr>
+                
+            }
+            
+            @if (Model.RecP41 != null)
+            {
+                <tr>
+                    <td class="tdlab">
+                        @_f.getP07Level(Model.RecP41.p07Level, true):
+                    </td>
+                    <td class="tdval">
+                        @if (_f.CurrentUser.j04IsModule_p41)
+                        {
+                            <myval value="@Model.RecP41.FullName" hoverprefix="p41" hoverpid="@Model.Rec.b05RecordPid"></myval>
+                        }
+                        else
+                        {
+                            <myval value="@Model.RecP41.FullName"></myval>
+                        }
+                    </td>
+                </tr>
+                
+            }
+            else
+            {
+                <tr>
+                    <td class="tdlab">
+                        @(BO.Code.Entity.GetAlias(Model.Rec.b05RecordEntity)):
+                    </td>
+                    <td class="tdval">
+                        <myval value="@_f.CBL.GetObjectAlias(Model.Rec.b05RecordEntity,Model.Rec.b05RecordPid)" hoverprefix="@Model.Rec.b05RecordEntity" hoverpid="@Model.Rec.b05RecordPid"></myval>
+                    </td>
+                </tr>
+
+                
+            }
+
+
+        </table>
+
+        @if (BO.Code.Bas.bit_compare_or(Model.Rec.b05Tab1Flag,4))
+        {
+            <span class="badge-light">@_f.tra("Fakturační poznámka")</span>
+        }
+        @Html.EditorFor(m => m.Rec, "~/Views/Shared/_TimeStamp.cshtml")
+
+
+    </div>
+
+    @if (Model.lisO27 != null)
+    {
+        @Html.EditorFor(m => m, "~/Views/Shared/_lisO27Tab1.cshtml")
+    }
+
+</div>
+
+<div>
+    @Html.EditorFor(m => _NotepadLookAt, "~/Views/Shared/_NotepadRO.cshtml")
+</div>
+
+@if (_lisB05 != null && _lisB05.Count()>0)
+{
+    <div id="divTree1Container" style="float: left;vertical-align: top;border:none;margin-left:4px;margin-top:4px;">
+        <ul class="mytreeview">
+            <li>
+                <a class="mytreeview-toggle-kontejner" onclick="_treeview_toggle(this,'tab1-b05-toggle')">
+                    <span class="material-icons-outlined-btn mytreeview-toggle-sipka">@(UI.Code.basKendoTreeViewSupport.Get_Arrow_LastState(_f, "tab1-b05-toggle", "expanded"))</span>
+                    <myicon prefíx="@Model.Rec.b05RecordEntity"></myicon>
+                    <a class="treeview-link" target="_top" href="/Record/@(_strRecPage)?prefix=@(Model.Rec.b05RecordEntity)&pid=@(Model.Rec.b05RecordPid)">@(_strTreeHeader) (@_lisB05.Count())</a>
+
+                </a>
+
+                <ul style="display:@(UI.Code.basKendoTreeViewSupport.Get_UL_LastState(_f,"tab1-b05-toggle"))">
+                    @foreach (var c in _lisB05)
+                    {
+                        <li>
+                            <a class="treeview-link @(Model.pid==c.pid ? "active" : null)" style="margin-left:6px;;" target="_top" href="/Record/@(_strRecPage)?prefix=b05&pid=@(c.pid)">@(BO.Code.Bas.OM2((c.b05Name != null ? c.b05Name : c.b05NotepadText200), 30))</a>
+                        </li>
+                    }
+
+                </ul>
+
+            </li>
+        </ul>
+    </div>
+}
+
+
+
+
+
+
+
+
+
+
+@Html.Raw("</div>")
+
+<div style="clear:both;"></div>
+
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+    });
+
+
+</script>

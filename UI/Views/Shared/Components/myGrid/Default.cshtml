@@ -1,0 +1,368 @@
+﻿@model UI.Views.Shared.Components.myGrid.myGridViewModel
+@inject BL.Factory _f
+@inject BL.TheColumnsProvider _colsProvider
+
+@{
+    if (Model == null || Model.GridInput == null)
+    {
+        return;
+    }
+    string _strStyle = "";
+
+
+    int _curcolwidth = 0;
+    int _totalwidth = 100;
+
+    Model.GridInput.tablelayout = new BO.Model.Grid.HtmlTableLayout(_f.CurrentUser.j02GridCssBitStream, _f.CurrentUser.j02FontSizeFlag, true);
+
+    string _tabclass = (Model.GridInput.tablelayout.Autosize ? "tabgrid_auto" : "tabgrid_fixed");
+
+    List<string> _colwidths = null;
+    if (Model.GridInput.tablelayout.Resize)
+    {
+        _colwidths = BO.Code.Bas.ConvertString2List(Model.GridState.j75ColumnsGridWidth);    //uživatel si nastavuje šířky sloupců
+    }
+    string _strStyleAlias = null;
+    
+
+}
+<div id="container_grid">
+    <table id="tabgrid0" class="@_tabclass">
+        <thead id="tabgrid1_thead">
+            <tr id="tr_header_headline">
+                
+                <th class="th0" style="width:60px;">
+                    @if (Model.GridInput.is_enable_selecting)
+                    {
+                        <input type="checkbox" id="chkSelectAll" onclick="tg_select_all_toggle()" />
+                    }
+
+                </th>
+                
+               
+                @if (Model.GridInput.reczoomflag > 0)
+                {
+                    <th style="width:20px;"></th>
+                }
+
+                @foreach (BO.TheGridColumn c in Model.Columns)
+                {
+                    _curcolwidth = Model.GridInput.tablelayout.getGridColumnRealWidth(c, _colwidths);
+
+                    _totalwidth += _curcolwidth;
+                    if (_curcolwidth == 0)
+                    {
+                        _strStyle = "width:auto;";
+                    }
+                    else
+                    {
+                        _strStyle = $"width:{_curcolwidth}px;";
+                    }
+
+
+                    if (!c.IsSortable || Model.GridInput.isrecpagegrid)
+                    {
+                        c.CssClass = "nonsortable";
+                    }
+                    else
+                    {
+                        c.CssClass = "sortcolumn";
+                    }
+                    if (c.SqlExplicitGroupBy != null)
+                    {
+                        c.CssClass += " groupbycolumn";
+                    }
+
+
+                    <text>
+                    <th class="@c.CssClass" id="th_@c.UniqueName" data-header="@(c.Header)" title="@(c.Tooltip)" columntypename="@(c.FieldType)" style="@(_strStyle)">@(c.Header)</th>
+                    </text>
+                    
+                }
+
+            </tr>
+            @if (!Model.GridInput.isrecpagegrid)
+            {
+                <tr id="tr_header_query">
+
+                    <th class="th0" style="width:60px;">
+                        <button id="cmdDestroyFilter" type="button" class="btn btn-danger py-0 px-2" onclick="tg_filter_clear()" style="display:none;" title="@_f.tra("Vyčistit sloupcový filtr")">
+                            &#128473;
+                        </button>
+                        <button id="cmdOperatorFlag" type="button" class="btn btn-light py-0 px-2" style="margin-right:1px;" onclick="tg_filter_operator()" title="@_f.tra("Přepnout filtr na podmínku [OR]")">A</button>
+
+                    </th>
+
+                    @if (Model.GridInput.reczoomflag > 0)
+                    {
+                        <th style="width:20px;"></th>
+                    }
+                    @foreach (var c in Model.Columns)
+                    {
+
+                        _strStyle = "";
+                        var strValue = "";
+                        var strValueAlias = "";
+                        var strOper = "";
+
+                        BO.TheGridColumnFilter qf = null;
+                        if (Model.AdhocFilter.Where(p => p.field == c.UniqueName).Count() > 0)
+                        {
+                            qf = Model.AdhocFilter.Where(p => p.field == c.UniqueName).First();
+                            strValue = qf.value;
+                            strValueAlias = qf.value_alias;
+                            strOper = qf.oper;
+                            if (strValue != "")
+                            {
+                                _strStyle = "background-color:red";
+                            }
+                        }
+
+
+                        <th class="query_th">
+                            @if (c.FieldType == "string")
+                            {
+                                _strStyleAlias = "display:none";
+                                if (strOper != "3" && strOper != "0" && strOper != "")
+                                {
+                                    _strStyle = "display:none;";
+                                    _strStyleAlias = "display:block";
+                                }
+
+                                <text>
+
+                                    <input type="text" id="txtqry_@c.UniqueName" class="form-control query_textbox" autocomplete="off" value="@strValue" style="@_strStyle" />
+                                    <span class="qryalias" id="qryalias_@c.UniqueName" style="@_strStyleAlias">@strValueAlias</span>
+                                    <button type="button" class="btn bog query_button py-0 px-1" id="cmdqry_@c.UniqueName" tabindex="-1"><span class="material-icons-outlined-nosize">filter_alt</span></button>
+
+
+                                </text>
+                            }
+                            else
+                            {
+
+                                <span class="qryalias" id="qryalias_@c.UniqueName" @_strStyle>@strValueAlias</span>
+                                <button type="button" id="cmdqry_@c.UniqueName" tabindex="-1" class="btn bog btn-sm py-0 px-1 query_button"><span class="material-icons-outlined-nosize">filter_alt</span></button>
+
+
+                            }
+                            <input type="hidden" id="hidqry_@c.UniqueName" value="@strValue" />
+                            <input type="hidden" id="hidoper_@c.UniqueName" value="@strOper" />
+                        </th>
+                    }
+
+                </tr>
+            }
+
+
+        </thead>
+    </table>
+    <div id="container_vScroll">
+        <table id="tabgrid1" class="@_tabclass">
+            <tbody id="tabgrid1_tbody">@Html.Raw(Model.firstdata.body)</tbody>
+
+
+        </table>
+    </div>
+    <table id="tabgrid2" class="@_tabclass">
+        <thead id="tabgrid1_tfoot">
+            @Html.Raw(Model.firstdata.foot)
+        </thead>
+    </table>
+    <div id="divPagerContainer">
+        <div id="divPager">@Html.Raw(Model.firstdata.pager)</div>
+
+    </div>
+
+
+</div>
+
+<div id="tg_div_filter" style="display: none; width: 300px;">
+    <div class="card" style="margin: 0px; padding: 0px; border-width: 2px;">
+        <div class="card-header">
+            <span class="material-icons-outlined-nosize">filter_alt</span>
+            <span id="tg_div_filter_header"></span>
+            <button class="btn btn-light px-1 py-0" style="float:right;" onclick="tg_filter_hide_popup()">&times;</button>
+        </div>
+        <div class="card-body">
+            <div id="tg_div_filter_inputs" class="input-group">
+                <label for="qryval1">Od: </label>
+                <input type="text" id="qryval1" autocomplete="off" class="form-control form-control-sm" onkeydown="return tg_qryval_keydown(event)" />
+                <label for="qryval2">do: </label>
+                <input type="text" id="qryval2" autocomplete="off" class="form-control form-control-sm" onkeydown="return tg_qryval_keydown(event)" />
+                <button type="button" class="btn btn-primary btn-sm" onclick="tg_filter_ok()">@_f.tra("OK")</button>
+            </div>
+            <div id="tg_div_filter_radios">
+                <div cstring="1" cnumber="1" cdate="1" cbool="1">
+                    <input type='radio' id="chkf0" value='0' name='chlfilter' onchange='tg_filter_radio_change(this)' /><label for='chkf0' style="font-weight: bold;">@_f.tra("Nefiltrovat")</label>
+                </div>
+                <div cstring="1">
+                    <input type='radio' id="chkf3" value='3' name='chlfilter' onchange='tg_filter_radio_change(this)' /><label for='chkf3'>@_f.tra("Obsahuje")</label>
+                </div>
+                <div cstring="1">
+                    <input type='radio' id="chkf33" value='33' name='chlfilter' onchange='tg_filter_radio_change(this)' /><label for='chkf33'>@_f.tra("Neobsahuje")</label>
+                </div>
+                <div cdate="1" cnumber="1">
+                    <input type='radio' id="chkf4" value='4' name='chlfilter' onchange='tg_filter_radio_change(this)' /><label for='chkf4'>@_f.tra("Interval (od-do)")</label>
+                </div>
+                <div cstring="1" cnumber="1" cdate="1">
+                    <input type='radio' id="chkf1" value='1' name='chlfilter' onchange='tg_filter_radio_change(this)' /><label for='chkf1'>@_f.tra("Je prázdné")</label>
+                </div>
+                <div cstring="1" cnumber="1" cdate="1">
+                    <input type='radio' id="chkf2" value='2' name='chlfilter' onchange='tg_filter_radio_change(this)' /><label for='chkf2'>@_f.tra("Není prázdné")</label>
+                </div>
+
+                <div cnumber="1">
+                    <input type='radio' id="chkf10" value='10' name='chlfilter' onchange='tg_filter_radio_change(this)' /><label for='chkf10'>@_f.tra("Je větší než nula")</label>
+                </div>
+                <div cnumber="1">
+                    <input type='radio' id="chkf11" value='11' name='chlfilter' onchange='tg_filter_radio_change(this)' /><label for='chkf11'>@_f.tra("Je nula nebo prázdné")</label>
+                </div>
+                <div cstring="1">
+                    <input type='radio' id="chkf5" value='5' name='chlfilter' onchange='tg_filter_radio_change(this)' /><label for='chkf5'>@_f.tra("Začíná na")</label>
+                </div>
+                <div cstring="1">
+                    <input type='radio' id="chkf6" value='6' name='chlfilter' onchange='tg_filter_radio_change(this)' /><label for='chkf6'>@_f.tra("Je rovno")</label>
+                </div>
+                <div cstring="1">
+                    <input type='radio' id="chkf7" value='7' name='chlfilter' onchange='tg_filter_radio_change(this)' /><label for='chkf7'>@_f.tra("Není rovno")</label>
+                </div>
+                <div cbool="1">
+                    <input type='radio' id="chkf8" value='8' name='chlfilter' onchange='tg_filter_radio_change(this)' /><label for='chkf8'>@_f.tra("ANO (zaškrtnuto)")</label>
+                </div>
+                <div cbool="1">
+                    <input type='radio' id="chkf9" value='9' name='chlfilter' onchange='tg_filter_radio_change(this)' /><label for='chkf9'>@_f.tra("NE (nezaškrtnuto)")</label>
+                </div>
+            </div>
+            <code>
+                &#128161;<i>@_f.tra("Pro [Obsahuje/Začíná na/Rovná se/Nerovná se] lze zadávat středník jak oddělovač více hodnot (podmínka OR)")</i>
+            </code>
+        </div>
+
+
+    </div>
+    <input type="hidden" id="tg_div_filter_field" />
+
+</div>
+
+
+<input type="hidden" id="tg_selected_pid" />
+<input type="hidden" id="tg_selected_pids" />
+<input type="hidden" id="tg_selected_pids_pre" />
+@if (!Model.GridInput.isrecpagegrid)
+{
+    <button type="button" id="cmdGridColumnGroupBy" title="Souhrny podle sloupce" onclick="tg_groupby_click(this)" class="btn bog group_button py-0 px-1" tabindex="-1"><span class="material-icons-outlined-nosize">functions</span></button>
+}
+
+<button type="button" id="cmdFilterClear" title="Vyčistit filtr" style="z-index:9000;position:absolute;top:100px;left:100px;display:none;" class="btn btn-danger py-0 px-1" tabindex="-1">&#128473;</button>
+
+<script type="text/javascript">
+    var _thegrid;
+    var _bolHasJ73Query = "@Model.GridState.j72HashJ73Query";
+    
+
+    var tabwidth = "@(_totalwidth)px";
+    var tabclass = "@_tabclass";
+
+    $(document).ready(function () {
+        _thegrid = {
+            entity: "@Model.GridInput.entity",
+            master_entity: "@Model.GridInput.master_entity",
+            master_pid: "@Model.GridInput.master_pid",
+            dataurl: "@Url.Action("GetHtml4TheGrid", Model.GridInput.controllername)",
+            handlerurl: "@Url.Action("HandleTheGridOper", Model.GridInput.controllername)",
+            filterurl: "@Url.Action("HandleTheGridFilter", Model.GridInput.controllername)",
+            exporturl: "@Url.Action("HandleTheGridExport", Model.GridInput.controllername)",
+            j72id: "@Model.GridState.j72ID",
+            go2pid: "@Model.GridState.j75CurrentRecordPid",
+            fixedcolumns: "@Model.GridInput.fixedcolumns",
+            ondblclick: "@Model.GridInput.ondblclick",
+            oncmclick: "@Model.GridInput.oncmclick",
+            myqueryinline: "@Model.GridInput.myqueryinline",
+            rez: "@Model.GridInput.rez",
+            viewstate: "@Model.GridInput.viewstate",
+            isperiodovergrid: "@Model.GridInput.isperiodovergrid",
+            reczoomflag: "@Model.GridInput.reczoomflag",
+            is_enable_selecting: "@Model.GridInput.is_enable_selecting",
+            j72name: "@Model.GridState.j72Name",
+            j72systemflag: "@((int)Model.GridState.j72SystemFlag)",
+            operatorflag: "@((int)Model.GridState.j75OperatorFlag)",
+            groupbyfield: "@Model.GridState.j75GroupDataField",
+            j72id_query: "@Model.GridInput.j72id_query"
+        };
+
+        tg_init(_thegrid);
+
+        tg_refresh_sorter("@Model.firstdata.sortfield", "@Model.firstdata.sortdir");
+
+        if (document.getElementById("cmdgridmenu")) {
+           
+            if (_thegrid.j72systemflag == "0") {
+                $("#TheGridName").text(_thegrid.j72name);
+                $("#cmdgridmenu").css("background-color", "orange");
+            }
+
+        }
+
+        
+
+        $("#TheGridRows").text($("#tabgrid1_rows").text());
+
+        if (_thegrid.entity == "p31Worksheet" && document.getElementById("TheGridRowsTime")) {
+            _update_flattab_badge("TheGridRowsTime", $("#tabgrid1_rows_time").val());   //v TheGridSupport se generuje hidden: tabgrid1_rows_time
+            _update_flattab_badge("TheGridRowsExpense", $("#tabgrid1_rows_expense").val()); //v TheGridSupport se generuje hidden: tabgrid1_rows_expense
+            _update_flattab_badge("TheGridRowsFee", $("#tabgrid1_rows_fee").val());         //v TheGridSupport se generuje hidden: tabgrid1_rows_fee
+            _update_flattab_badge("TheGridRowsKusovnik", $("#tabgrid1_rows_kusovnik").val());
+        }
+
+        if (document.getElementById("cmdgridsel")) {
+            register_menu("cmdgridsel", "cmdgridsel_menu", "/Menu/grid_selected?prefix=" + _thegrid.entity.substring(0, 3) + "&master_prefix=" + _thegrid.master_entity + "&master_pid=" + _thegrid.master_pid);
+        }
+
+        if (document.getElementById("cmdgridmenu")) {
+
+            register_menu("cmdgridmenu", "cmdgridmenu_menu", "/Menu/grid_menu?prefix=" + _thegrid.entity.substring(0, 3) + "&j72id=" + _thegrid.j72id + "&master_prefix=" + _thegrid.master_entity + "&rez=" + _thegrid.rez);
+        }
+        if (document.getElementById("cmdgridquerymenu")) {
+            register_menu("cmdgridquerymenu", "cmdgridquerymenu_menu", "/Menu/grid_query?prefix=" + _thegrid.entity.substring(0, 3) + "&j72id=" + _thegrid.j72id_query + "&master_prefix=" + _thegrid.master_entity + "&rez=" + _thegrid.rez);
+            
+        }
+        if (document.getElementById("cmdprojecttreequery")) {
+            register_menu("cmdprojecttreequery", "cmdprojecttreequery_menu", "/Menu/tree_query?prefix=" + _thegrid.entity.substring(0, 3) + "&master_prefix=" + _thegrid.master_entity + "&rez=" + _thegrid.rez);
+
+        }
+
+
+        if (tabclass == "tabgrid_fixed") {
+            $("#tabgrid0").width(tabwidth);
+            $("#tabgrid1").width(tabwidth);
+            $("#tabgrid2").width(tabwidth);
+
+        }
+        
+        if (tabclass == "tabgrid_autoxxx"){
+            var width1 = $("#tabgrid1").width();    //strašná vojebávka
+            $("#tabgrid0").width(width1);
+            $("#tabgrid2").width(width1);
+        }
+        
+
+        var _isresize = "@(Model.GridInput.tablelayout.Resize)";
+        if (_isresize == "True") {
+            tg_init_resizer(@(Model.GridState.j72ID), @(_f.CurrentUser.pid));
+        }
+
+
+        
+        
+        
+    });
+
+
+
+
+
+
+
+
+</script>

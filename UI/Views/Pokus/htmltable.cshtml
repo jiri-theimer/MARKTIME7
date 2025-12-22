@@ -1,0 +1,17 @@
+﻿@model UI.Models.BaseViewModel
+@inject BL.Factory _f
+
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+   
+
+   
+}
+
+@addTagHelper *, UI
+
+<h4>Tabulka je:</h4>
+
+@Html.Raw(ViewBag.tab1)
+

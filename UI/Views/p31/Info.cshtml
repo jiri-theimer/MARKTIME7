@@ -1,0 +1,720 @@
+﻿@model UI.Models.Tab1.p31Tab1
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+    if (Model.Rec == null) return;
+
+    var _recSymbol = new BO.p31Worksheet() { p71ID = Model.Rec.p71ID, p72ID_AfterApprove = Model.Rec.p72ID_AfterApprove, p72ID_AfterTrimming = Model.Rec.p72ID_AfterTrimming };
+
+    var _disp = _f.p31WorksheetBL.InhaleRecDisposition(Model.Rec);
+
+    var _dispP91 = _f.p91InvoiceBL.InhaleRecDisposition(Model.Rec.p91ID,Model.RecP91);
+
+
+    bool _bolAllowRates = _f.CurrentUser.TestPermission(BO.PermValEnum.GR_AllowRates);
+
+    string _p51Name_BillingRate = null;
+    string _p51Name_CostRate = null;
+    if (Model.Rec.p51ID_BillingRate > 0)
+    {
+        try
+        {
+            _p51Name_BillingRate = _f.p51PriceListBL.Load(Model.Rec.p51ID_BillingRate).p51Name;
+        }
+        catch
+        {
+            //nic
+        }
+    }
+    if (Model.Rec.p51ID_CostRate > 0)
+    {
+        _p51Name_CostRate = _f.p51PriceListBL.Load(Model.Rec.p51ID_CostRate).p51Name;
+    }
+
+    var _lisB05 = _f.WorkflowBL.GetList_b05("p31", Model.Rec.pid, 0, 0, 0);
+
+    var _recP41 = _f.p41ProjectBL.Load(Model.Rec.p41ID);
+
+    string _kontaktniOsoba = null;
+    if (Model.Rec.p28ID_ContactPerson > 0)
+    {
+        var recP28CP = _f.p28ContactBL.Load(Model.Rec.p28ID_ContactPerson);
+        if (recP28CP != null)
+        {
+            _kontaktniOsoba = recP28CP.p28Name;
+        }
+    }
+}
+
+@addTagHelper *, UI
+
+@if (Model.IsRecord)
+{
+    @if (Model.Rec.isdeleted)
+    {
+        <div class="bg-light" style="padding:10px">
+
+            <button type="button" id="cmdClose" onclick="window.parent._window_close()" class="btn btn-light" style="margin-left:20px;"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
+
+        </div>
+    }
+    else
+    {
+        <div class="bg-light" style="padding:10px">
+            @if (Model.Rec.p91ID == 0 && Model.Rec.p71ID != BO.p71IdENUM.Nic)
+            {
+                <button type="button" class="btn btn-primary" onclick="reapprove()">@_f.tra("Pře-schválit")</button>
+            }
+            @if (Model.Rec.p31ExcludeBillingFlag == 1)
+            {
+                <button type="button" class="btn btn-primary" onclick="recexclude()">@_f.tra("Změnit na rozpracovaný úkon")</button>
+            }
+
+
+            <mywrkbutton prefix="p31" pid="@Model.Rec.pid" langindex="_f.CurrentUser.j02LangIndex"></mywrkbutton>
+            <button type="button" id="cmdClose" onclick="window.parent._window_close()" class="btn btn-light" style="margin-left:20px;"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
+
+        </div>
+    }
+
+
+    <div class="alert alert-primary input-group my-0" role="alert">
+        <div>
+            <span class="fs-5">
+
+                @Html.Raw(UI.Code.TheGridRowSymbol.p31_symbol(Model.Rec))
+            </span>
+
+            <strong style="margin-left:10px;">
+                @(_disp.LockedReasonMessage)
+
+            </strong>
+
+            @if (Model.Rec.isdeleted)
+            {
+                <span class="badge text-bg-danger">@_f.tra("Záznam byl přesunutý do archivu")</span>
+            }
+
+        </div>
+
+        @if (_f.CurrentUser.j04IsModule_p31)
+        {
+            <div style="margin-left:20px;">
+                <a class="btn btn-sm bog" id="linkGo2Grid" target="_top" href="/TheGrid/FlatView?prefix=p31&myqueryinline=pids|list_int|@(Model.pid)">
+                    <span class="material-icons-outlined-btn">grid_view</span>
+                    @_f.tra("Zobrazit v Tabulce")
+                </a>
+                @if (!Model.Rec.isdeleted)
+                {
+                    <button type="button" id="cmdWrkButton" class="btn btn-sm bog" style="margin-left:20px;" onclick="_window_open('/workflow_dialog/Index?record_prefix=p31&record_pid=@(Model.Rec.pid)')">
+                        <myicon symbol="speaker_notes"></myicon>
+                        @_f.tra("Doplnit poznámku")
+                        @if (_lisB05.Count() > 0)
+                        {
+                            <span class="badge-def">
+                                @(_lisB05.Count())
+                            </span>
+                        }
+                    </button>
+                }
+                @if (_dispP91.OwnerAccess)
+                {
+                    <a style="margin-left:20px;" class="btn btn-sm bog" href="/p91oper/p31edit?p31id=@Model.pid">
+                        <myicon symbol="receipt_long"></myicon>
+                        @_f.tra("Upravit položku vyúčtování")
+                        </a>
+                }
+
+            </div>
+        }
+
+    </div>
+}
+
+
+<div class="div-over-table-scrolling">
+    <div style="min-width:600px;max-width:1000px;padding:6px;">
+
+
+        <div class="card my-2">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-sm-1 col-md-2 col-3">@_f.tra("Datum"):</div>
+                    <div class="col-sm-5 col-md-4 col-7">
+                        <myval datatype="date" value="@Model.Rec.p31Date"></myval>
+                    </div>
+                    <div class="col-sm-1 col-md-2 col-3">@_f.tra("Sešit"):</div>
+                    <div class="col-sm-5 col-md-4 col-7">
+                        <myval value="@Model.Rec.p34Name"></myval>
+                    </div>
+                </div>
+                <div class="row my-2">
+                    <div class="col-sm-1 col-md-2 col-3">@_f.tra("Jméno"):</div>
+                    <div class="col-sm-5 col-md-4 col-7">
+                        @if (_f.CurrentUser.j04IsModule_j02)
+                        {
+                            <myval datatype="link" linktarget="_top" linkurl="/Record/RecPage?prefix=j02&pid=@Model.Rec.j02ID" value="@Model.Rec.Person"></myval>
+                        }
+                        else
+                        {
+                            <myval value="@Model.Rec.Person"></myval>
+                        }
+                    </div>
+                    <div class="col-sm-1 col-md-2 col-3">@_f.tra("Aktivita"):</div>
+                    <div class="col-sm-5 col-md-4 col-7">
+                        <myval value="@Model.Rec.p32Name"></myval>
+                    </div>
+                </div>
+                <div class="row my-2">
+                    @if (Model.Rec.p28ID_Client > 0)
+                    {
+                        <div class="col-sm-1 col-md-2 col-3">@_f.tra("Klient"):</div>
+                        <div class="col-sm-5 col-md-4 col-7">
+                            @if (_f.CurrentUser.j04IsModule_p28)
+                            {
+                                <myval datatype="link" linktarget="_top" linkurl="/Record/RecPage?prefix=p28&pid=@Model.Rec.p28ID_Client" value="@Model.Rec.ClientName"></myval>
+                            }
+                            else
+                            {
+                                <myval value="@Model.Rec.ClientName"></myval>
+                            }
+
+
+                        </div>
+                    }
+
+                    <div class="col-sm-1 col-md-2 col-3  recpagelabel">@(_recP41.p07Name):</div>
+                    <div class="col-sm-5 col-md-4 col-7">
+                        @if (_f.CurrentUser.j04IsModule_p41)
+                        {
+                            <myval datatype="link" linktarget="_top" linkurl="/Record/RecPage?prefix=le5&pid=@Model.Rec.p41ID" value="@Model.Rec.p41NamePlusCode"></myval>
+                        }
+                        else
+                        {
+                            <myval value="@Model.Rec.p41NamePlusCode"></myval>
+                        }
+
+
+
+                    </div>
+                </div>
+                @if (_kontaktniOsoba != null)
+                {
+                    <div class="row my-2">
+                        <div class="col-sm-1 col-md-2 col-3">@_f.tra("Kontaktní osoba"):</div>
+                        <div class="col-sm-5 col-md-4 col-7">
+                            @if (_f.CurrentUser.j04IsModule_p28)
+                            {
+                                <myval datatype="link" linktarget="_top" linkurl="/Record/RecPage?prefix=p28&pid=@Model.Rec.p28ID_ContactPerson" value="@(_kontaktniOsoba)"></myval>
+                            }
+                            else
+                            {
+                                <myval value="@_kontaktniOsoba"></myval>
+                            }
+                        </div>
+
+                    </div>
+                }
+
+            </div>
+        </div>
+
+        <div style="background-color:#FFFFCC;border-radius:6px;margin-bottom:6px;border:solid 1px #DCDCDC;padding:5px;">
+            <i>
+                @Html.Raw(BO.Code.Bas.Text2Html(Model.Rec.p31Text))
+            </i>
+        </div>
+        @if (Model.Rec.p31TextInternal != null)
+        {
+            <div style="background-color:#FFF5EE;border-radius:6px;margin-bottom:6px;border:solid 1px #DCDCDC;padding:5px;">
+                <i>
+                    @Html.Raw(BO.Code.Bas.Text2Html(Model.Rec.p31TextInternal))
+                </i>
+            </div>
+        }
+        @if (Model.Rec.p40ID_Source > 0)
+        {
+            <div class="row my-2">
+                <div class="col-sm-2 col-md-3 col-3">
+
+                    @_f.tra("Generováno z opakované odměny"):
+                </div>
+                <div class="col-sm-5 col-md-4 col-9">
+                    @if (_f.CurrentUser.j04IsModule_p41)
+                    {
+                        <myval datatype="link" linktarget="_top" linkurl="/Record/RecPage?prefix=p40&pid=@Model.Rec.p40ID_Source" value="@(_f.p40WorkSheet_RecurrenceBL.Load(Model.Rec.p40ID_Source).NamePlusCerpano)"></myval>
+                    }
+                    else
+                    {
+                        <myval value="@(_f.p40WorkSheet_RecurrenceBL.Load(Model.Rec.p40ID_Source).p40Name)"></myval>
+                    }
+
+                </div>
+            </div>
+        }
+
+
+        <div class="card my-2">
+
+            <div class="card-body">
+                <div class="card-title">
+                    @if (Model.Rec.p33ID == BO.p33IdENUM.Cas | Model.Rec.p33ID == BO.p33IdENUM.Kusovnik)
+                    {
+                        <myicon symbol="more_time"></myicon>
+                    }
+                    else
+                    {
+                        <myicon symbol="paid"></myicon>
+                    }
+
+                    <strong class="text-primary">@_f.tra("Vykázáno")</strong>
+                    <small class="float-end">
+                        <code>@_f.tra("Autor"):</code>
+                        @(Model.Rec.UserInsert + " / " + BO.Code.Time.GetTimestamp(Model.Rec.DateInsert))
+                    </small>
+                </div>
+                @if (Model.Rec.p33ID == BO.p33IdENUM.Cas)
+                {
+                    <div class="row my-2">
+                        <div class="col-sm-1 col-md-2 col-3">@_f.tra("Vykázané hodiny"):</div>
+                        <div class="col-sm-5 col-md-4 col-7">
+                            @if (_f.CurrentUser.j02DefaultHoursFormat == "N")
+                            {
+                                <myval datatype="num" value="@Model.Rec.p31Hours_Orig"></myval>
+                            }
+                            else
+                            {
+                                <myval value="@Model.Rec.p31HHMM_Orig"></myval>
+                            }
+
+                        </div>
+
+
+                    </div>
+                    @if (Model.Rec.p40ID_FixPrice > 0)
+                    {
+                        <div class="row my-2">
+                            <div class="col-sm-1 col-md-2 col-3">@_f.tra("Vazba na paušál"):</div>
+                            <div class="col-sm-5 col-md-4 col-7">
+                                <span class="badge-a6">
+                                    @Model.Rec.p40Name
+                                </span>
+
+                            </div>
+
+                        </div>
+                    }
+
+                }
+
+
+                @if (Model.Rec.p33ID == BO.p33IdENUM.Kusovnik)
+                {
+                    <div class="row my-2">
+                        <div class="col-sm-1 col-md-2 col-3">@_f.tra("Vykázaný počet"):</div>
+                        <div class="col-sm-5 col-md-4 col-3">
+                            <myval datatype="num" value="@Model.Rec.p31Value_Orig"></myval>
+                        </div>
+
+                    </div>
+                }
+                @if (Model.Rec.p72ID_AfterTrimming != BO.p72IdENUM._NotSpecified)
+                {
+                    <div class="row my-2">
+                        <div class="col-sm-1 col-md-2 col-3">@_f.tra("Korekce pro vyúčtování"):</div>
+                        <div class="col-sm-5 col-md-4 col-3">
+                            @if (Model.Rec.p72ID_AfterTrimming == BO.p72IdENUM.ZahrnoutDoPausalu)
+                            {
+                                <span class="badge-a6">
+                                    Zahrnout do paušálu
+                                </span>
+                            }
+                            @if (Model.Rec.p72ID_AfterTrimming == BO.p72IdENUM.SkrytyOdpis)
+                            {
+                                <span class="badge-a3">
+                                    Skrytý odpis
+                                </span>
+                            }
+                            @if (Model.Rec.p72ID_AfterTrimming == BO.p72IdENUM.ViditelnyOdpis)
+                            {
+                                <span class="badge-a2">
+                                    Viditelný odpis
+                                </span>
+                            }
+                            @if (Model.Rec.p72ID_AfterTrimming == BO.p72IdENUM.Fakturovat)
+                            {
+                                <strong>@(BO.Code.Bas.Number2String(@Model.Rec.p31Value_Trimmed))</strong>
+                                <span class="badge-a4">
+                                    Fakturovat
+
+                                </span>
+                               
+
+                        }
+                        </div>
+                    </div>
+                }
+
+                @if ((Model.Rec.p33ID == BO.p33IdENUM.Cas || Model.Rec.p33ID == BO.p33IdENUM.Kusovnik) && _bolAllowRates)
+                {
+                    <div class="row my-2">
+                        <div class="col-sm-1 col-md-2 col-3 ">@_f.tra("Fakturační sazba"):</div>
+                        <div class="col-sm-5 col-md-4 col-7">
+                            <myval datatype="num" value="@Model.Rec.p31Rate_Billing_Orig" valueafter="@Model.Rec.j27Code_Billing_Orig"></myval>
+                        </div>
+                        <div class="col-sm-1 col-md-2 col-3 ">@_f.tra("Nákladová sazba"):</div>
+                        <div class="col-sm-5 col-md-4 col-7">
+                            <myval datatype="num" value="@Model.Rec.p31Rate_Internal_Orig"></myval>
+                        </div>
+                    </div>
+                    <div class="row my-2">
+                        @if (Model.Rec.p72ID_AfterTrimming == BO.p72IdENUM._NotSpecified)
+                        {
+                            <div class="col-sm-1 col-md-2 col-3">@_f.tra("Fakturační honorář"):</div>
+                            <div class="col-sm-5 col-md-4 col-7">
+                                <myval datatype="num" value="@Model.Rec.p31Amount_WithoutVat_Orig" valueafter="@Model.Rec.j27Code_Billing_Orig"></myval>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="col-sm-1 col-md-2 col-3">@_f.tra("Honorář po korekci"):</div>
+                            <div class="col-sm-5 col-md-4 col-7">
+                                <myval datatype="num" value="@(Model.Rec.p31Value_Trimmed*Model.Rec.p31Rate_Billing_Orig)" valueafter="@Model.Rec.j27Code_Billing_Orig"></myval>
+                            </div>
+                        }
+
+                        <div class="col-sm-1 col-md-2 col-3">@_f.tra("Nákladový honorář"):</div>
+                        <div class="col-sm-5 col-md-4 col-7">
+                            <myval datatype="num" value="@Model.Rec.p31Amount_Internal"></myval>
+                        </div>
+                    </div>
+                    <div class="row my-2">
+                        <div class="col-sm-1 col-md-2 col-3">@_f.tra("Název ceníku"):</div>
+                        <div class="col-sm-5 col-md-4 col-9">
+                            <myval value="@_p51Name_BillingRate"></myval>
+                        </div>
+                        <div class="col-sm-1 col-md-2 col-3">@_f.tra("Název ceníku"):</div>
+                        <div class="col-sm-5 col-md-4 col-9">
+                            <myval value="@_p51Name_CostRate"></myval>
+                        </div>
+                    </div>
+                }
+                @if (Model.Rec.p33ID == BO.p33IdENUM.PenizeBezDPH || Model.Rec.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu)
+                {
+                    <div class="row my-2">
+                        <div class="col-sm-1 col-md-2 col-3">@_f.tra("Bez DPH"):</div>
+                        <div class="col-sm-5 col-md-4 col-7">
+                            <myval datatype="num" value="@Model.Rec.p31Amount_WithoutVat_Orig" valueafter="@Model.Rec.j27Code_Billing_Orig"></myval>
+                        </div>
+                        <div class="col-sm-1 col-md-2 col-3">@_f.tra("Včetně DPH"):</div>
+                        <div class="col-sm-5 col-md-4 col-7">
+                            <myval datatype="num" value="@Model.Rec.p31Amount_WithVat_Orig" valueafter="@Model.Rec.j27Code_Billing_Orig"></myval>
+                        </div>
+                    </div>
+                    <div class="row my-2">
+                        <div class="col-sm-1 col-md-2 col-3">@_f.tra("DPH sazba"):</div>
+                        <div class="col-sm-5 col-md-4 col-7">
+                            <myval datatype="num" value="@Model.Rec.p31VatRate_Orig" valueafter="%"></myval>
+                        </div>
+                        <div class="col-sm-1 col-md-2 col-3">@_f.tra("Částka DPH"):</div>
+                        <div class="col-sm-5 col-md-4 col-7">
+                            <myval datatype="num" value="@Model.Rec.p31Amount_Vat_Orig" valueafter="@Model.Rec.j27Code_Billing_Orig"></myval>
+                        </div>
+                    </div>
+                }
+
+            </div>
+        </div>
+
+        @if (Model.Rec.p71ID == BO.p71IdENUM.Neschvaleno)
+        {
+            <div class="card my-2">
+                <div class="card-body">
+                    <div class="card-title">
+                        @Html.Raw(UI.Code.TheGridRowSymbol.p31_symbol(_recSymbol))
+                        <strong class="text-primary">@_f.tra("Neschváleno")</strong>
+                        <span class="badge-a@((int)Model.Rec.p72ID_AfterApprove)">@Model.Rec.approve_p72Name</span>
+
+
+                        <small class="float-end">
+                            <code>@_f.tra("Schvalovatel"):</code>
+                            @(_f.j02UserBL.Load(Model.Rec.j02ID_ApprovedBy).FullNameAsc + " / " + BO.Code.Time.GetTimestamp(Model.Rec.p31Approved_When))
+                        </small>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (Model.Rec.p71ID == BO.p71IdENUM.Schvaleno)
+        {
+            <div class="card my-2">
+
+                <div class="card-body">
+                    <div class="card-title">
+
+                        @Html.Raw(UI.Code.TheGridRowSymbol.p31_symbol(_recSymbol))
+
+                        <strong class="text-primary">@_f.tra("Schváleno")</strong>
+                        <span class="badge-a@((int)Model.Rec.p72ID_AfterApprove)">@Model.Rec.approve_p72Name</span>
+
+
+                        <small class="float-end">
+                            <code>@_f.tra("Schvalovatel"):</code>
+                            @(_f.j02UserBL.Load(Model.Rec.j02ID_ApprovedBy).FullNameAsc + " / " + BO.Code.Time.GetTimestamp(Model.Rec.p31Approved_When))
+                        </small>
+                    </div>
+                    @if (Model.Rec.p33ID == BO.p33IdENUM.Cas)
+                    {
+                        <div class="row">
+                            <div class="col-sm-1 col-md-2 col-3">@_f.tra("K fakturaci"):</div>
+                            <div class="col-sm-5 col-md-4 col-7">
+                                <myval datatype="num" value="@Model.Rec.p31Hours_Approved_Billing"></myval>
+                            </div>
+                            <div class="col-sm-1 col-md-2 col-3">@_f.tra("Schváleno nákladově"):</div>
+                            <div class="col-sm-5 col-md-4 col-7">
+                                <myval datatype="num" value="@Model.Rec.p31Hours_Approved_Internal"></myval>
+                            </div>
+                        </div>
+                        @if (_bolAllowRates)
+                        {
+                            <div class="row my-2">
+                                <div class="col-sm-1 col-md-2 col-3">@_f.tra("Fakturační sazba"):</div>
+                                <div class="col-sm-5 col-md-4 col-7">
+                                    <myval datatype="num" value="@Model.Rec.p31Rate_Billing_Approved" valueafter="@Model.Rec.j27Code_Billing_Orig"></myval>
+                                </div>
+                                <div class="col-sm-1 col-md-2 col-3">@_f.tra("Nákladová sazba"):</div>
+                                <div class="col-sm-5 col-md-4 col-7">
+                                    <myval datatype="num" value="@Model.Rec.p31Rate_Internal_Approved"></myval>
+                                </div>
+                            </div>
+                            @if (Model.Rec.p72ID_AfterApprove == BO.p72IdENUM.Fakturovat)
+                            {
+                                <div class="row my-2">
+                                    <div class="col-sm-1 col-md-2 col-3">@_f.tra("Honorář"):</div>
+                                    <div class="col-sm-5 col-md-4 col-7">
+                                        <myval datatype="num" value="@Model.Rec.p31Amount_WithoutVat_Approved" valueafter="@Model.Rec.j27Code_Billing_Orig"></myval>
+                                    </div>
+
+                                </div>
+                            }
+                        }
+
+
+                    }
+                    @if (Model.Rec.p33ID == BO.p33IdENUM.Kusovnik)
+                    {
+                        <div class="row">
+                            <div class="col-sm-1 col-md-2 col-3">@_f.tra("K fakturaci"):</div>
+                            <div class="col-sm-5 col-md-4 col-7">
+                                <myval datatype="num" value="@Model.Rec.p31Value_Approved_Billing"></myval>
+                            </div>
+
+                        </div>
+                    }
+                    @if (Model.Rec.p72ID_AfterApprove == BO.p72IdENUM.Fakturovat && (Model.Rec.p33ID == BO.p33IdENUM.PenizeBezDPH || Model.Rec.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu))
+                    {
+                        <div class="row">
+                            <div class="col-sm-1 col-md-2 col-3">@_f.tra("Bez DPH"):</div>
+                            <div class="col-sm-5 col-md-4 col-7">
+                                <myval datatype="num" value="@Model.Rec.p31Amount_WithoutVat_Approved" valueafter="@Model.Rec.j27Code_Billing_Orig"></myval>
+                            </div>
+                            <div class="col-sm-1 col-md-2 col-3">@_f.tra("Včetně DPH"):</div>
+                            <div class="col-sm-5 col-md-4 col-7">
+                                <myval datatype="num" value="@Model.Rec.p31Amount_WithVat_Approved" valueafter="@Model.Rec.j27Code_Billing_Orig"></myval>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-1 col-md-2 col-3">@_f.tra("DPH sazba"):</div>
+                            <div class="col-sm-5 col-md-4 col-7">
+                                <myval datatype="num" value="@Model.Rec.p31VatRate_Approved" valueafter="%"></myval>
+                            </div>
+                            <div class="col-sm-1 col-md-2 col-3">@_f.tra("Částka DPH"):</div>
+                            <div class="col-sm-5 col-md-4 col-7">
+                                <myval datatype="num" value="@Model.Rec.p31Amount_Vat_Approved" valueafter="@Model.Rec.j27Code_Billing_Orig"></myval>
+                            </div>
+                        </div>
+                    }
+
+                </div>
+            </div>
+        }
+
+
+        @if (Model.Rec.p91ID > 0)
+        {
+            <div class="card my-2">
+
+                <div class="card-body">
+                    <div class="card-title">
+                        @Html.Raw(UI.Code.TheGridRowSymbol.p31_symbol(Model.Rec))
+                        <strong class="text-primary">@_f.tra("Vyúčtováno")</strong>
+
+                        <span class="badge-a@((int)Model.Rec.p70ID)">@Model.Rec.p70Name</span>
+                        <small class="float-end">
+                            <code>@_f.tra("Vygenerováno"):</code>
+                            @(Model.RecP91.Owner + " / " + BO.Code.Bas.ObjectDateTime2String(Model.RecP91.DateInsert))
+                        </small>
+
+                        @if (_dispP91.OwnerAccess)
+                        {
+                            <a style="font-weight:bold;" href="/p91oper/p31edit?p31id=@Model.pid">@_f.tra("Upravit položku vyúčtování")</a>
+                        }
+                    </div>
+                    <div class="row my-2">
+                        <div class="col-sm-1 col-md-2 col-3">@_f.tra("Faktura"):</div>
+                        <div class="col-sm-5 col-md-4 col-7">
+                            @if (_f.CurrentUser.j04IsModule_p91)
+                            {
+                                <myval datatype="link" linkurl="/Record/RecPage?prefix=p91&pid=@Model.RecP91.pid" linktarget="_top" value="@(Model.RecP91.p92Name+": "+Model.RecP91.p91Code)"></myval>
+                            }
+                            else
+                            {
+                                <myval value="@(Model.RecP91.p92Name+": "+Model.RecP91.p91Code)"></myval>
+                            }
+
+                        </div>
+                        <div class="col-sm-1 col-md-2 col-3">Klient:</div>
+                        <div class="col-sm-5 col-md-4 col-7">
+                            @if (_f.CurrentUser.j04IsModule_p28)
+                            {
+                                <myval datatype="link" linktarget="_top" linkurl="/Record/RecPage?prefix=p28&pid=@Model.RecP91.p28ID" value="@Model.RecP91.p91Client"></myval>
+                            }
+                            else
+                            {
+                                <myval value="@Model.RecP91.p91Client"></myval>
+
+                            }
+
+                        </div>
+                    </div>
+                    <div class="row my-2">
+                        <div class="col-sm-1 col-md-2 col-3">@_f.tra("Datum vystavení"):</div>
+                        <div class="col-sm-2 col-md-2 col-7">
+                            <myval datatype="date" value="@Model.RecP91.p91Date"></myval>
+                        </div>
+
+                    </div>
+                    <div class="row my-2">
+                        <div class="col-sm-1 col-md-2 col-3">@_f.tra("Datum plnění"):</div>
+                        <div class="col-sm-2 col-md-2 col-7">
+                            <myval datatype="date" value="@Model.RecP91.p91DateSupply"></myval>
+                        </div>
+
+                    </div>
+                    @if (Model.Rec.p33ID == BO.p33IdENUM.Cas && Model.Rec.p70ID == BO.p70IdENUM.Vyfakturovano)
+                    {
+                        <div class="row my-2">
+                            <div class="col-sm-1 col-md-2 col-3">@_f.tra("Vyúčtované hodiny"):</div>
+                            <div class="col-sm-3 col-md-2 col-7">
+                                @if (_f.CurrentUser.j02DefaultHoursFormat == "N")
+                                {
+                                    <myval datatype="num" value="@Model.Rec.p31Hours_Invoiced"></myval>
+                                }
+                                else
+                                {
+                                    <myval value="@Model.Rec.p31HHMM_Invoiced"></myval>
+                                }
+                            </div>
+
+
+                        </div>
+                    }
+                    @if (Model.Rec.p33ID == BO.p33IdENUM.Kusovnik && Model.Rec.p70ID == BO.p70IdENUM.Vyfakturovano)
+                    {
+                        <div class="row my-2">
+                            <div class="col-sm-1 col-md-2 col-3">@_f.tra("Vyúčtováno ks"):</div>
+                            <div class="col-sm-5 col-md-4 col-7">
+                                <myval datatype="num" value="@Model.Rec.p31Value_Invoiced"></myval>
+                            </div>
+
+                        </div>
+                    }
+                    @if ((Model.Rec.p33ID == BO.p33IdENUM.Cas || Model.Rec.p33ID == BO.p33IdENUM.Kusovnik) && Model.Rec.p70ID == BO.p70IdENUM.Vyfakturovano && _bolAllowRates)
+                    {
+                        <div class="row my-2">
+                            <div class="col-sm-1 col-md-2 col-3">@_f.tra("Fakturační sazba"):</div>
+                            <div class="col-sm-5 col-md-4 col-7">
+                                <myval datatype="num" value="@Model.Rec.p31Rate_Billing_Invoiced" valueafter="@Model.RecP91.j27Code"></myval>
+                            </div>
+
+                        </div>
+
+                    }
+                    @if (Model.Rec.p70ID == BO.p70IdENUM.Vyfakturovano && _bolAllowRates)
+                    {
+                        <div class="row my-2">
+                            <div class="col-sm-1 col-md-2 col-3">@_f.tra("Bez DPH"):</div>
+                            <div class="col-sm-5 col-md-4 col-7">
+                                <myval datatype="num" value="@Model.Rec.p31Amount_WithoutVat_Invoiced" valueafter="@Model.RecP91.j27Code"></myval>
+                            </div>
+                            <div class="col-sm-1 col-md-2 col-3">@_f.tra("Včetně DPH"):</div>
+                            <div class="col-sm-5 col-md-4 col-7">
+                                <myval datatype="num" value="@Model.Rec.p31Amount_WithVat_Invoiced" valueafter="@Model.RecP91.j27Code"></myval>
+                            </div>
+                        </div>
+                        <div class="row my-2">
+                            <div class="col-sm-1 col-md-2 col-3">@_f.tra("DPH sazba"):</div>
+                            <div class="col-sm-5 col-md-4 col-7">
+                                <myval datatype="num" value="@Model.Rec.p31VatRate_Invoiced" valueafter="%"></myval>
+                            </div>
+                            <div class="col-sm-1 col-md-2 col-3">@_f.tra("Částka DPH"):</div>
+                            <div class="col-sm-5 col-md-4 col-7">
+                                <myval datatype="num" value="@Model.Rec.p31Amount_Vat_Invoiced" valueafter="@Model.RecP91.j27Code"></myval>
+                            </div>
+                        </div>
+                    }
+
+                </div>
+            </div>
+        }
+
+    </div>
+</div>
+
+@Html.EditorFor(m => m, "~/Views/Shared/_TagsTab1.cshtml")
+
+@Html.EditorFor(m => m, "~/Views/Shared/_lisO27Tab1.cshtml")
+
+<div style="clear:both;"></div>
+
+
+
+@if (_lisB05.Count() > 0)
+{
+
+    @await Html.PartialAsync("~/Views/Shared/_lisB05.cshtml", _lisB05)
+
+}
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+        if (_device.isMobile) {
+            $("#linkGo2Grid").attr("href", "/TheGrid/MobileView?prefix=p31&myqueryinline=pids|list_int|@(Model.pid)");
+        }
+
+    });
+
+
+    function reapprove() {
+        parent.window._window_toggle();
+        _redirect("/p31approveinput/Index?prefix=p31&pids=@Model.Rec.pid");
+    }
+    function recexclude() {
+
+        $.post(_ep("/p31misc/Move2ExcludeBillingFlag"), { p31id: @Model.Rec.pid, flag: 0 }, function (data) {
+            if (data.message != null) {
+                alert(data.message);
+            }
+            _redirect("/p31/Record?pid=@Model.Rec.pid");
+
+        });
+    }
+
+    function hardrefresh(pid, flag) {
+        location.replace(location.href);
+    }
+</script>

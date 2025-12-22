@@ -1,0 +1,119 @@
+﻿@model UI.Models.p91oper.p94ViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = _f.tra("Zapsat úhradu faktury");
+
+}
+
+@addTagHelper *, UI
+
+<div class="bg-light" style="padding:10px;">
+    <button type="button" id="cmdOK" class="btn btn-success" onclick="_submit()">@_f.tra("Uložit úhradu faktury")</button>
+
+
+    <button id="cmdSaveAndNotify" class="btn btn-info" style="margin-left:10px;" onclick="_postback('mail')">
+        <span class="material-icons-outlined-btn">alternate_email</span>
+        @_f.tra("Uložit a notifikovat")
+    </button>
+
+    <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+
+
+
+</div>
+
+<form id="form1" asp-controller="p91oper" asp-action="p94" method="POST">
+    <div class="modal_record_container">
+        <div class="alert alert-primary">
+            @(Model.RecP91.p92Name+": "+Model.RecP91.p91Code)
+            <span style="margin-left:50px;">@_f.tra("Dluh"):</span>
+            <strong style="color:red;">@(BO.Code.Bas.Number2String(Model.RecP91.p91Amount_Debt))</strong>
+            <span>@(Model.RecP91.j27Code)</span>
+            <hr />
+            @(Model.RecP91.p91Client)
+        </div>
+
+        <div class="row">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Datum úhrady"):</label>
+            <div class="col-sm-3 col-md-2">
+                <mydate asp-for="@Model.Rec.p94Date"></mydate>
+            </div>
+
+        </div>
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Částka úhrady"):</label>
+            <div class="col-sm-3 col-md-2">
+                <mynumber asp-for="@Model.Rec.p94Amount" decimal-digits="2"></mynumber>
+            </div>
+
+        </div>
+
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Poznámka"):</label>
+            <div class="col-sm-11 col-md-10">
+                <input type="text" class="form-control" asp-for="@Model.Rec.p94Description" />
+            </div>
+
+        </div>
+
+        @if (Model.lisP94.Count() > 0)
+        {
+            <div class="card">
+                <div class="card-header">
+                    @_f.tra("Historie úhrad faktury")
+
+                </div>
+                <div class="card-body">
+                    <table class="table table-hover">
+                        @foreach (var c in Model.lisP94)
+                        {
+                            <tr>
+                                <td>
+                                    @(BO.Code.Bas.ObjectDate2String(c.p94Date))
+                                </td>
+                                <td>
+                                    @(BO.Code.Bas.Number2String(c.p94Amount))
+                                </td>
+                                <td>
+                                    <i>@(c.p94Description)</i>
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-danger" onclick="deleterecord(@(c.pid))">@_f.tra("Odstranit úhradu z faktury")</button>
+                                </td>
+                            </tr>
+                        }
+                    </table>
+                </div>
+            </div>
+        }
+
+
+
+    </div>
+
+
+    <input type="hidden" asp-for="@Model.p91ID" />
+</form>
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+       
+
+
+    })
+
+
+    function deleterecord(p94id) {
+        if (confirm("Opravdu odstranit úhradu?")) {
+            _postback("delete","p94id="+p94id);
+            
+        }
+
+    }
+
+</script>

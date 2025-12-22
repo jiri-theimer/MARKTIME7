@@ -1,0 +1,118 @@
+﻿@model UI.Models.wrk.WorkflowBatchViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Hromadně posunout/doplnit");
+
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageSymbol = "task_alt";
+}
+
+
+@addTagHelper *,UI
+
+<div class="bg-light input-group" style="padding:10px;">
+    <div>
+        <button id="cmdSave" class="btn btn-success" onclick="_submit()">@_f.tra("Uložit změny")</button>
+
+    </div>
+    <div>
+        <button id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+    </div>
+   
+
+</div>
+
+
+
+<form id="form1" asp-controller="workflow_batch" asp-action="Index" method="POST">
+
+   
+    <table class="table table-hover" style="table-layout: fixed;">
+        @for (int i = 0; i < Model.lisRecs.Count; i++)
+        {
+            <tr>
+                <td style="width:20px;">
+                    #@(i+1)
+                </td>
+                <td>
+                   <myval value="@Model.lisRecs[i].Alias" hoverprefix="@Model.Record_Prefix" hoverpid="@Model.lisRecs[i].pid"></myval>
+
+                    <input type="hidden" asp-for="@Model.lisRecs[i].pid" value="@Model.lisRecs[i].pid" />
+
+                    <input type="hidden" asp-for="@Model.lisRecs[i].b02ID"/>
+                    <input type="hidden" asp-for="@Model.lisRecs[i].b02Name" />
+                    <input type="hidden" asp-for="@Model.lisRecs[i].Alias" />
+                    <input type="hidden" asp-for="@Model.lisRecs[i].b02Color" />
+                    
+
+                </td>
+                <td style="width:10px;background-color:@(Model.lisRecs[i].b02Color);">
+                    &nbsp;
+                </td>
+                <td>
+                    @Model.lisRecs[i].b02Name
+                </td>
+                <td>                    
+                   
+                    @for (int j = 0; j < Model.lisRecs[i].LocalSteps.Count; j++)
+                    {
+                        <input type="hidden" asp-for="@Model.lisRecs[i].LocalSteps[j].b06ID" />
+                        <input type="hidden" asp-for="@Model.lisRecs[i].LocalSteps[j].b06Name" />
+
+                        <input style="margin-left:5px;" type="radio" onchange="focus_comment(this,@i,@(Model.lisRecs[i].LocalSteps[j].b06ID))" id="opg@(i.ToString()+"_"+Model.lisRecs[i].LocalSteps[j].b06ID.ToString())" asp-for="@Model.lisRecs[i].SelectedB06ID" value="@(Model.lisRecs[i].LocalSteps[j].b06ID)">
+                        <label for="opg@(i.ToString()+"_"+Model.lisRecs[i].LocalSteps[j].b06ID.ToString())">@Model.lisRecs[i].LocalSteps[j].b06Name</label>
+
+                        
+                    }
+                </td>
+               <td style="min-width:200px;">
+
+                    <input type="text" asp-for="@Model.lisRecs[i].Comment" id="comment@(i)" placeholder="@_f.tra("Komentář")" class="form-control" style="visibility: @(Model.lisRecs[i].SelectedB06ID==0 ? "hidden": "visible");" />
+               </td>
+            </tr>
+        }
+    </table>
+
+
+
+    
+
+
+    <input type="hidden" asp-for="@Model.Record_Prefix" />
+    <input type="hidden" asp-for="@Model.Record_Pids" />
+    
+
+
+</form>
+
+
+
+
+
+
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+       
+
+    });
+
+
+    function focus_comment(chk,i,b06id)
+    {
+        if (b06id == 0)
+        {
+            $("#comment" + i).css("visibility", "hidden");
+        }
+        else
+        {
+            $("#comment" + i).css("visibility", "visible");
+            $("#comment" + i).focus();
+        }
+        
+    }
+</script>

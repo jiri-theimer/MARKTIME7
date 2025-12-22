@@ -1,0 +1,76 @@
+﻿@model UI.Models.GlobalParamsViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Doplňující parametry");
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+}
+
+@addTagHelper *, UI
+
+
+<div class="bg-light" style="padding:10px;">
+    <button id="cmdSave" class="btn btn-success" onclick="_submit()">@_f.tra("Uložit změny")</button>
+
+    <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+
+
+
+</div>
+
+
+<form id="form1" asp-controller="GlobalParams" asp-action="Index" method="POST">
+    <input type="hidden" asp-for="prefix" />
+    <input type="hidden" asp-for="pid" />
+
+    <div>
+
+        <table class="table table-hover" style="max-width:700px;">
+           
+            @for (int i = 0; i < Model.lisParams.Count; i++)
+            {
+                <tr>
+                    <td style="width:170px;">
+                        @Model.lisParams[i].o58Name
+
+                        <input type="hidden" asp-for="@Model.lisParams[i].o58ID" />
+                        <input type="hidden" asp-for="@Model.lisParams[i].o59RecordPid" />
+                        
+                        
+                    </td>
+                   
+                    
+
+
+                    <td>
+                        <input type="text" class="form-control" asp-for="@Model.lisParams[i].o59Value" />
+                    </td>
+                </tr>
+            }
+        </table>
+
+
+
+
+    </div>
+
+</form>
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+
+
+
+    })
+
+   
+
+</script>
+
+
+

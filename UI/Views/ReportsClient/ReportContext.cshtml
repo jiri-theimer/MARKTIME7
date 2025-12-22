@@ -1,0 +1,587 @@
+﻿@model ReportContextViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = null;
+
+    bool _bolComboX31 = true;
+    if (Model.rec_prefix == "p91" && !_f.CurrentUser.j04IsModule_p91)
+    {
+        _bolComboX31 = false;
+    }
+    if ((Model.rec_prefix == "p90" || Model.rec_prefix == "p82") && !_f.CurrentUser.j04IsModule_p90)
+    {
+        _bolComboX31 = false;
+    }
+
+}
+@addTagHelper *, UI
+
+
+<!DOCTYPE html>
+
+<html lang="cs">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@_f.tra("Tisková sestava")</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link href="~/lib/datepicker/bootstrap-datepicker.min.css" rel="stylesheet" type="text/css" />
+    <link href="~/lib/qtip/jquery.qtip.css" rel="stylesheet" type="text/css" />
+
+    <style type="text/css">
+        :root {
+            --pozadi: @_f.CurrentUser.j02SkinBackColor;
+            --popredi: @_f.CurrentUser.j02SkinForeColor;
+            --oznaceno: @_f.CurrentUser.j02SkinSelColor;
+        }
+    </style>
+    <link rel="stylesheet" href="~/css/@_f.CurrentUser.getFontSizeCss()" />
+    <link rel="stylesheet" href="~/css/site.css" />
+
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="~/lib/datepicker/bootstrap-datepicker.min.js"></script>
+    <script src="~/lib/datepicker/bootstrap-datepicker.cs.min.js"></script>
+    <script src="~/lib/qtip/jquery.qtip.min.js"></script>
+
+    @switch (_f.CurrentUser.j02LangIndex)
+    {
+        case 1:
+            <script src="~/lib/telerik-reporting/js/telerikReportViewer.stringResources-19.2.25.1001.js"></script>
+            break;
+
+        default:
+            <script src="~/lib/telerik-reporting/js/telerikReportViewer.stringResources-19.2.25.1001-cs.js"></script>
+
+            break;
+    }
+
+
+    <link href="~/lib/telerik-reporting/styles/kendo-default-ocean-blue.css" rel="stylesheet" type="text/css" />
+
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/mycombo.js" asp-append-version="true"></script>
+
+    <script src="~/js/contextmenu.js" asp-append-version="true"></script>
+    <script src="~/js/mycontrols.js" asp-append-version="true"></script>
+
+    <script src="/apix/reports/resources/js/telerikReportViewer"></script>
+
+    <style>
+        #reportViewer1 {
+            position: absolute;
+            left: 5px;
+            right: 5px;
+            top: 50px;
+            bottom: 5px;            
+            overflow: hidden;
+            font-family: Verdana, Arial;
+        }
+
+
+       
+    </style>
+
+</head>
+
+<body>
+    @if (Model.RecX31 != null && Model.RecX31.x31FormatFlag == BO.x31FormatFlagENUM.Telerik)
+    {
+        <div id="reportViewer1">
+
+            @if (Model.RecX31.x31Entity == null && Model.IsPeriodFilter && Model.PeriodFilter.d2_iso == "3000-01-01")
+            {
+                <code>Zadejte časové období...</code>
+            }
+            else
+            {
+                <code>loading...</code>
+            }
+
+
+        </div>
+    }
+
+
+    <script type="text/javascript">
+        var _relpath = "@(Url.Content("~/favicon.ico").Replace("favicon.ico", ""))";   //relativní cesta: detekce kvůli případnému IIS virtuálnímu adresáři
+
+        @if (Model.Javascript_CallOnLoad != null)
+        {
+            @Html.Raw(Model.Javascript_CallOnLoad)
+
+
+
+        }
+    </script>
+
+
+    <form id="form1" asp-controller="ReportsClient" asp-action="ReportContext" method="POST">
+        <input type="hidden" asp-for="rec_prefix" />
+        <input type="hidden" asp-for="rec_pid" />
+        <input type="hidden" asp-for="UserParamKey" />
+        <input type="hidden" asp-for="Translate" />
+        <input type="hidden" asp-for="LangIndex" />
+        <input type="hidden" asp-for="ReportExportName" value="@Model.ReportExportName" />
+        <input type="hidden" asp-for="FinalMergedPdfFileName" />
+        <input type="hidden" asp-for="rec_pids" />
+        <input type="hidden" asp-for="Guid_MultipleReport" value="@Model.Guid_MultipleReport" />
+        <input type="hidden" asp-for="p31guid" />
+
+        <div class="modal_record_container">
+            <div class="row my-2">
+
+
+                <div class="col-sm-6 col-md-5 mx-0 px-0">
+                    @if (_bolComboX31)
+                    {
+                        <mycombo entity="x31Report" asp-for="@Model.SelectedX31ID" combo-height="600" selectedtext="@Model.SelectedReport" myqueryinline="ishidesubreports|bool|1|MyRecordsDisponible|bool|1|entity|string|@Model.rec_prefix" event_after_changevalue="x31id_change" placeholder="@(_f.tra("Vyberte tiskovou sestavu..."))"></mycombo>
+                    }
+                    else
+                    {
+                        <span class="form-control">@Model.SelectedReport</span>
+                        <input type="hidden" asp-for="SelectedX31ID" />
+                    }
+
+
+
+                </div>
+
+
+
+                @if (_bolComboX31)
+                {
+                    <div class="col-auto">
+                        <button id="cmdMerge" type="button" class="btn btn-sm bog dropdown-toggle">
+                            <span class="material-icons-outlined-btn">picture_as_pdf</span>
+                            PDF MERGE
+                        </button>
+                        @if (!string.IsNullOrEmpty(Model.FinalMergedPdfFileName))
+                        {
+                            <div>
+                                <a href="/FileUpload/FileDownloadTempFile?tempfilename=@Model.FinalMergedPdfFileName" target="_blank">Otevřít PDF-MERGE výstup</a>
+                            </div>
+
+                        }
+                    </div>
+                }
+
+
+                @if (Model.lisJ61 == null || Model.lisJ61.Count() == 0)
+                {
+                    <div class="col-auto">
+                        <button type="button" onclick="sendbymail()" class="btn btn-sm bog">
+                            <span class="material-icons-outlined-btn">email</span>
+                            @_f.tra("Odeslat poštou")
+                        </button>
+
+                    </div>
+                }
+                else
+                {
+                    <div class="col-auto">
+                        <div class="dropdown">
+                            <button class="btn btn-sm bog dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <span class="material-icons-outlined-btn">email</span>
+                                @_f.tra("Odeslat poštou")
+                            </button>
+                            <ul class="dropdown-menu">
+
+
+                                <li><a class="dropdown-item" href="javascript:sendbymail()">@_f.tra("Odeslat poštou") (PDF)</a></li>
+                                @if (Model.lisJ61 != null && !_f.CurrentUser.IsPortalUserOnly())
+                                {
+                                    @foreach (var c in Model.lisJ61)
+                                    {
+                                        <li><a class="dropdown-item" href="javascript:sendbymail(@c.pid)">E-mail šablona <span class="badge-light">@(c.j61Name)</span></a></li>
+                                    }
+                                }
+
+                                @if (Model.rec_prefix == "p91" && _f.CurrentUser.j04IsModule_p91)
+                                {
+                                    <li>
+                                        <hr />
+                                        <input type="checkbox" asp-for="IsIncludeISDOC" onchange="save_local_param('IsIncludeISDOC')" />
+                                        <label for="IsIncludeISDOC">@_f.tra("Odesílat jako ISDOC.PDF")</label>
+                                    </li>
+
+                                    <li style="min-width:200px;">
+                                        <hr />
+                                        <input type="checkbox" asp-for="IsPfxSignature" onchange="save_local_param('IsPfxSignature')" />
+                                        <label for="IsPfxSignature">@_f.tra("Do PDF vložit elektronický podpis")</label>
+                                    </li>
+                                }
+
+
+                            </ul>
+                        </div>
+                    </div>
+                }
+
+
+                <div class="col-auto">
+                    <div class="dropdown">
+                        <button class="btn btn-sm bog dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            @_f.tra("Překlad sestavy")
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li id="litrans_"><a class="dropdown-item" href="javascript:dotrans('')">Česky (originál)</a></li>
+                            <li id="litrans_en"><a class="dropdown-item" href="javascript:dotrans('en')">English</a></li>
+                            <li id="litrans_de"><a class="dropdown-item" href="javascript:dotrans('de')">Deutsch</a></li>
+                            <li id="litrans_sk"><a class="dropdown-item" href="javascript:dotrans('sk')">Slovenčina</a></li>
+
+                        </ul>
+                    </div>
+
+                </div>
+
+                <div class="col-auto">
+                    <button id="cmdClose" type="button" onclick="local_close()" class="btn btn-sm bog"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
+
+                </div>
+                @if (_f.CurrentUser.IsAdmin && Model.SelectedX31ID > 0)
+                {
+                    <div class="nonmobile col-auto" style="width:40px;">
+                        <button id="cmdAdmin" type="button" class="btn btn-sm bog" title="@_f.tra("Administrace sestavy")"><span class="material-icons-outlined-btn">settings</span></button>
+                    </div>
+                }
+            </div>
+
+
+            <div class="input-group" id="divRowButtons" style="margin-left:0px;padding-left:0px;">
+
+                @if (Model.rec_pids != null)
+                {
+                    <div>@_f.tra("Náhled na Multiple report") <span class="badge-def">1/@(Model.rec_pids_count)</span></div>
+
+                    <div>
+
+                        <button type="button" class="btn btn-sm bog" onclick="multireport()" style="margin:5px;">
+                            <span class="material-icons-outlined-btn">picture_as_pdf</span>
+                            @_f.tra("Vygenerovat PDF Multi Report")
+                            <span class="badge-def">@(Model.rec_pids_count)</span>
+                        </button>
+
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-sm bog" onclick="multizip()" style="margin:5px;">
+                            <span class="material-icons-outlined-btn">folder_zip</span>
+                            @_f.tra("Vygenerovat ZIP archiv")
+                            <span class="badge-def">@(Model.rec_pids_count)</span>
+                        </button>
+                    </div>
+                    <div>
+                        <mytooltip text="ZIP i Multi Report podporují funkci [PDF MERGE]."></mytooltip>
+                    </div>
+                }
+
+
+
+
+                @if (Model.RecX31 != null && Model.RecX31.x31FormatFlag == BO.x31FormatFlagENUM.DOCX)
+                {
+                    <div>
+                        <button type="button" class="btn btn-sm bog" onclick="generate_docx()">@_f.tra("Vygenerovat dokument")</button>
+                    </div>
+
+                }
+                @if (!string.IsNullOrEmpty(Model.GeneratedTempFileName))
+                {
+                    <a type="button" class="btn btn-sm btn-success" href="/FileUpload/FileDownloadTempFile?tempfilename=@Model.GeneratedTempFileName" target="_blank" style="margin:6px;">@_f.tra("Stáhnout výsledek")</a>
+                    @if (Model.AllGeneratedTempFileNames != null && Model.AllGeneratedTempFileNames.Count() > 1)
+                    {
+                        @for (int i = 1; i < Model.AllGeneratedTempFileNames.Count(); i++)
+                        {
+                            <a type="button" class="btn btn-sm btn-success" href="/FileUpload/FileDownloadTempFile?tempfilename=@Model.AllGeneratedTempFileNames[i]" target="_blank">#@i</a>
+                        }
+                    }
+                }
+
+                @if (Model.IsPeriodFilter)
+                {
+
+                    @await Component.InvokeAsync("myPeriod", Model.PeriodFilter)
+
+                }
+            </div>
+            @if (_bolComboX31)
+            {
+
+                <div id="divMerge" style="display:none;">
+
+                    <div class="row my-2">
+                        <label class="col-sm-2 col-md-2 col-form-label">@_f.tra("Slučovaný report") #1:</label>
+                        <div class="col-sm-6 col-md-5">
+                            <mycombo entity="x31Report" asp-for="@Model.MergedX31ID_1" selectedtext="@Model.MergedX31Name_1" myqueryinline="MyRecordsDisponible|bool|1|entity|string|@Model.rec_prefix"></mycombo>
+                        </div>
+
+                    </div>
+                    <div class="row my-2">
+                        <label class="col-sm-2 col-md-2 col-form-label">@_f.tra("Slučovaný report") #2:</label>
+                        <div class="col-sm-6 col-md-5">
+                            <mycombo entity="x31Report" asp-for="@Model.MergedX31ID_2" selectedtext="@Model.MergedX31Name_2" myqueryinline="MyRecordsDisponible|bool|1|entity|string|@Model.rec_prefix"></mycombo>
+                        </div>
+                        @if (Model.rec_pids == null)
+                        {
+                            <div class="col-auto">
+                                <button type="button" class="btn btn-sm bog" onclick="generate_merge()">@_f.tra("Připravit PDF-MERGE")</button>
+                            </div>
+
+                            <div class="col-auto">
+                                <button type="button" class="btn btn-sm bog" onclick="generate_merge_and_download()">@_f.tra("Stáhnout PDF-MERGE")</button>
+                            </div>
+                            <div class="col-auto">
+                                <button type="button" class="btn btn-sm bog" onclick="generate_merge_and_preview()">@_f.tra("Náhled PDF-MERGE")</button>
+                            </div>
+                        }
+
+
+
+                    </div>
+                    <div class="row my-2">
+                        <label class="col-sm-2 col-md-2 col-form-label">@_f.tra("Slučovaný report") #3:</label>
+                        <div class="col-sm-6 col-md-5">
+                            <mycombo entity="x31Report" asp-for="@Model.MergedX31ID_3" selectedtext="@Model.MergedX31Name_3" myqueryinline="MyRecordsDisponible|bool|1|entity|string|@Model.rec_prefix"></mycombo>
+                        </div>
+                        @if (Model.rec_pids == null)
+                        {
+                            <div class="col-auto">
+                                <button type="button" class="btn btn-sm bog" onclick="generate_merge_and_mail()">@_f.tra("Odeslat PDF-MERGE poštou")</button>
+
+                            </div>
+                        }
+
+
+                    </div>
+
+
+                </div>
+            }
+        </div>
+
+    </form>
+    <div id="offset1"></div>
+
+    <script type="text/javascript">
+        var _topx = $("#offset1").offset().top;
+        var _final_merged_pdffilename = "@(Model.FinalMergedPdfFileName)";
+        var _final_merged_download = "@(Model.FinalMergedPdfFileName_Download)";
+        var _final_merged_preview = "@(Model.FinalMergedPdfFileName_Preview)";
+        
+
+        $(document).ready(function () {
+            $("#reportViewer1").css("top", _topx);
+
+            $("#cmdMerge").click(function () {
+
+                $("#divMerge").toggle();
+                if ($("#divMerge").css("display") == "none") {
+                    $("#reportViewer1").css("top", _topx)
+                } else {
+                    var posun = $("#divMerge").height() + 50;
+
+                    $("#reportViewer1").css("top", (_topx + posun));
+                }
+
+            });
+
+            $("#litrans_@Model.Translate").css("background-color", "lightblue");
+
+            $("#cmdAdmin").on("click", function () {
+                window.open(_ep("/x31/Record?pid=@Model.SelectedX31ID"));
+            });
+
+            if (_final_merged_download != "") {
+                _notify_message("PDF výstup vygenerován.", "info");
+                location.href = "/FileUpload/FileDownloadTempFile?tempfilename=" + _final_merged_download + "&directdownload=true";
+                //window.open("/FileUpload/FileDownloadTempFile?tempfilename=" + _final_merged_download + "&directdownload=true", "_blank");
+            }
+            if (_final_merged_pdffilename != "") {
+                _notify_message("PDF výstup vygenerován.", "info");
+            }
+            if (_final_merged_preview != "") {
+                location.href = "/FileUpload/FileDownloadTempFile?tempfilename=" + _final_merged_preview;
+            }
+
+            var d1;
+            var d2;
+
+        @if (Model.IsPeriodFilter)
+        {
+            <text>
+                    d1 = new Date("@Model.PeriodFilter.d1_iso");
+                d2 = new Date("@Model.PeriodFilter.d2_iso");
+            </text>
+        }
+
+
+
+
+        @if (Model.RecX31 != null && Model.RecX31.x31FormatFlag == BO.x31FormatFlagENUM.Telerik && (Model.RecX31.x31Entity != null || !Model.IsPeriodFilter || (Model.IsPeriodFilter && Model.PeriodFilter.d2_iso != "3000-01-01")))
+        {
+            <text>
+                    $("#reportViewer1")
+                        .telerik_ReportViewer(
+                            {
+                                serviceUrl: "/apix/reports/",
+                                reportSource: {
+                                    report: "@(Model.ReportFileName + "###" + _f.CurrentUser.j02Login + "###0###" + Model.ReportExportName + "###" + Model.Translate)",
+                                    parameters: { pid: @Model.rec_pid, datFrom: d1, datUntil: d2, langindex: "@Model.LangIndex", l5: "@_f.getP07Level(5, true)", permission_role_value: "@(_f.CurrentUser.RoleValue)", x01id: @_f.CurrentUser.x01ID, p31guid: "@Model.p31guid", translate: "@Model.Translate" }
+                                },
+                                viewMode: telerikReportViewer.ViewModes.INTERACTIVE,
+                                scaleMode: telerikReportViewer.ScaleModes.SPECIFIC,
+                                scale: 1.0,
+                                enableAccessibility: false,
+                                parameters: {
+                                    editors: {
+                                        singleSelect: telerikReportViewer.ParameterEditorTypes.COMBO_BOX, //  defineds the editor type for the single select parameters
+                                        multiSelect: telerikReportViewer.ParameterEditorTypes.COMBO_BOX, //defineds the editor type for the multi select parameters
+                                    }
+                                },
+                                sendEmail: { enabled: false },
+                                ready: function () {
+
+                                    var splitter = $("#reportViewer1").find(".k-splitter").data("kendoSplitter");
+                                    if (splitter != undefined && screen.availWidth > 1000) {
+                                        splitter.options.panes[1].size = "420px";
+                                        splitter.resize(true);
+                                    }
+                                },
+                                renderingEnd: function (e, args) {
+
+                                    //okamžik, kdy je report vygenerován
+
+                                }
+                            }
+                        );
+
+            </text>
+        }
+
+
+
+
+
+
+
+                    });
+
+
+
+        function x31id_change(x31id) {
+            form1.action = _ep("/ReportsClient/ReportContext?oper=change_x31id");
+            form1.submit();
+        }
+
+        function generate_docx() {
+            _notify_message("Processing...", "info");
+            form1.action = _ep("/ReportsClient/ReportContext?oper=generate_docx");
+            form1.submit();
+        }
+
+        function multireport() {
+            _notify_message("Processing...", "info", 6000);
+            form1.action = _ep("/ReportsClient/ReportContext?oper=multireport");
+            form1.submit();
+        }
+        function multizip() {
+            _notify_message("Processing...", "info", 6000);
+            form1.action = _ep("/ReportsClient/ReportContext?oper=multizip");
+            form1.submit();
+        }
+        function reload() {
+            form1.action = _ep("/ReportsClient/ReportContext?oper=postback");
+            form1.submit();
+        }
+
+        function generate_merge() {
+            _notify_message("Processing...", "info");
+            form1.action = _ep("/ReportsClient/ReportContext?oper=merge");
+            form1.submit();
+        }
+        function generate_merge_and_download() {
+            _notify_message("Processing...", "info");
+            form1.action = _ep("/ReportsClient/ReportContext?oper=merge_and_download");
+            form1.submit();
+        }
+        function generate_merge_and_preview() {
+            _notify_message("Processing...", "info");
+            form1.action = _ep("/ReportsClient/ReportContext?oper=merge_and_preview");
+            form1.submit();
+        }
+        function generate_merge_and_mail(j61id) {
+            _notify_message("Processing...", "info");
+            var url=_ep("/ReportsClient/ReportContext?oper=merge_and_mail");            
+            if (j61id != undefined)
+            {
+                url = url += "&j61id=" + j61id;
+            }
+            form1.action = url;
+            form1.submit();
+        }
+
+
+        function sendbymail(j61id) {
+            if (_final_merged_pdffilename !="")
+            {
+                //aktuálně byla uživatelem vyrobená merge sestava
+                generate_merge_and_mail(j61id);
+                return;
+            }
+            var prefix = "@Model.rec_prefix";
+            var url = "/ReportsClient/ReportContext?oper=mail";
+            if (prefix == "p91") {
+                var isdoc = $("#IsIncludeISDOC").prop("checked");
+                if (isdoc == true) {
+                    url = url + "&isdoc=true";
+                }
+                var pfx = $("#IsPfxSignature").prop("checked");
+                if (pfx == true) {
+                    url = url + "&pfx=true";
+                }
+            }
+            if (j61id != undefined) {
+                url = url += "&j61id=" + j61id;
+            }
+
+            form1.action = _ep(url);
+            form1.submit();
+
+        }
+
+
+
+
+        function dotrans(lang) {
+            _notify_message("Processing...", "info");
+            $("#Translate").val(lang);
+            form1.action = _ep("/ReportsClient/ReportContext?oper=translate");
+            form1.submit();
+        }
+
+        function save_local_param(chkID) {
+            var checked = $("#" + chkID).prop("checked");
+            $.post(_ep("/Common/SetUserParam"), { key: "ReportContext-" + chkID, value: checked }, function (data) {
+
+            });
+        }
+
+        function local_close() {
+
+            try {
+                window.parent._window_close();
+            } catch (err) {
+                window.close();
+            }
+
+
+        }
+    </script>
+
+
+</body>
+</html>
+

@@ -1,0 +1,313 @@
+﻿@model UI.Models.Record.p56Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Úkol");
+    if (Model.Rec.p41ID > 0)
+    {
+        Model.PageTitle += " (" + Model.ProjectCombo.SelectedProject + ")";
+    }
+    else
+    {
+        if (Model.b05RecordEntity != null && Model.b05RecordPid > 0)
+        {
+            Model.PageTitle += " (" + _f.CBL.GetObjectAlias(Model.b05RecordEntity, Model.b05RecordPid) + ")";
+        }
+    }
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+
+    
+}
+
+@addTagHelper *, UI
+
+
+
+
+@section header_content
+{
+
+    @if (Model.Notepad.SelectedX04ID > 0)
+    {
+        <link href="~/lib/froala-editor/css/froala_editor.pkgd.min.css" rel="stylesheet" type="text/css" />
+    }
+}
+
+
+<div class="tabs_container_record">
+    <!-- Tab panes -->
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab1" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab1">@_f.tra("Úkol")</a>
+        </li>
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab2" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab2">@_f.tra("Notepad")</a>
+        </li>
+        @if (Model.RecP57 != null && Model.RecP57.p57PlanScope != BO.p57PlanScopeEnum.NenabizetPlan && Model.RecP57.p57PlanScope != BO.p57PlanScopeEnum.NenabizetPlanAniTermin)
+        {
+            <li class="nav-item onetab" role="presentation">
+                <a id="link_tab3" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab3">@_f.tra("Plán/Rozpočet")</a>
+            </li>
+        }
+        
+
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab4" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab4">@_f.tra("Různé")</a>
+        </li>
+
+
+    </ul>
+</div>
+
+
+
+
+@Html.Raw("<div class='modal_record_container_flexi'>")
+@Html.Raw("<div class='tab-content'>")
+
+<div class="tab-pane tab-pane-fixed" id="tab1" role="tabpanel">
+    <!-- Tab1 -->
+
+    <div class="row my-2">
+        <div class="col-sm-9 col-md-9">
+            <input class="form-control record_name" asp-for="Rec.p56Name" required placeholder="@_f.tra("Název úkolu")" />
+        </div>
+        @if(Model.RecP57 !=null && Model.RecP57.p57PlanScope != BO.p57PlanScopeEnum.NenabizetPlanAniTermin)
+        {
+            <div class="col-sm-3 col-md-3" title="@_f.tra("Plán dokončení/Termin")">
+                <mydate asp-for="Rec.p56PlanUntil" include-time="true"></mydate>
+            </div>
+        }
+        
+
+    </div>
+
+    @if (Model.IsShowP57Combo)
+    {
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Typ úkolu"):</label>
+            <div class="col-sm-4 col-md-4">
+                <mycombo entity="p57TaskType" asp-for="Rec.p57ID" selectedtext="@Model.ComboP57" event_after_changevalue="change_p57id"></mycombo>
+
+            </div>
+        </div>
+    }
+    else
+    {
+        <input type="hidden" asp-for="Rec.p57ID" value="@Model.Rec.p57ID" />
+    }
+
+    
+
+    @Html.EditorFor(m => m.roles, "~/Views/Shared/_RoleAssign.cshtml")
+
+
+    @if (Model.RecP57 != null && Model.RecP57.p57ProjectFlag != BO.p57ProjectFlagEnum.ProjectHidden)
+    {
+        <div class="my-2">
+            @Html.EditorFor(m => m.ProjectCombo, "~/Views/Shared/_ProjectCombo.cshtml")
+        </div>
+    }
+
+    @if (Model.ff1.VisibleInputsCount > 0)
+    {
+        @Html.EditorFor(m => m.ff1, "~/Views/Shared/_FreeFields.cshtml")
+    }
+
+    @Html.EditorFor(m => m.reminder, "~/Views/Shared/_Reminder.cshtml")
+
+
+
+
+    @if (Model.rec_pid == 0)
+    {
+        <a id="cmdP55" class="btn btn-light nonmobile" style="margin-right:10px;" href="/p56/TodoList?wrk_record_prefix=p41&wrk_record_pid=@Model.ProjectCombo.SelectedP41ID">
+            <span class="material-icons-outlined-btn">control_point_duplicate</span>@_f.tra("Změnit na Todo-list")
+        </a>
+        <a id="cmdP58" class="btn btn-light nonmobile" style="margin-right:10px;" href="/p58/Record?p41id=@Model.ProjectCombo.SelectedP41ID">
+            <span class="material-icons-outlined-btn">published_with_changes</span>@_f.tra("Změnit na opakovaný úkol")
+        </a>
+    }
+
+    <mystitky entity="p56Task" asp-for="@Model.TagPids" tagnames="@Model.TagNames" taghtml="@Model.TagHtml" buttontext="@_f.tra("Oštítkovat")"></mystitky>
+
+
+    @if (Model.UploadGuid != null)
+    {
+        <iframe id="fraUpload" src="/FileUpload/DoUpload?recpid=@Model.rec_pid&entity=p56&guid=@Model.UploadGuid" frameborder="0" scrolling="yes" style="max-width:1200px;height:60px;"></iframe>
+    }
+
+</div>
+
+<div class="tab-pane tab-pane-fixed" id="tab2" role="tabpanel">
+    <!-- Tab2 -->
+    @Html.EditorFor(m => m.Notepad, "~/Views/Shared/_Notepad.cshtml")
+</div>
+
+@if (Model.RecP57 != null && Model.RecP57.p57PlanScope != BO.p57PlanScopeEnum.NenabizetPlan && Model.RecP57.p57PlanScope != BO.p57PlanScopeEnum.NenabizetPlanAniTermin)
+{
+    <div class="tab-pane tab-pane-fixed" id="tab3" role="tabpanel">
+        <!-- Tab3 -->
+        <div class="row my-2">
+
+
+            <label class="col-sm-1 col-md-2 col-form-label recpagelabel">@(_f.tra("Plánované zahájení")):</label>
+            <div class="col-sm-3 col-md-3">
+                <mydate asp-for="Rec.p56PlanFrom" include-time="true"></mydate>
+
+            </div>
+
+
+        </div>
+
+        <div class="card my-2">
+            <div class="card-body">
+                <div class="card-header">
+                    <span>Plán/Limit rozpracovaných hodin a výdajů</span>
+                </div>
+                <div class="card-body">
+                    <div class="row my-2">
+                        <label class="col-sm-1 col-md-2 col-form-label">@(_f.tra("Plán hodin")):</label>
+                        <div class="col-sm-2 col-md-2">
+                            <mynumber asp-for="Rec.p56Plan_Hours" decimal-digits="2"></mynumber>
+                        </div>
+
+
+                    </div>
+                    <div class="row my-2">
+                        <label class="col-sm-1 col-md-2 col-form-label">@(_f.tra("Plán nákladového honoráře")):</label>
+                        <div class="col-sm-2 col-md-2">
+                            <mynumber asp-for="Rec.p56Plan_Internal_Fee" decimal-digits="2"></mynumber>
+                        </div>
+
+
+                    </div>
+                    <div class="row my-2">
+                        <label class="col-sm-1 col-md-2 col-form-label recpagelabel">@(_f.tra("Plán peněžních výdajů")):</label>
+                        <div class="col-sm-2 col-md-2">
+                            <mynumber asp-for="Rec.p56Plan_Expenses" decimal-digits="2"></mynumber>
+                        </div>
+
+                    </div>
+
+                    <div class="row my-2">
+                        <label class="col-sm-1 col-md-2 col-form-label recpagelabel">@(_f.tra("Plán fakturace")):</label>
+                        <div class="col-sm-2 col-md-2">
+                            <mynumber asp-for="Rec.p56Plan_Revenue" decimal-digits="2"></mynumber>
+                        </div>
+                    </div>
+
+                    <div class="row my-2">
+                        <select asp-for="@Model.Rec.p56PlanFlag" class="form-select">
+                            <option value="0"></option>
+                            <option value="ZastropovatHodiny">@_f.tra("Zákaz vykázat hodiny nad Plán")</option>
+                            <option value="ZastropovatVydaje">@_f.tra("Zákaz vykázat výdaje nad Plán")</option>
+                            <option value="ZastropovatHodinyVydaje">@_f.tra("Zákaz vykázat hodiny i výdaje nad Plán")</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+}
+
+
+<div class="tab-pane tab-pane-fixed" id="tab4" role="tabpanel">
+    <!-- Tab4 -->
+    
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Zadavatel (Vlastník záznamu)"):</label>
+        <div class="col-sm-4 col-md-4">
+            <mycombo entity="j02User" asp-for="Rec.j02ID_Owner" selectedtext="@Model.ComboOwner" view-flag="2"></mycombo>
+        </div>
+
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Todo-list"):</label>
+        <div class="col-sm-5 col-md-4">
+            <mycombo entity="p55TodoList" asp-for="Rec.p55ID" selectedtext="@Model.ComboP55" view-flag="2"></mycombo>
+        </div>
+        <label class="col-auto col-form-label">#@_f.tra("Pořadí v Todo-list"):</label>
+        <div class="col-sm-1 col-md-1">
+            <mynumber asp-for="Rec.p56Ordinary" class="record_ordinary" decimal-digits="0"></mynumber>
+        </div>
+
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Kód úkolu"):</label>
+        <div class="col-sm-5 col-md-4">
+            @if (Model.CanEditRecordCode)
+            {
+                <myval value="@Model.Rec.p56Code" hoversymol="@_f.tra("Upravit kód")" hoveronclick="true" hoverurl="javascript:_edit_code('p56',@Model.rec_pid)"></myval>
+            }
+            else
+            {
+                <myval value="@Model.Rec.p56Code"></myval>
+            }
+        </div>
+        
+    </div>
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Lokalita"):</label>
+        <div class="col-sm-5 col-md-4">
+            <mycombo entity="p15Locality" asp-for="Rec.p15ID" selectedtext="@Model.ComboP15"></mycombo>
+        </div>
+    </div>
+
+    <div class="my-2">
+        <input type="checkbox" asp-for="Rec.p56IsStopNotify" />
+        <label for="Rec_p56IsStopNotify">@_f.tra("V úkolu vypnout automatické notifikace")</label>
+    </div>
+</div>
+
+<input type="hidden" asp-for="b05RecordPid" />
+<input type="hidden" asp-for="b05RecordEntity" />
+<input type="hidden" asp-for="j02id_create_taskfor" />
+<input type="hidden" asp-for="CanEditRecordCode" />
+<input type="hidden" asp-for="Rec.p56Code" value="@Model.Rec.p56Code" />
+<input type="hidden" asp-for="Rec.p60ID" value="@Model.Rec.p60ID" />
+
+
+@Html.Raw("</div>")
+@Html.Raw("</div>")
+
+
+<input type="hidden" asp-for="IsShowP57Combo" value="@Model.IsShowP57Combo" />
+<input type="hidden" asp-for="o43id_source" />
+<input type="hidden" asp-for="UploadGuid" value="@Model.UploadGuid" />
+
+
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+        if (document.getElementById("cmdP55")) {
+            document.getElementById("toolbarRezerva").appendChild(document.getElementById("cmdP55"));
+        }
+        if (document.getElementById("cmdP58")) {
+            document.getElementById("toolbarRezerva").appendChild(document.getElementById("cmdP58"));
+        }
+
+
+    });
+
+
+    function hardrefresh(pid, flag) {
+
+
+        _postback();
+    }
+
+
+
+
+    function change_p57id(p57id) {
+        _postback("p57id");
+    }
+</script>

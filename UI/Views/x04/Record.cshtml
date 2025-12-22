@@ -1,0 +1,140 @@
+﻿@model UI.Models.Record.x04Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Notepad konfigurace");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+}
+
+@addTagHelper *, UI
+
+@section header_content
+    {
+
+    <link rel="stylesheet" href="~/css/admin.css" />
+    <link href="~/lib/froala-editor/css/froala_editor.pkgd.min.css" rel="stylesheet" type="text/css" />
+
+}
+
+    <script type="text/javascript" src="/lib/froala-editor/js/froala_editor.pkgd.min.js"></script>
+
+
+
+    <div class="modal_record_container">
+
+        <div class="row">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název konfigurace"):</label>
+            <div class="col-sm-9 col-md-8">
+                <input class="form-control record_name" asp-for="Rec.x04Name" />
+            </div>
+            <label class="col-auto col-form-label">#@_f.tra("Pořadí"):</label>
+            <div class="col-sm-1 col-md-1">
+                <mynumber asp-for="Rec.x04Ordinary" class="record_ordinary" decimal-digits="0"></mynumber>
+            </div>
+        </div>
+        <div class="row mt-2">
+            <label class="col-sm-1 col-md-2 col-form-label">Placeholder text:</label>
+            <div class="col-sm-11 col-md-10">
+                <input class="form-control" asp-for="Rec.x04PlaceHolder" />
+            </div>
+
+        </div>
+
+        <div class="card my-2">
+            <div class="card-header">
+                @_f.tra("Nahrávání obrázků v editoru")
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-3">
+                        @_f.tra("Maximální velikost 1 obrázku"):
+                    </div>
+                    <div class="col-2">
+                        <mynumber asp-for="Rec.x04ImageMaxSize" decimal-digits="0"></mynumber>
+                    </div>
+                    <div class="col-1">
+                        <kbd>Bytes</kbd>
+                    </div>
+                    <div class="col-2">
+                        @_f.tra("Povolené přípony souborů"):
+                    </div>
+                    <div class="col-3">
+                        <input type="text" placeholder="@_f.tra("Povolené soubory (čárkou oddělené přípony souborů)")" class="form-control" asp-for="Rec.x04ImageAllowedTypes" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card my-2">
+            <div class="card-header">
+                @_f.tra("Nahrávání dokumentů v editoru")
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-3">
+                        @_f.tra("Maximální velikost 1 dokumentu"):
+                    </div>
+                    <div class="col-2">
+                        <mynumber asp-for="Rec.x04FileMaxSize" decimal-digits="0"></mynumber>
+                    </div>
+                    <div class="col-1">
+                        <kbd>Bytes</kbd>
+                    </div>
+                    <div class="col-2">
+                        @_f.tra("Povolené přípony souborů"):
+                    </div>
+                    <div class="col-3">
+                        <input type="text" placeholder="@_f.tra("Povolené soubory (čárkou oddělené přípony souborů)")" class="form-control" asp-for="Rec.x04FileAllowedTypes" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="my-2">
+            <textarea class="form-control" asp-for="Rec.x04ToolbarButtons" placeholder="@_f.tra("Toolbar tlačítka: čárkou oddělené názvy tlačítek, to vše v hranatých závorkách. Příklad: ['bold','italic','underline','paragraphFormat']")"></textarea>
+        </div>
+
+        <div class="my-2">
+            <textarea class="form-control" asp-for="Rec.x04ToolbarButtonsXS" placeholder="@_f.tra("Toolbar tlačítka pro XS rozlišení (mobilní telefony do šířky 768px)")"></textarea>
+        </div>
+
+        <div class="row my-2">
+            <div class="col-sm-2 col-md-2">
+                <input type="checkbox" asp-for="@Model.Rec.x04IsToolbarInline" />
+                <label class="col-form-label" for="Rec_x04IsToolbarInline">@_f.tra("Toolbar je INLINE")</label>
+            </div>
+            <div class="col-sm-5 col-md-5">
+                <input type="checkbox" asp-for="@Model.Rec.x04IsToolbarSticky" />
+                <label class="col-form-label" for="Rec_x04IsToolbarSticky">@_f.tra("Toolbar je STICKY")</label>
+            </div>
+
+            <div class="col-sm-5 col-md-5">
+                <input type="checkbox" asp-for="@Model.Rec.x04IsTrackChanges" />
+                <label class="col-form-label" for="Rec_x04IsTrackChanges">@_f.tra("Podpora změn a revizí textu")</label>
+            </div>
+        </div>
+    </div>
+
+
+    <div>
+        <button type="button" class="btn btn-sm btn-outline-primary" onclick="_postback()">@_f.tra("Občerstvit Notepad náhled")</button>
+    </div>
+    <div style="background-color:lavender;border-radius:5px;">
+        @Html.EditorFor(m => m.Notepad, "~/Views/Shared/_Notepad.cshtml")
+    </div>
+
+
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+
+
+
+
+
+
+        });
+
+
+    </script>

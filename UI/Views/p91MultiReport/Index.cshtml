@@ -1,0 +1,230 @@
+﻿@model UI.Models.p91oper.p91MultiReportViewModel
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    Model.PageTitle = "Multi-Report Rekonstrukce";
+    Model.PageSymbol = "picture_as_pdf";
+
+}
+
+@addTagHelper *, UI
+
+<h4>@(Model.PageTitle)</h4>
+
+<div class="bg-light" style="padding:10px;">
+
+    <button type="button" id="cmdSave" class="btn btn-success">@_f.tra("Spustit generování")</button>
+
+    
+    @if (Model.OutputFileName != null)
+    {
+        <a class="btn btn-primary" style="margin-left:10px;" href="/FileUpload/FileDownloadTempFile?tempfilename=@Model.OutputFileName" target="_blank">Stáhnout vygenerovaný PDF dokument</a>
+
+
+    }
+</div>
+
+
+
+
+<form id="form1" asp-controller="p91MultiReport" asp-action="Index" method="POST">
+    <input type="hidden" asp-for="UploadGuidLogo" />
+
+    <div class="modal_record_container">
+         <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("DUZP od"):</label>
+            <div class="col-sm-4 col-md-3">
+                <mydate asp-for="d1"></mydate>
+
+            </div>
+
+        </div>
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("DUZP do"):</label>
+            <div class="col-sm-4 col-md-3">
+                <mydate asp-for="d2"></mydate>
+
+            </div>
+
+        </div>
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">Draft:</label>
+            <div class="col-sm-4 col-md-3">
+                <select asp-for="DraftQuery" class="form-select">
+                    <option value="0">Draft + Oficiální doklady</option>
+                    <option value="1">Pouze Oficiální doklady</option>
+                    <option value="2">Pouze Draft</option>
+                </select>
+            </div>
+
+        </div>
+
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Tisková sestava"):</label>
+            <div class="col-sm-10 col-md-9">
+                <mycombo entity="x31Report" asp-for="x31ID" combo-height="600" selectedtext="@Model.ComboX31ID" myqueryinline="ishidesubreports|bool|1|MyRecordsDisponible|bool|1|entity|string|p91"></mycombo>
+            </div>
+            
+        </div>
+
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Vystavovatel faktury"):</label>
+            <div class="col-sm-10 col-md-9">
+                <mycombo entity="p93InvoiceHeader" asp-for="p93ID" selectedtext="@Model.ComboP93ID" event_after_changevalue="p93id_change"></mycombo>
+            </div>
+
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                @_f.tra("Hlavička vystavovatele faktury")
+                <mytooltip text="Zde zapsané údaje se objeví pouze ve vygenerovaném PDF dokumentu.<hr>Původní údaje ve fakturách zůstanou beze změny.<hr>To je hlavní přínos této funkce."></mytooltip>
+            </div>
+            <div class="card-body">
+                <div class="row my-2">
+                    <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název firmy"):</label>
+                    <div class="col-sm-10 col-md-9">
+                        <input class="form-control" asp-for="p91Supplier" value="@Model.p91Supplier" />
+
+                    </div>
+
+                </div>
+                <div class="row my-2">
+                    <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("IČO"):</label>
+                    <div class="col-sm-5 col-md-4">
+                        <input asp-for="p91Supplier_RegID" class="form-control" value="@Model.p91Supplier_RegID" />
+                    </div>
+
+                </div>
+                <div class="row my-2">
+                    <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("DIČ"):</label>
+                    <div class="col-sm-5 col-md-4">
+                        <input asp-for="p91Supplier_VatID" class="form-control" value="@Model.p91Supplier_VatID" />
+                    </div>
+                </div>
+                <div class="row my-2">
+                    <label class="col-sm-1 col-md-2 col-form-label">IČ DPH (SK):</label>
+                    <div class="col-sm-5 col-md-4">
+                        <input asp-for="p91Supplier_ICDPH_SK" class="form-control" value="@Model.p91Supplier_ICDPH_SK" />
+                    </div>
+                </div>
+
+                <div class="row my-2">
+                    <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Ulice"):</label>
+                    <div class="col-sm-5 col-md-4">
+                        <input type="text" class="form-control" asp-for="p91Supplier_Street" value="@Model.p91Supplier_Street" />
+
+                    </div>
+
+                </div>
+                <div class="row my-2">
+                    <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Město"):</label>
+                    <div class="col-sm-5 col-md-4">
+                        <input class="form-control" asp-for="p91Supplier_City" value="@Model.p91Supplier_City" />
+
+                    </div>
+
+                </div>
+                <div class="row my-2">
+                    <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("PSČ"):</label>
+                    <div class="col-sm-2 col-md-2">
+                        <input class="form-control" asp-for="p91Supplier_ZIP" value="@Model.p91Supplier_ZIP" />
+
+                    </div>
+                </div>
+                <div class="row my-2">
+                    <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Stát"):</label>
+                    <div class="col-sm-2 col-md-2">
+                        <input class="form-control" asp-for="p91Supplier_Country" value="@Model.p91Supplier_Country" />
+
+                    </div>
+                </div>
+
+                <div class="row my-2">
+                    <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Registrace v OR"):</label>
+                    <div class="col-sm-10 col-md-9">
+                        <input class="form-control" asp-for="p91Supplier_Registration" value="@Model.p91Supplier_Registration" />
+
+                    </div>
+                </div>
+
+                <div class="row my-2">
+                    <label class="col-sm-1 col-md-2 col-form-label">TEL. vystavovatele:</label>
+                    <div class="col-sm-10 col-md-9">
+                        <input class="form-control" asp-for="p93Contact" value="@Model.p93Contact" />
+
+                    </div>
+                </div>
+                <div class="row my-2">
+                    <label class="col-sm-1 col-md-2 col-form-label">E-MAIL vystavovatele:</label>
+                    <div class="col-sm-10 col-md-9">
+                        <input class="form-control" asp-for="p93Email" value="@Model.p93Email" />
+
+                    </div>
+                </div>
+                <div class="row my-2">
+                    <label class="col-sm-1 col-md-2 col-form-label">Referent vystavovatele:</label>
+                    <div class="col-sm-10 col-md-9">
+                        <input class="form-control" asp-for="p93Referent" value="@Model.p93Referent" />
+
+                    </div>
+                </div>
+                <div class="row my-2">
+                    <label class="col-sm-1 col-md-2 col-form-label">Podpis vystavovatele:</label>
+                    <div class="col-sm-10 col-md-9">
+                        <input class="form-control" asp-for="p93Signature" value="@Model.p93Signature" />
+
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        
+        <p></p>
+        <div class="card">
+            <div class="card-header">
+                @_f.tra("Vybrat grafické logo")
+                <mytooltip text="Pokud nevyberete logo, použije se to, které je nahrané v systému. Změna loga se projeví pouze ve vygenerovaném PDF dokumentu."></mytooltip>
+            </div>
+            <div class="card-body p-0 m-0">
+                <input type="hidden" asp-for="LogoFile" />
+
+                @if (!string.IsNullOrEmpty(Model.LogoFile))
+                {
+                    
+                    <img src="@Model.LogoFile" />
+                }
+                <iframe id="fraUpload" src="/FileUpload/SingleUpload?guid=@Model.UploadGuidLogo" frameborder="0"></iframe>
+            </div>
+        </div>
+        
+        
+    </div>
+    
+</form>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $("#cmdSave").click(function () {
+            
+            $(this).text("Processing...");
+            $(this).attr("disabled", true);
+
+            form1.submit();
+
+
+        });
+
+
+
+    });
+
+    function p93id_change(p93id){
+        _postback("p93id");
+    }
+
+
+</script>

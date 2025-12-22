@@ -1,0 +1,92 @@
+﻿@model UI.Models.changelogViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = "CHANGE-LOG";
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageSymbol = "timeline";
+    Model.lisData = _f.p28ContactBL.GetList(new BO.myQueryP28() { explicit_orderby = "a.RowID", pids = new List<int>() { Model.pid } },true);
+
+
+
+    Model.AddField("p28Name", "Název");
+    Model.AddField("p28ShortName", "Zkrácený název");
+
+    Model.AddField("p28CompanyName", "Společnost");
+    Model.AddField("p28FirstName", "Křestní jméno");
+    Model.AddField("p28LastName", "Příjmení");
+    Model.AddField("p28TitleBeforeName", "Titul");
+    Model.AddField("p28TitleAfterName", "Titul za");
+
+    Model.AddField("p29Name", "Typ kontaktu");
+    Model.AddField("p28CountryCode", "ISO kód");
+    Model.AddField("p28RegID", "IČO");
+    Model.AddField("p28VatID", "DIČ");
+    Model.AddField("p28ICDPH_SK", "IČ DPH");
+
+    Model.AddField("p28Street1", "Ulice #1");
+    Model.AddField("p28City1", "Město #1");
+    Model.AddField("p28PostCode1", "PSČ #1");
+    Model.AddField("p28Country1", "Stát #1");
+
+    Model.AddField("p28Street2", "Ulice #1");
+    Model.AddField("p28City2", "Město #1");
+    Model.AddField("p28PostCode2", "PSČ #1");
+    Model.AddField("p28Country2", "Stát #1");
+
+    Model.AddField("p92Name", "Typ faktury");
+    Model.AddField("p51Name_Billing", "Ceník fakturačních sazeb");
+    Model.AddField("Owner", "Vlastník záznamu");
+    Model.AddField("x38ID", "Číselná řada");
+    Model.AddField("b01ID", "Workflow šablona");
+    Model.AddField("p28ParentID", "Nadřízený kontakt");
+
+    Model.AddField("p28Code", "Kód");
+
+    Model.AddField("p28InvoiceDefaultText1", "Text faktury");
+    Model.AddField("p28InvoiceDefaultText2", "Technický text faktury");
+    Model.AddField("p28InvoiceMaturityDays", "Splatnost faktury");
+    Model.AddField("p28Round2Minutes", "Zaokrouhlení hodin");
+
+    Model.AddField("p28BankAccount", "Bankovní účet");
+    Model.AddField("p28BankCode", "Kód banky");
+
+    
+
+    Model.AddField("p28BillingLangIndex", "Fakturační jazyk");
+    
+
+    
+
+    
+    Model.AddField("j61ID_Invoice", "Fakturační e-mail šablona");
+    Model.AddField("b02ID", "Workflow stav");
+
+    Model.AddField("p63ID", "Strukturace cenového rozpisu faktury");
+
+    Model.AddField("ValidFrom", "Platnost od");
+    Model.AddField("ValidUntil", "Platnost do");
+
+}
+
+
+@section header_content{
+
+
+    <link rel="stylesheet" href="/css/htmltable.css" />
+
+
+}
+
+@addTagHelper *, UI
+
+
+<div class="bg-light" style="padding:10px;">
+
+    <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
+
+
+</div>
+
+@Html.EditorFor(m => Model,"~/Views/Shared/_ChangeLogTable.cshtml")
+

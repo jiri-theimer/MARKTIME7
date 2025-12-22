@@ -1,0 +1,155 @@
+﻿@model UI.Models.UctenkaViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = Model.RecO18.o18Name;
+
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+
+}
+
+@addTagHelper *, UI
+
+
+
+@section header_content
+{
+
+    @if (Model.Notepad != null && Model.Notepad.SelectedX04ID > 0)
+    {
+        <link href="~/lib/froala-editor/css/froala_editor.pkgd.min.css" rel="stylesheet" type="text/css" />
+    }
+}
+
+
+
+<input type="hidden" asp-for="UploadGuid" />
+<input type="hidden" asp-for="o18ID" />
+
+
+
+@Html.Raw("<div class='modal_record_container'>")
+
+@Html.EditorFor(m => m.Notepad, "~/Views/Shared/_Notepad.cshtml")
+
+
+<iframe id="fraUpload" src="/FileUpload/DoUpload?recpid=@Model.rec_pid&entity=o23&guid=@Model.UploadGuid" frameborder="0" style="max-width:1200px;height:60px;" scrolling="yes"></iframe>
+
+@if (Model.lisP34.Count() > 1)
+{
+    <label class="col-sm-1 col-md-2 col-form-label required">@_f.tra("Sešit"):</label>
+    <div class="col-sm-10 col-md-9">
+        <select asp-for="Rec.p34ID_Expense" class="form-select" onchange="_postback('p34id')">
+            @foreach (var c in Model.lisP34)
+            {
+                <option value="@c.pid">@c.p34Name</option>
+            }
+        </select>
+    </div>
+}
+else
+{
+    <input type="hidden" asp-for="Rec.p34ID_Expense" />
+
+}
+
+<div class="row my-2">
+    <div class="col-sm-1 col-md-2">
+        <mydate asp-for="Rec.o23FreeDate01" include-time="false"></mydate>
+    </div>
+    <div class="col-sm-10 col-md-9">
+        <input class="form-control required" asp-for="Rec.o23Name" placeholder="Název/Text" />
+    </div>
+
+</div>
+<div class="row my-2">
+    <label class="col-sm-1 col-md-2 col-form-label required">@_f.tra("Včetně DPH"):</label>
+    <div class="col-sm-2 col-md-2">
+        <mynumber asp-for="Rec.o23FreeNumber01" class="record_ordinary" decimal-digits="2"></mynumber>
+    </div>
+    <div class="col-sm-2 col-md-2 nonmobile">
+        <mycombo entity="j27Currency" asp-for="Rec.j27ID_Expense" selectedtext="@Model.SelectedComboJ27" placeholder="@_f.tra("Měna")"></mycombo>
+
+    </div>
+</div>
+<div class="row my-2">
+    <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Sazba DPH"):</label>
+    <div class="col-sm-1 col-md-1">
+        <mynumber asp-for="Rec.o23FreeNumber02" class="record_ordinary" decimal-digits="2"></mynumber>
+    </div>
+</div>
+<div class="row my-2">
+    <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Bez DPH"):</label>
+    <div class="col-sm-2 col-md-2">
+        <mynumber asp-for="Rec.o23FreeNumber03" class="record_ordinary" decimal-digits="2"></mynumber>
+    </div>
+</div>
+<div class="row my-2">
+    <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Částka DPH"):</label>
+    <div class="col-sm-2 col-md-2">
+        <mynumber asp-for="Rec.o23FreeNumber04" class="record_ordinary" decimal-digits="2"></mynumber>
+    </div>
+</div>
+
+
+
+<div class="row my-2">
+    <div class="col-sm-1 col-md-2">
+        <input class="form-control" asp-for="Rec.o23Code" placeholder="Kód dokladu" />
+    </div>
+    <div class="col-sm-11 col-md-10">
+        <input class="form-control" asp-for="Rec.o23FreeText01" placeholder="Obchod/dodavatel" />
+    </div>
+</div>
+
+<div>
+    @Html.EditorFor(m => m.ProjectCombo, "~/Views/Shared/_ProjectCombo.cshtml")
+</div>
+
+
+@Html.Raw("</div>")
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+        $("#numRec_o23FreeNumber01").on("input", function () {   //změna částky vč dph
+            handle_recalc_after_vcdph();
+        });
+
+
+
+        $("#numRec_o23FreeNumber02").on("input", function () {  //změna sazby dph
+            handle_recalc_after_vcdph();
+        });
+
+
+
+
+    });
+
+
+    function handle_recalc_after_vcdph() {
+        
+        var vcdph = _string2number($("#numRec_o23FreeNumber01").val());
+        var dphsazba = _string2number($("#numRec_o23FreeNumber02").val());
+        var bezdph = _roundnum(vcdph / (1 + dphsazba / 100), 2);
+       
+        var dphcastka = _roundnum((vcdph - bezdph), 2);
+
+        mynumber_changevalue("Rec_o23FreeNumber03", bezdph, 2);
+        mynumber_changevalue("Rec_o23FreeNumber04", dphcastka, 2);
+
+    }
+
+
+
+    function hardrefresh(pid, flag) {
+
+
+
+        _postback();
+    }
+
+</script>

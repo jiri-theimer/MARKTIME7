@@ -1,0 +1,124 @@
+﻿@model UI.Models.ProjectComboViewModel
+@inject BL.Factory _f
+@{
+    if (Model == null)
+    {
+        return;
+    }
+
+
+    if ((Model.SelectedP41ID > 0 && (string.IsNullOrEmpty(Model.SelectedProject) || Model.PostbackFlag == "p41id")))
+    {
+        var recP41 = _f.p41ProjectBL.Load(Model.SelectedP41ID);
+        if (recP41 != null)
+        {
+            Model.SelectedProject = recP41.FullName;
+            //Model.SelectedLevelIndex = recP41.p07Level;
+            Model.PostbackFlag = null;
+        }
+
+    }
+
+    if (Model.lisLevelIndex == null)
+    {
+        Model.lisLevelIndex = new List<BO.ListItemValue>();
+        if (_f.p07LevelsCount == 1)
+        {
+            Model.SelectedLevelIndex = 5;
+            Model.lisLevelIndex.Add(new BO.ListItemValue() { Text = _f.getP07Level(5, true), Value = 5 });
+
+        }
+
+        else
+        {
+            
+            Model.lisLevelIndex.Add(new BO.ListItemValue() { Text = _f.tra("Všechny úrovně"), Value = 0 });
+            for (int i = 5; i>=1; i--)
+            {
+                if (_f.getP07Level(i, true) != null)
+                {
+                    Model.lisLevelIndex.Add(new BO.ListItemValue() { Text = _f.getP07Level(i, true), Value = i });
+                }
+            }
+
+        }
+    }
+
+    string _myqueryinline = null;
+
+    if (Model.SelectedLevelIndex > 0)
+    {
+        Model.ProjectEntity = $"le{Model.SelectedLevelIndex}";
+        _myqueryinline = $"p07level|int|{Model.SelectedLevelIndex}";
+    }
+    else
+    {
+        Model.ProjectEntity = "p41"; 
+    }
+
+    
+
+
+
+    
+    if (Model.MyQueryInline != null)
+    {
+        _myqueryinline += $"|{Model.MyQueryInline}";
+    }
+
+
+
+}
+
+@addTagHelper *, UI
+
+
+<div class="row my-2">
+
+
+
+    @if (Model.lisLevelIndex.Count() > 1)
+    {
+        <div class="col-sm-1 col-md-2">
+            <mydropdown asp-for="SelectedLevelIndex" elementid-prefix="@(Model.elementidprefix)" datasource="@Model.lisLevelIndex" textfield="Text" valuefield="Value" event_after_changevalue="handle_change_levelindex"></mydropdown>
+        </div>
+    }
+    else
+    {
+        @if (!Model.IsHideLabel)
+        {
+            <label class="col-sm-1 col-md-2 col-form-label recpagelabel">@(_f.getP07Level(Model.SelectedLevelIndex, true)):</label>
+            <input type="hidden" asp-for="SelectedLevelIndex" elementid-prefix="@(Model.elementidprefix)" value="@Model.SelectedLevelIndex" />
+        }
+
+    }
+
+    
+
+
+
+
+    <div class="@(Model.CssClassDiv)">
+        <mycombo entity="@(Model.ProjectEntity)" elementid-prefix="@(Model.elementidprefix)" search-result-width="900" asp-for="SelectedP41ID" selectedtext="@Model.SelectedProject" view-flag="1" filter-flag="1" myqueryinline="@(_myqueryinline)" event_after_changevalue="handle_change_p41id"></mycombo>
+    </div>
+
+
+</div>
+
+<input type="hidden" asp-for="PostbackFlag" value="@Model.PostbackFlag" />
+<input type="hidden" asp-for="SelectedProject" value="@Model.SelectedProject" />
+
+
+<script type="text/javascript">
+
+    function handle_change_levelindex(cbx) {
+        $("#ProjectCombo_PostbackFlag").val("levelindex");
+        _postback("levelindex");
+    }
+    function handle_change_p41id(p41id) {
+        
+        $("#ProjectCombo_PostbackFlag").val("p41id");
+        _postback("p41id");
+    }
+
+</script>

@@ -1,0 +1,208 @@
+﻿@model UI.Models.TheGridViewModel
+@inject BL.Factory _f
+
+@{
+
+    if (Model.entity == null)
+    {
+        return;
+    }
+
+    Layout = _f.CurrentUser.GetLayoutPerDisplay();
+
+    Model.PageTitle = "Statistiky finačních plánů";
+
+
+    bool _isMobile = _f.CurrentUser.IsMobileDisplay();
+}
+
+@addTagHelper *,UI
+
+<link href="~/lib/qtip/jquery.qtip.css" rel="stylesheet" type="text/css" />
+<script src="~/lib/qtip/jquery.qtip.min.js"></script>
+
+
+
+
+<div class="input-group" style="padding-top:8px;">
+    <div>
+        <ul class="nav nav-tabs">
+            <li class="onetab" style="width:150px;">
+                <a class="nav-link text-dark @(Model.prefix=="fp2" ? "active": null)" id="tabFP2" href="javascript:change_tab('fp2')">
+                    @_f.getP07Level(5, false).ToUpper()
+                    @if (Model.prefix == "fp2")
+                    {
+                        <span id="TheGridRows" class="badge bg-primary" style="margin-left:2px;">0</span>
+                    }
+                </a>
+            </li>
+            <li class="onetab" style="width:150px;">
+                <a class="nav-link text-dark @(Model.prefix=="fp3" ? "active": null)" id="tabFP3" href="javascript:change_tab('fp3')">
+                    @_f.tra("Klienti projektů").ToUpper()
+                    @if (Model.prefix == "fp3")
+                    {
+                        <span id="TheGridRows" class="badge bg-primary" style="margin-left:2px;">0</span>
+                    }
+
+                </a>
+            </li>
+            @if (_f.CurrentUser.j04IsModule_p56)
+            {
+                <li class="onetab" style="width:150px;">
+                    <a class="nav-link text-dark @(Model.prefix=="fp1" ? "active": null)" id="tabFP1" href="javascript:change_tab('fp1')">
+                        @_f.tra("Úkoly").ToUpper()
+                        @if (Model.prefix == "fp1")
+                        {
+                            <span id="TheGridRows" class="badge bg-primary" style="margin-left:2px;">0</span>
+                        }
+
+                    </a>
+                </li>
+            }
+           
+        </ul>
+    </div>
+
+    <div>
+        @Html.EditorFor(m => Model.PageTitle, "~/Views/Shared/_ButtonGridDesigner.cshtml")
+    </div>
+
+
+    @if (Model.periodinput != null)
+    {
+        <div>
+            @await Component.InvokeAsync("myPeriod", Model.periodinput)
+
+        </div>
+
+    }
+
+   
+
+    @if (Model.p31statequery != null)
+    {
+        @Html.EditorFor(m => Model.p31statequery, "~/Views/Shared/_p31StateQuery.cshtml")
+    }
+
+    
+    
+
+    <myshowmore></myshowmore>
+
+    <div class="showmore">
+        @Html.EditorFor(m => Model.PageTitle, "~/Views/Shared/_ButtonGridSelMenu.cshtml")
+    </div>
+
+    
+
+
+    <div class="showmore">
+        @if (Model.recordbinquery != null)
+        {
+            @Html.EditorFor(m => Model.recordbinquery, "~/Views/Shared/_RecordBinQuery.cshtml")
+        }
+    </div>
+
+
+    
+
+
+</div>
+
+
+
+@await Component.InvokeAsync("myGrid", Model.gridinput)
+
+
+
+<script type="text/javascript">
+    var _localprefix = "@Model.prefix";
+    var _rez = "@Model.rez";
+    
+    
+    var _j27id = "@Model.j27id_query";
+    var _ismobile = "@_isMobile";
+
+    //$(document.body).css("overflow", "hidden");
+
+
+
+
+
+    $(document).ready(function () {
+        _init_qtip_onpage();
+
+        _mainmenu_highlight_current("cmdfpview");
+
+      
+
+        $("#j27id_query").val(_j27id);
+        if (_j27id != "0") {
+            $("#j27id_query").css("background-color", "red");
+        }
+
+        $(".gogo").css("display", "none");
+
+        if (_ismobile == "True") {
+
+            tg_adjust_for_screen();
+        }
+
+    });
+
+    function reload() {
+        //_showloading();
+        _redirect("/TheGrid/FpView?prefix=" + _localprefix);
+
+    }
+
+
+
+    function change_grid(j72id) {
+        var strKey = "fpview-j72id-" + _localprefix + "-" + _rez;
+
+        $.post(_ep("/Common/SetUserParam"), { key: strKey, value: j72id }, function (data) {
+            reload();
+
+        });
+    }
+
+    function report_nocontext(x31id) {
+        _window_open("/x31/ReportNoContext?x31id=" + x31id, 2);
+    }
+
+
+    function change_tab(prefix) {    //uložit aktuální záložku
+
+        _load_ajax_async("/Common/SetUserParam", { key: "fpview-prefix", value: prefix })
+        _redirect("/TheGrid/FpView?prefix=" + prefix);
+    }
+
+
+   
+
+
+
+
+
+    function grid_dblclick(row) {
+        var pid = $("#tg_selected_pids").val();
+        
+        if (_localprefix == "fp1") {
+            location.href = "/Record/RecPage?prefix=p56&pid=" + pid;
+        }
+        if (_localprefix == "fp2") {
+            location.href = "/Record/RecPage?prefix=le5&pid=" + pid;
+        }
+        if (_localprefix == "fp3") {
+            location.href = "/Record/RecPage?prefix=p28&pid=" + pid;
+        }
+        
+    }
+
+
+    
+
+    
+</script>
+

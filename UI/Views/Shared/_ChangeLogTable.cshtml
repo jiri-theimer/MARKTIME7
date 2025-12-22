@@ -1,0 +1,91 @@
+﻿@model UI.Models.changelogViewModel
+@inject BL.Factory _f
+
+@{
+
+
+}
+
+
+
+@addTagHelper *, UI
+
+<table class="htmltable" id="tab1" style="table-layout:fixed;overflow:auto;min-width:@(300+Model.lisData.Count()*152)px;">
+
+    <colgroup>
+        <col style="background-color:aliceblue;" />
+        @for(int i=0;i<Model.lisData.Count();i++)
+        {
+            @if (i == Model.lisData.Count() - 1)
+            {
+                <col style="background-color:lightsteelblue;" />
+            }
+            else
+            {
+                <col />
+            }
+            
+
+        }
+    </colgroup>
+
+    
+    <tr>
+        <th>
+            Záznam:
+        </th>
+        @foreach (var c in Model.lisData)
+        {
+
+            <th style="min-width:150px;text-align:center;">
+                @(BO.Code.Time.GetTimestamp((DateTime)BO.Code.Reflexe.GetPropertyValue(c, "DateUpdate")))
+                <br>
+                @(Model.SV(BO.Code.Reflexe.GetPropertyValue(c, "UserUpdate"),null,_f))
+            </th>
+
+        }
+    </tr>
+    
+    @foreach (Field1 field in Model.fields)
+    {
+        <tr>
+            <td style="min-width:200px;">
+                @field.Label
+            </td>
+            @foreach (var c in Model.lisData)
+            {
+
+                <td class="@(Model.ClassName(BO.Code.Reflexe.GetPropertyValue(c, field.Field)))">
+                    @Html.Raw(Model.SV(BO.Code.Reflexe.GetPropertyValue(c, field.Field),field.Field,_f))
+                </td>
+
+            }
+        </tr>
+    }
+
+
+
+</table>
+
+
+<script type="text/javascript">
+
+    var tab = document.getElementById("tab1");
+
+    for (var i = 1, row; row = tab.rows[i]; i++)
+    {
+       
+        for (var j = 2, col; col = row.cells[j]; j++)
+        {
+            var val = $(row.cells[j]).text();
+            var valpre = $(row.cells[j-1]).text();
+
+            if (val != valpre)
+            {
+                $(row.cells[j]).html("<mark>" + $(row.cells[j]).html() + "</mark");
+            }
+            
+        }
+    }
+    
+</script>

@@ -1,0 +1,241 @@
+﻿@model UI.Models.Record.j61Record
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    if (Model.Rec == null) return;
+    Model.PageTitle = _f.tra("Šablona poštovní zprávy");
+    Model.PageSymbol = "email";
+
+}
+@addTagHelper *, UI
+
+@if (Model.Notepad.SelectedX04ID > 0)
+{
+    @section header_content{
+    <link href="~/lib/froala-editor/css/froala_editor.pkgd.min.css" rel="stylesheet" type="text/css" />
+    }
+}
+
+<div class="tabs_container_record">
+    <!-- Tab panes -->
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab1" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab1">@_f.tra("Vlastnosti")</a>
+        </li>
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab2" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab2">@_f.tra("Ostatní")</a>
+        </li>
+
+    </ul>
+</div>
+
+<div class="modal_record_container">
+
+    <div class="tab-content">
+        <div class="tab-pane" id="tab1" role="tabpanel">
+            <!-- Tab1 -->
+            <div class="row">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název šablony"):</label>
+                <div class="col-sm-7 col-md-6">
+                    <input class="form-control" asp-for="Rec.j61Name" />
+                </div>
+                <label class="col-auto col-form-label">@_f.tra("Entita"):</label>
+                <div class="col-sm-2 col-md-2">
+                    <select asp-for="Rec.j61Entity" class="form-select" onchange="_postback('j61entity')">
+                        <option></option>
+                        <option value="p56">@_f.tra("Úkol")</option>
+                        <option value="o22">@_f.tra("Termín/Lhůta")</option>
+                        <option value="p41">@_f.tra("Projekt")</option>
+                        <option value="p28">@_f.tra("Kontakt")</option>
+                        <option value="p91">@_f.tra("Vyúčtování")</option>
+                        <option value="p84">@_f.tra("Upomínka")</option>
+                        <option value="o23">@_f.tra("Dokument")</option>
+                        <option value="p90">@_f.tra("Záloha")</option>
+                        <option value="j02">@_f.tra("Uživatel")</option>
+                        <option value="p31">@_f.tra("Úkon")</option>
+                        <option value="p94">@_f.tra("Úhrada vystavené faktury")</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Předmět poštovní zprávy"):</label>
+                <div class="col-sm-11 col-md-10">
+                    <input class="form-control" asp-for="Rec.j61MailSubject" />
+                </div>
+            </div>
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Výchozí příjemce zprávy") (TO):</label>
+                <div class="col-sm-11 col-md-10">
+                    <input class="form-control" asp-for="Rec.j61MailTO" />
+                </div>
+            </div>
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("V kopii (CC)"):</label>
+                <div class="col-sm-11 col-md-10">
+                    <input class="form-control" asp-for="Rec.j61MailCC" />
+                </div>
+            </div>
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Skrytá kopie (BCC)"):</label>
+                <div class="col-sm-11 col-md-10">
+                    <input class="form-control" asp-for="Rec.j61MailBCC" />
+                </div>
+            </div>
+
+            @if (Model.Notepad != null)
+            {
+                @Html.EditorFor(m => m.Notepad, "~/Views/Shared/_Notepad.cshtml")
+            }
+
+            <table>
+                <tr>
+                    <td>
+                        @_f.tra("Zobrazit podpis uživatele pod zprávou"):
+                    </td>
+                    <td>
+                        <select class="form-select" asp-for="Rec.j61UserSignatureFlag">
+                            <option value="UserSettings"></option>
+                            <option value="Yes">@_f.tra("Ano")</option>
+                            <option value="No">@_f.tra("Ne")</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @_f.tra("Zobrazit odkaz na stránku záznamu v MARKTIME"):
+                    </td>
+                    <td>
+                        <select class="form-select" asp-for="Rec.j61RecordLinkFlag">
+                            <option value="UserSettings"></option>
+                            <option value="Yes">@_f.tra("Ano")</option>
+                            <option value="No">@_f.tra("Ne")</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        @_f.tra("Zobrazit tabulku vybraných atributů"):
+                    </td>
+                    <td>
+                        <select class="form-select" asp-for="Rec.j61GridColumnsFlag" onchange="_postback()">
+                            <option value="UserSettings"></option>
+                            <option value="Yes">@_f.tra("Ano")</option>
+                            <option value="No">@_f.tra("Ne")</option>
+                        </select>
+                    </td>
+                </tr>
+            </table>
+
+            @if (Model.Rec.j61GridColumnsFlag == BO.j61UserFlagEnum.Yes)
+            {
+                <div class="card">
+                    <div class="card-header">
+                        <button type="button" class="btn btn-sm bog" onclick="grid_designer()">
+                            @_f.tra("Návrhář polí/atributů záznamu")
+
+                        </button>
+                    </div>
+                    <div class="card-body">
+
+                        @if (Model.lisGridColumns != null && Model.lisGridColumns.Count() > 0)
+                        {
+
+                            <var>
+                                Pod textem zprávy bude tabulka s vybranými poli:
+                            </var>
+                            <table class="table table-hover">
+                                @foreach (var col in Model.lisGridColumns)
+                                {
+                                    <tr>
+                                        <td class="tdlab">
+                                            @(col.Header):
+                                        </td>
+                                        <td>
+                                            ????????
+                                        </td>
+                                    </tr>
+                                }
+                            </table>
+                        }
+                    </div>
+                </div>
+            }
+
+
+            
+        </div>
+
+        <div class="tab-pane" id="tab2" role="tabpanel">
+            <!-- Tab2 -->
+            <div class="row">
+                <label class="col-sm-2 col-md-3 col-form-label">@_f.tra("Vlastník záznamu"):</label>
+                <div class="col-sm-10 col-md-9">
+                    <mycombo entity="j02User" asp-for="Rec.j02ID_Owner" selectedtext="@Model.ComboOwner" view-flag="2"></mycombo>
+                </div>
+            </div>
+            <div class="my-2">
+                <div>
+                    <input type="checkbox" asp-for="Rec.j61IsPublic" />
+                    <label class="col-form-label" for="Rec_j61IsPublic">@_f.tra("Šablona přístupná i pro ostatní uživatele")</label>
+                </div>
+            </div>
+            <div class="row my-2">
+                <label class="col-sm-2 col-md-3 col-form-label">@_f.tra("Název souboru pro HTML šablonu"):</label>
+                <div class="col-sm-10 col-md-9">
+                    <input class="form-control" asp-for="Rec.j61HtmlTemplateFile" />
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    @_f.tra("Individuální Sql zdroj dat")
+                </div>
+                <div class="card-body">
+                    <div>
+                        <textarea asp-for="Rec.j61SqlSource" class="form-control"></textarea>
+
+                    </div>
+                  
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <input type="hidden" asp-for="@Model.Rec.j61GridColumns" value="@Model.Rec.j61GridColumns" />
+
+</div>
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+
+
+    });
+
+
+    function grid_designer() {
+        var cols = $("#Rec_j61GridColumns").val();
+        var prefix = "@Model.Rec.j61Entity";
+
+        _window_open("/TheGridDesigner?prefix=" + prefix + "&cols=" + cols);
+
+
+    }
+
+
+    function reload_after_griddesigner(pid, cols) {
+
+        $("#Rec_j61GridColumns").val(cols);
+        _postback("cols");
+    }
+
+</script>

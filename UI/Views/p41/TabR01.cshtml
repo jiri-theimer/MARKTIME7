@@ -1,0 +1,70 @@
+﻿@model UI.Models.capacity.p41TabR01ViewModel
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+
+}
+
+@addTagHelper *, UI
+
+
+
+<link rel="stylesheet" href="~/css/capacity.css" />
+
+<div>
+
+    <span class="material-icons-outlined">online_prediction</span>    
+
+    <button class="btn bog" onclick="projectplan()"><span class="material-icons-outlined-btn">open_in_new</span>@_f.tra("Zobrazit v novém okně")</button>
+    @if (Model.HasOwnerPermissions)
+    {
+        <button class="btn bog" onclick="r04_edit()"><span class="material-icons-outlined-btn">edit_note</span>@_f.tra("Personální zdroje pro plánování")</button>
+
+        <button class="btn bog" onclick="planmove()"><span class="material-icons-outlined-btn">edit_note</span>@_f.tra("Posunout plán období")</button>
+    }
+    
+    <span style="margin-left:20px;">
+        @Html.DisplayFor(m => m.RecP41, "~/Views/Shared/_ProjectPlanPeriod.cshtml")
+    </span>
+
+</div>
+
+@Html.EditorFor(m => m.timeline, "~/Views/Shared/_CapacityTimelineJ02.cshtml")
+
+
+
+
+
+
+<script type="text/javascript">
+
+
+    $(document).ready(function () {
+
+
+
+
+
+    });
+
+
+
+    function r04_edit()
+    {
+        _window_open("/r01/ProjectResources?p41id=@Model.p41id", 2);
+    }
+
+    function projectplan()
+    {
+        _window_open("/r01/ProjectPlan?p41id=@Model.p41id", 2);
+    }
+
+    function planmove()
+    {
+        _window_open("/r01/Move?p41id=@Model.p41id", 2);
+
+    }
+    
+</script>

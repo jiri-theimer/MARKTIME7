@@ -1,0 +1,105 @@
+﻿@model BO.j02User
+
+@inject BL.Factory _f
+
+@{
+
+
+    if (Model == null)
+    {
+        return;
+    }
+
+    bool _bolRowHover = false;
+    if (_f.CurrentUser.j02Ping_DeviceTypeFlag == BO.DeviceTypeFlag.Desktop) _bolRowHover = true;
+    
+    string _lastActivity = _f.j02UserBL.LoadLastActivityByUser(Model.pid);
+
+}
+
+
+@addTagHelper *, UI
+
+<table class="table table-hover">
+
+    <tr>
+        <td colspan="2" class="tdval">
+            <span class="material-icons-outlined">person</span>
+            @Model.j04Name
+        </td>
+    </tr>
+
+    <tr>
+        <td class="tdlab">
+            @_f.tra("Přihlašovací jméno"):
+        </td>
+        <td class="tdval">
+            @Model.j02Login
+        </td>
+    </tr>
+    <tr>
+        <td class="tdlab">
+            @_f.tra("Aplikační role"):
+        </td>
+        <td class="tdval">   
+            @if (_bolRowHover)
+            {
+                <myval value="@Model.j04Name" hoverprefix="j04" hoverpid="@Model.j04ID"></myval>
+            }
+            else
+            {
+                @Model.j04Name
+            }
+            
+        </td>
+    </tr>
+
+    @if (Model.j02IsLoginAutoLocked)
+    {
+        <tr>
+            <td colspan="2">
+                <kbd style="background-color:red;">@_f.tra("Došlo k automatickému zablokování účtu.")</kbd>
+            </td>
+        </tr>
+    }
+    @if (Model.j02IsLoginManualLocked)
+    {
+        <tr>
+            <td colspan="2">
+                <kbd style="background-color:olive;">@_f.tra("Účet byl uzavřen pro přihlašování.")</kbd>
+            </td>
+        </tr>
+    }
+    @if (Model.j02IsMustChangePassword)
+    {
+        <tr>
+            <td colspan="2">
+                <kbd style="background-color:green;">@_f.tra("Uživatel si musí změnit heslo.")</kbd>
+            </td>
+        </tr>
+    }
+
+    @if (Model.j02Ping_TimeStamp != null)
+    {
+        <tr>
+            <td>
+                @_f.tra("Poslední PING"):
+            </td>
+            <td class="tdval">
+                @BO.Code.Bas.ObjectDateTime2String(Model.j02Ping_TimeStamp)
+            </td>
+        </tr>
+       
+    }
+    @if (_lastActivity != null)
+    {
+        <tr>
+            <td colspan="2">
+                @_f.tra("Naposledy vykázaný úkon"):
+                @Html.Raw(_lastActivity)
+            </td>
+           
+        </tr>
+    }
+
+</table>

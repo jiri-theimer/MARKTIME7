@@ -1,0 +1,723 @@
+﻿@model UI.Models.p31approve.p31approveMother
+@inject BL.Factory _f
+
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+
+
+
+    if (Model.p31guid == null)
+    {
+        return;
+    }
+
+    var mq = new BO.myQueryP31();
+    mq.tempguid = Model.p31guid;
+
+    var lisP31 = _f.p31WorksheetBL.GetList(mq);
+    var _qryP71 = lisP31.GroupBy(p => p.p71ID).Select(p => new
+    {
+        groupbyalias = p.Min(p => p.p71Name),
+        bezdph_vykazano = p.Sum(p => p.p31Amount_WithoutVat_Orig),
+        hodiny_vykazano = p.Sum(p => p.p31Hours_Orig),
+        hodiny_schvaleno = p.Sum(p => p.p31Hours_Approved_Billing),
+        bezdph = p.Sum(p => p.p31Amount_WithoutVat_Approved),
+        pocet = p.Count()
+    }).OrderBy(p=>p.groupbyalias);
+    var _qryP72 = lisP31.GroupBy(p => p.p72ID_AfterApprove).Select(p => new
+    {
+        groupbyalias = p.Min(p => p.approve_p72Name),
+        bezdph_vykazano = p.Sum(p => p.p31Amount_WithoutVat_Orig),
+        hodiny_vykazano = p.Sum(p => p.p31Hours_Orig),
+        hodiny_schvaleno = p.Sum(p => p.p31Hours_Approved_Billing),
+        bezdph = p.Sum(p => p.p31Amount_WithoutVat_Approved),
+        pocet = p.Count()
+    }).OrderBy(p=>p.groupbyalias);
+    var _qryJ27 = lisP31.GroupBy(p => p.j27ID_Billing_Orig).Select(p => new
+    {
+        groupbyalias = p.Min(p => p.j27Code_Billing_Orig),
+        bezdph_vykazano = p.Sum(p => p.p31Amount_WithoutVat_Orig),
+        hodiny_vykazano = p.Sum(p => p.p31Hours_Orig),
+        hodiny_schvaleno = p.Sum(p => p.p31Hours_Approved_Billing),
+        bezdph = p.Sum(p => p.p31Amount_WithoutVat_Approved),
+        pocet = p.Count()
+    });
+    var _qryMesic = lisP31.GroupBy(p => BO.Code.Bas.YearMonthInteger(p.p31Date)).Select(p => new
+    {
+        groupbyalias = p.Min(p =>BO.Code.Bas.YearMonthString(p.p31Date)),
+        bezdph_vykazano = p.Sum(p => p.p31Amount_WithoutVat_Orig),
+        hodiny_vykazano = p.Sum(p => p.p31Hours_Orig),
+        hodiny_schvaleno = p.Sum(p => p.p31Hours_Approved_Billing),
+        bezdph = p.Sum(p => p.p31Amount_WithoutVat_Approved),
+        pocet = p.Count()
+    });
+    var _qryLevel = lisP31.GroupBy(p => p.p31ApprovingLevel).Select(p => new
+    {
+        groupbyalias = p.Min(p => "#"+p.p31ApprovingLevel.ToString()),
+        bezdph_vykazano = p.Sum(p => p.p31Amount_WithoutVat_Orig),
+        hodiny_vykazano = p.Sum(p => p.p31Hours_Orig),
+        hodiny_schvaleno = p.Sum(p => p.p31Hours_Approved_Billing),
+        bezdph = p.Sum(p => p.p31Amount_WithoutVat_Approved),
+        pocet = p.Count()
+    }).OrderBy(p=>p.groupbyalias);
+
+    var _qrystat = lisP31.Take(0).GroupBy(p => p.p41ID).Select(p => new
+    {
+        groupbypid = p.Key,
+        groupbyalias = p.Min(p => p.Project),
+        hodiny_schvaleno = p.Sum(p => p.p31Hours_Approved_Billing),
+        hodiny_vykazano = p.Sum(p => p.p31Hours_Orig),
+        hodiny_interni = p.Sum(p => p.p31Hours_Approved_Internal),
+        hodiny_rozpracovano = p.Where(p => p.p71ID == BO.p71IdENUM.Nic).Sum(p => p.p31Hours_Orig),
+        hodiny_odpis = p.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.SkrytyOdpis || p.p72ID_AfterApprove==BO.p72IdENUM.ViditelnyOdpis).Sum(p => p.p31Hours_Orig),
+        hodiny_pausal = p.Where(p=>p.p72ID_AfterApprove==BO.p72IdENUM.ZahrnoutDoPausalu).Sum(p => p.p31Hours_Orig),
+        hodiny_fakturovatpozdeji = p.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.FakturovatPozdeji).Sum(p => p.p31Hours_Approved_Billing),
+        bezdph = p.Sum(p => p.p31Amount_WithoutVat_Approved),
+        bezdph_rozpracovano = p.Where(p => p.p71ID == BO.p71IdENUM.Nic).Sum(p => p.p31Amount_WithoutVat_Orig),
+        pocet = p.Count(),
+        bezdph_vykazano = p.Sum(p => p.p31Amount_WithoutVat_Orig),
+        vydaje = p.Where(p =>p.p34IncomeStatementFlag==BO.p34IncomeStatementFlagENUM.Vydaj && (p.p33ID == BO.p33IdENUM.PenizeBezDPH || p.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu)).Sum(p => p.p31Amount_WithoutVat_Approved),
+        odmeny = p.Where(p => p.p34IncomeStatementFlag == BO.p34IncomeStatementFlagENUM.Prijem && (p.p33ID == BO.p33IdENUM.PenizeBezDPH || p.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu)).Sum(p => p.p31Amount_WithoutVat_Approved)
+    });
+
+    var _statbyprefix = _f.CBL.LoadUserParam($"p31approve-statprefix", "j02");
+    switch (_statbyprefix)
+    {
+        case "p41":
+            _qrystat = lisP31.GroupBy(p => p.p41ID).Select(p => new
+            {
+                groupbypid = p.Key,
+                groupbyalias = p.Min(p => p.Project),
+                hodiny_schvaleno = p.Sum(p => p.p31Hours_Approved_Billing),
+                hodiny_vykazano = p.Sum(p => p.p31Hours_Orig),
+                hodiny_interni = p.Sum(p => p.p31Hours_Approved_Internal),
+                hodiny_rozpracovano = p.Where(p => p.p71ID == BO.p71IdENUM.Nic).Sum(p => p.p31Hours_Orig),
+                hodiny_odpis = p.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.SkrytyOdpis || p.p72ID_AfterApprove == BO.p72IdENUM.ViditelnyOdpis).Sum(p => p.p31Hours_Orig),
+                hodiny_pausal = p.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.ZahrnoutDoPausalu).Sum(p => p.p31Hours_Orig),
+                hodiny_fakturovatpozdeji = p.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.FakturovatPozdeji).Sum(p => p.p31Hours_Approved_Billing),
+                bezdph = p.Sum(p => p.p31Amount_WithoutVat_Approved),
+                bezdph_rozpracovano = p.Where(p => p.p71ID == BO.p71IdENUM.Nic).Sum(p => p.p31Amount_WithoutVat_Orig),
+                pocet = p.Count(),
+                bezdph_vykazano = p.Sum(p => p.p31Amount_WithoutVat_Orig),
+                vydaje = p.Where(p => p.p34IncomeStatementFlag == BO.p34IncomeStatementFlagENUM.Vydaj && (p.p33ID == BO.p33IdENUM.PenizeBezDPH || p.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu)).Sum(p => p.p31Amount_WithoutVat_Approved),
+                odmeny = p.Where(p => p.p34IncomeStatementFlag == BO.p34IncomeStatementFlagENUM.Prijem && (p.p33ID == BO.p33IdENUM.PenizeBezDPH || p.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu)).Sum(p => p.p31Amount_WithoutVat_Approved)
+            });
+            break;
+        case "p28":
+            _qrystat = lisP31.GroupBy(p => p.p28ID_Client).Select(p => new
+            {
+                groupbypid = p.Key,
+                groupbyalias = p.Min(p => p.ClientName),
+                hodiny_schvaleno = p.Sum(p => p.p31Hours_Approved_Billing),
+                hodiny_vykazano = p.Sum(p => p.p31Hours_Orig),
+                hodiny_interni = p.Sum(p => p.p31Hours_Approved_Internal),
+                hodiny_rozpracovano = p.Where(p => p.p71ID == BO.p71IdENUM.Nic).Sum(p => p.p31Hours_Orig),
+                hodiny_odpis = p.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.SkrytyOdpis || p.p72ID_AfterApprove == BO.p72IdENUM.ViditelnyOdpis).Sum(p => p.p31Hours_Orig),
+                hodiny_pausal = p.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.ZahrnoutDoPausalu).Sum(p => p.p31Hours_Orig),
+                hodiny_fakturovatpozdeji = p.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.FakturovatPozdeji).Sum(p => p.p31Hours_Approved_Billing),
+                bezdph = p.Sum(p => p.p31Amount_WithoutVat_Approved),
+                bezdph_rozpracovano = p.Where(p => p.p71ID == BO.p71IdENUM.Nic).Sum(p => p.p31Amount_WithoutVat_Orig),
+                pocet = p.Count(),
+                bezdph_vykazano = p.Sum(p => p.p31Amount_WithoutVat_Orig),
+                vydaje = p.Where(p => p.p34IncomeStatementFlag == BO.p34IncomeStatementFlagENUM.Vydaj && (p.p33ID == BO.p33IdENUM.PenizeBezDPH || p.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu)).Sum(p => p.p31Amount_WithoutVat_Approved),
+                odmeny = p.Where(p => p.p34IncomeStatementFlag == BO.p34IncomeStatementFlagENUM.Prijem && (p.p33ID == BO.p33IdENUM.PenizeBezDPH || p.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu)).Sum(p => p.p31Amount_WithoutVat_Approved)
+            });
+            break;
+
+        case "j02":
+            _qrystat = lisP31.GroupBy(p => p.j02ID).Select(p => new
+            {
+                groupbypid = p.Key,
+                groupbyalias = p.Min(p => p.Person),
+                hodiny_schvaleno = p.Sum(p => p.p31Hours_Approved_Billing),
+                hodiny_vykazano = p.Sum(p => p.p31Hours_Orig),
+                hodiny_interni = p.Sum(p => p.p31Hours_Approved_Internal),
+                hodiny_rozpracovano = p.Where(p => p.p71ID == BO.p71IdENUM.Nic).Sum(p => p.p31Hours_Orig),
+                hodiny_odpis = p.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.SkrytyOdpis || p.p72ID_AfterApprove == BO.p72IdENUM.ViditelnyOdpis).Sum(p => p.p31Hours_Orig),
+                hodiny_pausal = p.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.ZahrnoutDoPausalu).Sum(p => p.p31Hours_Orig),
+                hodiny_fakturovatpozdeji = p.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.FakturovatPozdeji).Sum(p => p.p31Hours_Approved_Billing),
+                bezdph = p.Sum(p => p.p31Amount_WithoutVat_Approved),
+                bezdph_rozpracovano = p.Where(p => p.p71ID == BO.p71IdENUM.Nic).Sum(p => p.p31Amount_WithoutVat_Orig),
+                pocet = p.Count(),
+                bezdph_vykazano = p.Sum(p => p.p31Amount_WithoutVat_Orig),
+                vydaje = p.Where(p => p.p34IncomeStatementFlag == BO.p34IncomeStatementFlagENUM.Vydaj && (p.p33ID == BO.p33IdENUM.PenizeBezDPH || p.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu)).Sum(p => p.p31Amount_WithoutVat_Approved),
+                odmeny = p.Where(p => p.p34IncomeStatementFlag == BO.p34IncomeStatementFlagENUM.Prijem && (p.p33ID == BO.p33IdENUM.PenizeBezDPH || p.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu)).Sum(p => p.p31Amount_WithoutVat_Approved)
+            });
+            break;
+        case "p32":
+            _qrystat = lisP31.GroupBy(p => p.p32ID).Select(p => new
+            {
+                groupbypid = p.Key,
+                groupbyalias = p.Min(p => p.p32Name),
+                hodiny_schvaleno = p.Sum(p => p.p31Hours_Approved_Billing),
+                hodiny_vykazano = p.Sum(p => p.p31Hours_Orig),
+                hodiny_interni = p.Sum(p => p.p31Hours_Approved_Internal),
+                hodiny_rozpracovano = p.Where(p => p.p71ID == BO.p71IdENUM.Nic).Sum(p => p.p31Hours_Orig),
+                hodiny_odpis = p.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.SkrytyOdpis || p.p72ID_AfterApprove == BO.p72IdENUM.ViditelnyOdpis).Sum(p => p.p31Hours_Orig),
+                hodiny_pausal = p.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.ZahrnoutDoPausalu).Sum(p => p.p31Hours_Orig),
+                hodiny_fakturovatpozdeji = p.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.FakturovatPozdeji).Sum(p => p.p31Hours_Approved_Billing),
+                bezdph = p.Sum(p => p.p31Amount_WithoutVat_Approved),
+                bezdph_rozpracovano = p.Where(p => p.p71ID == BO.p71IdENUM.Nic).Sum(p => p.p31Amount_WithoutVat_Orig),
+                pocet = p.Count(),
+                bezdph_vykazano = p.Sum(p => p.p31Amount_WithoutVat_Orig),
+                vydaje = p.Where(p => p.p34IncomeStatementFlag == BO.p34IncomeStatementFlagENUM.Vydaj && (p.p33ID == BO.p33IdENUM.PenizeBezDPH || p.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu)).Sum(p => p.p31Amount_WithoutVat_Approved),
+                odmeny = p.Where(p => p.p34IncomeStatementFlag == BO.p34IncomeStatementFlagENUM.Prijem && (p.p33ID == BO.p33IdENUM.PenizeBezDPH || p.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu)).Sum(p => p.p31Amount_WithoutVat_Approved)
+            });
+            break;
+        case "p34":
+            _qrystat = lisP31.GroupBy(p => p.p34ID).Select(p => new
+            {
+                groupbypid = p.Key,
+                groupbyalias = p.Min(p => p.p34Name),
+                hodiny_schvaleno = p.Sum(p => p.p31Hours_Approved_Billing),
+                hodiny_vykazano = p.Sum(p => p.p31Hours_Orig),
+                hodiny_interni = p.Sum(p => p.p31Hours_Approved_Internal),
+                hodiny_rozpracovano = p.Where(p => p.p71ID == BO.p71IdENUM.Nic).Sum(p => p.p31Hours_Orig),
+                hodiny_odpis = p.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.SkrytyOdpis || p.p72ID_AfterApprove == BO.p72IdENUM.ViditelnyOdpis).Sum(p => p.p31Hours_Orig),
+                hodiny_pausal = p.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.ZahrnoutDoPausalu).Sum(p => p.p31Hours_Orig),
+                hodiny_fakturovatpozdeji = p.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.FakturovatPozdeji).Sum(p => p.p31Hours_Approved_Billing),
+                bezdph = p.Sum(p => p.p31Amount_WithoutVat_Approved),
+                bezdph_rozpracovano = p.Where(p => p.p71ID == BO.p71IdENUM.Nic).Sum(p => p.p31Amount_WithoutVat_Orig),
+                pocet = p.Count(),
+                bezdph_vykazano = p.Sum(p => p.p31Amount_WithoutVat_Orig),
+                vydaje = p.Where(p => p.p34IncomeStatementFlag == BO.p34IncomeStatementFlagENUM.Vydaj && (p.p33ID == BO.p33IdENUM.PenizeBezDPH || p.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu)).Sum(p => p.p31Amount_WithoutVat_Approved),
+                odmeny = p.Where(p => p.p34IncomeStatementFlag == BO.p34IncomeStatementFlagENUM.Prijem && (p.p33ID == BO.p33IdENUM.PenizeBezDPH || p.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu)).Sum(p => p.p31Amount_WithoutVat_Approved)
+            });
+            break;
+        case "p72":
+            _qrystat = lisP31.GroupBy(p => (int)p.p72ID_AfterApprove).Select(p => new
+            {
+                groupbypid = p.Key,
+                groupbyalias = p.Min(p => p.approve_p72Name),
+                hodiny_schvaleno = p.Sum(p => p.p31Hours_Approved_Billing),
+                hodiny_vykazano = p.Sum(p => p.p31Hours_Orig),
+                hodiny_interni = p.Sum(p => p.p31Hours_Approved_Internal),
+                hodiny_rozpracovano = p.Where(p => p.p71ID == BO.p71IdENUM.Nic).Sum(p => p.p31Hours_Orig),
+                hodiny_odpis = p.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.SkrytyOdpis || p.p72ID_AfterApprove == BO.p72IdENUM.ViditelnyOdpis).Sum(p => p.p31Hours_Orig),
+                hodiny_pausal = p.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.ZahrnoutDoPausalu).Sum(p => p.p31Hours_Orig),
+                hodiny_fakturovatpozdeji = p.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.FakturovatPozdeji).Sum(p => p.p31Hours_Approved_Billing),
+                bezdph = p.Sum(p => p.p31Amount_WithoutVat_Approved),
+                bezdph_rozpracovano = p.Where(p => p.p71ID == BO.p71IdENUM.Nic).Sum(p => p.p31Amount_WithoutVat_Orig),
+                pocet = p.Count(),
+                bezdph_vykazano = p.Sum(p => p.p31Amount_WithoutVat_Orig),
+                vydaje = p.Where(p => p.p34IncomeStatementFlag == BO.p34IncomeStatementFlagENUM.Vydaj && (p.p33ID == BO.p33IdENUM.PenizeBezDPH || p.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu)).Sum(p => p.p31Amount_WithoutVat_Approved),
+                odmeny = p.Where(p => p.p34IncomeStatementFlag == BO.p34IncomeStatementFlagENUM.Prijem && (p.p33ID == BO.p33IdENUM.PenizeBezDPH || p.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu)).Sum(p => p.p31Amount_WithoutVat_Approved)
+            });
+            break;
+        case "p95":
+            _qrystat = lisP31.GroupBy(p => p.p95ID).Select(p => new
+            {
+                groupbypid = p.Key,
+                groupbyalias = p.Min(p => p.p95Name),
+                hodiny_schvaleno = p.Sum(p => p.p31Hours_Approved_Billing),
+                hodiny_vykazano = p.Sum(p => p.p31Hours_Orig),
+                hodiny_interni = p.Sum(p => p.p31Hours_Approved_Internal),
+                hodiny_rozpracovano = p.Where(p => p.p71ID == BO.p71IdENUM.Nic).Sum(p => p.p31Hours_Orig),
+                hodiny_odpis = p.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.SkrytyOdpis || p.p72ID_AfterApprove == BO.p72IdENUM.ViditelnyOdpis).Sum(p => p.p31Hours_Orig),
+                hodiny_pausal = p.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.ZahrnoutDoPausalu).Sum(p => p.p31Hours_Orig),
+                hodiny_fakturovatpozdeji = p.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.FakturovatPozdeji).Sum(p => p.p31Hours_Approved_Billing),
+                bezdph = p.Sum(p => p.p31Amount_WithoutVat_Approved),
+                bezdph_rozpracovano = p.Where(p => p.p71ID == BO.p71IdENUM.Nic).Sum(p => p.p31Amount_WithoutVat_Orig),
+                pocet = p.Count(),
+                bezdph_vykazano = p.Sum(p => p.p31Amount_WithoutVat_Orig),
+                vydaje = p.Where(p => p.p34IncomeStatementFlag == BO.p34IncomeStatementFlagENUM.Vydaj && (p.p33ID == BO.p33IdENUM.PenizeBezDPH || p.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu)).Sum(p => p.p31Amount_WithoutVat_Approved),
+                odmeny = p.Where(p => p.p34IncomeStatementFlag == BO.p34IncomeStatementFlagENUM.Prijem && (p.p33ID == BO.p33IdENUM.PenizeBezDPH || p.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu)).Sum(p => p.p31Amount_WithoutVat_Approved)
+            });
+            break;
+        case "j27":
+            _qrystat = lisP31.GroupBy(p => p.j27ID_Billing_Orig).Select(p => new
+            {
+                groupbypid = p.Key,
+                groupbyalias = p.Min(p => p.j27Code_Billing_Orig),
+                hodiny_schvaleno = p.Sum(p => p.p31Hours_Approved_Billing),
+                hodiny_vykazano = p.Sum(p => p.p31Hours_Orig),
+                hodiny_interni = p.Sum(p => p.p31Hours_Approved_Internal),
+                hodiny_rozpracovano = p.Where(p => p.p71ID == BO.p71IdENUM.Nic).Sum(p => p.p31Hours_Orig),
+                hodiny_odpis = p.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.SkrytyOdpis || p.p72ID_AfterApprove == BO.p72IdENUM.ViditelnyOdpis).Sum(p => p.p31Hours_Orig),
+                hodiny_pausal = p.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.ZahrnoutDoPausalu).Sum(p => p.p31Hours_Orig),
+                hodiny_fakturovatpozdeji = p.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.FakturovatPozdeji).Sum(p => p.p31Hours_Approved_Billing),
+                bezdph = p.Sum(p => p.p31Amount_WithoutVat_Approved),
+                bezdph_rozpracovano = p.Where(p => p.p71ID == BO.p71IdENUM.Nic).Sum(p => p.p31Amount_WithoutVat_Orig),
+                pocet = p.Count(),
+                bezdph_vykazano = p.Sum(p => p.p31Amount_WithoutVat_Orig),
+                vydaje = p.Where(p => p.p34IncomeStatementFlag == BO.p34IncomeStatementFlagENUM.Vydaj && (p.p33ID == BO.p33IdENUM.PenizeBezDPH || p.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu)).Sum(p => p.p31Amount_WithoutVat_Approved),
+                odmeny = p.Where(p => p.p34IncomeStatementFlag == BO.p34IncomeStatementFlagENUM.Prijem && (p.p33ID == BO.p33IdENUM.PenizeBezDPH || p.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu)).Sum(p => p.p31Amount_WithoutVat_Approved)
+            });
+            break;
+        case "mesic":
+            _qrystat = lisP31.GroupBy(p => BO.Code.Bas.YearMonthInteger(p.p31Date)).Select(p => new
+            {
+                groupbypid = p.Key,
+                groupbyalias = p.Min(p => BO.Code.Bas.YearMonthString(p.p31Date).ToString()),
+                hodiny_schvaleno = p.Sum(p => p.p31Hours_Approved_Billing),
+                hodiny_vykazano = p.Sum(p => p.p31Hours_Orig),
+                hodiny_interni = p.Sum(p => p.p31Hours_Approved_Internal),
+                hodiny_rozpracovano = p.Where(p => p.p71ID == BO.p71IdENUM.Nic).Sum(p => p.p31Hours_Orig),
+                hodiny_odpis = p.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.SkrytyOdpis || p.p72ID_AfterApprove == BO.p72IdENUM.ViditelnyOdpis).Sum(p => p.p31Hours_Orig),
+                hodiny_pausal = p.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.ZahrnoutDoPausalu).Sum(p => p.p31Hours_Orig),
+                hodiny_fakturovatpozdeji = p.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.FakturovatPozdeji).Sum(p => p.p31Hours_Approved_Billing),
+                bezdph = p.Sum(p => p.p31Amount_WithoutVat_Approved),
+                bezdph_rozpracovano = p.Where(p => p.p71ID == BO.p71IdENUM.Nic).Sum(p => p.p31Amount_WithoutVat_Orig),
+                pocet = p.Count(),
+                bezdph_vykazano = p.Sum(p => p.p31Amount_WithoutVat_Orig),
+                vydaje = p.Where(p => p.p34IncomeStatementFlag == BO.p34IncomeStatementFlagENUM.Vydaj && (p.p33ID == BO.p33IdENUM.PenizeBezDPH || p.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu)).Sum(p => p.p31Amount_WithoutVat_Approved),
+                odmeny = p.Where(p => p.p34IncomeStatementFlag == BO.p34IncomeStatementFlagENUM.Prijem && (p.p33ID == BO.p33IdENUM.PenizeBezDPH || p.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu)).Sum(p => p.p31Amount_WithoutVat_Approved)
+            });
+            break;
+
+        case "p56":
+            _qrystat = lisP31.GroupBy(p => p.p56ID).Select(p => new
+            {
+                groupbypid = p.Key,
+                groupbyalias = p.Min(p => p.p56Name),
+                hodiny_schvaleno = p.Sum(p => p.p31Hours_Approved_Billing),
+                hodiny_vykazano = p.Sum(p => p.p31Hours_Orig),
+                hodiny_interni = p.Sum(p => p.p31Hours_Approved_Internal),
+                hodiny_rozpracovano = p.Where(p => p.p71ID == BO.p71IdENUM.Nic).Sum(p => p.p31Hours_Orig),
+                hodiny_odpis = p.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.SkrytyOdpis || p.p72ID_AfterApprove == BO.p72IdENUM.ViditelnyOdpis).Sum(p => p.p31Hours_Orig),
+                hodiny_pausal = p.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.ZahrnoutDoPausalu).Sum(p => p.p31Hours_Orig),
+                hodiny_fakturovatpozdeji = p.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.FakturovatPozdeji).Sum(p => p.p31Hours_Approved_Billing),
+                bezdph = p.Sum(p => p.p31Amount_WithoutVat_Approved),
+                bezdph_rozpracovano = p.Where(p => p.p71ID == BO.p71IdENUM.Nic).Sum(p => p.p31Amount_WithoutVat_Orig),
+                pocet = p.Count(),
+                bezdph_vykazano = p.Sum(p => p.p31Amount_WithoutVat_Orig),
+                vydaje = p.Where(p => p.p34IncomeStatementFlag == BO.p34IncomeStatementFlagENUM.Vydaj && (p.p33ID == BO.p33IdENUM.PenizeBezDPH || p.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu)).Sum(p => p.p31Amount_WithoutVat_Approved),
+                odmeny = p.Where(p => p.p34IncomeStatementFlag == BO.p34IncomeStatementFlagENUM.Prijem && (p.p33ID == BO.p33IdENUM.PenizeBezDPH || p.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu)).Sum(p => p.p31Amount_WithoutVat_Approved)
+            });
+            break;
+        case "billing_def_rate":
+            _qrystat = lisP31.GroupBy(p => Convert.ToInt32(p.p31Rate_Billing_Orig)).Select(p => new
+            {
+                groupbypid = p.Key,
+                groupbyalias = p.Min(p => p.p31Rate_Billing_Orig.ToString()),
+                hodiny_schvaleno = p.Sum(p => p.p31Hours_Approved_Billing),
+                hodiny_vykazano = p.Sum(p => p.p31Hours_Orig),
+                hodiny_interni = p.Sum(p => p.p31Hours_Approved_Internal),
+                hodiny_rozpracovano = p.Where(p => p.p71ID == BO.p71IdENUM.Nic).Sum(p => p.p31Hours_Orig),
+                hodiny_odpis = p.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.SkrytyOdpis || p.p72ID_AfterApprove == BO.p72IdENUM.ViditelnyOdpis).Sum(p => p.p31Hours_Orig),
+                hodiny_pausal = p.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.ZahrnoutDoPausalu).Sum(p => p.p31Hours_Orig),
+                hodiny_fakturovatpozdeji = p.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.FakturovatPozdeji).Sum(p => p.p31Hours_Approved_Billing),
+                bezdph = p.Sum(p => p.p31Amount_WithoutVat_Approved),
+                bezdph_rozpracovano = p.Where(p => p.p71ID == BO.p71IdENUM.Nic).Sum(p => p.p31Amount_WithoutVat_Orig),                
+                pocet = p.Count(),
+                bezdph_vykazano = p.Sum(p => p.p31Amount_WithoutVat_Orig),
+                vydaje = p.Where(p => p.p34IncomeStatementFlag == BO.p34IncomeStatementFlagENUM.Vydaj && (p.p33ID == BO.p33IdENUM.PenizeBezDPH || p.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu)).Sum(p => p.p31Amount_WithoutVat_Approved),
+                odmeny = p.Where(p => p.p34IncomeStatementFlag == BO.p34IncomeStatementFlagENUM.Prijem && (p.p33ID == BO.p33IdENUM.PenizeBezDPH || p.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu)).Sum(p => p.p31Amount_WithoutVat_Approved)
+            });
+            break;
+        case "billing_app_rate":
+            _qrystat = lisP31.GroupBy(p => Convert.ToInt32(p.p31Rate_Billing_Approved)).Select(p => new
+            {
+                groupbypid = p.Key,
+                groupbyalias = p.Min(p => p.p31Rate_Billing_Approved.ToString()),
+                hodiny_schvaleno = p.Sum(p => p.p31Hours_Approved_Billing),
+                hodiny_vykazano = p.Sum(p => p.p31Hours_Orig),
+                hodiny_interni = p.Sum(p => p.p31Hours_Approved_Internal),
+                hodiny_rozpracovano = p.Where(p => p.p71ID == BO.p71IdENUM.Nic).Sum(p => p.p31Hours_Orig),
+                hodiny_odpis = p.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.SkrytyOdpis || p.p72ID_AfterApprove == BO.p72IdENUM.ViditelnyOdpis).Sum(p => p.p31Hours_Orig),
+                hodiny_pausal = p.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.ZahrnoutDoPausalu).Sum(p => p.p31Hours_Orig),
+                hodiny_fakturovatpozdeji = p.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.FakturovatPozdeji).Sum(p => p.p31Hours_Approved_Billing),
+                bezdph = p.Sum(p => p.p31Amount_WithoutVat_Approved),
+                bezdph_rozpracovano = p.Where(p => p.p71ID == BO.p71IdENUM.Nic).Sum(p => p.p31Amount_WithoutVat_Orig),
+                pocet = p.Count(),
+                bezdph_vykazano = p.Sum(p => p.p31Amount_WithoutVat_Orig),
+                vydaje = p.Where(p => p.p34IncomeStatementFlag == BO.p34IncomeStatementFlagENUM.Vydaj && (p.p33ID == BO.p33IdENUM.PenizeBezDPH || p.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu)).Sum(p => p.p31Amount_WithoutVat_Approved),
+                odmeny = p.Where(p => p.p34IncomeStatementFlag == BO.p34IncomeStatementFlagENUM.Prijem && (p.p33ID == BO.p33IdENUM.PenizeBezDPH || p.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu)).Sum(p => p.p31Amount_WithoutVat_Approved)
+            });
+            break;
+        case "p31ApprovingLevel":
+            _qrystat = lisP31.GroupBy(p => Convert.ToInt32(p.p31ApprovingLevel)).Select(p => new
+            {
+                groupbypid = p.Key,
+                groupbyalias = p.Min(p => "#"+p.p31ApprovingLevel.ToString()),
+                hodiny_schvaleno = p.Sum(p => p.p31Hours_Approved_Billing),
+                hodiny_vykazano = p.Sum(p => p.p31Hours_Orig),
+                hodiny_interni = p.Sum(p => p.p31Hours_Approved_Internal),
+                hodiny_rozpracovano = p.Where(p => p.p71ID == BO.p71IdENUM.Nic).Sum(p => p.p31Hours_Orig),
+                hodiny_odpis = p.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.SkrytyOdpis || p.p72ID_AfterApprove == BO.p72IdENUM.ViditelnyOdpis).Sum(p => p.p31Hours_Orig),
+                hodiny_pausal = p.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.ZahrnoutDoPausalu).Sum(p => p.p31Hours_Orig),
+                hodiny_fakturovatpozdeji = p.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.FakturovatPozdeji).Sum(p => p.p31Hours_Approved_Billing),
+                bezdph = p.Sum(p => p.p31Amount_WithoutVat_Approved),
+                bezdph_rozpracovano = p.Where(p => p.p71ID == BO.p71IdENUM.Nic).Sum(p => p.p31Amount_WithoutVat_Orig),
+                pocet = p.Count(),
+                bezdph_vykazano = p.Sum(p => p.p31Amount_WithoutVat_Orig),
+                vydaje = p.Where(p => p.p34IncomeStatementFlag == BO.p34IncomeStatementFlagENUM.Vydaj && (p.p33ID == BO.p33IdENUM.PenizeBezDPH || p.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu)).Sum(p => p.p31Amount_WithoutVat_Approved),
+                odmeny = p.Where(p => p.p34IncomeStatementFlag == BO.p34IncomeStatementFlagENUM.Prijem && (p.p33ID == BO.p33IdENUM.PenizeBezDPH || p.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu)).Sum(p => p.p31Amount_WithoutVat_Approved)
+            });
+            break;
+
+    }
+
+    _qrystat = _qrystat.OrderBy(p => p.groupbyalias);
+}
+
+@addTagHelper *, UI
+
+@section header_content{
+
+
+    <link rel="stylesheet" href="/css/htmltable.css" />
+
+
+}
+
+<div>
+    <span class="material-icons-outlined">auto_graph</span>
+    
+    <button id="cmdClose" onclick="localclose()" class="btn btn-light">@_f.tra("Zavřít")</button>
+
+    <a class="btn descreet_link_over_grid" href="javascript: location.replace(location.href)" title="@_f.tra("Občerstvit")"><span class="material-icons-outlined-btn">refresh</span></a>
+</div>
+<table class="htmltable">
+    <thead>
+        <tr>
+            <th>
+                <select asp-for="@_statbyprefix" onchange="statbyprefix_change(this)">
+                    <option value="p41">@_f.tra("Projekt")</option>
+                    <option value="p28">@_f.tra("Klient")</option>
+                    <option value="j02">@_f.tra("Uživatel")</option>
+                    <option value="p32">@_f.tra("Aktivita")</option>
+                    <option value="j27">@_f.tra("Měna")</option>
+                    <option value="mesic">@_f.tra("Měsíc")</option>
+                    <option value="p72">@_f.tra("Fakturační status")</option>
+                    <option value="p34">@_f.tra("Sešit")</option>
+                    <option value="p95">@_f.tra("Fakturační oddíl")</option>
+                    <option value="billing_def_rate">@_f.tra("Výchozí sazba")</option>
+                    <option value="billing_app_rate">@_f.tra("Schválená sazba")</option>
+                    <option value="p56">@_f.tra("Úkol")</option>                    
+                    <option value="p31ApprovingLevel">@_f.tra("Úroveň schvalování")</option>
+                </select>
+            </th>
+
+            <th colspan="2">
+                Vykázáno
+            </th>
+            <th colspan="2">
+                Schváleno
+            </th>
+            <th>
+                Hodiny<br />
+                Paušál
+            </th>
+            <th>
+                Hodiny<br />Odpis
+            </th>
+            <th>
+                Fakturovat<br />později
+            </th>
+            <th>
+                Pevné<br />
+                Odměny
+            </th>
+            <th>
+                Výdaje
+            </th>
+            <th colspan="2">
+                Rozpracováno
+            </th>
+
+            <th title="Počet vykázaných aktivit"></th>
+
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var c in _qrystat)
+        {
+            <tr>
+                <td>
+                    @c.groupbyalias
+                </td>
+
+
+
+                <td class="cislo">
+                    @(BO.Code.Bas.Num2StringNull(c.hodiny_vykazano))
+                </td>
+                <td class="cislo">
+                    @(BO.Code.Bas.Num2StringNull(c.bezdph_vykazano))
+                </td>
+                <td class="cislo schvaleno">
+                    @(BO.Code.Bas.Num2StringNull(c.hodiny_schvaleno))
+                </td>
+                <td class="cislo schvaleno">
+                    @(BO.Code.Bas.Num2StringNull(c.bezdph))
+
+                </td>
+                <td class="cislo pausal">
+                    @(BO.Code.Bas.Num2StringNull(c.hodiny_pausal))
+                </td>
+                <td class="cislo odpis">
+                    @(BO.Code.Bas.Num2StringNull(c.hodiny_odpis))
+                </td>
+                <td class="cislo pozdeji">
+                    @(BO.Code.Bas.Num2StringNull(c.hodiny_fakturovatpozdeji))
+                </td>
+                <td class="cislo schvaleno">
+                    @(BO.Code.Bas.Num2StringNull(c.odmeny))
+                </td>
+                <td class="cislo schvaleno">
+                    @(BO.Code.Bas.Num2StringNull(c.vydaje))
+                </td>
+                <td class="cislo">
+                    @(BO.Code.Bas.Num2StringNull(c.hodiny_rozpracovano))
+                </td>
+                <td class="cislo">
+                    @(BO.Code.Bas.Num2StringNull(c.bezdph_rozpracovano))
+                </td>
+
+                <td class="cislo">
+                    @(c.pocet)x
+
+                </td>
+            </tr>
+
+        }
+    </tbody>
+    
+    <tfoot>
+        <tr>
+            <th><span class="material-icons-outlined-nosize">functions</span></th>
+
+
+            <th class="cislo">@(BO.Code.Bas.Num2StringNull(_qrystat.Sum(p => p.hodiny_vykazano)))</th>
+            <th class="cislo">@(BO.Code.Bas.Num2StringNull(_qrystat.Sum(p => p.bezdph_vykazano)))</th>
+            <th class="cislo">@(BO.Code.Bas.Num2StringNull(_qrystat.Sum(p => p.hodiny_schvaleno)))</th>
+            <th class="cislo">@(BO.Code.Bas.Num2StringNull(_qrystat.Sum(p => p.bezdph)))</th>
+            <th class="cislo">@(BO.Code.Bas.Num2StringNull(_qrystat.Sum(p => p.hodiny_pausal)))</th>
+            <th class="cislo">@(BO.Code.Bas.Num2StringNull(_qrystat.Sum(p => p.hodiny_odpis)))</th>
+            <th class="cislo">@(BO.Code.Bas.Num2StringNull(_qrystat.Sum(p => p.hodiny_fakturovatpozdeji)))</th>
+
+            <th class="cislo">@(BO.Code.Bas.Num2StringNull(_qrystat.Sum(p => p.odmeny)))</th>
+            <th class="cislo">@(BO.Code.Bas.Num2StringNull(_qrystat.Sum(p => p.vydaje)))</th>
+
+            <th class="cislo">@(BO.Code.Bas.Num2StringNull(_qrystat.Sum(p => p.hodiny_rozpracovano)))</th>
+            <th class="cislo">@(BO.Code.Bas.Num2StringNull(_qrystat.Sum(p => p.bezdph_rozpracovano)))</th>
+
+            <th class="cislo">@_qrystat.Sum(p => p.pocet)x</th>
+        </tr>
+    </tfoot>
+    
+</table>
+
+
+@if (_qryJ27.Count() > 1)
+{
+    <p></p>
+    <table class="htmltable">
+        <thead>
+            <tr>
+                <th style="width:110px;"></th>
+                <th colspan="2">Vykázáno</th>
+                <th colspan="2">Schváleno</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var c in _qryJ27)
+            {
+                <tr>
+                    <td>
+                        @c.groupbyalias
+                    </td>
+                    <td class="cislo">
+                        @(BO.Code.Bas.Num2StringNull(c.hodiny_vykazano))
+                    </td>
+                    <td class="cislo">
+                        @(BO.Code.Bas.Num2StringNull(c.bezdph_vykazano))
+                    </td>
+                    <td class="cislo schvaleno">
+                        @(BO.Code.Bas.Num2StringNull(c.hodiny_schvaleno))
+                    </td>
+                    <td class="cislo schvaleno">
+                        @(BO.Code.Bas.Num2StringNull(c.bezdph))
+
+                    </td>
+                    <td class="cislo">@(c.pocet)x</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (_qryP71.Count() > 1)
+{
+    <p></p>
+    <table class="htmltable">
+        <thead>
+            <tr>
+                <th style="width:110px;"></th>
+                <th colspan="2">Vykázáno</th>
+                <th colspan="2">Schváleno</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var c in _qryP71)
+            {
+                <tr>
+                    <td>
+                        @c.groupbyalias
+                    </td>
+                    <td class="cislo">
+                        @(BO.Code.Bas.Num2StringNull(c.hodiny_vykazano))
+                    </td>
+                    <td class="cislo">
+                        @(BO.Code.Bas.Num2StringNull(c.bezdph_vykazano))
+                    </td>
+                    <td class="cislo schvaleno">
+                        @(BO.Code.Bas.Num2StringNull(c.hodiny_schvaleno))
+                    </td>
+                    <td class="cislo schvaleno">
+                        @(BO.Code.Bas.Num2StringNull(c.bezdph))
+
+                    </td>
+                    <td class="cislo">@(c.pocet)x</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+@if (_qryP72.Count() > 1)
+{
+    <p></p>
+    <table class="htmltable">
+        <thead>
+            <tr>
+                <th style="width:110px;"></th>
+                <th colspan="2">Vykázáno</th>
+                <th colspan="2">Schváleno</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var c in _qryP72)
+            {
+                <tr>
+                    <td>
+                        @c.groupbyalias
+                    </td>
+                    <td class="cislo">
+                        @(BO.Code.Bas.Num2StringNull(c.hodiny_vykazano))
+                    </td>
+                    <td class="cislo">
+                        @(BO.Code.Bas.Num2StringNull(c.bezdph_vykazano))
+                    </td>
+                    <td class="cislo schvaleno">
+                        @(BO.Code.Bas.Num2StringNull(c.hodiny_schvaleno))
+                    </td>
+                    <td class="cislo schvaleno">
+                        @(BO.Code.Bas.Num2StringNull(c.bezdph))
+
+                    </td>
+                    <td class="cislo">@(c.pocet)x</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (_qryLevel.Count() > 1)
+{
+    <p></p>
+    <table class="htmltable">
+        <thead>
+            <tr>
+                <th style="width:110px;"><code>@_f.tra("Úroveň")</code></th>
+                <th colspan="2">Vykázáno</th>
+                <th colspan="2">Schváleno</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var c in _qryLevel)
+            {
+                <tr>
+                    <td>
+                        @c.groupbyalias
+                    </td>
+                    <td class="cislo">
+                        @(BO.Code.Bas.Num2StringNull(c.hodiny_vykazano))
+                    </td>
+                    <td class="cislo">
+                        @(BO.Code.Bas.Num2StringNull(c.bezdph_vykazano))
+                    </td>
+                    <td class="cislo schvaleno">
+                        @(BO.Code.Bas.Num2StringNull(c.hodiny_schvaleno))
+                    </td>
+                    <td class="cislo schvaleno">
+                        @(BO.Code.Bas.Num2StringNull(c.bezdph))
+
+                    </td>
+                    <td class="cislo">@(c.pocet)x</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (_qryMesic.Count() > 2)
+{
+    <p></p>
+    <table class="htmltable">
+        <thead>
+            <tr>
+                <th style="width:110px;"><code>@_f.tra("Měsíc")</code></th>
+                <th colspan="2">Vykázáno</th>
+                <th colspan="2">Schváleno</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var c in _qryMesic)
+            {
+                <tr>
+                    <td>
+                        @c.groupbyalias
+                    </td>
+                    <td class="cislo">
+                        @(BO.Code.Bas.Num2StringNull(c.hodiny_vykazano))
+                    </td>
+                    <td class="cislo">
+                        @(BO.Code.Bas.Num2StringNull(c.bezdph_vykazano))
+                    </td>
+                    <td class="cislo schvaleno">
+                        @(BO.Code.Bas.Num2StringNull(c.hodiny_schvaleno))
+                    </td>
+                    <td class="cislo schvaleno">
+                        @(BO.Code.Bas.Num2StringNull(c.bezdph))
+
+                    </td>
+                    <td class="cislo">@(c.pocet)x</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+
+
+<script type="text/javascript">
+
+    
+
+    function statbyprefix_change(cbx) {
+        
+        $.post("/Common/SetUserParam", { key: "p31approve-statprefix", value: cbx.value }, function (data) {
+            location.reload(location.href);
+
+        });
+    }
+
+    function localclose() {
+        if (window.parent.document.getElementById("zoom_okno"))
+        {
+            
+            window.parent.document.getElementById("zoom_okno").style.display = "none";
+            
+        }
+
+        
+    }
+
+</script>

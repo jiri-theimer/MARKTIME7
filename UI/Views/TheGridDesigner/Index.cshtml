@@ -1,0 +1,666 @@
+﻿@model TheGridDesignerViewModel
+@inject BL.Singleton.TheEntitiesProvider _ep
+@inject BL.Factory _f
+
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    string _header = _ep.ByTable(Model.Rec.j72Entity).AliasPlural;
+    if (Model.Rec.j72Entity == "le5")
+    {
+        _header = _f.getP07Level(5,false);
+    }
+    if (_f.CurrentUser.j02LangIndex == 1)
+    {
+        _header = _ep.ByTable(Model.Rec.j72Entity).TranslateLang1;
+    }
+    if (_f.CurrentUser.j02LangIndex == 2)
+    {
+        _header = _ep.ByTable(Model.Rec.j72Entity).TranslateLang2;
+    }
+
+    if (Model.Rec == null || Model.Relations == null)
+    {
+        return;
+    }
+    
+
+
+}
+
+@addTagHelper *, UI
+
+@section header_content{
+    <link rel="stylesheet" href="/kendo/styles/kendo.common.min.css" type="text/css" />
+    <link href="/kendo/styles/kendo.default.min.css" rel="stylesheet" type="text/css" />
+    <link href="/kendo/styles/kendo.default.mobile.min.css" rel="stylesheet" type="text/css" />
+}
+
+<style type="text/css">
+    .button_field_append {
+        visibility: hidden;
+    }
+
+    .tree_item:hover .button_field_append {
+        visibility: visible;
+    }
+
+    .field_selected {
+        background-color: khaki;
+        border-radius: 3px;
+    }
+
+    .list1_item{
+        cursor:pointer;
+    }
+
+    .timestamp {
+        color: palevioletred;
+    }
+
+    .k-treeview .k-in.k-state-hover,
+    .k-treeview .k-in.k-state-focused,
+    .k-treeview .k-in.k-state-selected {
+        border-color: transparent;
+        background-color: transparent;
+        color: black;
+    }
+</style>
+
+<script src="/kendo/js/kendo.core.min.js"></script>
+
+<script src="/kendo/js/kendo.data.min.js"></script>
+<script src="/kendo/js/kendo.treeview.min.js"></script>
+
+
+@if(!Model.IsFieldsDesignerOnly)
+{
+    <h4>
+        @if (Model.Rec.j72SystemFlag == BO.j72SystemFlagEnum.Grid)
+        {
+            <span class="material-icons-outlined" style="font-size:170%;color:gray;">grid_view</span>
+        }
+        else
+        {
+            <span class="material-icons-outlined" style="font-size:170%;color:orange;">grid_view</span>
+        }
+        
+        @_f.tra("Tabulka") [@_header]:
+        
+        <i>@Model.Rec.GetName()</i>
+    </h4>
+   
+}
+
+
+
+<div class="bg-light" style="padding:10px;">
+    @if (!Model.IsFieldsDesignerOnly)
+    {
+        @if (Model.HasOwnerPermissions)
+        {
+            <button type="button" id="cmdSave" onclick="savechanges()" class="btn btn-success">@_f.tra("Uložit změny")</button>
+        }
+        
+
+        @if (Model.Rec.j72SystemFlag == BO.j72SystemFlagEnum.User && Model.HasOwnerPermissions)
+        {
+            <button type="button" id="cmdDelete" onclick="delete_record()" class="btn btn-danger">@_f.tra("Odstranit")</button>
+        }
+        @if (Model.Rec.j72MasterEntity != "approve" && Model.Rec.j72MasterEntity != "inform")
+        {
+            <button type="button" id="cmdSaveAs" onclick="saveas()" class="btn bog">@_f.tra("Uložit jako")...</button>
+        }
+
+        @if (Model.Rec.j72SystemFlag == BO.j72SystemFlagEnum.User && Model.HasOwnerPermissions)
+        {
+            <button type="button" id="cmdRename" onclick="rename()" class="btn bog">@_f.tra("Přejmenovat")...</button>
+        }
+
+        <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+        
+        <myshowmore></myshowmore>
+
+        
+
+        <a class="btn btn-light showmore" href="javascript:_helppage()" style="float:right;"><span class="material-icons-outlined-btn">help_outline</span></a>
+        
+        <button type="button" onclick="catalog()" class="btn btn-sm bog showmore" style="float:right;">@_f.tra("Výpis katalogu sloupců")</button>
+
+
+        @if (_f.CurrentUser.IsAdmin && !_f.CurrentUser.IsHostingModeTotalCloud)
+        {
+            <button type="button" id="cmdGlobalColumns" onclick="restore2global()" class="btn btn-sm bog showmore" style="float:right;">@_f.tra("Nastavit jako výchozí globální sadu sloupců")</button>
+
+            <button type="button" id="cmdUpdateAllUsers" onclick="update2allusers()" class="btn btn-sm bog showmore" style="float:right;">@_f.tra("Přepsat sloupce všem uživatelům")</button>
+
+        }
+        @if (Model.Rec.j72SystemFlag == BO.j72SystemFlagEnum.Grid)
+        {
+            <button type="button" id="cmdRestore2Factory" onclick="restore2factory()" class="btn btn-sm bog showmore" style="float:right;">@_f.tra("Nahodit sloupce do výchozího (továrního) stavu")</button>
+        }
+        
+
+    }
+    else
+    {
+        <button type="button" id="cmdSave" onclick="savechanges()" class="btn btn-success">OK</button>
+        <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+    }
+    
+
+</div>
+<form id="form1" asp-controller="TheGridDesigner" asp-action="Index" method="POST">
+
+
+    <input type="hidden" asp-for="Rec.j72Columns" />
+    <input type="hidden" asp-for="Rec.pid" />
+    <input type="hidden" asp-for="Rec.j72Entity" />
+    <input type="hidden" asp-for="Rec.j72MasterEntity" />
+    <input type="hidden" asp-for="Rec.j72Name" />
+    <input type="hidden" asp-for="HasOwnerPermissions" />
+    <input type="hidden" asp-for="Rec.j72SystemFlag" />
+    <input type="hidden" asp-for="IsFieldsDesignerOnly" />
+    <input type="hidden" asp-for="ParentLayoutName" />
+    <input type="hidden" asp-for="CallerPathName" />
+
+    <table>
+
+        <tr style="vertical-align:top;">
+            <td style="min-width:300px;">
+                <h5>@_f.tra("Katalog sloupců")</h5>
+                <kendotree kendo-datasource="@Model.treeNodes"></kendotree>
+
+
+            </td>
+            <td>
+                <button type="button" id="cmdRemove" class="btn bog" style="margin-top:100px;">
+                    <span class="material-icons-outlined-btn">arrow_back</span>
+                </button>
+            </td>
+            <td>
+                @if(!Model.IsFieldsDesignerOnly)
+                {
+                    <h5>@_f.tra("Vybrané sloupce")</h5>
+                }
+                else
+                {
+                    <h5>@_f.tra("Vybraná pole")</h5>
+                }
+                
+
+                <div class="list-group" id="list1" style="min-width:200px;min-height:100px;">
+                    
+                </div>
+
+                @if(Model.UniqueNamesCatalog != null)
+                {
+                    <div style="overflow:auto;height:200px;">
+                        @Html.Raw(Model.UniqueNamesCatalog)
+                    </div>
+                    
+                }
+
+
+
+                <button type="button" id="cmdUp" class="btn bog py-0" title="@_f.tra("Posunout nahoru")">
+                    <span class="material-icons-outlined-btn">keyboard_double_arrow_up</span>
+                </button>
+                <button type="button" id="cmdDown" class="btn bog py-0" title="@_f.tra("Posunout dolu")">
+                    <span class="material-icons-outlined-btn">keyboard_double_arrow_down</span>
+                </button>
+            </td>
+            
+        </tr>
+    </table>
+    @if (Model.HasOwnerPermissions && !Model.IsFieldsDesignerOnly && Model.lisQueryFields.Count() > 0 && Model.Rec.j72MasterEntity != "approve" && Model.Rec.j72MasterEntity != "inform")
+    {
+        <div class="card" style="min-width:1200px;">
+            <div class="card-header">
+                <span class="material-icons-outlined">filter_alt</span> @_f.tra("Vnitřní filtrovací podmínka tabulky")
+            </div>
+            <div class="card-body">
+                <button type="button" class="btn btn-primary" onclick="handle_j73_append()">@_f.tra("Přidat řádek")</button>
+                <button type="button" class="btn btn-outline-danger" onclick="handle_j73_clear()" style="margin-left:100px;">@_f.tra("Vyčistit")</button>
+                <button type="button" class="btn btn-outline-gray" onclick="handle_j73_saveas()" style="margin-left:10px;">@_f.tra("Uložit jako pojmenovaný filtr")</button>
+                <table class="table table-hover" style="table-layout: fixed;min-width:1200px;">
+                    @for (var i = 0; i < Model.lisJ73.Count; i++)
+                    {
+                        <tr style="@(Model.lisJ73[i].CssTempDisplay)">
+                            <td style="width:140px;">
+                                <input type="hidden" asp-for="lisJ73[i].IsTempDeleted" value="@Model.lisJ73[i].IsTempDeleted" />
+                                <input type="hidden" asp-for="lisJ73[i].j73ID" value="@Model.lisJ73[i].j73ID" />
+                                <input type="hidden" asp-for="lisJ73[i].MyQueryInline" value="@Model.lisJ73[i].MyQueryInline" />
+                                <input type="hidden" asp-for="lisJ73[i].j73IsOfferPersonsAdd" value="@Model.lisJ73[i].j73IsOfferPersonsAdd" />
+
+                                <input type="hidden" asp-for="lisJ73[i].TempGuid" value="@Model.lisJ73[i].TempGuid" />
+
+                                <select title="@_f.tra("Levá závorka")" asp-for="@Model.lisJ73[i].j73BracketLeft">
+                                    <option value=""></option>
+                                    <option value="(">(</option>
+                                    <option value="((">((</option>
+                                </select>
+                                <select asp-for="@Model.lisJ73[i].j73Op">
+                                    <option value="AND">@_f.tra("A zároveň")</option>
+                                    <option value="OR">@_f.tra("Nebo")</option>
+                                </select>
+
+                            </td>
+                            <td style="width:250px;">
+                                <mydropdown asp-for="@Model.lisJ73[i].j73Column" datasource="@Model.lisQueryFields" valuefield="Field" textfield="Header" isfirstemptyrow="false" event_after_changevalue="handle_queryfield_change" datavalue="@Model.lisJ73[i].TempGuid"></mydropdown>
+
+                            </td>
+                            <td style="width:130px;">
+                                <select asp-for="@Model.lisJ73[i].j73Operator" class="form-select" onchange="handle_queryoperator_change(this)">
+                                    @if (Model.lisJ73[i].FieldType == "number")
+                                    {
+                                        <option value="INTERVAL">@_f.tra("Je interval")</option>
+                                        <option value="GREATERZERO">@_f.tra("Je větší než nula")</option>
+                                        <option value="ISNULLORZERO">@_f.tra("Je nula nebo prázdné")</option>
+                                    }
+                                    @if (Model.lisJ73[i].FieldType == "date")
+                                    {
+                                        <option value="INTERVAL">@_f.tra("Je interval")</option>
+                                    }
+                                    @if (Model.lisJ73[i].FieldType != "date" && Model.lisJ73[i].FieldType != "number")
+                                    {
+                                        <option value="EQUAL">@_f.tra("Je rovno")</option>
+                                    }
+                                    @if (Model.lisJ73[i].FieldType != "bool" && Model.lisJ73[i].FieldType != "number" && Model.lisJ73[i].FieldType != "date" && Model.lisJ73[i].FieldType != "bool1" && Model.lisJ73[i].FieldType != "bool1x")
+                                    {
+                                        <option value="NOT-EQUAL">@_f.tra("Není rovno")</option>
+                                    }
+
+                                    @if (Model.lisJ73[i].FieldType != "bool" && Model.lisJ73[i].FieldType != "bool1" && Model.lisJ73[i].FieldType != "bool1x")
+                                    {
+                                        <option value="ISNULL">@_f.tra("Je prázdné")</option>
+                                        <option value="NOT-ISNULL">@_f.tra("Není prázdné")</option>
+                                    }
+
+                                    @if (Model.lisJ73[i].FieldType == "string")
+                                    {
+                                        <option value="CONTAINS">@_f.tra("Obsahuje")</option>
+                                        <option value="STARTS">@_f.tra("Začíná na")</option>
+                                    }
+
+                                </select>
+                            </td>
+                            <td>
+                                @if (Model.lisJ73[i].j73Operator != "ISNULL" && Model.lisJ73[i].j73Operator != "NOT-ISNULL" && Model.lisJ73[i].j73Operator != "GREATERZERO" && Model.lisJ73[i].j73Operator != "ISNULLORZERO")
+                                {
+                                    @if (Model.lisJ73[i].FieldType == "combo")
+                                    {
+
+                                        <mycombo asp-for="@Model.lisJ73[i].j73ComboValue" entity="@Model.lisJ73[i].FieldEntity" selectedtext="@Model.lisJ73[i].j73ValueAlias" filter-flag="1" masterprefix="@Model.lisJ73[i].MasterPrefix" masterpid="@Model.lisJ73[i].MasterPid" myqueryinline="@Model.lisJ73[i].MyQueryInline"></mycombo>
+
+
+                                    }
+                                    @if (Model.lisJ73[i].FieldType == "multi")
+                                    {
+
+                                        <mycombochecklist asp-for="@Model.lisJ73[i].j73Value" selectedtext="@Model.lisJ73[i].j73ValueAlias" entity="@Model.lisJ73[i].FieldEntity" masterprefix="@Model.lisJ73[i].MasterPrefix" masterpid="@Model.lisJ73[i].MasterPid" myqueryinline="@Model.lisJ73[i].MyQueryInline"></mycombochecklist>
+
+                                        
+                                    }
+                                    @if (Model.lisJ73[i].FieldType == "string")
+                                    {
+
+                                        <input class="form-control" asp-for="@Model.lisJ73[i].j73Value" />
+
+                                    }
+                                    @if (Model.lisJ73[i].FieldType == "number")
+                                    {
+                                        <div class="row">
+                                            <div class="col-auto">
+                                                <mynumber asp-for="@Model.lisJ73[i].j73Num1"></mynumber>
+                                            </div>
+                                            <div class="col-auto" style="text-align:center;"> ⮄⮆ </div>
+                                            <div class="col-auto btn-group">
+                                                <mynumber asp-for="@Model.lisJ73[i].j73Num2"></mynumber>
+                                            </div>
+                                        </div>
+
+                                    }
+                                    @if (Model.lisJ73[i].FieldType == "date")
+                                    {
+                                        <div class="row">
+                                            <div class="col-auto" title="@_f.tra("Pojmenované období")">
+                                                <mydropdown asp-for="@Model.lisJ73[i].j73DatePeriodFlag" datasource="@Model.lisPeriods" valuefield="pid" textfield="Header" isfirstemptyrow="false"></mydropdown>
+
+                                            </div>
+                                            <div class="col-auto" title="@_f.tra("Začátek období ručně")">
+
+                                                <mydate asp-for="@Model.lisJ73[i].j73Date1"></mydate>
+                                            </div>
+                                            <div class="col-auto" style="text-align:center;"> ⮄⮆ </div>
+                                            <div class="col-auto" title="@_f.tra("Konec období ručně")">
+
+                                                <mydate asp-for="@Model.lisJ73[i].j73Date2"></mydate>
+                                            </div>
+                                        </div>
+
+
+                                    }
+                                    @if (Model.lisJ73[i].FieldType == "bool")
+                                    {
+                                        <select asp-for="@Model.lisJ73[i].j73Value" class="form-select">
+                                            <option value="1">@_f.tra("ANO")</option>
+                                            <option value="0">@_f.tra("NE")</option>
+                                        </select>
+
+                                    }
+                                   
+                                    @if (Model.lisJ73[i].FieldType == "bool1" || Model.lisJ73[i].FieldType == "bool1x")
+                                    {
+                                        <select asp-for="@Model.lisJ73[i].j73Value" class="form-select">
+                                            <option value="1">@_f.tra("ANO")</option>
+
+                                        </select>
+
+                                    }
+                                }
+                            </td>
+                            <td>
+                                @if (Model.lisJ73[i].FieldType == "multi" && Model.lisJ73[i].j73IsOfferPersonsAdd)
+                                {
+
+                                    <mycombochecklist asp-for="@Model.lisJ73[i].j02AddValue" selectedtext="@Model.lisJ73[i].j02AddValueAlias" entity="j02User" masterprefix="@Model.lisJ73[i].MasterPrefix" masterpid="@Model.lisJ73[i].MasterPid"></mycombochecklist>
+                                    <mycombochecklist asp-for="@Model.lisJ73[i].j11AddValue" selectedtext="@Model.lisJ73[i].j11AddValueAlias" entity="j11Team" masterprefix="@Model.lisJ73[i].MasterPrefix" masterpid="@Model.lisJ73[i].MasterPid"></mycombochecklist>
+                                }
+                            </td>
+
+
+                            <td style="width:60px;">
+                                <select title="@_f.tra("Pravá závorka")" asp-for="@Model.lisJ73[i].j73BracketRight">
+                                    <option value=""></option>
+                                    <option value=")">)</option>
+                                    <option value="))">))</option>
+                                </select>
+
+
+                            </td>
+                            <td style="width:60px;">
+                                <button type="button" class="btn btn-danger" title="@_f.tra("Odstranit řádek")" onclick="handle_delete_j73('@(Model.lisJ73[i].TempGuid)')">x</button>
+                            </td>
+
+                        </tr>
+                    }
+                </table>
+                <input type="checkbox" asp-for="Rec.j72IsQueryNegation" />
+                <label class="col-form-label" for="Rec_j72IsQueryNegation">@_f.tra("Negovat podmínku filtru")</label>
+            </div>
+        </div>
+    }
+
+    @if (!Model.IsFieldsDesignerOnly && Model.HasOwnerPermissions && Model.Rec.j72SystemFlag==BO.j72SystemFlagEnum.User)
+    {
+        <div class="card">
+            <div class="card-header">
+                <myicon symbol="share"></myicon>
+                @_f.tra("Nasdílet Tabulku pro ostatní uživatele")
+            </div>
+            <div class="card-body">
+                <div>
+                    <input type="checkbox" asp-for="Rec.j72IsPublic" />
+                    <label class="col-form-label" for="Rec_j72IsPublic">@_f.tra("Přístupné pro všechny uživatele")</label>
+                </div>
+                <mycombochecklist asp-for="@Model.j04IDs" entity="j04UserRole" selectedtext="@Model.j04Names" placeholder="@_f.tra("Vybrat aplikační role")..."></mycombochecklist>
+
+
+            </div>
+        </div>
+    }
+</form>
+
+
+
+
+
+
+
+
+<script type="text/javascript">
+    var _sels = [];
+    var dosaveas = "@(Model.ForceSaveAsAtStart)";
+
+    $(document).ready(function () {
+
+        $("#tree1").kendoTreeView(
+            {
+                dataSource: dstree1,
+                template: "<div title='#: item.tooltip #' class='#: item.customvalue3 #'><img src='#:item.customvalue2#'/><span class='tree_item'> #: item.text # </span><button type='button' class='btn bog button_field_append' data-entity='#: item.customvalue1 #' data-field='#: item.id #' data-alias='#: item.text_plus_group #'><span class='material-icons-outlined-btn'>east</span></button></div>"
+            }
+        );
+        
+        recovery_state();   //musí být spuštěno po naplnění stromu
+        refresh_state();
+
+        $("#list1 .list-group-item").removeClass("active");
+
+        if ($("#list1 .list-group-item").length > 0) {
+            $("#list1 .list-group-item").first().addClass("active");
+        }
+        
+
+        $(".button_field_append").click(function (e) {
+            handle_append_field(this, true);
+        });
+
+        $("#cmdUp").click(function () {
+            $("#list1 .active").each(function () {
+                var newPos = $("#list1 .list-group-item").index(this) - 1;
+
+                if (newPos > -1) {
+                    $("#list1 .list-group-item").eq(newPos).before("<a data-field='" + $(this).attr("data-field") +"' class='list1_item list-group-item list-group-item-action active'>" + $(this).text() + "</a>");
+                    $(this).remove();
+
+                    refresh_state();
+                }
+
+
+            });
+            
+        });
+
+        $("#cmdDown").click(function () {
+            var countOptions = $("#list1 .list-group-item").length;
+            $("#list1 .active").each(function () {
+                var newPos = $("#list1 .list-group-item").index(this) + 1;
+                if (newPos < countOptions) {
+                    $("#list1 .list-group-item").eq(newPos).after("<a data-field='" + $(this).attr("data-field") +"' class='list1_item list-group-item list-group-item-action active'>" + $(this).text() + "</a>");
+                    $(this).remove();
+
+                    refresh_state();
+                }
+            });
+            
+        });
+
+        $("#list1").dblclick(function () {
+            $("#cmdRemove").click();
+        });
+
+        $("#cmdRemove").click(function () {
+            $("#list1 .active").each(function () {
+                var field = $(this).attr("data-field");
+
+                var cmd = $("button[data-field=" + field + "]");
+                //$(cmd).css("visibility", "visible");
+                $(cmd).parent().removeClass("field_selected");
+                $(cmd).prop("disabled", false);
+                $(this).remove();
+
+            });
+
+            $("#list1 .list-group-item").removeClass("active");
+
+            if ($("#list1 .list-group-item").length > 0) {
+                $("#list1 .list-group-item").first().addClass("active");
+            }
+
+            refresh_state();
+        });
+
+        if (dosaveas == "True") {
+            saveas();
+        }
+    });
+
+
+
+    function handle_append_field(cmd, bolUpdateState) {
+        var field = $(cmd).attr("data-field");       
+        var alias = $(cmd).attr("data-alias");
+
+
+        if (_sels.includes(field)) {
+            _notify_message("Sloupec [" + field + "] již je ve výběru.", "info");
+            return;
+        }
+
+       
+        $(cmd).parent().addClass("field_selected");
+        $(cmd).prop("disabled", true);
+
+        $("#list1 .list-group-item").removeClass("active");
+
+        $("#list1").append("<a class='list1_item list-group-item list-group-item-action active' data-field='" + field + "'>" + alias + "</a>");
+        
+        if (bolUpdateState == true) {
+            refresh_state();
+        }
+
+    }
+
+
+
+    function refresh_state() {
+        _sels = [];
+        $("#list1 .list-group-item").each(function () {
+            if (typeof $(this).attr("data-field") != "undefined") {
+                _sels.push($(this).attr("data-field"));
+            } else {
+                alert("Error: " + $(this).html());
+            }
+            
+        });
+        $("#Rec_j72Columns").val(_sels.join(","));
+
+        if ($("#list1 .list-group-item").length>0) {
+            $("#cmdRemove").prop("disabled", false);
+            $("#cmdUp").prop("disabled", false);
+            $("#cmdDown").prop("disabled", false);
+        } else {
+            $("#cmdRemove").prop("disabled", true);
+            $("#cmdUp").prop("disabled", true);
+            $("#cmdDown").prop("disabled", true);
+        }
+
+        $("#list1 .list-group-item").click(function () {
+            $("#list1 .list-group-item").removeClass("active");
+            $(this).addClass("active");
+        });
+
+
+    }
+
+    function recovery_state() {
+        var fields = $("#Rec_j72Columns").val();
+        if (fields == "") return;
+        var arr = fields.split(",");
+        for (i = 0; i < arr.length; i++) {
+            var field = arr[i];
+
+            var cmd = $("button[data-field=" + field + "]").first();
+            
+            handle_append_field(cmd, false);
+        }
+
+        
+
+        
+
+    }
+
+
+
+    function saveas() {
+        var s = prompt("@_f.tra("Zadejte název nové Tabulky")");
+        if (s.length > 0) {
+            _postback("saveas", "j72name=" + s)
+            
+        }
+    }
+    function rename() {
+        var s = prompt("@_f.tra("Zadejte nový název Tabulky")","@Model.Rec.j72Name");
+        if (s.length > 0) {
+            _postback("rename","j72name="+s);
+           
+        }
+    }
+
+    function delete_record() {
+        if (confirm("@_f.tra("Opravdu chcete nenávratně odstranit tuto Tabulku?")")) {
+            _postback("delete");
+        }
+
+    }
+
+    function restore2factory() {
+        if (confirm("@_f.tra("Tovární stav = Výchozí sada sloupců, vyčištění sloupců, filtru a souhrnů. Mám pokračovat?")")) {
+
+            
+            _postback("restore2factory");
+
+        }
+    }
+
+    function catalog() {
+        _postback("catalog");
+    }
+
+    function restore2global() {
+        _postback("restore2global");
+    }
+    function update2allusers() {
+        _postback("update2allusers");
+    }
+
+    function savechanges() {
+        var fields = $("#Rec_j72Columns").val();
+        if (fields == "") {
+            _notify_message("@_f.tra("Tabulka musí obsahovat minimálně jeden sloupec.")");
+            return;
+        }
+        _submit();
+    }
+
+
+
+    function handle_j73_append() {
+        _postback("add_j73");
+    }
+    function handle_delete_j73(guid) {
+        _postback("delete_j73", "guid=" + guid);
+       
+
+    }
+    function handle_queryfield_change(cbx) {
+        var guid = $(cbx).attr("data-value");
+        _postback("changefield", "guid=" + guid);
+
+    }
+    function handle_queryoperator_change(cbx) {
+        _postback();
+    }
+    function handle_j73_clear() {
+        _postback("clear_j73");
+    }
+    function handle_j73_saveas() {
+        _postback("saveas_j73");
+    }
+</script>
+
+
+

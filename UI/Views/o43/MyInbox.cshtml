@@ -1,0 +1,175 @@
+﻿@model UI.Models.Imap.MyInboxViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Můj INBOX");
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+
+
+
+}
+@addTagHelper *, UI
+
+<form id="form1" asp-controller="o43" asp-action="MyInbox" method="POST">
+
+    <div class="input-group" style="padding-top:8px;">
+
+        <ul class="nav nav-tabs">
+            <li class="onetab">
+                <a class="nav-link text-dark active" id="tabzero" href="/o43/MyInbox">IMPORT došlé pošty</a>
+            </li>
+        </ul>
+
+        <div title="@_f.tra("IMAP účet")">
+            <mydropdown asp-for="SelectedJ40ID" datasource="@Model.lisJ40" textfield="Name" valuefield="pid" onchange="_postback('j40id')"></mydropdown>
+        </div>
+        
+
+        @Html.EditorFor(m => Model, "~/Views/Shared/_ButtonGridDesigner.cshtml")
+
+        @Html.EditorFor(m => Model.PageTitle, "~/Views/Shared/_ButtonGridSelMenu.cshtml")
+
+        @Html.EditorFor(m => Model.recordbinquery,"~/Views/Shared/_RecordBinQuery.cshtml")
+
+        <div style="max-width:150px;margin-left:10px;">
+            <select asp-for="MaVazbu" class="form-select" onchange="_postback('vazba')" style="@(Model.MaVazbu>0 ? "background-color:red;": "")">
+                <option value="0">Bez ohledu na vazbu</option>
+                <option value="1">Záznamy bez vazby</option>
+                <option value="2">Záznamy s vazbou</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="divMore" class="card" style="background-color:aliceblue;">
+        <div class="card-header">
+            @_f.tra("Import poštovních zpráv"), @_f.tra("IMAP účet"):
+            @if (Model.RecJ40 != null)
+            {
+                <kbd>@Model.RecJ40.Name</kbd>
+            }
+        </div>
+        <div class="card-body">
+            <table style="min-width:800px;overflow:auto;">
+                <tr>
+
+                    <td>
+                        @_f.tra("Načíst posledních")
+                    </td>
+                    <td>
+                        <select class="form-select" asp-for="@Model.TakeLastTop">
+                            <option value="10">10</option>
+                            <option value="20">20</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                            <option value="200">200</option>
+                            <option value="500">500</option>
+                        </select>
+                    </td>
+                    <td>
+                        @_f.tra("zpráv z IMAP složky")
+                    </td>
+                    <td>
+                        @if (Model.Folders == null)
+                        {
+
+                            <myval tooltip="@_f.tra("Imap složka")" value="@Model.SelectedFolder"></myval>
+                            <input type="hidden" asp-for="@Model.SelectedFolder" />
+                        }
+                        else
+                        {
+                            <select title="@_f.tra("Imap složka")" class="form-select" asp-for="@Model.SelectedFolder">
+                                @for (int i = 0; i < Model.Folders.Count(); i++)
+                                {
+                                    <option>@(Model.Folders[i])</option>
+                                }
+                            </select>
+                        }
+                    </td>
+                    <td style="display:none;">
+                        @if (Model.periodinput != null)
+                        {
+                            <div style="width:200px;">
+                                @await Component.InvokeAsync("myPeriod",Model.periodinput)
+                            </div>
+
+                        }
+                    </td>
+                    <td style="padding-left:20px;">
+                        <select class="form-select" asp-for="@Model.TakeSeenFlag">
+                            <option value="all">@_f.tra("Bez ohledu na přečtení zprávy")</option>
+                            <option value="true">@_f.tra("Načítat pouze přečtené zprávy")</option>
+                            <option value="false">@_f.tra("Načítat pouze nepřečtené zprávy")</option>
+                        </select>
+                    </td>
+                    <td>
+                        <select class="form-select" asp-for="@Model.TakeFlaggedFlag">
+                            <option value="all">@_f.tra("Bez ohledu na vlajku zprávy")</option>
+                            <option value="true">@_f.tra("Načítat pouze zprávy s vlajkou")</option>
+                            <option value="false">@_f.tra("Načítat pouze zprávy bez vlajky")</option>
+                        </select>
+                    </td>
+                    <td>
+                        <select class="form-select" asp-for="@Model.NahazovatZpravamPriznak">
+                            <option value="">@_f.tra("Co udělat s načtenou zprávou?")</option>
+                            <option value="Seen">@_f.tra("Nahazovat příznak [Seen]")</option>
+                            <option value="Flagged">@_f.tra("Nahazovat příznak [Flagged]")</option>
+                            <option value="SeenFlagged">@_f.tra("Nahazovat příznak [Seen] + [Flagged]")</option>
+                            <option value="Deleted">@_f.tra("Přesunout do odstraněné pošty")</option>
+                        </select>
+                    </td>
+                    <td style="padding-left:40px;">
+                        <button id="cmdLoadInfoList" type="button" class="btn btn-primary" onclick="_postback('load')">@_f.tra("Spustit")</button>
+                    </td>
+                </tr>
+            </table>
+
+        </div>
+
+
+
+    </div>
+
+
+</form>
+
+@await Component.InvokeAsync("myGrid",Model.gridinput)
+
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+
+        _mainmenu_highlight_current("cmdo43");
+
+
+        var fld = $("#SelectedFolder");        
+        if ($(fld).val() == "Sent") {
+            $(fld).css("background-color", "lime");
+        }
+        if ($(fld).val() == "Trash") {
+            $(fld).css("background-color", "red");
+        }
+        if ($(fld).val() == "Drafts") {
+            $(fld).css("background-color", "pink");
+        }
+
+        _resize_textareas();
+    });
+
+
+    function grid_designer() {
+
+        _window_open("/TheGridDesigner?j72id=" + _thegrid.j72id, 2);
+    }
+    function change_grid(j72id) {
+        $.post("/Common/SetUserParam", { key: "MyInbox/j72id", value: j72id }, function (data) {
+
+            _redirect("/o43/MyInbox");
+
+        });
+    }
+</script>
+
+

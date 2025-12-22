@@ -1,0 +1,291 @@
+﻿@model LoginViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.trawi("Přihlášení", Model.LangIndex);
+    Layout = "~/Views/Shared/_LayoutAnonym.cshtml";
+
+    var _returnurl = @Context.Request.Query["returnurl"];
+}
+
+@addTagHelper *, UI
+@section header_content
+    {
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+
+    @if (1 == 2)
+    {
+        <!--Start of Tawk.to Script-->
+        <script type="text/javascript">
+            var Tawk_API = Tawk_API || {}, Tawk_LoadStart = new Date();
+
+            (function () {
+                var s1 = document.createElement("script"), s0 = document.getElementsByTagName("script")[0];
+                s1.async = true;
+                s1.src = 'https://embed.tawk.to/64fc22a7b2d3e13950eed294/1h9seeo4d';
+                s1.charset = 'UTF-8';
+                s1.setAttribute('crossorigin', '*');
+                s0.parentNode.insertBefore(s1, s0);
+            })();
+        </script>
+        <!--End of Tawk.to Script-->
+    }
+
+
+    <script>
+        function onSignIn(googleUser) {
+            //alert("onSignIn");
+            var idToken = googleUser.getAuthResponse().id_token;
+
+            var profile = googleUser.getBasicProfile();
+            //console.log('ID: ' + profile.getId()); // Do not send to your backend! Use an ID token instead.
+            //console.log('Name: ' + profile.getName());
+            //console.log('Image URL: ' + profile.getImageUrl());
+            //console.log('Email: ' + profile.getEmail()); // This is null if the 'email' scope is not present.
+
+            $("#GoogleToken").val(idToken);
+            $("#GoogleName").val(profile.getName());
+            $("#GoogleEmail").val(profile.getEmail());
+            $("#GoogleId").val(profile.getId());
+            //$("#divGoogle").css("display","block");
+            //alert("ID: " + profile.getId() + ", name: " + profile.getName() + ", email: " + profile.getEmail());
+            //alert("Image URL: " + profile.getImageUrl())
+            //alert("idToken: " + idToken);
+        }
+
+
+        function signOut() {
+            alert("Google signOut");
+            var auth2 = gapi.auth2.getAuthInstance();
+            auth2.signOut().then(function () {
+                alert('User signed out.');
+            });
+        }
+
+
+    </script>
+
+
+
+}
+
+
+
+
+
+<div class="container" style="max-width:800px;">
+
+    <form id="form1" asp-action="UserLogin" method="post">
+
+        <h4>@_f.trawi("Přihlášení",Model.LangIndex)</h4>
+
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <div class="row mb-2">
+            <label asp-for="@Model.Login" class="col-sm-3 col-form-label">@_f.trawi("Přihlašovací jméno (login)",Model.LangIndex):</label>
+            <div class="col-sm-9">
+                <input asp-for="@Model.Login" class="form-control" autocomplete="username" />
+                <span asp-validation-for="@Model.Login" class="text-danger"></span>
+            </div>
+
+
+        </div>
+        <div class="row mb-2">
+            <label asp-for="@Model.Password" class="col-sm-3 col-form-label">@_f.trawi("Heslo", Model.LangIndex):</label>
+            <div class="col-sm-9">
+                <input type="password" asp-for="@Model.Password" autocomplete="current-password" class="form-control" />
+                <span asp-validation-for="@Model.Password" class="text-danger"></span>
+            </div>
+
+        </div>
+        <div class="row mb-2">
+            <label asp-for="@Model.CookieExpiresInHours" class="col-sm-3 col-form-label">@_f.trawi("Trvalé přihlášení", Model.LangIndex):</label>
+            <div class="col-sm-9">
+                <select asp-for="@Model.CookieExpiresInHours" class="form-select">
+                    <option value="168">@_f.trawi("7 dní (168 hodin)", Model.LangIndex)</option>
+                    <option value="48">@_f.trawi("48 hodin", Model.LangIndex)</option>
+                    <option value="24">@_f.trawi("24 hodin", Model.LangIndex)</option>
+                    <option value="12">@_f.trawi("12 hodin", Model.LangIndex)</option>
+                    <option value="1">@_f.trawi("1 hodina",Model.LangIndex)</option>
+                    
+
+
+                </select>
+            </div>
+
+        </div>
+
+        <div class="row mb-2">
+            <div class="col-sm-3">
+            </div>
+            <div class="col-auto">
+                <input type="submit" value="@_f.trawi("Přihlásit se",Model.LangIndex)" class="btn btn-default btn-primary" asp-route-returnurl="@_returnurl" />
+            </div>
+            <div class="col-auto" style="margin-left:auto;">
+                <a href="/Password/Index?langindex=@(Model.LangIndex)">@_f.trawi("Zapomenuté heslo", Model.LangIndex)</a>
+            </div>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-sm-3">
+                <div class="dropdown">
+                    <a class="btn dropdown-toggle" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                        @if (Model.LangIndex == 0)
+                        {
+                            <img src="~/images/czechrepublic.gif" />
+                        }
+                        @if (Model.LangIndex == 1)
+                        {
+                            <img src="~/images/uk.gif" />
+                        }
+                        @if (Model.LangIndex == 4)
+                        {
+                            <img src="~/images/slovakia.gif" />
+                        }
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        <li>
+                            <a class="btn btn-light" href="javascript:change_lang(0)" style="width:200px;text-align:left;"><img src="~/images/czechrepublic.gif" /> Česky</a>
+                        </li>
+                        <li>
+                            <a class="btn btn-light" href="javascript:change_lang(1)" style="width:200px;text-align:left;"><img src="~/images/uk.gif" /> English</a>
+                        </li>
+                        <li>
+                            <a class="btn btn-light" href="javascript:change_lang(4)" style="width:200px;text-align:left;"><img src="~/images/slovakia.gif" /> Slovenčina</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+
+            
+        </div>
+
+        @if (_f.App.HostingMode == BL.Singleton.HostingModeEnum.TotalCloud)
+        {
+            <div style="margin-top:10px;">
+
+                <a href="/CreateLicenseFree">@(_f.trawi("Zaregistrovat novou databázi", Model.LangIndex))</a>
+
+            </div>
+        }
+
+        <div class="nonmobile">
+            <img src="/images/devices.png" />
+            <div>
+                <small class="text-info">
+                    Jedna aplikace pro všechna zařízení!
+                </small>
+            </div>
+        </div>
+
+
+        
+
+        <input type="hidden" asp-for="@Model.LangIndex" value="@Model.LangIndex" />
+        <input type="hidden" asp-for="@Model.IsChangedLangIndex" value="@Model.IsChangedLangIndex" />
+        <input type="hidden" asp-for="@Model.Browser_AvailWidth" />
+        <input type="hidden" asp-for="@Model.Browser_AvailHeight" />
+        <input type="hidden" asp-for="@Model.Browser_InnerWidth" />
+        <input type="hidden" asp-for="@Model.Browser_InnerHeight" />
+        <input type="hidden" asp-for="@Model.Browser_UserAgent" />
+        <input type="hidden" asp-for="@Model.Browser_DeviceType" />
+        <input type="hidden" asp-for="@Model.Browser_Host" />
+
+
+        <div class="dropdown" style="margin-top:40px;">
+            @if (_f.App.AllowGoogleLogin)
+            {
+                <a class="btn dropdown-toggle" id="dropdownGoogleButton" data-bs-toggle="dropdown" aria-expanded="false">
+                    @_f.trawi("Ověření uživatele přes",Model.LangIndex)
+                    <img src="/images/google.png" height="20" width="59" />
+                </a>
+
+
+                <div class="dropdown-menu" id="divGoogle" aria-labelledby="dropdownGoogleButton" style="min-width:400px;padding:20px;">
+
+                    <div class="g-signin2" data-onsuccess="onSignIn"></div>
+
+                    <input type="hidden" asp-for="@Model.GoogleToken" />
+                    <input type="hidden" asp-for="@Model.GoogleId" />
+                    <div class="row my-2">
+                        <label class="col-sm-4 col-md-4 col-form-label">Google E-mail:</label>
+                        <div class="col-sm-8 col-md-8">
+                            <input type="text" class="form-control" asp-for="@Model.GoogleEmail" style="background-color:silver;" />
+                        </div>
+
+                    </div>
+                    <div class="row my-2">
+                        <label class="col-sm-4 col-md-4 col-form-label">Google Name:</label>
+                        <div class="col-sm-8 col-md-8">
+                            <input type="text" class="form-control" asp-for="@Model.GoogleName" style="background-color:silver;" />
+                        </div>
+
+                    </div>
+                    <div class="my-2">
+                        <input type="button" onclick="submit_per_google()" value="@_f.trawi("Vstoupit do MARKTIME",Model.LangIndex)" class="btn btn-default btn-primary" asp-route-returnurl="@_returnurl" />
+
+                    </div>
+                    <div class="my-2">
+                        <var>Ověření přístupu přes Google funguje v případě, že MARKTIME uživatelský účet má vyplněný stejný e-mail jako Vaše Google adresa.</var>
+                        <hr />
+                        <var>Toto oprávnění musí povolit MARKTIME administrátor v nastavení Vaší aplikační role!</var>
+                    </div>
+                </div>
+            }
+        </div>
+
+
+    </form>
+
+
+
+
+</div>
+
+
+
+@if (Model.Message != null)
+{
+    <div class="alert alert-danger" role="alert">
+        <h4>@Html.Raw(Model.Message)</h4>
+    </div>
+}
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+        $("#Browser_UserAgent").val(navigator.userAgent);
+        $("#Browser_AvailWidth").val(screen.availWidth);
+        $("#Browser_AvailHeight").val(screen.availHeight);
+        $("#Browser_InnerWidth").val(window.innerWidth);
+        $("#Browser_InnerHeight").val(window.innerHeight);
+        $("#Browser_Host").val(location.host);
+
+        var devicetype = "Desktop";
+        if (screen.availHeight > screen.availWidth || screen.width < 800 || screen.height < 600) {   //mobilní zařízení výšku vyšší než šířku
+            devicetype = "Phone";
+        }
+        $("#Browser_DeviceType").val(devicetype);
+
+
+
+
+
+    });
+
+    function change_lang(li) {
+        $("#LangIndex").val(li);
+        $("#IsChangedLangIndex").val(true);
+        form1.action = "/Login/UserLogin?oper=postback";
+        form1.submit();
+    }
+
+
+    function submit_per_google() {
+        form1.action = "/Login/UserLogin?oper=submit_per_google";
+        form1.submit();
+    }
+</script>

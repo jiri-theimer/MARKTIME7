@@ -1,0 +1,115 @@
+﻿@model UI.Models.Tab1.BaseTab1ViewModel
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+
+
+
+    BO.j61TextTemplate _rec = _f.j61TextTemplateBL.Load(Model.pid);
+   
+
+   
+
+}
+
+@addTagHelper *, UI
+
+
+
+@Html.Raw("<div class='info_record_container'>")
+
+<table style="width:90%;">
+    <tr>
+        <td>
+            <h4>Šablona poštovní zprávy</h4>
+        </td>
+        <td>
+            @if (_f.CurrentUser.IsAdmin)
+            {
+                <a href="javascript:_edit('j61',@Model.pid)">@_f.tra("Administrace")</a>
+            }
+        </td>
+    </tr>
+</table>
+
+
+
+
+
+<table class="table table-sm table-hover">
+    <tr>
+        <td>
+            Název šablony:
+        </td>
+        <td style="font-weight:bold;">
+            @(_rec.j61Name)
+
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Předmět zprávy
+        </td>
+        <td>
+            @(_rec.j61MailSubject)
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Vlastník záznamu:
+        </td>
+        <td>
+            @(_rec.Owner)
+        </td>
+    </tr>
+    @if (_rec.j61RecordLinkFlag == BO.j61UserFlagEnum.Yes)
+    {
+        <tr>
+            <td>
+                Zobrazit odkaz na záznam:
+            </td>
+            <td>
+                <strong>ANO</strong>
+            </td>
+        </tr>
+    }
+    @if (_rec.j61GridColumnsFlag == BO.j61UserFlagEnum.Yes)
+    {
+        <tr>
+            <td>
+                Zobrazit tabulku atributů:
+            </td>
+            <td>
+                <strong>ANO</strong>
+            </td>
+        </tr>
+    }
+    @if (_rec.j61UserSignatureFlag == BO.j61UserFlagEnum.Yes)
+    {
+        <tr>
+            <td>
+                Zobrazit podpis odesílatele:
+            </td>
+            <td>
+                <strong>ANO</strong>
+            </td>
+        </tr>
+    }
+    
+   
+
+</table>
+
+
+
+
+
+<div>
+    @Html.Raw(_rec.j61MailBody)
+</div>
+
+
+@Html.Raw("</div>")
+

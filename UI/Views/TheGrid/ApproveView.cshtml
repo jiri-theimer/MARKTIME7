@@ -1,0 +1,320 @@
+﻿@model UI.Models.TheGridViewModel
+@inject BL.Factory _f
+
+@{
+
+    if (Model.entity == null)
+    {
+        return;
+    }
+
+    Layout = _f.CurrentUser.GetLayoutPerDisplay();
+
+    Model.PageTitle = "Schvalování All-in-one";
+
+
+    bool _isMobile = _f.CurrentUser.IsMobileDisplay();
+}
+
+@addTagHelper *,UI
+
+<link href="~/lib/qtip/jquery.qtip.css" rel="stylesheet" type="text/css" />
+<script src="~/lib/qtip/jquery.qtip.min.js"></script>
+
+
+
+
+<div class="input-group" style="padding-top:8px;">
+    <div>
+        <ul class="nav nav-tabs">
+            <li class="onetab">
+                <a class="nav-link text-dark @(Model.prefix=="p41" ? "active": null)" id="tabP41" href="javascript:change_tab('p41')">
+                    @_f.tra("Projekty").ToUpper()
+                    @if (Model.prefix == "p41")
+                    {
+                        <span id="TheGridRows" class="badge bg-primary" style="margin-left:2px;">0</span>
+                    }
+                    
+                </a>
+            </li>
+            <li class="onetab">
+                <a class="nav-link text-dark @(Model.prefix=="p28" ? "active": null)" id="tabP28" href="javascript:change_tab('p28')">
+                    @_f.tra("Klienti").ToUpper()
+                    @if (Model.prefix == "p28")
+                    {
+                        <span id="TheGridRows" class="badge bg-primary" style="margin-left:2px;">0</span>
+                    }
+                    
+
+                </a>
+            </li>
+            @if (_f.CurrentUser.j04IsModule_p56)
+            {
+                <li class="onetab">
+                    <a class="nav-link text-dark @(Model.prefix=="p56" ? "active": null)" id="tabP56" href="javascript:change_tab('p56')">
+                        @_f.tra("Úkoly").ToUpper()
+                        @if (Model.prefix == "p56")
+                        {
+                            <span id="TheGridRows" class="badge bg-primary" style="margin-left:2px;">0</span>
+                        }
+                        
+
+                    </a>
+                </li>
+            }
+            <li class="onetab">
+                <a class="nav-link text-dark @(Model.prefix=="j02" ? "active": null)" id="tabJ02" href="javascript:change_tab('j02')">
+                    @_f.tra("Uživatelé").ToUpper()
+                    @if (Model.prefix == "j02")
+                    {
+                        <span id="TheGridRows" class="badge bg-primary" style="margin-left:2px;">0</span>
+                    }
+                    
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    @if(Model.TheGridQueryButton != null)
+    {
+        <div>
+            @Html.EditorFor(m => Model.TheGridQueryButton, "~/Views/Shared/_ButtonGridQuery.cshtml")
+        </div>
+    }
+
+
+    @if (Model.periodinput != null)
+    {
+        <div>
+            @await Component.InvokeAsync("myPeriod",Model.periodinput)
+
+        </div>
+
+    }
+
+    <div style="margin-left:2px;" title="Měna vykázaných úkonů pro schvalování">
+        <select class="form-select" id="j27id_query" onchange="change_j27id_query(this)">
+            <option value="0"></option>
+            <option value="2">CZK</option>
+            <option value="3">EUR</option>
+            <option value="58">USD</option>
+            <option value="59">GBP</option>
+            <option value="50">PLN</option>
+        </select>
+    </div>
+    
+
+    @if (Model.p31statequery != null)
+    {
+        @Html.EditorFor(m => Model.p31statequery,"~/Views/Shared/_p31StateQuery.cshtml")
+    }
+
+    @Html.EditorFor(m => Model.PageTitle, "~/Views/Shared/_ButtonGridDesigner.cshtml")
+    
+    @Html.EditorFor(m => Model.PageTitle, "~/Views/Shared/_ButtonGridSelMenu.cshtml")
+
+    <myshowmore></myshowmore>
+
+    
+    @if (Model.p31tabquery != null)
+    {
+        <div class="showmore">
+            @Html.EditorFor(m => Model.p31tabquery, "~/Views/Shared/_p31TabQuery.cshtml")
+        </div>
+    }
+    <div class="showmore">
+    @if (Model.recordbinquery != null)
+    {
+        @Html.EditorFor(m => Model.recordbinquery,"~/Views/Shared/_RecordBinQuery.cshtml")
+    }
+    </div>
+    
+
+    @if (Model.prefix == "p56" || Model.prefix == "p41" || Model.prefix == "o23")
+    {
+        <div class="showmore">
+            <a class="btn descreet_link_over_grid" href="javascript:_workflow_batch('@(Model.prefix)')" title="Hromadně posunout/doplnit"><span class="material-icons-outlined-btn">task_alt</span></a>
+        </div>
+    }
+
+    <div class="showmore">
+        <myhelpbutton></myhelpbutton>
+    </div>
+
+
+
+
+
+</div>
+
+<div id="divMore" style="background-color:#F5F5F5;border:solid 1px silver;">
+    <div class="input-group" style="padding:10px;">
+        <button type="button" class="btn btn-sm bog" id="cmdBatch4" onclick="run(1,4)"><span class="material-icons-outlined-btn" style="color:green;">approval</span>@_f.tra("Fakturovat")<br /><strong>Výchozí scénář</strong></button>
+
+        
+        
+        <div style="margin-left:10px;">
+            <button type="button" class="btn btn-sm bog" id="cmdBatch6" onclick="run(1,6)"><span class="material-icons-outlined-btn" style="color:pink;">approval</span>@_f.tra("Hodiny do paušálu")<br /><i>Výdaje+Odměny fakturovat</i></button>
+        
+            
+        </div>
+
+        <myshowmore classname_target="gogo"></myshowmore>
+
+        
+        <div class="gogo">
+            <button type="button" class="btn btn-sm bog" id="cmdBatch2" onclick="run(1,2)"><span class="material-icons-outlined-btn" style="color: red;">approval</span>@_f.tra("Hodiny viditelný odpis")<br /><i>Výdaje+Odměny fakturovat</i></button>
+            <button type="button" class="btn btn-sm bog" id="cmdBatch3" onclick="run(1,3)"><span class="material-icons-outlined-btn" style="color: brown;">approval</span>@_f.tra("Hodiny skrytý odpis")<br /><i>Výdaje+Odměny fakturovat</i></button>
+        </div>
+        
+
+        <div class="gogo" style="margin-left:10px;">
+            <button type="button" class="btn btn-sm bog" id="cmdBatch7" onclick="run(1,7)"><span class="material-icons-outlined-btn" style="color: gold;">approval</span>@_f.tra("Fakturovat později")<br /><i>Všechny úkony</i></button>
+        </div>
+        
+        <div class="gogo" style="margin-left:10px;">
+            <button type="button" class="btn btn-sm bog" id="cmdBatch0" onclick="run(0,0)"><span class="material-icons-outlined-btn">edit</span>@_f.tra("Schválené úkony")<br /><i>Vrátit do rozpracovanosti</i></button>
+        </div>
+       
+        <div class="gogo" style="margin-left:10px;">
+            <button type="button" class="btn btn-sm bog" onclick="vyloucit()"><span class="material-icons-outlined-btn">delete_sweep</span>@_f.tra("Hodiny přesunout")<br /><i>Do [Vyloučené z vyúčtování]</i></button>
+        </div>
+        
+        <div class="showmore" style="margin-left:10px;">
+            <i>Operace s hodinami se vztahují i na kusovníkové úkony.</i><br /><i>Zahájit vyúčtování lze i dvojklikem na záznamu v přehledu.</i>
+        </div>
+    </div>
+
+
+</div>
+
+@await Component.InvokeAsync("myGrid",Model.gridinput)
+
+
+
+<script type="text/javascript">
+    var _localprefix = "@Model.prefix";
+    var _rez = "@Model.rez";
+    var _local_p31statequery = "@Model.p31statequery.Value";
+    var _local_p31tabquery = "@Model.p31tabquery.Value";
+    var _local_j72id_query = "@Model.TheGridQueryButton.j72id";
+    var _j27id = "@Model.j27id_query";
+    var _ismobile = "@_isMobile";
+
+    //$(document.body).css("overflow", "hidden");
+
+
+
+
+
+    $(document).ready(function () {
+        _init_qtip_onpage();
+
+        _mainmenu_highlight_current("cmdapproving");
+
+        if (_local_p31tabquery != "")
+        {
+            $(".showmore").toggle();
+        }
+        
+        $("#j27id_query").val(_j27id);
+        if (_j27id != "0") {
+            $("#j27id_query").css("background-color", "red");
+        }
+
+        $(".gogo").css("display", "none");
+
+        if (_ismobile == "True")
+        {
+            
+            tg_adjust_for_screen();
+        }
+
+    });
+
+    function reload() {
+        //_showloading();
+        _redirect("/TheGrid/ApproveView?prefix=" + _localprefix);
+
+    }
+
+
+
+    function change_grid(j72id) {
+        var strKey = "approveview-j72id-" + _localprefix + "-" + _rez;
+
+        $.post(_ep("/Common/SetUserParam"), { key: strKey, value: j72id }, function (data) {
+            reload();
+
+        });
+    }
+
+    function report_nocontext(x31id) {
+        _window_open("/x31/ReportNoContext?x31id=" + x31id, 2);
+    }
+
+
+    function change_tab(prefix) {    //uložit aktuální záložku
+        
+        $.post("/Common/SetUserParam", { key: "approveview-prefix", value: prefix }, function (data) {
+            _redirect("/TheGrid/ApproveView?prefix=" + prefix);
+
+        });
+
+        
+    }
+
+
+    
+    function change_j27id_query(cbx) {    //uložit aktuální záložku
+        $.post("/Common/SetUserParam", { key: "approveview-j27id", value: cbx.value }, function (data) {
+            reload();
+
+        });
+
+    }
+
+
+
+
+    function grid_dblclick(row) {
+        run(1, 4);
+    }
+
+
+    function run(p71id, p72id) {
+
+        var pids = $("#tg_selected_pids").val();
+        if (pids === "") {
+            _notify_message(_tg_musite_vybrat_zaznam);
+
+            return;
+        }
+
+        var millis = new Date().getTime();
+
+        var url = "/p31approveinput/Index?prefix=" + _localprefix + "&p71id=" + p71id + "&p72id=" + p72id + "&millis=" + millis;
+        url = url + "&p31statequery=" + _local_p31statequery + "&p31tabquery=" + _local_p31tabquery;
+        url = url + "&period=" + _period_get_as_string();
+        url = url + "&pids=" + pids;
+
+        _window_open(url, 2);
+
+
+    }
+
+    function vyloucit() {
+        var pids = $("#tg_selected_pids").val();
+        if (pids === "") {
+            _notify_message(_tg_musite_vybrat_zaznam);
+
+            return;
+        }
+
+        _window_open("/p31excludebilling/Index?flag=1&pids=" + pids + "&prefix=" + _localprefix);
+
+
+
+    }
+</script>
+

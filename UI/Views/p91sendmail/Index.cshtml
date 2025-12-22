@@ -1,0 +1,397 @@
+﻿@model UI.Models.p91oper.p91sendmailViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = _f.tra("Odeslat faktury elektronickou poštou");
+    Model.PageSymbol = "email";
+
+    var recJ02 = _f.j02UserBL.Load(_f.CurrentUser.pid);
+    var _podpis = BO.Code.Bas.Text2Html(recJ02.j02EmailSignature);
+}
+
+<link href="~/lib/froala-editor/css/froala_editor.pkgd.min.css" rel="stylesheet" type="text/css" />
+
+@addTagHelper *, UI
+
+<div class="bg-light" style="padding:10px;">
+    <button type="button" id="cmdOK" class="btn btn-success" onclick="_submit()">@_f.tra("Odeslat")</button>
+
+    <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+
+
+
+</div>
+
+
+<form id="form1" asp-controller="p91sendmail" asp-action="Index" method="POST">
+    <input type="hidden" asp-for="@Model.p91ids" />
+
+
+    <div class="modal_record_container">
+       
+        <div class="row">
+            <div class="col-auto">
+                <input type="radio" id="chkAllTogether0" asp-for="AllTogether" value="0" onchange="restore(0)" />
+                <label for="chkAllTogether0">@_f.tra("Každé vyúčtování odeslat samostatně")</label>
+                <br />
+                <input type="radio" id="chkAllTogether1" asp-for="AllTogether" value="1" onchange="restore(1)" />
+                <label for="chkAllTogether1">@_f.tra("Všechna vyúčtování odeslat v jedné zprávě")</label>
+            </div>
+           
+            <div class="col-auto">
+                <input type="checkbox" asp-for="IsIncludeReportAttachment" onchange="_postback('refresh')" />
+                <label class="col-form-label" for="IsIncludeReportAttachment">@_f.tra("Odesílat i přílohu vyúčtování")</label>
+            </div>
+            
+            <div class="col-auto">
+                <input type="checkbox" asp-for="IsIncludeIsdoc" onchange="_postback('IsIncludeIsdoc')" />
+                <label class="col-form-label" for="IsIncludeIsdoc">@_f.tra("Fakturu generovat ve formátu ISDOC.PDF")</label>
+            </div>
+        </div>
+
+        <div class="row my-2">
+
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Odesílatel"):</label>
+            <div class="col-sm-6 col-md-5">
+                <mycombo entity="j40MailAccount" asp-for="Rec.j40ID" selectedtext="@Model.SelectedJ40Name" view-flag="2" myqueryinline="is4sendmail|bool|1"></mycombo>
+
+            </div>
+            <div class="col-sm-1 col-md-1">
+                <label for="Rec_x40SkeletonFile"><small>Kostra zprávy:</small></label>
+            </div>
+            <div class="col-sm-4 col-md-4">
+                <select class="form-select" asp-for="Rec.x40SkeletonFile">
+                    <option value="">@_f.tra("Výchozí režim")</option>
+                    <option value="send_message_template.html">Kostra: send_message_template.html</option>
+                    <option value="send_message_template_plain.html">Kostra: send_message_template_plain.html</option>
+                </select>
+            </div>
+
+        </div>
+
+        @if (Model.AllTogether == 1)
+        {
+            <div class="row my-2">
+                <div class="col-sm-1 col-md-2">
+                    <label>@_f.tra("Komu (To)"):</label>
+
+                    <a id="cmdMore" class="btn btn-light dropdown-toggle" data-bs-toggle="collapse" role="button" aria-expanded="false">
+
+                    </a>
+                </div>
+
+                <div class="col-sm-7 col-md-6">
+                    <input class="form-control" style="width:100%;" asp-for="Rec.x40Recipient" />
+
+                </div>
+                <div class="col-sm-1 col-md-1">
+                </div>
+            </div>
+            <div id="divMore" style="display:none;">
+                <div class="row my-2">
+                    <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("V kopii (Cc)"):</label>
+                    <div class="col-sm-7 col-md-6">
+                        <input class="form-control" asp-for="Rec.x40CC" />
+
+                    </div>
+
+                </div>
+                <div class="row my-2">
+                    <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Ve skryté kopii (Bcc)"):</label>
+                    <div class="col-sm-7 col-md-6">
+                        <input class="form-control" asp-for="Rec.x40BCC" />
+
+                    </div>
+
+                </div>
+
+
+            </div>
+            <div class="row my-2">
+                <label id="lblSubject" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Předmět zprávy"):</label>
+                <div class="col-sm-7 col-md-6">
+                    <input class="form-control" asp-for="Rec.x40Subject" id="txtSubject" />
+                </div>
+            </div>
+
+
+        }
+        else
+        {
+            <div class="row my-2">
+                <label id="lblSubject" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Výchozí předmět zprávy"):</label>
+
+                <div class="col-sm-6 col-md-5">
+                    <input class="form-control" asp-for="Rec.x40Subject" id="txtSubject" />
+                </div>
+                <div class="col-sm-1 col-md-1">
+                    <label for="SubjectFlag"><small>@_f.tra("Pravidla textů"):</small></label>
+                </div>
+                <div class="col-sm-4 col-md-4">
+                    <select class="form-select" asp-for="SubjectFlag" onchange="_postback()">
+                        <option value="0">
+                            @_f.tra("Výchozí režim")
+                        </option>
+                       
+                        <option value="1">
+                            @_f.tra("Předmět zprávy vždy načítat z šablony zprávy")
+                        </option>
+                        <option value="2">
+                            @_f.tra("Pro všechny zprávy použít Výchozí předmět zprávy")
+                        </option>
+                        <option value="4">
+                            @_f.tra("Pro všechny zprávy použít Výchozí šablonu zprávy")
+                        </option>
+                    </select>
+                    
+                </div>
+            </div>
+        }
+
+
+        <div style="background-color:aliceblue;border-radius:5px;padding-top:10px;padding-bottom:10px;">
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Výchozí šablona zprávy"):</label>
+                <div class="col-sm-7 col-md-6">
+                    <mycombo entity="j61TextTemplate" asp-for="SelectedJ61ID" selectedtext="@Model.SelectedJ61Name" myqueryinline="entity|string|p91|MyRecordsDisponible|bool|1" event_after_changevalue="j61id_onchange"></mycombo>
+
+                </div>
+                @if (Model.SelectedJ61ID > 0)
+                {
+                    <div class="col-auto">
+                        <button type="button" class="btn btn-sm descreet_link_over_grid" onclick="j61_edit(@(Model.SelectedJ61ID))" title="@_f.tra("Upravit šablonu")"><span class="material-icons-outlined-btn">edit</span></button>
+                    </div>
+                }
+                <div class="col-auto">
+                    <button type="button" class="btn btn-sm bog" onclick="j61_create()">@_f.tra("Nová šablona")</button>
+                </div>
+            </div>
+            <div class="row my-2" id="divMoreJ61">
+                <div class="col-sm-4 col-md-4">
+                    <input placeholder="V kopii (CC) z šablony zprávy" class="form-control" asp-for="Rec.x40CC_j61" />
+                </div>
+                <div class="col-sm-4 col-md-4">
+                    <input placeholder="Skrytá kopie (BCC) z šablony zprávy" class="form-control" asp-for="Rec.x40BCC_j61" />
+                </div>
+                <div class="col-sm-4 col-md-4">
+                    <input placeholder="Příjemce (TO) z šablony zprávy" class="form-control" asp-for="Rec.x40TO_j61" />
+                </div>
+            </div>
+            
+            
+        </div>
+        
+    </div>
+
+    <div class="row">
+        <div class="col-sm-8 col-md-8">
+            @Html.EditorFor(m => m.Notepad, "~/Views/Shared/_Notepad.cshtml")
+        </div>
+        <div class="col-sm-4 col-md-4">
+            <input type="checkbox" asp-for="@Model.Rec.x40IsUserSignature" onchange="_postback()" />
+            <label for="Rec_x40IsUserSignature">@_f.tra("Do zprávy vložit můj e-mail podpis")</label>
+
+            @if (Model.Rec.x40IsUserSignature)
+            {
+
+                <div class="card" style="max-width:240px;">
+                    <div class="card-body">
+                        @Html.Raw(_podpis)
+                    </div>
+                </div>
+
+            }
+        </div>
+    </div>
+
+
+
+
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th style="width:20px;"></th>
+                <th>
+                    
+                </th>
+                @if (Model.AllTogether == 0)
+                {
+                    <th>@_f.tra("Příjemce")</th>
+                }
+
+
+                <th>@_f.tra("Sestava faktury")</th>
+                @if (Model.IsIncludeReportAttachment)
+                {
+                    <th>@_f.tra("Sestava přílohy")</th>
+                }
+                @if (Model.AllTogether == 0)
+                {
+                    <th class="message-subject">@_f.tra("Předmět zprávy") <mytooltip text="Pokud není vyplněn předmět zprávy, použije se předmět z šablony textu zprávy.<hr>Pokud není vyplněna šablona textu zprávy, použije se Výchozí předmět zprávy."></mytooltip></th>
+                    <th class="message-body">
+                        @if (Model.SubjectFlag == 1)
+                        {
+                            @_f.tra("Šablona textu a předmětu zprávy")
+                        }
+                        else
+                        {
+                            @_f.tra("Šablona textu zprávy")
+                        }
+                        
+
+                        <mytooltip text="Pokud není vyplněna šablona textu zprávy, použije se Výchozí šablona zprávy."></mytooltip>
+                    </th>
+                }
+
+            </tr>
+        </thead>
+        @for (int i = 0; i < Model.RowItems.Count; i++)
+        {
+            <tr>
+                <td style="width:20px;">
+                    #@(i+1)
+                </td>
+                <td>
+                    <div>
+                        <input type="hidden" asp-for="RowItems[i].p91ID" />
+                        <small>
+                            @Model.RowItems[i].RecP91.p91Client
+                        </small>
+                    </div>
+                    <div>
+                        <strong>
+                            @Model.RowItems[i].RecP91.p91Code
+                        </strong>
+                        <code>
+                            @BO.Code.Bas.Number2String(Model.RowItems[i].RecP91.p91Amount_TotalDue)
+                            <small>
+                                @Model.RowItems[i].RecP91.j27Code
+                            </small>
+                        </code>
+                    </div>
+                    <div>
+                        <small>
+                            @Model.RowItems[i].RecP91.p92Name
+                        </small>
+                    </div>
+                    <code>
+                        @(Model.RowItems[i].ErrorMessage)
+                    </code>
+                    <input type="hidden" asp-for="RowItems[i].ErrorMessage" value="@Model.RowItems[i].ErrorMessage" />
+                </td>
+                @if (Model.AllTogether == 0)
+                {
+                    <td>
+                        <div>
+                            <input type="text" placeholder="TO" asp-for="RowItems[i].TO" class="form-control" />
+                        </div>
+                        <div>
+                            <input type="text" placeholder="CC" asp-for="RowItems[i].CC" class="form-control" />
+                        </div>
+                        <div>
+                            <input type="text" placeholder="BCC" asp-for="RowItems[i].BCC" class="form-control" />
+                        </div>
+                    </td>
+                }
+
+
+                <td style="max-width:150px;">
+                    <mydropdown asp-for="RowItems[i].x31ID_Invoice" datasource="@Model.lisX31" isfirstemptyrow="true" firstemptyrowtext="----" firstemptyrowvalue="0" textfield="x31Name" valuefield="pid"></mydropdown>
+                </td>
+                @if (Model.IsIncludeReportAttachment)
+                {
+                    <td style="max-width:150px;">
+                        <mydropdown asp-for="RowItems[i].x31ID_Attachment" datasource="@Model.lisX31" isfirstemptyrow="true" firstemptyrowtext="----" firstemptyrowvalue="0" textfield="x31Name" valuefield="pid"></mydropdown>
+
+                    </td>
+                }
+
+
+                @if (Model.AllTogether == 0)
+                {
+                    <td class="message-subject">
+
+                        <input type="text" asp-for="RowItems[i].Subject" class="form-control" placeholder="Systém doplní z šablony zprávy..." />
+                    </td>
+                    <td class="message-body" style="max-width:150px;">
+                        <mydropdown asp-for="RowItems[i].j61ID" datasource="@Model.lisJ61" isfirstemptyrow="true" firstemptyrowtext="----" firstemptyrowvalue="0" textfield="j61Name" valuefield="pid"></mydropdown>
+                    </td>
+                }
+
+            </tr>
+        }
+    </table>
+
+
+
+</form>
+
+
+<script type="text/javascript">
+    var _subjectflag = "@Model.SubjectFlag";
+    var _j61id = "@Model.SelectedJ61ID";
+
+    $(document).ready(function () {
+
+
+        $("#cmdMore").click(function () {
+            $("#divMore").toggle();
+        });
+
+        if (_j61id == "0")
+        {
+            $("#divMoreJ61").css("display", "none");
+        }
+
+    
+
+
+        if (_subjectflag == "2" || _subjectflag == "1") {
+            $(".message-subject").css("visibility", "hidden");
+        }
+        if (_subjectflag == "1") {
+            $("#txtSubject").css("visibility", "hidden");
+            $("#lblSubject").css("visibility", "hidden");
+        }
+        
+        if (_subjectflag == "4") {
+            $(".message-subject").css("visibility", "hidden");
+            $(".message-body").css("visibility", "hidden");
+        }
+    })
+
+
+    function j61id_onchange(j61id) {
+        $.post("/Mail/MailMergeByTextTemplate", { j61id: j61id}, function (data) {
+
+            $("#txtSubject").val(data.j61MailSubject);
+            editor_setcontent(data.j61MailBody);
+
+            $("#Rec_x40BCC_j61").val(data.j61MailBCC);
+            $("#Rec_x40CC_j61").val(data.j61MailCC);
+            $("#Rec_x40TO_j61").val(data.j61MailTO);
+
+            _postback("j61id");
+
+
+
+        });
+        
+    }
+
+    function j61_create() {
+
+
+        _window_open("/j61/Record?prefix=p91");
+    }
+    function j61_edit(j61id) {
+        _window_open("/j61/Record?pid=" + j61id);
+    }
+
+    function restore(alltogether) {
+        
+
+        location.replace("/p91sendmail/Index?p91ids=" + $("#p91ids").val() + "&alltogether=" + alltogether);
+    }
+</script>

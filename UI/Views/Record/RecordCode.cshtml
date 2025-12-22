@@ -1,0 +1,75 @@
+﻿@model UI.Models.RecordCode
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Změnit kód záznamu");
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+}
+
+@addTagHelper *, UI
+
+
+<div class="bg-light" style="padding:10px;">
+    <button id="cmdSave" class="btn btn-success" onclick="_submit()">@_f.tra("Uložit změny")</button>    
+    <button id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+</div>
+
+<form id="form1" asp-controller="Record" asp-action="RecordCode" method="POST">
+    <div class="modal_record_container">
+
+        <div class="row">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Kód záznamu"):</label>
+            <div class="col-sm-6 col-md-5">
+                <input class="form-control" asp-for="@Model.CodeValue" />
+            </div>
+            
+        </div>
+
+        <div class="card my-4">
+            <div class="card-header">
+                @_f.tra("Kód posledních 10 záznamů")
+            </div>
+            <div class="card-body">
+                <table class="table table-sm table-hover">
+                    @foreach(System.Data.DataRow dbrow in Model.dtLast10.Rows)
+                    {
+                    <tr>
+                        <td>
+                            @dbrow[0]
+                        </td>
+                        <td>
+                            @dbrow[1]
+                        </td>
+                        <td>
+                            @dbrow[2]
+                        </td>
+                        <td>
+                            @dbrow[3]
+                        </td>
+                        <td>
+                            @dbrow[4]
+                        </td>
+                    </tr>
+                    }
+                </table>
+            </div>
+        </div>
+
+
+    </div>
+    <input type="hidden" asp-for="@Model.prefix" />
+    <input type="hidden" asp-for="@Model.pid" />
+</form>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+       
+
+       
+
+    })
+
+  
+</script>

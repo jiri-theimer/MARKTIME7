@@ -1,0 +1,54 @@
+﻿@model RobotViewModel
+@inject BL.Factory _f
+
+@{
+    ViewData["Title"] = "Robot";
+    Layout = "~/Views/Shared/_LayoutAnonym.cshtml";
+
+
+}
+
+
+
+@addTagHelper *, UI
+
+
+
+
+
+<h4>Robot může běžet i několik minut.</h4>
+<h5>Můžete opustit stránku, robot poběží dál.</h5>
+<h5>PING: @(DateTime.Now.ToString())</h5>
+
+
+
+<script type="text/javascript">
+
+
+    $(document).ready(function () {
+
+
+
+    @if (Model.ErrorMessage != null)
+    {
+        <text>
+                _notify_message("@(Html.Raw(Model.ErrorMessage))", "error");
+        </text>
+    }
+    @if (Model.InfoMessage != null)
+    {
+        <text>
+                _notify_message("@(Html.Raw(Model.InfoMessage))", "info");
+        </text>
+    }
+
+
+
+         });
+
+
+
+
+
+
+</script>
