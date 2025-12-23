@@ -1,4 +1,6 @@
-﻿namespace UI.Models
+﻿using UI.Views.Shared.Components.myPeriod;
+
+namespace UI.Models
 {
     public class TreePageViewModel: BaseViewModel
     {
@@ -15,6 +17,11 @@
         public string DefaultNavName { get; set; }
         public string DefTab { get; set; }  //výchozí záložka
 
+
+        public myPeriodViewModel periodinput { get; set; } //fixní filtr v horním pruhu
+        public RecordBinQueryViewModel recordbinquery { get; set; } //filtrování podle archivu
+        public p31StateQueryViewModel p31statequery { get; set; }   //filtrování podle stavu aktivit v horním pruhu
+        public TheGridQueryViewModel TheGridQueryButton { get; set; }   //pojmenovaný filtr
 
         public string entity
         {
