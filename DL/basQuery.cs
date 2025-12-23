@@ -37,7 +37,7 @@ namespace DL
                 }
 
                 ret.SqlWhere = String.Join(" ", lis.Select(p => $"{p.AndOrZleva} {p.BracketLeft}{p.StringWhere}{p.BracketRight}")).Trim();    //složit závěrčnou podmínku
-                //ret.SqlWhere = String.Join(" ", lis.Select(p => p.AndOrZleva + " " + p.BracketLeft + p.StringWhere + p.BracketRight)).Trim();    //složit závěrčnou podmínku
+                
                 
             }
            
@@ -80,9 +80,10 @@ namespace DL
                 strPrimarySql = $"{strPrimarySql} ORDER BY {mq.explicit_orderby}";
             }
 
+            
             if (strPrimarySql.Contains("@p31date1"))
             {   //view s napevno navrženou podmínkou časového filtru podle datumu úkonu p31Date                            
-
+                
                 if (mq.global_d1 == null)
                 {
                     mq.global_d1 = new DateTime(2000, 1, 1);
@@ -91,6 +92,7 @@ namespace DL
                 {
                     mq.global_d2 = new DateTime(3000, 1, 1);
                 }
+                 
                 ret.Parameters4DT.Add(new DL.Param4DT() { ParName = "p31date1", ParValue = mq.global_d1, ParamType = "datetime" });
                 ret.Parameters4DT.Add(new DL.Param4DT() { ParName = "p31date2", ParValue = mq.global_d2, ParamType = "datetime" });                
 

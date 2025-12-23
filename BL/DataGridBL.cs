@@ -343,7 +343,7 @@ namespace BL
             
             //if (_mother.CurrentUser.j02Login == "hajek@matidal.cz")
             //{
-               BO.Code.File.LogInfo(_q.FinalSql);
+               //BO.Code.File.LogInfo(_q.FinalSql);
             //}
 
 

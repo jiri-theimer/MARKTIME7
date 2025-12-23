@@ -67,23 +67,19 @@
 
     }
 
-    @if (Model.recordbinquery != null)
-    {
-        <div>
-            <myshowmore></myshowmore>
-        </div>
-        <div class="showmore">
-            @Html.EditorFor(m => Model.recordbinquery, "~/Views/Shared/_RecordBinQuery.cshtml")
-        </div>
-    }
+    <div>
+        <myshowmore></myshowmore>
+    </div>
+    
+    <div class="showmore">
+        @Html.EditorFor(m => Model.recordbinquery, "~/Views/Shared/_RecordBinQuery.cshtml")
+    </div>
 
 
 
 </div>
 
-<div id="divOverGrid" style="height:70px;">
-    <h1>zde nad stromem</h1>
-</div>
+
 
 
 @Html.Raw("<div id='splitter_container'>")
@@ -136,7 +132,7 @@
 
     var _currentloadingtabs = false;
     var _local_binquery = "@(Model.recordbinquery != null ? Model.recordbinquery.Value : 0)";
-
+    
     $(document).ready(function () {
 
 
@@ -185,13 +181,14 @@
             leftgrid_handle_rowselect(e.detail.pid);
         });
 
-        _mainmenu_highlight_current("treepage" + _prefix, "cmd" + _prefix);
+        _mainmenu_highlight_current("cmdTreePage");
 
 
 
         if (_local_binquery != "1") {
             $(".showmore").toggle();
         }
+        
 
     });
 

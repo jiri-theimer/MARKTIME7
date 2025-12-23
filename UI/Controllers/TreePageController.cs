@@ -25,7 +25,7 @@ namespace UI.Controllers
 
             v.p31statequery = new p31StateQueryViewModel() { UserParamKey= "treepage-p31statequery" };
             v.p31statequery.Value = Factory.CBL.LoadUserParamInt(v.p31statequery.UserParamKey);
-            
+           
 
             v.TheGridQueryButton = new UI.Models.TheGridQueryViewModel() { prefix = "p41", paramkey = $"treepage-query-j72id-{prefix}-{rez}" };
             v.TheGridQueryButton.j72id = Factory.CBL.LoadUserParamInt(v.TheGridQueryButton.paramkey);
@@ -33,6 +33,12 @@ namespace UI.Controllers
             {
                 v.TheGridQueryButton.j72name = Factory.j72TheGridTemplateBL.LoadName(v.TheGridQueryButton.j72id);
             }
+            v.recordbinquery = new RecordBinQueryViewModel() { Prefix = "p41" };
+            v.recordbinquery.UserParamKey = $"treepage-p41-recordbinquery";
+            v.recordbinquery.Value = Factory.CBL.LoadUserParamInt(v.recordbinquery.UserParamKey, 1);
+
+
+            
 
             RefreshTreeNodes(v);
 
@@ -58,17 +64,29 @@ namespace UI.Controllers
             {
                 mq.lisJ73 = Factory.j72TheGridTemplateBL.GetList_j73(v.TheGridQueryButton.j72id, "p41", 0);
             }
-            if (v.p31statequery != null)
-            {
-                mq.p31statequery = v.p31statequery.Value;
-            }
+            
             
             if (v.periodinput.PeriodValue > 0)
             {
                 mq.period_field = v.periodinput.PeriodField;
+                mq.period_field = "p31Date";
                 mq.global_d1 = v.periodinput.d1;
                 mq.global_d2 = v.periodinput.d2;
+                
             }
+
+            switch (v.recordbinquery.Value)
+            {
+                case 1:mq.IsRecordValid = true; break;   //pouze otevřené záznamy
+                case 2:mq.IsRecordValid = false; break;  //pouze záznamy v archivu
+                default:mq.IsRecordValid = null; break;
+            }
+            if (v.p31statequery != null)
+            {
+                mq.p31statequery = v.p31statequery.Value;
+               
+            }
+            
 
             var lisP41 = Factory.p41ProjectBL.GetList(mq);   //.OrderBy(p => p.p41TreeIndex);
 

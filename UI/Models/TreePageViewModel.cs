@@ -23,6 +23,7 @@ namespace UI.Models
         public myPeriodViewModel periodinput { get; set; } //fixní filtr v horním pruhu
         public RecordBinQueryViewModel recordbinquery { get; set; } //filtrování podle archivu
         public p31StateQueryViewModel p31statequery { get; set; }   //filtrování podle stavu aktivit v horním pruhu
+        public p31TabQueryViewModel p31tabquery { get; set; }   //filtrování podle formátu aktivit v horním pruhu
         public TheGridQueryViewModel TheGridQueryButton { get; set; }   //pojmenovaný filtr
 
         public string entity

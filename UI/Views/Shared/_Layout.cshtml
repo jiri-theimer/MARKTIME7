@@ -260,10 +260,18 @@
                                     <a id="cmdp41" class="nav-link" href="@(cmenu.GetMainmenuEntityUrl("p41"))">@_f.tra("PROJEKTY")</a>
                                 </li>
                             }
-
+                            @if (_myMenu.Contains("treepage"))
+                            {
+                                <li title="Strom projektů">
+                                    <a id="cmdTreePage" class="nav-link" href="/TreePage/Index">
+                                        <span class="material-icons-outlined-btn" style="color:white">account_tree</span>
+                                    </a>
+                                </li>
+                                
+                            }
                             
-
-
+                            
+                            
                         }
 
 
