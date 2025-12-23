@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿
 using UI.Views.Shared.Components.myGrid;
 using UI.Views.Shared.Components.myPeriod;
 
