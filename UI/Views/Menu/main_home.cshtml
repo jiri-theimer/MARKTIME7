@@ -68,18 +68,7 @@
 
 
 
-    a.locallink500 {
-        text-decoration: none;
-        font-weight: 500 !important;
-        word-break: keep-all;
-        padding: 5px;
-    }
-
-        a.locallink500:hover {
-            background-color: var(--oznaceno) !important;
-            color: var(--popredi) !important;
-            border-radius: 5px;
-        }
+    
 
     a.locallink {
         text-decoration: none;
@@ -94,6 +83,14 @@
             border-radius: 5px;
         }
 
+
+    a.locallink500 {
+        
+        font-weight: 500 !important;
+       
+    }
+
+       
 
     button.pin {
         visibility: hidden;
@@ -171,7 +168,7 @@
                         ÚKONY
                     </span>
                     <h6>
-                        <a id="linkGridP31" class="locallink500" href="/TheGrid/FlatView?prefix=p31">
+                        <a id="linkGridP31" class="locallink locallink500" href="/TheGrid/FlatView?prefix=p31">
 
                             @_f.tra("Tabulka")
                         </a>
@@ -261,7 +258,7 @@
                         @_f.tra("PROJEKTY")
                     </span>
                     <h6>
-                        <a id="linkGridP41" class="locallink500" href="@(cmenu.GetMainmenuEntityUrl("p41"))">
+                        <a id="linkGridP41" class="locallink locallink500" href="@(cmenu.GetMainmenuEntityUrl("p41"))">
 
                             @_f.tra("Tabulka")
                         </a>
@@ -275,6 +272,11 @@
                 </td>
                 <td style="padding:20px;">
                     <h6>
+                        <a id="linkTreePage" class="locallink" href="/TreePage/Index">
+                            <span class="material-icons-outlined-btn">account_tree</span>
+                            @_f.tra("STROM")
+                        </a>
+
                         @if (_f.CurrentUser.TestPermission(BO.PermValEnum.GR_p41_Reader))
                         {
                             <a id="linkP44" class="locallink" href="@cmenu.getGridUrl("p44")">
@@ -323,7 +325,7 @@
                         @_f.tra("ÚKOLY")
                     </span>
                     <h6>
-                        <a id="linkGridP56" class="locallink500" href="@(cmenu.GetMainmenuEntityUrl("p56"))">
+                        <a id="linkGridP56" class="locallink locallink500" href="@(cmenu.GetMainmenuEntityUrl("p56"))">
 
                             @_f.tra("Tabulka")
                         </a>
@@ -377,7 +379,7 @@
                         @if (_GridUrlO22 != null)
                         {
 
-                            <a id="linkTerminy" class="locallink500" href="@(_GridUrlO22)">
+                            <a id="linkTerminy" class="locallink locallink500" href="@(_GridUrlO22)">
 
                                 Tabulka
                             </a>
@@ -403,7 +405,7 @@
                         @_f.tra("KONTAKTY")
                     </span>
                     <h6>
-                        <a id="linkGridP28" class="locallink500" href="@(cmenu.GetMainmenuEntityUrl("p28"))">
+                        <a id="linkGridP28" class="locallink locallink500" href="@(cmenu.GetMainmenuEntityUrl("p28"))">
 
                             @_f.tra("Tabulka")
                         </a>
@@ -439,7 +441,7 @@
                     </span>
 
                     <h6>
-                        <a id="linkGridJ02" class="locallink500" href="@(cmenu.GetMainmenuEntityUrl("j02"))">
+                        <a id="linkGridJ02" class="locallink locallink500" href="@(cmenu.GetMainmenuEntityUrl("j02"))">
 
                             @_f.tra("Tabulka")
                         </a>
@@ -463,7 +465,7 @@
                     </span>
                     <h6>
 
-                        <a id="linkGridP91" class="locallink500" href="@(cmenu.GetMainmenuEntityUrl("p91"))">
+                        <a id="linkGridP91" class="locallink locallink500" href="@(cmenu.GetMainmenuEntityUrl("p91"))">
 
                             @_f.tra("Tabulka")
                         </a>
@@ -526,7 +528,7 @@
                         @_f.tra("DOKUMENTY")
                     </span>
                     <h6>
-                        <a id="lisO23" class="locallink500" href="@(cmenu.GetMainmenuEntityUrl("o23"))">
+                        <a id="lisO23" class="locallink locallink500" href="@(cmenu.GetMainmenuEntityUrl("o23"))">
                             @_f.tra("Tabulka")
                         </a>
                         <button type="button" data-key="o23" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
@@ -616,7 +618,7 @@
                     </span>
                     
                     <h6>
-                        <a id="linkAdmin" class="locallink500" href="/Admin/Index">
+                        <a id="linkAdmin" class="locallink locallink500" href="/Admin/Index">
 
                             Admin Home
                         </a>

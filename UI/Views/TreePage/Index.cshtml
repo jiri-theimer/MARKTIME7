@@ -5,13 +5,12 @@
 
     Layout = "~/Views/Shared/_Layout.cshtml";
 
-    Model.PageTitle = _f.EProvider.ByPrefix(Model.prefix).AliasPlural;
+    Model.PageTitle = _f.tra("Strom");
 
 
 }
 
 @addTagHelper *, UI
-@Html.Raw("<div style='background-color:#F5F5F5'>")
 
 
 <div class="input-group" style="padding-top:8px;">
@@ -22,7 +21,6 @@
 
                 @Html.Raw(@Model.TabName)
 
-                <span id="TheGridRows" class="badge bg-primary" style="margin-left:2px;">0</span>
 
                 <span class="onetab-caret">▼</span>
             </a>
@@ -93,7 +91,8 @@
 
 @Html.Raw("<div id='splitter_panel1'>")
 
-<h1>zde strom</h1>
+@await Html.PartialAsync("~/Views/Shared/_TreeDsRenderHelper.cshtml", Model.lisTreeNodes)
+
 
 @Html.Raw("</div>")
 
@@ -103,14 +102,13 @@
 
 
 <div id="divTabContent">
-    <iframe id="fra_subgrid" name="fra_subgrid" src="@Model.DefaultNavTabUrl" frameborder="0" scrolling="yes" style="width:100%;" onload="$('#divTabContent').css('background','none');"></iframe>
+    <iframe id="fra_subgrid" name="fra_subgrid" src="@Model.DefaultNavTabUrl" frameborder="1" scrolling="yes" style="width:100%;" onload="$('#divTabContent').css('background','none');"></iframe>
 </div>
 
 @Html.Raw("</div>")
 
 @Html.Raw("</div>")
 
-@Html.Raw("</div>")
 
 
 
@@ -156,6 +154,10 @@
 
 
         });
+
+
+        register_menu("cmdgridquerymenu", "cmdgridquerymenu_menu", "/Menu/grid_query?prefix=p41&j72id=@(Model.TheGridQueryButton.j72id)");
+
 
 
         var key = _prefix + "-treepage_panel1_size";
@@ -324,6 +326,12 @@
         e.target.setAttribute("menu_je_inicializovano", null);  //vyčistit paměť o inicializaci menu v rámci tohoto tlačítka
 
         _cm(e, _prefix, _pid, "grid");
+    }
+
+
+
+    function change_statequery(val) {
+        reload();
     }
 
 </script>

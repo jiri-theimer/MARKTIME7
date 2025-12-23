@@ -10,6 +10,8 @@ namespace UI.Models
         public string TabName { get; set; }
         public string rez { get; set; }
 
+        public List<UI.Models.Asi.TreeNode> lisTreeNodes { get; set; }
+
         public int pid_loaded { get; set; }     //pid načtený z user parametrů
         public List<NavTab> NavTabs;
 
