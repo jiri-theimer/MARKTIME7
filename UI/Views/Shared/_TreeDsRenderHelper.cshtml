@@ -5,7 +5,7 @@
     if (node.Children.Any())
     {
         <details class="branch">
-            <summary class="fw-semibold cursor-pointer rounded p-1">
+            <summary class="fw-semibold cursor-pointer rounded p-1" data-id="@node.Id" data-prefix="@node.Prefix">
                 @node.Name
             </summary>
             @await Html.PartialAsync("_TreeDsRenderHelper", node.Children)
@@ -14,7 +14,7 @@
     else
     {
         <div class="leaf rounded">
-            <a class="nav-link" href="#">@node.Name</a>
+            <a class="nav-link" href="#" data-id="@node.Id" data-prefix="@node.Prefix">@node.Name</a>
         </div>
     }
 }

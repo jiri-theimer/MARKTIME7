@@ -6,5 +6,6 @@
         public int? IdParent { get; set; }
         public string Name { get; set; }
         public List<TreeNode> Children { get; set; } = new List<TreeNode>();
+        public string Prefix { get; set; }
     }
 }

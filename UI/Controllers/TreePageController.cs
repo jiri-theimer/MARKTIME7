@@ -109,11 +109,11 @@ namespace UI.Controllers
                     {
                         if (c.p41ParentID == 0 && c.p41TreeNext == c.p41TreePrev)
                         {
-                            lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = 999999, Name = c.p41Name });
+                            lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = 999999, Name = c.p41Name,Prefix="p41" });
                         }
                         else
                         {
-                            lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = c.p41ParentID, Name = c.p41Name });
+                            lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = c.p41ParentID, Name = c.p41Name,Prefix="p41" });
                         }
 
                     }
@@ -125,7 +125,7 @@ namespace UI.Controllers
                     {
                         if (rec.j18ID > 0)
                         {
-                            lisflat.Add(new UI.Models.Asi.TreeNode() { Id = -1 * rec.j18ID, IdParent = 0, Name = rec.j18Name });
+                            lisflat.Add(new UI.Models.Asi.TreeNode() { Id = -1 * rec.j18ID, IdParent = 0, Name = rec.j18Name,Prefix="j18" });
                         }
 
                         var qryP41 = lisP41.Where(p => p.j18ID == rec.j18ID);
@@ -170,7 +170,7 @@ namespace UI.Controllers
                     {
                         if (rec.p42ID > 0)
                         {
-                            lisflat.Add(new UI.Models.Asi.TreeNode() { Id = -1 * rec.p42ID, IdParent = 0, Name = rec.p42Name });
+                            lisflat.Add(new UI.Models.Asi.TreeNode() { Id = -1 * rec.p42ID, IdParent = 0, Name = rec.p42Name,Prefix="p42" });
                         }
 
                         var qryP41 = lisP41.Where(p => p.p42ID == rec.p42ID);
@@ -208,6 +208,54 @@ namespace UI.Controllers
                     }
 
                     break;
+                case "p51":
+                    v.TabName = $"{v.TabName}:{Factory.tra("Ceník sazeb->Projekt")}";
+                    var lisP51 = lisP41.Select(p => new { p.p51ID_Billing, p.p51Name_Billing }).Distinct();
+                    foreach (var rec in lisP51)
+                    {
+                        if (rec.p51ID_Billing > 0)
+                        {
+                            lisflat.Add(new UI.Models.Asi.TreeNode() { Id = -1 * rec.p51ID_Billing, IdParent = 0, Name = rec.p51Name_Billing,Prefix="p51" });
+                        }
+
+                        var qryP41 = lisP41.Where(p => p.p51ID_Billing == rec.p51ID_Billing);
+                        foreach (var c in qryP41)
+                        {
+
+                            if (c.p51ID_Billing == 0)
+                            {
+                                lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = 999999, Name = c.p41Name });
+                            }
+                            else
+                            {
+                                if (c.p41ParentID == 0 && c.p41TreeNext == c.p41TreePrev)
+                                {
+                                    lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = -1 * c.p51ID_Billing, Name = c.p41Name });
+                                }
+                                else
+                                {
+                                    var recParent = lisP41.FirstOrDefault(p => p.pid == c.p41ParentID && p.p51ID_Billing == rec.p51ID_Billing);
+                                    if (recParent != null)
+                                    {
+                                        lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = c.p41ParentID, Name = c.p41Name });
+                                    }
+                                    else
+                                    {
+                                        lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = -1 * c.p51ID_Billing, Name = c.p41Name });
+                                    }
+
+                                }
+                            }
+
+
+
+                        }
+                    }
+
+                    break;
+                
+
+                    
                 case "p28":
                     v.TabName = $"{v.TabName}:{Factory.tra("Klient->Projekt")}";
                     var lisP28 = lisP41.Select(p => new { p.p28ID_Client, p.Client }).Distinct();
@@ -217,7 +265,7 @@ namespace UI.Controllers
                     {
                         if (recP28.p28ID_Client > 0)
                         {
-                            lisflat.Add(new UI.Models.Asi.TreeNode() { Id = -1 * recP28.p28ID_Client, IdParent = 0, Name = recP28.Client });
+                            lisflat.Add(new UI.Models.Asi.TreeNode() { Id = -1 * recP28.p28ID_Client, IdParent = 0, Name = recP28.Client,Prefix="p28" });
                         }
 
                         var qryP41 = lisP41.Where(p => p.p28ID_Client == recP28.p28ID_Client);

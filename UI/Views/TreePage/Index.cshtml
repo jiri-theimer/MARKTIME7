@@ -137,6 +137,12 @@
         <input type="radio" asp-for="@Model.prefix" id="opg4" value="p42" onchange="reload_setting(this)" />
         <label for="opg4">@_f.tra("Typ projektu")</label>
         <br />
+        <input type="radio" asp-for="@Model.prefix" id="opg5" value="p51" onchange="reload_setting(this)" />
+        <label for="opg5">@_f.tra("Ceník fakturačních sazeb")</label>
+        <br />
+        <input type="radio" asp-for="@Model.prefix" id="opg6" value="p61" onchange="reload_setting(this)" />
+        <label for="opg6">@_f.tra("Klastr aktivit")</label>
+        <br />
     </div>
 </div>
 
@@ -206,6 +212,16 @@
 
 
         tree1_init();
+
+
+    document.querySelectorAll('#tree1 summary').forEach(summary => {
+      summary.addEventListener('click', e => {
+        const details = summary.closest('details');
+
+        _notify_message('Klik na položku:', summary.textContent.trim());
+        _notify_message('ID uzlu:', details?.dataset.id);
+      });
+    });
 
     });
 

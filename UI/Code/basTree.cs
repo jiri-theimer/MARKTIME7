@@ -34,6 +34,13 @@ namespace UI.Code
                         {
                             d.Name = $"{d.Name} ({CountDescendants(d)})";
                         }
+                        foreach (var e in d.Children)
+                        {
+                            if (e.Children.Count() > 0)
+                            {
+                                e.Name = $"{e.Name} ({CountDescendants(e)})";
+                            }
+                        }
                     }
                 }
                 
