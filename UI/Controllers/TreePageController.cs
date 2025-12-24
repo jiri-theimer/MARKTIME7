@@ -8,13 +8,13 @@ namespace UI.Controllers
         private readonly BL.Singleton.ThePeriodProvider _pp;
         public TreePageController(BL.Singleton.ThePeriodProvider pp)
         {
-            _pp = pp;           
+            _pp = pp;
         }
         public IActionResult Index(string prefix, int pid, string tab, string rez, string myqueryinline)
         {
-          
-            var v = new TreePageViewModel() { pid = pid, prefix =prefix, DefTab = tab, rez = rez };
-            
+
+            var v = new TreePageViewModel() { pid = pid, prefix = prefix, DefTab = tab, rez = rez };
+
             if (string.IsNullOrEmpty(v.prefix))
             {
                 v.prefix = Factory.CBL.LoadUserParam("treepage-prefix", "p28");
@@ -27,9 +27,9 @@ namespace UI.Controllers
             v.periodinput = new Views.Shared.Components.myPeriod.myPeriodViewModel() { prefix = "p41", UserParamKey = "treepage-period" };
             v.periodinput.LoadUserSetting(_pp, Factory);
 
-            v.p31statequery = new p31StateQueryViewModel() { UserParamKey= "treepage-p31statequery" };
+            v.p31statequery = new p31StateQueryViewModel() { UserParamKey = "treepage-p31statequery" };
             v.p31statequery.Value = Factory.CBL.LoadUserParamInt(v.p31statequery.UserParamKey);
-           
+
 
             v.TheGridQueryButton = new UI.Models.TheGridQueryViewModel() { prefix = "p41", paramkey = $"treepage-query-j72id-{prefix}-{rez}" };
             v.TheGridQueryButton.j72id = Factory.CBL.LoadUserParamInt(v.TheGridQueryButton.paramkey);
@@ -42,12 +42,12 @@ namespace UI.Controllers
             v.recordbinquery.Value = Factory.CBL.LoadUserParamInt(v.recordbinquery.UserParamKey, 1);
 
 
-            
+
 
             RefreshTreeNodes(v);
 
-           
-            
+
+
 
 
             return View(v);
@@ -57,49 +57,49 @@ namespace UI.Controllers
         private int LoadLastUsedPid(string prefix, string rez)
         {
             return Factory.CBL.LoadUserParamInt($"treepage-{prefix}-{rez}-pid");
-            
+
         }
 
 
         private void RefreshTreeNodes(TreePageViewModel v)
         {
             var mq = new BO.myQueryP41("p41");
-            if (v.TheGridQueryButton !=null && v.TheGridQueryButton.j72id > 0)
+            if (v.TheGridQueryButton != null && v.TheGridQueryButton.j72id > 0)
             {
                 mq.lisJ73 = Factory.j72TheGridTemplateBL.GetList_j73(v.TheGridQueryButton.j72id, "p41", 0);
             }
-            
-            
+
+
             if (v.periodinput.PeriodValue > 0)
             {
                 mq.period_field = v.periodinput.PeriodField;
                 mq.period_field = "p31Date";
                 mq.global_d1 = v.periodinput.d1;
                 mq.global_d2 = v.periodinput.d2;
-                
+
             }
 
             switch (v.recordbinquery.Value)
             {
-                case 1:mq.IsRecordValid = true; break;   //pouze otevřené záznamy
-                case 2:mq.IsRecordValid = false; break;  //pouze záznamy v archivu
-                default:mq.IsRecordValid = null; break;
+                case 1: mq.IsRecordValid = true; break;   //pouze otevřené záznamy
+                case 2: mq.IsRecordValid = false; break;  //pouze záznamy v archivu
+                default: mq.IsRecordValid = null; break;
             }
             if (v.p31statequery != null)
             {
                 mq.p31statequery = v.p31statequery.Value;
-               
+
             }
-            
+
 
             var lisP41 = Factory.p41ProjectBL.GetList(mq);   //.OrderBy(p => p.p41TreeIndex);
 
 
             var lisflat = new List<UI.Models.Asi.TreeNode>();
-            lisflat.Add(new UI.Models.Asi.TreeNode() { Id = 999999, IdParent = 0, Name = "......" });
+            lisflat.Add(new UI.Models.Asi.TreeNode() { Id = 999999, IdParent = 0, Name = "-----------------" });
 
             v.TabName = Factory.tra("Strom");
-            
+
 
             switch (v.prefix)
             {
@@ -162,7 +162,7 @@ namespace UI.Controllers
                         }
                     }
 
-                        break;
+                    break;
                 case "p42":
                     v.TabName = $"{v.TabName}:{Factory.tra("Typ projektu->Projekt")}";
                     var lisP42 = lisP41.Select(p => new { p.p42ID, p.p42Name }).Distinct();
@@ -256,17 +256,13 @@ namespace UI.Controllers
 
                     break;
             }
-            if (lisflat.Any(p => p.IdParent == 999999))
-            {
-                lisflat.FirstOrDefault(p => p.Id == 999999).Name = $"......({lisflat.Where(p => p.IdParent == 999999).Count()})";
-            }
-            else
+            if (!lisflat.Any(p => p.IdParent == 999999))
             {
                 lisflat.RemoveAll(p => p.Id == 999999);
             }
 
 
-                v.lisTreeNodes = UI.Code.basTree.BuildTree(lisflat);
+            v.lisTreeNodes = UI.Code.basTree.BuildTree(lisflat);
         }
     }
 }

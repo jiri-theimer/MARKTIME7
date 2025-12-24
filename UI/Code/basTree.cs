@@ -14,6 +14,7 @@ namespace UI.Code
                 if (node.IdParent.HasValue && lookup.ContainsKey(node.IdParent.Value))
                 {
                     lookup[node.IdParent.Value].Children.Add(node);
+                    
                 }
                 else
                 {
@@ -21,7 +22,29 @@ namespace UI.Code
                 }
             }
 
+            foreach(var c in roots)
+            {
+                if (c.Children.Count() > 0)
+                {
+                    //c.Name = $"{c.Name} ({c.Children.Count()})";
+                    c.Name = $"{c.Name} ({CountDescendants(c)})";
+                    foreach (var d in c.Children)
+                    {
+                        if (d.Children.Count() > 0)
+                        {
+                            d.Name = $"{d.Name} ({CountDescendants(d)})";
+                        }
+                    }
+                }
+                
+            }
+
             return roots;
+        }
+
+        public static int CountDescendants(TreeNode node)
+        {
+            return node.Children.Sum(c => 1 + CountDescendants(c));
         }
     }
 }
