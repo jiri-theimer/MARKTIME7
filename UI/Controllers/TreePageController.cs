@@ -13,8 +13,12 @@ namespace UI.Controllers
         public IActionResult Index(string prefix, int pid, string tab, string rez, string myqueryinline)
         {
           
-            var v = new TreePageViewModel() { pid = pid, prefix =(string.IsNullOrEmpty(prefix)? "p41": prefix), DefTab = tab, rez = rez };
-
+            var v = new TreePageViewModel() { pid = pid, prefix =prefix, DefTab = tab, rez = rez };
+            
+            if (string.IsNullOrEmpty(v.prefix))
+            {
+                v.prefix = Factory.CBL.LoadUserParam("treepage-prefix", "p28");
+            }
             if (v.pid == 0)
             {
                 v.pid = LoadLastUsedPid(v.prefix, null);
@@ -95,6 +99,7 @@ namespace UI.Controllers
             lisflat.Add(new UI.Models.Asi.TreeNode() { Id = 999999, IdParent = 0, Name = "......" });
 
             v.TabName = Factory.tra("Strom");
+            
 
             switch (v.prefix)
             {
@@ -112,6 +117,96 @@ namespace UI.Controllers
                         }
 
                     }
+                    break;
+                case "j18":
+                    v.TabName = $"{v.TabName}:{Factory.tra("Středisko->Projekt")}";
+                    var lisJ18 = lisP41.Select(p => new { p.j18ID, p.j18Name }).Distinct();
+                    foreach (var rec in lisJ18)
+                    {
+                        if (rec.j18ID > 0)
+                        {
+                            lisflat.Add(new UI.Models.Asi.TreeNode() { Id = -1 * rec.j18ID, IdParent = 0, Name = rec.j18Name });
+                        }
+
+                        var qryP41 = lisP41.Where(p => p.j18ID == rec.j18ID);
+                        foreach (var c in qryP41)
+                        {
+
+                            if (c.j18ID == 0)
+                            {
+                                lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = 999999, Name = c.p41Name });
+                            }
+                            else
+                            {
+                                if (c.p41ParentID == 0 && c.p41TreeNext == c.p41TreePrev)
+                                {
+                                    lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = -1 * c.j18ID, Name = c.p41Name });
+                                }
+                                else
+                                {
+                                    var recParent = lisP41.FirstOrDefault(p => p.pid == c.p41ParentID && p.j18ID == rec.j18ID);
+                                    if (recParent != null)
+                                    {
+                                        lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = c.p41ParentID, Name = c.p41Name });
+                                    }
+                                    else
+                                    {
+                                        lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = -1 * c.j18ID, Name = c.p41Name });
+                                    }
+
+                                }
+                            }
+
+
+
+                        }
+                    }
+
+                        break;
+                case "p42":
+                    v.TabName = $"{v.TabName}:{Factory.tra("Typ projektu->Projekt")}";
+                    var lisP42 = lisP41.Select(p => new { p.p42ID, p.p42Name }).Distinct();
+                    foreach (var rec in lisP42)
+                    {
+                        if (rec.p42ID > 0)
+                        {
+                            lisflat.Add(new UI.Models.Asi.TreeNode() { Id = -1 * rec.p42ID, IdParent = 0, Name = rec.p42Name });
+                        }
+
+                        var qryP41 = lisP41.Where(p => p.p42ID == rec.p42ID);
+                        foreach (var c in qryP41)
+                        {
+
+                            if (c.p42ID == 0)
+                            {
+                                lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = 999999, Name = c.p41Name });
+                            }
+                            else
+                            {
+                                if (c.p41ParentID == 0 && c.p41TreeNext == c.p41TreePrev)
+                                {
+                                    lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = -1 * c.p42ID, Name = c.p41Name });
+                                }
+                                else
+                                {
+                                    var recParent = lisP41.FirstOrDefault(p => p.pid == c.p41ParentID && p.p42ID == rec.p42ID);
+                                    if (recParent != null)
+                                    {
+                                        lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = c.p41ParentID, Name = c.p41Name });
+                                    }
+                                    else
+                                    {
+                                        lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = -1 * c.p42ID, Name = c.p41Name });
+                                    }
+
+                                }
+                            }
+
+
+
+                        }
+                    }
+
                     break;
                 case "p28":
                     v.TabName = $"{v.TabName}:{Factory.tra("Klient->Projekt")}";
@@ -161,8 +256,17 @@ namespace UI.Controllers
 
                     break;
             }
+            if (lisflat.Any(p => p.IdParent == 999999))
+            {
+                lisflat.FirstOrDefault(p => p.Id == 999999).Name = $"......({lisflat.Where(p => p.IdParent == 999999).Count()})";
+            }
+            else
+            {
+                lisflat.RemoveAll(p => p.Id == 999999);
+            }
 
-            v.lisTreeNodes= UI.Code.basTree.BuildTree(lisflat);
+
+                v.lisTreeNodes = UI.Code.basTree.BuildTree(lisflat);
         }
     }
 }

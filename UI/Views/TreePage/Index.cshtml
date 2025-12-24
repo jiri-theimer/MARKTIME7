@@ -70,7 +70,7 @@
     <div>
         <myshowmore></myshowmore>
     </div>
-    
+
     <div class="showmore">
         @Html.EditorFor(m => Model.recordbinquery, "~/Views/Shared/_RecordBinQuery.cshtml")
     </div>
@@ -87,8 +87,9 @@
 
 @Html.Raw("<div id='splitter_panel1'>")
 
-@await Html.PartialAsync("~/Views/Shared/_TreeDsRenderHelper.cshtml", Model.lisTreeNodes)
-
+<div id="tree1" class="treeds p-3">
+    @await Html.PartialAsync("~/Views/Shared/_TreeDsRenderHelper.cshtml", Model.lisTreeNodes)
+</div>
 
 @Html.Raw("</div>")
 
@@ -120,11 +121,28 @@
     </div>
 
     <div class="offcanvas-body p-0 m-0" id="offcanvas_more_body">
+
+        <div class="divider-text">
+            @_f.tra("Stromová struktura podle")
+        </div>
+        <input type="radio" asp-for="@Model.prefix" id="opg1" value="p41" onchange="reload_setting(this)" />
+        <label for="opg1">@_f.tra("Strom projektů")</label>
+        <br />
+        <input type="radio" asp-for="@Model.prefix" id="opg2" value="p28" onchange="reload_setting(this)" />
+        <label for="opg2">@_f.tra("Klient projektu")</label>
+        <br />
+        <input type="radio" asp-for="@Model.prefix" id="opg3" value="j18" onchange="reload_setting(this)" />
+        <label for="opg3">@_f.tra("Středisko projektu")</label>
+        <br />
+        <input type="radio" asp-for="@Model.prefix" id="opg4" value="p42" onchange="reload_setting(this)" />
+        <label for="opg4">@_f.tra("Typ projektu")</label>
+        <br />
     </div>
 </div>
 
 
 <script type="text/javascript">
+    let _inicializace=true;
     let _offcanvasIsLoaded = false;
     var _prefix = "@Model.prefix";
     var _entity = "@Model.entity";
@@ -132,7 +150,7 @@
 
     var _currentloadingtabs = false;
     var _local_binquery = "@(Model.recordbinquery != null ? Model.recordbinquery.Value : 0)";
-    
+
     $(document).ready(function () {
 
 
@@ -143,10 +161,7 @@
                 return;
             }
 
-            _offcanvasIsLoaded = true;
-
-
-
+            _offcanvasIsLoaded = true;            
 
 
         });
@@ -188,7 +203,9 @@
         if (_local_binquery != "1") {
             $(".showmore").toggle();
         }
-        
+
+
+        tree1_init();
 
     });
 
@@ -330,6 +347,92 @@
     function change_statequery(val) {
         reload();
     }
+
+    function reload_setting(opg) {
+
+
+        $.post(_ep("/Common/SetUserParam"), { key: "treepage-prefix", value: opg.value }, function (data) {
+             _prefix=opg.value;
+            reload();
+
+        });
+    }
+
+
+
+    function tree1_init()
+     {
+          const treeDetails = document.querySelectorAll('#tree1 details');
+          let internalChange = false;
+
+          // najde nejbližší nadřazený <details>
+         function getParentDetail(el)
+         {
+           let p = el.parentElement;
+           while (p) {
+             if (p.tagName === "DETAILS") return p;
+             p = p.parentElement;
+           }
+           return null;
+         }
+
+
+          treeDetails.forEach(d => {
+
+           d.addEventListener("toggle", () => {
+
+             if (internalChange) return;
+
+             if (_inicializace) {
+                 _inicializace = false;
+                 return;
+             }
+
+             // accordion: zavři ostatní foldery
+             if (d.open)
+             {
+
+                 internalChange = true;
+
+                 // najdu společného rodiče → tím určíme sourozence
+                 const parent = getParentDetail(d);
+
+                 // SOUROZENCI = všechny <details> se stejným rodičem
+                 const siblings = parent
+                     ? Array.from(parent.querySelectorAll(':scope > details'))
+                     : Array.from(document.querySelectorAll('#tree1 > details'));
+
+                 // zavři pouze přímé SOUROZENCE (a jen je)
+                 siblings.forEach(other => {
+                     if (other !== d) other.open = false;
+                 });
+
+                 internalChange = false;
+
+                 //otevření větve
+                 _notify_message("open");
+
+             }
+             else
+             {
+                     //zavření větve
+             }
+
+
+
+
+             if (_inicializace)
+             {
+                 _inicializace=false;
+                 return;
+             }
+
+
+           });
+         });
+
+
+     }
 
 </script>
 
