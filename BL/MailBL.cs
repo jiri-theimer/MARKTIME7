@@ -359,7 +359,7 @@ namespace BL
                 }
                 catch (Exception e)
                 {
-                    BO.Code.File.LogError($"client.Secure(): {e.Message}", _mother.CurrentUser.j02Login, "handle_smtp_finish");
+                    
                     return handle_result_error(e.Message);
                 }
 

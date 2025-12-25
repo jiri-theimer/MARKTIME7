@@ -133,6 +133,26 @@ namespace BO
                 return s;
             }
         }
+        public string NameWithClient
+        {
+            get
+            {
+                string s = this.p41NameShort;
+                if (s == null)
+                    s = this.p41Name;
+             
+
+                if (this.p28ID_Client > 0)
+                {
+                    if (Client.Length > 25)
+                        return $"{BO.Code.Bas.LeftString(this.Client, 25)}... - {s} ({this.p41Code})";
+
+                    else
+                        return $"{this.Client} - {s} ({this.p41Code})";
+                }
+                return s;
+            }
+        }
         //public string ProjectWithMask(int maskindex)
         //{
         //    string s = this.p41NameShort;
