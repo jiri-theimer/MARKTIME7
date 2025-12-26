@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Markdig.Extensions.Alerts;
+using Microsoft.AspNetCore.Mvc;
 using SQLitePCL;
 using UI.Models;
 
@@ -22,7 +23,7 @@ namespace UI.Controllers
             }
             if (v.pid == 0)
             {
-                v.pid = LoadLastUsedPid(v.groupby, null);
+                v.pid = Factory.CBL.LoadUserParamInt("recpage-p41--pid");   //shodné s gridem
             }
 
             v.ProjectMask = Factory.CBL.LoadUserParam("treepage-projectmask", "NameWithClient");
@@ -71,10 +72,11 @@ namespace UI.Controllers
             if (v.NavTabs.Count() > 0)
             {
                 var deftab = v.NavTabs[0];
+                
 
                 foreach (var tab in v.NavTabs)
                 {
-
+                    tab.Url = tab.Url.Replace("@pid", v.pid.ToString());
                     tab.Url = $"{tab.Url}&master_entity=p41Project&master_pid={v.pid}";
                     if (v.DefTab != null && tab.Entity == v.DefTab)
                     {
@@ -91,12 +93,7 @@ namespace UI.Controllers
         }
 
 
-        private int LoadLastUsedPid(string groupby, string rez)
-        {
-            return Factory.CBL.LoadUserParamInt($"treepage-{groupby}-{rez}-pid");
-
-        }
-
+        
 
         private void RefreshTreeNodes(TreePageViewModel v)
         {

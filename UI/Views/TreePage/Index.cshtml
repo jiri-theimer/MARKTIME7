@@ -25,7 +25,12 @@
         border-radius: .25rem;
     }
     /* jemná modrá */
-
+    #tree1 .active{
+        background-color: var(--oznaceno) !important;
+        color: var(--popredi) !important;
+        border: solid 1px var(--oznaceno) !important;
+        border-radius:4px;
+    }
 </style>
 
 
@@ -119,7 +124,7 @@
         @foreach (var tab in Model.NavTabs)
         {
             <li class="nav-item onetab">
-                <a class="@tab.CssClass" id="tabp41Project" href="@tab.Url" target="fra_subgrid" onclick="tabclick(this)" title="@tab.Tooltip">
+                <a class="@tab.CssClass" id="tab@(tab.Entity)" href="@tab.Url" target="fra_subgrid" onclick="tabclick(this)" title="@tab.Tooltip">
                     @Html.Raw(tab.Name)
                     @if (tab.Badge != null)
                     {
@@ -227,7 +232,7 @@
               }
               _splitter_init("2", "p41-treepage");
               _splitter_resize_after_init("2", defWidth);
-              //tg_adjust_for_screen("splitter_panel1");
+              
 
 
               var offset = $("#divTabContent").offset();
@@ -254,6 +259,12 @@
               tree1_init();
 
 
+
+              if (_pid !="0")
+              {
+                  selectTreeLeafById(_pid);
+                  leftgrid_handle_rowselect(_pid);
+              }
           });
 
 
@@ -262,7 +273,7 @@
           function tabclick(tab) {    //uložit aktuální záložku do profilu uživatele
               $("#navtabs .nav-link").removeClass("active");
               $(tab).addClass("active");
-              $.post("/Common/SetUserParam", { key: "treeview-tab-p41", value: tab.id.replace("tab", "") }, function (data) {
+              $.post("/Common/SetUserParam", { key: "treepage-tab-p41", value: tab.id.replace("tab", "") }, function (data) {
 
 
               });
@@ -308,10 +319,14 @@
 
           function callback_render_tabs(data) {
               //vykreslení obsahu záložek načtených přes load_ajax_async
+              
               _currentloadingtabs = false;
               $("#tabtab1").html(data[0].name);
               for (var i = 1; i < data.length; i++) {
-                  if (document.getElementById("tab" + data[i].entity)) {
+                  
+                  if (document.getElementById("tab" + data[i].entity))
+                  {
+                      
                       if (data[i].badge != null) {
                           $("#tab" + data[i].entity).html(data[i].name + data[i].badge);
                       } else {
@@ -542,7 +557,7 @@
           });
         }
         applyAccordion(tree);
-      }
+    }
 
 
 
@@ -587,8 +602,7 @@
               var tabs = $(".nav-link.text-dark");
               for (var i = 0; i < tabs.length; i++) {
                   url = $(tabs[i]).attr("href");
-                  alert(url);
-
+                 
                   if (url.indexOf("caller") == -1) {
                       url = url + "&caller=grid";     //donutit cílovou stránku, aby si uložila naposledy navštívený záznam
                   }
@@ -632,12 +646,54 @@
               }
 
 
+                const tree = document.getElementById("tree1");
+                tree.querySelectorAll("a.nav-link").forEach(a =>
+                    a.classList.remove("active")
+                );
+                const leaf = tree.querySelector(`a[data-id="${pid}"]`);
+                leaf.classList.add("active");
+
               _pid = pid;
 
               handle_render_tabs(_pid);
 
           }
 
+
+          
+
+    function selectTreeLeafById(leafId)
+    {
+        const tree = document.getElementById("tree1");
+        if (!tree) return;
+
+        // najdi <a> s daným data-id
+        const leaf = tree.querySelector(`a[data-id="${leafId}"]`);
+        if (!leaf) return;
+
+        // rozbal všechny nadřazené <details>
+        let parent = leaf.parentElement;
+        while (parent) {
+            if (parent.tagName === "DETAILS") {
+                parent.open = true;
+            }
+            parent = parent.parentElement;
+        }
+
+        // zruš active u všech leafů
+        tree.querySelectorAll("a.nav-link").forEach(a =>
+            a.classList.remove("active")
+        );
+
+        // označ aktuální
+        leaf.classList.add("active");
+
+        // scroll na položku
+        leaf.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+        });
+    }
 
 </script>
 
