@@ -74,7 +74,7 @@
         text-decoration: none;
         font-weight: normal !important;
         word-break: keep-all;
-        padding: 5px;
+        padding: 2px;
     }
 
         a.locallink:hover {
@@ -107,6 +107,14 @@
             background-color: var(--oznaceno) !important;
             color: var(--popredi) !important;
         }
+
+
+    #divHomeMenu .active {
+        background-color: var(--oznaceno) !important;
+        color: var(--popredi) !important;
+        border: solid 1px var(--oznaceno) !important;
+        border-radius: 4px;
+    }
 </style>
 
 
@@ -757,6 +765,7 @@
 
     var url = window.location.pathname + window.location.search;
     var urllower = url.toLowerCase();
+    
     var homeurl = "@(_f.CurrentUser.j02HomePageUrl)";
 
     if (urllower.indexOf(homeurl.toLowerCase()) >= 0) {
@@ -769,21 +778,15 @@
     if (urllower.indexOf("flatview?prefix=p31") > 0) {
         $("#linkGridP31").addClass("active");
     }
-    if (urllower.indexOf("view?prefix=p41") > 0) {
+    if (urllower.indexOf("view?prefix=p41") > 0)
+    {
         $("#linkGridP41").addClass("active");
     }
-    if (urllower.indexOf("view?prefix=le5") > 0) {
-        $("#linkGridLE5").addClass("active");
+    if (urllower.indexOf("treepage") > 0)
+    {
+        $("#linkTreePage").addClass("active");
     }
-    if (urllower.indexOf("view?prefix=le4") > 0) {
-        $("#linkGridLE4").addClass("active");
-    }
-    if (urllower.indexOf("view?prefix=le3") > 0) {
-        $("#linkGridLE3").addClass("active");
-    }
-    if (urllower.indexOf("view?prefix=le2") > 0) {
-        $("#linkGridLE2").addClass("active");
-    }
+   
     if (urllower.indexOf("view?prefix=j02") > 0) {
         $("#linkGridJ02").addClass("active");
     }
