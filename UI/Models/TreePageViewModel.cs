@@ -5,7 +5,7 @@ namespace UI.Models
     public class TreePageViewModel: BaseViewModel
     {
         private string _entity { get; set; }
-        public string prefix { get; set; }
+        public string groupby { get; set; }
         public int pid { get; set; }
         public string TabName { get; set; }
         public string rez { get; set; }

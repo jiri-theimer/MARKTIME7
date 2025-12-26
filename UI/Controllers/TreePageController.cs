@@ -11,18 +11,18 @@ namespace UI.Controllers
         {
             _pp = pp;
         }
-        public IActionResult Index(string prefix, int pid, string tab, string rez, string myqueryinline)
+        public IActionResult Index(string groupby, int pid, string tab, string rez, string myqueryinline)
         {
 
-            var v = new TreePageViewModel() { pid = pid, prefix = prefix, DefTab = tab, rez = rez };
+            var v = new TreePageViewModel() { pid = pid, groupby = groupby, DefTab = tab, rez = rez };
 
-            if (string.IsNullOrEmpty(v.prefix))
+            if (string.IsNullOrEmpty(v.groupby))
             {
-                v.prefix = Factory.CBL.LoadUserParam("treepage-prefix", "p28");
+                v.groupby = Factory.CBL.LoadUserParam("treepage-groupby", "p28");
             }
             if (v.pid == 0)
             {
-                v.pid = LoadLastUsedPid(v.prefix, null);
+                v.pid = LoadLastUsedPid(v.groupby, null);
             }
 
             v.ProjectMask = Factory.CBL.LoadUserParam("treepage-projectmask", "NameWithClient");
@@ -34,7 +34,7 @@ namespace UI.Controllers
             v.p31statequery.Value = Factory.CBL.LoadUserParamInt(v.p31statequery.UserParamKey);
 
 
-            v.TheGridQueryButton = new UI.Models.TheGridQueryViewModel() { prefix = "p41", paramkey = $"treepage-query-j72id-{prefix}-{rez}" };
+            v.TheGridQueryButton = new UI.Models.TheGridQueryViewModel() { prefix = "p41", paramkey = $"treepage-query-j72id-{v.groupby}-{rez}" };
             v.TheGridQueryButton.j72id = Factory.CBL.LoadUserParamInt(v.TheGridQueryButton.paramkey);
             if (v.TheGridQueryButton.j72id > 0)
             {
@@ -45,7 +45,7 @@ namespace UI.Controllers
             v.recordbinquery.Value = Factory.CBL.LoadUserParamInt(v.recordbinquery.UserParamKey, 1);
 
 
-
+            RefreshNavTabs(v);
 
             RefreshTreeNodes(v);
 
@@ -56,10 +56,44 @@ namespace UI.Controllers
             return View(v);
         }
 
-
-        private int LoadLastUsedPid(string prefix, string rez)
+        private void RefreshNavTabs(TreePageViewModel v)
         {
-            return Factory.CBL.LoadUserParamInt($"treepage-{prefix}-{rez}-pid");
+            var cTabs = new UI.Code.NavTabsSupport(Factory);
+            v.NavTabs = cTabs.getMasterTabs("p41", v.pid, true);
+
+            //v.TabName = Factory.EProvider.ByPrefix(v.prefix).AliasPlural.ToUpper();
+
+            if (string.IsNullOrEmpty(v.DefTab))
+            {
+                v.DefTab = Factory.CBL.LoadUserParam($"treepage-tab-p41"); //uživatelem naposledy vybraná záložka    
+            }
+
+            if (v.NavTabs.Count() > 0)
+            {
+                var deftab = v.NavTabs[0];
+
+                foreach (var tab in v.NavTabs)
+                {
+
+                    tab.Url = $"{tab.Url}&master_entity=p41Project&master_pid={v.pid}";
+                    if (v.DefTab != null && tab.Entity == v.DefTab)
+                    {
+                        deftab = tab;
+                    }
+                }
+                deftab.CssClass += " active";
+                if (!deftab.Url.Contains("@pid"))
+                {
+                    v.DefaultNavTabUrl = deftab.Url;
+                    v.DefaultNavName = deftab.Name;
+                }
+            }
+        }
+
+
+        private int LoadLastUsedPid(string groupby, string rez)
+        {
+            return Factory.CBL.LoadUserParamInt($"treepage-{groupby}-{rez}-pid");
 
         }
 
@@ -114,7 +148,7 @@ namespace UI.Controllers
             v.TabName = Factory.tra("Strom");
 
 
-            switch (v.prefix)
+            switch (v.groupby)
             {
                 case "p41":
                     v.TabName = $"{v.TabName}:{Factory.tra("Projekty")}";
@@ -278,7 +312,9 @@ namespace UI.Controllers
                     {
                         if (recP28.p28ID_Client > 0)
                         {
-                            lisflat.Add(new UI.Models.Asi.TreeNode() { Id = -1 * recP28.p28ID_Client, IdParent = 0, Name = recP28.Client,Prefix="p28" });
+                            var n = new UI.Models.Asi.TreeNode() { Id = -1 * recP28.p28ID_Client, IdParent = 0, Name = recP28.Client, Prefix = "p28" };
+                            n.Url = $"/Record/RecPage?prefix=p28&pid={recP28.p28ID_Client}";
+                            lisflat.Add(n);
                         }
 
                         var qryP41 = lisP41.Where(p => p.p28ID_Client == recP28.p28ID_Client);

@@ -113,6 +113,26 @@
 @Html.Raw("<div id='splitter_panel2'>")
 
 
+<div class="tabs_container bg@(Model.prefix)">
+    <ul id="navtabs" class="nav nav-tabs">
+        <li style="padding-top:6px;">
+            <a id="cmdRCM" class="cm" onclick="rcm_from_tabs(event)" title="MENU"><span class="material-icons-outlined">menu</span></a>
+        </li>
+        @foreach (var tab in Model.NavTabs)
+        {
+            <li class="nav-item onetab">
+                <a class="@tab.CssClass" id="tab@(tab.Entity)" href="@tab.Url" target="fra_subgrid" onclick="tabclick(this)" title="@tab.Tooltip">
+                    @Html.Raw(tab.Name)
+                    @if (tab.Badge != null)
+                    {
+                        @Html.Raw(tab.Badge)
+                    }
+                </a>
+            </li>
+        }
+    </ul>
+</div>
+
 <div id="divTabContent">
     <iframe id="fra_subgrid" name="fra_subgrid" src="@Model.DefaultNavTabUrl" frameborder="1" scrolling="yes" style="width:100%;" onload="$('#divTabContent').css('background','none');"></iframe>
 </div>
@@ -140,22 +160,22 @@
         <div class="divider-text">
             @_f.tra("Stromová struktura podle")
         </div>
-        <input type="radio" asp-for="@Model.prefix" id="opg1" value="p41" onchange="reload_setting(this)" />
+        <input type="radio" asp-for="@Model.groupby" id="opg1" value="p41" onchange="reload_setting(this)" />
         <label for="opg1">@_f.tra("Strom projektů")</label>
         <br />
-        <input type="radio" asp-for="@Model.prefix" id="opg2" value="p28" onchange="reload_setting(this)" />
+        <input type="radio" asp-for="@Model.groupby" id="opg2" value="p28" onchange="reload_setting(this)" />
         <label for="opg2">@_f.tra("Klient projektu")</label>
         <br />
-        <input type="radio" asp-for="@Model.prefix" id="opg3" value="j18" onchange="reload_setting(this)" />
+        <input type="radio" asp-for="@Model.groupby" id="opg3" value="j18" onchange="reload_setting(this)" />
         <label for="opg3">@_f.tra("Středisko projektu")</label>
         <br />
-        <input type="radio" asp-for="@Model.prefix" id="opg4" value="p42" onchange="reload_setting(this)" />
+        <input type="radio" asp-for="@Model.groupby" id="opg4" value="p42" onchange="reload_setting(this)" />
         <label for="opg4">@_f.tra("Typ projektu")</label>
         <br />
-        <input type="radio" asp-for="@Model.prefix" id="opg5" value="p51" onchange="reload_setting(this)" />
+        <input type="radio" asp-for="@Model.groupby" id="opg5" value="p51" onchange="reload_setting(this)" />
         <label for="opg5">@_f.tra("Ceník fakturačních sazeb")</label>
         <br />
-        <input type="radio" asp-for="@Model.prefix" id="opg6" value="p61" onchange="reload_setting(this)" />
+        <input type="radio" asp-for="@Model.groupby" id="opg6" value="p61" onchange="reload_setting(this)" />
         <label for="opg6">@_f.tra("Klastr aktivit")</label>
         <br />
 
@@ -174,7 +194,7 @@
 <script type="text/javascript">
           let _inicializace=true;
           let _offcanvasIsLoaded = false;
-          var _prefix = "@Model.prefix";
+          var _groupby="@Model.groupby";
           var _entity = "@Model.entity";
           var _pid = "@Model.pid";
 
@@ -201,13 +221,13 @@
 
 
 
-              var key = _prefix + "-treepage_panel1_size";
+              var key = "p41-treepage_panel1_size";
               var defWidth = localStorage.getItem(key);
               if (defWidth == null) {
                   defWidth = 400;
                   localStorage.setItem(key, defWidth);
               }
-              _splitter_init("2", _prefix + "-treepage");
+              _splitter_init("2", "p41-treepage");
               _splitter_resize_after_init("2", defWidth);
               //tg_adjust_for_screen("splitter_panel1");
 
@@ -222,9 +242,7 @@
 
               $("#divTabContent").css("height", h_vertical + "px");
 
-              document.addEventListener("thegrid_rowselect", function (e) {       //změna řádku gridu: automaticky vyvolávaná událost z gridu
-                  leftgrid_handle_rowselect(e.detail.pid);
-              });
+
 
               _mainmenu_highlight_current("cmdTreePage");
 
@@ -238,29 +256,22 @@
               tree1_init();
 
 
-          document.querySelectorAll('#tree1 summary').forEach(summary => {
-            summary.addEventListener('click', e => {
-              const details = summary.closest('details');
-
-              _notify_message('Klik na položku:', summary.textContent.trim());
-              _notify_message('ID uzlu:', details?.dataset.id);
-            });
           });
 
-          });
+
 
 
           function tabclick(tab) {    //uložit aktuální záložku do profilu uživatele
               $("#navtabs .nav-link").removeClass("active");
               $(tab).addClass("active");
-              $.post("/Common/SetUserParam", { key: "treeview-tab-" + _prefix, value: tab.id.replace("tab", "") }, function (data) {
+              $.post("/Common/SetUserParam", { key: "treeview-tab-p41", value: tab.id.replace("tab", "") }, function (data) {
 
 
               });
           }
 
           function reload() {
-              _redirect("/TreePage/Index?prefix=" + _prefix + "&pid=" + _pid);
+              _redirect("/TreePage/Index?groupby="+_groupby+"&pid=" + _pid);
           }
 
 
@@ -272,71 +283,13 @@
 
               e.target.setAttribute("menu_je_inicializovano", null);  //vyčistit paměť o inicializaci menu v rámci tohoto tlačítka
 
-              _cm(e, _prefix, _pid, "grid");
+              _cm(e, "p41", _pid, "grid");
           }
 
 
 
 
-          ///složité
-          function leftgrid_handle_rowselect(pid) {
-              if (_pid == "0" && pid != "0")  //ošetřit situaci, kdy stránka záznamu nemá vybraný záznam s hodnotou _pid
-              {
-                  _pid = pid;
-                  reload();
-                  return;
-              }
-
-              var url = $("#fra_subgrid").attr("src");
-
-              var tabs = $(".nav-link.text-dark");
-              for (var i = 0; i < tabs.length; i++) {
-                  url = $(tabs[i]).attr("href");
-
-                  if (url.indexOf("caller") == -1) {
-                      url = url + "&caller=grid";     //donutit cílovou stránku, aby si uložila naposledy navštívený záznam
-                  }
-
-                  url = url.replaceAll("pid=" + _pid, "pid=" + pid);
-
-
-                  $(tabs[i]).attr("href", url);
-
-
-                  if ($(tabs[i]).hasClass("active")) {
-                      $("#fra_subgrid").attr("src", url);
-
-                  }
-              }
-
-              if (tabs.length == 1) {
-                  url = url.replaceAll("pid=" + _pid, "pid=" + pid);
-                  $(tabs[0]).attr("href", url);
-                  $("#fra_subgrid").attr("src", url);
-              }
-
-              if (document.getElementById("linkGo2Grid")) {
-                  url = $("#linkGo2Grid").attr("href");
-                  if (url != null) {
-                      url = url.replaceAll("pid=" + _pid, "pid=" + pid);
-                  }
-
-                  $("#linkGo2Grid").attr("href", url);
-              }
-
-              if (document.getElementById("linkMainTab"))
-              {
-                  url = $("#linkMainTab").attr("href");
-                  url = url.replaceAll("pid=" + _pid, "pid=" + pid);
-                  $("#linkMainTab").attr("href", url);
-              }
-
-
-              _pid = pid;
-
-              handle_render_tabs(_pid);
-
-          }
+          
 
 
 
@@ -347,11 +300,11 @@
               } else {
                   _currentloadingtabs = true;
                   //$("#tabtab1").html("-----");
-                  $.post("/TheGrid/getTabs", { prefix: _prefix, pid: pid }, function (data) {
+                  $.post("/TheGrid/getTabs", { prefix: "p41", pid: pid }, function (data) {
                       callback_render_tabs(data);
 
                   });
-                  //_load_ajax_async("/TheGrid/getTabs", { prefix: _prefix, pid: pid }, callback_render_tabs);
+                  
               }
           }
 
@@ -379,7 +332,7 @@
 
               e.target.setAttribute("menu_je_inicializovano", null);  //vyčistit paměť o inicializaci menu v rámci tohoto tlačítka
 
-              _cm(e, _prefix, _pid, "grid");
+              _cm(e, "p41", _pid, "grid");
           }
 
 
@@ -391,8 +344,8 @@
           function reload_setting(opg) {
 
 
-              $.post(_ep("/Common/SetUserParam"), { key: "treepage-prefix", value: opg.value }, function (data) {
-                   _prefix=opg.value;
+              $.post(_ep("/Common/SetUserParam"), { key: "treepage-groupby", value: opg.value }, function (data) {
+                   _groupby=opg.value;
                   reload();
 
               });
@@ -402,7 +355,7 @@
 
 
               $.post(_ep("/Common/SetUserParam"), { key: "treepage-projectmask", value: cbx.value }, function (data) {
-                   
+
                   reload();
 
               });
@@ -593,6 +546,99 @@
         applyAccordion(tree);
       }
 
+
+
+
+    document.querySelectorAll('#tree1 details').forEach(details => {
+        details.addEventListener('click', e => {
+
+        // zabráníme tomu, aby click na <summary> probublal dvakrát
+        // (summary má vlastní default chování)
+        if (e.target.tagName.toLowerCase() === 'summary') {
+          return;
+        }
+
+        const leafLink = e.target.closest('a[data-id]');
+        if (leafLink && details.contains(leafLink)) {
+            const pid = leafLink.dataset.id ?? null;
+            const prefix = leafLink.dataset.prefix ?? null;
+            const text = leafLink.textContent.trim();
+
+            leftgrid_handle_rowselect(pid);
+
+            return;
+        }
+
+
+      });
+    });
+
+
+
+    ///složité
+          function leftgrid_handle_rowselect(pid) {
+              // if (_pid == "0" && pid != "0")  //ošetřit situaci, kdy stránka záznamu nemá vybraný záznam s hodnotou _pid
+              // {
+              //     _pid = pid;
+              //     reload();
+              //     return;
+              // }
+
+              var url = $("#fra_subgrid").attr("src");
+
+              var tabs = $(".nav-link.text-dark");
+              for (var i = 0; i < tabs.length; i++) {
+                  url = $(tabs[i]).attr("href");
+                  alert(url);
+
+                  if (url.indexOf("caller") == -1) {
+                      url = url + "&caller=grid";     //donutit cílovou stránku, aby si uložila naposledy navštívený záznam
+                  }
+
+                  
+
+
+                  url = url.replaceAll("pid=" + _pid, "pid=" + pid);
+
+
+                  $(tabs[i]).attr("href", url);
+
+                  
+
+                  if ($(tabs[i]).hasClass("active")) {
+                      $("#fra_subgrid").attr("src", url);
+
+                  }
+              }
+
+              if (tabs.length == 1) {
+                  url = url.replaceAll("pid=" + _pid, "pid=" + pid);
+                  $(tabs[0]).attr("href", url);
+                  $("#fra_subgrid").attr("src", url);
+              }
+
+              if (document.getElementById("linkGo2Grid")) {
+                  url = $("#linkGo2Grid").attr("href");
+                  if (url != null) {
+                      url = url.replaceAll("pid=" + _pid, "pid=" + pid);
+                  }
+
+                  $("#linkGo2Grid").attr("href", url);
+              }
+
+              if (document.getElementById("linkMainTab"))
+              {
+                  url = $("#linkMainTab").attr("href");
+                  url = url.replaceAll("pid=" + _pid, "pid=" + pid);
+                  $("#linkMainTab").attr("href", url);
+              }
+
+
+              _pid = pid;
+
+              handle_render_tabs(_pid);
+
+          }
 
 
 </script>
