@@ -28,16 +28,6 @@ namespace UI.Models
         public p31TabQueryViewModel p31tabquery { get; set; }   //filtrování podle formátu aktivit v horním pruhu
         public TheGridQueryViewModel TheGridQueryButton { get; set; }   //pojmenovaný filtr
 
-        public string entity
-        {
-            get
-            {
-                if (_entity == null)
-                {
-                    _entity = BO.Code.Entity.GetEntity(this.prefix);
-                }
-                return _entity;
-            }
-        }
+        
     }
 }

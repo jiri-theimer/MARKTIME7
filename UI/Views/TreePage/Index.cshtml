@@ -13,6 +13,9 @@
 @addTagHelper *, UI
 
 <style>
+    a.nav-link{
+        cursor:pointer;
+    }
     .tree-hit-summary {
         background: #fff3cd;
     }
@@ -71,14 +74,9 @@
 
 
 
-    @if (_f.CurrentUser.IsApprovingPerson && (Model.prefix == "p28" || Model.prefix == "p41" || Model.prefix == "le5" || Model.prefix == "le4" || Model.prefix == "le3" || Model.prefix == "p56" || Model.prefix == "j02"))
-    {
-
-        <div>
-            <a class="btn descreet_link_over_grid" href="javascript:tg_approve()" title="Schválit/Vyúčtovat vybrané, klávesová zkratka: Alt+R"><span class="material-icons-outlined-btn" style="color:green;">approval</span></a>
-        </div>
-
-    }
+    <div>
+        <a class="btn descreet_link_over_grid" href="javascript:tg_approve()" title="Schválit/Vyúčtovat vybrané, klávesová zkratka: Alt+R"><span class="material-icons-outlined-btn" style="color:green;">approval</span></a>
+    </div>
 
     <div>
         <myshowmore></myshowmore>
@@ -113,7 +111,7 @@
 @Html.Raw("<div id='splitter_panel2'>")
 
 
-<div class="tabs_container bg@(Model.prefix)">
+<div class="tabs_container bgp41">
     <ul id="navtabs" class="nav nav-tabs">
         <li style="padding-top:6px;">
             <a id="cmdRCM" class="cm" onclick="rcm_from_tabs(event)" title="MENU"><span class="material-icons-outlined">menu</span></a>
@@ -121,7 +119,7 @@
         @foreach (var tab in Model.NavTabs)
         {
             <li class="nav-item onetab">
-                <a class="@tab.CssClass" id="tab@(tab.Entity)" href="@tab.Url" target="fra_subgrid" onclick="tabclick(this)" title="@tab.Tooltip">
+                <a class="@tab.CssClass" id="tabp41Project" href="@tab.Url" target="fra_subgrid" onclick="tabclick(this)" title="@tab.Tooltip">
                     @Html.Raw(tab.Name)
                     @if (tab.Badge != null)
                     {
@@ -195,7 +193,7 @@
           let _inicializace=true;
           let _offcanvasIsLoaded = false;
           var _groupby="@Model.groupby";
-          var _entity = "@Model.entity";
+          
           var _pid = "@Model.pid";
 
           var _currentloadingtabs = false;
