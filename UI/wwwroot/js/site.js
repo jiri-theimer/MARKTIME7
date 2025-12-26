@@ -1271,6 +1271,16 @@ function _p31_new_from_everywhere()
 
 
     }
+    if (window.location.href.indexOf("TreePage") > 0)
+    {
+        var p41id = $("#pid").val();
+        var url = "/p31/Record?pid=0&newrec_prefix=p41&newrec_pid=" + p41id;
+        
+        _window_open(url, 3);
+        return;
+
+    }
+
 
     _window_open("/p31/Record?pid=0", 3);
 }

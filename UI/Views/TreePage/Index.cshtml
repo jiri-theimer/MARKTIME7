@@ -244,6 +244,8 @@
 </div>
 
 
+<input type="hidden" asp-for="pid" />
+
 <script type="text/javascript">
           let _inicializace=true;
           let _offcanvasIsLoaded = false;
@@ -704,6 +706,7 @@
                 leaf.classList.add("active");
 
               _pid = pid;
+              $("#pid").val(pid);
 
               handle_render_tabs(_pid);
 
