@@ -640,7 +640,7 @@
                 <td></td>
                 <td style="padding:10px;">
                     <h6>
-                        <a id="linkAdminOneWebPage" class="locallink" href="/Admin/Page?area=mails&prefix=x40">
+                        <a id="linkAdminOutbox" class="locallink" href="/Admin/Page?area=mails&prefix=x40">
                             <span class="material-icons-outlined-btn">outbox</span>
                             OUTBOX
                         </a>
@@ -824,6 +824,13 @@
 
     if (url.indexOf("dayline") > 0) {
         $("#linkDayline").addClass("active");
+    }
+
+    if (url.indexOf("p12") > 0) {
+        $("#linkP12").addClass("active");
+    }
+    if (url.indexOf("p11") > 0) {
+        $("#linkP11").addClass("active");
     }
 
     if (url.indexOf("p51") > 0) {

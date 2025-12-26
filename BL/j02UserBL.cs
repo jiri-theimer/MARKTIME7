@@ -133,7 +133,7 @@ namespace BL
 
         public string GetDefaultMenuLinks()
         {
-            return "dashboard|p31calendar|p31dayline|approving|p31totals|absence|p41|p28|p91|p56|x31|j02|p31grid|admin";
+            return "dashboard|p31calendar|p31dayline|approving|p31totals|absence|p41|treepage|p28|p91|p56|x31|j02|p31grid|admin";
         }
        
         
