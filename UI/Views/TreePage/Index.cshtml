@@ -31,6 +31,46 @@
         border: solid 1px var(--oznaceno) !important;
         border-radius:4px;
     }
+
+
+    .search-wrapper {
+        max-width: 320px;
+    }
+
+        .search-wrapper input {
+            transition: box-shadow .2s ease, border-color .2s ease;
+        }
+
+            /* zvýraznění při vstupu */
+            .search-wrapper input:focus {
+                border-color: #86b7fe;
+                box-shadow: 0 0 0 .2rem rgba(13,110,253,.25);
+            }
+
+    /* clear button */
+    .btn-clear {
+        position: absolute;
+        top: 50%;
+        right: 10px;
+        transform: translateY(-50%);
+        display: none;
+        padding: 0 6px;
+        line-height: 1;
+        color: #888;
+        background: transparent;
+        border: none;
+    }
+
+    /* zobrazit při hover nebo focus */
+    .search-wrapper:hover .btn-clear,
+    .search-wrapper input:not(:placeholder-shown) + .btn-clear {
+        display: block;
+    }
+
+    .btn-clear:hover {
+        color: #000;
+        cursor: pointer;
+    }
 </style>
 
 
@@ -103,7 +143,20 @@
 
 @Html.Raw("<div id='splitter_panel1'>")
 
-<input type="text" oninput="searchTree(this)" class="form-control" placeholder="@_f.tra("Najít")..." />
+<div class="search-wrapper position-relative">
+    <input type="text"
+           id="treeSearch"
+           oninput="searchTree(this)"
+           class="form-control pe-5"
+           placeholder="@_f.tra("Najít")..." />
+
+    <button type="button"
+            class="btn btn-sm btn-clear"
+            onclick="clearTreeSearch()"
+            aria-label="Clear">
+        ✕
+    </button>
+</div>
 
 <div id="tree1" class="treeds p-3">
     @await Html.PartialAsync("~/Views/Shared/_TreeDsRenderHelper.cshtml", Model.lisTreeNodes)
@@ -177,10 +230,7 @@
         <br />
         <input type="radio" asp-for="@Model.groupby" id="opg5" value="p51" onchange="reload_setting(this)" />
         <label for="opg5">@_f.tra("Ceník fakturačních sazeb")</label>
-        <br />
-        <input type="radio" asp-for="@Model.groupby" id="opg6" value="p61" onchange="reload_setting(this)" />
-        <label for="opg6">@_f.tra("Klastr aktivit")</label>
-        <br />
+        
 
         <hr />
         <div style="padding:20px;">
@@ -426,7 +476,7 @@
                        internalChange = false;
 
                        //otevření větve
-                       _notify_message("open");
+                       
 
                    }
                    else
@@ -693,6 +743,29 @@
             behavior: "smooth",
             block: "center"
         });
+    }
+
+
+
+
+
+
+
+
+    function clearTreeSearch() {
+        const input = document.getElementById("treeSearch");
+        input.value = "";
+        input.focus();
+
+        // reset stromu
+        const tree = document.getElementById("tree1");
+        if (!tree) return;
+
+        tree.querySelectorAll(".bg-warning, .bg-info").forEach(el =>
+            el.classList.remove("bg-warning", "bg-info")
+        );
+
+        tree.querySelectorAll("details").forEach(d => d.open = false);
     }
 
 </script>
