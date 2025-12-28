@@ -34,7 +34,7 @@
 
 
     .search-wrapper {
-        max-width: 320px;
+        max-width: 220px;
     }
 
         .search-wrapper input {
@@ -54,7 +54,7 @@
         right: 10px;
         transform: translateY(-50%);
         display: none;
-        padding: 0 6px;
+        padding: 0px;
         line-height: 1;
         color: #888;
         background: transparent;
@@ -92,6 +92,25 @@
         </li>
 
     </ul>
+
+    <div>
+        <div class="search-wrapper position-relative">
+            <input type="text"
+                   id="treeSearch"
+                   oninput="searchTree(this)"
+                   onfocus="this.select()"
+                   class="form-control pe-5"
+                   placeholder="@_f.tra("Najít")..." />
+
+            <button type="button"
+                    class="btn-clear"
+                    tabindex="-1"
+                    onclick="clearTreeSearch()"
+                    aria-label="Clear">
+                ✕
+            </button>
+        </div>
+    </div>
 
 
     @if (Model.TheGridQueryButton != null)
@@ -143,20 +162,7 @@
 
 @Html.Raw("<div id='splitter_panel1'>")
 
-<div class="search-wrapper position-relative">
-    <input type="text"
-           id="treeSearch"
-           oninput="searchTree(this)"
-           class="form-control pe-5"
-           placeholder="@_f.tra("Najít")..." />
 
-    <button type="button"
-            class="btn btn-sm btn-clear"
-            onclick="clearTreeSearch()"
-            aria-label="Clear">
-        ✕
-    </button>
-</div>
 
 <div id="tree1" class="treeds p-3">
     @await Html.PartialAsync("~/Views/Shared/_TreeDsRenderHelper.cshtml", Model.lisTreeNodes)
@@ -503,113 +509,108 @@
            }
 
 
-    function searchTree(txt) {
-        const query = (txt.value || "").trim();
-        const tree = document.querySelector("#tree1");
-        if (!tree) return;
+        function searchTree(txt) {
+      const query = (txt?.value || "").trim();
+      const tree = document.querySelector("#tree1");
+      if (!tree) return;
 
-        const allDetails = Array.from(tree.querySelectorAll("details.branch"));
+      const allDetails = Array.from(tree.querySelectorAll("details.branch"));
 
-        // Bootstrap 5.2: zvýraznění řešíme přes vlastní classy (bg-*-subtle nejsou v 5.2)
-        const CLS_SUMMARY = "tree-hit-summary";
-        const CLS_LEAF = "tree-hit-leaf";
+      const CLS_SUMMARY = "tree-hit-summary";
+      const CLS_LEAF = "tree-hit-leaf";
 
-        function resetAll() {
-          allDetails.forEach(d => {
-            d.open = false;
+      const summaryByDetail = new Map();
+      const parentByDetail = new Map();
 
-            d.querySelector("summary")?.classList.remove(CLS_SUMMARY);
+      allDetails.forEach(d => {
+        summaryByDetail.set(d, d.querySelector(":scope > summary"));
+        parentByDetail.set(d, d.parentElement?.closest("details.branch") || null);
+      });
 
-            d.querySelectorAll(".leaf a.nav-link").forEach(a => {
-              a.classList.remove(CLS_LEAF);
-            });
+      function clearHighlightsOnly() {
+        allDetails.forEach(d => {
+          summaryByDetail.get(d)?.classList.remove(CLS_SUMMARY);
+          d.querySelectorAll(":scope > .leaf a.nav-link").forEach(a => a.classList.remove(CLS_LEAF));
+        });
+      }
+
+      function resetAll() {
+        clearHighlightsOnly();
+        allDetails.forEach(d => (d.open = false));
+      }
+
+      function markAndOpenAncestors(detail, set) {
+        let cur = detail;
+        while (cur) {
+          if (set.has(cur)) break;
+          set.add(cur);
+          cur.open = true;
+          cur = parentByDetail.get(cur);
+        }
+      }
+
+      if (query.length < 3) {
+        resetAll();
+        return;
+      }
+
+      clearHighlightsOnly();
+
+      const q = query.toLowerCase();
+      const hasMatchInSubtree = new Set();
+
+      let firstHitElement = null;   // 👈 PRVNÍ NALEZENÁ POLOŽKA
+
+      // 1) hledání
+      allDetails.forEach(d => {
+        const summary = summaryByDetail.get(d);
+
+        const summaryText = (summary?.textContent || "").toLowerCase();
+        const summaryMatch = summaryText.includes(q);
+
+        if (summaryMatch) {
+          summary.classList.add(CLS_SUMMARY);
+          markAndOpenAncestors(d, hasMatchInSubtree);
+
+          if (!firstHitElement) firstHitElement = summary;
+        }
+
+        d.querySelectorAll(":scope > .leaf a.nav-link").forEach(a => {
+          if ((a.textContent || "").toLowerCase().includes(q)) {
+            a.classList.add(CLS_LEAF);
+            markAndOpenAncestors(d, hasMatchInSubtree);
+
+            if (!firstHitElement) firstHitElement = a;
+          }
+        });
+      });
+
+      // 2) zavření nerelevantních větví
+      allDetails.forEach(d => {
+        if (!hasMatchInSubtree.has(d)) d.open = false;
+      });
+
+      // 3) accordion po úrovních
+      function applyAccordion(container) {
+        const children = Array.from(container.querySelectorAll(":scope > details.branch"));
+        children.forEach(ch => {
+          ch.open = hasMatchInSubtree.has(ch);
+          if (ch.open) applyAccordion(ch);
+        });
+      }
+      applyAccordion(tree);
+
+      // 4️⃣ AUTOSCROLL NA PRVNÍ VÝSLEDEK
+      if (firstHitElement) {
+        requestAnimationFrame(() => {
+          firstHitElement.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
           });
-        }
-
-        function openParents(el) {
-          let parent = el.parentElement.closest("details");
-          while (parent) {
-            parent.open = true;
-            parent = parent.parentElement.closest("details");
-          }
-        }
-
-        // krátký dotaz => reset
-        if (query.length < 3) {
-          resetAll();
-          return;
-        }
-
-        // před hledáním odznač highlight (nezavíráme hned, ať to nebliká)
-        allDetails.forEach(d => {
-          d.querySelector("summary")?.classList.remove(CLS_SUMMARY);
-          d.querySelectorAll(".leaf a.nav-link").forEach(a => a.classList.remove(CLS_LEAF));
         });
-
-        const q = query.toLowerCase();
-        const hasMatchInSubtree = new Set();
-
-        // 1) match v summary + leaf linkách
-        allDetails.forEach(d => {
-          const summary = d.querySelector("summary");
-          const summaryText = (summary?.textContent || "").toLowerCase();
-          const summaryMatch = summaryText.includes(q);
-
-          if (summaryMatch) {
-            summary?.classList.add(CLS_SUMMARY);
-            hasMatchInSubtree.add(d);
-            // (nechceme nutně otevírat jen kvůli summary match, ale většinou je to žádoucí)
-            d.open = true;
-            openParents(d);
-          }
-
-          let anyLeafMatch = false;
-          d.querySelectorAll(".leaf a.nav-link").forEach(a => {
-            const t = (a.textContent || "").toLowerCase();
-            const isMatch = t.includes(q);
-            if (isMatch) {
-              anyLeafMatch = true;
-              a.classList.add(CLS_LEAF);
-            }
-          });
-
-          if (anyLeafMatch) {
-            hasMatchInSubtree.add(d);
-            d.open = true;
-            openParents(d);
-          }
-        });
-
-        // 2) propagace match nahoru kvůli vnořeným <details>
-        // (když match je v hlubší větvi, otevři i předky)
-        allDetails.forEach(d => {
-          if (hasMatchInSubtree.has(d)) return;
-
-          const descendantMatch = Array.from(d.querySelectorAll("details"))
-            .some(cd => hasMatchInSubtree.has(cd));
-
-          if (descendantMatch) {
-            hasMatchInSubtree.add(d);
-            d.open = true;
-            openParents(d);
-          }
-        });
-
-        // 3) zavři nerelevantní větve
-        allDetails.forEach(d => {
-          if (!hasMatchInSubtree.has(d)) d.open = false;
-        });
-
-        // 4) accordion po úrovních: nech otevřené jen větve s výsledkem
-        function applyAccordion(container) {
-          const children = Array.from(container.querySelectorAll(":scope > details.branch"));
-          children.forEach(ch => {
-            ch.open = hasMatchInSubtree.has(ch);
-            if (ch.open) applyAccordion(ch);
-          });
-        }
-        applyAccordion(tree);
+      }
     }
+
 
 
 

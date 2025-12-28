@@ -869,7 +869,7 @@ namespace BO
                     break;
             }
 
-            if (s != null)
+            if (s != null && 1==2)
             {
                 switch (this.Prefix)
                 {

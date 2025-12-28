@@ -92,9 +92,18 @@ namespace DL
                 {
                     mq.global_d2 = new DateTime(3000, 1, 1);
                 }
-                 
-                ret.Parameters4DT.Add(new DL.Param4DT() { ParName = "p31date1", ParValue = mq.global_d1, ParamType = "datetime" });
-                ret.Parameters4DT.Add(new DL.Param4DT() { ParName = "p31date2", ParValue = mq.global_d2, ParamType = "datetime" });                
+                if (ret.Parameters4DT == null)
+                {
+                    strPrimarySql= strPrimarySql.Replace("@p31date1",BO.Code.Bas.GD(mq.global_d1));
+                    strPrimarySql = strPrimarySql.Replace("@p31date2", BO.Code.Bas.GD(mq.global_d2));
+                }
+                else
+                {
+                    ret.Parameters4DT.Add(new DL.Param4DT() { ParName = "p31date1", ParValue = mq.global_d1, ParamType = "datetime" });
+                    ret.Parameters4DT.Add(new DL.Param4DT() { ParName = "p31date2", ParValue = mq.global_d2, ParamType = "datetime" });
+                }
+
+                                    
 
             }
             //if (strPrimarySql.Contains("@d1") && ret.Parameters4DT.Where(p=>p.ParName=="d1").Count()==0)

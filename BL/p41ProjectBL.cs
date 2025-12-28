@@ -148,6 +148,7 @@ namespace BL
         {
            
             DL.FinalSqlCommand fq = DL.basQuery.GetFinalSql(GetSQL1(null, mq.TopRecordsOnly, null, ischangelog), mq, _mother.CurrentUser);
+            
             return _db.GetList<BO.p41Project>(fq.FinalSql, fq.Parameters);
         }
 
