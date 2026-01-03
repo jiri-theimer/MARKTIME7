@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Linq;
+﻿
 
 namespace BL
 {
@@ -155,6 +152,12 @@ namespace BL
                     of.SourceSql = "select * from x67EntityRole where x67Entity='p28'";
                     of.SqlWrapper = "EXISTS(select xb.p28ID FROM x69EntityRole_Assign xa INNER JOIN p28Contact xb ON xa.x69RecordPid=xb.p28ID WHERE #filter# AND xb.p28ID=a.p28ID)";
 
+                    of = AF("p28Contact", "StitkyKontaktu", "xa.o51ID", "Štítky", "o51Tag", null, "multi");
+                    of.SourceSql = "select xxa.* from o51Tag xxa INNER JOIN o53TagGroup xxb ON xxa.o53ID=xxb.o53ID where xxb.o53Entities LIKE '%p28%'";
+                    of.SqlWrapper = "EXISTS(select xa.o52RecordPid FROM o52TagBinding xa INNER JOIN o51Tag xb ON xa.o51ID=xb.o51ID INNER JOIN o53TagGroup xc ON xb.o53ID=xc.o53ID WHERE #filter# AND xa.o52RecordPid=a.p28ID AND xc.o53Entities LIKE '%p28%')";
+
+
+
                     of = AF("p28Contact", "ExistOtevreneProjekty", "a.p28ID", "Existují otevřené projekty", null, null, "bool");
                     of.SqlWrapper = "select p28ID_Client FROM p41Project WHERE p28ID_Client IS NOT NULL AND GETDATE() BETWEEN p41ValidFrom AND p41ValidUntil";
 
@@ -199,6 +202,12 @@ namespace BL
                     of.IsOfferPersonsAdd = true;
                     of.SourceSql = "select * from x67EntityRole where x67Entity='p41'";
                     of.SqlWrapper = "EXISTS(select xb.p41ID FROM x69EntityRole_Assign xa INNER JOIN p41Project xb ON xa.x69RecordPid=xb.p41ID WHERE #filter# AND xb.p41ID=a.p41ID)";
+
+
+                    of = AF("p41Project", "StitkyProjektu", "xa.o51ID", "Štítky", "o51Tag",null, "multi");                    
+                    of.SourceSql = "select * from o51Tag xxa INNER JOIN o53TagGroup xxb ON xxa.o53ID=xxb.o53ID where xxb.o53Entities LIKE ='%p41%'";
+                    of.SqlWrapper = "EXISTS(select xa.o52RecordPid FROM o52TagBinding xa INNER JOIN o51Tag xb ON xa.o51ID=xb.o51ID WHERE #filter# AND xa.o52RecordPid=a.p41ID)";
+
 
                     AF("p41Project", "MajiOpakovaneOdmeny", "EXISTS (SELECT 1 FROM p40WorkSheet_Recurrence WHERE p41ID=a.p41ID)", "Projekty s opakovanou odměnou", null, null, "bool1x");
                     AF("p41Project", "MajiOtevreneUkoly", "EXISTS (SELECT 1 FROM p56Task WHERE p41ID=a.p41ID AND GETDATE() BETWEEN p56ValidFrom AND p56ValidUntil)", "Projekty s otevřenými úkoly", null, null, "bool1x");

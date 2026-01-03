@@ -148,6 +148,8 @@ namespace BL
 
             
             oc = AF("TagsHtml", "Štítky", "p41_o54x.o54InlineHtml"); oc.RelSqlInCol = "LEFT OUTER JOIN o54TagBindingInline p41_o54x ON a.p41ID=p41_o54x.o54RecordPid AND p41_o54x.o54RecordEntity='p41'";oc.IsNotUseP31TOTALS = true;oc.SqlExplicitGroupBy = "p41_o54x.o54InlineText";
+            //oc = AF("TagsText", "Štítky (pouze text)", "p41_o54x.o54InlineText"); oc.RelSqlInCol = "LEFT OUTER JOIN o54TagBindingInline p41_o54x ON a.p41ID=p41_o54x.o54RecordPid AND p41_o54x.o54RecordEntity='p41'"; oc.IsNotUseP31TOTALS = true; oc.SqlExplicitGroupBy = "p41_o54x.o54InlineText";
+
             oc = AF("VlastnikProjektu", "Vlastník záznamu", "p41_j02owner.j02Name"); oc.RelSqlInCol = "LEFT OUTER JOIN j02User p41_j02owner ON a.j02ID_Owner=p41_j02owner.j02ID";
             oc = AF("RowColor", "Barva", "convert(char(1),a.p41RowColorFlag)");
 
