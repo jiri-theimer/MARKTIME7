@@ -205,8 +205,8 @@ namespace BL
 
 
                     of = AF("p41Project", "StitkyProjektu", "xa.o51ID", "Štítky", "o51Tag",null, "multi");                    
-                    of.SourceSql = "select * from o51Tag xxa INNER JOIN o53TagGroup xxb ON xxa.o53ID=xxb.o53ID where xxb.o53Entities LIKE ='%p41%'";
-                    of.SqlWrapper = "EXISTS(select xa.o52RecordPid FROM o52TagBinding xa INNER JOIN o51Tag xb ON xa.o51ID=xb.o51ID WHERE #filter# AND xa.o52RecordPid=a.p41ID)";
+                    of.SourceSql = "select * from o51Tag xxa INNER JOIN o53TagGroup xxb ON xxa.o53ID=xxb.o53ID where xxb.o53Entities LIKE ='%p41%'";                    
+                    of.SqlWrapper = "EXISTS(select xa.o52RecordPid FROM o52TagBinding xa INNER JOIN o51Tag xb ON xa.o51ID=xb.o51ID INNER JOIN o53TagGroup xc ON xb.o53ID=xc.o53ID WHERE #filter# AND xa.o52RecordPid=a.p41ID AND xc.o53Entities LIKE '%p41%')";
 
 
                     AF("p41Project", "MajiOpakovaneOdmeny", "EXISTS (SELECT 1 FROM p40WorkSheet_Recurrence WHERE p41ID=a.p41ID)", "Projekty s opakovanou odměnou", null, null, "bool1x");

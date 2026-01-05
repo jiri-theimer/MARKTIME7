@@ -291,7 +291,8 @@
         _splitter_init("1", _pageprefix);
         var key = _pageprefix + "_panel1_size";
         var defHeight = localStorage.getItem(key);
-        if (defHeight == null) {
+        if (defHeight == null || Math.floor(defHeight)+200>_device.innerHeight)
+        {            
             defHeight = Math.floor(_device.innerHeight / 2);
             localStorage.setItem(key, defHeight);
         }

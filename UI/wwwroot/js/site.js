@@ -975,7 +975,7 @@ function _splitter_init(splitterLayout, prefix) {    //splitterLayout 1 - horní
             }
 
 
-            _notify_message("Velikost panelu ukládám do vašeho profilu.<hr>" + key + ": " + panel1_size + "px", "info");
+            //_notify_message("Velikost panelu ukládám do vašeho profilu.<hr>" + key + ": " + panel1_size + "px", "info");
             localStorage.setItem(key, panel1_size);
 
             if (document.getElementById("tabgrid1")) {
