@@ -49,7 +49,12 @@ namespace API.Controllers
                     return BadRequest("Chybné heslo nebo login.");
                 }
 
-             
+                bool bolPermanentToken = false;
+                if (f.Lic.x01LoginDomain == "xplegal.cz")
+                {
+                    bolPermanentToken = true;   //token na jeden rok, výchozí hodnota je 1 den
+                    BO.Code.File.LogInfo($"{f.CurrentUser.j02Login}, bolPermanentToken=true, platnost tokenu je 1 rok.");
+                }
 
                 var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("Toto je super tajný klíč k API v aplikaci MARKTIME"));
                 var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
@@ -57,10 +62,10 @@ namespace API.Controllers
                     issuer: "MARKTIME",
                     audience: "https://localhost:7003",
                     claims: new List<Claim>() { new Claim("login", login) },    //uložit login do claims tokenu
-                    expires: DateTime.Now.AddMinutes(1000),
+                    expires: (bolPermanentToken ? DateTime.Now.AddYears(1) : DateTime.Now.AddDays(1)),
                     signingCredentials: signinCredentials
                 );
-
+                
                 var strToken = new JwtSecurityTokenHandler().WriteToken(token);
 
 
