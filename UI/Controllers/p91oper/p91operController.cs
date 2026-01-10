@@ -645,14 +645,19 @@ namespace UI.Controllers
         {
             v.lisP91 = Factory.p91InvoiceBL.GetList(new BO.myQueryP91() { pids = BO.Code.Bas.ConvertString2ListInt(v.pids) });
             
-            if (v.SelectedP92ID == 0)
+            if (v.SelectedP92ID == 0 && v.lisP91 !=null && v.lisP91.Count()>0)
             {
                 v.SelectedP92ID = v.lisP91.First().p92ID;
             }
             v.lisP92 = Factory.p92InvoiceTypeBL.GetList(new BO.myQuery("p92"));
             v.RecP92 = Factory.p92InvoiceTypeBL.Load(v.SelectedP92ID);
-            v.RecP93 = Factory.p93InvoiceHeaderBL.Load(v.RecP92.p93ID);
-            v.RecX38 = Factory.x38CodeLogicBL.Load(v.RecP92.x38ID);
+            if (v.RecP92 != null)
+            {
+                v.RecP93 = Factory.p93InvoiceHeaderBL.Load(v.RecP92.p93ID);
+                v.RecX38 = Factory.x38CodeLogicBL.Load(v.RecP92.x38ID);
+            }
+            
+            
 
         }
         [HttpPost]        

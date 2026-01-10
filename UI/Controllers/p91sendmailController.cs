@@ -42,19 +42,24 @@ namespace UI.Controllers
                 {
                     rec.j61ID = recP28.j61ID_Invoice;
                 }
-                BO.p92InvoiceType recP92 = null;
-                if (recP28.p92ID > 0)
+                BO.p92InvoiceType recP92 = Factory.p92InvoiceTypeBL.Load(c.p92ID);
+                if (recP92 == null)
                 {
-                    recP92 = Factory.p92InvoiceTypeBL.Load(recP28.p92ID);
-                }
-                if (c.p41ID_First > 0)
-                {
-                    var recP41 = Factory.p41ProjectBL.Load(c.p41ID_First);
-                    if (recP41.p92ID > 0)
+                    if (recP28.p92ID > 0)
                     {
-                        recP92 = Factory.p92InvoiceTypeBL.Load(recP41.p92ID);
+                        recP92 = Factory.p92InvoiceTypeBL.Load(recP28.p92ID);
+                    }
+
+                    if (c.p41ID_First > 0)
+                    {
+                        var recP41 = Factory.p41ProjectBL.Load(c.p41ID_First);
+                        if (recP41.p92ID > 0)
+                        {
+                            recP92 = Factory.p92InvoiceTypeBL.Load(recP41.p92ID);
+                        }
                     }
                 }
+                
                 if (recP92 != null)
                 {
                     rec.x31ID_Invoice = recP92.x31ID_Invoice;
