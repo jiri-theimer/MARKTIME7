@@ -200,7 +200,15 @@ namespace BL
 
             oc=AF("p41Plan_Revenue", "Plán fakturace", "a.p41Plan_Revenue", "num", true);oc.IHRC = true;
             oc = AF("p41Plan_Internal_Fee", "Plán nákl.honoráře", "a.p41Plan_Internal_Fee", "num", true);oc.VYSL = true;
-            oc = AF("PlanCenaMinusNakladovyHonorar", "Nákl.hon. - Plán nákl.hon.", "isnull(p41vykony.Honorar_Naklad,0)-a.p41Plan_Internal_Fee", "num", true); oc.RelSqlInCol = strP41VykaSQL;oc.VYSL = true;
+            
+            
+            this.CurrentFieldGroup = "Nákladová cena";
+            oc = AF("NakladovyHonorar", "Nákl.honorář", "p41vykony.Honorar_Naklad", "num", true); oc.VYSL = true;
+            oc = AF("RezijniHonorar", "Režijní honorář", "p41vykony.Honorar_Rezijni", "num", true); oc.VYSL = true;
+            
+            oc = AF("NakladovyHonorarMinusFakturacniHonorar", " Fakt.hon. - Nákl.hon.", "isnull(p41vykony.Honorar,0)-isnull(p41vykony.Honorar_Naklad,0)", "num", true); oc.RelSqlInCol = strP41VykaSQL; oc.VYSL = true;
+            oc = AF("NakladovyHonorarMinusFakturacniHonorar", " Fakt.hon. - Rež.hon.", "isnull(p41vykony.Honorar,0)-isnull(p41vykony.Honorar_Rezijni,0)", "num", true); oc.RelSqlInCol = strP41VykaSQL; oc.VYSL = true;
+
         }
     }
 }

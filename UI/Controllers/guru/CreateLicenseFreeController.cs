@@ -228,6 +228,9 @@ namespace UI.Controllers.guru
                     v.Rec.j27ID = 3;
                 }
 
+
+                SendInfoMail(v);    //zpráva o pokusu o založení nové licence - pro jistotu
+
                 Handle_ImportData(v);
 
                 if (v.DestX01ID > 0)
@@ -273,6 +276,14 @@ namespace UI.Controllers.guru
 
         }
 
+        private void SendInfoMail(CreateLicenseViewModel v)
+        {
+
+            string strTo = "jiri.theimer@marktime.cz";
+            string s = $"E-mail: {v.Email}<hr>Firma: {v.p93Company}<br> IČO: {v.p93RegID}<hr> Jméno: {v.FirstName}<br> Příjmení: {v.LastName}<br> doména: {v.LoginDomainPrefix}<br> Login: {v.LoginName}";
+            _f.MailBL.SendMessageWithoutFactory(s, "Pokus o založení FREE MARKTIME licence",strTo,null, "noreply@marktime.net", "MARKTIME");
+
+        }
         private int Zalozit_Interni_Klient(CreateLicenseViewModel v)
         {
             var rec = new BO.p28Contact() { p28FirstName = v.FirstName,p28LastName=v.LastName, p28IsCompany = false, p28CountryCode = v.Rec.x01CountryCode };

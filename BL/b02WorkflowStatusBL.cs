@@ -55,8 +55,8 @@ namespace BL
             p.AddInt("pid", rec.pid);
             p.AddInt("b01ID", rec.b01ID,true);
             p.AddString("b02Name", rec.b02Name);            
-            p.AddNonBlackColorString("b02Color", rec.b02Color);
-           
+            
+            p.AddString("b02Color", rec.b02Color);
             p.AddInt("b02Ordinary", rec.b02Ordinary);
          
             p.AddBool("b02IsRecordReadOnly4Owner", rec.b02IsRecordReadOnly4Owner);
