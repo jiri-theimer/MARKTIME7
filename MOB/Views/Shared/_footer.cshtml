@@ -1,0 +1,22 @@
+﻿@inject Bas.PageService _ps
+
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+
+
+<footer class="bg-base-200 border-t border-base-300">
+    
+
+    <!-- spodní lišta -->
+    <div class="border-t border-base-300">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col md:flex-row gap-2 justify-between text-xs text-base-content/60">
+            <span>© @(DateTime.Now.Year) @_ps.tra("MARKTIME. Všechna práva vyhrazena.")</span>
+            <span>
+                nějaký odkaz
+            </span>
+        </div>
+    </div>
+</footer>

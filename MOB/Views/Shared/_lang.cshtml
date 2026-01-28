@@ -1,0 +1,33 @@
+﻿@*
+    
+
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+    <option value="de-DE" selected="@(_culture == "de-DE" ? "selected" : null)">de</option>
+    <option value="de-DE" selected="@(_culture == "es-ES" ? "selected" : null)">es</option>
+    <option value="ru-RU" selected="@(_culture == "ru-RU" ? "selected" : null)">ru</option>  
+    <option value="uk-UA" selected="@(_culture == "uk-UA" ? "selected" : null)">ua</option>
+*@
+@{
+
+    var _culture = System.Globalization.CultureInfo.CurrentUICulture.Name;
+    
+}
+
+
+
+<form asp-controller="Culture" asp-action="SaveLang" method="post" class="inline">
+    <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+    <select name="culture" onchange="this.form.submit()" class="select select-sm">
+        <option value="cs-CZ" selected="@(_culture == "cs-CZ" ? "selected" : null)">🇨🇿</option>
+        <option value="sk-SK" selected="@(_culture == "sk-SK" ? "selected" : null)">sk</option>
+        <option value="en-US" selected="@(_culture == "en-US" ? "selected" : null)">en</option>        
+        
+        
+              
+    </select>
+</form>
+
+
+<script>
+
+</script>

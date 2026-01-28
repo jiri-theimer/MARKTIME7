@@ -394,7 +394,7 @@ function _bells() {
 function _news() {
     $.post(_ep("/Home/UpdateNews_Timestamp"), function (data) {
         
-        window.open("https://portal.marktime.net/News/Index", "_blank");
+        window.open("https://www.marktime.cz/novinky", "_blank");
 
     });
 
