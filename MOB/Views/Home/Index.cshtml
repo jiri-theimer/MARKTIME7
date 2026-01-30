@@ -1,8 +1,41 @@
-﻿@inject BL.Factory _f
+﻿@model BO.p31Worksheet
+@inject BL.Factory _f
 
 @{
     ViewData["Title"] = "Home Page";
+
+    var _s = "Bc.,Ing.,JUDr.,PhDr.,MUDr.,MDDr.,RNDr.,ThDr.,PharmDr.,MBA";
+
+
 }
+
+<link rel="stylesheet" href="/lib/flatpickr/flatpickr.min.css" />
+<script src="~/lib/flatpickr/flatpickr.js"></script>
+<script src="~/lib/flatpickr/cs.js"></script>
+
+<script src="~/js/mydatepicker.js" asp-append-version="true"></script>
+<script src="~/js/myautocomplete.js" asp-append-version="true"></script>
+<script src="~/js/mynumber.js" asp-append-version="true"></script>
 
 
 <h1>@_f.App.AppRootFolder</h1>
+
+<mylabel text="Kód dokladu" asp-for="p31Code"></mylabel>
+<myinput asp-for="p31Code"></myinput>
+
+<hr />
+<mylabel text="Text" asp-for="p31Text"></mylabel>
+<mytextarea asp-for="p31Text" placeholder="Text/popis úkonu"></mytextarea>
+
+<hr />
+<mylabel text="Datum" asp-for="p31Date"></mylabel>
+
+<mydatepicker asp-for="p31Date"></mydatepicker>
+
+<hr />
+<myautocomplete asp-for="TimeFrom" placeholder="Čas od" suggestions="@_s"></myautocomplete>
+
+
+<hr />
+<mylabel text="Bez DPH" for="number-p31Amount_WithoutVat_Orig"></mylabel>
+<mynumber asp-for="p31Amount_WithoutVat_Orig" min="-9999999" max="9999999"></mynumber>

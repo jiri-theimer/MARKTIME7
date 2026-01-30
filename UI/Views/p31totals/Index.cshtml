@@ -199,14 +199,14 @@
 <input type="hidden" asp-for="GridColumns" />
 <input type="hidden" asp-for="SelectedJ79ID" />
 
-<button id="cmdMore" type="button" class="btn dropdown-toggle bog">
+<button id="cmdColQuery" type="button" class="btn dropdown-toggle bog">
     <myicon symbol="filter_alt"></myicon>
     Sloupcový filtr
 
 </button>
 
-<div id="divMore" class="card" style="display:none;">
-
+<div id="divColQuery" class="card" style="display:none;">
+    
     <div class="card-body">
 
         <table>
@@ -406,8 +406,10 @@
 
         });
 
-        $("#cmdMore").click(function () {
-            $("#divMore").toggle();
+        $("#cmdColQuery").click(function () {
+            
+            $("#divColQuery").toggle();
+            
         });
 
         $(".addquery").on("keydown", function (event) {
@@ -420,7 +422,7 @@
             var ctl = $(this);
             if ($(ctl).val() != "") {
                 $(ctl).css("background-color", "red");
-                $("#divMore").css("display", "block");
+                $("#divColQuery").css("display", "block");
                 $(ctl).select();
                 $(ctl).focus();
 

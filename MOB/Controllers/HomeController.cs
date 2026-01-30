@@ -6,16 +6,16 @@ namespace MOB.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
-
-        public HomeController(ILogger<HomeController> logger)
+       
+        public HomeController()
         {
-            _logger = logger;
+            
         }
 
         public IActionResult Index()
         {
-            return View();
+            var v = new BO.p31Worksheet() { p31Date = DateTime.Today };
+            return View(v);
         }
 
         public IActionResult Privacy()

@@ -1,0 +1,264 @@
+﻿@model BaseRecordViewModel
+@inject BL.Factory _f
+
+
+
+@{
+
+    var _thisCurrentPage = new CurrentPage() { ispostback = Model.IsPostback, postbackoper = Model.PostbackOper, pagesymbol = Model.PageSymbol, pagetitle = Model.PageTitle };    
+    _thisCurrentPage.messages4notify = _f.CurrentUser.Messages4Notify;
+    string _strJsonMessagesNotify = null;
+    if (_thisCurrentPage.messages4notify != null && _thisCurrentPage.messages4notify.Count() > 0)
+    {
+        _strJsonMessagesNotify = System.Text.Json.JsonSerializer.Serialize(_thisCurrentPage.messages4notify);
+    }
+
+
+
+}
+
+@addTagHelper *, UI
+<!DOCTYPE html>
+<html lang="cs" class="@_thisCurrentPage.j02textsize" data-theme="@_thisCurrentPage.j02theme">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@(Model.PageTitle) | @(_f.App.AppName)</title>
+    <link rel="stylesheet" href="/css/tailwind-daisy-output.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="/css/daisy-themes.min.css" asp-append-version="true" />
+    
+    <link rel="stylesheet" href="/lib/flatpickr/flatpickr.min.css" />
+
+    
+    <link rel="stylesheet" href="/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="/css/mygrid.css" asp-append-version="true" />
+    <link rel="stylesheet" href="/css/contextmenu.css" asp-append-version="true" />
+
+
+    @if (IsSectionDefined("header_content"))
+    {
+        @RenderSection("header_content")
+    }
+
+    <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+</head>
+<body>
+
+    
+
+    <script src="~/lib/flatpickr/flatpickr.js"></script>
+    <script src="~/lib/flatpickr/cs.js"></script>
+
+    <script src="~/js/mycontrols.js" asp-append-version="true"></script>
+    <script src="~/js/app_bas.js" asp-append-version="true"></script>
+    <script src="~/js/app_site.js" asp-append-version="true"></script>
+    <script src="~/js/mygrid.js" asp-append-version="true"></script>
+    <script src="~/js/mycontextmenu.js" asp-append-version="true"></script>
+    <script src="~/js/mynumber.js" asp-append-version="true"></script>
+    <script src="~/js/mymultiselect.js" asp-append-version="true"></script>
+    <script src="~/js/mychecklist.js" asp-append-version="true"></script>
+    <script src="~/js/mycombo.js" asp-append-version="true"></script>
+    <script src="~/js/myautocomplete.js" asp-append-version="true"></script>
+    <script src="~/js/myradiolist.js" asp-append-version="true"></script>
+    <script src="~/js/mydatepicker.js" asp-append-version="true"></script>
+    <script src="~/js/myajaxdropdown.js" asp-append-version="true"></script>
+    <script src="~/js/mysearchbox.js" asp-append-version="true"></script>
+
+
+    <script type="text/javascript">
+
+        var event_form1_beforesave = new CustomEvent("form1_beforesave", { detail: { cancel: false } });
+       
+        @if (Model.Javascript_CallOnLoad != null)
+        {
+                        @Html.Raw(Model.Javascript_CallOnLoad)
+
+
+
+        }
+
+        var _currentpage = JSON.parse('@Html.Raw(System.Text.Json.JsonSerializer.Serialize(_thisCurrentPage))');
+
+        
+
+        document.addEventListener("DOMContentLoaded", function (){
+            
+            
+
+            var jmn='@Html.Raw(_strJsonMessagesNotify)';
+            
+            if (jmn != "")
+            {
+                _notify_messages_from_json(jmn);
+            }
+
+        });
+
+        
+
+
+
+    </script>
+
+    <main role="main" class="m-0 p-0">
+        <kbd id="loading1" class="kbd" style="position:absolute;display:none;left:40%;">Loading...</kbd>
+        <div class="bg-base-300 w-full" style="border-bottom:solid 1px silver">
+            <span class="font-semibold" style="white-space:nowrap;font-size:110%;">
+                @if (Model.rec_entity != null)
+                {
+                    <myicon prefix="@Model.rec_entity.Substring(0, 3)" symbol="@Model.PageSymbol"></myicon>
+                }
+
+                @Model.PageTitle
+
+            </span>
+        </div>
+        
+
+        <form id="form1" asp-controller="@Model.rec_entity" asp-action="@Model.form_action" method="POST" autocomplete="@(_f.CurrentUser.j02AutocompleteFlag==1 ? "on": "off")">
+            <input type="hidden" asp-for="rec_pid" />
+            <input type="hidden" asp-for="rec_entity" />
+            <input type="hidden" asp-for="ActiveTabIndex" />
+            <input type="hidden" asp-for="form_action" />
+            
+            <input type="hidden" asp-for="IsPostback" />
+            <input type="hidden" asp-for="PostbackOper" />
+            <input type="hidden" asp-for="PostbackBylUzKolikrat" />
+
+            <div class="toolbar-box">
+                @Html.EditorFor(m => m.Toolbar, "~/Views/Shared/_MyToolbar.cshtml")
+            </div>
+
+            
+                @RenderBody()
+            
+            
+
+        </form>
+        <div style="margin-top:20px;">
+            @if (Model.rec_pid > 0 && Model.Toolbar != null)
+            {
+                @Html.Raw(Model.Toolbar.getTimeStampHtml(_f))
+
+
+
+
+            }
+            @if (Model.Toolbar != null && Model.Toolbar.AllowArchive)
+            {
+                <button type="button" tabindex="-1" onclick="toolbar_handle_validity(event)" class="btn btn-light btn-sm">@_f.tra("Časová platnost záznamu")</button>
+            }
+            @if (@_f.CurrentUser.IsAdmin && (Model.rec_entity == "p31" || Model.rec_entity == "p41" || Model.rec_entity == "p28" || Model.rec_entity == "p91" || Model.rec_entity == "o23" || Model.rec_entity == "p56"))
+            {
+                <button type="button" tabindex="-1" onclick="_window_open('/ChangeLog/@(Model.rec_entity)?pid=@(Model.rec_pid)')" class="btn btn-light btn-sm">CHANGE-LOG</button>
+            }
+
+        </div>
+    </main>
+
+
+
+
+    <script type="text/javascript">
+
+
+        document.addEventListener("DOMContentLoaded", function (){
+            layoutrecord_document_ready();
+        });
+
+        function layoutrecord_document_ready()
+        {
+
+            document.getElementById("IsPostback").value=false;  //vypnout případný _postback nastavení
+            document.getElementById("PostbackOper").value=null;  //vypnout případný _postback nastavení
+
+
+            _zaver_stranky();
+        }
+
+
+        if (document.getElementsByName("tabs1"))
+        {
+            //na stránce jsou záložky name=tabs1
+            const activeTabIndex = document.getElementById("ActiveTabIndex").value;
+
+            document.querySelectorAll('input[name="tabs1"]').forEach(tab => {
+
+                if (activeTabIndex==tab.value)
+                {
+                // nastavit vybraný tab podle Model.ActiveTabIndex
+                tab.checked=true;
+                }
+
+                tab.addEventListener("change", e => {
+                document.getElementById("ActiveTabIndex").value = tab.value;
+                });
+
+
+
+            });
+        }
+
+
+
+
+        function _postback(oper, ocas) {
+
+            var button = (typeof event !== 'undefined' && event.target) ? event.target : null;
+
+            if (button && button.tagName === "BUTTON") {
+                button.textContent = "Processing...";
+                button.disabled = true;
+            }
+
+
+            // if (event)
+            // {
+            //     let element = event.target;
+            //     if (element.tagName === "SPAN" || element.tagName === "MYICON") {
+            //         element = element.parentElement;
+            //     }
+
+            //     if (element.tagName === "BUTTON") {
+            //         element.textContent = "Processing...";
+            //         element.setAttribute("disabled", "true");
+            //     }
+            // }
+
+            
+            $$("#loading1").css("display","block");
+
+            // Nastavení hidden políček
+            const isPostback = document.getElementById("IsPostback");
+            if (isPostback) isPostback.value = true;
+
+            if (typeof oper === "undefined") oper = "";
+            if (typeof ocas === "undefined" || ocas === null) ocas = "";
+
+            const postbackOper = document.getElementById("PostbackOper");
+            if (postbackOper) postbackOper.value = oper;
+
+            if (ocas !== "")
+            {
+                form1.action = form1.action + "?" + ocas;
+            }
+
+            const postbackKolikrat = document.getElementById("PostbackBylUzKolikrat");
+            if (postbackKolikrat)
+            {
+                postbackKolikrat.value = parseInt(postbackKolikrat.value || "0") + 1;
+            }
+
+            if (typeof form1 !== "undefined")
+            {
+                form1.submit();
+            }
+        }
+
+
+
+        
+
+    </script>
+</body>
+</html>
