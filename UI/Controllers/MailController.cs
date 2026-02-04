@@ -153,7 +153,7 @@ namespace UI.Controllers
                 {
                     var recX31 = Factory.x31ReportBL.Load(recP92.x31ID_Invoice);
                     var cc = new TheReportSupport();
-                    cc.GeneratePdfReport(Factory, null, recX31, v.UploadGuid, recP84.p91ID, true, 0, null, null, false);  //pdf vygenerováno do temp složky
+                    cc.GeneratePdfReport(Factory, null, recX31, v.UploadGuid, recP84.p91ID, true, 0, null, null,false);  //pdf vygenerováno do temp složky
 
                 }
             }
@@ -201,7 +201,7 @@ namespace UI.Controllers
                             cc.PfxPath = $"{Factory.WwwUsersFolder}\\PLUGINS\\{recP93.p93PfxCertificate}";  //kvalifikovaný certifikát
                             cc.PfxPassword = recP93.p93PfxPassword;
                         }
-                        bool bolIsDOC = Factory.CBL.LoadUserParamBool("ReportContext-IsIncludeISDOC", false);
+                        bool bolIsDOC = Factory.CBL.LoadUserParamBool("ReportContext-IsIncludeISDOC", false);                        
                         cc.GeneratePdfReport(Factory, null, recX31, v.UploadGuid, recP91.pid, true, 0, null, null, bolIsDOC);  //pdf vygenerováno do temp složky
 
                     }
