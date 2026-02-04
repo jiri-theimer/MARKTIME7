@@ -385,7 +385,7 @@ namespace UI.Controllers
                 var recP91 = Factory.p91InvoiceBL.Load(pid);
                 x31id = Factory.p92InvoiceTypeBL.Load(recP91.p92ID).x31ID_Invoice;
             }
-            if (Factory.CurrentUser.j04IsModule_p91)
+            if (prefix == "p91" && Factory.CurrentUser.j04IsModule_p91)
             {
                 v.IsPfxSignature = Factory.CBL.LoadUserParamBool("ReportContext-IsPfxSignature", false);
                 v.IsIncludeISDOC = Factory.CBL.LoadUserParamBool("ReportContext-IsIncludeISDOC", false);
@@ -845,34 +845,39 @@ namespace UI.Controllers
 
             string s = null;
             var files = new List<string>();
+            bool bolIncludeISDOC = v.IsIncludeISDOC;
 
             if (v.SelectedX31ID > 0)
             {
                 InhalePfxCertificate(v);
-                s = _basRepSup.GeneratePdfReport(Factory, _pp, Factory.x31ReportBL.Load(v.SelectedX31ID), BO.Code.Bas.GetGuid(), v.rec_pid, true, 0, v.p31guid, v.Translate);
+                s = _basRepSup.GeneratePdfReport(Factory, _pp, Factory.x31ReportBL.Load(v.SelectedX31ID), BO.Code.Bas.GetGuid(), v.rec_pid, true, 0, v.p31guid, v.Translate, bolIncludeISDOC);
                 files.Add(s);
+                bolIncludeISDOC = false;
             }
             if (v.MergedX31ID_1 > 0)
             {
                 InhalePfxCertificate(v);
-                s = _basRepSup.GeneratePdfReport(Factory, _pp, Factory.x31ReportBL.Load(v.MergedX31ID_1), BO.Code.Bas.GetGuid(), v.rec_pid, true, 0, v.p31guid, v.Translate);
+                s = _basRepSup.GeneratePdfReport(Factory, _pp, Factory.x31ReportBL.Load(v.MergedX31ID_1), BO.Code.Bas.GetGuid(), v.rec_pid, true, 0, v.p31guid, v.Translate, bolIncludeISDOC);
                 files.Add(s);
+                bolIncludeISDOC = false;
             }
             Factory.CBL.SetUserParam("ReportContext-mergedx31id-1-" + v.rec_prefix, v.MergedX31ID_1.ToString());
 
             if (v.MergedX31ID_2 > 0)
             {
                 InhalePfxCertificate(v);
-                s = _basRepSup.GeneratePdfReport(Factory, _pp, Factory.x31ReportBL.Load(v.MergedX31ID_2), BO.Code.Bas.GetGuid(), v.rec_pid, true, 0, v.p31guid, v.Translate);
+                s = _basRepSup.GeneratePdfReport(Factory, _pp, Factory.x31ReportBL.Load(v.MergedX31ID_2), BO.Code.Bas.GetGuid(), v.rec_pid, true, 0, v.p31guid, v.Translate, bolIncludeISDOC);
                 files.Add(s);
+                bolIncludeISDOC = false;
             }
             Factory.CBL.SetUserParam("ReportContext-mergedx31id-2-" + v.rec_prefix, v.MergedX31ID_2.ToString());
 
             if (v.MergedX31ID_3 > 0)
             {
                 InhalePfxCertificate(v);
-                s = _basRepSup.GeneratePdfReport(Factory, _pp, Factory.x31ReportBL.Load(v.MergedX31ID_3), BO.Code.Bas.GetGuid(), v.rec_pid, true, 0, v.p31guid, v.Translate);
+                s = _basRepSup.GeneratePdfReport(Factory, _pp, Factory.x31ReportBL.Load(v.MergedX31ID_3), BO.Code.Bas.GetGuid(), v.rec_pid, true, 0, v.p31guid, v.Translate, bolIncludeISDOC);
                 files.Add(s);
+                bolIncludeISDOC = false;
             }
             Factory.CBL.SetUserParam("ReportContext-mergedx31id-3-" + v.rec_prefix, v.MergedX31ID_3.ToString());
 
