@@ -10,7 +10,7 @@ namespace UI.Controllers
 {
     public class p91Controller : BaseController
     {
-        public IActionResult PdfPreview(int pid)
+        public IActionResult PdfPreview(int pid,bool isdoc)
         {
             var recP91 = Factory.p91InvoiceBL.Load(pid);
             var recP92 = Factory.p92InvoiceTypeBL.Load(recP91.p92ID);
@@ -19,11 +19,12 @@ namespace UI.Controllers
             
            
             var files = new List<string>();
+            var strGUID = BO.Code.Bas.GetGuid();
 
             if (recP92.x31ID_Invoice > 0)
             {
                 var recX31 = Factory.x31ReportBL.Load(recP92.x31ID_Invoice);
-                var strPath = crep.GeneratePdfReport(Factory, null, recX31, BO.Code.Bas.GetGuid(), pid, true);
+                var strPath = crep.GeneratePdfReport(Factory, null, recX31, strGUID, pid, true,0,null,null,isdoc);
                 BO.Code.File.LogInfo("pdf1: " + strPath);
                 if (strPath != null)
                 {
@@ -58,9 +59,16 @@ namespace UI.Controllers
             MergeDocument doc = new MergeDocument(files[0]);
             doc.Append(files[1]);
 
-            BO.Code.File.LogInfo(doc.EmbeddedFiles.ToString());
+            //BO.Code.File.LogInfo(doc.EmbeddedFiles.ToString());
 
-            return File(doc.Draw(), "application/pdf");
+            //return File(doc.Draw(), "application/pdf");
+
+            var pdfData = doc.Draw();
+
+            var strFileName = BO.Code.File.ConvertToSafeFileName(BO.Code.File.GetFileInfo(files[0]).Name.Replace(strGUID+"_",""));
+            
+            Response.Headers["Content-Disposition"] = $"inline; filename=\"{strFileName}\"";
+            return File(pdfData, "application/pdf");
 
             //doc.Draw($"{Factory.TempFolder}\\{strUploadGuid}_{strFinalRepFileName}");
 

@@ -501,6 +501,9 @@
     function p91pdfpreview(p91id) {
         _window_open("/p91/PdfPreview?pid=" + p91id);
     }
+    function p91pdfisdocpreview(p91id) {
+        _window_open("/p91/PdfPreview?pid=" + p91id+"&isdoc=true");
+    }
     function p91sendmail(p91id) {
         _window_open("/Mail/SendMail?record_entity=p91&record_pid=" + p91id);
     }

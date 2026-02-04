@@ -239,7 +239,7 @@ namespace UI
             ms.Seek(0, System.IO.SeekOrigin.Begin);
 
 
-            string strReportFileName = GetReportExportName(f, recpid, recX31) + ".pdf";            
+            string strReportFileName = GetReportExportName(f, recpid, recX31, include_isdoc) + ".pdf";            
             BO.Code.File.SaveStream2File($"{f.TempFolder}\\{strUploadGuid}_{strReportFileName}", ms);
 
             if (include_isdoc)
@@ -302,7 +302,7 @@ namespace UI
                 //nic
             }
         }
-        public string GetReportExportName(BL.Factory f, int pid, BO.x31Report recX31) //vygeneruje název PDF souboru tiskové sestavy
+        public string GetReportExportName(BL.Factory f, int pid, BO.x31Report recX31,bool isdoc) //vygeneruje název PDF souboru tiskové sestavy
         {
             string s = null;
             string prefix = recX31.x31Entity;
@@ -311,6 +311,10 @@ namespace UI
                 s = f.x31ReportBL.ParseExportFileNameMask(recX31.x31ExportFileNameMask, prefix, pid);
                 if (s != null)
                 {
+                    if (isdoc)
+                    {
+                        s += "_isdoc";
+                    }
                     return s;
                 }
             }
@@ -328,11 +332,15 @@ namespace UI
             {
                 //s = BO.Code.File.PrepareFileName(recX31.x31Name, true);
                 s = BO.Code.File.ConvertToSafeFileName(recX31.x31Name, 200);
+                
             }
             else
             {
-                s = BO.Code.File.ConvertToSafeFileName(s, 200);
-                //s = BO.Code.File.PrepareFileName(s, true);
+                s = BO.Code.File.ConvertToSafeFileName(s, 200);                
+            }
+            if (isdoc)
+            {
+                s += "_isdoc";
             }
             s = s.Replace(".", "");
 

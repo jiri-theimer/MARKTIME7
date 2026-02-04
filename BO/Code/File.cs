@@ -1,10 +1,11 @@
-﻿using System;
+﻿using Microsoft.VisualBasic;
+using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Linq;
 using System.IO;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml.Serialization;
-using Microsoft.VisualBasic;
 
 namespace BO.Code
 {
@@ -91,34 +92,41 @@ namespace BO.Code
             return retVal.ToString().Normalize(System.Text.NormalizationForm.FormC);
         }
 
-        public static string ConvertToSafeFileName(string name,int maxlength=50)
+        public static string ConvertToSafeFileName(string name, int maxLength = 70)
         {
+            if (string.IsNullOrWhiteSpace(name))
+                return string.Empty;
 
-            // first trim the raw string
-            string safe = RemoveDiacritism(name.Trim());
-            
-            // replace spaces with hyphens
-            safe = safe.Replace(" ", "-").Replace("&", "-").ToLower();
-            
-            // replace any 'double spaces' with singles
-            if (safe.IndexOf("--") > -1)
-                while (safe.IndexOf("--") > -1)
-                    safe = safe.Replace("--", "-");
+            // získání přípony (.jpg, .pdf, ...)
+            string extension = Path.GetExtension(name);
 
-            // trim out illegal characters
-            safe = System.Text.RegularExpressions.Regex.Replace(safe, "[^a-z0-9_.\\-]", "");
-            
-            // trim the length
-            if (safe.Length > maxlength)
-                safe = safe.Substring(0, 49);
-            
-            // clean the beginning and end of the filename
+            // název bez přípony
+            string baseName = Path.GetFileNameWithoutExtension(name);
 
-            char[] replace = { '-', '.' };
-            safe = safe.TrimStart(replace);
-            safe = safe.TrimEnd(replace);
-            
-            return safe;
+            string safe = RemoveDiacritism(baseName.Trim()).ToLower();
+
+            // nahrazení mezer a &
+            safe = Regex.Replace(safe, @"[\s&]+", "-");
+
+            // odstranění nepovolených znaků
+            safe = Regex.Replace(safe, @"[^a-z0-9_.\-]", "");
+
+            // vícenásobné pomlčky -> jedna
+            safe = Regex.Replace(safe, "-{2,}", "-");
+
+            // ořez začátku a konce
+            safe = safe.Trim('-', '.');
+
+            // kolik znaků zbývá pro název po započtení přípony
+            int maxBaseLength = maxLength - extension.Length;
+
+            if (maxBaseLength < 1)
+                return extension.TrimStart('.'); // extrémní případ
+
+            if (safe.Length > maxBaseLength)
+                safe = safe.Substring(0, maxBaseLength);
+
+            return safe + extension.ToLower();
         }
 
         public static void LogError(string message, string username = null, string procname = null)

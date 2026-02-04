@@ -249,7 +249,7 @@ namespace UI.Controllers
                 if (!string.IsNullOrEmpty(v.ReportExportName))
                 {
 
-                    v.ReportExportName = _basRepSup.GetReportExportName(Factory, 0, v.RecX31);
+                    v.ReportExportName = _basRepSup.GetReportExportName(Factory, 0, v.RecX31,false);
                 }
 
 
@@ -439,7 +439,7 @@ namespace UI.Controllers
             if (oper == "change_x31id" && v.SelectedX31ID > 0)
             {
 
-                v.ReportExportName = _basRepSup.GetReportExportName(Factory, v.rec_pid, v.RecX31);
+                v.ReportExportName = _basRepSup.GetReportExportName(Factory, v.rec_pid, v.RecX31,isdoc);
 
                 Factory.CBL.SetUserParam(v.UserParamKey, v.SelectedX31ID.ToString());
                 v.GeneratedTempFileName = "";
@@ -540,7 +540,7 @@ namespace UI.Controllers
                         doc.Append(strMergedPath);
                     }
                     
-                    var strTempFile = $"{Factory.TempFolder}\\{_basRepSup.GetReportExportName(Factory,pid,v.RecX31)}.pdf";
+                    var strTempFile = $"{Factory.TempFolder}\\{_basRepSup.GetReportExportName(Factory,pid,v.RecX31,isdoc)}.pdf";
                     if (System.IO.File.Exists(strTempFile))
                     {
                         System.IO.File.Delete(strTempFile);
@@ -603,7 +603,7 @@ namespace UI.Controllers
                 if (string.IsNullOrEmpty(v.ReportExportName))
                 {
 
-                    v.ReportExportName = _basRepSup.GetReportExportName(Factory, v.rec_pid, v.RecX31);
+                    v.ReportExportName = _basRepSup.GetReportExportName(Factory, v.rec_pid, v.RecX31,v.IsIncludeISDOC);
                 }
 
                 if (v.rec_prefix != null && v.rec_prefix != "j02" && v.rec_pid > 0 && (Factory.CurrentUser.j04IsModule_p91 || Factory.CurrentUser.j04IsModule_p28))
@@ -885,7 +885,7 @@ namespace UI.Controllers
             }
 
 
-            string strFinalRepFileName = _basRepSup.GetReportExportName(Factory, v.rec_pid, v.RecX31);
+            string strFinalRepFileName = _basRepSup.GetReportExportName(Factory, v.rec_pid, v.RecX31,v.IsIncludeISDOC);
             _basRepSup.SetPdfFileFields(doc, Factory.Lic.x01Name, $"MARKTIME {Factory.App.AppBuild}", strFinalRepFileName,(v.RecX31 !=null ? v.RecX31.x31Name : null));   //vlastnosti pdf dokumentu
             
             strFinalRepFileName = $"{strFinalRepFileName}.pdf";
