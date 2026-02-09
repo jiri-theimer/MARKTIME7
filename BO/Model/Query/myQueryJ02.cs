@@ -36,7 +36,7 @@ namespace BO
         {
             if (this.p31statequery > 0) this.Handle_p31StateQuery();
             if (!string.IsNullOrEmpty(this.p31tabquery)) this.Handle_p31TabQuery();
-            Handle_Wip();
+            //Handle_Wip();
 
             if (this.IsActivePeriodQuery())
             {
@@ -162,28 +162,28 @@ namespace BO
             }
 
 
-            if (this.iswip != null)
-            {
-                if (this.iswip == true)
-                {
-                    AQ("EXISTS (select 1 FROM p31Worksheet xa INNER JOIN p41Project xb ON xa.p41ID=xb.p41ID WHERE xa.j02ID=a.j02ID AND xa.p71ID IS NULL AND xa.p91ID IS NULL AND xa.p31ExcludeBillingFlag IS NULL AND xa.p31Date between @p31date1 AND @p31date2)", null, null);
-                }
-                else
-                {
-                    AQ("NOT EXISTS (select 1 FROM p31Worksheet xa INNER JOIN p41Project xb ON xa.p41ID=xb.p41ID WHERE xa.j02ID=a.j02ID AND xa.p71ID IS NULL AND xa.p91ID IS NULL AND xa.p31Date between @p31date1 AND @p31date2)", null, null);
-                }
-            }
-            if (this.isapproved_and_wait4invoice != null)
-            {
-                if (this.isapproved_and_wait4invoice == true)
-                {
-                    AQ("EXISTS (select 1 FROM p31Worksheet xa INNER JOIN p41Project xb ON xa.p41ID=xb.p41ID WHERE xa.j02ID=a.j02ID AND xa.p71ID=1 AND xa.p91ID IS NULL AND xa.p31Date between @p31date1 AND @p31date2)", null, null);
-                }
-                //else
-                //{
-                //    AQ("NOT EXISTS (select 1 FROM p31Worksheet xa INNER JOIN p41Project xb ON xa.p41ID=xb.p41ID WHERE xa.j02ID=a.j02ID AND xa.p71ID=1 AND xa.p72ID_AfterApprove=4 AND xa.p91ID IS NULL AND xa.p31Date between @p31date1 AND @p31date2)", null, null);
-                //}
-            }
+            //if (this.iswip != null)
+            //{
+            //    if (this.iswip == true)
+            //    {
+            //        AQ("EXISTS (select 1 FROM p31Worksheet xa INNER JOIN p41Project xb ON xa.p41ID=xb.p41ID WHERE xa.j02ID=a.j02ID AND xa.p71ID IS NULL AND xa.p91ID IS NULL AND xa.p31ExcludeBillingFlag IS NULL AND xa.p31Date between @p31date1 AND @p31date2)", null, null);
+            //    }
+            //    else
+            //    {
+            //        AQ("NOT EXISTS (select 1 FROM p31Worksheet xa INNER JOIN p41Project xb ON xa.p41ID=xb.p41ID WHERE xa.j02ID=a.j02ID AND xa.p71ID IS NULL AND xa.p91ID IS NULL AND xa.p31Date between @p31date1 AND @p31date2)", null, null);
+            //    }
+            //}
+            //if (this.isapproved_and_wait4invoice != null)
+            //{
+            //    if (this.isapproved_and_wait4invoice == true)
+            //    {
+            //        AQ("EXISTS (select 1 FROM p31Worksheet xa INNER JOIN p41Project xb ON xa.p41ID=xb.p41ID WHERE xa.j02ID=a.j02ID AND xa.p71ID=1 AND xa.p91ID IS NULL AND xa.p31Date between @p31date1 AND @p31date2)", null, null);
+            //    }
+            //    //else
+            //    //{
+            //    //    AQ("NOT EXISTS (select 1 FROM p31Worksheet xa INNER JOIN p41Project xb ON xa.p41ID=xb.p41ID WHERE xa.j02ID=a.j02ID AND xa.p71ID=1 AND xa.p72ID_AfterApprove=4 AND xa.p91ID IS NULL AND xa.p31Date between @p31date1 AND @p31date2)", null, null);
+            //    //}
+            //}
 
             if (this.x67Entity !=null && this.x69RecordPid > 0) //lidí podle x69EntityRole_Assign
             {
@@ -214,32 +214,32 @@ namespace BO
             }
         }
 
-        private void Handle_Wip()
-        {
-            if (this.iswip != null)
-            {
-                if (this.iswip == true)
-                {
-                    AQ("a.j02ID IN (select j02ID FROM p31Worksheet WHERE p71ID IS NULL AND p91ID IS NULL AND p31ExcludeBillingFlag IS NULL AND p31Date between @p31date1 AND @p31date2)", null, null);
-                }
-                else
-                {
-                    AQ("a.j02ID NOT IN (select j02ID FROM p31Worksheet WHERE p71ID IS NULL AND p91ID IS NULL AND p31Date between @p31date1 AND @p31date2)", null, null);
-                }
-            }
+        //private void Handle_Wip()
+        //{
+        //    if (this.iswip != null)
+        //    {
+        //        if (this.iswip == true)
+        //        {
+        //            AQ("a.j02ID IN (select j02ID FROM p31Worksheet WHERE p71ID IS NULL AND p91ID IS NULL AND p31ExcludeBillingFlag IS NULL AND p31Date between @p31date1 AND @p31date2)", null, null);
+        //        }
+        //        else
+        //        {
+        //            AQ("a.j02ID NOT IN (select j02ID FROM p31Worksheet WHERE p71ID IS NULL AND p91ID IS NULL AND p31Date between @p31date1 AND @p31date2)", null, null);
+        //        }
+        //    }
 
-            if (this.isapproved_and_wait4invoice != null)
-            {
-                if (this.isapproved_and_wait4invoice == true)
-                {
-                    AQ("a.j02ID IN (select za.j02ID FROM p31Worksheet za INNER JOIN p41Project zb ON za.p41ID=zb.p41ID WHERE za.p71ID=1 AND za.p91ID IS NULL AND za.p31Date between @p31date1 AND @p31date2)", null, null);
-                }
-                else
-                {
-                    AQ("a.j02ID IN (select j02ID FROM p31Worksheet WHERE p91ID IS NULL AND p31Date between @p31date1 AND @p31date2)", null, null);
-                }
-            }
-        }
+        //    if (this.isapproved_and_wait4invoice != null)
+        //    {
+        //        if (this.isapproved_and_wait4invoice == true)
+        //        {
+        //            AQ("a.j02ID IN (select za.j02ID FROM p31Worksheet za INNER JOIN p41Project zb ON za.p41ID=zb.p41ID WHERE za.p71ID=1 AND za.p91ID IS NULL AND za.p31Date between @p31date1 AND @p31date2)", null, null);
+        //        }
+        //        else
+        //        {
+        //            AQ("a.j02ID IN (select j02ID FROM p31Worksheet WHERE p91ID IS NULL AND p31Date between @p31date1 AND @p31date2)", null, null);
+        //        }
+        //    }
+        //}
 
 
 

@@ -818,6 +818,8 @@ namespace BO
             {
                 case 1: //Rozpracované
                     this.iswip = true;
+                    s = "za.p91ID IS NULL AND za.p71ID IS NULL AND za.p31ExcludeBillingFlag IS NULL AND zb.p41BillingFlag<99";
+                    sf = " INNER JOIN p41Project zb ON za.p41ID=zb.p41ID";
                     break;
                 case 2://rozpracované s korekcí
                     s = "za.p71ID IS NULL AND za.p91ID IS NULL AND za.p72ID_AfterTrimming IS NOT NULL AND za.p31ExcludeBillingFlag IS NULL AND zb.p41BillingFlag<99";
@@ -826,9 +828,13 @@ namespace BO
                 case 3://nevyúčtované                    
                     s = "za.p91ID IS NULL AND za.p31ExcludeBillingFlag IS NULL AND zb.p41BillingFlag<99";
                     sf = " INNER JOIN p41Project zb ON za.p41ID=zb.p41ID";
+                    
                     break;
                 case 4://schválené
-                    this.isapproved_and_wait4invoice = true; break;  //AQ("a.p71ID=1 AND a.p91ID IS NULL", null, null); break;
+                    this.isapproved_and_wait4invoice = true;  //AQ("a.p71ID=1 AND a.p91ID IS NULL", null, null); break;
+                    s = "za.p71ID=1 AND za.p91ID IS NULL";
+                    sf = " INNER JOIN p41Project zb ON za.p41ID=zb.p41ID";
+                    break;
                 case 5://schválené jako fakturovat
                     s = "za.p71ID=1 AND za.p72ID_AfterApprove=4 AND za.p91ID IS NULL"; break;
                 case 6://schválené jako paušál
@@ -843,7 +849,10 @@ namespace BO
                     s = "za.p71ID=2 AND za.p91ID IS NULL";
                     break;
                 case 10://vyúčtované
-                    this.isinvoiced = true; break;
+                    this.isinvoiced = true;
+                    s = "za.p91ID IS NOT NULL";
+                    sf = " INNER JOIN p41Project zb ON za.p41ID=zb.p41ID";
+                    break;
                 case 11://DRAFT vyúčtování
                     s = "zb.p91IsDraft=1"; sf = " INNER JOIN p91Invoice zb ON za.p91ID=zb.p91ID";
                     break;
@@ -869,7 +878,7 @@ namespace BO
                     break;
             }
 
-            if (s != null && 1==2)
+            if (s != null && this.Prefix !="p31")  //filtrovací podmínka v tabulce projektů/úkolů/uživatelů
             {
                 switch (this.Prefix)
                 {

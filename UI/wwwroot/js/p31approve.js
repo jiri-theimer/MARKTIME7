@@ -802,6 +802,15 @@ function refresh_selected_rowscount_info()
     }
 
     $("#selected_rowscount_info").text(ret);
+   
+    if (ret > 1)
+    {
+        $("#divMore").css("display", "block");
+    } else
+    {
+        $("#divMore").css("display", "none");
+    }
+    
 }
 
 function batch_uroven()

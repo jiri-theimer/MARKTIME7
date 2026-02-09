@@ -124,11 +124,13 @@ namespace UI.Code
         }
         public static string p31_symbol(BO.p31Worksheet rec)    //symbol mimo grid z BO.p31Worksheet
         {
-            if (rec.p31ExcludeBillingFlag == 1) return $"<div class='exb'></div>"; ;
+            
+            if (rec.p31ExcludeBillingFlag == 1) return $"<div class='exb'></div>";
             return $"<div class='a{(int)rec.p70ID}'>" + p31_inner_symbol(rec) + "</div>";
         }
         private static string p31_inner_symbol(BO.p31Worksheet rec)
         {
+            
             if (rec.p91ID == 0)
             {
                 if (rec.p71ID==BO.p71IdENUM.Nic)
