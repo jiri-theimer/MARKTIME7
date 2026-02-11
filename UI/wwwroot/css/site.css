@@ -1353,6 +1353,8 @@ td.tddatum {
     background-color: #fff0f7 !important;
 }
 
+
+
 .loader_topleft {
     position: absolute;
     left: 2px;
@@ -1360,14 +1362,15 @@ td.tddatum {
     z-index: 9999;
     width: 30px;
     height: 30px;
-    border: 6px solid cornflowerblue;
+    border: 6px solid grey;
+    background-color:#F5F5F5;
     border-radius: 50%;
-    border-top: 6px solid orange;
-    -webkit-animation: spin 2s linear infinite;
-    animation: spin 2s linear infinite;
+    border-top: 6px solid lime;
+    -webkit-animation: spin 1s linear infinite;
+    animation: spin 1s linear infinite;
 }
 
-.loader_postback {
+.loader_postback {   
     background-color: white;
 }
 
@@ -1383,7 +1386,7 @@ td.tddatum {
     border-radius: 50%;
     border-top: 16px solid gray;
     -webkit-animation: spin 2s linear infinite;
-    animation: spin 2s linear infinite;
+    animation: spin 1s linear infinite;
 }
 
 @-webkit-keyframes spin {

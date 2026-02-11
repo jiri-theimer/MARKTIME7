@@ -368,14 +368,20 @@
 
 
     function billingbox_change_value(val, key) {
-
+       
+        _loading_show("middle");
+        
+        
         $.post(_ep("/Common/SetUserParam"), { key: key, value: val }, function (data) {
+            
             location.replace(location.href);
 
         });
     }
 
     function billingbox_change_simulacni_sazba() {
+        _loading_show("middle");
+
         var val = _string2number($("#txtSimulacniSazba").val());
 
         $.post(_ep("/Common/SetUserParam"), { key: 'vysledovka-NakladovaSazbaCislo', value: val }, function (data) {

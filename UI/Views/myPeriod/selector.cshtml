@@ -245,12 +245,14 @@
             return;
         }
         $.post("/Common/SetUserParam", { key: _userparamkey + "-value", value: $(this).val() }, function (data) {
+            _loading_show();
             location.reload(location.href);
         });
     });
     $("#PeriodField").on("change", function () {
         $.post("/Common/SetUserParam", { key: _userparamkey + "-field", value: $(this).val() }, function (data) {
             if ($("#PeriodValue").val() != "0") {
+                _loading_show();
                 location.reload(location.href);
             }
 

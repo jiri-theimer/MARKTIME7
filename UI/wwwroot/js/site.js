@@ -1013,10 +1013,12 @@ function _splitter_resize_after_init(splitterLayout, defaultPanel1Size) {   //sp
 
 function _loading_show(flag)
 {    
-    if (flag === "undefined")
+    
+    if (typeof flag === "undefined")
     {
-        flag = "topleft";        
+        flag = "topleft";
     }
+
     var strClass = "loader_" + flag;
 
     if (flag == "postback")
@@ -1032,28 +1034,39 @@ function _loading_show(flag)
     else
     {
         document.getElementById("loading_container").classList.add(strClass);
+        
     }
 
     if (flag == "postback")
     {
         document.getElementById("loading_container").classList.add("loader_postback");
     }
-
+    
 }
 function _loading_hide() {
-    
     if (!document.getElementById("loading_container")) {
         return;
     }
-    if ($("#loading_container").hasClass("loader_topleft")) {
-        document.getElementById("loading_container").classList.remove("loader_topleft");
-    }
-    if ($("#loading_container").hasClass("loader_middle")) {
-        document.getElementById("loading_container").classList.remove("loader_middle");
-    }
-    if ($("#loading_container").hasClass("loader_white")) {
-        document.getElementById("loading_container").classList.remove("loader_white");
-    }
+
+
+    setTimeout(function () {
+
+
+        if ($("#loading_container").hasClass("loader_topleft")) {
+            document.getElementById("loading_container").classList.remove("loader_topleft");
+        }
+        if ($("#loading_container").hasClass("loader_middle")) {
+            document.getElementById("loading_container").classList.remove("loader_middle");
+        }
+        if ($("#loading_container").hasClass("loader_white")) {
+            document.getElementById("loading_container").classList.remove("loader_white");
+        }
+
+
+    }, 100);
+
+    
+    
     
 }
 
@@ -1183,6 +1196,7 @@ function render_menu(cmd_id, ul_id, method) {
 
 
     $.post(url, function (data) {
+        
         $("#" + ul_id).html(data);
         $("#" + cmd_id).attr("nacteno", "1");
     })

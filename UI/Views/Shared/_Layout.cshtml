@@ -97,7 +97,7 @@
     <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
 </head>
 <body>
-
+    
     <script type="text/javascript">
         var _relpath = "@(Url.Content("~/favicon.ico").Replace("favicon.ico", ""))";   //relativní cesta: detekce kvůli případnému IIS virtuálnímu adresáři
     </script>
@@ -112,7 +112,7 @@
     <script src="~/js/contextmenu.js" asp-append-version="true"></script>
     <script src="~/js/mycontrols.js" asp-append-version="true"></script>
     <script src="~/js/layoutshare.js" asp-append-version="true"></script>
-
+    
     <header>
         <nav id="mainmenu1" class="navbar navbar-expand-lg navbar-dark bg-dark px-0 py-0">
             <div id="mainmenu1_container" class="container-fluid px-0">
@@ -536,9 +536,8 @@
         </nav>
     </header>
 
-
-
-    <div id="loading_container" class="loader_topleft"></div>
+    
+    <div id="loading_container" class="loader_topleft" style="position:absolute;"></div>
 
     <div>
         <main role="main" class="m-0 p-0">
