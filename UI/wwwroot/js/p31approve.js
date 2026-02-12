@@ -802,14 +802,16 @@ function refresh_selected_rowscount_info()
     }
 
     $("#selected_rowscount_info").text(ret);
-   
-    if (ret > 1)
+
+    if (_isZafixovat != "True")
     {
-        $("#divMore").css("display", "block");
-    } else
-    {
-        $("#divMore").css("display", "none");
+        if (ret > 1) {
+            $("#divMore").css("display", "block");
+        } else {
+            $("#divMore").css("display", "none");
+        }
     }
+    
     
 }
 

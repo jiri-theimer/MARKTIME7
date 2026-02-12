@@ -188,7 +188,7 @@
 
     
 
-    <div id="divMore" style="background-color:aliceblue;display:none;padding:10px;border-radius:5px;border:solid 1px silver;margin-bottom:10px;margin-top:5px;">
+    <div id="divMore" style="background-color:aliceblue;padding:10px;border-radius:5px;border:solid 1px silver;margin-bottom:10px;margin-top:5px;display:@(Model.Approve_ZafixovatAkce ? "block" : "none")">
         <div>
             <button type="button" class="btn btn-sm bog" id="cmdBatch4" onclick="batch(1,4)"><span class="material-icons-outlined-btn" style="color:green;">approval</span>@_f.tra("Fakturovat")</button>
             <button type="button" class="btn btn-sm bog" id="cmdBatch6" onclick="batch(1,6)" style="margin-left:20px;"><span class="material-icons-outlined-btn" style="color:pink;">approval</span>@_f.tra("Zahrnout do paušálu")</button>
@@ -203,7 +203,7 @@
         <table>
             <tr>
                 <td>
-                    @_f.tra("Výběru záznamů nahodit fakturační sazbu"):
+                    @_f.tra("Výběru nahodit fakturační sazbu"):
                 </td>
                 <td>
                     <mynumber asp-for="@Model.BatchInvoiceRate"></mynumber>
@@ -211,10 +211,8 @@
                 <td>
                     <button type="button" class="btn bog" onclick="batch_rate()">OK</button>
                 </td>
-            </tr>
-            <tr>
                 <td>
-                    @_f.tra("Výběru záznamů nahodit schvalovací úroveň"):
+                    @_f.tra("Výběru nahodit schvalovací úroveň"):
                 </td>
                 <td>
                     <select class="form-select" asp-for="@Model.BatchApproveLevel">
@@ -226,7 +224,9 @@
                 <td>
                     <button type="button" class="btn bog" onclick="batch_approvinglevel()">OK</button>
                 </td>
+                
             </tr>
+            
         </table>
     </div>
 

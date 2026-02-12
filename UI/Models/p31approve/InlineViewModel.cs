@@ -25,5 +25,7 @@
         public bool IsRenderp32Name { get; set; }
 
         public ApproveStat InitStatistic { get; set; }
+
+        public bool Approve_ZafixovatAkce { get; set; }
     }
 }

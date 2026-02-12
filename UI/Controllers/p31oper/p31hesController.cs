@@ -21,7 +21,7 @@ namespace UI.Controllers.p31oper
             v.TimeInputFrom= Factory.CBL.LoadUserParamInt("p31_TimeInputFrom", 8);
             v.TimeInputTo= Factory.CBL.LoadUserParamInt("p31_TimeInputTo", 18);
             v.TimeInputInterval = Factory.CBL.LoadUserParamInt("p31_TimeInputInterval", 30);
-
+            v.Approve_ZafixovatAkce = Factory.CBL.LoadUserParamBool("approve-index-ZafixovatAkce", false);
             return View(v);
         }
 
@@ -68,6 +68,8 @@ namespace UI.Controllers.p31oper
                 c.j02DefaultHoursFormat = v.HoursFormat;
 
                 Factory.CBL.SetUserParam("approve-index-IsSkipGateway", v.Approve_IsSkipGateway.ToString());
+
+                Factory.CBL.SetUserParam("approve-index-ZafixovatAkce", v.Approve_ZafixovatAkce.ToString());
 
                 if (Factory.j02UserBL.Save(c, null) == 0)
                 {

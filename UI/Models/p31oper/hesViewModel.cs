@@ -26,6 +26,7 @@ namespace UI.Models.p31oper
         public bool Approve_ShowRecZoom { get; set; }
         public int Approve_GridBox_Position { get; set; }   //0:nezobrazovat, 1:vlevo, 2:vpravo, neukládá se do bitstream, ale do userkeys
 
+        public bool Approve_ZafixovatAkce { get; set; }
         public bool Approve_IsSkipGateway { get; set; }
         public string Approve_Default_UI { get; set; }     //Inline/Grid
         public void InhaleSetting() //odvodit parametry podle hodnoty HesBitStream

@@ -1,13 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+
 using UI.Models.p31approve;
 using UI.Models;
 using System.Web;
 using BO;
-using DocumentFormat.OpenXml.Wordprocessing;
+
 
 namespace UI.Controllers.p31approve
 {
@@ -84,7 +81,7 @@ namespace UI.Controllers.p31approve
             var v = new GridViewModel() { p31guid = p31guid, p91id = p91id, approvinglevel = approvinglevel };
             v.Rec = new GridRecord();
 
-
+            v.Approve_ZafixovatAkce = Factory.CBL.LoadUserParamBool("approve-index-ZafixovatAkce", false);
 
             if (Factory.CBL.LoadUserParamInt("grid-p31-approve-p31statequery", 0) > 0 && Factory.CBL.LoadUserParamValidityMinutes("grid-p31-approve-p31statequery") > 1)
             {
@@ -757,7 +754,8 @@ namespace UI.Controllers.p31approve
             }
             v.OrderBy1 = Factory.CBL.LoadUserParam("p31approve-orderby1","0");
             v.p72Query = Factory.CBL.LoadUserParam("p31approve-query-p72id", "0");
-            
+            v.Approve_ZafixovatAkce = Factory.CBL.LoadUserParamBool("approve-index-ZafixovatAkce", false);
+
 
             v.IsRenderp28Name = true;v.IsRenderp41Name = true;v.IsRenderPerson = true;v.IsRenderp34Name = true;v.IsRenderp32Name = true;
             var mq = new myQueryP31() { tempguid = v.p31guid };

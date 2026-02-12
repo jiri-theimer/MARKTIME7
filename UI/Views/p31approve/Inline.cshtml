@@ -175,7 +175,7 @@
         </div>
     </div>
 
-    <div class="input-group" style="padding-bottom:10px;">
+    <div class="input-group" style="padding-bottom:1px;">
         
         <div>
             <button class="btn btn-sm btn-outline-primary bog dropdown-toggle" type="button" id="cmdMore">
@@ -277,7 +277,7 @@
         </div>
     </div>
 
-    <div id="divMore" style="background-color:aliceblue;display:none;padding:10px;border-radius:5px;border:solid 1px silver;margin-bottom:10px;margin-top:5px;">
+    <div id="divMore" style="background-color:aliceblue;padding:10px;border-radius:5px;border:solid 1px silver;margin-bottom:10px;margin-top:0px;display:@(Model.Approve_ZafixovatAkce ? "block" : "none");">
 
         
         <div>
@@ -304,12 +304,12 @@
                 <td>
                     <button type="button" class="btn bog" onclick="batch_sazba()">OK</button>
                 </td>
-            </tr>
+            
             @if (_IsUrovenSchvalovani)
             {
-                <tr>
+                
                     <td>
-                        @_f.tra("Výběru záznamů nahodit schvalovací úroveň"):
+                        @_f.tra("Výběru nahodit schvalovací úroveň"):
                     </td>
                     <td>
                         <select class="form-select" asp-for="@Model.BatchApproveLevel">
@@ -321,9 +321,9 @@
                     <td>
                         <button type="button" class="btn bog" onclick="batch_uroven()">OK</button>
                     </td>
-                </tr>
+                
             }
-
+            </tr>
         </table>
 
 
@@ -608,13 +608,18 @@
     var _IsInterniHodiny = "@_IsInterniHodiny";
     var _IsUrovenSchvalovani = "@_IsUrovenSchvalovani";
     var _IsMobile = "@_IsMobile";
+    var _isZafixovat="@Model.Approve_ZafixovatAkce";
 
     $(document).ready(function () {
 
         $("#cmdMore").click(function () {
-            $("#divMore").toggle();            
-            handle_height();
-        });
+                $("#divMore").toggle();
+                handle_height();
+            });
+
+
+        
+        
 
         _resize_textareas();
         setup_ds();

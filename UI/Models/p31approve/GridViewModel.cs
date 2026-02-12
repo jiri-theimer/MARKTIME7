@@ -24,9 +24,11 @@ namespace UI.Models.p31approve
         public string batchpids { get; set; }
         public double BatchInvoiceRate { get; set; }
         public int BatchApproveLevel { get; set; }
+        public bool Approve_ZafixovatAkce { get; set; }
 
-        
+
         public GridRecord Rec { get; set; }
+
 
     }
 }
