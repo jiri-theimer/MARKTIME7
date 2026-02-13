@@ -18,6 +18,25 @@ namespace UI.Controllers
         static readonly string openAiApiKey = "";
         static readonly string openAiEndpoint = "https://api.openai.com/v1/chat/completions";
 
+        public IActionResult webdatarocks()
+        {
+            var v = new BaseViewModel();
+
+            return View(v);
+        }
+
+        public IActionResult LoadDatasource()
+        {
+            //var path = Path.Combine(_env.WebRootPath, "temp", "mojedata.csv");
+
+            var bytes = System.IO.File.ReadAllBytes("c:\\TEMP\\mojedata.csv");
+            var s = System.IO.File.ReadAllText("c:\\TEMP\\mojedata.csv");
+
+            return Content(s, "text/csv", Encoding.UTF8);
+            //return File(bytes, "text/csv; charset=utf-8");
+        }
+
+
         public IActionResult Canvas(int x31id, string code, string caller_prefix, string caller_pids, string guid_pids)
         {
             if (x31id == 0 && !string.IsNullOrEmpty(code))
