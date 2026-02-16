@@ -137,7 +137,7 @@
 
 
     <div class="col-auto">
-        <button id="cmdClear" type="button" class="btn btn-warning" onclick="clear_localstorage()" title="@_f.tra("Nahodit do výchozího stavu")">
+        <button id="cmdClear" type="button" class="btn btn-warning" onclick="clear_localstorage()" style="display:none;" title="@_f.tra("Nahodit do výchozího stavu")">
             <myicon symbol="clear"></myicon>
             
 
@@ -303,6 +303,8 @@
          if (saved) {
              report1 = JSON.parse(saved);
              report1.dataSource = { filename: CSV_URL, delimiter: ";" }; // vždy jistota
+
+             $("#cmdClear").css("display","block");
          }     
 
 
@@ -327,6 +329,7 @@
              localStorage.setItem(STORAGE_KEY, s);
 
              $("#cmdSaveChangesShared").css("display","block");
+             $("#cmdClear").css("display","block");
 
         });
 
@@ -511,10 +514,7 @@
 
     function clear_shared_changes()
     {
-       if (!confirm("Vyčistit aktuální vzhled statistiky?"))
-       {
-           return;
-       }
+       
         $.post("/p31totals/SaveReportSetting", { j79id: _j79id, setting: null }, function (data) {
             localStorage.removeItem(STORAGE_KEY);
             reload();
@@ -524,7 +524,10 @@
 
     function clear_localstorage()
     {
-
+       if (!confirm("Vyčistit aktuální vzhled statistiky?"))
+       {
+           return;
+       }
         localStorage.removeItem(STORAGE_KEY);
             reload();
     }

@@ -233,12 +233,16 @@ namespace UI.Controllers.p31view
             }
             
             var intRows = dt.Rows.Count;
-            var s = new StringBuilder();
+            
             var basDataExport = new Code.dataExport();
+            var strFullPath = $"{Factory.TempFolder}\\WebDataRocks-{Factory.CurrentUser.j02Login}-{v.SelectedJ79ID}.csv";
+            basDataExport.ToCSV(dt, strFullPath, mq, ";", true);
             
-            basDataExport.ToCSV(dt, $"{Factory.TempFolder}\\WebDataRocks-{Factory.CurrentUser.j02Login}-{v.SelectedJ79ID}.csv", mq, ";", true);
-            
-                    
+            if (BO.Code.File.GetFileInfo(strFullPath).Length > 1024*1024)
+            {
+                var xx = BO.Code.Bas.FormatFileSize((int) BO.Code.File.GetFileInfo(strFullPath).Length);
+                this.AddMessageTranslated($"Maximální limit datového zdroje je 1MB.<hr>Nyní je jeho velikost: {xx}.<hr>Stačí zmenšit časové období nebo ubrat nějaký sloupec z datového zdroje.");
+            } 
             
             
         }
