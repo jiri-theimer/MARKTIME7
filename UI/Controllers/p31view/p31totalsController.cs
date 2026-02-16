@@ -243,6 +243,8 @@ namespace UI.Controllers.p31view
             
         }
 
+      
+        
         public IActionResult LoadDatasource(string login,int j79id)
         {
             var strFullPath = $"{Factory.TempFolder}\\WebDataRocks-{login}-{j79id}.csv";

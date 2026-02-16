@@ -65,8 +65,8 @@ namespace BL
                     rec.j79Columns = "p31_j02__j02User__fullname_desc,p31_p32__p32Activity__p32Name,a__p31Worksheet__p31Hours_Orig,a__p31Worksheet__p31Amount_WithoutVat_Orig";
                     break;
                 default:
-                    rec.j79Columns = "p31_p41__p41Project__KlientProjektu,p31_j02__j02User__fullname_desc,a__p31Worksheet__p31Hours_Orig,a__p31Worksheet__p31Amount_WithoutVat_Orig";
-                    rec.j79GroupField1 = "p31_p41__p41Project__KlientProjektu";
+                    rec.j79Columns = "p31_p41__p41Project__KlientProjektu,p31_p41__p41Project__NazevProjektu,p31_j02__j02User__fullname_desc,a__p31Worksheet__UkonMesic,a__p31Worksheet__p31Hours_Orig,a__p31Worksheet__p31Amount_WithoutVat_Orig";
+                    
                     break;
             }
             

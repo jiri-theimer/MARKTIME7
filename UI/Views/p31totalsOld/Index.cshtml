@@ -341,6 +341,10 @@
             </div>
         }
 
+        <div style="padding:6px;">
+            <button type="button" class="btn btn-info" onclick="switch2newversion()">@_f.tra("Přepnout rozhraní do nové verze")</button>
+        </div>
+
 
         <hr />
         @Html.EditorFor(m => _IsGrid, "~/Views/Shared/_TableLayoutDeisgner.cshtml")
@@ -363,7 +367,7 @@
 
     $(document).ready(function () {
 
-        $("#cmdTotals").addClass("active");
+        $("#cmdtotals").addClass("active");
 
 
         if (_datatables == "True") {
@@ -675,5 +679,15 @@
 
     }
 
+
+    function switch2newversion()
+    {
+        $.post(_ep("/Common/SetUserParam"), { key: "p31totals-useoldversion", value: false }, function (data) {
+            var s=location.href;
+            
+            s=s.replace("p31totalsOld","p31totals");
+            location.replace(s);
+        });
+    }
 
 </script>

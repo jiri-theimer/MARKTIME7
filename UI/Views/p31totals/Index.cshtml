@@ -6,10 +6,10 @@
     Layout = _f.CurrentUser.GetLayoutPerDisplay();
     Model.PageTitle = _f.tra("SOUČTY");
 
-
+    bool _IsBlank = false;
     if (Model.selected_pids != null || UI.Code.basUI.GetQueryValue(Context, "blank") == "1")
     {
-
+        _IsBlank = true;
         Layout = "~/Views/Shared/_LayoutModal.cshtml";
         Model.PageSymbol = "functions";
     }
@@ -77,6 +77,10 @@
         @Html.EditorFor(m => Model.TheGridQueryButton, "~/Views/Shared/_ButtonGridQuery.cshtml")
     }
 
+    @if (_IsBlank)
+    {
+        <button type="button" id="cmdClose" style="margin-left:15px;border-radius:6px;margin-bottom:2px;" onclick="_window_close()" class="btn btn-sm bog"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
+    }
 
     <div class="showmore">
         <myhelpbutton></myhelpbutton>
@@ -199,7 +203,9 @@
 
         }
 
-
+        <div style="padding:6px;">
+            <button type="button" class="btn btn-secondary" onclick="switch2oldversion()">@_f.tra("Přepnout rozhraní do původní verze (2025)")</button>
+        </div>
 
 
     </div>
@@ -214,7 +220,9 @@
     var _j79id = "@Model.SelectedJ79ID";
 
     const CSV_URL = "/p31totals/LoadDatasource?login=@(_f.CurrentUser.j02Login)&j79id="+_j79id;
-    const STORAGE_KEY = "webdatarocks_layout";
+    const STORAGE_KEY = "webdatarocks_layout-"+_j79id;
+    
+
 
         // pokus o načtení uloženého layoutu
         let report1 = {
@@ -247,6 +255,7 @@
         const pivot1 = new WebDataRocks({
           container: "#pivotContainer",
           toolbar: true,
+          beforetoolbarcreated: customizeToolbar,
           report: report1,
           reportcomplete: onReportComplete,
             global: {
@@ -276,7 +285,7 @@
 
     $(document).ready(function () {
 
-        $("#cmdTotals").addClass("active");
+        $("#cmdtotals").addClass("active");
 
 
 
@@ -300,7 +309,7 @@
 
         resizeContainerToPage();
 
-        window.addEventListener("resize", resizePivotToPage);
+        window.addEventListener("resize", resizeContainerToPage);
 
     });
 
@@ -409,5 +418,26 @@
       height = Math.max(height, 200);
 
       el.style.height = `${Math.floor(height)}px`;
+    }
+
+
+    function switch2oldversion()
+    {
+        $.post(_ep("/Common/SetUserParam"), { key: "p31totals-useoldversion", value: true }, function (data) {
+            reload();
+        });
+    }
+
+
+
+    function customizeToolbar(toolbar) {
+      var tabs = toolbar.getTabs();
+
+      toolbar.getTabs = function () {
+        tabs = tabs.filter(function(tab) {
+          return tab.id !== "wdr-tab-connect";
+        });
+        return tabs;
+      };
     }
 </script>
