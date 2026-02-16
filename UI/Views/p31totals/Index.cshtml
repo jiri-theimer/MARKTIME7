@@ -59,7 +59,7 @@
         <select asp-for="SelectedJ79ID" class="form-select" onchange="j79id_onchange(this)">
             @foreach (var c in Model.lisJ79)
             {
-                <option value="@c.pid">@(BO.Code.Bas.OM2(c.j79Name, 60)) @(c.j02ID != _f.CurrentUser.pid ? "*" : null)</option>
+                <option value="@c.pid">@(BO.Code.Bas.OM2(c.j79Name, 60)) @(c.j79IsPublic || c.j02ID != _f.CurrentUser.pid ? "*" : null)</option>
             }
         </select>
     </div>
@@ -70,7 +70,19 @@
 
     @if (Model.p31statequery != null)
     {
-        @Html.EditorFor(m => Model.p31statequery, "~/Views/Shared/_p31StateQuery.cshtml")
+        @if (!Model.IsAllowEditTemplate)
+        {
+            <div style="display:none">
+                @Html.EditorFor(m => Model.p31statequery, "~/Views/Shared/_p31StateQuery.cshtml")
+                
+            </div>
+            <strong style="padding:6px;background-color:red;">@(Model.p31statequery.getStateAlias())</strong>
+        }
+        else
+        {
+            @Html.EditorFor(m => Model.p31statequery, "~/Views/Shared/_p31StateQuery.cshtml")
+        }
+
     }
     @if (Model.TheGridQueryButton != null)
     {
@@ -204,7 +216,7 @@
         }
 
         <div style="padding:6px;">
-            <button type="button" class="btn btn-secondary" onclick="switch2oldversion()">@_f.tra("Přepnout rozhraní do původní verze (2025)")</button>
+            <button type="button" class="btn btn-secondary" onclick="switch2oldversion()">@_f.tra("Přepnout rozhraní do původní verze (<-2025)")</button>
         </div>
 
 
