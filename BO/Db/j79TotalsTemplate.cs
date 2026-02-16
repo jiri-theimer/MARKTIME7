@@ -8,6 +8,7 @@ namespace BO
         public string j79Name { get; set; }
         public int j79Ordinary { get; set; }
         public int j02ID { get; set; }
+        public bool j79IsWebDataRocks { get; set; }
         public bool j79IsSystem { get; set; }
         public bool j79IsPublic { get; set; }
         public string j79Columns { get; set; }

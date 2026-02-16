@@ -281,6 +281,11 @@ namespace BL
                     AF("p31Worksheet", "VyplnenyInterniText", "a.p31TextInternal IS NOT NULL", "Vyplněný interní text", null, null, "bool1x");
                     AF("p31Worksheet", "MaReminder", "EXISTS (SELECT 1 FROM o24Reminder WHERE o24RecordPid=a.p31ID AND o24RecordEntity='p31')", "Vyplněno upozornění", null, null, "bool1x");
                     AF("p31Worksheet", "VyplnenaBarva", "a.p31RowColorFlag IS NOT NULL", "Nahozená barva záznamu", null, null, "bool1x");
+                    AF("p31Worksheet", "VyplnenaBarva1", "a.p31RowColorFlag=1", "Zelená (#1): Barva záznamu", null, null, "bool1x");
+                    AF("p31Worksheet", "VyplnenaBarva2", "a.p31RowColorFlag=2", "Žlutá (#2): Barva záznamu", null, null, "bool1x");
+                    AF("p31Worksheet", "VyplnenaBarva3", "a.p31RowColorFlag=3", "Růžová (#3): Barva záznamu", null, null, "bool1x");
+                    AF("p31Worksheet", "VyplnenaBarva4", "a.p31RowColorFlag=4", "Modrá (#4): Barva záznamu", null, null, "bool1x");
+                    AF("p31Worksheet", "VyplnenaBarva5", "a.p31RowColorFlag=5", "Stříbrná (#5): Barva záznamu", null, null, "bool1x");
 
                     of = AF("p31Worksheet", "NazevProjektu", "p41x.p41Name", "Název projektu", "p41Task");
                     of = AF("p31Worksheet", "KlientVyuctovaniNazev", "p91x.p91Client", "Klient vyúčtování", "p91Invoice");

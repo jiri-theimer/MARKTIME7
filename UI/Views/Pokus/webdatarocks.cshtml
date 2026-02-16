@@ -105,7 +105,10 @@
           container: "#pivotContainer",
           toolbar: true,
           report: report1,
-          reportcomplete: onReportComplete
+          reportcomplete: onReportComplete,
+            global: {
+            localization: "/lib/WebDataRocks/cs.json"
+            }
         });
 
 
@@ -120,6 +123,8 @@
 
 
         });
+
+        
 
 
         function onReportComplete()

@@ -4,9 +4,9 @@ namespace BL
     public interface Ij79TotalsTemplateBL
     {
         public BO.j79TotalsTemplate Load(int pid);
-        public IEnumerable<BO.j79TotalsTemplate> GetList(int j02id,string prefix);
+        public IEnumerable<BO.j79TotalsTemplate> GetList(int j02id,string prefix,bool j79IsWebDataRocks);
         public int Save(BO.j79TotalsTemplate rec, List<int> j04ids, List<int> j11ids);
-        public int CreateDefaultSysRecord(int j02id,string prefix);
+        public int CreateDefaultSysRecord(int j02id,string prefix, bool j79IsWebDataRocks);
 
     }
     class j79TotalsTemplateBL : BaseBL, Ij79TotalsTemplateBL
@@ -30,10 +30,10 @@ namespace BL
             return _db.Load<BO.j79TotalsTemplate>(GetSQL1(" WHERE a.j79ID=@pid"), new { pid = pid });
         }
 
-        public IEnumerable<BO.j79TotalsTemplate> GetList(int j02id,string prefix)
+        public IEnumerable<BO.j79TotalsTemplate> GetList(int j02id,string prefix,bool j79IsWebDataRocks)
         {
             var mq = new BO.myQuery("j79") { explicit_orderby = "a.j79IsSystem DESC,a.j79Ordinary,a.j79Name" };
-            string s = $" WHERE a.j79Entity IS NULL AND (a.j02ID={j02id} OR a.j79IsPublic=1 OR a.j79ID IN (select j79ID FROM j80TotalsReceiver WHERE j04ID={_mother.CurrentUser.j04ID}))";
+            string s = $" WHERE a.j79IsWebDataRocks={BO.Code.Bas.GB(j79IsWebDataRocks)} AND a.j79Entity IS NULL AND (a.j02ID={j02id} OR a.j79IsPublic=1 OR a.j79ID IN (select j79ID FROM j80TotalsReceiver WHERE j04ID={_mother.CurrentUser.j04ID}))";
             if (!string.IsNullOrEmpty(prefix))
             {
                 s = $" WHERE a.j79Entity = '{prefix}' AND (a.j02ID={j02id} OR a.j79IsPublic=1 OR a.j79ID IN (select j79ID FROM j80TotalsReceiver WHERE j04ID={_mother.CurrentUser.j04ID}))";
@@ -42,9 +42,9 @@ namespace BL
             return _db.GetList<BO.j79TotalsTemplate>(fq.FinalSql, fq.Parameters);
         }
 
-        public int CreateDefaultSysRecord(int j02id,string prefix)
+        public int CreateDefaultSysRecord(int j02id,string prefix,bool j79IsWebDataRocks)
         {
-            var rec = new BO.j79TotalsTemplate() { j02ID = j02id, j79IsSystem = true,j79Entity=prefix,j79Name="Výchozí šablona statistiky" };
+            var rec = new BO.j79TotalsTemplate() { j02ID = j02id, j79IsSystem = true,j79Entity=prefix,j79Name="Výchozí šablona statistiky",j79IsWebDataRocks= j79IsWebDataRocks };
             switch (rec.j79Entity)
             {
                 case "j02":
@@ -82,6 +82,7 @@ namespace BL
             }
             var p = new DL.Params4Dapper();
             p.AddInt("pid", rec.pid);
+            p.AddBool("j79IsWebDataRocks", rec.j79IsWebDataRocks);
             p.AddBool("j79IsSystem", rec.j79IsSystem);
             if (rec.j02ID == 0)
             {

@@ -1,9 +1,8 @@
-﻿using UI.Views.Shared.Components.myGrid;
-using UI.Views.Shared.Components.myPeriod;
+﻿using UI.Views.Shared.Components.myPeriod;
 
 namespace UI.Models.p31view
 {
-    public class totalsViewModel:BaseViewModel
+    public class totalsOldViewModel:BaseViewModel
     {
         public myPeriodViewModel periodinput { get; set; }  //filtrování podle časového období
         
