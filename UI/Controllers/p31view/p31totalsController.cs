@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.Data;
+using System.Text;
 using UI.Models;
 
 using UI.Models.p31view;
@@ -17,7 +19,7 @@ namespace UI.Controllers.p31view
         }
         public IActionResult Index(string master_entity, int master_pid, string caller, int j79id, string selected_entity, string selected_pids,string guid_pids)
         {
-            if (1==1 || Factory.CBL.LoadUserParamBool("p31totals-useoldversion",false))
+            if (Factory.CBL.LoadUserParamBool("p31totals-useoldversion",false))
             {
                 //přesměrovat na starou verzi statistik
                 return RedirectToAction("Index", "p31totalsOld", new { master_entity = master_entity, master_pid = master_pid, caller= caller, j79id= j79id, selected_entity= selected_entity, selected_pids= selected_pids, guid_pids= guid_pids });
@@ -47,6 +49,7 @@ namespace UI.Controllers.p31view
             {
                 v.SelectedJ79ID = Factory.CBL.LoadUserParamInt($"p31totals-{v.record_prefix}-j79id");
             }
+            
 
             v.lisJ79 = Factory.j79TotalsTemplateBL.GetList(Factory.CurrentUser.pid, v.record_prefix, true);
 
@@ -64,6 +67,17 @@ namespace UI.Controllers.p31view
                 return this.StopPage(false, "Nepodařilo se založit výchozí šablonu statistiky.");
             }
             v.SelectedTemplate = v.lisJ79.First(p => p.pid == v.SelectedJ79ID);
+
+            if (Factory.CurrentUser.IsAdmin || v.SelectedTemplate.j02ID == Factory.CurrentUser.pid)
+            {
+                v.IsAllowEditTemplate = true;
+            }
+            if (v.SelectedTemplate.j79IsPublic || Factory.j04UserRoleBL.GetList(new BO.myQueryJ04() { j79id = v.SelectedJ79ID }).Count() > 0)
+            {
+                v.IsShared = true;
+            }
+
+            
 
 
             v.TheGridQueryButton = new TheGridQueryViewModel() { j72id = Factory.CBL.LoadUserParamInt("p31totals-j72id"),paramkey= "p31totals-j72id",prefix="p31" };
@@ -87,12 +101,13 @@ namespace UI.Controllers.p31view
             }
 
 
-            GenerateOutput(v);
+            GenerateGridColumns(v);
+            GenerateDataSource(v);
 
             return View(v);
         }
 
-        private void GenerateOutput(p31TotalsViewModel v)
+        private void GenerateGridColumns(p31TotalsViewModel v)
         {
             if (string.IsNullOrEmpty(v.GridColumns)) return;
 
@@ -103,9 +118,17 @@ namespace UI.Controllers.p31view
             }
 
          
-
-            var finalcols = new List<BO.TheGridColumn>();
             
+        }        
+
+        private void GenerateDataSource(p31TotalsViewModel v)
+        {
+            if (v.lisGridColumns == null)
+            {
+                return;
+            }
+            var finalcols = new List<BO.TheGridColumn>();
+
             foreach (var col in v.lisGridColumns)
             {
                 if (!finalcols.Contains(col))
@@ -113,12 +136,12 @@ namespace UI.Controllers.p31view
                     finalcols.Add(col);
                 }
             }
-            
+
             var wheres = new List<string>();
             var mq = new BO.myQueryP31() { explicit_columns = finalcols, MyRecordsDisponible = true };
-            foreach(var col in mq.explicit_columns)
+            foreach (var col in mq.explicit_columns)
             {
-                if (col.Prefix !="p31" && col.IsShowTotals)
+                if (col.Prefix != "p31" && col.IsShowTotals)
                 {
                     col.IsShowTotals = false;   //aby se nesčítali veličiny vyúčtování/projektů apod.
                 }
@@ -133,8 +156,8 @@ namespace UI.Controllers.p31view
                 case "le3":
                 case "le2":
                 case "le1":
-                    wheres.Add($"p41x.p41ID_P07Level{v.record_prefix.Substring(2,1)}={v.record_pid}"); break;
-                    
+                    wheres.Add($"p41x.p41ID_P07Level{v.record_prefix.Substring(2, 1)}={v.record_pid}"); break;
+
                 case "p28":
                     wheres.Add($"a.p41ID IN (select p41ID FROM p41Project WHERE p28ID_Client={v.record_pid})");
                     break;
@@ -157,8 +180,8 @@ namespace UI.Controllers.p31view
                 case "le3":
                 case "le2":
                 case "le1":
-                    wheres.Add($"p41x.p41ID_P07Level{v.selected_entity.Substring(2,1)} IN ({v.selected_pids})"); break;
-                    
+                    wheres.Add($"p41x.p41ID_P07Level{v.selected_entity.Substring(2, 1)} IN ({v.selected_pids})"); break;
+
                 case "p28":
                     wheres.Add($"a.p41ID IN (select p41ID FROM p41Project WHERE p28ID_Client IN ({v.selected_pids}))");
                     break;
@@ -186,47 +209,58 @@ namespace UI.Controllers.p31view
                 mq.global_d1 = v.periodinput.d1;
                 mq.global_d2 = v.periodinput.d2;
             }
-           
+
 
             if (wheres.Count() > 0)
             {
                 mq.explicit_sqlwhere = String.Join(" AND ", wheres);
             }
 
-
-
-           
             mq.explicit_sqlgroupby = string.Join(",", finalcols.Where(p => p.IsShowTotals == false).Select(p => p.getFinalSqlSyntax_GROUPBY()));
-
-            
 
             var dt = Factory.gridBL.GetGroupByList(mq);
             
-
-            var def = new BL.Code.HtmlTable() { IsCanExport = true };
+            foreach(var col in mq.explicit_columns.Where(p => p.FieldType == "num"))
+            {
+                int intDataRows = dt.Rows.Count;
+                for (int i= 0;i < intDataRows; i++)
+                {
+                    if (dt.Rows[i][col.UniqueName] == System.DBNull.Value)
+                    {
+                        dt.Rows[i][col.UniqueName] = 0.00;
+                    }
+                }
+            }
             
-            def.ColHeaders = string.Join("|", finalcols.Select(p => p.Header));
-            //if (Factory.CurrentUser.j02DefaultHoursFormat == "T")
-            //{
-            //    //hodiny budou v HH:MM
-            //    var lis = new List<string>();
-            //    foreach(var col in finalcols)
-            //    {
-            //        lis.Add(col.HtmlTableType);
-            //    }
-            //    def.ColTypes = string.Join("|", lis);
-            //}
-            //else
-            //{
-            //    def.ColTypes = string.Join("|", finalcols.Where(p => p != pf).Select(p => p.HtmlTableType));
-            //}
+            var intRows = dt.Rows.Count;
+            var s = new StringBuilder();
+            var basDataExport = new Code.dataExport();
             
+            basDataExport.ToCSV(dt, $"{Factory.TempFolder}\\WebDataRocks-{Factory.CurrentUser.j02Login}-{v.SelectedJ79ID}.csv", mq, ";", true);
             
+                    
             
-
             
         }
-        
+
+        public IActionResult LoadDatasource(string login,int j79id)
+        {
+            var strFullPath = $"{Factory.TempFolder}\\WebDataRocks-{login}-{j79id}.csv";
+
+            if (!System.IO.File.Exists(strFullPath))
+            {
+                return null;
+            }
+
+            //var bytes = System.IO.File.ReadAllBytes(v.DataSourceCsvPath);
+            //var s = System.IO.File.ReadAllText(strFullPath, Encoding.UTF8);
+
+            return Content(System.IO.File.ReadAllText(strFullPath, Encoding.UTF8), "text/csv", Encoding.UTF8);
+
+            
+            //return File(bytes, "text/csv; charset=utf-8");
+        }
+
         public int SaveTabQuery(int j79id, string tabquery)
         {
             var rec = Factory.j79TotalsTemplateBL.Load(j79id);
@@ -248,6 +282,7 @@ namespace UI.Controllers.p31view
             rec.j79Query_j11IDs = j11ids;
             rec.j79Query_j07IDs = j07ids;
             rec.j79AddQuery = addquery;
+            
             return Factory.j79TotalsTemplateBL.Save(rec,null,null);
         }
 

@@ -1,5 +1,413 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model UI.Models.p31view.p31TotalsViewModel
+@inject BL.Factory _f
+
 @{
+
+    Layout = _f.CurrentUser.GetLayoutPerDisplay();
+    Model.PageTitle = _f.tra("SOUČTY");
+
+
+    if (Model.selected_pids != null || UI.Code.basUI.GetQueryValue(Context, "blank") == "1")
+    {
+
+        Layout = "~/Views/Shared/_LayoutModal.cshtml";
+        Model.PageSymbol = "functions";
+    }
+
+
+    if (Model.selected_entity != null && Model.selected_pids != null)
+    {
+        var arr = BO.Code.Bas.ConvertString2ListInt(Model.selected_pids);
+        if (arr.Count() == 1)
+        {
+            Model.PageTitleAfter = _f.CBL.GetObjectAlias(Model.selected_entity, arr.First());
+        }
+    }
+
 }
+
+@section header_content {
+
+
+    <link href="https://cdn.webdatarocks.com/latest/webdatarocks.min.css" rel="stylesheet" />
+    <script src="https://cdn.webdatarocks.com/latest/webdatarocks.toolbar.min.js"></script>
+    <script src="https://cdn.webdatarocks.com/latest/webdatarocks.js"></script>
+
+
+}
+
+
+
+
+@addTagHelper *, UI
+
+<div class="input-group m-0" style="padding-top:3px;">
+    <div>
+        <ul class="nav nav-tabs">
+            <li class="onetab">
+
+                <a id="cmdMore" class="nav-link onetab-offcanvas" tabindex="-1" role="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvas_more">
+                    @_f.tra("Součty")
+                    <span class="onetab-caret">▼</span>
+                </a>
+            </li>
+        </ul>
+
+
+    </div>
+    <div style="margin-left:5px;">
+        <select asp-for="SelectedJ79ID" class="form-select" onchange="j79id_onchange(this)">
+            @foreach (var c in Model.lisJ79)
+            {
+                <option value="@c.pid">@(BO.Code.Bas.OM2(c.j79Name, 60)) @(c.j02ID != _f.CurrentUser.pid ? "*" : null)</option>
+            }
+        </select>
+    </div>
+
+    <div>
+        @await Component.InvokeAsync("myPeriod", Model.periodinput)
+    </div>
+
+    @if (Model.p31statequery != null)
+    {
+        @Html.EditorFor(m => Model.p31statequery, "~/Views/Shared/_p31StateQuery.cshtml")
+    }
+    @if (Model.TheGridQueryButton != null)
+    {
+        @Html.EditorFor(m => Model.TheGridQueryButton, "~/Views/Shared/_ButtonGridQuery.cshtml")
+    }
+
+
+    <div class="showmore">
+        <myhelpbutton></myhelpbutton>
+    </div>
+
+</div>
+
+
+<div class="row m-0" style="padding-top:10px;padding-bottom:10px;background-color:#F5F5F5;border:solid 1px silver;">
+
+    @if (Model.IsAllowEditTemplate)
+    {
+        <div class="col-auto" style="margin-left:0px;">
+            <button type="button" class="btn bog" onclick="grid_designer()">
+                @_f.tra("Datový zdroj sloupců (polí)")
+
+            </button>
+        </div>
+
+
+    }
+
+
+
+    <div class="col-auto">
+        @if (Model.lisGridColumns != null && Model.lisGridColumns.Count() > 0)
+        {
+            @foreach (var col in Model.lisGridColumns)
+            {
+                <kbd style="margin-left:10px;background-color:gray;font-size:80%;">
+                    @(col.Header)
+                </kbd>
+            }
+        }
+    </div>
+
+</div>
+
+<input type="hidden" asp-for="GridColumns" />
+<input type="hidden" asp-for="SelectedJ79ID" />
+
+
+
+<!-- Nabídka Více -->
+<div class="offcanvas offcanvas-start" tabindex="-1" data-bs-scroll="true" data-bs-backdrop="true" data-bs-keyboard="true" id="offcanvas_more">
+
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title">
+            <a href="javascript:reload()" title="Občerstvit">
+                <myicon symbol="refresh"></myicon>
+            </a>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+
+    <div class="offcanvas-body p-0 m-0" id="offcanvas_more_body">
+
+        <table cellpadding="2">
+            <tr>
+                <td>
+                    @if (Model.IsShared)
+                    {
+                        <myicon symbol="share"></myicon>
+                    }
+                </td>
+                <td>
+
+                    <h3>
+                        <myicon symbol="functions"></myicon>
+                        @if (Model.SelectedTemplate.j79IsSystem)
+                        {
+                            @_f.tra("Výchozí šablona statistiky")
+                        }
+                        else
+                        {
+                            @Model.SelectedTemplate.j79Name
+                        }
+
+                    </h3>
+                </td>
+
+
+
+
+            </tr>
+
+        </table>
+
+        @if (!Model.SelectedTemplate.j79IsSystem && (Model.SelectedTemplate.j02ID == _f.CurrentUser.pid || _f.CurrentUser.IsAdmin))
+        {
+            <div style="padding:6px;">
+                <button type="button" id="cmdEdit" onclick="edit_template()" class="btn btn-primary" style="min-width:150px;">@_f.tra("Upravit/Nasdílet")</button>
+            </div>
+
+        }
+
+        <div style="padding:6px;">
+            @if (Model.SelectedTemplate.j79IsSystem)
+            {
+                <button type="button" id="cmdSaveAs" onclick="saveas()" class="btn btn-success">@_f.tra("Uložit aktuální statistiku jako pojmenovanou šablonu")</button>
+            }
+            else
+            {
+                <button type="button" id="cmdSaveAs" onclick="saveas()" class="btn btn-success" style="min-width:150px;">@_f.tra("Uložit jako")</button>
+            }
+        </div>
+
+
+
+        @if (Model.IsAllowEditTemplate)
+        {
+            @if (!Model.SelectedTemplate.j79IsSystem)
+            {
+                <div style="padding:6px;">
+                    <button type="button" class="btn btn-danger" onclick="delete_template()" style="min-width:150px;">@_f.tra("Odstranit šablonu")</button>
+                </div>
+            }
+
+
+
+        }
+
+
+
+
+    </div>
+</div>
+
+
+<div id="pivotContainer"></div>
+
+
+<script>
+    var _tg_entity = "p31Worksheet";
+    var _j79id = "@Model.SelectedJ79ID";
+
+    const CSV_URL = "/p31totals/LoadDatasource?login=@(_f.CurrentUser.j02Login)&j79id="+_j79id;
+    const STORAGE_KEY = "webdatarocks_layout";
+
+        // pokus o načtení uloženého layoutu
+        let report1 = {
+        dataSource: {
+            filename: CSV_URL,
+            delimiter: ";",
+            mapping: {
+                "Měsíc": { type: "string" }
+            }
+        },
+        // ✅ Default formát pro VŠECHNY measures
+        formats: [
+               {
+                 name: "",                 // <- default format
+                 decimalSeparator: ",",
+                 thousandsSeparator: " ",
+                 decimalPlaces: 2
+               }
+             ]
+         };
+
+
+         const saved = localStorage.getItem(STORAGE_KEY);
+         if (saved) {
+             report1 = JSON.parse(saved);
+             report1.dataSource = { filename: CSV_URL, delimiter: ";" }; // vždy jistota
+         }     
+
+
+        const pivot1 = new WebDataRocks({
+          container: "#pivotContainer",
+          toolbar: true,
+          report: report1,
+          reportcomplete: onReportComplete,
+            global: {
+            localization: "/lib/WebDataRocks/cs.json"
+            }
+        });
+
+
+
+         pivot1.on("reportchange", function() {
+
+             var data2save=pivot1.getReport();
+             var s=JSON.stringify(data2save);
+
+             localStorage.setItem(STORAGE_KEY, s);
+
+        });
+
+        function onReportComplete()
+        {
+          pivot1.off("reportcomplete");   // spustit jen jednou
+          
+        }
+
+
+
+
+    $(document).ready(function () {
+
+        $("#cmdTotals").addClass("active");
+
+
+
+
+
+        register_menu("cmdgridquerymenu", "cmdgridquerymenu_menu", "/Menu/grid_query?prefix=p31&j72id=@(Model.TheGridQueryButton.j72id)");
+
+
+        $("#SelectedJ72ID").mouseover(function (e) {
+            $("#cmdQueryBuilder").css("visibility", "visible");
+
+        });
+
+        $("#cmdQueryBuilder").children().mouseout(function (e) {
+            $("#cmdQueryBuilder").css("visibility", "hidden");
+
+        });
+
+
+
+
+        resizeContainerToPage();
+
+        window.addEventListener("resize", resizePivotToPage);
+
+    });
+
+    
+
+    function grid_designer() {
+
+        var cols = $("#GridColumns").val();
+
+        _window_open("/TheGridDesigner?prefix=p31&cols=" + cols + "&pathname=p31totals", 3);
+
+
+    }
+
+    function reload_after_griddesigner(pid, cols) {
+
+        //změna sloupců
+        $.post("/p31totals/SaveColumns", { j79id: _j79id, cols: cols }, function (data) {
+            reload();
+            if (window === top) {
+                window.parent._window_close();
+            }
+        });
+
+
+    }
+
+
+
+    function change_statequery(val) {
+        $.post("/p31totals/SaveStateQuery", { j79id: _j79id, statequery: val }, function (data) {
+            reload();
+
+        });
+    }
+
+    function reload() {
+        location.replace(location.href);
+    }
+    function reload_explicit_j79id(j79id) {
+        var url = _removeUrlParam("j79id", location.href);
+        if (url.indexOf("?") == -1) {
+            url = url + "?j79id=" + j79id;
+        } else {
+            url = url + "&j79id=" + j79id;
+        }
+        location.replace(url);
+    }
+
+
+    function saveas() {
+        var s = prompt("@_f.tra("Zadejte název šablony")");
+        if (s.length > 0) {
+            $.post("/p31totals/SaveAs", { j79name: s, j79id: _j79id }, function (data) {
+                var j79id = data;
+                reload_explicit_j79id(j79id);
+
+            });
+
+        }
+    }
+    function rename_template() {
+        var s = prompt("@_f.tra("Zadejte nový název šablony")");
+        if (s.length > 0) {
+            $.post("/p31totals/Rename", { j79name: s, j79id: _j79id }, function (data) {
+                reload();
+
+            });
+
+        }
+    }
+    function delete_template() {
+        if (confirm("Opravdu odstranit tuto šablonu?") == true) {
+            $.post("/p31totals/Delete", { j79id: _j79id }, function (data) {
+                reload();
+
+            });
+        }
+
+    }
+
+    function edit_template() {
+        _window_open("/j79/Record?pid=" + _j79id, 3);
+    }
+
+    function j79id_onchange(cbx) {
+        var prefix = "@Model.record_prefix";
+        var mykey = "p31totals-" + prefix + "-j79id";
+
+        $.post("/Common/SetUserParam", { key: mykey, value: cbx.value, prefix }, function (data) {
+            reload_explicit_j79id(cbx.value);
+        });
+
+
+    }
+
+
+    function resizeContainerToPage() {
+      const el = document.getElementById("pivotContainer");
+      if (!el) return;
+
+      const rect = el.getBoundingClientRect();
+      const bottomGap = 25;
+
+      let height = window.innerHeight - rect.top - bottomGap;
+      height = Math.max(height, 200);
+
+      el.style.height = `${Math.floor(height)}px`;
+    }
+</script>

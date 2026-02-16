@@ -85,8 +85,8 @@
   "aggregations": {
     "sum": {
       "caption": "Součet",
-      "totalCaption": "Součet {0}",
-      "grandTotalCaption": "Celkový součet {0}"
+      "totalCaption": "∑ {0}",
+      "grandTotalCaption": "∑ {0}"
     },
     "count": {
       "caption": "Počet",

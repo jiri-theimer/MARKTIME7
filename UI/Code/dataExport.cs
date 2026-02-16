@@ -10,10 +10,10 @@ namespace UI.Code
     public class dataExport
     {
 
-        
+
         public bool ToXLSX(System.Data.DataTable dt, string strFilePath, BO.baseQuery mq)
         {
-            
+
             using (var workbook = new XLWorkbook())
             {
                 var worksheet = workbook.Worksheets.Add("Grid");
@@ -39,7 +39,7 @@ namespace UI.Code
                         {
                             switch (dr[c.UniqueName].GetType().ToString())
                             {
-                                
+
                                 case "System.DateTime":
                                     worksheet.Cell(row, col).Value = Convert.ToDateTime(dr[c.UniqueName]);
                                     break;
@@ -57,12 +57,12 @@ namespace UI.Code
                                     if (ss.Contains("<") && ss.Contains(">"))
                                     {
                                         ss = BO.Code.Bas.Html2Text(ss);
-                                    }                                    
+                                    }
                                     worksheet.Cell(row, col).Value = ss;
                                     break;
                             }
 
-                            
+
 
 
                         }
@@ -90,14 +90,14 @@ namespace UI.Code
                 int row = 2;
                 int col = 1;
 
-                
+
 
                 var coltypes = new List<StringPair>();
                 foreach (System.Data.DataColumn c in dt.Columns)
                 {
                     coltypes.Add(new BO.StringPair() { Key = c.ColumnName, Value = c.DataType.Name });
                 }
-               
+
                 foreach (System.Data.DataRow dr in dt.Rows)
                 {
                     col = 1;
@@ -109,20 +109,20 @@ namespace UI.Code
                             {
 
                                 case "System.DateTime":
-                                    worksheet.Cell(row, col).Style.DateFormat.Format = "dd.MM.yyyy";                                    
+                                    worksheet.Cell(row, col).Style.DateFormat.Format = "dd.MM.yyyy";
                                     break;
                                 case "System.Double":
-                                    worksheet.Cell(row, col).Style.NumberFormat.NumberFormatId = 4;                                    
+                                    worksheet.Cell(row, col).Style.NumberFormat.NumberFormatId = 4;
                                     break;
                                 case "System.Int32":
                                     worksheet.Cell(row, col).Style.NumberFormat.NumberFormatId = 3;
                                     break;
-                                
-                                default:                                    
+
+                                default:
                                     break;
                             }
                         }
-                        
+
 
                         if (!Convert.IsDBNull(dr[c.Key]))
                         {
@@ -130,7 +130,7 @@ namespace UI.Code
                             {
 
                                 case "System.DateTime":
-                                    
+
                                     worksheet.Cell(row, col).Value = Convert.ToDateTime(dr[c.Key]);
                                     break;
                                 case "System.Double":
@@ -146,7 +146,7 @@ namespace UI.Code
                                     worksheet.Cell(row, col).Value = dr[c.Key].ToString();
                                     break;
                             }
-                            
+
 
                         }
                         col += 1;
@@ -161,8 +161,8 @@ namespace UI.Code
                     workbook.Worksheets.Delete("marktime_definition");
                 }
                 workbook.SaveAs(strFilePath);
-                
-                
+
+
             }
 
             return true;
@@ -175,7 +175,7 @@ namespace UI.Code
                 var worksheet = workbook.Worksheets.Add("Grid");
                 int row = 1;
                 int col = 1;
-                
+
                 foreach (var c in cols)
                 {
                     worksheet.Cell(row, col).Value = c.Value;
@@ -196,10 +196,10 @@ namespace UI.Code
                     col = 1;
                     foreach (var c in cols)
                     {
-                        
+
                         if (!Convert.IsDBNull(dr[c.Key]))
                         {
-                            worksheet.Cell(row, col).Value =(XLCellValue) dr[c.Key];
+                            worksheet.Cell(row, col).Value = (XLCellValue)dr[c.Key];
 
 
 
@@ -218,18 +218,20 @@ namespace UI.Code
             return true;
         }
 
-        public bool ToCSV(System.Data.DataTable dt, string strFilePath, string strXlsTemplateFullPath,string strDelimiter,bool bolUvozovky)
+        public bool ToCSV(System.Data.DataTable dt, string strFilePath, string strXlsTemplateFullPath, string strDelimiter, bool bolUvozovky)
         {
             System.IO.StreamWriter sw = new System.IO.StreamWriter(strFilePath, false, System.Text.Encoding.UTF8);
-            
-            if (strXlsTemplateFullPath !=null && System.IO.File.Exists(strXlsTemplateFullPath))
+            int intColsCount = dt.Columns.Count;
+            int col = 1;
+
+            if (strXlsTemplateFullPath != null && System.IO.File.Exists(strXlsTemplateFullPath))
             {
                 using (var workbook = new XLWorkbook(strXlsTemplateFullPath))   //názvy sloupců z prvního řádku
                 {
                     var worksheet = workbook.Worksheets.First();
                     if (!string.IsNullOrEmpty(worksheet.Cell(1, 1).Value.ToString()))   //pokud je v první levé buňce něco vyplněno
                     {
-                        int col = 1;
+
                         foreach (System.Data.DataColumn c in dt.Columns)
                         {
                             string val = worksheet.Cell(1, col).Value.ToString();
@@ -237,22 +239,31 @@ namespace UI.Code
                             col += 1;
 
                             sw.Write(val);
-                            sw.Write(strDelimiter);
+
+                            if (col < dt.Columns.Count)
+                            {
+                                sw.Write(strDelimiter);
+                            }
+
                         }
                         sw.Write(sw.NewLine);
-                    }                    
+                    }
                 }
 
             }
-            
+
             var coltypes = new List<StringPair>();
             foreach (System.Data.DataColumn c in dt.Columns)
             {
                 coltypes.Add(new BO.StringPair() { Key = c.ColumnName, Value = c.DataType.Name });
             }
 
+
+
+
             foreach (System.Data.DataRow dr in dt.Rows)
             {
+                col = 1;
                 foreach (var c in coltypes)
                 {
                     string val = "";
@@ -263,13 +274,17 @@ namespace UI.Code
                         val = dr[c.Key].ToString();
 
                         if (dr[c.Key].GetType().ToString() == "System.String" && bolUvozovky)
-                        {                           
+                        {
                             val = "\"" + val + "\"";
                         }
                     }
 
                     sw.Write(val);
-                    sw.Write(strDelimiter);
+                    if (col < intColsCount)
+                    {
+                        sw.Write(strDelimiter);
+                    }
+                    col += 1;
                 }
 
                 sw.Write(sw.NewLine);
@@ -278,24 +293,36 @@ namespace UI.Code
 
             sw.Close();
 
-            
+
 
             return true;
         }
 
-        public bool ToCSV(System.Data.DataTable dt, string strFilePath, BO.baseQuery mq,string strDelimiter, bool bolUvozovky)
+        public bool ToCSV(System.Data.DataTable dt, string strFilePath, BO.baseQuery mq, string strDelimiter, bool bolUvozovky)
         {
             System.IO.StreamWriter sw = new System.IO.StreamWriter(strFilePath, false, System.Text.Encoding.UTF8);
+            int intColsCount = mq.explicit_columns.Count();
+            int x = 1;
+
             //headers  
             foreach (var col in mq.explicit_columns)
             {
                 sw.Write("\"" + col.Header + "\"");
-                sw.Write(strDelimiter);
+                if (x < intColsCount)
+                {
+                    sw.Write(strDelimiter);
+                }
+
+                x += 1;
             }
 
             sw.Write(sw.NewLine);
+
+
+
             foreach (System.Data.DataRow dr in dt.Rows)
             {
+                x = 1;
                 foreach (var col in mq.explicit_columns)
                 {
                     string value = "";
@@ -303,12 +330,12 @@ namespace UI.Code
                     if (!Convert.IsDBNull(dr[col.UniqueName]))
                     {
                         value = dr[col.UniqueName].ToString();
-                       
+
                         if (value.Contains("<") && value.Contains(">"))
                         {
                             value = BO.Code.Bas.Html2Text(value);
                         }
-                        
+
 
                         if (col.FieldType == "string" && bolUvozovky)
                         {
@@ -316,9 +343,16 @@ namespace UI.Code
 
                         }
                     }
+
                     sw.Write(value);
 
-                    sw.Write(strDelimiter);
+                    if (x < intColsCount)
+                    {
+                        sw.Write(strDelimiter);
+                    }
+                    x += 1;
+
+
 
 
                 }
@@ -349,7 +383,7 @@ namespace UI.Code
             }
             sb.AppendLine("<tbody>");
             foreach (System.Data.DataRow dr in dt.Rows)
-            {                
+            {
                 sb.AppendLine("<tr>");
                 foreach (var col in mq.explicit_columns)
                 {
@@ -360,7 +394,7 @@ namespace UI.Code
                     {
                         switch (col.FieldType)
                         {
-                            case "date":                            
+                            case "date":
                                 strValue = BO.Code.Bas.ObjectDate2String(dr[col.UniqueName], "dd.MM.yyyy");
                                 break;
                             case "datetime":

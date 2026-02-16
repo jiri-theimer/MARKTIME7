@@ -41,8 +41,8 @@ namespace BL
             oc =AFDATE("p31Date", "Datum","a.p31Date");oc.DefaultColumnFlag = gdc1;oc.SqlExplicitGroupBy = "a.p31Date";
             
             oc=AF("UkonYear", "Rok", "convert(varchar(4),a.p31Date,126)");oc.SqlExplicitGroupBy = "convert(varchar(4),a.p31Date,126)";oc.FixedWidth = 80;
-            oc=AF("UkonMesic", "Měsíc", "convert(varchar(7),a.p31Date,126)");oc.SqlExplicitGroupBy = "convert(varchar(7),a.p31Date,126)";oc.FixedWidth = 80;
-            AF("UkonTyden", "Týden", "convert(varchar(4),year(a.p31Date))+'-'+convert(varchar(10),DATEPART(week,a.p31Date))");
+            oc=AF("UkonMesic", "Měsíc", "'M'+convert(varchar(7),a.p31Date,126)");oc.SqlExplicitGroupBy = "'M'+convert(varchar(7),a.p31Date,126)";oc.FixedWidth = 80;
+            AF("UkonTyden", "Týden", "'W'+convert(varchar(4),year(a.p31Date))+'-'+convert(varchar(10),DATEPART(week,a.p31Date))");
             oc=AF("p31DateTimeFrom_Orig", "Čas od", null, "time");oc.FixedWidth = 50;
             oc=AF("p31DateTimeUntil_Orig", "Čas do", null, "time"); oc.FixedWidth = 50;
 

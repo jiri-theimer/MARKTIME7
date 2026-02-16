@@ -26,9 +26,11 @@ namespace UI.Models.p31view
         public List<BO.TheGridColumn> lisGridColumns { get; set; }
 
         
+        public bool IsAllowEditTemplate { get; set; }
+        public bool IsShared { get; set; }
 
+        public string DataSourceCsvPath { get; set; }
 
-        
 
     }
 }
