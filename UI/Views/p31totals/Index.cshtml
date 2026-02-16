@@ -2,7 +2,7 @@
 @inject BL.Factory _f
 
 @{
-
+    
     Layout = _f.CurrentUser.GetLayoutPerDisplay();
     Model.PageTitle = _f.tra("SOUČTY");
 
@@ -76,7 +76,11 @@
                 @Html.EditorFor(m => Model.p31statequery, "~/Views/Shared/_p31StateQuery.cshtml")
                 
             </div>
-            <strong style="padding:6px;background-color:red;">@(Model.p31statequery.getStateAlias())</strong>
+            @if (Model.p31statequery.Value > 0)
+            {
+                <strong style="padding:6px;background-color:red;">@(Model.p31statequery.getStateAlias())</strong>
+            }
+            
         }
         else
         {
@@ -127,7 +131,42 @@
                 </kbd>
             }
         }
+
+        
     </div>
+
+
+    <div class="col-auto">
+        <button id="cmdClear" type="button" class="btn btn-warning" onclick="clear_localstorage()" title="@_f.tra("Nahodit do výchozího stavu")">
+            <myicon symbol="clear"></myicon>
+            
+
+        </button>
+    </div>
+
+    @if (Model.IsShared && (Model.SelectedTemplate.j02ID==_f.CurrentUser.j02ID || _f.CurrentUser.IsAdmin))
+    {
+       <div class="col-auto">
+            <button id="cmdSaveChangesShared" type="button" class="btn bog" onclick="save_shared_changes()" style="display:none;">
+                <myicon symbol="save"></myicon>
+                @_f.tra("Aktuální vzhled statistiky uložit pro ostatní uživatele")
+
+            </button>
+       </div>
+
+        @if(Model.SelectedTemplate.j79WebDataRocksReport != null)
+        {
+            <div class="col-auto">
+                <button id="cmdClearChangesShared" type="button" class="btn btn-warning" onclick="clear_shared_changes()">
+                    
+                    @_f.tra("Vyčistit vzhled statistiky pro ostatní uživatele")
+
+                </button>
+            </div>
+        }
+        
+       
+    }
 
 </div>
 
@@ -230,20 +269,18 @@
 <script>
     var _tg_entity = "p31Worksheet";
     var _j79id = "@Model.SelectedJ79ID";
+    var _initReportJsonSetting = @Html.Raw(string.IsNullOrWhiteSpace(Model?.SelectedTemplate?.j79WebDataRocksReport)
+                        ? "{}"
+                        : Model.SelectedTemplate.j79WebDataRocksReport);
 
     const CSV_URL = "/p31totals/LoadDatasource?login=@(_f.CurrentUser.j02Login)&j79id="+_j79id;
     const STORAGE_KEY = "webdatarocks_layout-"+_j79id;
-    
-
-
-        // pokus o načtení uloženého layoutu
+        
+            
         let report1 = {
         dataSource: {
             filename: CSV_URL,
-            delimiter: ";",
-            mapping: {
-                "Měsíc": { type: "string" }
-            }
+            delimiter: ";"
         },
         // ✅ Default formát pro VŠECHNY measures
         formats: [
@@ -256,6 +293,11 @@
              ]
          };
 
+         if (Object.keys(_initReportJsonSetting).length)
+         {
+            report1 = _initReportJsonSetting;
+         }
+         
 
          const saved = localStorage.getItem(STORAGE_KEY);
          if (saved) {
@@ -283,6 +325,8 @@
              var s=JSON.stringify(data2save);
 
              localStorage.setItem(STORAGE_KEY, s);
+
+             $("#cmdSaveChangesShared").css("display","block");
 
         });
 
@@ -451,5 +495,37 @@
         });
         return tabs;
       };
+    }
+
+
+    function save_shared_changes()
+    {
+        var data2save=pivot1.getReport();
+        var s=JSON.stringify(data2save);
+
+        $.post("/p31totals/SaveReportSetting", { j79id: _j79id, setting: s }, function (data) {
+            reload();
+            
+        });
+    }
+
+    function clear_shared_changes()
+    {
+       if (!confirm("Vyčistit aktuální vzhled statistiky?"))
+       {
+           return;
+       }
+        $.post("/p31totals/SaveReportSetting", { j79id: _j79id, setting: null }, function (data) {
+            localStorage.removeItem(STORAGE_KEY);
+            reload();
+
+        });
+    }
+
+    function clear_localstorage()
+    {
+
+        localStorage.removeItem(STORAGE_KEY);
+            reload();
     }
 </script>

@@ -24,5 +24,6 @@ namespace BO
         public string j79Query_j11IDs { get; set; }
         public string j79Query_j07IDs { get; set; }
         public string j79AddQuery { get; set; }
+        public string j79WebDataRocksReport { get; set; }
     }
 }

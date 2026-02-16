@@ -295,6 +295,13 @@ namespace UI.Controllers.p31view
             return Factory.j79TotalsTemplateBL.Save(rec,null,null);
         }
 
+        public int SaveReportSetting(int j79id, string setting)
+        {
+            var rec = Factory.j79TotalsTemplateBL.Load(j79id);
+            rec.j79WebDataRocksReport = setting;
+            return Factory.j79TotalsTemplateBL.Save(rec, null, null);
+        }
+
         public int SaveAs(string j79name, int j79id, string masterprefix)
         {
             var rec = Factory.j79TotalsTemplateBL.Load(j79id);
