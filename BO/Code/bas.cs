@@ -304,22 +304,24 @@ namespace BO.Code
 
             return System.Guid.NewGuid().ToString("N");
         }
-       
 
 
-        public static string FormatFileSize(int byteCount)
+
+        public static string FormatFileSize(long byteCount)
         {
-            string size = "0 Bytes";
             if (byteCount >= 1073741824)
-                size = String.Format("{0:##.##}", byteCount / 1073741824) + " GB";
-            else if (byteCount >= 1048576)
-                size = String.Format("{0:##.##}", byteCount / 1048576) + " MB";
-            else if (byteCount >= 1024)
-                size = String.Format("{0:##.##}", byteCount / 1024) + " KB";
-            else if (byteCount > 0 && byteCount < 1024)
-                size = byteCount.ToString() + " Bytes";
+                return $"{byteCount / 1073741824.0:0.##} GB";
 
-            return size;
+            if (byteCount >= 1048576)
+                return $"{byteCount / 1048576.0:0.##} MB";
+
+            if (byteCount >= 1024)
+                return $"{byteCount / 1024.0:0.##} KB";
+
+            if (byteCount > 0)
+                return $"{byteCount} Bytes";
+
+            return "0 Bytes";
         }
 
 

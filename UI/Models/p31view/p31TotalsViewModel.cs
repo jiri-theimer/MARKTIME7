@@ -30,7 +30,8 @@ namespace UI.Models.p31view
         public bool IsShared { get; set; }
 
         public string DataSourceCsvPath { get; set; }
-
+        public double DataSourceLengthMegaBytes { get; set; }
+        public int DataSourceLengthBytes { get; set; }
 
     }
 }

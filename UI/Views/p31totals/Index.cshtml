@@ -135,9 +135,13 @@
         
     </div>
 
+    <div class="col-auto" title="Velikost datového zdroje v MB. Limitní velikost je 1MB. Velikost datového zdroje snížíte přes filtrování dat (především časové období) a změnou okruhu sloupců.">
+        <span class="badge text-bg-primary">@(BO.Code.Bas.FormatFileSize(Model.DataSourceLengthBytes))</span>
+    </div>
+
 
     <div class="col-auto">
-        <button id="cmdClear" type="button" class="btn btn-warning" onclick="clear_localstorage()" style="display:none;" title="@_f.tra("Nahodit do výchozího stavu")">
+        <button id="cmdClear" type="button" class="btn btn-sm btn-danger" onclick="clear_localstorage()" style="display:none;" title="@_f.tra("Nahodit vzhled do výchozího stavu")">
             <myicon symbol="clear"></myicon>
             
 
@@ -147,7 +151,7 @@
     @if (Model.IsShared && (Model.SelectedTemplate.j02ID==_f.CurrentUser.j02ID || _f.CurrentUser.IsAdmin))
     {
        <div class="col-auto">
-            <button id="cmdSaveChangesShared" type="button" class="btn bog" onclick="save_shared_changes()" style="display:none;">
+            <button id="cmdSaveChangesShared" type="button" class="btn btn-sm bog" onclick="save_shared_changes()" style="display:none;">
                 <myicon symbol="save"></myicon>
                 @_f.tra("Aktuální vzhled statistiky uložit pro ostatní uživatele")
 
@@ -157,7 +161,7 @@
         @if(Model.SelectedTemplate.j79WebDataRocksReport != null)
         {
             <div class="col-auto">
-                <button id="cmdClearChangesShared" type="button" class="btn btn-warning" onclick="clear_shared_changes()">
+                <button id="cmdClearChangesShared" type="button" class="btn btn-sm btn-warning" onclick="clear_shared_changes()">
                     
                     @_f.tra("Vyčistit vzhled statistiky pro ostatní uživatele")
 
@@ -275,7 +279,9 @@
 
     const CSV_URL = "/p31totals/LoadDatasource?login=@(_f.CurrentUser.j02Login)&j79id="+_j79id;
     const STORAGE_KEY = "webdatarocks_layout-"+_j79id;
-        
+    const DATASOURCE_SIZE=Number("@(Model.DataSourceLengthMegaBytes.ToString().Replace(",","."))");
+
+    
             
         let report1 = {
         dataSource: {
@@ -308,20 +314,23 @@
          }     
 
 
-        const pivot1 = new WebDataRocks({
-          container: "#pivotContainer",
-          toolbar: true,
-          beforetoolbarcreated: customizeToolbar,
-          report: report1,
-          reportcomplete: onReportComplete,
-            global: {
-            localization: "/lib/WebDataRocks/cs.json"
-            }
-        });
+         if (DATASOURCE_SIZE<=1)
+         {
+
+             const pivot1 = new WebDataRocks({
+                container: "#pivotContainer",
+                toolbar: true,
+                beforetoolbarcreated: customizeToolbar,
+                report: report1,
+                reportcomplete: onReportComplete,
+                global: {
+                    localization: "/lib/WebDataRocks/cs.json"
+                }
+            });
 
 
 
-         pivot1.on("reportchange", function() {
+            pivot1.on("reportchange", function() {
 
              var data2save=pivot1.getReport();
              var s=JSON.stringify(data2save);
@@ -331,7 +340,12 @@
              $("#cmdSaveChangesShared").css("display","block");
              $("#cmdClear").css("display","block");
 
-        });
+            });
+
+         }
+
+
+        
 
         function onReportComplete()
         {

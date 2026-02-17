@@ -237,11 +237,13 @@ namespace UI.Controllers.p31view
             var basDataExport = new Code.dataExport();
             var strFullPath = $"{Factory.TempFolder}\\WebDataRocks-{Factory.CurrentUser.j02Login}-{v.SelectedJ79ID}.csv";
             basDataExport.ToCSV(dt, strFullPath, mq, ";", true);
-            
-            if (BO.Code.File.GetFileInfo(strFullPath).Length > 1024*1024)
+
+            v.DataSourceLengthBytes = (int)BO.Code.File.GetFileInfo(strFullPath).Length;
+            v.DataSourceLengthMegaBytes = BO.Code.File.GetFileInfo(strFullPath).Length / 1024d / 2014d;
+            if (v.DataSourceLengthMegaBytes > 1d)
             {
-                var xx = BO.Code.Bas.FormatFileSize((int) BO.Code.File.GetFileInfo(strFullPath).Length);
-                this.AddMessageTranslated($"Maximální limit datového zdroje je 1MB.<hr>Nyní je jeho velikost: {xx}.<hr>Stačí zmenšit časové období nebo ubrat nějaký sloupec z datového zdroje.");
+                
+                this.AddMessageTranslated($"Maximální limit datového zdroje je 1MB.<hr>Nyní je jeho velikost: {BO.Code.Bas.FormatFileSize(v.DataSourceLengthBytes)}.<hr>Velikost datového zdroje snížíte přes filtrování dat (především časové období) a změnou okruhu sloupců.");
             } 
             
             
