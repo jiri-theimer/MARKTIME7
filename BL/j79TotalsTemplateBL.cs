@@ -106,6 +106,7 @@ namespace BL
             p.AddInt("j79Ordinary", rec.j79Ordinary);
             p.AddString("j79AddQuery", rec.j79AddQuery);
             p.AddString("j79WebDataRocksReport", rec.j79WebDataRocksReport);
+            p.AddInt("j79Chart", rec.j79Chart);
 
             int intJ79ID= _db.SaveRecord("j79TotalsTemplate", p, rec);
             if (intJ79ID > 0 && j04ids != null && j11ids != null)

@@ -157,6 +157,14 @@
         </button>
     </div>
 
+    <div class="col-auto">
+        <select asp-for="ChartType" onchange="chart_change()">
+            <option value="0">@_f.tra("Bez grafu")</option>
+            <option value="1">@_f.tra("Sloupcový graf")</option>
+        </select>
+        
+    </div>
+
     @if (Model.IsShared && (Model.SelectedTemplate.j02ID==_f.CurrentUser.j02ID || _f.CurrentUser.IsAdmin))
     {
        <div class="col-auto">
@@ -540,6 +548,15 @@
         $.post("/p31totals/SaveReportSetting", { j79id: _j79id, setting: s }, function (data) {
             reload();
             
+        });
+    }
+
+    function chart_change()
+    {
+        var s=$("#ChartType").val();
+        $.post("/p31totals/ChangeChart", { j79id: _j79id,charttype: s }, function (data) {
+            reload();
+
         });
     }
 

@@ -44,6 +44,7 @@ namespace UI.Controllers.p31view
 
             v.periodinput.LoadUserSetting(_pp, Factory);
 
+            
 
             if (v.SelectedJ79ID == 0)
             {
@@ -78,7 +79,7 @@ namespace UI.Controllers.p31view
             }
 
 
-            
+            v.ChartType = v.SelectedTemplate.j79Chart;
 
             v.TheGridQueryButton = new TheGridQueryViewModel() { j72id = Factory.CBL.LoadUserParamInt("p31totals-j72id"),paramkey= "p31totals-j72id",prefix="p31" };
             if (v.TheGridQueryButton.j72id > 0)
@@ -283,6 +284,14 @@ namespace UI.Controllers.p31view
             var rec = Factory.j79TotalsTemplateBL.Load(j79id);
             rec.j79StateQuery = statequery;
             return Factory.j79TotalsTemplateBL.Save(rec,null,null);
+        }
+        public int ChangeChart(int j79id,int charttype)
+        {
+            var rec = Factory.j79TotalsTemplateBL.Load(j79id);
+            rec.j79Chart = charttype;
+          
+            return Factory.j79TotalsTemplateBL.Save(rec, null, null);
+
         }
         public int SaveSettings(int j79id, string j02ids, string j07ids, string j11ids, int j72id,string addquery)
         {

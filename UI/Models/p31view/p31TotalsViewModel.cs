@@ -34,6 +34,7 @@ namespace UI.Models.p31view
         public int DataSourceLengthBytes { get; set; }
 
       
+        public int ChartType { get; set; }
 
     }
 }
