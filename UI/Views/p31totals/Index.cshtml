@@ -167,7 +167,7 @@
     </div>
 
     <div class="col-auto">
-        <select asp-for="ChartType" onchange="chart_change()">
+        <select asp-for="ChartType" onchange="chart_change()" class="form-select form-select-sm">
             <option value="0">@_f.tra("Bez grafu")</option>
             <option value="1">@_f.tra("Sloupcový graf")</option>
         </select>
@@ -293,14 +293,20 @@
 </div>
 
 
-<div id="pivotContainer"></div>
+
 @if (Model.ChartType > 0)
 {
-    <div id="amchartsContainer" style="height:600px;"></div>
+    <div id="pivotContainer" style="height:600px;">></div>
+    <div id="amchartsContainer" style="height:400px;"></div>
+}
+else
+{
+    <div id="pivotContainer"></div>
 }
 
 
 <script>
+    var _Chart="@(Model.ChartType)";
     var _tg_entity = "p31Worksheet";
     var _tabquery = "@(Model.p31tabquery != null ? Model.p31tabquery.Value : null)";    
     var _j79id = "@Model.SelectedJ79ID";
@@ -377,7 +383,12 @@
             function onReportComplete()
             {
                 pivot1.off("reportcomplete");   // spustit jen jednou
-                createChart();
+
+                if (_Chart !="0")
+                {
+                    createChart();
+                }
+                
             }
 
 
@@ -589,14 +600,21 @@
 
 
     function resizeContainerToPage() {
-      const el = document.getElementById("pivotContainer");
+      
+      let el = document.getElementById("pivotContainer");
+
+      if (_Chart != "0")
+      {
+          el = document.getElementById("amchartsContainer");
+      }
+
       if (!el) return;
 
       const rect = el.getBoundingClientRect();
       const bottomGap = 25;
 
       let height = window.innerHeight - rect.top - bottomGap;
-      height = Math.max(height, 200);
+      height = Math.max(height, 400);
 
       el.style.height = `${Math.floor(height)}px`;
     }

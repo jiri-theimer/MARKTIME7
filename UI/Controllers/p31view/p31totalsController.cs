@@ -25,6 +25,7 @@ namespace UI.Controllers.p31view
                 return RedirectToAction("Index", "p31totalsOld", new { master_entity = master_entity, master_pid = master_pid, caller= caller, j79id= j79id, selected_entity= selected_entity, selected_pids= selected_pids, guid_pids= guid_pids });
             }
             
+            
 
             var v = new p31TotalsViewModel() { record_pid = master_pid, record_prefix = master_entity, SelectedJ79ID = j79id, selected_entity = selected_entity, selected_pids = selected_pids };
             if (!string.IsNullOrEmpty(guid_pids))
@@ -78,6 +79,7 @@ namespace UI.Controllers.p31view
                 v.IsShared = true;
             }
 
+            BO.Code.File.LogInfo($"Nové SOUČTY, jsem tu/login: {Factory.CurrentUser.j02Login}, Template: {v.SelectedTemplate.j79Name}", Factory.CurrentUser.j02Login,"p31totalsController");
 
             v.ChartType = v.SelectedTemplate.j79Chart;
 
