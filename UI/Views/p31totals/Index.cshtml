@@ -88,6 +88,12 @@
         }
 
     }
+    @if (Model.p31tabquery != null)
+    {
+        
+            @Html.EditorFor(m => Model.p31tabquery, "~/Views/Shared/_p31TabQuery.cshtml")
+        
+    }
     @if (Model.TheGridQueryButton != null)
     {
         @Html.EditorFor(m => Model.TheGridQueryButton, "~/Views/Shared/_ButtonGridQuery.cshtml")
@@ -272,6 +278,7 @@
 
 <script>
     var _tg_entity = "p31Worksheet";
+    var _tabquery = "@(Model.p31tabquery != null ? Model.p31tabquery.Value : null)";
     var _j79id = "@Model.SelectedJ79ID";
     var _initReportJsonSetting = @Html.Raw(string.IsNullOrWhiteSpace(Model?.SelectedTemplate?.j79WebDataRocksReport)
                         ? "{}"
@@ -342,16 +349,18 @@
 
             });
 
+            function onReportComplete()
+            {
+                pivot1.off("reportcomplete");   // spustit jen jednou
+
+            }
+
          }
 
 
         
 
-        function onReportComplete()
-        {
-          pivot1.off("reportcomplete");   // spustit jen jednou
-          
-        }
+        
 
 
 
@@ -410,7 +419,12 @@
 
     }
 
+    function change_tabquery(val) {
+        $.post("/p31totals/SaveTabQuery", { j79id: _j79id, tabquery: val }, function (data) {
+            reload();
 
+        });
+    }
 
     function change_statequery(val) {
         $.post("/p31totals/SaveStateQuery", { j79id: _j79id, statequery: val }, function (data) {
