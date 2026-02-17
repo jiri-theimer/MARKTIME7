@@ -94,6 +94,9 @@
             @Html.EditorFor(m => Model.p31tabquery, "~/Views/Shared/_p31TabQuery.cshtml")
         
     }
+
+   
+
     @if (Model.TheGridQueryButton != null)
     {
         @Html.EditorFor(m => Model.TheGridQueryButton, "~/Views/Shared/_ButtonGridQuery.cshtml")
@@ -278,7 +281,7 @@
 
 <script>
     var _tg_entity = "p31Worksheet";
-    var _tabquery = "@(Model.p31tabquery != null ? Model.p31tabquery.Value : null)";
+    var _tabquery = "@(Model.p31tabquery != null ? Model.p31tabquery.Value : null)";    
     var _j79id = "@Model.SelectedJ79ID";
     var _initReportJsonSetting = @Html.Raw(string.IsNullOrWhiteSpace(Model?.SelectedTemplate?.j79WebDataRocksReport)
                         ? "{}"
@@ -558,5 +561,30 @@
        }
         localStorage.removeItem(STORAGE_KEY);
             reload();
+    }
+
+    function get_all_tgi_params() {
+
+        var params = {
+            entity: "p31Worksheet",
+            j72id: 0,
+            go2pid: 0,
+            master_entity: "",
+            oncmclick: "",
+            ondblclick: "",
+            fixedcolumns: "",
+            viewstate: [],
+            master_pid: 0,
+            myqueryinline: "",
+            isperiodovergrid: false,
+            pathname: location.pathname,
+            currentpid: 0,
+            reczoomflag: null,
+            is_enable_selecting: false
+
+        }
+
+
+        return params;
     }
 </script>

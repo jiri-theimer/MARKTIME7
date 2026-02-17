@@ -77,8 +77,8 @@ namespace UI.Controllers.p31view
                 v.IsShared = true;
             }
 
-            
 
+            
 
             v.TheGridQueryButton = new TheGridQueryViewModel() { j72id = Factory.CBL.LoadUserParamInt("p31totals-j72id"),paramkey= "p31totals-j72id",prefix="p31" };
             if (v.TheGridQueryButton.j72id > 0)
@@ -197,6 +197,9 @@ namespace UI.Controllers.p31view
                     wheres.Add($"a.p31ID IN ({v.selected_pids})"); break;
 
             }
+
+          
+
             if (v.TheGridQueryButton.j72id > 0)
             {
                 mq.lisJ73 = Factory.j72TheGridTemplateBL.GetList_j73(v.TheGridQueryButton.j72id, "p31", 0);
@@ -239,7 +242,7 @@ namespace UI.Controllers.p31view
             basDataExport.ToCSV(dt, strFullPath, mq, ";", true);
 
             v.DataSourceLengthBytes = (int)BO.Code.File.GetFileInfo(strFullPath).Length;
-            v.DataSourceLengthMegaBytes = BO.Code.File.GetFileInfo(strFullPath).Length / 1024d / 2014d;
+            v.DataSourceLengthMegaBytes = BO.Code.File.GetFileInfo(strFullPath).Length / 1024d / 1024d;
             if (v.DataSourceLengthMegaBytes > 1d)
             {
                 
