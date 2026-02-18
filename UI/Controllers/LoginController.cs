@@ -1,13 +1,13 @@
 ﻿
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authentication;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Http;
-
 using Google.Apis.Auth;
 using Google.Apis.Auth.OAuth2;
-using Newtonsoft.Json.Linq;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
+using System.Security.Claims;
 using UI.Code;
 using UI.Models;
 
@@ -382,6 +382,27 @@ namespace UI.Controllers
             }
             
             return Ok(payload);
+
+        }
+
+
+        [HttpPost]
+        public IActionResult SaveLang(string culture)
+        {
+            var allowed = new HashSet<string> { "cs-CZ", "en-US", "sk-SK" };
+            if (!allowed.Contains(culture)) culture = "cs-CZ";
+
+            Response.Cookies.Append(
+                CookieRequestCultureProvider.DefaultCookieName,
+                CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(culture)),
+                new CookieOptions
+                {
+                    Expires = DateTimeOffset.UtcNow.AddYears(1),
+                    IsEssential = true,
+                    SameSite = SameSiteMode.Lax
+                });
+
+            return RedirectToAction("UserLogin", "Login");
 
         }
     }

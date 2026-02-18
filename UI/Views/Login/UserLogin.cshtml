@@ -6,6 +6,8 @@
     Layout = "~/Views/Shared/_LayoutAnonym.cshtml";
 
     var _returnurl = @Context.Request.Query["returnurl"];
+
+    var _culture = System.Globalization.CultureInfo.CurrentUICulture.Name;
 }
 
 @addTagHelper *, UI
@@ -125,6 +127,9 @@
                 <a href="/Password/Index?langindex=@(Model.LangIndex)">@_f.trawi("Zapomenuté heslo", Model.LangIndex)</a>
             </div>
         </div>
+
+
+        
         
         <div class="row mt-4">
             <div class="col-sm-3">
@@ -240,6 +245,54 @@
 
 
 
+
+    <form asp-controller="Login" asp-action="SaveLang" method="post" class="d-inline">
+        <div class="d-flex gap-3">
+
+            <div class="form-check">
+                <input class="form-check-input"
+                       type="radio"
+                       name="culture"
+                       value="cs-CZ"
+                       id="lang-cs"
+                       onchange="this.form.submit()"
+                       @( _culture == "cs-CZ" ? "checked" : null )>
+                <label class="form-check-label" for="lang-cs">
+                    <img src="/images/small_czechrepublic.gif" width="18" class="me-1" />
+                    Čeština
+                </label>
+            </div>
+
+            <div class="form-check">
+                <input class="form-check-input"
+                       type="radio"
+                       name="culture"
+                       value="en-US"
+                       id="lang-en"
+                       onchange="this.form.submit()"
+                       @( _culture == "en-US" ? "checked" : null )>
+                <label class="form-check-label" for="lang-en">
+                    <img src="/images/small_uk.gif" width="18" class="me-1" />
+                    English
+                </label>
+            </div>
+
+            <div class="form-check">
+                <input class="form-check-input"
+                       type="radio"
+                       name="culture"
+                       value="sk-SK"
+                       id="lang-sk"
+                       onchange="this.form.submit()"
+                       @( _culture == "sk-SK" ? "checked" : null )>
+                <label class="form-check-label" for="lang-sk">
+                    <img src="/images/small_slovakia.gif" width="18" class="me-1" />
+                    Slovenčina
+                </label>
+            </div>
+
+        </div>
+    </form>
 
 </div>
 
