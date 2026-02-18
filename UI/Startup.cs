@@ -1,7 +1,11 @@
 
+using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Options;
+using System.Globalization;
 using Telerik.Reporting.Services;
 
 
@@ -92,6 +96,22 @@ namespace UI
             services.AddSingleton<BL.Singleton.BackgroundWorkerQueue>();
 
 
+            services.Configure<RequestLocalizationOptions>(options =>
+            {
+                var supportedCultures = new[] { "cs-CZ", "en-US", "sk-SK", }.Select(x => new CultureInfo(x)).ToList();
+
+                options.DefaultRequestCulture = new RequestCulture("cs-CZ");
+                options.SupportedCultures = supportedCultures;
+                options.SupportedUICultures = supportedCultures;
+
+                options.RequestCultureProviders = new IRequestCultureProvider[]
+                {
+                    new CookieRequestCultureProvider(),
+                    new AcceptLanguageHeaderRequestCultureProvider()
+                };
+            });
+
+
 
 
             //Služba pro TELERIK REPORTING:
@@ -147,10 +167,10 @@ namespace UI
 
             app.UseRequestLocalization();
 
-            var strCultureCode = Configuration.GetSection("App")["CultureCode"];
-            if (string.IsNullOrEmpty(strCultureCode)) strCultureCode = "cs-CZ";
-            System.Globalization.CultureInfo.DefaultThreadCurrentCulture = new System.Globalization.CultureInfo(strCultureCode);
-            System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = new System.Globalization.CultureInfo(strCultureCode);
+            //var strCultureCode = Configuration.GetSection("App")["CultureCode"];
+            //if (string.IsNullOrEmpty(strCultureCode)) strCultureCode = "cs-CZ";
+            //System.Globalization.CultureInfo.DefaultThreadCurrentCulture = new System.Globalization.CultureInfo(strCultureCode);
+            //System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = new System.Globalization.CultureInfo(strCultureCode);
 
 
 

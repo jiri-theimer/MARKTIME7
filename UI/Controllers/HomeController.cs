@@ -621,15 +621,15 @@ namespace UI.Controllers
             Factory.j02UserBL.Save(c, null);
             return new BO.Result(false);
         }
-        public BO.Result SaveCurrentUserLangIndex(int langindex)
-        {
-            var c = Factory.j02UserBL.Load(Factory.CurrentUser.pid);
-            c.j02LangIndex = langindex;
-            Factory.j02UserBL.Save(c, null);
-            var co = new CookieOptions() { Expires = DateTime.Now.AddDays(100) };
-            Response.Cookies.Append("marktime.langindex", langindex.ToString(), co);
-            return new BO.Result(false);
-        }
+        //public BO.Result SaveCurrentUserLangIndex(int langindex)
+        //{
+        //    var c = Factory.j02UserBL.Load(Factory.CurrentUser.pid);
+        //    c.j02LangIndex = langindex;
+        //    Factory.j02UserBL.Save(c, null);
+        //    var co = new CookieOptions() { Expires = DateTime.Now.AddDays(100) };
+        //    Response.Cookies.Append("marktime.langindex", langindex.ToString(), co);
+        //    return new BO.Result(false);
+        //}
 
         public BO.Result UpdateNews_Timestamp()
         {

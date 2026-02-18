@@ -3,7 +3,7 @@
 @{
     Layout = null;
 
-
+    var _culture = System.Globalization.CultureInfo.CurrentUICulture.Name;
 
 }
 
@@ -22,6 +22,9 @@
     .nav-link {
         padding: 5px;
     }
+
+
+    
 </style>
 
 
@@ -52,22 +55,59 @@
                 </div>
             </div>
 
-            <div class="d-flex justify-content-end">
-                <a id="linkLang0" href="javascript: save_langindex_menu(0)" style="text-decoration:none;padding:3px;"><img style="padding-left:2px;" src="/images/small_czechrepublic.gif" />Česky</a>
+           
+            <form asp-controller="Culture" asp-action="SaveLang" method="post" class="d-inline">
+                <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
 
-                <a id="linkLang1" href="javascript: save_langindex_menu(1)" style="text-decoration:none;padding:3px;margin-left:2px;"><img src="/images/small_uk.gif" />English</a>
+                <div class="d-flex gap-3">
 
-                <a id="linkLang4" href="javascript: save_langindex_menu(4)" style="text-decoration:none;padding:3px;margin-left:2px;"><img src="/images/small_slovakia.gif" />Slovenčina</a>
-            </div>
+                    <div class="form-check">
+                        <input class="form-check-input"
+                               type="radio"
+                               name="culture"
+                               value="cs-CZ"
+                               id="lang-cs"
+                               onchange="this.form.submit()"
+                               @( _culture == "cs-CZ" ? "checked" : null )>
+                        <label class="form-check-label" for="lang-cs">
+                            <img src="/images/small_czechrepublic.gif" width="18" class="me-1" />
+                            Čeština
+                        </label>
+                    </div>
+
+                    <div class="form-check">
+                        <input class="form-check-input"
+                               type="radio"
+                               name="culture"
+                               value="en-US"
+                               id="lang-en"
+                               onchange="this.form.submit()"
+                               @( _culture == "en-US" ? "checked" : null )>
+                        <label class="form-check-label" for="lang-en">
+                            <img src="/images/small_uk.gif" width="18" class="me-1" />
+                            English
+                        </label>
+                    </div>
+
+                    <div class="form-check">
+                        <input class="form-check-input"
+                               type="radio"
+                               name="culture"
+                               value="sk-SK"
+                               id="lang-sk"
+                               onchange="this.form.submit()"
+                               @( _culture == "sk-SK" ? "checked" : null )>
+                        <label class="form-check-label" for="lang-sk">
+                            <img src="/images/small_slovakia.gif" width="18" class="me-1" />
+                            Slovenčina
+                        </label>
+                    </div>
+
+                </div>
+            </form>
 
 
-
-            <a id="cmdmobile" class="nav-link" href="/Home/Mobile">
-                <myicon symbol="phone_iphone"></myicon>
-                @_f.tra("Rozhraní pro mobilní zařízení")
-            </a>
-
-            <p></p>
+            
             <hr />
 
             @if (_f.CurrentUser.TestPermission(BO.PermValEnum.GR_x31_Personal))
@@ -229,12 +269,7 @@
     //$(matka).css("left", new_left);
     //$(matka).css("position", "absolute");
 
-    function save_langindex_menu(langindex) {
-        $.post("/Home/SaveCurrentUserLangIndex", { langindex: langindex }, function (data) {
-            location.replace(window.location.href);
-        });
-    }
-
+    
 
     function report() {
         _window_open("/ReportsClient/ReportContext?pid=" + _j02id_local + "&prefix=j02");
