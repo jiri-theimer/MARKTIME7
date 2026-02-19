@@ -46,8 +46,9 @@ namespace BL
                 }
                 if (b)
                 {
-                    col.TranslateLang1 = _tt.DoTranslate(col.Header, 1, "TheColumnsProvider");
-                    col.TranslateLang2 = _tt.DoTranslate(col.Header, 2, "TheColumnsProvider");
+                    col.TranslateLang1 = _tt.DoTranslate(col.Header, "en-US", "TheColumnsProvider");
+                    col.TranslateLang2 = _tt.DoTranslate(col.Header, "de-DE", "TheColumnsProvider");
+                    
                 }
 
             }

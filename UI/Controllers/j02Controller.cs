@@ -281,7 +281,7 @@ namespace UI.Controllers
             }
 
 
-            v.Rec = new BO.j02User() { j02LangIndex = Factory.Lic.x01LangIndex, j04ID = j04id };
+            v.Rec = new BO.j02User() { j04ID = j04id };
             if (Factory.Lic.x01LoginDomain != null)
             {
                 v.Rec.j02Login = "@" + Factory.Lic.x01LoginDomain;
@@ -461,7 +461,7 @@ namespace UI.Controllers
                 c.j07ID = v.Rec.j07ID;
                 c.c21ID = v.Rec.c21ID;
                 c.j18ID = v.Rec.j18ID;
-                c.j02LangIndex = v.Rec.j02LangIndex;
+               
 
                 c.j02IsMustChangePassword = v.Rec.j02IsMustChangePassword;
                 c.j02TwoFactorVerifyFlag = v.Rec.j02TwoFactorVerifyFlag;

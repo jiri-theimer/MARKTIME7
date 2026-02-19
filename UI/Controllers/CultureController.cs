@@ -21,6 +21,21 @@ namespace UI.Controllers
                     SameSite = SameSiteMode.Lax
                 });
 
+            var rec = Factory.j02UserBL.Load(this.Factory.CurrentUser.pid);
+            switch (culture)
+            {
+                case "en-US":
+                    rec.j02LangIndex = 1;
+                    break;
+                case "sk-SK":
+                    rec.j02LangIndex = 4;
+                    break;
+                default:
+                    rec.j02LangIndex = 0;
+                    break;
+            }
+            Factory.j02UserBL.Save(rec, null);
+
             return RedirectToAction("Index","Home");
         }
 

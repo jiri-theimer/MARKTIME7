@@ -47,23 +47,24 @@ namespace BL.Singleton
             SetupPallete();
         }
 
-        public string DoTranslate(string strCode,int langindex,string strCodeSource=null)
+        public string DoTranslate(string strExpression, string strCulture, string strCodeSource=null)
         {
             try
             {
-                switch (langindex)
+                switch (strCulture)
                 {
-                    case 1:
-                        return _hash.First(p => p.x97Code == strCode).Eng;
+                    case "en-US":
+                        return _hash.First(p => p.x97Code == strExpression).Eng;
                        
-                    case 2:
-                        return _hash.First(p => p.x97Code == strCode).De;
-                    case 4:
-                        return _hash.First(p => p.x97Code == strCode).Sk;
+                    case "de-DE":
+                        return _hash.First(p => p.x97Code == strExpression).De;
+                    case "sk-SK":
+                        return _hash.First(p => p.x97Code == strExpression).Sk;
 
                     default:
-                        return _hash.First(p => p.x97Code == strCode).Orig;
-                        
+                        return strExpression;
+
+
                 }                
                 
             }
@@ -73,10 +74,10 @@ namespace BL.Singleton
                 {
                     var db = new DL.DbHandler((_app.HostingMode == HostingModeEnum.SharedApp ? _app.ConnectStringCloudHeader : _app.ConnectString), new BO.RunningUser(), _app.LogFolder);
 
-                    db.RunSql("INSERT INTO x97Translate(x97Code,x97Orig,x97UserInsert,x97UserUpdate,x97DateInsert,x97DateUpdate,x97OrigSource) VALUES(@code,@orig,'collect','collect',GETDATE(),GETDATE(),@origsource)", new { code = strCode,orig=strCode,origsource= strCodeSource });
+                    db.RunSql("INSERT INTO x97Translate(x97Code,x97Orig,x97UserInsert,x97UserUpdate,x97DateInsert,x97DateUpdate,x97OrigSource) VALUES(@code,@orig,'collect','collect',GETDATE(),GETDATE(),@origsource)", new { code = strExpression, orig= strExpression, origsource= strCodeSource });
                     SetupPallete();
                 }
-                return $"?{strCode}?";
+                return $"?{strExpression}?";
                 
             }            
             

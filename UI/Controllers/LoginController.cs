@@ -1,4 +1,5 @@
 ﻿
+using DocumentFormat.OpenXml.Drawing;
 using Google.Apis.Auth;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.Authentication;
@@ -34,11 +35,7 @@ namespace UI.Controllers
             
 
             var v = new LoginViewModel();
-            v.LangIndex = _f.App.DefaultLangIndex;
-            if(Request.Cookies["marktime.langindex"] !=null)
-            {
-                v.LangIndex = BO.Code.Bas.InInt(Request.Cookies["marktime.langindex"]);
-            }
+            
             if (Request.Cookies["marktime.cookieexpiresinhours"] != null)
             {
                 v.CookieExpiresInHours = BO.Code.Bas.InInt(Request.Cookies["marktime.cookieexpiresinhours"]);
@@ -58,7 +55,7 @@ namespace UI.Controllers
         }
 
         [HttpPost]
-        public ActionResult UserLogin(LoginViewModel v, string returnurl,string oper)
+        public ActionResult UserLogin(LoginViewModel v, string returnurl,string oper,string culture)
         {
             
             if (oper == "postback")
@@ -80,19 +77,19 @@ namespace UI.Controllers
                 strCaller = "google";
                 if (string.IsNullOrEmpty(v.GoogleId))
                 {
-                    v.Message = _f.trawi("Chybí Google ověřený účet!", v.LangIndex);
+                    v.Message = _f.tra("Chybí Google ověřený účet!");
                     return View(v);
                 }                                
                 _f.InhaleUserByEmail(v.GoogleEmail);
                 if (_f.CurrentUser == null)
                 {
-                    v.Message = _f.trawi("Přihlášení přes Google se nezdařilo", v.LangIndex) + " (" + v.GoogleEmail + ").";
+                    v.Message = _f.tra("Přihlášení přes Google se nezdařilo") + " (" + v.GoogleEmail + ").";
                     return View(v);
                 }
                 var recJ04 = _f.j04UserRoleBL.Load(_f.CurrentUser.j04ID);
                 if (!recJ04.j04IsAllowLoginByGoogle)
                 {
-                    v.Message = _f.trawi("Vaše aplikační role nemá povoleno ověřování přes Google účet.", v.LangIndex) + " (" + recJ04.j04Name + ").";
+                    v.Message = _f.tra("Vaše aplikační role nemá povoleno ověřování přes Google účet.") + " (" + recJ04.j04Name + ").";
                     return View(v);
                 }
 
@@ -111,7 +108,7 @@ namespace UI.Controllers
             {
                 if (string.IsNullOrEmpty(v.Login) || string.IsNullOrEmpty(v.Password))
                 {
-                    v.Message = _f.trawi("Chybí zadat uživatelské jméno nebo heslo!", v.LangIndex);
+                    v.Message = _f.tra("Chybí zadat uživatelské jméno nebo heslo!");
                     return View(v);
                 }
                 
@@ -120,7 +117,7 @@ namespace UI.Controllers
                 {
                     if (!v.Login.Contains("@"))
                     {
-                        v.Message = _f.trawi("Uživatelské jméno musí obsahovat zavináč (@)!", v.LangIndex);
+                        v.Message = _f.tra("Uživatelské jméno musí obsahovat zavináč (@)!");
                         return View(v);
                     }
                     _f.db = null;   //ve sdílené aplikaci donutit factory vytvořit nový connectstring
@@ -134,7 +131,7 @@ namespace UI.Controllers
             
             if (_f.CurrentUser == null)
             {
-                v.Message = _f.trawi("Přihlášení se nezdařilo - pravděpodobně chybné heslo nebo jméno!",v.LangIndex);
+                v.Message = _f.tra("Přihlášení se nezdařilo - pravděpodobně chybné heslo nebo jméno!");
                 
                 Write2Accesslog(v); //neznáme db, kam zapsat info o neúspěšném přihlášení
 
@@ -145,22 +142,22 @@ namespace UI.Controllers
             var recX01 = _f.x01LicenseBL.Load(_f.CurrentUser.x01ID);
             if (!_f.CurrentUser.IsAdmin && (BO.Code.Bas.bit_compare_or(recX01.x01LockFlag,2)) )
             {
-                v.Message = _f.trawi("Databáze je uzamknutá. Přístup povolen pouze adminům.", v.LangIndex);
+                v.Message = _f.tra("Databáze je uzamknutá. Přístup povolen pouze adminům.");
                 Write2Accesslog(v);
                 return View(v);
             }
             
             if (_f.CurrentUser.isclosed)
             {
-                v.Message = _f.trawi("Uživatelský účet je uzavřený pro přihlašování!",v.LangIndex);
+                v.Message = _f.tra("Uživatelský účet je uzavřený pro přihlašování!");
                 if (_f.CurrentUser.j02IsLoginAutoLocked)
                 {                    
-                    v.Message +="<hr>"+ _f.trawi("Došlo k automatickému zablokování účtu po neúspěšných pokusech o přihlášení do aplikace!", v.LangIndex);
-                    v.Message += "<hr>" + _f.trawi("Účet může odblokovat uživatel s admin oprávněním.", v.LangIndex);
+                    v.Message +="<hr>"+ _f.tra("Došlo k automatickému zablokování účtu po neúspěšných pokusech o přihlášení do aplikace!");
+                    v.Message += "<hr>" + _f.tra("Účet může odblokovat uživatel s admin oprávněním.");
                 }
                 if (_f.CurrentUser.j02IsLoginManualLocked)
                 {
-                    v.Message += "<hr>" + _f.trawi("Účet je zablokován!", v.LangIndex);
+                    v.Message += "<hr>" + _f.tra("Účet je zablokován!");
                 }
                 Write2Accesslog(v);
                 return View(v);
@@ -182,7 +179,7 @@ namespace UI.Controllers
                     var ret = cPwdSupp.VerifyUserPassword(v.Password, v.Login, _f.CurrentUser);
                     if (ret.Flag == BO.ResultEnum.Failed)
                     {
-                        v.Message = _f.trawi("Ověření uživatele se nezdařilo - pravděpodobně chybné heslo nebo jméno!", v.LangIndex);
+                        v.Message = _f.tra("Ověření uživatele se nezdařilo - pravděpodobně chybné heslo nebo jméno!");
 
                         if (_f.CurrentUser != null)
                         {
@@ -190,7 +187,7 @@ namespace UI.Controllers
                             _f.j02UserBL.UpdateAccessFailedCount(_f.CurrentUser.pid, recJ02.j02AccessFailedCount + 1);
                             if (recJ02.j02IsLoginAutoLocked)
                             {
-                                v.Message = _f.trawi("Z důvodu velkého počtu neúspěšných pokusů o přihlášení došlo k zablokování uživatelského účtu!", v.LangIndex) + ": " + recJ02.j02Login;
+                                v.Message = _f.tra("Z důvodu velkého počtu neúspěšných pokusů o přihlášení došlo k zablokování uživatelského účtu!") + ": " + recJ02.j02Login;
                             }
                         }
                         
@@ -223,20 +220,21 @@ namespace UI.Controllers
             Response.Cookies.Append("marktime.cookieexpiresinhours", v.CookieExpiresInHours.ToString(), co);
 
             var c = _f.j02UserBL.Load(_f.CurrentUser.pid);
-            if (v.IsChangedLangIndex)
-            {                                
-                Response.Cookies.Append("marktime.langindex", v.LangIndex.ToString(), co);                
-                c.j02LangIndex = v.LangIndex;
-                _f.j02UserBL.Save(c, null);
+
+            switch (culture)
+            {
+                case "en-US":
+                    c.j02LangIndex = 1;break;
+                case "de-DE":
+                    c.j02LangIndex = 2; break;
+                case "sk-SK":
+                    c.j02LangIndex = 4;break;
+                default:
+                    c.j02LangIndex = 0;break;
             }
-            else
-            {                
-                if (v.LangIndex != c.j02LangIndex)
-                {                   
-                    c.j02LangIndex = v.LangIndex;
-                    _f.j02UserBL.Save(c, null);
-                }
-            }
+
+            _f.j02UserBL.Save(c, null);
+
             _f.j02UserBL.UpdateAccessFailedCount(_f.CurrentUser.pid, 0);
             
 

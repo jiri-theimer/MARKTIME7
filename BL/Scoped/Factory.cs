@@ -400,13 +400,15 @@ namespace BL
         public string tra(string strExpression)   //lokalizace do ostatních jazyků
         {
             if (this.CurrentUser.j02LangIndex == 0) return strExpression;
-            return this.Translator.DoTranslate(strExpression, this.CurrentUser.j02LangIndex);
+            //return this.Translator.DoTranslate(strExpression, this.CurrentUser.j02LangIndex);
+            return this.Translator.DoTranslate(strExpression, System.Globalization.CultureInfo.CurrentUICulture.Name);
+            
         }
 
-        public string trawi(string strExpression,int langindex)   //lokalizace do ostatních jazyků
+        public string trawi(string strExpression,string strCulture)   //lokalizace do ostatních jazyků
         {
-            if (langindex == 0) return strExpression;
-            return this.Translator.DoTranslate(strExpression, langindex);
+            if (string.IsNullOrEmpty(strCulture) || strCulture == "cs-CZ") return strExpression;
+            return this.Translator.DoTranslate(strExpression, strCulture);
         }
         public string GetFirstNotifyMessage()
         {

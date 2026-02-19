@@ -2,7 +2,7 @@
 @inject BL.Factory _f
 
 @{
-    Model.PageTitle = _f.trawi("Přihlášení", Model.LangIndex);
+    Model.PageTitle = _f.tra("Přihlášení");
     Layout = "~/Views/Shared/_LayoutAnonym.cshtml";
 
     var _returnurl = @Context.Request.Query["returnurl"];
@@ -77,14 +77,14 @@
 
 <div class="container" style="max-width:800px;">
 
-    <form id="form1" asp-action="UserLogin" method="post">
+    <form id="form1" asp-action="UserLogin" method="post" onsubmit="return dosubmit();">
 
-        <h4>@_f.trawi("Přihlášení",Model.LangIndex)</h4>
+        <h4>@_f.tra("Přihlášení")</h4>
 
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
         <div class="row mb-2">
-            <label asp-for="@Model.Login" class="col-sm-3 col-form-label">@_f.trawi("Přihlašovací jméno (login)",Model.LangIndex):</label>
+            <label asp-for="@Model.Login" class="col-sm-3 col-form-label">@_f.tra("Přihlašovací jméno (login)"):</label>
             <div class="col-sm-9">
                 <input asp-for="@Model.Login" class="form-control" autocomplete="username" />
                 <span asp-validation-for="@Model.Login" class="text-danger"></span>
@@ -93,7 +93,7 @@
 
         </div>
         <div class="row mb-2">
-            <label asp-for="@Model.Password" class="col-sm-3 col-form-label">@_f.trawi("Heslo", Model.LangIndex):</label>
+            <label asp-for="@Model.Password" class="col-sm-3 col-form-label">@_f.tra("Heslo"):</label>
             <div class="col-sm-9">
                 <input type="password" asp-for="@Model.Password" autocomplete="current-password" class="form-control" />
                 <span asp-validation-for="@Model.Password" class="text-danger"></span>
@@ -101,14 +101,14 @@
 
         </div>
         <div class="row mb-2">
-            <label asp-for="@Model.CookieExpiresInHours" class="col-sm-3 col-form-label">@_f.trawi("Trvalé přihlášení", Model.LangIndex):</label>
+            <label asp-for="@Model.CookieExpiresInHours" class="col-sm-3 col-form-label">@_f.tra("Trvalé přihlášení"):</label>
             <div class="col-sm-9">
                 <select asp-for="@Model.CookieExpiresInHours" class="form-select">
-                    <option value="168">@_f.trawi("7 dní (168 hodin)", Model.LangIndex)</option>
-                    <option value="48">@_f.trawi("48 hodin", Model.LangIndex)</option>
-                    <option value="24">@_f.trawi("24 hodin", Model.LangIndex)</option>
-                    <option value="12">@_f.trawi("12 hodin", Model.LangIndex)</option>
-                    <option value="1">@_f.trawi("1 hodina",Model.LangIndex)</option>
+                    <option value="168">@_f.tra("7 dní (168 hodin)")</option>
+                    <option value="48">@_f.tra("48 hodin")</option>
+                    <option value="24">@_f.tra("24 hodin")</option>
+                    <option value="12">@_f.tra("12 hodin")</option>
+                    <option value="1">@_f.tra("1 hodina")</option>
                     
 
 
@@ -121,56 +121,23 @@
             <div class="col-sm-3">
             </div>
             <div class="col-auto">
-                <input type="submit" value="@_f.trawi("Přihlásit se",Model.LangIndex)" class="btn btn-default btn-primary" asp-route-returnurl="@_returnurl" />
+                <input type="submit" value="@_f.tra("Přihlásit se")" class="btn btn-default btn-primary" asp-route-returnurl="@_returnurl" />
             </div>
             <div class="col-auto" style="margin-left:auto;">
-                <a href="/Password/Index?langindex=@(Model.LangIndex)">@_f.trawi("Zapomenuté heslo", Model.LangIndex)</a>
+                <a href="/Password/Index">@_f.tra("Zapomenuté heslo")</a>
             </div>
         </div>
 
 
         
         
-        <div class="row mt-4">
-            <div class="col-sm-3">
-                <div class="dropdown">
-                    <a class="btn dropdown-toggle" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
-                        @if (Model.LangIndex == 0)
-                        {
-                            <img src="~/images/czechrepublic.gif" />
-                        }
-                        @if (Model.LangIndex == 1)
-                        {
-                            <img src="~/images/uk.gif" />
-                        }
-                        @if (Model.LangIndex == 4)
-                        {
-                            <img src="~/images/slovakia.gif" />
-                        }
-                    </a>
-                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                        <li>
-                            <a class="btn btn-light" href="javascript:change_lang(0)" style="width:200px;text-align:left;"><img src="~/images/czechrepublic.gif" /> Česky</a>
-                        </li>
-                        <li>
-                            <a class="btn btn-light" href="javascript:change_lang(1)" style="width:200px;text-align:left;"><img src="~/images/uk.gif" /> English</a>
-                        </li>
-                        <li>
-                            <a class="btn btn-light" href="javascript:change_lang(4)" style="width:200px;text-align:left;"><img src="~/images/slovakia.gif" /> Slovenčina</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-            
-
-            
-        </div>
+        
 
         @if (_f.App.HostingMode == BL.Singleton.HostingModeEnum.TotalCloud)
         {
             <div style="margin-top:10px;">
 
-                <a href="/CreateLicenseFree">@(_f.trawi("Zaregistrovat novou databázi", Model.LangIndex))</a>
+                <a href="/CreateLicenseFree">@(_f.tra("Zaregistrovat novou databázi"))</a>
 
             </div>
         }
@@ -179,7 +146,7 @@
             <img src="/images/devices.png" />
             <div>
                 <small class="text-info">
-                    Jedna aplikace pro všechna zařízení!
+                    @_f.tra("Jedna aplikace pro všechna zařízení!")
                 </small>
             </div>
         </div>
@@ -187,22 +154,20 @@
 
         
 
-        <input type="hidden" asp-for="@Model.LangIndex" value="@Model.LangIndex" />
-        <input type="hidden" asp-for="@Model.IsChangedLangIndex" value="@Model.IsChangedLangIndex" />
-        <input type="hidden" asp-for="@Model.Browser_AvailWidth" />
-        <input type="hidden" asp-for="@Model.Browser_AvailHeight" />
-        <input type="hidden" asp-for="@Model.Browser_InnerWidth" />
-        <input type="hidden" asp-for="@Model.Browser_InnerHeight" />
-        <input type="hidden" asp-for="@Model.Browser_UserAgent" />
-        <input type="hidden" asp-for="@Model.Browser_DeviceType" />
-        <input type="hidden" asp-for="@Model.Browser_Host" />
+        <input type="hidden" asp-for="Browser_AvailWidth" />
+        <input type="hidden" asp-for="Browser_AvailHeight" />
+        <input type="hidden" asp-for="Browser_InnerWidth" />
+        <input type="hidden" asp-for="Browser_InnerHeight" />
+        <input type="hidden" asp-for="Browser_UserAgent" />
+        <input type="hidden" asp-for="Browser_DeviceType" />
+        <input type="hidden" asp-for="Browser_Host" />
 
 
         <div class="dropdown" style="margin-top:40px;">
             @if (_f.App.AllowGoogleLogin)
             {
                 <a class="btn dropdown-toggle" id="dropdownGoogleButton" data-bs-toggle="dropdown" aria-expanded="false">
-                    @_f.trawi("Ověření uživatele přes",Model.LangIndex)
+                    @_f.tra("Ověření uživatele přes")
                     <img src="/images/google.png" height="20" width="59" />
                 </a>
 
@@ -211,12 +176,12 @@
 
                     <div class="g-signin2" data-onsuccess="onSignIn"></div>
 
-                    <input type="hidden" asp-for="@Model.GoogleToken" />
-                    <input type="hidden" asp-for="@Model.GoogleId" />
+                    <input type="hidden" asp-for="GoogleToken" />
+                    <input type="hidden" asp-for="GoogleId" />
                     <div class="row my-2">
                         <label class="col-sm-4 col-md-4 col-form-label">Google E-mail:</label>
                         <div class="col-sm-8 col-md-8">
-                            <input type="text" class="form-control" asp-for="@Model.GoogleEmail" style="background-color:silver;" />
+                            <input type="text" class="form-control" asp-for="GoogleEmail" style="background-color:silver;" />
                         </div>
 
                     </div>
@@ -228,7 +193,7 @@
 
                     </div>
                     <div class="my-2">
-                        <input type="button" onclick="submit_per_google()" value="@_f.trawi("Vstoupit do MARKTIME",Model.LangIndex)" class="btn btn-default btn-primary" asp-route-returnurl="@_returnurl" />
+                        <input type="button" onclick="submit_per_google()" value="@_f.tra("Vstoupit do MARKTIME")" class="btn btn-default btn-primary" asp-route-returnurl="@_returnurl" />
 
                     </div>
                     <div class="my-2">
@@ -246,7 +211,7 @@
 
 
 
-    <form asp-controller="Login" asp-action="SaveLang" method="post" class="d-inline">
+    <form id="form2" asp-controller="Login" asp-action="SaveLang" method="post" class="d-inline">
         <div class="d-flex gap-3">
 
             <div class="form-check">
@@ -329,16 +294,21 @@
 
     });
 
-    function change_lang(li) {
-        $("#LangIndex").val(li);
-        $("#IsChangedLangIndex").val(true);
-        form1.action = "/Login/UserLogin?oper=postback";
+    
+   
+
+    function submit_per_google() {
+        
+        form1.action = "/Login/UserLogin?oper=submit_per_google&culture="+selectedCulture;
         form1.submit();
     }
 
+    function dosubmit()
+    {
+        
+        const selectedCulture = document.querySelector('input[name="culture"]:checked')?.value;
 
-    function submit_per_google() {
-        form1.action = "/Login/UserLogin?oper=submit_per_google";
-        form1.submit();
+        form1.action = "/Login/UserLogin?culture="+selectedCulture;
+        return true;
     }
 </script>

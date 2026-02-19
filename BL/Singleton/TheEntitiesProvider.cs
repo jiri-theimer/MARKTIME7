@@ -274,8 +274,8 @@ namespace BL.Singleton
         {
             if (strSqlOrderBy == null) strSqlOrderBy = "a." + strTabName.Substring(0, 3) + "ID DESC";
             BO.TheEntity c = new BO.TheEntity() { TableName = strTabName, AliasPlural = strPlural, AliasSingular = strSingular, SqlFromGrid = strSqlFromGrid, SqlOrderByCombo = strSqlOrderByCombo, SqlOrderBy = strSqlOrderBy };
-            c.TranslateLang1 = _tt.DoTranslate(strPlural, 1, "TheEntitiesProvider:AE");
-            c.TranslateLang2 = _tt.DoTranslate(strPlural, 2, "TheEntitiesProvider:AE");
+            c.TranslateLang1 = _tt.DoTranslate(strPlural, "en-US", "TheEntitiesProvider:AE");
+            c.TranslateLang2 = _tt.DoTranslate(strPlural, "de-DE", "TheEntitiesProvider:AE");
 
             _lis.Add(c);
 
@@ -283,11 +283,11 @@ namespace BL.Singleton
         private void AE_TINY(string strTabName, string strPlural, string strSingular)
         {
 
-            _lis.Add(new BO.TheEntity() { TableName = strTabName, AliasPlural = strPlural, AliasSingular = strSingular, SqlFromGrid = strTabName + " a", SqlOrderByCombo = "a." + strTabName.Substring(0, 3) + "Name", SqlOrderBy = "a." + strTabName.Substring(0, 3) + "ID DESC", TranslateLang1 = _tt.DoTranslate(strPlural, 1), TranslateLang2 = _tt.DoTranslate(strPlural, 2) });
+            _lis.Add(new BO.TheEntity() { TableName = strTabName, AliasPlural = strPlural, AliasSingular = strSingular, SqlFromGrid = strTabName + " a", SqlOrderByCombo = "a." + strTabName.Substring(0, 3) + "Name", SqlOrderBy = "a." + strTabName.Substring(0, 3) + "ID DESC", TranslateLang1 = _tt.DoTranslate(strPlural, "en-US"), TranslateLang2 = _tt.DoTranslate(strPlural, "de-DE") });
         }
         private BO.EntityRelation getREL(string strTabName, string strRelName, string strSingular, string strSqlFrom, string strDependOnRel = null)
         {
-            return new BO.EntityRelation() { TableName = strTabName, RelName = strRelName, AliasSingular = strSingular, SqlFrom = strSqlFrom, RelNameDependOn = strDependOnRel, Translate1 = _tt.DoTranslate(strSingular, 1), Translate2 = _tt.DoTranslate(strSingular, 2, "TheEntitiesProvider:getREL") };
+            return new BO.EntityRelation() { TableName = strTabName, RelName = strRelName, AliasSingular = strSingular, SqlFrom = strSqlFrom, RelNameDependOn = strDependOnRel, Translate1 = _tt.DoTranslate(strSingular, "en-US"), Translate2 = _tt.DoTranslate(strSingular, "de-DE", "TheEntitiesProvider:getREL") };
 
 
 

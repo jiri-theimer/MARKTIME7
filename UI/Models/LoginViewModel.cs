@@ -5,8 +5,6 @@
         public string Login { get; set; }
         public string Password { get; set; }
         public int CookieExpiresInHours { get; set; } = 168;
-        public int LangIndex { get; set; }
-        public bool IsChangedLangIndex { get; set; }
 
         public string Message { get; set; }
 
