@@ -87,17 +87,17 @@ namespace UI.Controllers
 
                 if (recJ02 == null)
                 {
-                    v.ErrorMessage =v.Login+": "+ _f.trawi("Nelze dohledat účet s uživatelským jménem nebo e-mail adresou.", v.LangIndex);
+                    v.ErrorMessage =v.Login+": "+ _f.tra("Nelze dohledat účet s uživatelským jménem nebo e-mail adresou.");
                     return View(v);
                 }
                 if (recJ02.isclosed)
                 {
-                    v.ErrorMessage = v.Login+": "+_f.trawi("Uživatelský účet byl uzavřen, kontaktujte MARKTIME administrátora.", v.LangIndex);
+                    v.ErrorMessage = v.Login+": "+_f.tra("Uživatelský účet byl uzavřen, kontaktujte MARKTIME administrátora.");
                     return View(v);
                 }
                 if (recJ02.j02IsLoginAutoLocked || recJ02.j02IsLoginManualLocked)
                 {
-                    v.ErrorMessage =v.Login+": "+ _f.trawi("Uživatelský účet je zablokován, kontaktujte MARKTIME administrátora.", v.LangIndex);
+                    v.ErrorMessage =v.Login+": "+ _f.tra("Uživatelský účet je zablokován, kontaktujte MARKTIME administrátora.");
                     return View(v);
                 }
 
@@ -116,11 +116,11 @@ namespace UI.Controllers
                 var ret=_f.MailBL.SendMessageWithoutFactory(strHtml, strSubject, recJ02.j02Email, null,(_f.Lic.x01ContactEmail==null ? "noreply@marktime.net": _f.Lic.x01ContactEmail), "MARKTIME");
                 if (!ret.issuccess)
                 {
-                    v.ErrorMessage = _f.trawi("Žádost o obnovení hesla byla založena, ale při odesílání potvrzovací e-mail zprávy došlo k chybě", v.LangIndex)+":<hr>"+ret.Message;
+                    v.ErrorMessage = _f.tra("Žádost o obnovení hesla byla založena, ale při odesílání potvrzovací e-mail zprávy došlo k chybě")+":<hr>"+ret.Message;
                     return View(v);
                 }
 
-                v.SuccessMessage = _f.trawi("Žádost o obnovení hesla byla odeslána na e-mail adresu", v.LangIndex) + ": " + recJ02.j02Email;
+                v.SuccessMessage = _f.tra("Žádost o obnovení hesla byla odeslána na e-mail adresu") + ": " + recJ02.j02Email;
 
                 
 
@@ -142,7 +142,7 @@ namespace UI.Controllers
 
             if (System.IO.File.Exists($"{_f.App.RootUploadFolder}\\{guid}.pwd2"))
             {
-                v.ErrorMessage = _f.trawi("Tato žádost o obnovení hesla byla již dříve zpracována.", v.LangIndex);
+                v.ErrorMessage = _f.tra("Tato žádost o obnovení hesla byla již dříve zpracována.");
                 v.ErrorMessage += "<hr>Musíte vygenerovat novou žádost.";
                 return View(v);
             }
@@ -150,12 +150,12 @@ namespace UI.Controllers
             string strFile = $"{_f.App.RootUploadFolder}\\{guid}.pwd1";
             if (!System.IO.File.Exists(strFile))
             {
-                v.ErrorMessage = _f.trawi("Na serveru nelze najít vyplněnou žádost o obnovu hesla!", v.LangIndex);return View(v);
+                v.ErrorMessage = _f.tra("Na serveru nelze najít vyplněnou žádost o obnovu hesla!");return View(v);
             }
             var fi = BO.Code.File.GetFileInfo(strFile);
             if (fi.CreationTime.AddMinutes(30) < DateTime.Now)
             {
-                v.ErrorMessage=_f.trawi("Tato žádost o obnovení přihlašovacího hesla je starší než 30 minut.",v.LangIndex);
+                v.ErrorMessage=_f.tra("Tato žádost o obnovení přihlašovacího hesla je starší než 30 minut.");
                 v.ErrorMessage += "<hr>Musíte vygenerovat novou žádost.";
                 return View(v);
             }
@@ -182,11 +182,11 @@ namespace UI.Controllers
 
             if (!ret.issuccess)
             {
-                v.ErrorMessage = _f.trawi("Potvrzení o novém heslu bylo založeno, ale při odesílání e-mail zprávy došlo k chybě", v.LangIndex) + ":<hr>" + ret.Message;
+                v.ErrorMessage = _f.tra("Potvrzení o novém heslu bylo založeno, ale při odesílání e-mail zprávy došlo k chybě") + ":<hr>" + ret.Message;
                 return View(v);
             }
 
-            v.SuccessMessage = _f.trawi("Nové heslo bylo vygenerováno.",v.LangIndex)+"<hr>"+_f.trawi("Informace o heslu byla odeslána na e-mail adresu", v.LangIndex) + ": " + recJ02.j02Email;
+            v.SuccessMessage = _f.tra("Nové heslo bylo vygenerováno.")+"<hr>"+_f.tra("Informace o heslu byla odeslána na e-mail adresu") + ": " + recJ02.j02Email;
             System.IO.File.Move(strFile, strFile.Replace(".pwd1", ".pwd2"));
 
             return View(v);

@@ -3,7 +3,7 @@
 
 
 @{
-    Model.PageTitle = _f.trawi("Obnovení zapomenutého hesla", Model.LangIndex);
+    Model.PageTitle = _f.tra("Obnovení zapomenutého hesla");
     Layout = "~/Views/Shared/_LayoutAnonym.cshtml";
 
     var _returnurl = @Context.Request.Query["returnurl"];
@@ -15,7 +15,7 @@
 <div class="container" style="max-width:800px;">
 
 
-    <h4>@_f.trawi("Vygenerování nového hesla", Model.LangIndex)</h4>
+    <h4>@_f.tra("Vygenerování nového hesla")</h4>
 
 
     @if (Model.ErrorMessage != null)
