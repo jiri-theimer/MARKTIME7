@@ -19,7 +19,7 @@ namespace UI.Controllers
 
         public IActionResult Index(int langindex)
         {
-            var v = new PasswordViewModel() { LangIndex = langindex };
+            var v = new PasswordViewModel();
 
             
             if (_f.App.HostingMode == BL.Singleton.HostingModeEnum.None && !_f.Lic.x01IsAllowPasswordRecovery)
