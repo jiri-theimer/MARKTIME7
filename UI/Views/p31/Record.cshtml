@@ -446,16 +446,20 @@ else
 
     @if (Model.IsOfferNavicKusovnik && Model.RecP34.p33ID == BO.p33IdENUM.Cas)
     {
-        <div>
-            <input type="checkbox" asp-for="IsNavicKusovnik" tabindex="-1" onchange="_postback('navic-kusovnik')" />
-            <label for="IsNavicKusovnik">
-                @_f.tra("K hodinám vykázat i kusovníkové úkony")
-            </label>
-        </div>
+        
 
         @if (Model.IsNavicKusovnik || Model.RecP34.p33ID == BO.p33IdENUM.Kusovnik)
         {
             @Html.EditorFor(m => m, "~/Views/Shared/_p31RecordKusovnik.cshtml")
+        }
+        else
+        {
+            <div>
+                <input type="checkbox" asp-for="IsNavicKusovnik" tabindex="-1" onchange="_postback('navic-kusovnik')" />
+                <label for="IsNavicKusovnik">
+                    @_f.tra("K hodinám vykázat i kusovníkové úkony")
+                </label>
+            </div>
         }
     }
     @if (Model.rec_pid > 0)

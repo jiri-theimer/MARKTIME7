@@ -34,12 +34,19 @@
 
 @addTagHelper *, UI
 
+
+
 <div class="card">
     <div class="card-header">
         <div class="row">
-
             <div class="col-auto">
-                <select class="form-select" asp-for="@Model.p34ID_Kusovnik" onchange="_postback('kusovnik_p34id')">
+                <input type="checkbox" asp-for="IsNavicKusovnik" tabindex="-1" onchange="_postback('navic-kusovnik')" />
+                <label for="IsNavicKusovnik">
+                    @_f.tra("K hodinám vykázat i kusovníkové úkony")
+                </label>
+            </div>
+            <div class="col-auto">
+                <select asp-for="@Model.p34ID_Kusovnik" onchange="_postback('kusovnik_p34id')">
                     @foreach (var c in lisP34)
                     {
                         <option value="@c.pid">@c.p34Name</option>
@@ -52,6 +59,7 @@
                     @_f.tra("Přidat")
                 </button>
             </div>
+            
         </div>
     </div>
     <div class="card-body">
