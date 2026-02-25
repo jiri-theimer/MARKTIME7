@@ -265,6 +265,11 @@
     <mystitky entity="@Model.TagEntity" asp-for="@Model.TagPids" tagnames="@Model.TagNames" taghtml="@Model.TagHtml" buttontext="@_f.tra("Oštítkovat")"></mystitky>
 
 
+    @if (Model.disp.IsProjectContacts)
+    {
+        @Html.EditorFor(m => m, "~/Views/Shared/_p41Contacts.cshtml")
+    }
+
 </div>
 
 
@@ -486,10 +491,7 @@
         </div>
     </div>
 
-    @if (Model.disp.IsProjectContacts)
-    {
-        @Html.EditorFor(m => m, "~/Views/Shared/_p41Contacts.cshtml")
-    }
+    
 
     @if (Model.disp.IsFiles)
     {
