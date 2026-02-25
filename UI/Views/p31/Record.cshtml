@@ -68,21 +68,47 @@
     </div>
 }
 
-<div id="divMore" class="card" style="display:none;background-color:#E6F0FF;max-width:50%;">
-    <div style="width:300px;padding:30px;">
-        <button tabindex="-1" onclick="setting()" class="btn btn-sm bog">@_f.tra("Moje předvolby pro vykazování")</button>
-        <p></p>
+<div id="divMore" class="card" style="display:none;background-color:#E6F0FF;width:100%;margin-top:2px;">
+
+    <div class="row" style="padding:10px">
+        <div class="col-auto">
+            <button tabindex="-1" onclick="setting()" class="btn btn-sm bog">@_f.tra("Moje předvolby pro vykazování")</button>
+        </div>
+
+
         @if (Model.RecP34 != null && _f.CurrentUser.IsRatesAccess && (Model.RecP34.p33ID == BO.p33IdENUM.Cas || (Model.RecP34.p33ID == BO.p33IdENUM.Kusovnik)))
         {
-            <button type="button" class="btn btn-sm bog" onclick="simulation()"><span class="material-icons-outlined-btn">attach_money</span>@_f.tra("Simulace sazby")</button>
-            <p></p>
+            <div class="col-auto">
+                <button type="button" class="btn btn-sm bog" onclick="simulation()"><span class="material-icons-outlined-btn">attach_money</span>@_f.tra("Simulace hodinové sazby")</button>
+            </div>
+
+
         }
 
-        @Html.EditorFor(m => m.disp, "~/Views/Shared/_Dispozice.cshtml")
+        @if (Model.RecP34 != null && (Model.RecP34.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu || Model.RecP34.p33ID == BO.p33IdENUM.PenizeBezDPH))
+        {
+            <div class="col-auto">
+                <mytooltip text="Můžete nahrát ISDOC soubor nebo PDF dokument, v kterém je přiložen ISDOC soubor.<hr>Z ISDOC se načte částka, dph, text, datum a vazba na dodavatele nebo na projekt (podle IČO).<hr>Vstupní soubor se stane přílohou záznamu výdaje."></mytooltip>
+                <label for="isdoc1" class="btn btn-sm bog" style="margin-left:13px;"><img src="/images/isdoc_icon.png" />Import z ISDOC</label>
+                <input type="file" id="isdoc1" name="files" onchange="isdoc_upload()" accept=".isdoc, .pdf" style="visibility:hidden">
 
+                <input type="hidden" asp-for="IsdocLastUpload" />
+            </div>
+        }
 
-
+        <div class="col-auto">
+            <a tabindex="-1" href="javascript:_window_open('/workflow_dialog/Index?record_prefix=p31&record_pid=@(Model.rec_pid)')" class="btn btn-sm bog"><myicon symbol="speaker_notes"></myicon> @_f.tra("Doplnit poznámku") (Notepad)</a>
+        </div>
     </div>
+
+
+
+    <div style="padding:10px">
+        @Html.EditorFor(m => m.disp, "~/Views/Shared/_Dispozice.cshtml")
+    </div>
+
+
+
 </div>
 
 <div class="row my-2">
@@ -244,16 +270,7 @@ else
             <mydropdown asp-for="Rec.p40ID_FixPrice" datasource="@Model.lisP40" tabindex="-1" textfield="NamePlusCerpano" valuefield="pid" isfirstemptyrow="true" firstemptyrowvalue="0" firstemptyrowtext="--@_f.tra("Spárovat hodiny s opakovaným paušálem")?--" event_after_changevalue="p40id_onchange"></mydropdown>
         </div>
     }
-    @if (Model.RecP34 != null && (Model.RecP34.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu || Model.RecP34.p33ID == BO.p33IdENUM.PenizeBezDPH))
-    {
-        <div class="col-auto">
-            <mytooltip text="Můžete nahrát ISDOC soubor nebo PDF dokument, v kterém je přiložen ISDOC soubor.<hr>Z ISDOC se načte částka, dph, text, datum a vazba na dodavatele nebo na projekt (podle IČO).<hr>Vstupní soubor se stane přílohou záznamu výdaje."></mytooltip>
-            <label for="isdoc1" class="btn btn-sm bog" style="margin-left:13px;"><img src="/images/isdoc_icon.png" />ISDOC import</label>
-            <input type="file" id="isdoc1" name="files" onchange="isdoc_upload()" accept=".isdoc, .pdf" style="visibility:hidden">
 
-            <input type="hidden" asp-for="IsdocLastUpload" />
-        </div>
-    }
 </div>
 
 @if (Model.RecP34 != null)
@@ -360,15 +377,22 @@ else
 
 <div class="my-2">
     <textarea class="form-control" asp-for="Rec.p31Text" onmouseover="p31text_mouseover(this)" onmouseout="p31text_mouseout(this)" placeholder="@_f.tra("Podrobný popis úkonu")"></textarea>
+
+    @if (Model.BillingLangFlagHtml != null)
+    {
+        <div id="divBillingLang" title="Fakturační jazyk klienta/projektu">
+            @Html.Raw(Model.BillingLangFlagHtml)
+        </div>
+    }
+    
+
+    
+
     @if (!_isMobile)
     {
         <button type="button" id="cmdFindText" tabindex="-1" onmouseout="cmdFindText_mouseout(this)" class="btn btn-sm btn-light my-0 py-0" style="visibility:hidden;float:left;" onclick="_najit_text(this,event,'p31text',@(Model.Rec.j02ID))">Najít text</button>
 
-        @if (_lisB05.Count() == 0)
-        {
-            <a title="Doplnit poznámku" tabindex="-1" href="javascript:_window_open('/workflow_dialog/Index?record_prefix=p31&record_pid=@(Model.rec_pid)')" style="float:right;font-size:90%;margin-left:10px;"><myicon symbol="speaker_notes"></myicon></a>
 
-        }
         @if (_lisB05.Count() > 0)
         {
 
@@ -382,9 +406,7 @@ else
             </div>
 
             <div id="history" style="display:none;">
-                <button type="button" id="cmdWrkButton" class="btn btn-sm btn-light py-0" style="float:right;margin-top:5px;" onclick="_window_open('/workflow_dialog/Index?record_prefix=p31&record_pid=@(Model.rec_pid)')">
-                    @_f.tra("Přidat")
-                </button>
+
 
                 @await Html.PartialAsync("~/Views/Shared/_lisB05.cshtml", _lisB05)
             </div>
@@ -405,7 +427,7 @@ else
 
 </div>
 
-@Html.Raw(Model.BillingLangFlagHtml)
+
 @if (Model.RecP34 != null)
 {
     @if (Model.RecP34.p34TextInternalFlag == 1)
@@ -583,9 +605,12 @@ else
     <span class="material-icons-outlined-btn" style="color:green;">save</span>@_f.tra("Uložit a kopírovat")
 </button>
 
-<button id="cmdMore" tabindex="-1" class="btn bog" data-bs-toggle="collapse" role="button" aria-expanded="false" title="Rozšíření vykazování">
-    <myicon symbol="more_horiz"></myicon>
+<button id="cmdMore" tabindex="-1" class="btn btn-light dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false">
+
+    @_f.tra("Více")
 </button>
+
+
 
 @if (Model.p91ID > 0)
 {
@@ -632,7 +657,7 @@ else
 
     @if (Model.Setting.TimesheetEntryByMinutes)
     {
-            @:_theukon.timesheet_by_minutes=true;
+                    @:_theukon.timesheet_by_minutes=true;
     }
 
 

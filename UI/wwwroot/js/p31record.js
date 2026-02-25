@@ -21,6 +21,12 @@ $(document).ready(function () {
     
     document.getElementById("toolbarRezerva").appendChild(document.getElementById("cmdMore"));
 
+
+
+    handle_billingflag();
+
+
+
     $("#cmdMore").click(function () {
         $("#divMore").toggle();
     });
@@ -410,4 +416,32 @@ function isdoc_upload()
     form1.enctype = "multipart/form-data";
     form1.action = "/p31/Record?oper=isdoc_upload";
     form1.submit();
+}
+
+
+function handle_billingflag()
+{
+    var textarea = document.getElementById("Rec_p31Text");
+    var billingDiv = document.getElementById("divBillingLang");
+
+    if (!textarea || !billingDiv) return;
+
+    // vytvoření wrapperu
+    var wrapper = document.createElement("div");
+    wrapper.style.position = "relative";
+
+    // vložení wrapperu před textarea
+    textarea.parentNode.insertBefore(wrapper, textarea);
+
+    // přesunutí textarea do wrapperu
+    wrapper.appendChild(textarea);
+
+    // přesunutí billingDiv do wrapperu
+    wrapper.appendChild(billingDiv);
+
+    // nastavení stylu billingDiv
+    billingDiv.style.position = "absolute";
+    billingDiv.style.right = "0";
+    billingDiv.style.top = "-22px";
+    billingDiv.style.zIndex = "10";
 }
