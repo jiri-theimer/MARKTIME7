@@ -39,17 +39,11 @@
             </li>
         }
 
-        <li style="margin-left:20px;">
-            @Html.EditorFor(m => Model.rec_entity,"~/Views/Shared/_cmdMoreButton.cshtml")
-        </li>
+        
     </ul>
 </div>
 
-<div id="divMore" class="card" style="display:none;background-color:#E6F0FF;">
-    <div style="width:300px;padding:30px;">
-        @Html.EditorFor(m => m.disp, "~/Views/Shared/_Dispozice.cshtml")
-    </div>
-</div>
+
 
 @Html.Raw("<div class='modal_record_container_flexi'>")
 @Html.Raw("<div class='tab-content'>")
@@ -192,9 +186,7 @@
 <script type="text/javascript">
     $(document).ready(function () {
 
-        $("#cmdMore").click(function () {
-            $("#divMore").toggle();
-        });
+       
 
 
     });

@@ -20,7 +20,7 @@
         switch (Model.RolePrefix)
         {
             case "p41":
-                _lang_header = _f.tra("Oprávnění") + ": " + _f.tra("Obsazení projektových rolí"); break;
+                _lang_header = _f.tra("Oprávnění v projektu (obsazení projektových rolí)"); break;
             case "p28":
                 _lang_header = _f.tra("Obsazení rolí v záznamu kontaktu"); break;
             case "o23":
@@ -136,48 +136,60 @@
 <input type="hidden" asp-for="Header" />
 
 
-<div class="div-over-table-scrolling">
+<div class="card my-2">
+   
     @if (_lang_header !=null && _lang_header !=".")
     {
-        <div style="font-weight:bold;">
-            @(_lang_header):
+        <div class="card-header">
+            @(_lang_header)
         </div>
     }
+    <div class="card-body">
+        <table class="table table-hover table-borderless" style="min-width:600px;">
+            @for (int i = 0; i < Model.lisRepeator.Count(); i++)
+            {
+                <tr style="border-bottom:solid 1px #F5F5F5;">
+                    <td>
+                        <strong>@(Model.lisRepeator[i].x67Name):</strong>
+                        <div>
+                            <input type="checkbox" id="chkNone@(i)" asp-for="@Model.lisRepeator[i].IsNone" onchange="isnone_change(this,@(i))" />
+                            <label for="chkNone@(i)">@(_lang_neobsazeno)</label>
+                        </div>
+
+
+                        <input type="hidden" asp-for="@Model.lisRepeator[i].x67ID" />
+                        <input type="hidden" asp-for="@Model.lisRepeator[i].x67Name" />
+                        <input type="hidden" asp-for="@Model.lisRepeator[i].x67Entity" />
+                        <input type="hidden" asp-for="@Model.lisRepeator[i].x67IsRequired" />
+
+                    </td>
+                    <td style="min-width:180px;">
+                        <div id="divJ02@(i)" style="visibility:@(Model.lisRepeator[i].CssVisibility_j02)">
+                            <mycombochecklist placeholder="@_lang_uzivatele" asp-for="@Model.lisRepeator[i].j02IDs" elementid-prefix="@(Model.elementidprefix)" entity="j02User" selectedtext="@Model.lisRepeator[i].Persons"></mycombochecklist>
+                        </div>
+
+
+                    </td>
+                    <td style="min-width:150px;">
+                        <div id="divJ11@(i)" style="visibility: @(Model.lisRepeator[i].CssVisibility_j11)">
+                            <mycombochecklist placeholder="@_lang_tymy" asp-for="@Model.lisRepeator[i].j11IDs" entity="j11Team" elementid-prefix="@(Model.elementidprefix)" selectedtext="@Model.lisRepeator[i].Teams"></mycombochecklist>
+                        </div>
+
+                    </td>
+                    <td style="min-width:150px;">
+                        <div id="divAll@(i)" style="visibility: @(Model.lisRepeator[i].CssVisibility_all)">
+                            <input type="checkbox" id="chkAll@(i)" asp-for="@Model.lisRepeator[i].x69IsAllUsers" onchange="allpersons_change(this,@(i))" />
+                            <label for="chkAll@(i)">@(_lang_vsichni)</label>
+                        </div>
+
+                    </td>
+
+                </tr>
+
+            }
+        </table>
+    </div>
     
-    <table class="table table-hover" style="min-width:600px;">
-        @for (int i = 0; i < Model.lisRepeator.Count(); i++)
-        {
-            <tr>
-                <td>
-                    <strong>@(Model.lisRepeator[i].x67Name):</strong>
-                    <div>
-                        <input type="checkbox" id="chkNone@(i)" asp-for="@Model.lisRepeator[i].IsNone" onchange="isnone_change(this,@(i))" />
-                        <label for="chkNone@(i)">@(_lang_neobsazeno)</label>
-                    </div>
-
-
-                    <input type="hidden" asp-for="@Model.lisRepeator[i].x67ID" />
-                    <input type="hidden" asp-for="@Model.lisRepeator[i].x67Name" />
-                    <input type="hidden" asp-for="@Model.lisRepeator[i].x67Entity" />
-                    <input type="hidden" asp-for="@Model.lisRepeator[i].x67IsRequired" />
-
-                </td>
-                <td id="divJ02@(i)" style="min-width:180px;visibility:@(Model.lisRepeator[i].CssVisibility_j02);">
-                    <mycombochecklist placeholder="@_lang_uzivatele" asp-for="@Model.lisRepeator[i].j02IDs" elementid-prefix="@(Model.elementidprefix)" entity="j02User" selectedtext="@Model.lisRepeator[i].Persons"></mycombochecklist>
-
-                </td>
-                <td id="divJ11@(i)" style="min-width:150px;visibility: @(Model.lisRepeator[i].CssVisibility_j11);">
-                    <mycombochecklist placeholder="@_lang_tymy" asp-for="@Model.lisRepeator[i].j11IDs" entity="j11Team" elementid-prefix="@(Model.elementidprefix)" selectedtext="@Model.lisRepeator[i].Teams"></mycombochecklist>
-                </td>
-                <td id="divAll@(i)" style="min-width:150px;visibility: @(Model.lisRepeator[i].CssVisibility_all);">
-                    <input type="checkbox" id="chkAll@(i)" asp-for="@Model.lisRepeator[i].x69IsAllUsers" onchange="allpersons_change(this,@(i))" />
-                    <label for="chkAll@(i)">@(_lang_vsichni)</label>
-                </td>
-              
-            </tr>
-
-        }
-    </table>
 </div>
 
 <script type="text/javascript">

@@ -98,7 +98,7 @@
         {
             rec.x67ID = _lisX67.First().pid; rec.BindAlias = _lisX67.First().x67Name;
         }
-        if (Model.is_static_date && Model.edit_o24staticdate !=null)
+        if (Model.is_static_date && Model.edit_o24staticdate != null)
         {
             rec.o24StaticDate = BO.Code.Bas.String2Date(Model.edit_o24staticdate);
         }
@@ -166,156 +166,178 @@
 <input type="hidden" asp-for="edit_o24memo" value="@Model.edit_o24memo" />
 <input type="hidden" asp-for="edit_o24staticdate" value="@Model.edit_o24staticdate" />
 
+@if(Model.lisReminder !=null && Model.lisReminder.Count()>0)
+{
+    <div class="card my-2">
+        <div class="card-header">
+            <button type="button" class="btn btn-sm btn-light" tabindex="-1" onclick="append_reminder()" style="min-width:130px;text-align:left;">
+                <myicon symbol="notifications"></myicon>
+                @_f.tra("Přidat upozornění")
+            </button>
+        </div>
 
 
-<button type="button" class="btn btn-sm btn-light" tabindex="-1" onclick="append_reminder()">
-    <myicon symbol="notifications"></myicon>
-    @_f.tra("Přidat upozornění")
-</button>
+        <div id="divReminderContainer" class="card-body" style="overflow:auto;">
+            <table id="tabReminderRepeater" class="table table-sm table-hover" style="min-width:620px;">
 
-<div id="divReminderContainer" style="width:90%;overflow:auto;">
-    <table id="tabReminderRepeater" class="table table-sm table-hover" style="min-width:620px;">
-
-        @for (int i = 0; i < Model.lisReminder.Count(); i++)
-        {
-            <tr style="@(Model.lisReminder[i].CssTempDisplay)">
-
-
-                <td style="width:100px;">
-
-
-                    <button type="button" class="btn btn-sm btn-light" tabindex="-1" onclick="edit_reminder(@(i),'@Model.lisReminder[i].TempGuid')">
-                        <myicon symbol="notifications" color="orange"></myicon>
-                        @_f.tra("Upravit")
-                    </button>
-                </td>
-
-                <td>
-                    @if (Model.lisReminder[i].o24MediumFlag == 1)
-                    {
-                        <code>E-mail</code>
-                    }
-                    @if (Model.lisReminder[i].o24MediumFlag == 2)
-                    {
-                        <code>SMS</code>
-                    }
-                    @if (Model.lisReminder[i].o24MediumFlag == 3)
-                    {
-                        <code>E-mail + SMS</code>
-                    }
-
-                    <input type="hidden" asp-for="lisReminder[i].o24MediumFlag" value="@Model.lisReminder[i].o24MediumFlag" />
-                    <input type="hidden" asp-for="lisReminder[i].o24Count" value="@Model.lisReminder[i].o24Count" />
-                    <input type="hidden" asp-for="lisReminder[i].o24Unit" value="@Model.lisReminder[i].o24Unit" />
-
-                    <input type="hidden" asp-for="lisReminder[i].TempGuid" />
-                    <input type="hidden" asp-for="lisReminder[i].o24ID" />
-                    <input type="hidden" asp-for="lisReminder[i].IsTempDeleted" value="@Model.lisReminder[i].IsTempDeleted" />
-                    <input type="hidden" asp-for="lisReminder[i].IsProcessed" value="@Model.lisReminder[i].IsProcessed" />
-
-
-                </td>
-                @if (Model.is_static_date)
+                @for (int i = 0; i < Model.lisReminder.Count(); i++)
                 {
-                    <td>
-                        <input type="hidden" asp-for="lisReminder[i].o24StaticDate" value="@Model.lisReminder[i].o24StaticDate" />
-                        <span class="badge-light">
-                            @(BO.Code.Bas.ObjectDateTime2String(Model.lisReminder[i].o24StaticDate))
-                        </span>
+                    <tr style="@(Model.lisReminder[i].CssTempDisplay)">
 
-                    </td>
+
+                        <td style="width:100px;">
+
+
+                            <button type="button" class="btn btn-sm btn-primary" tabindex="-1" onclick="edit_reminder(@(i),'@Model.lisReminder[i].TempGuid')">
+
+                                @_f.tra("Upravit")
+                            </button>
+                        </td>
+
+                        <td>
+                            @if (Model.lisReminder[i].o24MediumFlag == 1)
+                            {
+                                <code>E-mail</code>
+                            }
+                            @if (Model.lisReminder[i].o24MediumFlag == 2)
+                            {
+                                <code>SMS</code>
+                            }
+                            @if (Model.lisReminder[i].o24MediumFlag == 3)
+                            {
+                                <code>E-mail + SMS</code>
+                            }
+
+                            <input type="hidden" asp-for="lisReminder[i].o24MediumFlag" value="@Model.lisReminder[i].o24MediumFlag" />
+                            <input type="hidden" asp-for="lisReminder[i].o24Count" value="@Model.lisReminder[i].o24Count" />
+                            <input type="hidden" asp-for="lisReminder[i].o24Unit" value="@Model.lisReminder[i].o24Unit" />
+
+                            <input type="hidden" asp-for="lisReminder[i].TempGuid" />
+                            <input type="hidden" asp-for="lisReminder[i].o24ID" />
+                            <input type="hidden" asp-for="lisReminder[i].IsTempDeleted" value="@Model.lisReminder[i].IsTempDeleted" />
+                            <input type="hidden" asp-for="lisReminder[i].IsProcessed" value="@Model.lisReminder[i].IsProcessed" />
+
+
+                        </td>
+                        @if (Model.is_static_date)
+                        {
+                            <td>
+                                <input type="hidden" asp-for="lisReminder[i].o24StaticDate" value="@Model.lisReminder[i].o24StaticDate" />
+                                @if (Model.lisReminder[i].o24StaticDate < DateTime.Now)
+                                {
+                                    <span class="badge-light">
+
+                                        @(BO.Code.Bas.ObjectDateTime2String(Model.lisReminder[i].o24StaticDate))
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge-light">
+
+                                        @(BO.Code.Bas.ObjectDateTime2String(Model.lisReminder[i].o24StaticDate))
+                                    </span>
+                                }
+                                
+
+                            </td>
+
+                        }
+                        else
+                        {
+                            <td>
+
+
+                                <strong>@(Model.lisReminder[i].o24Count)</strong>
+
+                                @if (Model.lisReminder[i].o24Unit == "h")
+                                {
+                                    <code>hodin</code>
+                                }
+                                @if (Model.lisReminder[i].o24Unit == "d")
+                                {
+                                    <code>dní</code>
+                                }
+                            </td>
+
+                        }
+
+                        <td>
+                            <input type="hidden" asp-for="lisReminder[i].BindPrefix" value="@Model.lisReminder[i].BindPrefix" />
+                            <input type="hidden" asp-for="lisReminder[i].BindAlias" value="@Model.lisReminder[i].BindAlias" />
+                            <input type="hidden" asp-for="lisReminder[i].j02ID" value="@Model.lisReminder[i].j02ID" />
+                            <input type="hidden" asp-for="lisReminder[i].j11ID" value="@Model.lisReminder[i].j11ID" />
+                            <input type="hidden" asp-for="lisReminder[i].p28ID" value="@Model.lisReminder[i].p28ID" />
+                            <input type="hidden" asp-for="lisReminder[i].p24ID" value="@Model.lisReminder[i].p24ID" />
+                            <input type="hidden" asp-for="lisReminder[i].x67ID" value="@Model.lisReminder[i].x67ID" />
+
+                            @if (Model.lisReminder[i].BindPrefix == "j02")
+                            {
+                                <code>Uživatel</code>
+                            }
+                            @if (Model.lisReminder[i].BindPrefix == "j11")
+                            {
+                                <code>Tým</code>
+                            }
+                            @if (Model.lisReminder[i].BindPrefix == "x67")
+                            {
+                                <code>Role v záznamu</code>
+
+                            }
+                            @if (Model.lisReminder[i].BindPrefix == "p28")
+                            {
+                                <code>Kontakt</code>
+                            }
+                            @if (Model.lisReminder[i].BindPrefix == "p24")
+                            {
+                                <code>Skupina kontaktů</code>
+                            }
+                            <span>@Model.lisReminder[i].BindAlias</span>
+
+                            <input type="hidden" asp-for="lisReminder[i].o24Memo" value="@Model.lisReminder[i].o24Memo" />
+                            @if (Model.lisReminder[i].o24Memo != null)
+                            {
+                                <span class="badge-light">
+                                    @Model.lisReminder[i].o24Memo
+                                </span>
+                            }
+                        </td>
+
+
+
+
+                        <td style="width:70px;">
+                            <button type="button" class="btn btn-sm btn-danger" title="@_f.tra("Odstranit řádek")" onclick="handle_delete_reminder('@(Model.lisReminder[i].TempGuid)')">x</button>
+                        </td>
+                        <td style="width:100px;">
+                            @if (Model.lisReminder[i].IsProcessed)
+                            {
+
+                                <button type="button" class="btn btn-sm btn-warning" title="@_f.tra("Vyčistit stopu o již odeslaném upozornění. Po vyčištění bude upozornění znovu čekat na odeslání.")" onclick="handle_clear_reminder('@(Model.lisReminder[i].TempGuid)')">Vyčistit historii</button>
+
+                            }
+                        </td>
+                    </tr>
+
 
                 }
-                else
-                {
-                    <td>
 
+            </table>
+        </div>
 
-                        <strong>@(Model.lisReminder[i].o24Count)</strong>
-
-                        @if (Model.lisReminder[i].o24Unit == "h")
-                        {
-                            <code>hodin</code>
-                        }
-                        @if (Model.lisReminder[i].o24Unit == "d")
-                        {
-                            <code>dní</code>
-                        }
-                    </td>
-
-                }
-
-                <td>
-                    <input type="hidden" asp-for="lisReminder[i].BindPrefix" value="@Model.lisReminder[i].BindPrefix" />
-                    <input type="hidden" asp-for="lisReminder[i].BindAlias" value="@Model.lisReminder[i].BindAlias" />
-                    <input type="hidden" asp-for="lisReminder[i].j02ID" value="@Model.lisReminder[i].j02ID" />
-                    <input type="hidden" asp-for="lisReminder[i].j11ID" value="@Model.lisReminder[i].j11ID" />
-                    <input type="hidden" asp-for="lisReminder[i].p28ID" value="@Model.lisReminder[i].p28ID" />
-                    <input type="hidden" asp-for="lisReminder[i].p24ID" value="@Model.lisReminder[i].p24ID" />
-                    <input type="hidden" asp-for="lisReminder[i].x67ID" value="@Model.lisReminder[i].x67ID" />
-
-                    @if (Model.lisReminder[i].BindPrefix == "j02")
-                    {
-                        <code>Uživatel</code>
-                    }
-                    @if (Model.lisReminder[i].BindPrefix == "j11")
-                    {
-                        <code>Tým</code>
-                    }
-                    @if (Model.lisReminder[i].BindPrefix == "x67")
-                    {
-                        <code>Role v záznamu</code>
-
-                    }
-                    @if (Model.lisReminder[i].BindPrefix == "p28")
-                    {
-                        <code>Kontakt</code>
-                    }
-                    @if (Model.lisReminder[i].BindPrefix == "p24")
-                    {
-                        <code>Skupina kontaktů</code>
-                    }
-                    <span>@Model.lisReminder[i].BindAlias</span>
-
-                    <input type="hidden" asp-for="lisReminder[i].o24Memo" value="@Model.lisReminder[i].o24Memo" />
-                    @if (Model.lisReminder[i].o24Memo != null)
-                    {
-                        <span class="badge-light">
-                            @Model.lisReminder[i].o24Memo
-                        </span>
-                    }
-                </td>
-
-
-
-
-                <td style="width:70px;">
-                    <button type="button" class="btn btn-sm btn-danger" title="@_f.tra("Odstranit řádek")" onclick="handle_delete_reminder('@(Model.lisReminder[i].TempGuid)')">x</button>
-                </td>
-                <td style="width:100px;">
-                    @if (Model.lisReminder[i].IsProcessed)
-                    {
-
-                        <button type="button" class="btn btn-sm btn-warning" title="@_f.tra("Vyčistit stopu o již odeslaném upozornění. Po vyčištění bude upozornění znovu čekat na odeslání.")" onclick="handle_clear_reminder('@(Model.lisReminder[i].TempGuid)')">Vyčistit historii</button>
-
-                    }
-                </td>
-            </tr>
-
-
-        }
-
-    </table>
-</div>
-
+    </div>
+}
+else
+{
+    <button type="button" class="btn btn-sm btn-light" tabindex="-1" onclick="append_reminder()" style="min-width:130px;text-align:left;">
+        <myicon symbol="notifications"></myicon>
+        @_f.tra("Přidat upozornění")
+    </button>
+}
 
 
 <script type="text/javascript">
 
-    var _itemscount = "@Model.lisReminder.Count()";
-    if (_itemscount == "0") {
-        $("#tabReminderRepeater").css("display", "none");
-    }
+    
     if (_device.isMobile) {
         $("#divReminderContainer").css("width", _device.availWidth);
         $("#divReminderContainer").css("overflow", "scroll");

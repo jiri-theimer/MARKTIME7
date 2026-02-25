@@ -69,89 +69,135 @@
 
 @addTagHelper *, UI
 
-<table>
-    <tr>
-        <td>
-            <button type="button" class="btn btn-sm btn-light" tabindex="-1" onclick="b20id_add()">
-                <myicon symbol="local_police"></myicon>
-                @_f.tra("Přidat hlídače")
-            </button>
-        </td>
+@if (Model.lisItems != null && Model.lisItems.Count() > 0)
+{
 
-        <td>
-            @if (Model.lisB20 != null)
-            {
-                <select class="form-select" asp-for="@Model.SelectedB20ID" onchange="b20id_change(this)">
-                    <option value="0">---Vyberte typ hlídače---</option>
+    <div class="card my-2">
+        <div class="card-header">
+            <table>
+                <tr>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-light" tabindex="-1" onclick="b20id_add()" style="min-width:130px;text-align:left;">
+                            <myicon symbol="local_police"></myicon>
+                            @_f.tra("Přidat hlídače")
+                        </button>
+                    </td>
 
-                    @foreach (var c in Model.lisB20)
-                    {
-                        <option value="@(c.pid)">@(c.b20Name)</option>
+                    <td>
+                        @if (Model.lisB20 != null)
+                        {
+                            <select class="form-select" asp-for="@Model.SelectedB20ID" onchange="b20id_change(this)">
+                                <option value="0">---Vyberte typ hlídače---</option>
 
-                    }
+                                @foreach (var c in Model.lisB20)
+                                {
+                                    <option value="@(c.pid)">@(c.b20Name)</option>
 
-                </select>
-            }
-        </td>
+                                }
+
+                            </select>
+                        }
+                    </td>
 
 
-    </tr>
-</table>
-
-
-
-<table class="table table-hover">
-    @for (int i = 0; i < Model.lisItems.Count(); i++)
-    {
-        <tr style="@(Model.lisItems[i].CssTempDisplay)">
-            <td style="width:20px;">
-                <span class="material-icons-outlined" style="color:red;">
-                    local_police
-                </span>
-            </td>
-            <td>
-                <strong>@Model.lisItems[i].b20Name</strong>
-                <input type="hidden" asp-for="lisItems[i].b20ID" />
-
-                <input type="hidden" asp-for="lisItems[i].b20Name" />
-
-                <input type="hidden" asp-for="lisItems[i].b20Par1Name" />
-                <input type="hidden" asp-for="lisItems[i].b20Par2Name" />
-                <input type="hidden" asp-for="lisItems[i].b21ID" />
-                <input type="hidden" asp-for="lisItems[i].IsCyklus" />
-            </td>
-            <td>
-                <code>@(Model.lisItems[i].b20Par1Name == null ? "" : Model.lisItems[i].b20Par1Name + ":")</code>
-                <input type="text" asp-for="lisItems[i].b21Par1" style="width:80px;display:@(Model.lisItems[i].b20Par1Name==null ? "none": "block");" />
-            </td>
-
-            <td>
-                <code>@(Model.lisItems[i].b20Par2Name == null ? "" : Model.lisItems[i].b20Par2Name + ":")</code>
-                <input type="text" asp-for="lisItems[i].b21Par2" style="width:80px;display:@(Model.lisItems[i].b20Par2Name==null ? "none": "block");" />
-            </td>
-
-            <td>
-                @if (Model.lisItems[i].IsCyklus)
+                </tr>
+            </table>
+        </div>
+        <div class="card-body">
+            <table class="table table-hover">
+                @for (int i = 0; i < Model.lisItems.Count(); i++)
                 {
-                    <input type="text" asp-for="lisItems[i].b21NotifyReceivers" placeholder="Další příjemci notifkace" />
-                }
-                
-            </td>
+                    <tr style="@(Model.lisItems[i].CssTempDisplay)">
+                        <td style="width:20px;">
+                            <span class="material-icons-outlined" style="color:red;">
+                                local_police
+                            </span>
+                        </td>
+                        <td>
+                            <strong>@Model.lisItems[i].b20Name</strong>
+                            <input type="hidden" asp-for="lisItems[i].b20ID" />
 
+                            <input type="hidden" asp-for="lisItems[i].b20Name" />
+
+                            <input type="hidden" asp-for="lisItems[i].b20Par1Name" />
+                            <input type="hidden" asp-for="lisItems[i].b20Par2Name" />
+                            <input type="hidden" asp-for="lisItems[i].b21ID" />
+                            <input type="hidden" asp-for="lisItems[i].IsCyklus" />
+                        </td>
+                        <td>
+                            <code>@(Model.lisItems[i].b20Par1Name == null ? "" : Model.lisItems[i].b20Par1Name + ":")</code>
+                            <input type="text" asp-for="lisItems[i].b21Par1" style="width:80px;display:@(Model.lisItems[i].b20Par1Name == null ? "none" : "block");" />
+                        </td>
+
+                        <td>
+                            <code>@(Model.lisItems[i].b20Par2Name == null ? "" : Model.lisItems[i].b20Par2Name + ":")</code>
+                            <input type="text" asp-for="lisItems[i].b21Par2" style="width:80px;display:@(Model.lisItems[i].b20Par2Name == null ? "none" : "block");" />
+                        </td>
+
+                        <td>
+                            @if (Model.lisItems[i].IsCyklus)
+                            {
+                                <input type="text" asp-for="lisItems[i].b21NotifyReceivers" placeholder="Další příjemci notifkace" />
+                            }
+
+                        </td>
+
+
+                        <td>
+                            <input type="hidden" asp-for="lisItems[i].TempGuid" />
+
+                            <input type="hidden" asp-for="lisItems[i].IsTempDeleted" value="@Model.lisItems[i].IsTempDeleted" />
+                        </td>
+                        <td style="width:70px;">
+                            <button type="button" class="btn btn-sm btn-danger" title="@_f.tra("Odstranit řádek")" onclick="handle_delete_b21('@(Model.lisItems[i].TempGuid)')">x</button>
+                        </td>
+                    </tr>
+
+                }
+
+            </table>
+
+        </div>
+    </div>
+}
+else
+{
+    
+    <table>
+        <tr>
+            <td>
+                <button type="button" class="btn btn-sm btn-light" tabindex="-1" onclick="b20id_add()" style="min-width:130px;text-align:left;">
+                    <myicon symbol="local_police"></myicon>
+                    @_f.tra("Přidat hlídače")
+                </button>
+            </td>
 
             <td>
-                <input type="hidden" asp-for="lisItems[i].TempGuid" />
+                @if (Model.lisB20 != null)
+                {
+                    <select class="form-select" asp-for="@Model.SelectedB20ID" onchange="b20id_change(this)">
+                        <option value="0">---Vyberte typ hlídače---</option>
 
-                <input type="hidden" asp-for="lisItems[i].IsTempDeleted" value="@Model.lisItems[i].IsTempDeleted" />
+                        @foreach (var c in Model.lisB20)
+                        {
+                            <option value="@(c.pid)">@(c.b20Name)</option>
+
+                        }
+
+                    </select>
+                }
             </td>
-            <td style="width:70px;">
-                <button type="button" class="btn btn-sm btn-danger" title="@_f.tra("Odstranit řádek")" onclick="handle_delete_b21('@(Model.lisItems[i].TempGuid)')">x</button>
-            </td>
+
+
         </tr>
+    </table>
+}
 
-    }
 
-</table>
+
+
+
+
 
 <input type="hidden" asp-for="@Model.b21_postback_par" value="@Model.b21_postback_par" />
 <input type="hidden" asp-for="rec_entity" />

@@ -159,7 +159,7 @@ namespace UI.Controllers
                     return this.StopPage(true, "Nemáte oprávnění k editaci karty záznamu.");
                 }
 
-                InhaleDisp(v, v.Rec.p41BitStream);
+                InhaleDisp(v);
 
                 if (v.disp.IsProjectContacts)
                 {
@@ -337,10 +337,7 @@ namespace UI.Controllers
 
             v.TagEntity = $"le{v.RecP07.p07Level}";
 
-            if (!v.disp.IsInhaled)
-            {
-                InhaleDisp(v, 0);
-            }
+            InhaleDisp(v);
 
             InhaleRoles(v);
             if (v.disp.IsProjectContacts && v.lisP26 == null)
@@ -412,7 +409,7 @@ namespace UI.Controllers
                             {
                                 v.RecP42 = Factory.p42ProjectTypeBL.Load(v.Rec.p42ID);
                             }
-                            InhaleDisp(v, v.disp.GetBitStream());
+                            InhaleDisp(v);
                             if (v.rec_pid == 0) v.disp.RecoveryDefaultCheckedStates();
                             InhaleRoles(v);
                             
@@ -607,22 +604,21 @@ namespace UI.Controllers
         }
 
 
-
-        private void InhaleDisp(p41Record v, int bitstream)
+        private void InhaleDisp(p41Record v)
         {
-            if (v.RecP42 == null) return;
+            v.disp = new DispoziceViewModel();
+            v.disp.InitItems("p41", Factory);
+            v.disp.SetChecked(PosEnum.Files, false);
+            v.disp.SetChecked(PosEnum.BillingTab, true);
+            v.disp.SetChecked(PosEnum.ProjectClient, true);
+            v.disp.SetChecked(PosEnum.Roles, true);
+            v.disp.SetChecked(PosEnum.ProjectBudget, true);
+            v.disp.SetChecked(PosEnum.ProjectContacts, true);
 
-            //int intCache = (v.rec_pid == 0 ? Factory.j02UserBL.LoadBitstreamFromUserCache("p41", v.RecP42.pid) : 0);    //pro nový záznam načíst uložená rozšíření z cache
-            int intCache = 0;   //cache nepoužívat
 
-
-            v.disp.SetVal(PosEnum.Files, v.RecP42.p42FilesTab, bitstream, v.rec_pid, intCache);
-            v.disp.SetVal(PosEnum.BillingTab, v.RecP42.p42BillingTab, bitstream, v.rec_pid, intCache);
-            v.disp.SetVal(PosEnum.ProjectClient, v.RecP42.p42ClientTab, bitstream, v.rec_pid, intCache);
-            v.disp.SetVal(PosEnum.Roles, v.RecP42.p42RolesTab, bitstream, v.rec_pid, intCache);
-            v.disp.SetVal(PosEnum.ProjectBudget, v.RecP42.p42BudgetTab, bitstream, v.rec_pid, intCache);
-            v.disp.SetVal(PosEnum.ProjectContacts, v.RecP42.p42ContactsTab, bitstream, v.rec_pid, intCache);
         }
+
+        
         private void InhaleRoles(p41Record v)
         {
             if (v.disp.IsRoles && v.roles == null)

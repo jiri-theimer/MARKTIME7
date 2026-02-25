@@ -80,7 +80,7 @@ namespace UI.Controllers
                     v.ComboJ19Name = Factory.FBL.LoadJ19(v.Rec.j19ID).j19Name;
                 }
 
-                InhaleDisp(v, v.Rec.p90BitStream);
+                InhaleDisp(v);
                 
 
                
@@ -104,7 +104,7 @@ namespace UI.Controllers
                     v.RecP89 = Factory.p89ProformaTypeBL.Load(recLast.p89ID);
                     v.Rec.j27ID = recLast.j27ID;v.ComboJ27Code = recLast.j27Code;v.Rec.p89ID = recLast.p89ID;v.ComboP89Name = recLast.p89Name;v.Rec.p90VatRate = recLast.p90VatRate;
 
-                    InhaleDisp(v, 0);
+                    InhaleDisp(v);
                     
 
                 }
@@ -142,11 +142,8 @@ namespace UI.Controllers
             {
                 v.RecP89 = Factory.p89ProformaTypeBL.Load(v.Rec.p89ID);
             }
-            if (!v.disp.IsInhaled)
-            {
-                InhaleDisp(v, 0);                
-            }
-            
+            InhaleDisp(v);
+
 
             InhaleRoles(v);
             
@@ -175,7 +172,7 @@ namespace UI.Controllers
                     if (v.Rec.p89ID > 0)
                     {
                         v.RecP89 = Factory.p89ProformaTypeBL.Load(v.Rec.p89ID);
-                        InhaleDisp(v, v.disp.GetBitStream());
+                        InhaleDisp(v);
                         if (v.rec_pid == 0) v.disp.RecoveryDefaultCheckedStates();
                         InhaleRoles(v);
                         
@@ -268,16 +265,14 @@ namespace UI.Controllers
         }
 
 
-        private void InhaleDisp(p90Record v, int bitstream)
+        private void InhaleDisp(p90Record v)
         {
+            v.disp = new DispoziceViewModel();
+            v.disp.InitItems("p90", Factory);
+            v.disp.SetChecked(PosEnum.Files, false);
+            v.disp.SetChecked(PosEnum.Roles, true);
 
-            if (v.RecP89 == null) return;
-            //int intCache = (v.rec_pid == 0 ? Factory.j02UserBL.LoadBitstreamFromUserCache( "p90", v.RecP89.pid) : 0);    //pro nový záznam načíst uložená rozšíření z cache
-            int intCache = 0;   //cache nepoužívat
             
-            v.disp.SetVal(PosEnum.Files, v.RecP89.p89FilesTab, bitstream, v.rec_pid, intCache);            
-            v.disp.SetVal(PosEnum.Roles, v.RecP89.p89RolesTab, bitstream, v.rec_pid, intCache);
-
         }
 
         private void InhaleRoles(p90Record v)
