@@ -8,6 +8,7 @@ namespace BO.Model
         SimulacniSazbaProjekt=3,
         SimulacniSazbaUzivatel=4,
         SimulacniSazbaRucne=5,
-        ProcentoFakturacniSazby=6
+        ProcentoFakturacniSazby=6,
+        NakladovaPlusRezijniSazba=7
     }
 }

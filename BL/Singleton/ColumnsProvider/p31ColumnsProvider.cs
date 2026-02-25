@@ -160,6 +160,8 @@ namespace BL
             oc = AF("p51Name_CostRate", "Nákladový ceník", "p51costrate.p51Name", "string"); oc.IHRC = true; oc.RelSqlInCol = "LEFT OUTER JOIN p51PriceList p51costrate ON a.p51ID_CostRate=p51costrate.p51ID"; oc.VYSL = true;
             oc = AF("p31Rate_Overhead", "Režijní sazba", null, "num"); oc.IHRC = true; oc.VYSL = true; oc.SqlExplicitGroupBy = "a.p31Rate_Overhead";
             oc = AF("p31Amount_Overhead", "Režijní honorář", null, "num", true); oc.IHRC = true; oc.VYSL = true;
+            oc = AF("NakladovaPlusRezijniSazba", "Nákl.+Rež. sazba", "isnull(a.p31Rate_Internal_Orig,0)+isnull(a.p31Rate_Overhead,0)", "num"); oc.IHRC = true; oc.SqlExplicitGroupBy = "a.p31Rate_Internal_Orig"; oc.VYSL = true;
+            oc = AF("NakladovyPlusRezijniHonorar", "Nákl.+Rež. honorář", "a.p31Hours_Orig*(isnull(a.p31Rate_Internal_Orig,0)+isnull(a.p31Rate_Overhead,0))", "num"); oc.IHRC = true; oc.SqlExplicitGroupBy = "a.p31Rate_Internal_Orig"; oc.VYSL = true;
             oc = AF("HonorarSimulacniSazbaProjektu", "Sim.sazba projektu x Hodiny", "case when p34x.p33ID=1 then p41x.p41Plan_Internal_Rate*a.p31Hours_Orig end", "num", true); oc.IHRC = true; oc.VYSL = true;
             oc = AFNUM_OCAS("HonorarSimulacniSazbaUzivatele", "Sim.sazba uživatele x Hodiny", "p31_ocas.HonorarSimulacniSazbaUzivatele",true,"Simulační sazba uživatele x Hodiny"); oc.IHRC = true; oc.VYSL = true;
             

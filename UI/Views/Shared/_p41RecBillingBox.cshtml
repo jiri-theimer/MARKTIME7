@@ -66,7 +66,7 @@
     double _vysledovkaNaklad = 0;
     double _vysledovkaVynos = 0;
     double _vysledovkaNakladVyuctovano=0;
-
+    
     BO.Model.TimesheetCostRateEnum _NakladovaSazbaScenar = (BO.Model.TimesheetCostRateEnum) _f.CBL.LoadUserParamInt("vysledovka-nakladovasazba-scenar", 5);
     double _dblSimulacniSazba = BO.Code.Bas.InDouble(_f.CBL.LoadUserParam("vysledovka-NakladovaSazbaCislo", (_f.Lic.j27ID == 2 ? "500" : "25")));
     double _dblProcentoZFakSazby = BO.Code.Bas.InDouble(_f.CBL.LoadUserParam("vysledovka-NakladovaSazbaProcento","50"));
@@ -142,6 +142,7 @@
         if (_intBudgetScenarVydaje == 1)
         {
             _nakladyVyka = _bcomp.Vydaje + _bcomp.Honorar_Naklad;
+            
         }
         if (_intBudgetScenarVydaje == 2)
         {
@@ -227,6 +228,7 @@
                         <select id="cbxNakladovaSazbaScenar">
                             <option value="1">Nákladová sazba úkonu (N1)</option>"
                             <option value="2">Režijní sazba úkonu (N2)</option>"
+                            <option value="7">Nákladová+Režijní sazba (N1+N2)</option>"
                             <option value="3">Simulační sazba projektu (N3)</option>"
                             <option value="4">Simulační sazba uživatele (N4)</option>"
                             <option value="5">Simulační sazbu zadat zde ručně (N5)</option>
