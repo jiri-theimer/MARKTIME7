@@ -384,13 +384,17 @@ else
             @Html.Raw(Model.BillingLangFlagHtml)
         </div>
     }
-    
 
-    
+
+
 
     @if (!_isMobile)
     {
-        <button type="button" id="cmdFindText" tabindex="-1" onmouseout="cmdFindText_mouseout(this)" class="btn btn-sm btn-light my-0 py-0" style="visibility:hidden;float:left;" onclick="_najit_text(this,event,'p31text',@(Model.Rec.j02ID))">Najít text</button>
+
+        <button id="cmdFindText" tabindex="-1" type="button" onmouseout="cmdFindText_mouseout(this)" class="btn btn-sm btn-light my-0" style="visibility:hidden;float:left;" onclick="_najit_text(this,event,'p31text',@(Model.Rec.j02ID))">
+            <myicon symbol="search"></myicon>
+            @_f.tra("Najít text")
+        </button>
 
 
         @if (_lisB05.Count() > 0)
@@ -443,10 +447,11 @@ else
             <textarea class="form-control" asp-for="Rec.p31TextInternal" placeholder="@_f.tra("Interní text")" style="background-color:#FFF5EE !important;"></textarea>
         </div>
     }
+    <div style="clear:both;"></div>
 
     @if (Model.IsOfferNavicKusovnik && Model.RecP34.p33ID == BO.p33IdENUM.Cas)
     {
-        
+
 
         @if (Model.IsNavicKusovnik || Model.RecP34.p33ID == BO.p33IdENUM.Kusovnik)
         {
@@ -454,6 +459,7 @@ else
         }
         else
         {
+
             <div>
                 <input type="checkbox" asp-for="IsNavicKusovnik" tabindex="-1" onchange="_postback('navic-kusovnik')" />
                 <label for="IsNavicKusovnik">
@@ -661,7 +667,7 @@ else
 
     @if (Model.Setting.TimesheetEntryByMinutes)
     {
-                    @:_theukon.timesheet_by_minutes=true;
+                        @:_theukon.timesheet_by_minutes=true;
     }
 
 
