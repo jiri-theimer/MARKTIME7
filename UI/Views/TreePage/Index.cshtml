@@ -703,6 +703,9 @@
                 tree.querySelectorAll("a.nav-link").forEach(a =>
                     a.classList.remove("active")
                 );
+                tree.querySelectorAll("summary").forEach(a =>
+                    a.classList.remove("active")
+                );
                 const leaf = tree.querySelector(`a[data-id="${pid}"]`);
                 leaf.classList.add("active");
 
@@ -722,8 +725,16 @@
         if (!tree) return;
 
         // najdi <a> s daným data-id
-        const leaf = tree.querySelector(`a[data-id="${leafId}"]`);
+        let leaf = tree.querySelector(`a[data-id="${leafId}"]`);
+
+        if (!leaf)
+        {
+            leaf=tree.querySelector(`summary[data-id="${leafId}"]`);
+        }
+        
         if (!leaf) return;
+
+        
 
         // rozbal všechny nadřazené <details>
         let parent = leaf.parentElement;
@@ -738,6 +749,8 @@
         tree.querySelectorAll("a.nav-link").forEach(a =>
             a.classList.remove("active")
         );
+
+        
 
         // označ aktuální
         leaf.classList.add("active");

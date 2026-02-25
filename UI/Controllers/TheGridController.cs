@@ -346,7 +346,7 @@ namespace UI.Controllers
                 case "p31":
                     if (Factory.p07LevelsCount>1 && masterentity == "p41Project")
                     {
-                        v.show_podrizene = Factory.CBL.LoadUserParamBool("slaveview-show-podrizene", false);
+                        v.show_podrizene = Factory.CBL.LoadUserParamBool("slaveview-show-podrizene", true);
                         if (!v.show_podrizene)
                         {
                             if (v.myqueryinline == null)
