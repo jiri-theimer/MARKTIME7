@@ -183,7 +183,7 @@
                 </div>
             </div>
 
-            <div class="my-2">
+            <div class="my-2" style="display:none;">
                 <select class="form-select" asp-for="Rec.p91PortalFlag">
                     <option value="None">@_f.tra("Nepublikovat na portále")</option>
                     <option value="Published">@_f.tra("Publikovat na portále")</option>
@@ -280,7 +280,9 @@
                     @_f.tra("Systém si ukládá údaje o vystavovateli, které platili v okamžiku vystavení vyúčtování")
                 </div>
                 <div class="card-body">
-                    <button id="cmdLoadSupplier" type="button" class="btn btn-sm bog">@_f.tra("Načíst vystavovatele do vyúčtování")</button>
+                    <div>
+                        <button id="cmdLoadSupplier" type="button" class="btn btn-sm bog">@_f.tra("Načíst vystavovatele do vyúčtování")</button>
+                    </div>
                     <div class="row">
                         <label for="Rec_p91Client" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název"):</label>
                         <div class="col-sm-11 col-md-10">
