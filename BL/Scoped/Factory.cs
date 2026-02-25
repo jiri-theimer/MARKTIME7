@@ -399,7 +399,8 @@ namespace BL
 
         public string tra(string strExpression)   //lokalizace do ostatních jazyků
         {
-            if (this.CurrentUser.j02LangIndex == 0) return strExpression;
+
+            //if (this.CurrentUser.j02LangIndex == 0) return strExpression;
             //return this.Translator.DoTranslate(strExpression, this.CurrentUser.j02LangIndex);
             return this.Translator.DoTranslate(strExpression, System.Globalization.CultureInfo.CurrentUICulture.Name);
             

@@ -9,11 +9,11 @@
 
 @addTagHelper *, UI
 
-<div class="modal_record_container_flexi">
+<div class="modal_record_container">
 
-    <div class="row" style="max-width:1500px;">
+    <div class="row">
         <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název"):</label>
-        <div class="col-sm-4 col-md-4">
+        <div class="col-sm-7 col-md-6">
             <input class="form-control record_name" asp-for="Rec.p42Name" />
         </div>
         
@@ -24,17 +24,17 @@
 
     </div>
 
-    <div class="row my-2" style="max-width:1500px;">
+    <div class="row my-2">
         <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Číselná řada projektů"):</label>
-        <div class="col-sm-4 col-md-4">
+        <div class="col-sm-5 col-md-4">
             <mycombo entity="x38CodeLogic" asp-for="Rec.x38ID" selectedtext="@Model.ComboX38Name" view-flag="2" myqueryinline="x38entity|string|p41"></mycombo>
         </div>
-        <label class="col-sm-1 col-md-1 col-form-label">@_f.tra("Workflow šablona"):</label>
-        <div class="col-sm-3 col-md-3">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Workflow šablona"):</label>
+        <div class="col-sm-4 col-md-3">
             <mycombo entity="b01WorkflowTemplate" asp-for="Rec.b01ID" selectedtext="@Model.ComboB01Name" view-flag="2" myqueryinline="b01entity|string|p41"></mycombo>
         </div>
         <div class="col-sm-1 col-md-1">
-            <mytooltip text="Workflow šablona slouží k podpoře nahazování různých stavů podle životního cyklu projektu. V administraci si můžete založit více workflow šablon."></mytooltip>
+            <mytooltip text="Ve workflow šabloně je nastavená logika nahazování stavů podle životního cyklu projektu. V administraci si můžete založit více workflow šablon."></mytooltip>
         </div>
     </div>
 
@@ -42,8 +42,7 @@
    
 
     @Html.Raw("<div class='row'>")
-
-    @Html.Raw("<div class='col-auto'>")
+    @Html.Raw("<div class='col-6'>")
 
     <div class="card">
         <div class="card-header">
@@ -67,10 +66,9 @@
 
 
     @Html.Raw("</div>")
+    @Html.Raw("<div class='col-6'>")
 
-
-    @Html.Raw("<div class='col-auto'>")
-
+    
     <div class="card">
         <div class="card-header">
             @_f.tra("Pracovní náplň projektu")
@@ -123,80 +121,11 @@
     </div>
 
     @Html.Raw("</div>")
-
-
-    @Html.Raw("<div class='col-auto'>")
-
-    <div class="card">
-        <div class="card-header">
-            @_f.tra("Výchozí Rozšíření karty projektu")
-            <mytooltip text="Editační karta projektu je členěna do záložek.<hr>Níže se nastavuje, které ze záložek mají/nemají být viditelné uživatelům"></mytooltip>
-        </div>
-        <div class="card-body">
-            <table>
-
-                <tr>
-                    <td>
-                        <label>@_f.tra("Nahrávání příloh v kartě projektu"):</label>
-                    </td>
-                    <td>
-                        @Html.EditorFor(m => m.Rec.p42FilesTab, "~/Views/Shared/_BitStreamFlag.cshtml")
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <label>@_f.tra("Záložka [Fakturační nastavení]"):</label>
-                    </td>
-                    <td>
-                        @Html.EditorFor(m => m.Rec.p42BillingTab, "~/Views/Shared/_BitStreamFlag.cshtml")
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <label>@_f.tra("Projektové role"):</label>
-                    </td>
-                    <td>
-                        @Html.EditorFor(m => m.Rec.p42RolesTab, "~/Views/Shared/_BitStreamFlag.cshtml")
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <label>@_f.tra("Klient projektu"):</label>
-                    </td>
-                    <td>
-                        @Html.EditorFor(m => m.Rec.p42ClientTab, "~/Views/Shared/_BitStreamFlag.cshtml")
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <label>@_f.tra("Záložka [Rozpočet projektu]"):</label>
-                    </td>
-                    <td>
-                        @Html.EditorFor(m => m.Rec.p42BudgetTab, "~/Views/Shared/_BitStreamFlag.cshtml")
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <label>@_f.tra("Kontakty projektu"):</label>
-                    </td>
-                    <td>
-                        @Html.EditorFor(m => m.Rec.p42ContactsTab, "~/Views/Shared/_BitStreamFlag.cshtml")
-                    </td>
-                </tr>
-            </table>
-
-
-
-        </div>
-    </div>
-
-    @Html.Raw("</div>")
-
     @Html.Raw("</div>")
 
 
 
-    <div style="max-width:1500px;">
+    <div>
         @Html.EditorFor(m => m.creates, "~/Views/Shared/_CreateAssign.cshtml")
 
 
@@ -232,3 +161,65 @@
 
 
 
+<div class="card" style="display:none;">
+    <div class="card-header">
+        @_f.tra("Výchozí Rozšíření karty projektu")
+        <mytooltip text="Editační karta projektu je členěna do záložek.<hr>Níže se nastavuje, které ze záložek mají/nemají být viditelné uživatelům"></mytooltip>
+    </div>
+    <div class="card-body">
+        <table>
+
+            <tr>
+                <td>
+                    <label>@_f.tra("Nahrávání příloh v kartě projektu"):</label>
+                </td>
+                <td>
+                    @Html.EditorFor(m => m.Rec.p42FilesTab, "~/Views/Shared/_BitStreamFlag.cshtml")
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label>@_f.tra("Záložka [Fakturační nastavení]"):</label>
+                </td>
+                <td>
+                    @Html.EditorFor(m => m.Rec.p42BillingTab, "~/Views/Shared/_BitStreamFlag.cshtml")
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label>@_f.tra("Projektové role"):</label>
+                </td>
+                <td>
+                    @Html.EditorFor(m => m.Rec.p42RolesTab, "~/Views/Shared/_BitStreamFlag.cshtml")
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label>@_f.tra("Klient projektu"):</label>
+                </td>
+                <td>
+                    @Html.EditorFor(m => m.Rec.p42ClientTab, "~/Views/Shared/_BitStreamFlag.cshtml")
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label>@_f.tra("Záložka [Rozpočet projektu]"):</label>
+                </td>
+                <td>
+                    @Html.EditorFor(m => m.Rec.p42BudgetTab, "~/Views/Shared/_BitStreamFlag.cshtml")
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label>@_f.tra("Kontakty projektu"):</label>
+                </td>
+                <td>
+                    @Html.EditorFor(m => m.Rec.p42ContactsTab, "~/Views/Shared/_BitStreamFlag.cshtml")
+                </td>
+            </tr>
+        </table>
+
+
+
+    </div>
+</div>

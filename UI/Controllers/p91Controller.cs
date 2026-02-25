@@ -115,6 +115,19 @@ namespace UI.Controllers
             return View(v);
         }
 
+        private void InhaleDisp(p91Record v)
+        {
+            //layout formuláře natvrdo daný - bez uživatelovo rozhodnodutí
+            v.disp = new DispoziceViewModel();
+            v.disp.InitItems("p91", Factory);
+            v.disp.SetChecked(PosEnum.Files, false);
+            v.disp.SetChecked(PosEnum.Roles, true);
+            
+           
+
+
+
+        }
 
         public IActionResult Record(int pid)
         {            
@@ -123,8 +136,8 @@ namespace UI.Controllers
             {
                 return this.StopPage(true, "Na vstupu chybí ID vyúčtování.");
             }
-            v.disp = new DispoziceViewModel();
-            v.disp.InitItems("p91", Factory);
+            InhaleDisp(v);
+           
 
             
             v.Rec = Factory.p91InvoiceBL.Load(v.rec_pid);
@@ -161,7 +174,7 @@ namespace UI.Controllers
                 v.ComboJ19Name = Factory.FBL.LoadJ19(v.Rec.j19ID).j19Name;
             }
 
-            InhaleDisp(v, v.Rec.p91BitStream);
+            InhaleDisp(v);
            
             
 
@@ -198,11 +211,8 @@ namespace UI.Controllers
             }
             v.ff1.RefreshInputsVisibility(Factory, v.rec_pid, "p91", v.Rec.p92ID);
 
-            if (!v.disp.IsInhaled)
-            {
-                InhaleDisp(v, v.Rec.p91BitStream);
-            }
-            
+
+            InhaleDisp(v);
 
             InhaleRoles(v);
         }
@@ -340,19 +350,7 @@ namespace UI.Controllers
             return Factory.p93InvoiceHeaderBL.Load(p93id);
         }
 
-        private void InhaleDisp(p91Record v, int bitstream)
-        {
-
-            if (v.RecP92== null) return;
-            //int intCache = (v.rec_pid == 0 ? Factory.j02UserBL.LoadBitstreamFromUserCache("p91", v.RecP92.pid) : 0);    //pro nový záznam načíst uložená rozšíření z cache
-            int intCache = 0;   //cache nepoužívat
-
-            
-            v.disp.SetVal(PosEnum.Files, v.RecP92.p92FilesTab, bitstream, v.rec_pid, intCache);            
-            v.disp.SetVal(PosEnum.Roles, v.RecP92.p92RolesTab, bitstream, v.rec_pid, intCache);
-          
-
-        }
+        
         private void InhaleRoles(p91Record v)
         {
             if (v.disp.IsRoles && v.roles == null)

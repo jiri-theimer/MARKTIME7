@@ -39,18 +39,11 @@
                 <a id="link_tab6" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab6">@_f.tra(Model.disp.GetTabText(PosEnum.Roles))</a>
             </li>
         }
-        <li style="margin-left:20px;" class="nonmobile">
-            @Html.EditorFor(m => Model.rec_entity, "~/Views/Shared/_cmdMoreButton.cshtml")
-        </li>
+        
     </ul>
 </div>
 
-<div id="divMore" class="card" style="display:none;background-color:#E6F0FF;">
-    <div style="width:350px;padding:30px;">
-        @Html.EditorFor(m => m.disp, "~/Views/Shared/_Dispozice.cshtml")
 
-    </div>
-</div>
 
 <div class="modal_record_container">
     <div class="tab-content">
@@ -375,9 +368,7 @@
     $(document).ready(function () {
 
 
-        $("#cmdMore").click(function () {
-            $("#divMore").toggle();
-        });
+       
 
 
         $("#cmdLoadClient").click(function () {

@@ -40,7 +40,7 @@ namespace UI.Models.Record
         
         public DispoziceViewModel disp { get; set; }
 
-        public Notepad.EditorViewModel Notepad { get; set; }
+        
         public HlidacViewModel hlidac { get; set; }
     }
 

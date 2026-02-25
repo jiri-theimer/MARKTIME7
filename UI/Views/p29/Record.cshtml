@@ -47,23 +47,23 @@
         <div class="card-body">
             <input type="radio" value="Anyone" id="chk0" asp-for="@Model.Rec.p29ScopeFlag" />
             <label for="chk0">@_f.tra("Neurčeno")</label>
-            <p></p>
+            
             <input type="radio" value="Client" id="chk1" asp-for="@Model.Rec.p29ScopeFlag" />
             <label for="chk1">@_f.tra("Pouze klient projektu")</label>
-            <p></p>
+            
             <input type="radio" value="Supplier" id="chk2" asp-for="@Model.Rec.p29ScopeFlag" />
             <label for="chk2">@_f.tra("Pouze dodavatel výdaje")</label>
-            <p></p>
+            
             <input type="radio" value="ClientOrSupplier" id="chk3" asp-for="@Model.Rec.p29ScopeFlag" />
             <label for="chk3">@_f.tra("Klient i Dodavatel")</label>
-            <p></p>
+            
             <input type="radio" value="ContactPerson" id="chk4" asp-for="@Model.Rec.p29ScopeFlag" />
             <label for="chk4">@_f.tra("Pouze kontaktní osoba")</label>
         </div>
     </div>
 
     @Html.Raw("</div>")
-    @Html.Raw("<div class='col-auto'>")
+    @Html.Raw("<div class='col-auto' style='display:none'>")
 
     <div class="card">
         <div class="card-header">

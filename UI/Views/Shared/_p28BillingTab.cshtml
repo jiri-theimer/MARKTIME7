@@ -5,10 +5,12 @@
 
 <div class="row">
     <div class="col-sm-7 col-md-7">
-        <div class="card">
+        <span class="badge-light">@_f.tra("Kontakt jako [Klient projektů]")</span>
+
+        <div class="card">           
             <div class="card-header">
-                ₠
-                @_f.tra("Ceník fakturačních hodinových sazeb (a kusovníkových)")
+                
+                @_f.tra("Ceník fakturačních hodinových (a kusovníkových) sazeb")
             </div>
             <div class="card-body">
                 <input type="radio" id="Radiop51Flag1" asp-for="@Model.Rec.p28BillingFlag" value="CenikDedit" onchange="_postback()">

@@ -312,7 +312,7 @@ namespace UI.Controllers
                 v.ComboJ18Name = v.Rec.j18Name;
 
 
-                InhaleDisp(v, v.Rec.j02BitStream);
+                InhaleDisp(v);
 
 
                 if (v.Rec.j02InvoiceSignatureFile != null)
@@ -365,10 +365,7 @@ namespace UI.Controllers
             {
                 v.RecJ04 = Factory.j04UserRoleBL.Load(v.Rec.j04ID);
             }
-            if (!v.disp.IsInhaled)
-            {
-                InhaleDisp(v, 0);
-            }
+            InhaleDisp(v);
 
 
 
@@ -397,7 +394,7 @@ namespace UI.Controllers
                         if (v.Rec.j04ID > 0)
                         {
                             v.RecJ04 = Factory.j04UserRoleBL.Load(v.Rec.j04ID);
-                            InhaleDisp(v, v.disp.GetBitStream());
+                            InhaleDisp(v);
                             if (v.rec_pid == 0) v.disp.RecoveryDefaultCheckedStates();
 
                         }
@@ -585,16 +582,14 @@ namespace UI.Controllers
             return true;
         }
 
-        private void InhaleDisp(j02Record v, int bitstream)
+        private void InhaleDisp(j02Record v)
         {
-            if (v.RecJ04 == null) return;
+            v.disp = new DispoziceViewModel();
+            v.disp.InitItems("j02", Factory);
+            v.disp.SetChecked(PosEnum.Files, false);
+            
 
-            //int intCache = (v.rec_pid == 0 ? Factory.j02UserBL.LoadBitstreamFromUserCache("j02", v.RecJ04.pid) : 0);    //pro nový záznam načíst uložená rozšíření z cache
-            int intCache = 0;   //cache nepoužívat
-
-
-            v.disp.SetVal(PosEnum.Files, v.RecJ04.j04FilesTab, bitstream, v.rec_pid, intCache);
-
+            
 
         }
 

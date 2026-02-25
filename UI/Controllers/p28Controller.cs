@@ -24,11 +24,11 @@ namespace UI.Controllers
             var v = new p28Tab1() { Factory = this.Factory, prefix = "p28", pid = pid, caller = caller };
 
             v.Rec = Factory.p28ContactBL.Load(v.pid);
-           
+
             if (v.Rec != null)
             {
                 v.RecSum = Factory.p28ContactBL.LoadSumRow(v.Rec.pid);
-               
+
 
                 //v.JeKontaktniOsoba = false;
                 //if (v.Rec.p28IsCompany)
@@ -64,11 +64,11 @@ namespace UI.Controllers
         public IActionResult Portal(int pid)
         {
             var v = new p28Record() { rec_pid = pid, IsCompany = 1, rec_entity = "p28", TempGuid = BO.Code.Bas.GetGuid() };
-            
+
             v.Rec = Factory.p28ContactBL.Load(pid);
             if (v.Rec == null) return RecNotFound(v);
 
-            var lisO32 = Factory.p28ContactBL.GetList_o32(v.rec_pid, 0,0);
+            var lisO32 = Factory.p28ContactBL.GetList_o32(v.rec_pid, 0, 0);
             v.lisO32 = new List<o32Repeater>();
             foreach (var c in lisO32)
             {
@@ -79,7 +79,7 @@ namespace UI.Controllers
                     o33ID = c.o33ID,
                     o32Value = c.o32Value,
                     o32Description = c.o32Description,
-                    o32Person=c.o32Person,
+                    o32Person = c.o32Person,
                     o32IsDefaultInInvoice = c.o32IsDefaultInInvoice
                 });
             }
@@ -103,7 +103,7 @@ namespace UI.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Portal(p28Record v,string guid)
+        public IActionResult Portal(p28Record v, string guid)
         {
             RefreshState_Portal(v);
             if (v.IsPostback)
@@ -112,7 +112,7 @@ namespace UI.Controllers
                 {
 
                     case "add_o32":
-                        v.lisO32.Add(new o32Repeater() { TempGuid = BO.Code.Bas.GetGuid(), o33ID = BO.o33FlagEnum.Email,o32IsDefaultInInvoice=true });
+                        v.lisO32.Add(new o32Repeater() { TempGuid = BO.Code.Bas.GetGuid(), o33ID = BO.o33FlagEnum.Email, o32IsDefaultInInvoice = true });
                         break;
                     case "delete_o32":
                         v.lisO32.First(p => p.TempGuid == guid).IsTempDeleted = true;
@@ -151,7 +151,7 @@ namespace UI.Controllers
                 c.p28City1 = v.Rec.p28City1;
                 c.p28PostCode1 = v.Rec.p28PostCode1;
                 c.p28Country1 = v.Rec.p28Country1;
-                
+
                 var lisO32 = new List<BO.o32Contact_Medium>();
                 foreach (var cc in v.lisO32)
                 {
@@ -162,7 +162,7 @@ namespace UI.Controllers
                         o33ID = cc.o33ID,
                         o32Value = cc.o32Value,
                         o32Description = cc.o32Description,
-                        o32Person=cc.o32Person,
+                        o32Person = cc.o32Person,
                         o32IsDefaultInInvoice = cc.o32IsDefaultInInvoice
                     });
                 }
@@ -208,8 +208,9 @@ namespace UI.Controllers
             v.Element2Focus = "Rec_p28CompanyName";
             v.Rec = new BO.p28Contact() { p28BillingFlag = BO.p28BillingFlagENUM.CenikDedit, p28CountryCode = Factory.Lic.x01CountryCode, j02ID_Owner = Factory.CurrentUser.pid, p29ID = p29id };
 
-            v.disp = new DispoziceViewModel();
-            v.disp.InitItems("p28", Factory);
+            InhaleDisp(v);
+
+
 
             if (v.rec_pid == 0 && v.Rec.p29ID > 0)
             {
@@ -265,7 +266,7 @@ namespace UI.Controllers
                 }
             }
 
-            RefreshState_Record(v,isclone);
+            RefreshState_Record(v, isclone);
             v.Toolbar = new MyToolbarViewModel(v.Rec);
             if (isclone)
             {
@@ -317,18 +318,18 @@ namespace UI.Controllers
             {
                 v.SelectedComboParentP28Name = Factory.p28ContactBL.Load(v.Rec.p28ParentID).p28Name;
             }
-            if (v.Rec.p28BillingMemo200 != null && v.BillingMemo !=null)
+            if (v.Rec.p28BillingMemo200 != null && v.BillingMemo != null)
             {
                 v.BillingMemo.HtmlValue = Factory.p28ContactBL.LoadBillingMemo(v.rec_pid);
             }
-            
 
-            InhaleDisp(v, v.Rec.p28BitStream);
+
+            
 
 
             if (v.disp.IsContactMedia)
             {
-                var lisO32 = Factory.p28ContactBL.GetList_o32(v.rec_pid, 0,0);
+                var lisO32 = Factory.p28ContactBL.GetList_o32(v.rec_pid, 0, 0);
                 v.lisO32 = new List<o32Repeater>();
                 foreach (var c in lisO32)
                 {
@@ -339,7 +340,7 @@ namespace UI.Controllers
                         o33ID = c.o33ID,
                         o32Value = c.o32Value,
                         o32Description = c.o32Description,
-                        o32Person=c.o32Person,
+                        o32Person = c.o32Person,
                         o32IsDefaultInInvoice = c.o32IsDefaultInInvoice
                     });
                 }
@@ -380,19 +381,32 @@ namespace UI.Controllers
             }
         }
 
-        private void InhaleDisp(p28Record v, int bitstream)
+        private void InhaleDisp(p28Record v)
         {
-            if (v.RecP29 == null) return;
+            //layout formuláře natvrdo daný - bez uživatelovo rozhodnodutí
+            v.disp = new DispoziceViewModel();
+            v.disp.InitItems("p28", Factory);
+            v.disp.SetChecked(PosEnum.BillingTab, true);
+            v.disp.SetChecked(PosEnum.ContactMedia, true);
+            v.disp.SetChecked(PosEnum.ContactPersons, true);
+            v.disp.SetChecked(PosEnum.Roles, true);
 
-            //int intCache = (v.rec_pid == 0 ? Factory.j02UserBL.LoadBitstreamFromUserCache("p28", v.RecP29.pid) : 0);    //pro nový záznam načíst uložená rozšíření z cache
-            int intCache = 0;   //cache nepoužívat
+            if (v.RecP29 !=null)
+            {
+                if (v.RecP29.p29ScopeFlag == BO.p29ScopeFlagENUM.ContactPerson)
+                {
+                    v.disp.SetChecked(PosEnum.BillingTab, false);                    
+                    v.disp.SetChecked(PosEnum.ContactPersons, false);
+                    v.disp.SetChecked(PosEnum.Roles, false);
+                }
+                if (v.RecP29.p29ScopeFlag == BO.p29ScopeFlagENUM.Supplier)
+                {
+                    v.disp.SetChecked(PosEnum.BillingTab, false);
+                    v.disp.SetChecked(PosEnum.Roles, false);
+                }
+            }
 
-
-            v.disp.SetVal(PosEnum.Files, v.RecP29.p29FilesTab, bitstream, v.rec_pid, intCache);
-            v.disp.SetVal(PosEnum.BillingTab, v.RecP29.p29BillingTab, bitstream, v.rec_pid, intCache);
-            v.disp.SetVal(PosEnum.Roles, v.RecP29.p29RolesTab, bitstream, v.rec_pid, intCache);
-            v.disp.SetVal(PosEnum.ContactPersons, v.RecP29.p29ContactPersonsTab, bitstream, v.rec_pid, intCache);
-            v.disp.SetVal(PosEnum.ContactMedia, v.RecP29.p29ContactMediaTab, bitstream, v.rec_pid, intCache);
+            
 
         }
         private void InhaleRoles(p28Record v)
@@ -404,16 +418,13 @@ namespace UI.Controllers
 
         }
 
-        private void RefreshState_Record(p28Record v,bool isclone)
+        private void RefreshState_Record(p28Record v, bool isclone)
         {
             if (v.Rec.p29ID > 0 && v.RecP29 == null)
             {
                 v.RecP29 = Factory.p29ContactTypeBL.Load(v.Rec.p29ID);
             }
-            if (!v.disp.IsInhaled)
-            {
-                InhaleDisp(v, 0);
-            }
+            InhaleDisp(v);
             InhaleRoles(v);
 
             if (v.ff1 == null)
@@ -443,10 +454,10 @@ namespace UI.Controllers
                 v.lisP30 = new List<p30Repeater>();
             }
 
-            if ((v.rec_pid == 0 || isclone) && v.Notepad == null && v.disp.IsBilling)
-            {
-                v.Notepad = new Models.Notepad.EditorViewModel() { Prefix = "p28", SelectedX04ID = Factory.Lic.x04ID_Default, PlaceHolder = "Notepad: fakturační poznámka..." };
-            }
+            //if ((v.rec_pid == 0 || isclone) && v.Notepad == null && v.disp.IsBilling)
+            //{
+            //    v.Notepad = new Models.Notepad.EditorViewModel() { Prefix = "p28", SelectedX04ID = Factory.Lic.x04ID_Default, PlaceHolder = "Notepad: fakturační poznámka..." };
+            //}
 
             if (v.Rec.j02ID_Owner == 0)
             {
@@ -459,7 +470,7 @@ namespace UI.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Record(p28Record v, string guid, int j02id, string j02ids)
         {
-            RefreshState_Record(v,false);
+            RefreshState_Record(v, false);
             if (v.IsPostback)
             {
                 switch (v.PostbackOper)
@@ -467,17 +478,15 @@ namespace UI.Controllers
                     case "p29id":
                         if (v.Rec.p29ID > 0)
                         {
-                            v.RecP29 = Factory.p29ContactTypeBL.Load(v.Rec.p29ID);
-                            InhaleDisp(v, v.disp.GetBitStream());
-                            if (v.rec_pid == 0) v.disp.RecoveryDefaultCheckedStates();
-                            RefreshState_Record(v,false);
-                            //InhaleRoles(v);
+                            v.RecP29 = Factory.p29ContactTypeBL.Load(v.Rec.p29ID);                                                       
+                            RefreshState_Record(v, false);
+                            InhaleRoles(v);
 
                         }
                         break;
 
                     case "add_o32":
-                        v.lisO32.Add(new o32Repeater() { TempGuid = BO.Code.Bas.GetGuid(), o33ID = BO.o33FlagEnum.Email,o32IsDefaultInInvoice=true });
+                        v.lisO32.Add(new o32Repeater() { TempGuid = BO.Code.Bas.GetGuid(), o33ID = BO.o33FlagEnum.Email, o32IsDefaultInInvoice = true });
                         break;
                     case "delete_o32":
                         v.lisO32.First(p => p.TempGuid == guid).IsTempDeleted = true;
@@ -566,12 +575,12 @@ namespace UI.Controllers
             c.p28BillingLangIndex = v.Rec.p28BillingLangIndex; ;
             c.j61ID_Invoice = v.Rec.j61ID_Invoice;
             c.p28VatCodePohoda = v.Rec.p28VatCodePohoda;
-                        
+
             if (v.BillingMemo != null)
             {
                 c.p28BillingMemo200 = v.BillingMemo.GetText200();
             }
-            
+
 
 
             c.p51ID_Billing = 0;
@@ -638,7 +647,7 @@ namespace UI.Controllers
                         o33ID = cc.o33ID,
                         o32Value = cc.o32Value,
                         o32Description = cc.o32Description,
-                        o32Person=cc.o32Person,
+                        o32Person = cc.o32Person,
                         o32IsDefaultInInvoice = cc.o32IsDefaultInInvoice
                     });
                 }
@@ -664,14 +673,14 @@ namespace UI.Controllers
             {
                 Factory.o51TagBL.SaveTagging("p28", c.pid, v.TagPids);
 
-                if (v.rec_pid == 0 && v.Notepad !=null && !string.IsNullOrWhiteSpace(v.Notepad.HtmlContent))  //zda uložit fakturační poznámku
-                {
-                    var recB05 = new BO.b05Workflow_History() { b05RecordEntity = "p28", b05IsCommentOnly = true, b05IsManualStep = true, x04ID = v.Notepad.SelectedX04ID, b05RecordPid = c.pid, b05Notepad = v.Notepad.HtmlContent, b05Tab1Flag = 6 };
-                    Factory.WorkflowBL.Save2History(recB05);
+                //if (v.rec_pid == 0 && v.Notepad != null && !string.IsNullOrWhiteSpace(v.Notepad.HtmlContent))  //zda uložit fakturační poznámku
+                //{
+                //    var recB05 = new BO.b05Workflow_History() { b05RecordEntity = "p28", b05IsCommentOnly = true, b05IsManualStep = true, x04ID = v.Notepad.SelectedX04ID, b05RecordPid = c.pid, b05Notepad = v.Notepad.HtmlContent, b05Tab1Flag = 6 };
+                //    Factory.WorkflowBL.Save2History(recB05);
 
-                }
+                //}
 
-                
+
 
                 if (v.disp.IsFiles)
                 {
