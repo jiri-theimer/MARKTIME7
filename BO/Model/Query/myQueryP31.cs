@@ -137,11 +137,19 @@ namespace BO
                 }
                 
             }
-            
-            if (this.p41id > 0)
+            if (this.leindex > 0 && this.lepid > 0)
             {
-                AQ("a.p41ID=@p41id", "p41id", this.p41id);
+                AQ($"p41x.p41ID_P07Level{this.leindex}=@lepid OR a.p41ID=@lepid", "lepid", this.lepid);
             }
+            else
+            {
+                if (this.p41id > 0)
+                {
+                    AQ("a.p41ID=@p41id", "p41id", this.p41id);
+                }
+            }
+
+            
             if (this.p41ids != null && this.p41ids.Count()>0)
             {
                 if (this.leindex > 0 && this.leindex <5)
@@ -305,10 +313,7 @@ namespace BO
             }
 
 
-            if (this.leindex > 0 && this.lepid>0 && this.p41id==0)
-            {
-                AQ($"p41x.p41ID_P07Level{this.leindex}=@lepid OR a.p41ID=@lepid", "lepid", this.lepid);
-            }
+            
             
 
 

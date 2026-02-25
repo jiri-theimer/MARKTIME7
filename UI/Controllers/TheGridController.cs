@@ -215,6 +215,8 @@ namespace UI.Controllers
             //}
             
 
+            
+
             Handle_InhaleQuery(v, $"slaveview-query-j72id-{prefix}-{master_entity.Substring(0, 3)}-{rez}");
             if (String.IsNullOrEmpty(master_entity) || master_pid == 0)
             {
@@ -342,9 +344,9 @@ namespace UI.Controllers
                     }
                     break;
                 case "p31":
-                    if (masterentity == "le4" || masterentity == "le3")
+                    if (Factory.p07LevelsCount>1 && masterentity == "p41Project")
                     {
-                        v.show_podrizene = Factory.CBL.LoadUserParamBool("slaveview-show-podrizene", true);
+                        v.show_podrizene = Factory.CBL.LoadUserParamBool("slaveview-show-podrizene", false);
                         if (!v.show_podrizene)
                         {
                             if (v.myqueryinline == null)
@@ -354,7 +356,18 @@ namespace UI.Controllers
                             else
                             {
                                 v.myqueryinline += $"|p41id|int|{v.master_pid}";  //uživatel chce vidět úkony bez podřízených projektů
-                            }                            
+                            }
+                        }
+                        else
+                        {
+                            if (v.myqueryinline == null)
+                            {
+                                v.myqueryinline = $"lepid|int|{v.master_pid}|leindex|int|4";  //uživatel chce vidět úkony bez podřízených projektů
+                            }
+                            else
+                            {
+                                v.myqueryinline += $"|lepid|int|{v.master_pid}|leindex|int|4";  //uživatel chce vidět úkony bez podřízených projektů
+                            }
                         }
                     }
 
@@ -455,7 +468,7 @@ namespace UI.Controllers
                 v.dblClickSetting = Factory.CBL.LoadUserParam($"grid-{v.prefix}-dblclick", "edit");
             }
            
-            if (this.Factory.CurrentUser.j04IsModule_p31 && masterentity !="p91Invoice" && (v.prefix == "p31" || v.prefix == "p41" || v.prefix == "p28" || v.prefix == "o23" || v.prefix=="p56" || v.prefix=="j02" || v.prefix == "le5" || v.prefix == "le4"))
+            if (this.Factory.CurrentUser.j04IsModule_p31 && masterentity !="p91Invoice" && (v.prefix == "p31" || v.prefix == "p41" || v.prefix == "p28" || v.prefix == "o23" || v.prefix=="p56" || v.prefix=="j02"))
             {
                 v.p31statequery = new p31StateQueryViewModel();
                 if (bolMasterEntity)

@@ -129,7 +129,7 @@
                 <a class="btn descreet_link_over_grid" href="javascript:tg_approve()" title="Schválit/Vyúčtovat vybrané"><span class="material-icons-outlined-btn" style="color:green;">approval</span></a>
             </div>
         }
-        @if (Model.prefix == "p31" && ( Model.gridinput.master_entity == "le4" || Model.gridinput.master_entity == "le3"))
+        @if (_f.p07LevelsCount > 1 && Model.prefix == "p31" && Model.gridinput.master_entity == "p41Project")
         {
             <div>
                 <input type="checkbox" asp-for="show_podrizene" onchange="change_show_podrizene(this)" />
@@ -269,8 +269,8 @@
             var strKey = "slaveview-show-podrizene";
 
             $.post("/Common/SetUserParam", { key: strKey, value: $(chk).prop("checked") }, function (data) {
-                var url = "/TheGrid/SlaveView?prefix=@Model.prefix&master_entity=@Model.gridinput.master_entity&master_pid=" + _pagemasterpid;
-                _redirect(url);
+                
+                location.replace(location.href);
 
             });
         }

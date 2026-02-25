@@ -21,10 +21,7 @@ namespace UI.Menu
             if (source != "grid")
             {
                 AMI_RecGrid("Přejít do Tabulky", "p41", pid);
-                if (f.p07LevelsCount>1)
-                {
-                    AMI_RecGrid($"{f.getP07Level(rec.p07Level, false)} (L{rec.p07Level})", $"le{rec.p07Level}", pid,0,false);
-                }
+                
 
             }
             
