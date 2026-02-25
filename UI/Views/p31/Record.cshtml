@@ -446,8 +446,8 @@ else
 
     @if (Model.IsOfferNavicKusovnik && Model.RecP34.p33ID == BO.p33IdENUM.Cas)
     {
-        <div class="form-check form-switch">
-            <input class="form-check-input" type="checkbox" asp-for="IsNavicKusovnik" tabindex="-1" onchange="_postback('navic-kusovnik')" />
+        <div>
+            <input type="checkbox" asp-for="IsNavicKusovnik" tabindex="-1" onchange="_postback('navic-kusovnik')" />
             <label for="IsNavicKusovnik">
                 @_f.tra("K hodinám vykázat i kusovníkové úkony")
             </label>

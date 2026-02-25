@@ -361,7 +361,7 @@ namespace UI.Controllers
             v.p34FilesFlag = v.RecP34.p34FilesFlag;
             
             v.p34TagsFlag = v.RecP34.p34TagsFlag;
-            v.p34InboxFlag = v.RecP34.p34InboxFlag;
+            //v.p34InboxFlag = v.RecP34.p34InboxFlag;
 
             int intCache = (v.rec_pid == 0 ? Factory.j02UserBL.LoadBitstreamFromUserCache("p31", v.RecP34.pid) : 0);    //pro nový záznam načíst uložená rozšíření z cache
             //int intCache = 0;   //cache nepoužívat
@@ -369,8 +369,8 @@ namespace UI.Controllers
             v.p34FilesFlag = v.disp.SetVal(PosEnum.Files, v.p34FilesFlag, bitstream, v.rec_pid, intCache);
             v.p34TrimmingFlag = v.disp.SetVal(PosEnum.Trimming, v.p34TrimmingFlag, bitstream, v.rec_pid, intCache);
             v.p34TagsFlag = v.disp.SetVal(PosEnum.Tags, v.p34TagsFlag, bitstream, v.rec_pid, intCache);
-            v.p34InboxFlag = v.disp.SetVal(PosEnum.Inbox, v.p34InboxFlag, bitstream, v.rec_pid, intCache);
-
+            //v.p34InboxFlag = v.disp.SetVal(PosEnum.Inbox, v.p34InboxFlag, bitstream, v.rec_pid, intCache);
+            
 
             
         }

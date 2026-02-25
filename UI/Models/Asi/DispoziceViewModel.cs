@@ -61,7 +61,7 @@ namespace UI.Models
                     
                     InitItem(f.tra("Přílohy"), PosEnum.Files);
                     InitItem(f.tra("Štítky"), PosEnum.Tags);
-                    InitItem(f.tra("Inbox: Došlá pošta"), PosEnum.Inbox);
+                    //InitItem(f.tra("Inbox: Došlá pošta"), PosEnum.Inbox);
                     break;
                 case "j02":
                     

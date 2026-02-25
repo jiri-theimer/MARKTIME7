@@ -4,7 +4,7 @@
 @{
 
 
-    if (Model == null || Model.RecP41==null)
+    if (Model == null || Model.RecP41 == null)
     {
         return;
     }
@@ -34,10 +34,10 @@
 
 @addTagHelper *, UI
 
-
-
+<div class="card">
+    <div class="card-header">
         <div class="row">
-           
+
             <div class="col-auto">
                 <select class="form-select" asp-for="@Model.p34ID_Kusovnik" onchange="_postback('kusovnik_p34id')">
                     @foreach (var c in lisP34)
@@ -46,26 +46,24 @@
                     }
                 </select>
             </div>
-    <div class="col-auto">
-        <button type="button" class="btn btn-sm bog" title="Přidat" onclick="_postback('kusovnik_add')">
-            <span class="material-icons-outlined-btn">add_circle_outline</span>
-            @_f.tra("Přidat")
-        </button>
-    </div>
+            <div class="col-auto">
+                <button type="button" class="btn btn-sm bog" title="Přidat" onclick="_postback('kusovnik_add')">
+                    <span class="material-icons-outlined-btn">add_circle_outline</span>
+                    @_f.tra("Přidat")
+                </button>
+            </div>
         </div>
-        
-
-        
-
+    </div>
+    <div class="card-body">
         <table class="table-hover table" style="table-layout: fixed;min-width:600px;">
             @for (int i = 0; i < Model.lisKusovnik.Count; i++)
             {
                 <tr>
                     <td>
-                        
+
 
                         <select class="form-select" asp-for="lisKusovnik[i].p32ID">
-                            @foreach(var c in lisP32)
+                            @foreach (var c in lisP32)
                             {
                                 <option value="@c.pid">@c.p32Name</option>
                             }
@@ -78,9 +76,18 @@
                     <td>
                         <input class="form-control" asp-for="lisKusovnik[i].p31Text" placeholder="@_f.tra("Text")" />
                     </td>
-                  
 
-                    
+
+
                 </tr>
             }
         </table>
+
+    </div>
+</div>
+
+
+
+
+
+

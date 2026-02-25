@@ -75,7 +75,7 @@ namespace UI.Controllers
 
                 c.p34FilesFlag = v.Rec.p34FilesFlag;
                 c.p34TagsFlag = v.Rec.p34TagsFlag;
-                c.p34InboxFlag = v.Rec.p34InboxFlag;
+                //c.p34InboxFlag = v.Rec.p34InboxFlag;
                 c.p34TrimmingFlag = v.Rec.p34TrimmingFlag;
 
                 c.ValidUntil = v.Toolbar.GetValidUntil(c);
