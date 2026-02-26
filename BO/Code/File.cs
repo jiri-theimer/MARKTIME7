@@ -71,7 +71,7 @@ namespace BO.Code
 
         public static string PrepareFileName(string strFileName, bool bolZnicitTecky)
         {
-            string s = strFileName.Replace(" | ", "_").Replace(" ", "-").Replace(":", "_").Replace(",", "-").Replace("..", ".").Replace("/","").Replace(@"\", "").Replace(@"/", "").Replace("&", "-").Replace(">", "-");
+            string s = strFileName.Replace(" | ", "_").Replace(" ", "-").Replace(":", "_").Replace(",", "-").Replace("..", ".").Replace("/","").Replace(@"\", "").Replace(@"/", "").Replace("&", "-").Replace(">", "-").Replace("+","");
             if (bolZnicitTecky)
             {
                 s = s.Replace(".", "");

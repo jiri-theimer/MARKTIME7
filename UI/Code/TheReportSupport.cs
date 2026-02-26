@@ -321,7 +321,7 @@ namespace UI
 
             if (s == null && prefix != null && pid > 0 && prefix != "x31")
             {
-                s = $"{f.CBL.GetObjectAlias(prefix, pid)}";
+                s = $"{f.CBL.GetObjectAlias(prefix, pid)}".Replace(".", "");
                 if (prefix != "p91" && prefix != "p90" && prefix !="p82")
                 {
                     s += "-report";

@@ -855,6 +855,10 @@ namespace BL
                 {
                     var recJ18 = _mother.j18CostUnitBL.Load(recP41.j18ID);
                     rec.j18ID = recP41.j18ID; rec.j18Code = recJ18.j18Code;
+                    if (rec.Implementace == "zch" && recJ18.j18Name !=null)
+                    {
+                        rec.j18Code = recJ18.j18Name;   //zch prasárna
+                    }
                 }
             }
             if (rec.Implementace == "zch")  //zch prasárna

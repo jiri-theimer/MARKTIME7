@@ -96,20 +96,55 @@ namespace UI
             services.AddSingleton<BL.Singleton.BackgroundWorkerQueue>();
 
 
+            var strDefaultCultureCode = Configuration.GetSection("App")["CultureCode"];
+            if (string.IsNullOrEmpty(strDefaultCultureCode)) strDefaultCultureCode = "cs-CZ";
+
             services.Configure<RequestLocalizationOptions>(options =>
             {
-                var supportedCultures = new[] { "cs-CZ", "en-US", "sk-SK", }.Select(x => new CultureInfo(x)).ToList();
+                var supportedCultures = new[] { "cs-CZ", "en-US", "sk-SK" }
+                    .Select(x => new CultureInfo(x))
+                    .ToList();
 
                 options.DefaultRequestCulture = new RequestCulture("cs-CZ");
                 options.SupportedCultures = supportedCultures;
                 options.SupportedUICultures = supportedCultures;
 
+                var cookieProvider = new CookieRequestCultureProvider();
+                var headerProvider = new AcceptLanguageHeaderRequestCultureProvider();
+
                 options.RequestCultureProviders = new IRequestCultureProvider[]
                 {
-                    new CookieRequestCultureProvider(),
-                    new AcceptLanguageHeaderRequestCultureProvider()
+        new CustomRequestCultureProvider(async context =>
+        {
+            // 1) zjisti UI kulturu (cookie -> header -> default)
+            ProviderCultureResult? result =
+                await cookieProvider.DetermineProviderCultureResult(context)
+                ?? await headerProvider.DetermineProviderCultureResult(context);
+
+            var ui = result?.UICultures?.FirstOrDefault()
+                     ?? options.DefaultRequestCulture.UICulture.Name;
+
+            // 2) formátování vždy cs-CZ
+            return new ProviderCultureResult(culture: strDefaultCultureCode, uiCulture: ui);
+        })
                 };
             });
+
+
+            //services.Configure<RequestLocalizationOptions>(options =>
+            //{
+            //    var supportedCultures = new[] { "cs-CZ", "en-US", "sk-SK", }.Select(x => new CultureInfo(x)).ToList();
+
+            //    options.DefaultRequestCulture = new RequestCulture("cs-CZ");
+            //    options.SupportedCultures = supportedCultures;
+            //    options.SupportedUICultures = supportedCultures;
+
+            //    options.RequestCultureProviders = new IRequestCultureProvider[]
+            //    {
+            //        new CookieRequestCultureProvider(),
+            //        new AcceptLanguageHeaderRequestCultureProvider()
+            //    };
+            //});
 
 
 
@@ -211,7 +246,7 @@ namespace UI
 
 
 
-            
+
 
             loggerFactory.AddFile("Logs/info-{Date}.log", LogLevel.Information);
             loggerFactory.AddFile("Logs/debug-{Date}.log", LogLevel.Debug);
