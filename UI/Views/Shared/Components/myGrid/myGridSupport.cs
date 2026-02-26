@@ -157,6 +157,11 @@ namespace UI.Views.Shared.Components.myGrid
 
             gridState.j75Filter = string.Join("$$$", lis);
 
+            if (string.IsNullOrEmpty(gridState.j75Filter))
+            {
+                gridState.j75OperatorFlag = 0;  //pokud je prádzný filtr, přepnout do režimu OR.
+            }
+
             if (_Factory.j72TheGridTemplateBL.SaveState(gridState, _Factory.CurrentUser.pid) > 0)
             {
                 return render_thegrid_html(gridState);

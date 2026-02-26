@@ -750,11 +750,17 @@ function tg_refresh_operatorflag(){
         $("#cmdOperatorFlag").attr("title", "Sloupcový filtr v režimu [OR]. Vrátit do režimu [AND]");
         $("#cmdOperatorFlag").addClass("btn-warning");
         $("#cmdOperatorFlag").removeClass("btn-light");
+
+       
+        
+
     } else {
         $("#cmdOperatorFlag").text("A");
         $("#cmdOperatorFlag").attr("title", "Sloupcový filtr v režimu [AND]. Přepnout do režiu [OR]");
         $("#cmdOperatorFlag").addClass("btn-light");
         $("#cmdOperatorFlag").removeClass("btn-warning");
+
+        
         
     }
 }
@@ -1130,7 +1136,7 @@ function tg_filter_send2server() {
 
 
     });
-
+    
     $("#tabgrid1_tbody").html("<b>Loading...</b>");
     $.post(_tg_url_filter, { tgi: get_all_tgi_params(null,null,null), pathpars: get_all_path_values(), filter: ret }, function (data) {
         
