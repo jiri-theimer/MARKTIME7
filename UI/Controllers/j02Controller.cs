@@ -462,7 +462,7 @@ namespace UI.Controllers
 
                 c.j02IsMustChangePassword = v.Rec.j02IsMustChangePassword;
                 c.j02TwoFactorVerifyFlag = v.Rec.j02TwoFactorVerifyFlag;
-
+               
                 c.j02InvoiceSignatureText = v.Rec.j02InvoiceSignatureText;
                 if (v.IsDeleteSignature)
                 {

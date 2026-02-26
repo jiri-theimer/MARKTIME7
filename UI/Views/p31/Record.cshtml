@@ -220,7 +220,7 @@ else
 
 <div class="row my-2">
 
-    @if (_isMobile)
+    @if (_isMobile || Model.p31Date==null)
     {
         <label for="p31Datehelper" class="col-sm-1 col-md-1 col-form-label">@_f.tra("Datum"):</label>
     }

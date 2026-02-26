@@ -167,6 +167,12 @@ namespace BL
             p.AddBool("j02IsMustChangePassword", rec.j02IsMustChangePassword);
             p.AddBool("j02IsLoginManualLocked", rec.j02IsLoginManualLocked);
             p.AddEnumInt("j02TwoFactorVerifyFlag", rec.j02TwoFactorVerifyFlag);
+            if (rec.j02TwoFactorVerifyFlag == BO.j02TwoFactorVerifyFlagENUM.None)
+            {
+                //pro jistotu vyčistit visící sms kód pro ověření uživatele
+                p.AddString("j02SmsVerifyCode", null);
+                p.AddDateTime("j02SmsVerifyCreate", null);
+            }
             p.AddEnumInt("j02WorksheetOperFlag", rec.j02WorksheetOperFlag);
 
             p.AddEnumInt("j02Ping_DeviceTypeFlag", rec.j02Ping_DeviceTypeFlag);

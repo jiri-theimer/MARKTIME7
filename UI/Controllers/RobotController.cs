@@ -126,20 +126,29 @@ namespace UI.Controllers
 
                 v.smtp_account = _f.j40MailAccountBL.LoadDefaultSmtpAccount();
 
+  
 
-                Handle_AutoWorkflow(); //robotické workflow
-                Handle_o24Reminder(v);
+                try
+                {
+                    Handle_AutoWorkflow(); //robotické workflow
+                    Handle_o24Reminder(v);
 
-                Handle_Hlidac(v);
+                    Handle_Hlidac(v);
 
-                Handle_Task_Recurrence(v);  //opakované úkoly
-                Handle_p40_Recurrence(v);   //opakované úkony
-                Handle_Invoice_Recurrence(v);   //opakované faktury
+                    Handle_Task_Recurrence(v);  //opakované úkoly
+                    Handle_p40_Recurrence(v);   //opakované úkony
+                    Handle_Invoice_Recurrence(v);   //opakované faktury
 
-                Handle_ImapRules(v);    //načítání došlé pošty podle imap pravidel
+                    Handle_ImapRules(v);    //načítání došlé pošty podle imap pravidel
 
-                Handle_Reports_Scheduled(v);    //naplánované tiskové sestavy
-
+                    Handle_Reports_Scheduled(v);    //naplánované tiskové sestavy
+                }
+                catch(Exception e)
+                {
+                    LogInfoTextOnly(BO.j91RobotTaskFlag.Hlidac, $"db: {recX01.x01AppName}, Někde chyba od Handle_AutoWorkflow po Handle_Reports_Scheduled", e.Message);
+                }
+                
+               
                 //Handle_MailQueue();
 
 
