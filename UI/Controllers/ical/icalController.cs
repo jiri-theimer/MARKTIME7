@@ -50,7 +50,7 @@ namespace UI.Controllers.ical
 
             if (x67id_p56>0)
             {
-                ical.Generate_p56_Calendar(null, j02id, j02ids,0,p41id, datD1, datD1, x67id_p56, person_name_format);
+                ical.Generate_p56_Calendar(null, j02id, j02ids,0,p41id, datD1, datD2, x67id_p56, person_name_format);
             }
             if (x67id_o22>0)
             {

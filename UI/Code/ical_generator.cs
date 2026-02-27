@@ -141,15 +141,18 @@ namespace UI.Code
 
             if (rec.TimeFrom == rec.TimeUntil)
             {
+                //celý den
                 sr("DTSTART;VALUE=DATE:" + rec.p31Date.ToString("yyyyMMdd"));
                 sr("DTEND;VALUE=DATE:" + new DateTime(rec.p31Date.Year, rec.p31Date.Month, rec.p31Date.Day).AddDays(1).ToString("yyyyMMdd"));
+
+                
             }
             else
             {
                 DateTime d1 = Convert.ToDateTime(rec.p31DateTimeFrom_Orig);
                 DateTime d2 = Convert.ToDateTime(rec.p31DateTimeUntil_Orig);
-                sr("DTSTART;VALUE=DATE:" + d1.ToUniversalTime().ToString("yyyyMMddTHHmmssZ"));
-                sr("DTEND;VALUE=DATE:" + d2.ToUniversalTime().ToString("yyyyMMddTHHmmssZ"));
+                sr("DTSTART:" + d1.ToUniversalTime().ToString("yyyyMMddTHHmmssZ"));
+                sr("DTEND:" + d2.ToUniversalTime().ToString("yyyyMMddTHHmmssZ"));
             }
 
 
@@ -191,8 +194,19 @@ namespace UI.Code
             sr("DTSTAMP:" + Convert.ToDateTime(rec.DateInsert).ToUniversalTime().ToString("yyyyMMddTHHmmssZ"));
 
             DateTime d = Convert.ToDateTime(rec.p56PlanUntil);
-            sr("DTSTART;VALUE=DATE:" + d.ToString("yyyyMMdd"));
-            sr("DTEND;VALUE=DATE:" + new DateTime(d.Year, d.Month, d.Day).AddDays(1).ToString("yyyyMMdd"));
+            if ((d.Hour==0 && d.Minute == 0) || (d.Hour==23 && d.Minute==59))
+            {
+                //celodenní událost
+                sr("DTSTART;VALUE=DATE:" + d.ToString("yyyyMMdd"));
+                sr("DTEND;VALUE=DATE:" + new DateTime(d.Year, d.Month, d.Day).AddDays(1).ToString("yyyyMMdd"));
+            }
+            else
+            {
+                
+                sr($"DTSTART:{d.ToUniversalTime().ToString("yyyyMMddTHHmmssZ")}");
+                sr($"DTEND:{d.AddMinutes(1).ToUniversalTime().ToString("yyyyMMddTHHmmssZ")}");
+            }
+            
 
             if (j02id_only == 0)
             {
