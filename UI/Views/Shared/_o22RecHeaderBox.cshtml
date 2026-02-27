@@ -61,30 +61,74 @@
     }
    
 
-    @if (Model.o22PlanFrom != null)
+    
+    @if (Model.o22IsAllDay)
     {
-        <tr>
-            <td class="tdlab">
-                @_f.tra("Začátek"):
-            </td>
-            <td class="tdval tddatum">
+        @if (Model.o22PlanFrom.Value.Day == Model.o22PlanUntil.Value.Day)
+        {
+            <tr>
+                <td class="tdlab">
+                    @_f.tra("Datum")
+                    
+                </td>
+                <td class="tdval tddatum">
 
-                @BO.Code.Bas.ObjectDateTime2String(Model.o22PlanFrom)
-            </td>
-        </tr>
+                    @BO.Code.Bas.ObjectDate2String(Model.o22PlanFrom)
+                    <small class="badge-light">@_f.tra("celý den")</small>
+                </td>
+            </tr>
+        }
+        else
+        {
+            <tr>
+                <td class="tdlab">
+                    @_f.tra("Začátek"):
+                </td>
+                <td class="tdval tddatum">
+
+                    @BO.Code.Bas.ObjectDate2String(Model.o22PlanFrom)
+                </td>
+            </tr>
+            <tr>
+                <td class="tdlab">
+                    @_f.tra("Konec"):
+                </td>
+                <td class="tdval tddatum">
+
+                    @BO.Code.Bas.ObjectDate2String(Model.o22PlanUntil)
+                </td>
+            </tr>
+
+        }
+        
     }
-
-    @if (Model.o22PlanUntil != null)
+    else
     {
-        <tr>
-            <td class="tdlab">
-                
-                @(Model.o21TypeFlag == BO.o21TypeFlagEnum.Milnik  ? _f.tra("Datum") : _f.tra("Konec")):
-            </td>
-            <td class="tdval" style="color:red;">
-                @BO.Code.Bas.ObjectDateTime2String(Model.o22PlanUntil)
-            </td>
-        </tr>
+        @if (Model.o22PlanFrom != null)
+        {
+            <tr>
+                <td class="tdlab">
+                    @_f.tra("Začátek"):
+                </td>
+                <td class="tdval tddatum">
+
+                    @BO.Code.Bas.ObjectDateTime2String(Model.o22PlanFrom)
+                </td>
+            </tr>
+        }
+
+        @if (Model.o22PlanUntil != null)
+        {
+            <tr>
+                <td class="tdlab">
+
+                    @(Model.o21TypeFlag == BO.o21TypeFlagEnum.Milnik ? _f.tra("Datum") : _f.tra("Konec")):
+                </td>
+                <td class="tdval" style="color:red;">
+                    @BO.Code.Bas.ObjectDateTime2String(Model.o22PlanUntil)
+                </td>
+            </tr>
+        }
     }
     @if (Model.o21TypeFlag != BO.o21TypeFlagEnum.Milnik &&  Model.o22DurationCount>0)
     {

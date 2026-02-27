@@ -237,6 +237,7 @@ namespace UI.Controllers
                 c.o22DurationUnit = v.Rec.o22DurationUnit;
                 c.o22DurationCalcFlag = v.Rec.o22DurationCalcFlag;
                 c.o22Location = v.Rec.o22Location;
+                c.o22IsAllDay = v.Rec.o22IsAllDay;
                 
                 c.p41ID = v.ProjectCombo.SelectedP41ID;
 

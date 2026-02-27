@@ -171,14 +171,15 @@ namespace UI.Controllers
                 }
 
 
-                if ((DateTime.Now.Hour >= 3 && DateTime.Now.Hour <= 6 && !UzBezelKrok(BO.j91RobotTaskFlag.ClearTemp, DateTime.Today)) || v.ManualOper == "recovery")
+                if (v.ManualOper == "recovery" || (DateTime.Now.Hour >= 2 && DateTime.Now.Hour <= 7 && !UzBezelKrok(BO.j91RobotTaskFlag.ClearTemp, DateTime.Today)))
                 {
-                    //mezi 3:00 - 06:00 ráno běží čištění temp tabulek a temp souborů
+                    //mezi 2:00 - 07:00 ráno běží čištění temp tabulek a temp souborů
 
                     if (_f.FBL.RunSql("exec dbo.recovery_clear_temp"))
                     {
                         LogInfo(BO.j91RobotTaskFlag.ClearTemp, "ok");
-                        _f.FBL.ClearSpaceUsed("temp", 0);
+                        LogInfoTextOnly(BO.j91RobotTaskFlag.ClearTemp, $"db: {recX01.x01AppName}, Proběhlo recovery_clear_temp");
+                        //_f.FBL.ClearSpaceUsed("temp", 0);
                     }
                     else
                     {

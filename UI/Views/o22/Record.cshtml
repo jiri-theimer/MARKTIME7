@@ -104,11 +104,32 @@
     <div class="row my-2">
         <label class="col-sm-1 col-md-1 col-form-label">@(_f.tra("Začátek")):</label>
         <div class="col-sm-3 col-md-3">
-            <mydate asp-for="@Model.Rec.o22PlanFrom" include-time="true"></mydate>
+            @if (Model.Rec.o22IsAllDay)
+            {
+                <mydate asp-for="@Model.Rec.o22PlanFrom" include-time="false"></mydate>
+            }
+            else
+            {
+                <mydate asp-for="@Model.Rec.o22PlanFrom" include-time="true"></mydate>
+            }
+            
         </div>
         <label class="col-sm-1 col-md-1 col-form-label">@(_f.tra("Konec")):</label>
         <div class="col-sm-3 col-md-3">
-            <mydate asp-for="@Model.Rec.o22PlanUntil" include-time="true"></mydate>
+            @if (Model.Rec.o22IsAllDay)
+            {
+                <mydate asp-for="@Model.Rec.o22PlanUntil" include-time="false"></mydate>
+            }
+            else
+            {
+                <mydate asp-for="@Model.Rec.o22PlanUntil" include-time="true"></mydate>
+            }
+            
+        </div>
+        <div class="col-sm-4 col-md-4">
+            
+            <input type="checkbox" asp-for="Rec.o22IsAllDay" onchange="_postback()" />
+            <label class="col-form-label" for="Rec_o22IsAllDay">@_f.tra("Celý den")</label>
         </div>
     </div>
     <div class="row my-2">

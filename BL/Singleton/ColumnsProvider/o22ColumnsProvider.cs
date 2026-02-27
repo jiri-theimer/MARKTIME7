@@ -22,6 +22,8 @@ namespace BL
             oc = AF("CasOd", "Čas od", "case when DATEPART(HOUR,a.o22PlanFrom)>0 or DATEPART(MINUTE,a.o22PlanFrom)>0 then a.o22PlanFrom end", "time");
             oc = AF("CasDo", "Čas do", "case when DATEPART(HOUR,a.o22PlanFrom)>0 or DATEPART(MINUTE,a.o22PlanFrom)>0 then a.o22PlanUntil end", "time");
 
+            oc = AFBOOL("o22IsAllDay", "Celý den");
+
             AF("o22Location", "Lokalita (text)");
 
             AF("Jednotky", "Jednotky", "case a.o22DurationUnit when 'd' then 'Dny' when 'e' then 'Prac.dny' when 'w' then 'Týdny' when 'm' then 'Měsíce' when 'y' then 'Roky' end");
