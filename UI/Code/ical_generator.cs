@@ -274,6 +274,10 @@ namespace UI.Code
             if (rec.o22PlanFrom == null) rec.o22PlanFrom = rec.o22PlanUntil;
             DateTime d1 = Convert.ToDateTime(rec.o22PlanFrom);
             DateTime d2 = Convert.ToDateTime(rec.o22PlanUntil);
+            if (d1.Hour==0 && d1.Minute==0 && d2.Hour==23 && d2.Minute == 59)
+            {
+                rec.o22IsAllDay = true; //jakoby celý den
+            }
             if (rec.o22IsAllDay)
             {
                 sr($"DTSTART;VALUE=DATE:{d1.ToString("yyyyMMdd")}");
@@ -281,8 +285,8 @@ namespace UI.Code
             }
             else
             {
-                sr($"DTSTART;VALUE=DATE:{d1.ToUniversalTime().ToString("yyyyMMddTHHmmssZ")}");
-                sr($"DTEND;VALUE=DATE:{d2.ToUniversalTime().ToString("yyyyMMddTHHmmssZ")}");
+                sr($"DTSTART:{d1.ToUniversalTime().ToString("yyyyMMddTHHmmssZ")}");
+                sr($"DTEND:{d2.ToUniversalTime().ToString("yyyyMMddTHHmmssZ")}");
             }
 
             if (j02id_only == 0)
