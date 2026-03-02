@@ -66,10 +66,16 @@ namespace UI.Code
 
 
             var lis = _f.o22MilestoneBL.GetList_Dayline(mq, x67id);
+            var usedpids = new List<int>();
 
             foreach (var c in lis)
             {
-                o22_record(c, person_name_format, j02id);
+                if (!usedpids.Contains(c.pid))
+                {
+                    o22_record(c, person_name_format, j02id);
+                    usedpids.Add(c.pid);
+                }
+                
             }
 
 
@@ -130,7 +136,7 @@ namespace UI.Code
 
             if (rec.p28ID_Client > 0 && bolShowClient)
             {
-                memos.Add($"{BO.Code.Bas.OM2(rec.ClientName, 20)}");
+                memos.Add(BO.Code.Bas.OM2(rec.ClientName, 20));
             }
             memos.Add(BO.Code.Bas.OM2(rec.p41Name, 30));
             if (rec.p56ID > 0) memos.Add("Úkol: " + rec.p56Name);
@@ -161,7 +167,7 @@ namespace UI.Code
             if (memos.Count() > 0)
             {
                 //sr($"DESCRIPTION:{String.Join("\n\r", memos)}");
-                sr($"DESCRIPTION:{String.Join(Environment.NewLine, memos)}");
+                sr($"DESCRIPTION:{String.Join("\\n", memos)}");
             }
 
             var qryOwner = _lisJ02.Where(p => p.pid == rec.j02ID_Owner);
@@ -226,7 +232,7 @@ namespace UI.Code
             sr("SUMMARY:" + strName);
             if (memos.Count() > 0)
             {
-                sr("DESCRIPTION:" + String.Join("\n", memos));
+                sr("DESCRIPTION:" + String.Join("\\n", memos));
             }
 
             var qryOwner = _lisJ02.Where(p => p.pid == rec.j02ID_Owner);
@@ -321,7 +327,7 @@ namespace UI.Code
             sr("SUMMARY:" + strName);
             if (memos.Count() > 0)
             {
-                sr($"DESCRIPTION:{String.Join(Environment.NewLine, memos)}");
+                sr($"DESCRIPTION:{String.Join("\\n", memos)}");
             }
             if (rec.o22Location != null)
             {
