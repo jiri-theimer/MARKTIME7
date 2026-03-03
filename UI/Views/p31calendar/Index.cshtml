@@ -273,13 +273,13 @@ else
         <div style="padding:6px;">
             <button type="button" title="Aktuálně zobrazený kalendář odeslat přes e-mail" class="btn bog" onclick="javascript:html2mail_local('Kalendář-@(Model.m0)/@(Model.y0)')">
                 <span class="material-icons-outlined-btn">alternate_email</span>
-                @_f.tra("Odeslat přes e-mail")
+                @_f.tra("Odeslat kalendář na e-mail")
             </button>
         </div>
         
         <div style="padding:6px;">
             <button class="btn bog" onclick="ical_generator()">
-                <strong>iCal</strong>
+                
                 <small>Integrace s Google/Outlook kalendářem</small>
             </button>
         </div>
@@ -926,7 +926,7 @@ else
     }
 
     function ical_generator() {
-        _window_open("/icalgen/Index", 3);
+        _window_open("/icalgen/Index", 2);
     }
 
     function report() {

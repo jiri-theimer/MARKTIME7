@@ -32,6 +32,7 @@ namespace UI.Controllers.ical
             {
                 v.x67ID_p56 = Factory.CBL.LoadUserParamInt("ical-x67id_p56", v.lisX67_p56.First().pid);
             }
+            v.IsP56ATTENDEE = Factory.CBL.LoadUserParamBool("ical-IsP56ATTENDEE", true);
             v.IsO22 = Factory.CBL.LoadUserParamBool("ical-o22", true);
             if (v.lisX67_o22.Count() > 0)
             {
@@ -74,7 +75,7 @@ namespace UI.Controllers.ical
             }
             if (v.IsP31 && v.p32IDs==null && v.p61ID == 0)
             {
-                this.AddMessage("Pro časové úkony je třeba vybrat minimálně jednu aktivitu nebo klast aktivit.");
+                this.AddMessage("Pro časové úkony je třeba vybrat minimálně jednu aktivitu nebo klast aktivit.","info");
             }
          
 
@@ -127,6 +128,7 @@ namespace UI.Controllers.ical
             if (v.IsP56)
             {
                 Factory.CBL.SetUserParam("ical-x67id_p56", v.x67ID_p56.ToString());
+                Factory.CBL.SetUserParam("ical-IsP56ATTENDEE", v.IsP56ATTENDEE.ToString());
             }
 
             Factory.CBL.SetUserParam("ical-o22", v.IsO22.ToString());

@@ -19,6 +19,7 @@ namespace UI.Controllers
 
         public IActionResult SendMail(int x40id, string uploadguid, int j02id, string record_entity, int record_pid, int x31id, string trdxfile, string mailsubject, int j61id, int b05id, int j72id, int senderror, string kostra)
         {
+            //kostra: google/outlook, pak je v mailsubject ical adresa
             
             if (record_pid == 0 || string.IsNullOrEmpty(record_entity))
             {
@@ -32,9 +33,29 @@ namespace UI.Controllers
                 uploadguid = BO.Code.Bas.GetGuid();
             }
 
+            
             var v = new Models.Mail.SendMailViewModel() { UploadGuid = uploadguid, b05ID = b05id };
             v.Notepad = new Models.Notepad.EditorViewModel() { Prefix = "x40", SelectedX04ID = Factory.Lic.x04ID_Default };
             v.Rec = new BO.x40MailQueue();
+
+            if (kostra == "google")
+            {
+                kostra = null;
+                var s = BO.Code.File.GetFileContent(Factory.App.RootUploadFolder + "\\_distribution\\mail\\google-calendar.html");
+                s = s.Replace("#icalurl#", mailsubject);
+                v.Notepad.HtmlContent = s;
+                mailsubject = "iCal z MARKTIME do Google kalendáře";
+            }
+            if (kostra == "outlook")
+            {
+                kostra = null;
+                var s = BO.Code.File.GetFileContent(Factory.App.RootUploadFolder + "\\_distribution\\mail\\outlook-calendar.html");
+                s = s.Replace("#icalurl#", mailsubject);
+                v.Notepad.HtmlContent = s;
+                mailsubject = "iCal z MARKTIME do Outlook kalendáře";
+            }
+
+
             if (!string.IsNullOrEmpty(kostra))
             {
                 v.Rec.x40SkeletonFile = kostra;

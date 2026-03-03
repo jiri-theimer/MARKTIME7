@@ -9,6 +9,7 @@ namespace UI.Models
         public bool IsP31 { get; set; }
         public bool IsO22 { get; set; }
         public bool IsP56 { get; set; }
+        public bool IsP56ATTENDEE { get; set; } = true;
         public int j02ID { get; set; }
         public string ComboJ02ID { get; set; }
         public int j11ID { get; set; }

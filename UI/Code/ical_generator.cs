@@ -66,6 +66,8 @@ namespace UI.Code
 
 
             var lis = _f.o22MilestoneBL.GetList_Dayline(mq, x67id);
+            
+
             var usedpids = new List<int>();
 
             foreach (var c in lis)
@@ -95,7 +97,7 @@ namespace UI.Code
             if (lis.Count() > 1 && lis.Select(p => p.p57ID).Distinct().Count() > 1) bolShowP57Name = true;
             foreach (var c in lis)
             {
-                p56_record(c, bolShowP57Name,j02id);
+                p56_record(c, bolShowP57Name,j02id,true);
             }
 
 
@@ -173,8 +175,8 @@ namespace UI.Code
             var qryOwner = _lisJ02.Where(p => p.pid == rec.j02ID_Owner);
             if (qryOwner.Count() > 0)
             {
-                sr($"ATTENDEE;CN={qryOwner.First().FullNameAsc};PARTSTAT=NEEDS-ACTION;ROLE=REQ-PARTICIPANT:mailto:{qryOwner.First().j02Email}");
-                sr($"ORGANIZER;CN={qryOwner.First().FullNameAsc}:mailto:{qryOwner.First().j02Email}");
+                sr($"ATTENDEE;CN=\"{qryOwner.First().FullNameAsc}\";PARTSTAT=NEEDS-ACTION;ROLE=REQ-PARTICIPANT:mailto:{qryOwner.First().j02Email}");
+                sr($"ORGANIZER;CN=\"{qryOwner.First().FullNameAsc}\":mailto:{qryOwner.First().j02Email}");
             }
 
             sr("TRANSP:OPAQUE");
@@ -182,7 +184,7 @@ namespace UI.Code
             sr("END:VEVENT");
         }
 
-        private void p56_record(BO.p56Task rec, bool bolShowP57Name, int j02id_only)
+        private void p56_record(BO.p56Task rec, bool bolShowP57Name, int j02id_only,bool IsP56ATTENDEE)
         {
             sr("BEGIN:VEVENT");
 
@@ -212,21 +214,29 @@ namespace UI.Code
                 sr($"DTSTART:{d.ToUniversalTime().ToString("yyyyMMddTHHmmssZ")}");
                 sr($"DTEND:{d.AddMinutes(1).ToUniversalTime().ToString("yyyyMMddTHHmmssZ")}");
             }
-            
 
             if (j02id_only == 0)
             {
                 var lisJ02 = _f.j02UserBL.GetList(new BO.myQueryJ02() { x67Entity = "p56", x69RecordPid = rec.pid });
                 foreach (var c in lisJ02)
                 {
-                    sr($"ATTENDEE;CN={c.FullNameAsc};PARTSTAT=NEEDS-ACTION;ROLE=REQ-PARTICIPANT:mailto:{c.j02Email}");
+                    if (IsP56ATTENDEE)
+                    {
+                        sr($"ATTENDEE;CN=\"{c.FullNameAsc}\";PARTSTAT=NEEDS-ACTION;ROLE=REQ-PARTICIPANT:mailto:{c.j02Email}");
+                    }
+                    else
+                    {
+                        memos.Add($"Řešitel: {c.FullNameAsc}");
+                    }
+                    
                 }
             }
             else
             {
                 var recJ02 = _f.j02UserBL.Load(j02id_only);
-                sr($"ATTENDEE;CN={recJ02.FullNameAsc};PARTSTAT=NEEDS-ACTION;ROLE=REQ-PARTICIPANT:mailto:{recJ02.j02Email}");
+                sr($"ATTENDEE;CN=\"{recJ02.FullNameAsc}\";PARTSTAT=NEEDS-ACTION;ROLE=REQ-PARTICIPANT:mailto:{recJ02.j02Email}");
             }
+
 
 
             sr("SUMMARY:" + strName);
@@ -238,7 +248,7 @@ namespace UI.Code
             var qryOwner = _lisJ02.Where(p => p.pid == rec.j02ID_Owner);
             if (qryOwner.Count() > 0)
             {
-                sr($"ORGANIZER;CN={qryOwner.First().FullNameAsc}:mailto:{qryOwner.First().j02Email}");
+                sr($"ORGANIZER;CN=\"{qryOwner.First().FullNameAsc}\":mailto:{qryOwner.First().j02Email}");
             }
 
             sr("TRANSP:OPAQUE");
@@ -314,13 +324,13 @@ namespace UI.Code
                 var lisJ02 = _f.j02UserBL.GetList(new BO.myQueryJ02() { x67Entity = "o22", x69RecordPid = rec.pid });
                 foreach (var c in lisJ02)
                 {
-                    sr($"ATTENDEE;CN={c.FullNameAsc};PARTSTAT=NEEDS-ACTION;ROLE=REQ-PARTICIPANT:mailto:{c.j02Email}");
+                    sr($"ATTENDEE;CN=\"{c.FullNameAsc}\";PARTSTAT=NEEDS-ACTION;ROLE=REQ-PARTICIPANT:mailto:{c.j02Email}");
                 }
             }
             else
             {
                 var recJ02 = _f.j02UserBL.Load(j02id_only);
-                sr($"ATTENDEE;CN={recJ02.FullNameAsc};PARTSTAT=NEEDS-ACTION;ROLE=REQ-PARTICIPANT:mailto:{recJ02.j02Email}");
+                sr($"ATTENDEE;CN=\"{recJ02.FullNameAsc}\";PARTSTAT=NEEDS-ACTION;ROLE=REQ-PARTICIPANT:mailto:{recJ02.j02Email}");
             }
 
 
@@ -337,7 +347,7 @@ namespace UI.Code
             var qryOwner = _lisJ02.Where(p => p.pid == rec.j02ID_Owner);
             if (qryOwner.Count() > 0)
             {
-                sr($"ORGANIZER;CN={qryOwner.First().FullNameAsc}:mailto:{qryOwner.First().j02Email}");
+                sr($"ORGANIZER;CN=\"{qryOwner.First().FullNameAsc}\":mailto:{qryOwner.First().j02Email}");
             }
 
             sr("TRANSP:OPAQUE");

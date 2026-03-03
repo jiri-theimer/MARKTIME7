@@ -123,6 +123,7 @@ namespace BL
         public IEnumerable<BO.j02User> GetList(BO.myQueryJ02 mq)
         {            
             DL.FinalSqlCommand fq = DL.basQuery.GetFinalSql(GetSQL1(), mq, _mother.CurrentUser);
+            //BO.Code.File.LogInfo(fq.FinalSql);
             return _db.GetList<BO.j02User>(fq.FinalSql, fq.Parameters);
         }
 

@@ -12,6 +12,10 @@
 
 <div class="bg-light" style="padding:10px;">
 
+    <button id="cmdSendGoogle" type="button" class="btn btn-light" onclick="sendmail('google')"><span class="material-icons-outlined-btn">email</span>@_f.tra("Pokyny pro Google kalendář")</button>
+
+    <button id="cmdSendOutlook" type="button" class="btn btn-light" onclick="sendmail('outlook')"><span class="material-icons-outlined-btn">email</span>@_f.tra("Pokyny pro Outlook kalendář")</button>
+
     <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
 
 
@@ -84,71 +88,80 @@
 
         @if (_f.CurrentUser.j04IsModule_p31)
         {
-            <div style="width:100%;background-color:lightblue;margin-top:13px;font-weight:bold;color:navy;">
-                <div style="padding:12px;">
+            <div class="card">
+                <div class="card-header">
                     <input type="checkbox" id="chkP31" asp-for="IsP31" onchange="refresh_cal_url()" />
                     <label class="col-form-label" for="chkP31">@_f.tra("Časové úkony")</label>
                 </div>
+                <div class="card-body">
+                    @if (Model.IsP31)
+                    {
+                        <div class="my-2">
+
+                            <mycombochecklist asp-for="p32IDs" entity="p32Activity" placeholder="@_f.tra("Výběr aktivit")" selectedtext="@Model.p32Names" event_after_changevalue="refresh_cal_url" myqueryinline="p33id|int|1"></mycombochecklist>
+
+                        </div>
+                        <div class="row my-2">
+                            <label class="col-sm-2 col-md-2 col-form-label">@_f.tra("Klastr aktivit"):</label>
+                            <div class="col-sm-4 col-md-3">
+                                <mydropdown asp-for="p61ID" datasource="@Model.lisP61" textfield="p61Name" firstemptyrowtext="" firstemptyrowvalue="0" isfirstemptyrow="true" valuefield="pid" event_after_changevalue="refresh_cal_url"></mydropdown>
+                            </div>
+
+                        </div>
+                    }
+                </div>
             </div>
-            @if (Model.IsP31)
-            {
-                <div class="my-2">
-
-                    <mycombochecklist asp-for="p32IDs" entity="p32Activity" placeholder="@_f.tra("Vybrané aktivity")" selectedtext="@Model.p32Names" event_after_changevalue="refresh_cal_url" myqueryinline="p33id|int|1"></mycombochecklist>
-
-                </div>
-                <div class="row my-2">
-                    <label class="col-sm-2 col-md-2 col-form-label">@_f.tra("Klastr aktivit"):</label>
-                    <div class="col-sm-4 col-md-3">
-                        <mydropdown asp-for="p61ID" datasource="@Model.lisP61" textfield="p61Name" firstemptyrowtext="" firstemptyrowvalue="0" isfirstemptyrow="true" valuefield="pid" event_after_changevalue="refresh_cal_url"></mydropdown>
-                    </div>
-
-                </div>
-            }
+            
+            
         }
         
         
 
        
-
-        <div style="width:100%;background-color:lightblue;margin-top:13px;font-weight:bold;color:navy;">
-            <div style="padding:12px;">
-                
+        <div class="card my-2">
+            <div class="card-header">
                 <input type="checkbox" id="chkP56" asp-for="IsP56" onchange="refresh_cal_url()" />
                 <label class="col-form-label" for="chkP56">@_f.tra("Úkoly")</label>
             </div>
-        </div>
-        @if (Model.IsP56)
-        {
-            <div class="row my-2">
-                <label class="col-sm-3 col-md-2 col-form-label">@_f.tra("Role v úkolu"):</label>
-                <div class="col-sm-4 col-md-3">
-                    <mydropdown asp-for="x67ID_p56" datasource="@Model.lisX67_p56" textfield="x67Name" valuefield="pid" event_after_changevalue="refresh_cal_url"></mydropdown>
-                </div>
-
+            <div class="card-body">
+                @if (Model.IsP56)
+                {
+                    <div class="row my-2">
+                        <label class="col-sm-3 col-md-2 col-form-label">@_f.tra("Role v úkolu"):</label>
+                        <div class="col-sm-3 col-md-2">
+                            <mydropdown asp-for="x67ID_p56" datasource="@Model.lisX67_p56" textfield="x67Name" valuefield="pid" event_after_changevalue="refresh_cal_url"></mydropdown>
+                        </div>
+                        <div class="col-sm-3 col-md-2" style="display:none;">
+                            <input type="checkbox" id="chkP56ATTENDEE" asp-for="IsP56ATTENDEE" onchange="refresh_cal_url()" />
+                            <label class="col-form-label" for="chkP56ATTENDEE">@_f.tra("U úkolu vyplňovat účastníky")</label>
+                        </div>
+                    </div>
+                }
             </div>
-        }
-        
-
-        <div style="width:100%;background-color:lightblue;margin-top:13px;font-weight:bold;color:navy;">
-            <div style="padding:12px;">
+        </div>
+       
+        <div class="card">
+            <div class="card-header">
                 <input type="checkbox" id="chkO22" asp-for="IsO22" onchange="refresh_cal_url()" />
                 <label class="col-form-label" for="chkO22">@_f.tra("Události/termíny/lhůty")</label>
-                
+
+            </div>
+            <div class="card-body">
+                @if (Model.IsO22)
+                {
+                    <div class="row my-2">
+                        <label class="col-sm-3 col-md-2 col-form-label">@_f.tra("Role v záznamu"):</label>
+                        <div class="col-sm-4 col-md-3">
+                            <mydropdown asp-for="x67ID_o22" datasource="@Model.lisX67_o22" textfield="x67Name" valuefield="pid" event_after_changevalue="refresh_cal_url"></mydropdown>
+                        </div>
+
+                    </div>
+                }
             </div>
         </div>
-        @if (Model.IsO22)
-        {
-            <div class="row my-2">
-                <label class="col-sm-3 col-md-2 col-form-label">@_f.tra("Role v záznamu"):</label>
-                <div class="col-sm-4 col-md-3">
-                    <mydropdown asp-for="x67ID_o22" datasource="@Model.lisX67_o22" textfield="x67Name" valuefield="pid" event_after_changevalue="refresh_cal_url"></mydropdown>
-                </div>
-
-            </div>
-        }
         
 
+       
        
 
         <p></p>
@@ -231,4 +244,16 @@
 
     }
 
+
+    function sendmail(kostra)
+    {
+        var s=encodeURIComponent($("#FinalUrl").val());
+        
+        _window_open("/Mail/SendMail?kostra="+kostra+"&mailsubject="+s);
+    }
+    
+    function hardrefresh(pid, flag)
+    {
+        //nic
+    }
 </script>

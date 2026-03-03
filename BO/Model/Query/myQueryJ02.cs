@@ -187,7 +187,8 @@ namespace BO
 
             if (this.x67Entity !=null && this.x69RecordPid > 0) //lidí podle x69EntityRole_Assign
             {
-                AQ("EXISTS (select 1 FROM x67EntityRole xa INNER JOIN x69EntityRole_Assign xb ON xa.x67ID=xb.x67ID LEFT OUTER JOIN j12Team_Person xc ON xb.j11ID=xc.j11ID WHERE (xb.j02ID IS NOT NULL AND xb.j02ID=a.j02ID) OR (xb.j11ID IS NOT NULL AND xc.j02ID=a.j02ID))",null,null);
+                
+                AQ($"EXISTS (select 1 FROM x67EntityRole xa INNER JOIN x69EntityRole_Assign xb ON xa.x67ID=xb.x67ID LEFT OUTER JOIN j12Team_Person xc ON xb.j11ID=xc.j11ID WHERE xa.x67Entity='{this.x67Entity}' AND xb.x69RecordPid={this.x69RecordPid} AND ((xb.j02ID IS NOT NULL AND xb.j02ID=a.j02ID) OR (xb.j11ID IS NOT NULL AND xc.j02ID=a.j02ID)))", null,null);
             }
 
 

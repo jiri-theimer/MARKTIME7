@@ -15,7 +15,7 @@ namespace UI.Controllers.ical
             _httpclientfactory = hcf;
         }
 
-        public IActionResult Index(string key,int j02id,int j11id,string p32ids, int p61id,int p41id, string d1, string d2,int x67id_p56,int x67id_o22,string person_name_format)
+        public IActionResult Index(string key,int j02id,int j11id,string p32ids, int p61id,int p41id, string d1, string d2,int x67id_p56,int x67id_o22,string person_name_format,bool is_p56_attendee)
         {
             string strLogin = new BO.Code.Cls.Crypto().EasyDecrypt(key);  //v key je uložen login uživatele
             _f.InhaleUserByLogin(strLogin);
