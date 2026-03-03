@@ -29,7 +29,7 @@ namespace BL.Code
                 case "p90": return 16;
                 case "p56": return 32;
                 case "p55":
-                case "le3":
+                case "o27":
                     return 64;
                 case "le5":
                 case "p41": return 128;
@@ -64,7 +64,7 @@ namespace BL.Code
                 case "o23": return 262144;
                 case "p90": return 524288;
                 case "o43":
-                case "le2":
+                case "o27":
                     return 1048576;
                 case "p51": return 2097152;
                 case "p40": return 4194304;
@@ -73,7 +73,7 @@ namespace BL.Code
                 case "p58": return 33554432;
                 case "b05": return 67108864;
                 case "p55":
-                case "le3":
+                
                 case "p75":
                     return 134217728;
                 

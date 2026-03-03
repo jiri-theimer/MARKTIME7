@@ -573,13 +573,28 @@ namespace BL
             AFBOOL("x31IsPeriodRequired", "Filtr čaového období");
             AFBOOL("x31IsAllowPfx", "Podpora Pfx");
 
-            oc = AA("Soubor", "Soubor šablony", gdc2, "o27x.o27ArchiveFileName"); oc.RelSqlInCol = "LEFT OUTER JOIN o27Attachment o27x ON a.x31ID=o27x.o27RecordPid AND o27x.o27Entity='x31' AND o27x.o27RecordPid IS NOT NULL";
-
+            oc = AA("Soubor", "Soubor šablony", gdc2, "o27x.o27ArchiveFileName"); oc.RelSqlInCol = "LEFT OUTER JOIN o27Attachment o27x ON a.x31ID=o27x.o27RecordPid AND o27x.o27Entity='x31' AND o27x.o27RecordPid IS NOT NULL";            
 
             AA("x31ExportFileNameMask", "Maska export souboru");
             AA("x31IsScheduling", "Pravidelné odesílání");
             AFNUM0("x31Ordinary", "#").DefaultColumnFlag = gdc2;
             AA("x31Description", "Poznámka");
+            AppendTimestamp();
+
+
+            //o27 = filebox
+            this.EntityName = "o27Attachment";
+            
+            AA("o27OriginalFileName", "Název souboru").DefaultColumnFlag = gdc2;
+            AA("o27FileExtension", "Přípona").DefaultColumnFlag = gdc2;
+            AF("o27FileExtension", "Přípona").FixedWidth = 80;
+            AFNUM0("o27FileSize", "Velikost");
+            
+            AA("o27FileSizeKB", "Velikost kB", gdc2, "convert(float,a.o27FileSize)/1024", "num");
+            AA("o27FileSizeMB", "Velikost MB", BO.TheGridDefColFlag._none, "convert(float,a.o27FileSize)/1024/1024", "num");
+            AA("o27Entity", "Vazba", gdc2, "dbo.get_entity_alias(a.o27Entity)");
+            AA("o27ContentType", "CT");
+            AA("o27Name", "Uživatelský název");
             AppendTimestamp();
 
             //uživatelská pole

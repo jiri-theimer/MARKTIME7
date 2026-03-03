@@ -89,7 +89,7 @@ namespace BL.Singleton
             AE("j06UserHistory", "Historie uživatelů", "Historie uživatele", "j06UserHistory a INNER JOIN j02User j02x ON a.j02ID=j02x.j02ID INNER JOIN j04UserRole j04x ON j02x.j04ID=j04x.j04ID INNER JOIN x67EntityRole x67x ON j04x.x67ID=x67x.x67ID", "a.j06ID DESC", "a.j06ID DESC");
             ByPrefix("j06").IsWithoutValidity = true;
 
-
+            AE("o27Attachment", "Filebox", "Filebox", "o27Attachment a","a.o27ID DESC");
 
             AE("b20Hlidac", "Hlídači", "Hlídač", "b20Hlidac a", "a.b20Ordinary");
             AE("b01WorkflowTemplate", "Workflow šablony", "Workflow šablona", "b01WorkflowTemplate a", "a.b01Name");

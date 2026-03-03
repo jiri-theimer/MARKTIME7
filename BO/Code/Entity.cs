@@ -101,6 +101,7 @@ namespace BO.Code
                 case "p60": return "p60TaskTemplate";
                 case "b05": return "b05Workflow_History";
                 case "p11": return "p11Attendance";
+                case "o27": return "o27Attachment";
 
                 case "o51": return "o51Tag";
                 case "o53": return "o53TagGroup";

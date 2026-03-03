@@ -1,0 +1,41 @@
+﻿@model UI.Models.Tab1.o27Tab1
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+    if (Model.Rec == null) return;
+
+    
+
+    var _NotepadLookAt = new UI.Models.Notepad.LookAtViewModel() { IsTab1 = true, prefix = "o27", pid = Model.Rec.pid, NotepadContent = Model.Rec.o27FullText, x04ID = _f.Lic.x04ID_Default };
+}
+
+@addTagHelper *, UI
+
+
+
+@Html.Raw("<div class='info_record_container'>")
+
+
+<div class="card recpagebox400">
+    <div class="card-body">
+        @await Html.PartialAsync("~/Views/Shared/_o27RecHeaderBox.cshtml", Model.Rec)
+
+
+
+        @Html.EditorFor(m => m.Rec, "~/Views/Shared/_TimeStamp.cshtml")
+    </div>
+</div>
+
+
+
+
+
+
+@Html.Raw("</div>")
+
+<div style="clear:both;"></div>
+
+@Html.EditorFor(m => _NotepadLookAt, "~/Views/Shared/_NotepadRO.cshtml")
+

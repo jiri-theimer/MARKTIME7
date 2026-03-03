@@ -249,6 +249,10 @@ namespace UI.Controllers
                     var recO22 = Factory.o22MilestoneBL.Load(pid);
                     v.NotepadContent = recO22.o22Notepad; v.x04ID = recO22.x04ID;
                     break;
+                case "o27":
+                    var recO27 = Factory.o27AttachmentBL.Load(pid);
+                    v.NotepadContent = recO27.o27FullText; v.x04ID = Factory.Lic.x04ID_Default;
+                    break;
                 case "p58":
                     var recP58 = Factory.p58TaskRecurrenceBL.Load(pid);
                     v.NotepadContent = recP58.p58Notepad; v.x04ID = recP58.x04ID;
@@ -710,6 +714,9 @@ namespace UI.Controllers
                     break;
                 case "o22":
                     v.TabName = Factory.tra("Stránka záznamu");
+                    break;
+                case "o27":
+                    v.TabName = Factory.tra("Stránka souboru");
                     break;
                 case "p58":
                     v.TabName = Factory.tra("Stránka opakovaného úkolu");

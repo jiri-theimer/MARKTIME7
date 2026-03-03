@@ -781,7 +781,17 @@ namespace BL
                     }
                   
                     break;
-
+                case "o27":
+                    s = "a__o27Attachment__o27OriginalFileName,a__o27Attachment__o27FileExtension,a__o27Attachment__o27FileSizeKB,a__o27Attachment__o27Entity,a__o27Attachment__DateInsert_o27Attachment,a__o27Attachment__UserInsert_o27Attachment";
+                    switch (master_entity)
+                    {
+                        case "recpage":
+                            s = "a__o27Attachment__o27OriginalFileName,a__o27Attachment__DateInsert_o27Attachment,a__o27Attachment__UserInsert_o27Attachment";
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
                 case "p91":
                     s = "a__p91Invoice__p91Code,a__p91Invoice__p91Client,a__p91Invoice__p91DateSupply,a__p91Invoice__p91Amount_WithoutVat,a__p91Invoice__j27Code,a__p91Invoice__DluhKratKurz,a__p91Invoice__p91DateMaturity,p91_vyuctovano__p91_vyuctovano__Hodiny,a__p91Invoice__VomKdyOdeslano";
                     switch (master_entity)

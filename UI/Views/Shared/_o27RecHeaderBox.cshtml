@@ -1,0 +1,73 @@
+﻿@model BO.o27Attachment
+
+@inject BL.Factory _f
+
+@{
+
+
+    if (Model == null)
+    {
+        return;
+    }
+
+    bool _bolRowHover = UI.Code.basUI.DetectIfCanRowHover(_f, Context, true);
+
+    
+
+}
+
+@addTagHelper *, UI
+
+<table class="table table-hover">
+   
+    <tr>
+        <td class="tdlab">
+            @_f.tra("Název souboru"):
+        </td>
+        <td class="tdval">
+            @Model.o27OriginalFileName
+        </td>
+    </tr>
+    <tr>
+        <td class="tdlab">
+            @_f.tra("Přípona"):
+        </td>
+        <td class="tdval">
+            @Model.o27FileExtension
+        </td>
+    </tr>
+    <tr>
+        <td class="tdlab">
+            Content type:
+        </td>
+        <td class="tdval">
+            @Model.o27ContentType
+        </td>
+    </tr>
+    <tr>
+        <td class="tdlab">
+            @_f.tra("Velikost"):
+        </td>
+        <td class="tdval">
+            @BO.Code.Bas.FormatFileSize(Model.o27FileSize)
+        </td>
+    </tr>
+    @if (Model.o27Name != null)
+    {
+        <tr>
+            <td class="tdlab">
+                @_f.tra("Uživatelský název"):
+            </td>
+            <td class="tdval">
+                @Model.o27Name
+            </td>
+        </tr>
+    }
+
+
+
+    
+   
+
+</table>
+

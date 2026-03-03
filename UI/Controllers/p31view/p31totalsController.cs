@@ -79,8 +79,7 @@ namespace UI.Controllers.p31view
                 v.IsShared = true;
             }
 
-            BO.Code.File.LogInfo($"Nové SOUČTY, jsem tu/login: {Factory.CurrentUser.j02Login}, Template: {v.SelectedTemplate.j79Name}", Factory.CurrentUser.j02Login,"p31totalsController");
-
+            
             v.ChartType = v.SelectedTemplate.j79Chart;
 
             v.TheGridQueryButton = new TheGridQueryViewModel() { j72id = Factory.CBL.LoadUserParamInt("p31totals-j72id"),paramkey= "p31totals-j72id",prefix="p31" };

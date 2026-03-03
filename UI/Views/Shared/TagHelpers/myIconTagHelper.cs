@@ -70,6 +70,9 @@ namespace UI.Views.Shared.TagHelpers
                     case "o22":
                         this.Symbol = "today";
                         break;
+                    case "o27":
+                        this.Symbol = "attachment";
+                        break;
                     case "o23":
                         this.Symbol = "file_present";
                         break;
