@@ -38,8 +38,9 @@
       class="dropzone"
       id="myDropzone">
 
-    <input type="hidden" id="uploadguid" name="uploadguid" value="@_guid" />
-    <input type="hidden" id="dropzone_guids" name="dropzone_guids" />
+    <input type="hidden" id="tempguid" name="tempguid" value="@_guid" />
+    <input type="hidden" id="dropzone_uids" name="dropzone_uids" />
+    <input type="hidden" id="dropzone_names" name="dropzone_names" />
 
     <div class="dz-message" style="padding:0px;margin:0px;">
         <span class="badge-light">
@@ -135,17 +136,18 @@
         dz.on("sendingmultiple", function (files, xhr, formData) {
 
             files.forEach(function(file) {
-                alert(file.upload.uuid);
-                formData.append("dropzone_guids",file.name+"|"+ file.upload.uuid);
+                
+                formData.append("dropzone_uids",file.upload.uuid);
+                formData.append("dropzone_names",file.name);
             });
 
         });
 
         dz.on("removedfile", function(file) {
-            var guid="@_guid";
+            var tempguid="@_guid";
             
 
-            $.post("/Pokus/DeleteByName", { filename: encodeURIComponent(file.name), guid: guid }, function (data) {
+            $.post("/Pokus/DeleteTempFile", { filename: encodeURIComponent(file.name), fileuid: file.upload.uuid, tempguid: tempguid }, function (data) {
 
                 alert(data);
 

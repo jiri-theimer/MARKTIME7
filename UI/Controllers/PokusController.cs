@@ -1,14 +1,13 @@
-﻿using System;
+﻿using DocumentFormat.OpenXml.Drawing;
+using Microsoft.AspNetCore.Mvc;
+using System;
 using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Text.Json;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
-
-
-using Microsoft.AspNetCore.Mvc;
 using UI.Models;
 
 namespace UI.Controllers
@@ -131,61 +130,7 @@ namespace UI.Controllers
 
 
 
-        [HttpPost]
-        [DisableRequestSizeLimit]
-        public async Task<IActionResult> Process()
-        {
-            if (!Request.HasFormContentType)
-                return BadRequest("Request must be multipart/form-data");
-
-            var files = Request.Form.Files;
-            if (files == null || files.Count == 0)
-                return BadRequest("No files received");
-
-            Directory.CreateDirectory(UploadDir);
-
-            var file = files[0];
-
-            if (file.Length <= 0)
-                return BadRequest("Empty file");
-
-            // Bezpečné jméno + unikátní ID
-            var ext = Path.GetExtension(file.FileName);
-            var serverId = $"{Guid.NewGuid():N}{ext}";
-            var fullPath = Path.Combine(UploadDir, serverId);
-
-            await using (var stream = System.IO.File.Create(fullPath))
-            {
-                await file.CopyToAsync(stream);
-            }
-
-            // FilePond očekává serverId v těle odpovědi (text/plain)
-            return Content(serverId, "text/plain");
-        }
-
-        // DELETE /Upload/Revert
-        // FilePond pošle do body requestu serverId (plain text), které jsme vrátili z Process.
-        [HttpDelete]
-        public async Task<IActionResult> Revert()
-        {
-            Directory.CreateDirectory(UploadDir);
-
-            using var reader = new StreamReader(Request.Body);
-            var serverId = (await reader.ReadToEndAsync())?.Trim();
-
-            if (string.IsNullOrWhiteSpace(serverId))
-                return BadRequest("Missing serverId");
-
-            // ochrana proti path traversal
-            serverId = Path.GetFileName(serverId);
-
-            var fullPath = Path.Combine(UploadDir, serverId);
-
-            if (System.IO.File.Exists(fullPath))
-                System.IO.File.Delete(fullPath);
-
-            return Ok();
-        }
+        
 
         public IActionResult UploadFiles(string guid)
         {
@@ -200,62 +145,81 @@ namespace UI.Controllers
             if (!Request.HasFormContentType)
                 return BadRequest("Request není multipart/form-data");
 
-            var fileguid = Request.Form["uploadguid"];
-            var dropzoneguids = Request.Form["dropzone_guids"];
+            var tempguid = Request.Form["tempguid"];
+            var dropzoneuids = Request.Form["dropzone_uids"];
+            var dropzonenames = Request.Form["dropzone_names"];
 
             var files = Request.Form.Files;
 
             if (files == null || files.Count == 0)
                 return BadRequest("Žádné soubory nebyly přijaty.");
 
+            int x = 0;
             foreach (var file in files)
             {
                 if (file.Length == 0)
                     continue;
 
-                var uploadsFolder = "c:\\temp\\_uploadpokus";
-
-                if (!Directory.Exists(uploadsFolder))
-                    Directory.CreateDirectory(uploadsFolder);
-
-
+                
+                var fileuid = dropzoneuids[x];  //uid přidělené z dropzone
+                var filename = dropzonenames[x];
+                var archivefilename = fileuid + System.IO.Path.GetExtension(file.FileName);
                 
 
-                var archivefilename = BO.Code.Bas.GetGuid() + Path.GetExtension(file.FileName);
-
-                var archiveDestPath = Path.Combine(uploadsFolder, archivefilename);
+                var archiveDestPath = System.IO.Path.Combine(Factory.TempFolder, archivefilename);
 
                 using (var stream = new FileStream(archiveDestPath, FileMode.Create))
                 {
                     await file.CopyToAsync(stream);
                 }
 
-                var rec = new BO.p85Tempbox() { p85GUID = fileguid, p85FreeText01 = file.FileName, p85FreeText02 = file.ContentType,p85FreeText03= archivefilename, p85FreeNumber01 = file.Length };
+                var rec = new BO.p85Tempbox() { p85GUID = tempguid, p85FreeText01 = file.FileName, p85FreeText02 = file.ContentType,p85FreeText03= archivefilename, p85FreeNumber01 = file.Length };
+                if (filename == file.FileName)
+                {
+                    rec.p85FreeText04 = fileuid;
+                }
                 var p85id = Factory.p85TempboxBL.Save(rec);
+                x += 1;
             }
 
             return Ok(new { count = files.Count });
         }
 
         
-        public IActionResult DeleteByName(string fileName,string guid)
+        public IActionResult DeleteTempFile(string filename,string fileuid,string tempguid)
         {
-            if (string.IsNullOrEmpty(guid) || string.IsNullOrEmpty(fileName))
+            if (string.IsNullOrEmpty(tempguid))
             {
-                return BadRequest("Chybí guid nebo filename");
+                return BadRequest("Chybí tempguid");
+            }
+            if (string.IsNullOrEmpty(filename) && string.IsNullOrEmpty(fileuid))
+            {
+                return BadRequest("Chybí fileuid nebo filename");
+            }
+
+            string strPath = null;
+
+            var lis = Factory.p85TempboxBL.GetList(tempguid);
+            BO.p85Tempbox rec = null;
+            if (!string.IsNullOrEmpty(fileuid))
+            {
+                rec = lis.FirstOrDefault(p => p.p85FreeText04 == fileuid);
+                if (rec is null)
+                {
+                    return BadRequest($"Soubor s UID [{fileuid}] neexistuje");
+                }
+                strPath = $"{Factory.TempFolder}\\{rec.p85FreeText03}";
+            }
+            else
+            {
+                rec = lis.FirstOrDefault(p => p.p85FreeText01 == filename);
+                if (rec is null)
+                {
+                    return BadRequest($"Soubor [{filename}] neexistuje");
+                }
+                strPath = $"{Factory.TempFolder}\\{rec.p85FreeText03}";
             }
             
-
-            var lis = Factory.p85TempboxBL.GetList(guid);
-            var rec = lis.FirstOrDefault(p => p.p85FreeText01 == fileName);
-            if (rec is null)
-            {
-                return BadRequest($"Soubor [{fileName}] neexistuje");
-
-            }            
-
-            var strPath = $"c:\\temp\\_uploadpokus\\{rec.p85FreeText03}";
-
             if (!System.IO.File.Exists(strPath)) return NotFound();
             System.IO.File.Delete(strPath);
 
