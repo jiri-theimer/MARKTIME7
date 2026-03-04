@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.Web;
 
 namespace UI.Controllers
 {
@@ -117,8 +118,16 @@ namespace UI.Controllers
             {
                 return NotFound();
             }
-            Response.Headers["Content-Disposition"] = string.Format("inline; filename={0}", rec.p85FreeText01);
+            //Response.Headers["Content-Disposition"] = string.Format("inline; filename={0}", rec.p85FreeText01);
+
+            //Response.Headers["Content-Disposition"] =$"inline; filename=\"{rec.p85FreeText01}\"; filename*=UTF-8''{Uri.EscapeDataString(rec.p85FreeText01)}";
+
+            Response.Headers["Content-Disposition"] = $"inline; filename*=UTF-8''{HttpUtility.UrlEncode(rec.p85FreeText01)}";
+
+
             var fileContentResult = new FileContentResult(System.IO.File.ReadAllBytes(strFullPath), contenttype);
+            
+
             return fileContentResult;
         }
     }

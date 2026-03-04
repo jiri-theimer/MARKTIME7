@@ -41,26 +41,28 @@
 
 </form>
 
-@if(_lisP85 !=null && _lisP85.Count() > 0)
+@if (_lisP85 != null && _lisP85.Count() > 0)
 {
-    <table class="table-hover table-sm">
-        @foreach(var c in _lisP85)
-        {
-            <tr>
-                <td>
-                    <a target="_blank" href="/Dropzone/DownloadTempFile?tempfilename=@(c.p85FreeText03)&tempguid=@(Model.TempGuid)">
-                        @c.p85FreeText01
-                    </a>
-                </td>
-                <td>
-                    @(BO.Code.Bas.FormatFileSize((long)c.p85FreeNumber01))
-                </td>
-                <td>
-                    @c.p85FreeText02
-                </td>
-            </tr>
-        }
-    </table>
+    <div style="margin:6px">
+        <table class="table table-hover table-sm">
+            @foreach (var c in _lisP85)
+            {
+                <tr>
+                    <td>
+                        <a target="_blank" href="/Dropzone/DownloadTempFile?tempfilename=@(c.p85FreeText03)&tempguid=@(Model.TempGuid)">
+                            @c.p85FreeText01
+                        </a>
+                    </td>
+                    <td>
+                        @(BO.Code.Bas.FormatFileSize((long)c.p85FreeNumber01))
+                    </td>
+                    <td>
+                        @c.p85FreeText02
+                    </td>
+                </tr>
+            }
+        </table>
+    </div>
 }
 
 
@@ -130,7 +132,7 @@
             }
           }
 
-          
+
         });
 
         dz.on("error", function (file, errorMessage) {
@@ -171,7 +173,7 @@
 
             dz.on("addedfile", function(file) {
 
-               
+
 
                 dz.emit("thumbnail", file, "/images/files/upload80.png");
 
@@ -183,7 +185,7 @@
                     dz.emit("thumbnail", file, "/images/files/word80.png");
                 }
                 if (file.type.includes("spreadsheet")) {
-                    
+
                     dz.emit("thumbnail", file, "/images/files/excel80.png");
                 }
 
