@@ -1,4 +1,7 @@
-﻿@*
+﻿@model UI.Models.DropzoneViewModel
+@inject BL.Factory _f
+
+@*
     For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 *@
 @{
@@ -7,15 +10,240 @@
 
 @section header_content {
 
-    <link rel="stylesheet" href="~/lib/dropzone/dropzone.css" asp-append-version="true" />
-    <script src="~/lib/dropzone/dropzone-min.js" asp-append-version="true"></script>
-
-    <script src="~/lib/dropzone/DataStream.js"></script>
-    <script src="~/lib/dropzone/msg.reader.js"></script>
+   
 
 }
 
+<link rel="stylesheet" href="~/lib/dropzone/dropzone.css" asp-append-version="true" />
+<script src="~/lib/dropzone/dropzone-min.js" asp-append-version="true"></script>
 
+<script src="~/lib/dropzone/DataStream.js"></script>
+<script src="~/lib/dropzone/msg.reader.js"></script>
 
-<form asp-controller="Pokus" asp-action="UploadFiles" method="post" enctype="multipart/form-data" class="dropzone" id="myDropzone">
+<form asp-controller="Dropzone"
+      asp-action="UploadFiles"
+      method="post"
+      enctype="multipart/form-data"
+      class="dropzone"
+      id="myDropzone">
+
+    <input type="hidden" id="tempguid" name="tempguid" value="@Model.TempGuid" />
+    <input type="hidden" id="dropzone_uids" name="dropzone_uids" />
+    <input type="hidden" id="dropzone_names" name="dropzone_names" />
+
+    <div class="dz-message" style="padding:0px;margin:0px;">
+        <span class="badge-light">
+            <span class="material-icons-outlined-btn menu_new_record">attachment</span>
+            FileBox
+        </span>
+
+        Přetáhněte sem dokumenty, poštovní zprávy
+        <span style="font-size:14px;margin-left:6px;">nebo zde klikněte</span>
+    </div>
+
 </form>
+
+
+<script>
+         // Dropzone v6 – explicitní inicializace
+    const formEl = document.getElementById("myDropzone");
+
+    // url si vezmeme z <form action="..."> (ASP.NET ho vyplní)
+    const uploadUrl = formEl.getAttribute("action") || "/Dropzone/UploadFiles";
+
+    const previewTemplate = `
+    <div class="dz-preview dz-file-preview">
+
+      <div class="dz-file-row">
+
+        <div class="dz-thumb">
+          <img data-dz-thumbnail />
+        </div>
+
+        <div class="dz-meta">
+          <div class="dz-name" data-dz-name></div>
+          <div class="dz-size" data-dz-size></div>
+
+          <div class="dz-progress">
+            <span class="dz-upload" data-dz-uploadprogress></span>
+          </div>
+        </div>
+
+        <div class="dz-actions">
+          <button data-dz-remove>✕</button>
+        </div>
+
+      </div>
+
+    </div>
+    `;
+
+    const dz = new Dropzone(formEl, {
+      url: uploadUrl,
+      previewTemplate: previewTemplate,
+      paramName: "files",          // musí odpovídat názvu v controlleru
+      maxFilesize: 10,             // MB
+      acceptedFiles: ".msg,.eml,.pdf,image/*,.xls,.xlsx,.docx,.doc,.txt",
+      uploadMultiple: true,
+      parallelUploads: 3,
+      thumbnailWidth: 100,
+      thumbnailHeight: 100,
+
+
+      init: function () {
+        const dz = this;
+
+        dz.on("success", async function (file, response) {
+
+
+          if ((file.name || "").toLowerCase().endsWith(".msg")) {
+            try {
+              const msg = await parseMsgFileToClass(file);
+              // tady už máš instanci MsgEmail
+              // console.log(msg);
+              dz.emit("thumbnail", file, "/images/files/msg80.png");
+              alert(msg.subject);
+            } catch (e) {
+              console.error(e);
+              alert("Nelze přečíst MSG: " + (e?.message || e));
+            }
+          }
+
+          
+        });
+
+        dz.on("error", function (file, errorMessage) {
+          alert("Chyba: " + errorMessage);
+          dz.emit("thumbnail", file, "/images/files/error80.png");
+        });
+
+        dz.on("queuecomplete", function () {
+          //nic
+        });
+
+        dz.on("sendingmultiple", function (files, xhr, formData) {
+
+            files.forEach(function(file) {
+
+                formData.append("dropzone_uids",file.upload.uuid);
+                formData.append("dropzone_names",file.name);
+            });
+
+        });
+
+        dz.on("removedfile", function(file) {
+            var tempguid="@Model.TempGuid";
+
+
+            $.post("/Dropzone/DeleteTempFile", { filename: encodeURIComponent(file.name), fileuid: file.upload.uuid, tempguid: tempguid }, function (data) {
+
+                //nic
+
+            });
+
+
+
+
+
+        });
+
+
+            dz.on("addedfile", function(file) {
+
+               
+
+                dz.emit("thumbnail", file, "/images/files/upload80.png");
+
+                if (file.type === "application/pdf") {
+                    dz.emit("thumbnail", file, "/images/files/pdf80.png");
+                }
+
+                if (file.type.includes("word")) {
+                    dz.emit("thumbnail", file, "/images/files/word80.png");
+                }
+                if (file.type.includes("spreadsheet")) {
+                    
+                    dz.emit("thumbnail", file, "/images/files/excel80.png");
+                }
+
+                if (file.type === "application/zip") {
+                    dz.emit("thumbnail", file, "/images/files/zip80.png");
+                }
+
+                if (file.type === "msg") {
+                    dz.emit("thumbnail", file, "/images/files/msg80.png");
+                }
+
+                if (file.type === "eml") {
+                    dz.emit("thumbnail", file, "/images/files/eml80.png");
+                }
+            });
+      }
+    });
+
+
+
+
+
+
+    class MsgEmail {
+
+       constructor({ subject, to, from, name }) {
+         this.subject = subject || "";
+         this.to = Array.isArray(to) ? to : [];
+         this.from = from || null;
+         this.name = name || null;
+       }
+     }
+
+
+
+     function parseMsgFileToClass(file) {
+       return new Promise((resolve, reject) => {
+         if (!file) return reject(new Error("No file provided"));
+         const fileName = file.name || "";
+         if (!fileName.toLowerCase().endsWith(".msg")) {
+           return reject(new Error("Incorrect file type (expected .msg)"));
+         }
+
+         const reader = new FileReader();
+
+         reader.onload = (evt) => {
+           try {
+             const buffer = evt.target.result;
+             const msgReader = new MSGReader(buffer);
+             const fileData = msgReader.getFileData();
+
+             if (!fileData || fileData.error) {
+               return reject(new Error("Failed to parse MSG file"));
+             }
+
+             const subject = fileData.subject || "";
+
+
+             // TO: recipients array => email stringy (pokud tam email není, fallback na name)
+             const to = (fileData.recipients || [])
+               .map((r) => r?.email || r?.name)
+               .filter(Boolean);
+
+             const from = fileData.senderEmail || null;
+             const name = fileData.senderName || null;
+
+
+
+
+             resolve(new MsgEmail({ subject, to, from, name }));
+           } catch (e) {
+             reject(e);
+           }
+         };
+
+         reader.onerror = () => reject(new Error("FileReader error"));
+         reader.readAsArrayBuffer(file);
+       });
+     }
+
+
+
+
+</script>

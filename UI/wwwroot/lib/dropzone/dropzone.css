@@ -4,6 +4,15 @@
 
 .dropzone{
     border:1px dashed skyblue;
+    margin:6px;
+}
+
+    .dropzone:hover {
+        background-color: #F0FFFF;
+    }
+
+.dropzone.dragover {
+  background-color: skyblue;
 }
 
 .dz-file-row {

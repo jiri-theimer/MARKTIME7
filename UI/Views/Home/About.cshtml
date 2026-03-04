@@ -5,6 +5,8 @@
 
     Layout = "~/Views/Shared/_Layout.cshtml";
     Model.PageTitle = _f.tra("O aplikaci");
+
+    var dropzonemodel = new UI.Models.DropzoneViewModel() { TempGuid = "hovado" };
 }
 @addTagHelper *, UI
 
@@ -68,6 +70,8 @@
 </div>
 
 
+
+    @Html.EditorFor(m => dropzonemodel, "~/Views/Shared/_dropzone.cshtml")
 
 
 
