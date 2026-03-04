@@ -94,5 +94,32 @@ namespace UI.Controllers
 
             return Ok(new { ok = true });
         }
+
+
+        public ActionResult DownloadTempFile(string tempfilename,string tempguid)
+        {
+            var lis = Factory.p85TempboxBL.GetList(tempguid);
+            var rec = lis.FirstOrDefault(p => p.p85FreeText03 == tempfilename);
+
+            if (rec == null)
+            {
+                return NotFound();
+            }
+
+            string strFullPath = $"{Factory.TempFolder}\\{rec.p85FreeText03}";
+            string contenttype = rec.p85FreeText02;
+
+            if (string.IsNullOrEmpty(contenttype)) contenttype = "application/octet-stream";
+
+            
+
+            if (!System.IO.File.Exists(strFullPath))
+            {
+                return NotFound();
+            }
+            Response.Headers["Content-Disposition"] = string.Format("inline; filename={0}", rec.p85FreeText01);
+            var fileContentResult = new FileContentResult(System.IO.File.ReadAllBytes(strFullPath), contenttype);
+            return fileContentResult;
+        }
     }
 }
