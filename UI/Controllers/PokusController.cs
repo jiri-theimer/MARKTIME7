@@ -187,7 +187,7 @@ namespace UI.Controllers
             return Ok();
         }
 
-        public IActionResult UploadFiles()
+        public IActionResult UploadFiles(string guid)
         {
             var v = new BaseViewModel();
             return View(v);
@@ -195,10 +195,13 @@ namespace UI.Controllers
 
         [HttpPost]
         [DisableRequestSizeLimit] // volitelné – když řešíš větší soubory
-        public async Task<IActionResult> UploadFiles([FromQuery] int gogo)
+        public async Task<IActionResult> UploadFiles()
         {
             if (!Request.HasFormContentType)
                 return BadRequest("Request není multipart/form-data");
+
+            var fileguid = Request.Form["uploadguid"];
+            var dropzoneguids = Request.Form["dropzone_guids"];
 
             var files = Request.Form.Files;
 
@@ -215,15 +218,51 @@ namespace UI.Controllers
                 if (!Directory.Exists(uploadsFolder))
                     Directory.CreateDirectory(uploadsFolder);
 
-                var filePath = Path.Combine(uploadsFolder, Path.GetFileName(file.FileName));
 
-                using (var stream = new FileStream(filePath, FileMode.Create))
+                
+
+                var archivefilename = BO.Code.Bas.GetGuid() + Path.GetExtension(file.FileName);
+
+                var archiveDestPath = Path.Combine(uploadsFolder, archivefilename);
+
+                using (var stream = new FileStream(archiveDestPath, FileMode.Create))
                 {
                     await file.CopyToAsync(stream);
                 }
+
+                var rec = new BO.p85Tempbox() { p85GUID = fileguid, p85FreeText01 = file.FileName, p85FreeText02 = file.ContentType,p85FreeText03= archivefilename, p85FreeNumber01 = file.Length };
+                var p85id = Factory.p85TempboxBL.Save(rec);
             }
 
             return Ok(new { count = files.Count });
+        }
+
+        
+        public IActionResult DeleteByName(string fileName,string guid)
+        {
+            if (string.IsNullOrEmpty(guid) || string.IsNullOrEmpty(fileName))
+            {
+                return BadRequest("Chybí guid nebo filename");
+            }
+            
+
+            var lis = Factory.p85TempboxBL.GetList(guid);
+            var rec = lis.FirstOrDefault(p => p.p85FreeText01 == fileName);
+            if (rec is null)
+            {
+                return BadRequest($"Soubor [{fileName}] neexistuje");
+
+            }            
+
+            var strPath = $"c:\\temp\\_uploadpokus\\{rec.p85FreeText03}";
+
+            if (!System.IO.File.Exists(strPath)) return NotFound();
+            System.IO.File.Delete(strPath);
+
+
+            Factory.p85TempboxBL.VirtualDelete(rec.pid);
+
+            return Ok(new { ok = true });
         }
 
         public async Task<string> Pokus(string strDotaz)

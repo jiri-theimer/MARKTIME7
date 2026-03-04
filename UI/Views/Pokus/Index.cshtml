@@ -4,7 +4,7 @@
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
 
-    var ss = "toto hovado a blb";
+    var _guid = BO.Code.Bas.GetGuid();
     var _lis = _f.p41ProjectBL.GetList(new BO.myQueryP41("p41")).OrderBy(p => p.p41TreeIndex);
 
 
