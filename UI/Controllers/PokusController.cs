@@ -18,6 +18,8 @@ namespace UI.Controllers
         static readonly string openAiApiKey = "";
         static readonly string openAiEndpoint = "https://api.openai.com/v1/chat/completions";
 
+        private const string UploadDir = @"c:\temp\_uploadpokus";
+
         public IActionResult webdatarocks()
         {
             var v = new BaseViewModel();
@@ -118,6 +120,110 @@ namespace UI.Controllers
             
             return View(v);
 
+        }
+
+        public IActionResult FilePond()
+        {
+            var v = new BaseViewModel();
+            return View(v);
+        }
+
+
+
+
+        [HttpPost]
+        [DisableRequestSizeLimit]
+        public async Task<IActionResult> Process()
+        {
+            if (!Request.HasFormContentType)
+                return BadRequest("Request must be multipart/form-data");
+
+            var files = Request.Form.Files;
+            if (files == null || files.Count == 0)
+                return BadRequest("No files received");
+
+            Directory.CreateDirectory(UploadDir);
+
+            var file = files[0];
+
+            if (file.Length <= 0)
+                return BadRequest("Empty file");
+
+            // Bezpečné jméno + unikátní ID
+            var ext = Path.GetExtension(file.FileName);
+            var serverId = $"{Guid.NewGuid():N}{ext}";
+            var fullPath = Path.Combine(UploadDir, serverId);
+
+            await using (var stream = System.IO.File.Create(fullPath))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            // FilePond očekává serverId v těle odpovědi (text/plain)
+            return Content(serverId, "text/plain");
+        }
+
+        // DELETE /Upload/Revert
+        // FilePond pošle do body requestu serverId (plain text), které jsme vrátili z Process.
+        [HttpDelete]
+        public async Task<IActionResult> Revert()
+        {
+            Directory.CreateDirectory(UploadDir);
+
+            using var reader = new StreamReader(Request.Body);
+            var serverId = (await reader.ReadToEndAsync())?.Trim();
+
+            if (string.IsNullOrWhiteSpace(serverId))
+                return BadRequest("Missing serverId");
+
+            // ochrana proti path traversal
+            serverId = Path.GetFileName(serverId);
+
+            var fullPath = Path.Combine(UploadDir, serverId);
+
+            if (System.IO.File.Exists(fullPath))
+                System.IO.File.Delete(fullPath);
+
+            return Ok();
+        }
+
+        public IActionResult UploadFiles()
+        {
+            var v = new BaseViewModel();
+            return View(v);
+        }
+
+        [HttpPost]
+        [DisableRequestSizeLimit] // volitelné – když řešíš větší soubory
+        public async Task<IActionResult> UploadFiles([FromQuery] int gogo)
+        {
+            if (!Request.HasFormContentType)
+                return BadRequest("Request není multipart/form-data");
+
+            var files = Request.Form.Files;
+
+            if (files == null || files.Count == 0)
+                return BadRequest("Žádné soubory nebyly přijaty.");
+
+            foreach (var file in files)
+            {
+                if (file.Length == 0)
+                    continue;
+
+                var uploadsFolder = "c:\\temp\\_uploadpokus";
+
+                if (!Directory.Exists(uploadsFolder))
+                    Directory.CreateDirectory(uploadsFolder);
+
+                var filePath = Path.Combine(uploadsFolder, Path.GetFileName(file.FileName));
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+            }
+
+            return Ok(new { count = files.Count });
         }
 
         public async Task<string> Pokus(string strDotaz)

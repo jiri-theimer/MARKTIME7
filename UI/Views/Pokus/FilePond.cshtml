@@ -1,0 +1,62 @@
+﻿@model UI.Models.BaseViewModel
+@inject BL.Factory _f
+
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+
+
+}
+
+
+
+@{
+    ViewData["Title"] = "Upload souborů";
+}
+<link href="https://unpkg.com/filepond@4.31.4/dist/filepond.min.css" rel="stylesheet" />
+<link href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.min.css" rel="stylesheet" />
+
+<script src="https://unpkg.com/filepond@4.31.4/dist/filepond.min.js"></script>
+<script src="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.min.js"></script>
+
+<h2>Upload obrázků (FilePond) + Preview</h2>
+
+<input type="file" id="uploader" name="file" multiple />
+
+<script>
+    // plugin pro náhledy
+    FilePond.registerPlugin(FilePondPluginImagePreview);
+
+    // vytvoření uploaderu (uložit do proměnné!)
+    const pond = FilePond.create(document.getElementById('uploader'), {
+      allowMultiple: true,
+
+      // preview
+      allowImagePreview: true,
+      imagePreviewHeight: 140,
+
+      // validace
+      acceptedFileTypes: ['image/*'],
+      maxFileSize: '10MB',
+
+      // UX text
+      labelIdle: 'Přetáhni obrázky sem nebo <span class="filepond--label-action">vyber</span>',
+
+      // server endpoints
+      server: {
+        process: {
+          url: '/Pokus/Process',
+          method: 'POST'
+        },
+        revert: {
+          url: '/Pokus/Revert',
+          method: 'DELETE'
+        }
+      }
+    });
+
+    pond.on('processfiles', () => {
+      alert('hotovo');
+    });
+</script>
