@@ -14,7 +14,7 @@
     DropzoneViewModel dropzonemodel = null;
     if (Model.prefix == "o27")
     {
-        dropzonemodel = new DropzoneViewModel() { TempGuid = BO.Code.Bas.GetGuid() };
+        dropzonemodel = new DropzoneViewModel() { TempGuid = BO.Code.Bas.GetGuid(),IsPostbackAfterSave=true };
     }
 }
 
@@ -109,7 +109,13 @@
 
     @if (Model.prefix == "o27")
     {
-        @Html.EditorFor(m => dropzonemodel, "~/Views/Shared/_dropzone.cshtml")
+        <div>
+            <button id="cmdFileBox" tabindex="-1" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" role="button" aria-expanded="false">
+                Nahrát soubory/přílohy
+            </button>
+        </div>
+        
+
     }
 
     @if (_f.CurrentUser.IsApprovingPerson && Model.recordbinquery.Value != 2 && (Model.prefix == "le5" || Model.prefix == "p28" || Model.prefix == "p56" || Model.prefix == "j02"))
@@ -193,6 +199,14 @@
 
 
 </div>
+
+@if (Model.prefix == "o27")
+{
+    <div id="divFileBox" style="display:none;">
+        @Html.EditorFor(m => dropzonemodel, "~/Views/Shared/_dropzone.cshtml")
+    </div>
+    
+}
 
 <div id="splitter_container" class="splitter-container-top2bottom">
 
@@ -309,6 +323,13 @@
             render_menu("cmdMore","offcanvas_more_body","/Menu/grid_extension?prefix=" + _pageprefix);
 
         });
+
+        if(_pageprefix=="o27")
+        {
+            $("#cmdFileBox").click(function () {
+                $("#divFileBox").toggle();
+            });
+        }
 
         $("#offcanvas_more").on("hidden.bs.offcanvas", function () {
             // UI state

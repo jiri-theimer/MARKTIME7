@@ -296,7 +296,19 @@
 
 
             $.post("/Dropzone/SaveToFilebox", { tempguid: tempguid }, function (data) {
+                const ispostbackafter="@Model.IsPostbackAfterSave";
+                if (ispostbackafter=="True"){
+                    if (document.getElementById("form1"))
+                    {
+                        _postback();
+                    }else
+                    {
+                        location.replace(location.href);
+                    }
+                    
+                    return;
 
+                }
                 dz.removeAllFiles();
                 refreshstate_dropbox();
                 var link="<strong><a target='_top' href='@(_fileboxUrl)'>FileBox</a></strong>";
