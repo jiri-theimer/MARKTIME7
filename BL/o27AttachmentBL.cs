@@ -25,7 +25,7 @@ namespace BL
         public bool CommitNotepdChanges(string strTempNotepadGuid,string strPrefix, int intRecordPid);
         public Rebex.Mail.MailMessage LoadMsgFile(string strMsgPath);
         public void SaveMsgAttachmentsToDisk(o27Attachment rec, Rebex.Mail.MailMessage msg);
-        public List<BO.StringPair> GetListMsgAttachments(o27Attachment rec);
+        //public List<BO.StringPair> GetListMsgAttachments(o27Attachment rec);
 
     }
     class o27AttachmentBL : BaseBL, Io27AttachmentBL
@@ -479,35 +479,35 @@ namespace BL
             }
         }
 
-        public List<BO.StringPair> GetListMsgAttachments(o27Attachment rec)
-        {
-            if (rec.o27MailAttachmentsCount == 0 || rec.o27MailAttachments==null)
-            {
-                return null;
-            }
-            var ret = new List<BO.StringPair>();
+        //public List<BO.StringPair> GetListMsgAttachments(o27Attachment rec)
+        //{
+        //    if (rec.o27MailAttachmentsCount == 0 || rec.o27MailAttachments==null)
+        //    {
+        //        return null;
+        //    }
+        //    var ret = new List<BO.StringPair>();
 
-            var lis = BO.Code.Bas.ConvertString2List(rec.o27MailAttachments, ",");
-            foreach (var s in lis)
-            {
-                var strPath = $"{_mother.UploadFolder}\\{rec.o27ArchiveFileName}--ATTACHMENT--{s}";
-                if (!System.IO.File.Exists(strPath))
-                {
-                    var msg = LoadMsgFile($"{_mother.UploadFolder}\\{rec.o27ArchiveFileName}");
-                    if (msg.Attachments.Count() > 0)
-                    {
-                        SaveMsgAttachmentsToDisk(rec, msg);
-                    }
-                }
-                if (System.IO.File.Exists(strPath))
-                {
-                    ret.Add(new BO.StringPair() { Value = s, Key = rec.o27ArchiveFileName + "--ATTACHMENT--" + s });
-                }                    
+        //    var lis = BO.Code.Bas.ConvertString2List(rec.o27MailAttachments, ",");
+        //    foreach (var s in lis)
+        //    {
+        //        var strPath = $"{_mother.UploadFolder}\\{rec.o27ArchiveFileName}--ATTACHMENT--{s}";
+        //        if (!System.IO.File.Exists(strPath))
+        //        {
+        //            var msg = LoadMsgFile($"{_mother.UploadFolder}\\{rec.o27ArchiveFileName}");
+        //            if (msg.Attachments.Count() > 0)
+        //            {
+        //                SaveMsgAttachmentsToDisk(rec, msg);
+        //            }
+        //        }
+        //        if (System.IO.File.Exists(strPath))
+        //        {
+        //            ret.Add(new BO.StringPair() { Value = s, Key = rec.o27ArchiveFileName + "--ATTACHMENT--" + s });
+        //        }                    
 
-            }
+        //    }
 
-            return ret;
-        }
+        //    return ret;
+        //}
 
     }
 }

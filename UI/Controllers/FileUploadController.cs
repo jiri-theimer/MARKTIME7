@@ -225,16 +225,15 @@ namespace UI.Controllers
                     return BadRequest("Tento záznam nemá přílohy");
                 }
 
-                Factory.o27AttachmentBL.SaveMsgAttachmentsToDisk(c, msg);
+                Factory.o27AttachmentBL.SaveMsgAttachmentsToDisk(c, msg);   //uložit přílohy zprávy na disk
             }
 
             
 
             if (System.IO.File.Exists(strPath))
             {
-                Response.Headers["Content-Disposition"] = $"inline; filename*=UTF-8''{HttpUtility.UrlEncode(c.o27OriginalFileName)}";
-                var strContentType = BO.Code.File.GetContentType(strPath);
-
+                Response.Headers["Content-Disposition"] = $"inline; filename*=UTF-8''{HttpUtility.UrlEncode(origfilename)}";
+               
                 return new FileContentResult(System.IO.File.ReadAllBytes(strPath), BO.Code.File.GetContentType(strPath));
 
             }

@@ -22,11 +22,11 @@
     }
 
     bool _bolMail = false;
-    List<BO.StringPair> _atts = null;
+    List<String> _atts = null;
     if (Model.o27MailMessageID !=null || Model.o27FileExtension == ".msg")
     {
         _bolMail = true;
-        _atts = _f.o27AttachmentBL.GetListMsgAttachments(Model);
+        _atts = BO.Code.Bas.ConvertString2List(Model.o27MailAttachments, ",");
     }
     
     
@@ -158,7 +158,7 @@
             </tr>
         }
 
-        @if (_atts !=null)
+        @if (_atts != null && _atts.Count()>0)
         {
             @foreach(var att in _atts)
             {
@@ -167,7 +167,7 @@
                         @_f.tra("Příloha zprávy"):
                     </td>
                     <td>
-                        <a href="/File">@att.Value</a>
+                        <a target="_blank" href="/FileUpload/FileDownloadMsgAttachment?guid=@(Model.o27Guid)&origfilename=@(att)">@att</a>
                     </td>
                 </tr>
             }
