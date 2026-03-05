@@ -44,6 +44,10 @@ namespace UI.Controllers
                 }
 
             }
+            if (v.Rec.o27Entity == "x31")
+            {
+                return this.StopPage(true, "Šablona pevné tiskové sestavy");
+            }
             v.Toolbar = new MyToolbarViewModel(v.Rec);
             v.Toolbar.AllowClone = false;
             

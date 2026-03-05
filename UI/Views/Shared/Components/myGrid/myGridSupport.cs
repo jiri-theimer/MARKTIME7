@@ -779,6 +779,10 @@ namespace UI.Views.Shared.Components.myGrid
                             case "j02":
                                 _s.Append($" style='width:20px;background-color:#FFE4E1'>");
                                 break;
+                            case "b05":
+                                _s.Append(" style='width:20px;'>");
+                                _s.Append("<span class='material-icons-outlined-nosize'>speaker_notes</span>");
+                                break;
                             default:
                                 _s.Append(" style='width:20px;'>");
                                 break;
@@ -790,6 +794,9 @@ namespace UI.Views.Shared.Components.myGrid
                         }
                         
                         
+
+
+
                         break;
                     case "o43":
                         _s.Append(" style='width:20px;'>");

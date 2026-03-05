@@ -13,6 +13,8 @@
     bool _bolRowHover = UI.Code.basUI.DetectIfCanRowHover(_f, Context, true);
 
     var _strPath = $"{_f.UploadFolder}\\{Model.o27ArchiveFolder}\\{Model.o27ArchiveFileName}";
+
+
     bool _fileExists = System.IO.File.Exists(_strPath);
 
     var _linkUrl = $"/Record/RecPage?prefix={Model.o27Entity}&pid={Model.o27RecordPid}";
@@ -38,20 +40,24 @@
 
 @addTagHelper *, UI
 
-<div>
-    @if (_fileExists)
-    {
-        <a target="_blank" href="/FileUpload/FileDownloadInline?guid=@Model.o27Guid">@_f.tra("Otevřít/Stáhnout")</a>
-    }
-    else
-    {
-        <div class="alert alert-danger" role="alert">
-            @_f.tra("Soubor neexistuje!")
-        </div>
-    }
+@if(Model.o27Entity != "x31")
+{
+    <div>
+        @if (_fileExists)
+        {
+            <a target="_blank" href="/FileUpload/FileDownloadInline?guid=@Model.o27Guid">@_f.tra("Otevřít/Stáhnout")</a>
+        }
+        else
+        {
+            <div class="alert alert-danger" role="alert">
+                @_f.tra("Soubor neexistuje!")
+            </div>
+        }
 
 
-</div>
+    </div>
+}
+
 <table class="table table-hover">
     @if (Model.o27Name != null)
     {
@@ -64,7 +70,17 @@
             </td>
         </tr>
     }
-
+    @if (Model.o27Entity=="x31")
+    {
+        <tr>
+            <td class="tdlab">
+                @_f.tra("Typ souboru"):
+            </td>
+            <td class="tdval">
+                Šablona pevné tiskové sestavy
+            </td>
+        </tr>
+    }
     <tr>
         <td class="tdlab">
             @_f.tra("Název souboru"):
@@ -176,7 +192,7 @@
     }
 
 
-    @if(Model.o27RecordPid>0 && Model.o27Entity != null)
+    @if(Model.o27RecordPid>0 && Model.o27Entity != null && Model.o27Entity !="x31")
     {
         <tr>
             <td class="tdlab">
@@ -195,7 +211,6 @@
         </tr>
     }
 
-    
    
 
 </table>
