@@ -528,6 +528,9 @@ namespace DL
                     case "o22":
                         s += ",o21x.o21Color";
                         break;
+                    case "o27":
+                        s += ",ISNULL(a.o27FileExtension,'') as o27FileExtension,a.o27Entity";
+                        break;
                     case "p32":
                         s += ",a.p32IsBillable";
                         break;

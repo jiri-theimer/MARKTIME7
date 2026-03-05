@@ -761,6 +761,36 @@ namespace UI.Views.Shared.Components.myGrid
                         }
                         _s.Append(">");
                         break;
+                    case "o27":
+                        switch (dbRow["o27Entity"])
+                        {
+                            case "o23":
+                                _s.Append($" style='width:20px;background-color:#e7feff'>");
+                                break;
+                            case "p41":
+                                _s.Append($" style='width:20px;background-color:#F0F8FF'>");
+                                break;
+                            case "p91":
+                                _s.Append($" style='width:20px;background-color:#D1E7DD'>");
+                                break;
+                            case "p56":
+                                _s.Append($" style='width:20px;background-color:#f4ebfe'>");
+                                break;
+                            case "j02":
+                                _s.Append($" style='width:20px;background-color:#FFE4E1'>");
+                                break;
+                            default:
+                                _s.Append(" style='width:20px;'>");
+                                break;
+                        }
+                       
+                        if (dbRow["o27FileExtension"].ToString() == ".msg")
+                        {
+                            _s.Append("<span class='material-icons-outlined-nosize'>alternate_email</span>");
+                        }
+                        
+                        
+                        break;
                     case "o43":
                         _s.Append(" style='width:20px;'>");
                         if (Convert.ToInt32(dbRow["AttachmentsCount"]) > 0)

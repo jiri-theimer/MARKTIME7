@@ -469,10 +469,10 @@ namespace BL
             {
                 foreach (var att in msg.Attachments)
                 {
-                    var strPath = $"{_mother.UploadFolder}\\{rec.o27ArchiveFolder}\\{rec.o27ArchiveFileName}--ATTACHMENT--{att.FileName}";
+                    var strPath = $"{_mother.UploadFolder}\\{rec.o27ArchiveFolder}\\{rec.o27ArchiveFileName}--ATTACHMENT--{att.FileName.Trim()}";
                     if (!System.IO.File.Exists(strPath))
                     {
-                        att.Save($"{_mother.UploadFolder}\\{rec.o27ArchiveFolder}\\{rec.o27ArchiveFileName}--ATTACHMENT--{att.FileName}");
+                        att.Save($"{_mother.UploadFolder}\\{rec.o27ArchiveFolder}\\{rec.o27ArchiveFileName}--ATTACHMENT--{att.FileName.Trim()}");
                     }
                     
                 }

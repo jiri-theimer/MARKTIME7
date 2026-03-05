@@ -106,7 +106,7 @@ namespace UI.Controllers
                     c.o27MailAttachmentsCount = msg.Attachments.Count;
                     if (msg.Attachments.Count > 0)
                     {
-                        c.o27MailAttachments = BO.Code.Bas.OM2(string.Join(", ", msg.Attachments.Select(p => p.FileName)), 490);
+                        c.o27MailAttachments = BO.Code.Bas.OM2(string.Join(", ", msg.Attachments.Select(p => p.FileName.Trim())), 490);
                     }
                     if (msg.ReceivedDate != null)
                     {

@@ -214,6 +214,7 @@ namespace UI.Controllers
         {
             
             var c = Factory.o27AttachmentBL.LoadByGuid(guid);
+            origfilename = origfilename.Trim();
 
             var strPath = $"{Factory.UploadFolder}\\{c.o27ArchiveFolder}\\{c.o27ArchiveFileName}--ATTACHMENT--{origfilename}";
             if (!System.IO.File.Exists(strPath))
