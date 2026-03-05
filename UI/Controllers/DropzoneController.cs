@@ -1,5 +1,7 @@
 ﻿using ceTe.DynamicPDF.PageElements;
 using Microsoft.AspNetCore.Mvc;
+using Rebex.Mail;
+
 using System.Web;
 
 namespace UI.Controllers
@@ -46,6 +48,16 @@ namespace UI.Controllers
                 {
                     rec.p85FreeText04 = fileuid;
                 }
+
+
+                if (System.IO.Path.GetExtension(file.FileName).ToLower()==".msg")
+                {
+                    var msg = LoadMsgFile(archiveDestPath);
+                    rec.p85Prefix = "msg";
+                    rec.p85FreeText05 = msg.Subject;
+                    
+                }
+
                 var p85id = Factory.p85TempboxBL.Save(rec);
                 x += 1;
             }
@@ -53,6 +65,7 @@ namespace UI.Controllers
             return Ok(new { count = files.Count });
         }
 
+        
         public IActionResult SaveToFilebox(string tempguid)
         {
             var lis = Factory.p85TempboxBL.GetList(tempguid);
@@ -63,6 +76,70 @@ namespace UI.Controllers
                 var c = new BO.o27Attachment() {o27OriginalFileName=rec.p85FreeText01,o27ContentType=rec.p85FreeText02,o27ArchiveFileName=rec.p85FreeText03, o27FileSize = (int)rec.p85FreeNumber01, o27Guid = Guid.NewGuid() };
                 c.o27FileExtension = System.IO.Path.GetExtension(strSourcePath);
                 c.o27ArchiveFolder = Factory.o27AttachmentBL.GetUploadFolder("FILEBOX");
+
+                if (System.IO.Path.GetExtension(strSourcePath).ToLower() == ".msg")
+                {
+                    var msg = LoadMsgFile(strSourcePath);                    
+                    c.o27MailSubject = msg.Subject;
+                    if (msg.MessageId != null)
+                    {
+                        c.o27MailMessageID = msg.MessageId.Id;
+                    }
+                    
+                    if (msg.Sender != null)
+                    {
+                        c.o27MailSenderName = msg.Sender.DisplayName;
+                        c.o27MailSenderAddress = msg.Sender.Address;
+                    }
+                    if (msg.To != null && msg.To.Count() > 0)
+                    {
+                        c.o27MailTo = String.Join(", ", msg.To.Select(p => p.Address));
+                    }
+                    if (msg.CC != null && msg.CC.Count() > 0)
+                    {
+                        c.o27MailCc = String.Join(", ", msg.CC.Select(p => p.Address));
+                    }
+                    if (msg.Bcc != null && msg.Bcc.Count() > 0)
+                    {
+                        c.o27MailBcc = String.Join(", ", msg.CC.Select(p => p.Address));
+                    }
+                    c.o27MailAttachmentsCount = msg.Attachments.Count;
+                    if (msg.Attachments.Count > 0)
+                    {
+                        c.o27MailAttachments = BO.Code.Bas.OM2(string.Join(", ", msg.Attachments.Select(p => p.FileName)), 490);
+                    }
+                    if (msg.ReceivedDate != null)
+                    {
+                        c.o27MailDateReceived = msg.ReceivedDate.LocalTime;
+                    }
+                    if (msg.Date != null)
+                    {
+                        c.o27MailDateMessage = msg.Date.LocalTime;
+                    }
+                    if (msg.HasBodyHtml)
+                    {
+                        c.o27MailIsBodyHtml = true;
+                        c.o27MailBodyHtml = msg.BodyHtml;
+                    }
+                    else
+                    {
+                        c.o27MailIsBodyHtml = false;
+                    }
+                    if (msg.HasBodyText)
+                    {
+                        c.o27MailBodyText = msg.BodyText;
+                    }
+
+                    if (msg.Attachments.Count() > 0)
+                    {
+                        foreach (var att in msg.Attachments)
+                        {
+
+                            att.Save($"{Factory.UploadFolder}\\{c.o27ArchiveFolder}\\{c.o27ArchiveFileName}--ATTACHMENT--{att.FileName}");
+                        }
+                    }
+                }
+
                 if (Factory.o27AttachmentBL.Save(c) > 0)
                 {
                                         
@@ -158,5 +235,18 @@ namespace UI.Controllers
 
             return fileContentResult;
         }
+
+
+
+        private MailMessage LoadMsgFile(string strMsgPath)
+        {
+            Rebex.Licensing.Key = "==FmUGVeH5TmvcatEzt0Z4rBvjoahsK0e0albLXKX2bgBB+JxAEBiGKcZlB73B+U5q3G5YP==";
+            var message = new MailMessage();
+            message.Load(strMsgPath);
+
+            return message;
+
+        }
+
     }
 }
