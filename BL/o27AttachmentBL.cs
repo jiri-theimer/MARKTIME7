@@ -1,4 +1,7 @@
 ﻿
+using BO;
+using DocumentFormat.OpenXml.EMMA;
+
 namespace BL
 {
     public interface Io27AttachmentBL
@@ -20,6 +23,9 @@ namespace BL
         public void Move2Deleted(BO.o27Attachment rec);
         public string CreateTempInfoxFile(string strGuid, string strEntity, string strTempFileName, string strOrigFileName, string strContentType);
         public bool CommitNotepdChanges(string strTempNotepadGuid,string strPrefix, int intRecordPid);
+        public Rebex.Mail.MailMessage LoadMsgFile(string strMsgPath);
+        public void SaveMsgAttachmentsToDisk(o27Attachment rec, Rebex.Mail.MailMessage msg);
+        public List<BO.StringPair> GetListMsgAttachments(o27Attachment rec);
 
     }
     class o27AttachmentBL : BaseBL, Io27AttachmentBL
@@ -444,6 +450,63 @@ namespace BL
 
 
 
+        }
+
+
+        public Rebex.Mail.MailMessage LoadMsgFile(string strMsgPath)
+        {
+            Rebex.Licensing.Key = "==FmUGVeH5TmvcatEzt0Z4rBvjoahsK0e0albLXKX2bgBB+JxAEBiGKcZlB73B+U5q3G5YP==";
+            var message = new Rebex.Mail.MailMessage();
+            message.Load(strMsgPath);
+
+            return message;
+
+        }
+
+        public void SaveMsgAttachmentsToDisk(o27Attachment rec, Rebex.Mail.MailMessage msg)
+        {
+            if (msg.Attachments.Count() > 0)
+            {
+                foreach (var att in msg.Attachments)
+                {
+                    var strPath = $"{_mother.UploadFolder}\\{rec.o27ArchiveFolder}\\{rec.o27ArchiveFileName}--ATTACHMENT--{att.FileName}";
+                    if (!System.IO.File.Exists(strPath))
+                    {
+                        att.Save($"{_mother.UploadFolder}\\{rec.o27ArchiveFolder}\\{rec.o27ArchiveFileName}--ATTACHMENT--{att.FileName}");
+                    }
+                    
+                }
+            }
+        }
+
+        public List<BO.StringPair> GetListMsgAttachments(o27Attachment rec)
+        {
+            if (rec.o27MailAttachmentsCount == 0 || rec.o27MailAttachments==null)
+            {
+                return null;
+            }
+            var ret = new List<BO.StringPair>();
+
+            var lis = BO.Code.Bas.ConvertString2List(rec.o27MailAttachments, ",");
+            foreach (var s in lis)
+            {
+                var strPath = $"{_mother.UploadFolder}\\{rec.o27ArchiveFileName}--ATTACHMENT--{s}";
+                if (!System.IO.File.Exists(strPath))
+                {
+                    var msg = LoadMsgFile($"{_mother.UploadFolder}\\{rec.o27ArchiveFileName}");
+                    if (msg.Attachments.Count() > 0)
+                    {
+                        SaveMsgAttachmentsToDisk(rec, msg);
+                    }
+                }
+                if (System.IO.File.Exists(strPath))
+                {
+                    ret.Add(new BO.StringPair() { Value = s, Key = rec.o27ArchiveFileName + "--ATTACHMENT--" + s });
+                }                    
+
+            }
+
+            return ret;
         }
 
     }

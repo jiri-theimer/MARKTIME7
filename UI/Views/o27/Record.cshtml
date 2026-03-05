@@ -1,0 +1,36 @@
+﻿@model UI.Models.Record.o27Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("FileBox záznam");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+}
+
+@addTagHelper *, UI
+
+<div class="modal_record_container">
+
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Uživatelský název"):</label>
+        <div class="col-sm-7 col-md-6">
+            <input class="form-control record_name" asp-for="Rec.o27Name" />
+        </div>
+       
+    </div>
+    
+
+
+    <div class="card" style="margin-top:10px;max-width:700px;">
+        <div class="card-body">
+            @await Html.PartialAsync("~/Views/Shared/_o27RecHeaderBox.cshtml", Model.Rec)
+
+
+
+            @Html.EditorFor(m => m.Rec, "~/Views/Shared/_TimeStamp.cshtml")
+        </div>
+    </div>
+
+
+
+
+</div>

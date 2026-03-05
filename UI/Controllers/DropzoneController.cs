@@ -52,7 +52,7 @@ namespace UI.Controllers
 
                 if (System.IO.Path.GetExtension(file.FileName).ToLower()==".msg")
                 {
-                    var msg = LoadMsgFile(archiveDestPath);
+                    var msg = Factory.o27AttachmentBL.LoadMsgFile(archiveDestPath);
                     rec.p85Prefix = "msg";
                     rec.p85FreeText05 = msg.Subject;
                     
@@ -79,7 +79,7 @@ namespace UI.Controllers
 
                 if (System.IO.Path.GetExtension(strSourcePath).ToLower() == ".msg")
                 {
-                    var msg = LoadMsgFile(strSourcePath);                    
+                    var msg = Factory.o27AttachmentBL.LoadMsgFile(strSourcePath);                    
                     c.o27MailSubject = msg.Subject;
                     if (msg.MessageId != null)
                     {
@@ -130,14 +130,9 @@ namespace UI.Controllers
                         c.o27MailBodyText = msg.BodyText;
                     }
 
-                    if (msg.Attachments.Count() > 0)
-                    {
-                        foreach (var att in msg.Attachments)
-                        {
+                    
 
-                            att.Save($"{Factory.UploadFolder}\\{c.o27ArchiveFolder}\\{c.o27ArchiveFileName}--ATTACHMENT--{att.FileName}");
-                        }
-                    }
+                    
                 }
 
                 if (Factory.o27AttachmentBL.Save(c) > 0)
@@ -238,15 +233,7 @@ namespace UI.Controllers
 
 
 
-        private MailMessage LoadMsgFile(string strMsgPath)
-        {
-            Rebex.Licensing.Key = "==FmUGVeH5TmvcatEzt0Z4rBvjoahsK0e0albLXKX2bgBB+JxAEBiGKcZlB73B+U5q3G5YP==";
-            var message = new MailMessage();
-            message.Load(strMsgPath);
-
-            return message;
-
-        }
+        
 
     }
 }

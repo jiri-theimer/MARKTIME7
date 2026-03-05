@@ -21,6 +21,19 @@
         _linkUrl = $"javascript:_window_open('/p31/Record?pid={Model.o27RecordPid}',3)";
     }
 
+    bool _bolMail = false;
+    List<BO.StringPair> _atts = null;
+    if (Model.o27MailMessageID !=null || Model.o27FileExtension == ".msg")
+    {
+        _bolMail = true;
+        _atts = _f.o27AttachmentBL.GetListMsgAttachments(Model);
+    }
+    
+    
+    
+    
+
+
 }
 
 @addTagHelper *, UI
@@ -40,39 +53,6 @@
 
 </div>
 <table class="table table-hover">
-   
-    <tr>
-        <td class="tdlab">
-            @_f.tra("Název souboru"):
-        </td>
-        <td class="tdval">
-            @Model.o27OriginalFileName
-        </td>
-    </tr>
-    <tr>
-        <td class="tdlab">
-            @_f.tra("Přípona"):
-        </td>
-        <td class="tdval">
-            @Model.o27FileExtension
-        </td>
-    </tr>
-    <tr>
-        <td class="tdlab">
-            Content type:
-        </td>
-        <td class="tdval">
-            @Model.o27ContentType
-        </td>
-    </tr>
-    <tr>
-        <td class="tdlab">
-            @_f.tra("Velikost"):
-        </td>
-        <td class="tdval">
-            @BO.Code.Bas.FormatFileSize(Model.o27FileSize)
-        </td>
-    </tr>
     @if (Model.o27Name != null)
     {
         <tr>
@@ -85,8 +65,51 @@
         </tr>
     }
 
-    @if(Model.o27MailMessageID != null)
+    <tr>
+        <td class="tdlab">
+            @_f.tra("Název souboru"):
+        </td>
+        <td class="tdval">
+            @Model.o27OriginalFileName
+        </td>
+    </tr>
+    @if (!_bolMail)
     {
+        <tr>
+            <td class="tdlab">
+                @_f.tra("Přípona"):
+            </td>
+            <td class="tdval">
+                @Model.o27FileExtension
+            </td>
+        </tr>
+        <tr>
+            <td class="tdlab">
+                Content type:
+            </td>
+            <td class="tdval">
+                @Model.o27ContentType
+            </td>
+        </tr>
+    }
+    
+    <tr>
+        <td class="tdlab">
+            @_f.tra("Velikost"):
+        </td>
+        <td class="tdval">
+            @BO.Code.Bas.FormatFileSize(Model.o27FileSize)
+        </td>
+    </tr>
+    
+    @if (_bolMail)
+    {
+        <tr>
+            <td colspan="2">
+               <span class="badge-light">@_f.tra("Poštovní zpráva")</span>
+            </td>
+        </tr>
+
         <tr>
             <td style="min-width:140px;">
                 @_f.tra("Odesílatel"):
@@ -133,6 +156,21 @@
                     <myval value="@Model.o27MailSubject"></myval>
                 </td>
             </tr>
+        }
+
+        @if (_atts !=null)
+        {
+            @foreach(var att in _atts)
+            {
+                <tr>
+                    <td>
+                        @_f.tra("Příloha zprávy"):
+                    </td>
+                    <td>
+                        <a href="/File">@att.Value</a>
+                    </td>
+                </tr>
+            }
         }
     }
 

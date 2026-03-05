@@ -1,9 +1,9 @@
 ﻿
+using DocumentFormat.OpenXml.Drawing;
 using Microsoft.AspNetCore.Mvc;
-
-using UI.Models;
-
 using System.Web;
+using Telerik.Reporting.AI;
+using UI.Models;
 
 
 namespace UI.Controllers
@@ -201,6 +201,42 @@ namespace UI.Controllers
                     return new FileContentResult(System.IO.File.ReadAllBytes(fullPath), "application/octet-stream");
                 }
                 
+            }
+            else
+            {
+                return FileDownloadNotFound(c);
+            }
+
+        }
+
+        [HttpGet]
+        public ActionResult FileDownloadMsgAttachment(string guid,string origfilename)
+        {
+            
+            var c = Factory.o27AttachmentBL.LoadByGuid(guid);
+
+            var strPath = $"{Factory.UploadFolder}\\{c.o27ArchiveFolder}\\{c.o27ArchiveFileName}--ATTACHMENT--{origfilename}";
+            if (!System.IO.File.Exists(strPath))
+            {
+                var msg = Factory.o27AttachmentBL.LoadMsgFile($"{Factory.UploadFolder}\\{c.o27ArchiveFolder}\\{c.o27ArchiveFileName}");
+
+                if (msg.Attachments.Count()==0)
+                {
+                    return BadRequest("Tento záznam nemá přílohy");
+                }
+
+                Factory.o27AttachmentBL.SaveMsgAttachmentsToDisk(c, msg);
+            }
+
+            
+
+            if (System.IO.File.Exists(strPath))
+            {
+                Response.Headers["Content-Disposition"] = $"inline; filename*=UTF-8''{HttpUtility.UrlEncode(c.o27OriginalFileName)}";
+                var strContentType = BO.Code.File.GetContentType(strPath);
+
+                return new FileContentResult(System.IO.File.ReadAllBytes(strPath), BO.Code.File.GetContentType(strPath));
+
             }
             else
             {
