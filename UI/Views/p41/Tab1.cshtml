@@ -102,6 +102,7 @@
         _lisP91 = _f.p91InvoiceBL.GetList(new BO.myQueryP91() { p41id = Model.pid, MyRecordsDisponible = true });
     }
 
+    var dropzonemodel = new DropzoneViewModel() { TempGuid = BO.Code.Bas.GetGuid(), IsPostbackAfterSave = true };
 }
 
 
@@ -470,7 +471,7 @@
 }
 
 
-
+@Html.EditorFor(m => dropzonemodel, "~/Views/Shared/_dropzone.cshtml")
 
 
 <script type="text/javascript">
