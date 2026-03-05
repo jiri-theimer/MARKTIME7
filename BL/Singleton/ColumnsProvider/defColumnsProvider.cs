@@ -595,6 +595,20 @@ namespace BL
             AA("o27Entity", "Vazba", gdc2, "dbo.get_entity_alias(a.o27Entity)");
             AA("o27ContentType", "CT");
             AA("o27Name", "Uživatelský název");
+
+            this.CurrentFieldGroup = "Poštovní zpráva";
+            AA("o27MailDateReceived", "Datum zprávy", gdc1, "a.o27MailDateReceived", "datetime");
+            AA("o27MailSubject", "Předmět zprávy", gdc1);
+            oc = AA("Sender", "Odesílatel", gdc1, "case when a.o27MailSenderName is not null then a.o27MailSenderName else a.o27MailSenderAddress end"); oc.SqlExplicitGroupBy = "case when a.o27MailSenderName is not null then a.o27MailSenderName else a.o27MailSenderAddress end";
+            oc = AA("o27MailSenderName", "Od (Jméno)"); oc.SqlExplicitGroupBy = "a.o27MailSenderName";
+            oc = AA("o27MailSenderAddress", "Od (E-mail)"); oc.SqlExplicitGroupBy = "a.o27MailSenderAddress";
+            AA("o27MailTo", "Komu");
+            AA("o27MailCc", "Cc");
+            AA("o27MailBcc", "Bcc");
+            AA("o27MailAttachments", "Seznam příloh");
+            AFNUM0("o27MailAttachmentsCount", "Počet příloh");
+            AA("MaPrilohy", "Má přílohy?", gdc0, "convert(bit,case when a.o27MailAttachmentsCount>0 then 1 else 0 end)", "bool");
+
             AppendTimestamp();
 
             //uživatelská pole

@@ -7,6 +7,7 @@
 @{
 
     var _lisP85 = _f.p85TempboxBL.GetList(Model.TempGuid);
+    var _fileboxUrl = new UI.Menu.TheMenuSupport(_f).GetMainmenuEntityUrl("o27");
 }
 
 
@@ -35,11 +36,19 @@
             FileBox
         </span>
 
-        Přetáhněte sem dokumenty, poštovní zprávy
-        <span style="font-size:14px;margin-left:6px;">nebo zde klikněte</span>
+        @_f.tra("Přetáhněte sem dokumenty, poštovní zprávy nebo zde klikněte...")
+        
     </div>
-
+    <div class="alert alert-success" role="alert" id="divDropzoneInfoMessage" style="display:none;">
+        
+    </div>
+    <div id="divAfterUpload" style="display:none;">
+        <button type="button" class="btn btn-primary" onclick="continue_to_save()">@_f.tra("Zpracovat nahrané soubory")</button>
+        <button type="button" class="btn btn-light" onclick="save_to_filebox()">@_f.tra("Uložit pouze do FileBox")</button>
+    </div>
 </form>
+
+
 
 @if (_lisP85 != null && _lisP85.Count() > 0)
 {
@@ -141,7 +150,9 @@
         });
 
         dz.on("queuecomplete", function () {
-          //nic
+          alert("ok");
+          $("#divAfterUpload").css("display","block");
+
         });
 
         dz.on("sendingmultiple", function (files, xhr, formData) {
@@ -155,12 +166,12 @@
         });
 
         dz.on("removedfile", function(file) {
-            var tempguid="@Model.TempGuid";
+            const tempguid="@Model.TempGuid";
 
 
             $.post("/Dropzone/DeleteTempFile", { filename: encodeURIComponent(file.name), fileuid: file.upload.uuid, tempguid: tempguid }, function (data) {
 
-                //nic
+                refreshstate_dropbox();
 
             });
 
@@ -266,7 +277,39 @@
        });
      }
 
+     function refreshstate_dropbox()
+     {
+                if (dz.files.length>0)
+                {
+                    $("#divAfterUpload").css("display","block");
+                    $("#divDropzoneInfoMessag").css("display","none");
+                }else{
+                    $("#divAfterUpload").css("display","none");
+                }
+     }
+
+     function show_dropzone_message(s)
+     {
+         $("#divDropzoneInfoMessage").css("display","block");
+         $("#divDropzoneInfoMessage").html(s);
+     }
+
+     function save_to_filebox()
+     {
+         const tempguid="@Model.TempGuid";
 
 
+            $.post("/Dropzone/SaveToFilebox", { tempguid: tempguid }, function (data) {
+
+                dz.removeAllFiles();
+                refreshstate_dropbox();
+                var link="<strong><a target='_top' href='@(_fileboxUrl)'>FileBox</a></strong>";
+                show_dropzone_message("Soubory máte uložené ve "+link);
+            });
+     }
+     function continue_to_save()
+     {
+
+     }
 
 </script>

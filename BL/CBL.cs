@@ -69,6 +69,15 @@ namespace BL
                 case "":
                     break;
 
+                case "o27":
+                    var rec = _mother.o27AttachmentBL.Load(pid);
+                    var strRet = _db.RunSp(strSP, ref pars);
+                    if ( strRet == "1")
+                    {
+                        _mother.o27AttachmentBL.Move2Deleted(rec);
+                    }
+                    return strRet;
+
                 default:
                     return _db.RunSp(strSP, ref pars);
             }

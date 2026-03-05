@@ -97,7 +97,28 @@ namespace BL
             p.AddString("o27Guid", rec.o27Guid.ToString());
             p.AddString("o27NotepadTempGuid", rec.o27NotepadTempGuid);
             p.AddEnumInt("o27CallerFlag", rec.o27CallerFlag);
-          
+
+
+
+            //mail message
+            p.AddDateTime("o27MailDateReceived", rec.o27MailDateReceived);
+            p.AddDateTime("o27MailDateMessage", rec.o27MailDateMessage);
+            p.AddString("o27MailMessageID", rec.o27MailMessageID);            
+            p.AddString("o27MailInfoID", rec.o27MailInfoID);
+            p.AddString("o27MailSubject", rec.o27MailSubject);
+            p.AddString("o27MailBodyHtml", rec.o27MailBodyHtml);
+            p.AddString("o27MailBodyText", rec.o27MailBodyText);
+
+            p.AddString("o27MailSenderAddress", rec.o27MailSenderAddress);
+            p.AddString("o27MailSenderName", rec.o27MailSenderName);
+            p.AddString("o27MailTo", rec.o27MailTo);
+            p.AddString("o27MailCc", rec.o27MailCc);
+            p.AddString("o27MailBcc", rec.o27MailBcc);
+
+            p.AddInt("o27MailAttachmentsCount", rec.o27MailAttachmentsCount);
+            p.AddBool("o27MailIsBodyHtml", rec.o27MailIsBodyHtml);
+            p.AddString("o27MailAttachments", rec.o27MailAttachments);
+
 
             int intPID = _db.SaveRecord("o27Attachment", p, rec);
 

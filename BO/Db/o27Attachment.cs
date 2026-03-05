@@ -29,5 +29,25 @@ namespace BO
         public o27CallerFlagENUM o27CallerFlag { get; set; }
         public string FullPath { get; set; } //pracovní
 
+
+
+
+        public DateTime? o27MailDateMessage { get; set; }
+        public DateTime? o27MailDateReceived { get; set; }
+        public string o27MailMessageID { get; set; }
+        public string o27MailInfoID { get; set; }
+        
+        public int o27MailAttachmentsCount { get; set; }
+        public bool o27MailIsBodyHtml { get; set; }
+        public string o27MailSubject { get; set; }
+        public string o27MailBodyText { get; set; }
+        public string o27MailBodyHtml { get; set; }
+        public string o27MailSenderAddress { get; set; }
+        public string o27MailSenderName { get; set; }
+        public string o27MailCc { get; set; }
+        public string o27MailBcc { get; set; }
+        public string o27MailTo { get; set; }
+        public string o27MailAttachments { get; set; }
+
     }
 }

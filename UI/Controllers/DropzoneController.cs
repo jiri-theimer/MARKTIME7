@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using ceTe.DynamicPDF.PageElements;
+using Microsoft.AspNetCore.Mvc;
 using System.Web;
 
 namespace UI.Controllers
@@ -52,6 +53,33 @@ namespace UI.Controllers
             return Ok(new { count = files.Count });
         }
 
+        public IActionResult SaveToFilebox(string tempguid)
+        {
+            var lis = Factory.p85TempboxBL.GetList(tempguid);
+            bool bolOK = false;
+            foreach(var rec in lis)
+            {
+                var strSourcePath = $"{Factory.TempFolder}\\{rec.p85FreeText03}";
+                var c = new BO.o27Attachment() {o27OriginalFileName=rec.p85FreeText01,o27ContentType=rec.p85FreeText02,o27ArchiveFileName=rec.p85FreeText03, o27FileSize = (int)rec.p85FreeNumber01, o27Guid = Guid.NewGuid() };
+                c.o27FileExtension = System.IO.Path.GetExtension(strSourcePath);
+                c.o27ArchiveFolder = Factory.o27AttachmentBL.GetUploadFolder("FILEBOX");
+                if (Factory.o27AttachmentBL.Save(c) > 0)
+                {
+                                        
+                    Factory.o27AttachmentBL.CopyOneTempFile2Upload(c.o27ArchiveFileName, c.o27ArchiveFolder, c.o27ArchiveFileName);
+                    bolOK = true;
+                }
+            }
+            if (bolOK)
+            {
+                return Ok(new { ok = true });
+            }
+            else
+            {
+                return BadRequest(new { ok = false });
+            }
+            
+        }
 
         public IActionResult DeleteTempFile(string filename, string fileuid, string tempguid)
         {

@@ -84,7 +84,58 @@
             </td>
         </tr>
     }
-    
+
+    @if(Model.o27MailMessageID != null)
+    {
+        <tr>
+            <td style="min-width:140px;">
+                @_f.tra("Odesílatel"):
+            </td>
+            <td>
+                <myval value="@Model.o27MailSenderAddress"></myval>
+            </td>
+        </tr>
+        <tr>
+            <td style="min-width:140px;">
+                @_f.tra("Komu"):
+            </td>
+            <td>
+                <myval value="@Model.o27MailTo"></myval>
+            </td>
+        </tr>
+        @if (Model.o27MailCc != null)
+        {
+            <tr>
+                <td style="min-width:140px;">
+                    @_f.tra("V kopii"):
+                </td>
+                <td>
+                    <myval value="@Model.o27MailCc"></myval>
+                </td>
+            </tr>
+        }
+
+        <tr>
+            <td>
+                @_f.tra("Datum zprávy"):
+            </td>
+            <td>
+                <myval value="@Model.o27MailDateMessage" datatype="datetime"></myval>
+            </td>
+        </tr>
+        @if (Model.o27MailSubject != null)
+        {
+            <tr>
+                <td>
+                    @_f.tra("Předmět zprávy"):
+                </td>
+                <td>
+                    <myval value="@Model.o27MailSubject"></myval>
+                </td>
+            </tr>
+        }
+    }
+
 
     @if(Model.o27RecordPid>0 && Model.o27Entity != null)
     {
