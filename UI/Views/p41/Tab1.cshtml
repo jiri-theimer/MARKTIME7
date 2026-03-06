@@ -102,24 +102,24 @@
         _lisP91 = _f.p91InvoiceBL.GetList(new BO.myQueryP91() { p41id = Model.pid, MyRecordsDisponible = true });
     }
 
-    var dropzonemodel = new DropzoneViewModel() { TempGuid = BO.Code.Bas.GetGuid(), IsPostbackAfterSave = true };
+    var dropzonemodel = new DropzoneViewModel() { IsAutoSave = true, RecPid = Model.pid, RecPrefix = Model.prefix };
 }
-
-
-
-
-
 
 
 
 @addTagHelper *, UI
 @section header_content {
 
-
     <link rel="stylesheet" href="/css/htmltable.css" />
 
 
+    <link rel="stylesheet" href="~/lib/dropzone/dropzone.css" asp-append-version="true" />
+    <script src="~/lib/dropzone/dropzone-min.js" asp-append-version="true"></script>
+
+    <script src="~/lib/dropzone/DataStream.js"></script>
+    <script src="~/lib/dropzone/msg.reader.js"></script>
 }
+
 
 
 @await Html.PartialAsync("~/Views/Shared/_Tab1ButtonSetting.cshtml", Model.prefix)
@@ -172,18 +172,18 @@
 
                 </a>
 
-                <ul style="display:@(UI.Code.basKendoTreeViewSupport.Get_UL_LastState(_f,"tab1-p41-toggle-p28","expanded"))">
+                <ul style="display:@(UI.Code.basKendoTreeViewSupport.Get_UL_LastState(_f, "tab1-p41-toggle-p28", "expanded"))">
                     @foreach (var c in _lisP41)
                     {
                         <li>
                             @if (_f.CurrentUser.j04IsModule_p41)
                             {
 
-                                <a id="p41@(c.p41ID)" class="treeview-link @(Model.pid==c.p41ID ? "active" : null)" title="@(c.Project.Length>35 ? c.Project : null)" target="_top" href="/Record/@(_strRecPage)?prefix=p41&pid=@(c.p41ID)">@(BO.Code.Bas.OM2(c.Project, 35))</a>
+                                <a id="p41@(c.p41ID)" class="treeview-link @(Model.pid == c.p41ID ? "active" : null)" title="@(c.Project.Length > 35 ? c.Project : null)" target="_top" href="/Record/@(_strRecPage)?prefix=p41&pid=@(c.p41ID)">@(BO.Code.Bas.OM2(c.Project, 35))</a>
                             }
                             else
                             {
-                                <small title="@(c.Project.Length>35 ? c.Project : null)">@(BO.Code.Bas.OM2(c.Project, 35))</small>
+                                <small title="@(c.Project.Length > 35 ? c.Project : null)">@(BO.Code.Bas.OM2(c.Project, 35))</small>
                             }
                         </li>
                     }
@@ -196,9 +196,9 @@
 
     @if (_bolIsTree)
     {
-       
+
         <ul class="mytreeview">
-            
+
             @foreach (var c0 in _lisP41.Where(p => p.p41TreeLevel == 0))
             {
                 <li>
@@ -209,7 +209,7 @@
                         <kbd class="le@(c0.p07Level)">L@(c0.p07Level)</kbd>
                     }
 
-                    <a class="treeview-link" style="@(c0.p41ValidUntil<DateTime.Now ? "text-decoration: line-through": null)" id="p41@(c0.p41ID)" target="_top" href="/Record/@(_strRecPage)?prefix=p41&pid=@(c0.p41ID)">@(c0.Project)</a>
+                    <a class="treeview-link" style="@(c0.p41ValidUntil < DateTime.Now ? "text-decoration: line-through" : null)" id="p41@(c0.p41ID)" target="_top" href="/Record/@(_strRecPage)?prefix=p41&pid=@(c0.p41ID)">@(c0.Project)</a>
 
 
                     @if (c0.p41TreeNext > c0.p41TreePrev)
@@ -220,11 +220,11 @@
                                 <li>
                                     @if (c1.p41TreeNext > c1.p41TreePrev)
                                     {
-                                        <span class="material-icons-outlined-btn mytreeview-toggle-sipka" onclick="_treeview_toggle(this)">arrow_drop_down</span>                                        
+                                        <span class="material-icons-outlined-btn mytreeview-toggle-sipka" onclick="_treeview_toggle(this)">arrow_drop_down</span>
                                         <kbd class="le@(c1.p07Level)">L@(c1.p07Level)</kbd>
                                     }
 
-                                    <a class="treeview-link" id="p41@(c1.p41ID)" style="@(c1.p41ValidUntil<DateTime.Now ? "text-decoration: line-through": null)" target="_top" href="/Record/@(_strRecPage)?prefix=p41&pid=@(c1.p41ID)">@(c1.Project)</a>
+                                    <a class="treeview-link" id="p41@(c1.p41ID)" style="@(c1.p41ValidUntil < DateTime.Now ? "text-decoration: line-through" : null)" target="_top" href="/Record/@(_strRecPage)?prefix=p41&pid=@(c1.p41ID)">@(c1.Project)</a>
 
 
                                     @if (c1.p41TreeNext > c1.p41TreePrev)
@@ -239,14 +239,14 @@
                                                         <kbd class="le@(c2.p07Level)">L@(c2.p07Level)</kbd>
                                                     }
 
-                                                    <a class="treeview-link" id="p41@(c2.p41ID)" target="_top" style="@(c2.p41ValidUntil<DateTime.Now ? "text-decoration: line-through": null)" href="/Record/@(_strRecPage)?prefix=p41&pid=@(c2.p41ID)">@(c2.Project)</a>
+                                                    <a class="treeview-link" id="p41@(c2.p41ID)" target="_top" style="@(c2.p41ValidUntil < DateTime.Now ? "text-decoration: line-through" : null)" href="/Record/@(_strRecPage)?prefix=p41&pid=@(c2.p41ID)">@(c2.Project)</a>
                                                     @if (c2.p41TreeNext > c2.p41TreePrev)
                                                     {
                                                         <ul>
                                                             @foreach (var c3 in _lisP41.Where(p => p.p41ParentID == c2.p41ID))
                                                             {
                                                                 <li>
-                                                                    <a class="treeview-link" id="p41@(c3.p41ID)" style="@(c3.p41ValidUntil<DateTime.Now ? "text-decoration: line-through": null)" target="_top" href="/Record/@(_strRecPage)?prefix=p41&pid=@(c3.p41ID)">@(c3.Project)</a>
+                                                                    <a class="treeview-link" id="p41@(c3.p41ID)" style="@(c3.p41ValidUntil < DateTime.Now ? "text-decoration: line-through" : null)" target="_top" href="/Record/@(_strRecPage)?prefix=p41&pid=@(c3.p41ID)">@(c3.Project)</a>
                                                                 </li>
                                                             }
                                                         </ul>
@@ -279,7 +279,7 @@
 
             </a>
 
-            <ul style="display:@(UI.Code.basKendoTreeViewSupport.Get_UL_LastState(_f,"tab1-p41-toggle-p40","collapsed"))">
+            <ul style="display:@(UI.Code.basKendoTreeViewSupport.Get_UL_LastState(_f, "tab1-p41-toggle-p40", "collapsed"))">
                 @foreach (var c in _lisP40)
                 {
                     <li>
@@ -311,13 +311,13 @@
 
             </a>
 
-            <ul style="display:@(UI.Code.basKendoTreeViewSupport.Get_UL_LastState(_f,"tab1-p41-toggle-p56","collapsed"))">
+            <ul style="display:@(UI.Code.basKendoTreeViewSupport.Get_UL_LastState(_f, "tab1-p41-toggle-p56", "collapsed"))">
                 @foreach (var c in _lisP56)
                 {
                     <li>
                         <a class="treeview-link" target="_top" href="/Record/@(_strRecPage)?prefix=p56&pid=@(c.pid)">@(BO.Code.Bas.OM2(c.p56Name, 25))</a>
-                        
-                        @if(c.b02Color != null)
+
+                        @if (c.b02Color != null)
                         {
                             <small class="tecka-vedle">
                                 @(c.b02Name)
@@ -349,7 +349,7 @@
                 <span class="material-icons-outlined-btn" onclick="_treeview_toggle(this)">file_present</span>
                 <span>@_f.tra("Dokumenty") (@(_lisO23.Count()))</span>
             </a>
-            <ul style="display:@(UI.Code.basKendoTreeViewSupport.Get_UL_LastState(_f,"tab1-p41-toggle-o23","collapsed"))">
+            <ul style="display:@(UI.Code.basKendoTreeViewSupport.Get_UL_LastState(_f, "tab1-p41-toggle-o23", "collapsed"))">
                 @foreach (var c in _lisO23)
                 {
                     <li>
@@ -373,25 +373,25 @@
                 <span class="material-icons-outlined-btn" onclick="_treeview_toggle(this)">receipt_long</span>
                 <span>@_f.tra("Vyúčtování") (@(_lisP91.Count()))</span>
             </a>
-            <ul style="display:@(UI.Code.basKendoTreeViewSupport.Get_UL_LastState(_f,"tab1-p41-toggle-p91","collapsed"))">
+            <ul style="display:@(UI.Code.basKendoTreeViewSupport.Get_UL_LastState(_f, "tab1-p41-toggle-p91", "collapsed"))">
                 <li>
-                   
+
                     <table class="table-sm table-hover table">
                         @foreach (var c in _lisP91)
                         {
                             <tr>
-                                <td style="background-color: @(c.p91Amount_Debt > 1 && DateTime.Today>c.p91DateMaturity ? "red": "none")">
+                                <td style="background-color: @(c.p91Amount_Debt > 1 && DateTime.Today > c.p91DateMaturity ? "red" : "none")">
                                     <a class="treeview-link" target="_top" href="/Record/@(_strRecPage)?prefix=p91&pid=@(c.pid)">@c.p91Code</a>
                                 </td>
                                 <td>
                                     @(BO.Code.Bas.ObjectDate2String(c.p91DateSupply, "dd.MM.yyyy"))
                                 </td>
                                 <td class="tdcastka" style="text-align:right;">
-                                    
-                                        @(BO.Code.Bas.Number2String(c.p91Amount_WithoutVat)) @c.j27Code
-                                    
+
+                                    @(BO.Code.Bas.Number2String(c.p91Amount_WithoutVat)) @c.j27Code
+
                                 </td>
-                                
+
 
 
 
@@ -455,10 +455,10 @@
 @Html.Raw("</div>")
 
 
-@if(Model.Rec.p41BillingMemo200 != null)
+@if (Model.Rec.p41BillingMemo200 != null)
 {
     <div class="recpageboxauto" style="background-color:#DFFFE9;padding:3px;" title="Fakturační poznámka">
-        @Html.Raw( _f.p41ProjectBL.LoadBillingMemo(Model.Rec.pid))
+        @Html.Raw(_f.p41ProjectBL.LoadBillingMemo(Model.Rec.pid))
     </div>
 }
 
@@ -470,9 +470,9 @@
 
 }
 
-
-@Html.EditorFor(m => dropzonemodel, "~/Views/Shared/_dropzone.cshtml")
-
+<div class="recpageboxauto">
+    @Html.EditorFor(m => dropzonemodel, "~/Views/Shared/_dropzone.cshtml")
+</div>
 
 <script type="text/javascript">
 

@@ -18,6 +18,9 @@ namespace UI.Controllers
             var tempguid = Request.Form["tempguid"];
             var dropzoneuids = Request.Form["dropzone_uids"];
             var dropzonenames = Request.Form["dropzone_names"];
+            var isautosave = BO.Code.Bas.BG(Request.Form["isautosave"]);
+            var recprefix = Request.Form["recprefix"];
+            var recpid = BO.Code.Bas.InInt(Request.Form["recpid"]);
 
             var files = Request.Form.Files;
 
@@ -62,11 +65,16 @@ namespace UI.Controllers
                 x += 1;
             }
 
+            if (isautosave)
+            {
+                SaveToFilebox(tempguid,recprefix,recpid);
+            }
+
             return Ok(new { count = files.Count });
         }
 
         
-        public IActionResult SaveToFilebox(string tempguid)
+        public IActionResult SaveToFilebox(string tempguid,string recprefix,int recpid)
         {
             var lis = Factory.p85TempboxBL.GetList(tempguid);
             bool bolOK = false;
@@ -76,6 +84,8 @@ namespace UI.Controllers
                 var c = new BO.o27Attachment() {o27OriginalFileName=rec.p85FreeText01,o27ContentType=rec.p85FreeText02,o27ArchiveFileName=rec.p85FreeText03, o27FileSize = (int)rec.p85FreeNumber01, o27Guid = Guid.NewGuid() };
                 c.o27FileExtension = System.IO.Path.GetExtension(strSourcePath);
                 c.o27ArchiveFolder = Factory.o27AttachmentBL.GetUploadFolder("FILEBOX");
+                c.o27Entity = recprefix;
+                c.o27RecordPid = recpid;
 
                 if (System.IO.Path.GetExtension(strSourcePath).ToLower() == ".msg")
                 {

@@ -5,7 +5,10 @@
     For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 *@
 @{
-
+    if (Model.TempGuid == null)
+    {
+        Model.TempGuid = BO.Code.Bas.GetGuid();
+    }
     var _lisP85 = _f.p85TempboxBL.GetList(Model.TempGuid);
     var _fileboxUrl = new UI.Menu.TheMenuSupport(_f).GetMainmenuEntityUrl("o27");
 }
@@ -25,14 +28,17 @@
     <input type="hidden" id="tempguid" name="tempguid" value="@Model.TempGuid" />
     <input type="hidden" id="dropzone_uids" name="dropzone_uids" />
     <input type="hidden" id="dropzone_names" name="dropzone_names" />
+    <input type="hidden" id="isautosave" name="isautosave" value="@Model.IsAutoSave.ToString()" />
+    <input type="hidden" id="recprefix" name="recprefix" value="@Model.RecPrefix" />
+    <input type="hidden" id="recpid" name="recpid" value="@Model.RecPid" />
 
     <div class="dz-message" style="padding:0px;margin:0px;">
         <span class="badge-light">
             <span class="material-icons-outlined-btn menu_new_record">attachment</span>
-            FileBox
+            FILEBOX
         </span>
 
-        @_f.tra("Přetáhněte sem dokumenty, poštovní zprávy nebo zde klikněte...")
+        @_f.tra("Přetáhněte sem dokumenty, e-maily nebo zde klikněte...")
         
     </div>
     <div class="alert alert-success" role="alert" id="divDropzoneInfoMessage" style="display:none;">
@@ -73,6 +79,7 @@
 
 
 <script>
+    
          // Dropzone v6 – explicitní inicializace
     const formEl = document.getElementById("myDropzone");
 
@@ -137,7 +144,7 @@
             }
           }
 
-
+          
         });
 
         dz.on("error", function (file, errorMessage) {
@@ -146,8 +153,21 @@
         });
 
         dz.on("queuecomplete", function () {
-          alert("ok");
+          
           $("#divAfterUpload").css("display","block");
+
+          var isrefresh="@Model.IsAutoSave";
+          if (isrefresh=="True")
+          {
+                    if (document.getElementById("form1"))
+                    {
+                        _postback();
+                    }else
+                    {
+                        location.replace(location.href);
+                    }
+          }
+          
 
         });
 
@@ -295,20 +315,8 @@
          const tempguid="@Model.TempGuid";
 
 
-            $.post("/Dropzone/SaveToFilebox", { tempguid: tempguid }, function (data) {
-                const ispostbackafter="@Model.IsPostbackAfterSave";
-                if (ispostbackafter=="True"){
-                    if (document.getElementById("form1"))
-                    {
-                        _postback();
-                    }else
-                    {
-                        location.replace(location.href);
-                    }
-                    
-                    return;
-
-                }
+            $.post("/Dropzone/SaveToFilebox", { tempguid: tempguid,recprefix: "@Model.RecPrefix",recpid: @Model.RecPid }, function (data) {
+                                
                 dz.removeAllFiles();
                 refreshstate_dropbox();
                 var link="<strong><a target='_top' href='@(_fileboxUrl)'>FileBox</a></strong>";

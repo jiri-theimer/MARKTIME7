@@ -1,8 +1,12 @@
-﻿namespace UI.Models
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
+
+namespace UI.Models
 {
     public class DropzoneViewModel
     {
         public string TempGuid { get; set; }
-        public bool IsPostbackAfterSave { get; set; }
+        public string RecPrefix{ get; set; }
+        public int RecPid { get; set; }
+        public bool IsAutoSave { get; set; }
     }
 }
