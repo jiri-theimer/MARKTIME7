@@ -11,6 +11,13 @@
     }
     var _lisP85 = _f.p85TempboxBL.GetList(Model.TempGuid);
     var _fileboxUrl = new UI.Menu.TheMenuSupport(_f).GetMainmenuEntityUrl("o27");
+
+
+    IEnumerable<BO.o27Attachment> _lisO27 = null;
+    if (Model.RecPrefix != null && Model.RecPid > 0)
+    {
+        _lisO27 = _f.o27AttachmentBL.GetList(new BO.myQueryO27() { entity = Model.RecPrefix, recpid = Model.RecPid });
+    }
 }
 
 
@@ -32,17 +39,29 @@
     <input type="hidden" id="recprefix" name="recprefix" value="@Model.RecPrefix" />
     <input type="hidden" id="recpid" name="recpid" value="@Model.RecPid" />
 
-    <div class="dz-message" style="padding:0px;margin:0px;">
-        <span class="badge-light">
-            <span class="material-icons-outlined-btn menu_new_record">attachment</span>
-            FILEBOX
-        </span>
+    <div class="dz-message rounded-3 text-center bg-light" style="margin:0;">
 
-        @_f.tra("Přetáhněte sem dokumenty, e-maily nebo zde klikněte...")
-        
+        <div class="d-flex align-items-center justify-content-center gap-1 flex-wrap">
+
+            <span class="badge bg-light text-dark border px-3 py-1">
+                <span class="material-icons-outlined align-middle me-1">attachment</span>
+                FILEBOX
+            </span>
+
+            <div class="text-muted">
+                <div class="fw-semibold">
+                    Přetáhněte soubory nebo e-maily sem
+                </div>
+                <small>
+                    nebo <span class="text-primary fw-semibold">klikněte pro výběr</span>
+                </small>
+            </div>
+
+        </div>
+
     </div>
+
     <div class="alert alert-success" role="alert" id="divDropzoneInfoMessage" style="display:none;">
-        
     </div>
     <div id="divAfterUpload" style="display:none;">
         <button type="button" class="btn btn-primary" onclick="continue_to_save()">@_f.tra("Zpracovat nahrané soubory")</button>
@@ -76,10 +95,63 @@
     </div>
 }
 
+@if (_lisO27 != null && _lisO27.Count() > 0)
+{
 
+    <div style="margin:6px;">
+        <table class="table table-sm table-hover">
+            @foreach (var c in _lisO27)
+            {
+                <tr>
+                    <td style="width:20px;">
+                        <a class="cm" onclick="_cm(event,'o27',@(c.pid))" title="MENU">&#9776;</a>
+                    </td>
+                    <td>
+                        @if (c.o27WwwRootFolder != null)
+                        {
+                            <a target="_blank" href="@("/_users/" + _f.Lic.x01Guid + "/" + c.o27WwwRootFolder.Replace("\\", "/") + "/" + c.o27ArchiveFileName)">@c.o27OriginalFileName</a>
+                        }
+                        else
+                        {
+                            <a target="_blank" href="/FileUpload/FileDownloadInline?guid=@c.o27Guid">@c.o27OriginalFileName</a>
+                        }
+
+
+                    </td>
+                    <td style="text-align:right;">
+                        @(BO.Code.Bas.FormatFileSize(c.o27FileSize))
+                    </td>
+                    <td>
+                        @if (c.o27CallerFlag == BO.o27CallerFlagENUM.Notepad)
+                        {
+                            <code>Notepad</code>
+                            @if (c.o27WwwRootFolder != null)
+                            {
+                                <var>image</var>
+                            }
+                        }
+                        @if (c.o27Name != null)
+                        {
+                            <var style="background-color:lightyellow;">@c.o27Name</var>
+                        }
+                    </td>
+                    <td>
+                        <small>
+                            @(BO.Code.Time.GetTimestamp(c.DateInsert))
+                        </small>
+                    </td>
+                    <td style="width:20px">
+
+                    </td>
+                </tr>
+            }
+        </table>
+    </div>
+
+}
 
 <script>
-    
+
          // Dropzone v6 – explicitní inicializace
     const formEl = document.getElementById("myDropzone");
 
@@ -144,7 +216,7 @@
             }
           }
 
-          
+
         });
 
         dz.on("error", function (file, errorMessage) {
@@ -153,7 +225,7 @@
         });
 
         dz.on("queuecomplete", function () {
-          
+
           $("#divAfterUpload").css("display","block");
 
           var isrefresh="@Model.IsAutoSave";
@@ -167,7 +239,7 @@
                         location.replace(location.href);
                     }
           }
-          
+
 
         });
 
@@ -316,7 +388,7 @@
 
 
             $.post("/Dropzone/SaveToFilebox", { tempguid: tempguid,recprefix: "@Model.RecPrefix",recpid: @Model.RecPid }, function (data) {
-                                
+
                 dz.removeAllFiles();
                 refreshstate_dropbox();
                 var link="<strong><a target='_top' href='@(_fileboxUrl)'>FileBox</a></strong>";

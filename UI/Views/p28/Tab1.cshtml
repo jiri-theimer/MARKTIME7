@@ -96,15 +96,21 @@
         var recTop = _f.p28ContactBL.LoadTreeTopRec(Model.Rec);
         _lisTree = _f.p28ContactBL.GetList(new BO.myQueryP28() {IsRecordValid=null, treeprev = recTop.p28TreePrev, treenext = recTop.p28TreeNext });
     }
+
+    var dropzonemodel = new DropzoneViewModel() { IsAutoSave = true, RecPid = Model.pid, RecPrefix = Model.prefix };
 }
 
 @addTagHelper *, UI
 @section header_content {
 
-
     <link rel="stylesheet" href="/css/htmltable.css" />
 
 
+    <link rel="stylesheet" href="~/lib/dropzone/dropzone.css" asp-append-version="true" />
+    <script src="~/lib/dropzone/dropzone-min.js" asp-append-version="true"></script>
+
+    <script src="~/lib/dropzone/DataStream.js"></script>
+    <script src="~/lib/dropzone/msg.reader.js"></script>
 }
 
 
@@ -571,7 +577,10 @@
 
 @if (Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.o27list))
 {
-    @Html.EditorFor(m => m, "~/Views/Shared/_lisO27Tab1.cshtml")
+    <div class="recpageboxauto">
+        @await Html.PartialAsync("~/Views/Shared/_dropzone.cshtml", dropzonemodel)
+
+    </div>
 }
 
 

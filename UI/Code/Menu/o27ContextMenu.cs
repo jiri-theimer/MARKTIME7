@@ -13,7 +13,7 @@ namespace UI.Code.Menu
 
             if (source != "recpage")
             {
-                AMI_RecPage("Stránka záznamu", "o27", pid);
+                AMI_RecPage("FILEBOX stránka", "o27", pid);
             }
             if (source != "grid")
             {
@@ -24,7 +24,7 @@ namespace UI.Code.Menu
             if (rec.UserInsert==f.CurrentUser.j02Login || f.CurrentUser.IsAdmin)
             {
                 DIV();
-                AMI("Upravit", $"javascript:_edit('o27',{pid})", "edit_note");
+                AMI("Karta záznamu", $"javascript:_edit('o27',{pid})", "edit_note");
 
                 AMI("Odstranit záznam", $"javascript:_delete('o27',{pid})", "delete_forever");
 

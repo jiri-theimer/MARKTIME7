@@ -110,7 +110,7 @@ namespace UI.Controllers
                     break;
             }
 
-            v.ab(Tab1BoxEnum.o27list, Factory.tra("Seznam nahraných příloh"));
+            v.ab(Tab1BoxEnum.o27list, "FILEBOX");
 
 
         }

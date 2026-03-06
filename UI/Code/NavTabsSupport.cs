@@ -348,7 +348,7 @@ namespace UI.Code
                     _tabs.Add(AddTab("<span class='material-icons-outlined-btn'>speaker_notes</span>", "b05", "/Record/TabB05?prefix=o22", false, Badge1(co22.b05_Count),"Poznámky, workflow historie"));
                     break;
                 case "o27":
-                    _tabs.Add(AddTab("Příloha", "tab1", "/o27/Tab1?pid=" + AppendPid2Url(pid), false));
+                    _tabs.Add(AddTab("FILEBOX", "tab1", "/o27/Tab1?pid=" + AppendPid2Url(pid), false));
                     
                     break;
                 case "p40":

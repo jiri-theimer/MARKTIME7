@@ -2,18 +2,19 @@
 
 
 
-.dropzone{
-    border:1px dashed skyblue;
-    margin:6px;
+.dropzone {
+    border: 2px dashed #dee2e6;
+    border-radius: .5rem;
+    background: #fafafa;
 }
 
     .dropzone:hover {
         background-color: #F0FFFF;
     }
 
-.dropzone.dragover {
-  background-color: skyblue;
-}
+    .dropzone.dz-drag-hover {
+        background-color: skyblue;
+    }
 
 .dz-file-row {
   display: flex;
