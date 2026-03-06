@@ -49,5 +49,19 @@ namespace BO
         public string o27MailTo { get; set; }
         public string o27MailAttachments { get; set; }
 
+        public bool IsMail { get
+            {
+                if (this.o27FileExtension == ".msg" || this.o27FileExtension == ".eml" || this.o27MailMessageID != null)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+        
+
     }
 }

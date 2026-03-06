@@ -107,15 +107,47 @@
                         <a class="cm" onclick="_cm(event,'o27',@(c.pid))" title="MENU">&#9776;</a>
                     </td>
                     <td>
-                        @if (c.o27WwwRootFolder != null)
+
+
+
+                        @if (c.IsMail)
                         {
-                            <a target="_blank" href="@("/_users/" + _f.Lic.x01Guid + "/" + c.o27WwwRootFolder.Replace("\\", "/") + "/" + c.o27ArchiveFileName)">@c.o27OriginalFileName</a>
+                            <a href="javascript:_edit('o27',@c.pid)">@(c.o27MailSubject != null ? c.o27MailSubject : c.o27OriginalFileName)</a>
+                            
+                            <br />
+                            <span class="material-icons-outlined-btn">alternate_email</span>
+                            @if(c.o27MailSenderName != null)
+                            {
+                                <span class="badge-light" title="@c.o27MailSenderAddress">@c.o27MailSenderName</span>
+                            }
+                            @if (c.o27MailTo != null)
+                            {
+                                <span class="badge text-bg-info">@c.o27MailTo</span>
+                            }
+                            @if (c.o27MailDateMessage != null)
+                            {
+                                <span class="badge text-bg-light">@(BO.Code.Bas.ObjectDateTime2String(c.o27MailDateMessage))</span>
+                            }
+                            @if (c.o27MailAttachmentsCount > 0)
+                            {
+                                var atts = BO.Code.Bas.ConvertString2List(c.o27MailAttachments, ",");
+                                foreach(var att in atts)
+                                {
+                                    <a target="_blank" class="att" href="/FileUpload/FileDownloadMsgAttachment?guid=@(c.o27Guid)&origfilename=@(att)">@att</a>
+                                }
+                            }
                         }
                         else
                         {
-                            <a target="_blank" href="/FileUpload/FileDownloadInline?guid=@c.o27Guid">@c.o27OriginalFileName</a>
+                            @if (c.o27WwwRootFolder != null)
+                            {
+                                <a target="_blank" href="@("/_users/" + _f.Lic.x01Guid + "/" + c.o27WwwRootFolder.Replace("\\", "/") + "/" + c.o27ArchiveFileName)">@c.o27OriginalFileName</a>
+                            }
+                            else
+                            {
+                                <a target="_blank" href="/FileUpload/FileDownloadInline?guid=@c.o27Guid">@c.o27OriginalFileName</a>
+                            }
                         }
-
 
                     </td>
                     <td style="text-align:right;">
@@ -134,15 +166,21 @@
                         {
                             <var style="background-color:lightyellow;">@c.o27Name</var>
                         }
+
+                    </td>
+                    <td style="width:20px" class="edit-cell">
+                        @if (!c.IsMail && c.UserInsert == _f.CurrentUser.j02Login)
+                        {
+                            <a class="btn btn-sm btn-light edit-link" href="javascript:_edit('o27',@(c.pid))">edit</a>
+                        }
+
                     </td>
                     <td>
                         <small>
                             @(BO.Code.Time.GetTimestamp(c.DateInsert))
                         </small>
                     </td>
-                    <td style="width:20px">
 
-                    </td>
                 </tr>
             }
         </table>

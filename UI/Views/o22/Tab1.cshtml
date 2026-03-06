@@ -9,10 +9,21 @@
     var _lisO24 = _f.o24ReminderBL.GetList("o22", Model.pid);
 
     var _NotepadLookAt = new UI.Models.Notepad.LookAtViewModel() { IsTab1 = true, prefix = "o22", pid = Model.Rec.pid, NotepadContent = Model.Rec.o22Notepad, x04ID = Model.Rec.x04ID };
+
+    var dropzonemodel = new DropzoneViewModel() { IsAutoSave = true, RecPid = Model.pid, RecPrefix = Model.prefix };
 }
 
 @addTagHelper *, UI
 
+@section header_content {
+    <link rel="stylesheet" href="/css/htmltable.css" />
+
+    <link rel="stylesheet" href="~/lib/dropzone/dropzone.css" asp-append-version="true" />
+    <script src="~/lib/dropzone/dropzone-min.js" asp-append-version="true"></script>
+
+    <script src="~/lib/dropzone/DataStream.js"></script>
+    <script src="~/lib/dropzone/msg.reader.js"></script>
+}
 
 
 @Html.Raw("<div class='info_record_container'>")
@@ -35,7 +46,14 @@
 @Html.Raw("</div>")
 
 
-@Html.EditorFor(m => m, "~/Views/Shared/_lisO27Tab1.cshtml")
+@if (Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.o27list))
+{
+
+    <div class="recpageboxauto">
+        @await Html.PartialAsync("~/Views/Shared/_dropzone.cshtml", dropzonemodel)
+
+    </div>
+}
 
 
 @Html.Raw("</div>")

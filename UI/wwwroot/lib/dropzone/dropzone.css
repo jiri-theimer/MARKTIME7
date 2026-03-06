@@ -4,7 +4,7 @@
 
 .dropzone {
     border: 2px dashed #dee2e6;
-    border-radius: .5rem;
+    border-radius: 0.5rem;
     background: #fafafa;
 }
 
@@ -73,3 +73,24 @@
 
 .dz-preview .dz-progress { display:none; }
 .dz-preview.dz-processing .dz-progress { display:block; }
+
+
+
+.edit-link {
+    opacity: 0;
+    transition: opacity .15s ease;
+}
+
+tr:hover .edit-link {
+    opacity: 1;
+}
+
+
+
+a.att {
+    text-decoration: none;
+    border-radius: 10px;
+    color: gray;
+    border: solid 1px darkgray;
+    padding: 2px 4px 2px 4px;
+}

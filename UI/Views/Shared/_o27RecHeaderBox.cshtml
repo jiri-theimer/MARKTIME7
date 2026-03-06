@@ -23,11 +23,11 @@
         _linkUrl = $"javascript:_window_open('/p31/Record?pid={Model.o27RecordPid}',3)";
     }
 
-    bool _bolMail = false;
+    
     List<String> _atts = null;
-    if (Model.o27MailMessageID !=null || Model.o27FileExtension == ".msg")
+    if (Model.IsMail)
     {
-        _bolMail = true;
+       
         _atts = BO.Code.Bas.ConvertString2List(Model.o27MailAttachments, ",");
     }
     
@@ -89,7 +89,7 @@
             @Model.o27OriginalFileName
         </td>
     </tr>
-    @if (!_bolMail)
+    @if (!Model.IsMail)
     {
         <tr>
             <td class="tdlab">
@@ -118,7 +118,7 @@
         </td>
     </tr>
     
-    @if (_bolMail)
+    @if (Model.IsMail)
     {
         <tr>
             <td colspan="2">
@@ -184,7 +184,7 @@
                         
                     </td>
                     <td>
-                        <a target="_blank" href="/FileUpload/FileDownloadMsgAttachment?guid=@(Model.o27Guid)&origfilename=@(att)">@att</a>
+                        <a class="att" target="_blank" href="/FileUpload/FileDownloadMsgAttachment?guid=@(Model.o27Guid)&origfilename=@(att)">@att</a>
                     </td>
                 </tr>
             }
