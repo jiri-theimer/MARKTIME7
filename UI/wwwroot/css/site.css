@@ -1073,6 +1073,15 @@ td.tdnum {
     padding-right: 5px;
 }
 
+.badge-lightblue {
+    background-color: aliceblue;
+    color: black;
+    border-radius: 4px;
+    border: solid 1px lightblue;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
 .myval-after {
     background-color: #F5F5F5;
     color: black;
@@ -1788,3 +1797,18 @@ a.nenapadny_odkaz {
     color: #ffcc55 !important;
 }
 
+
+
+a.att {
+    text-decoration: none;
+    border-radius: 10px;
+    color: gray;
+    border: solid 1px darkgray;
+    padding: 2px 4px 2px 4px;
+    
+    white-space: nowrap;
+}
+
+    a.att:hover {
+        background-color: #F0FFFF;
+    }

@@ -57,8 +57,13 @@ namespace UI.Controllers
                 {
                     var msg = Factory.o27AttachmentBL.LoadMsgFile(archiveDestPath);
                     rec.p85Prefix = "msg";
-                    rec.p85FreeText05 = msg.Subject;
-                    
+                    rec.p85FreeText05 = msg.Subject;                    
+                }
+                if (System.IO.Path.GetExtension(file.FileName).ToLower() == ".eml")
+                {
+                    var eml = Factory.o27AttachmentBL.LoadMsgFile(archiveDestPath);
+                    rec.p85Prefix = "eml";
+                    rec.p85FreeText05 = eml.Subject;
                 }
 
                 var p85id = Factory.p85TempboxBL.Save(rec);
@@ -82,12 +87,12 @@ namespace UI.Controllers
             {
                 var strSourcePath = $"{Factory.TempFolder}\\{rec.p85FreeText03}";
                 var c = new BO.o27Attachment() {o27OriginalFileName=rec.p85FreeText01,o27ContentType=rec.p85FreeText02,o27ArchiveFileName=rec.p85FreeText03, o27FileSize = (int)rec.p85FreeNumber01, o27Guid = Guid.NewGuid() };
-                c.o27FileExtension = System.IO.Path.GetExtension(strSourcePath);
+                c.o27FileExtension = System.IO.Path.GetExtension(strSourcePath).ToLower();
                 c.o27ArchiveFolder = Factory.o27AttachmentBL.GetUploadFolder("FILEBOX");
                 c.o27Entity = recprefix;
                 c.o27RecordPid = recpid;
 
-                if (System.IO.Path.GetExtension(strSourcePath).ToLower() == ".msg")
+                if (c.o27FileExtension == ".msg" || c.o27FileExtension == ".eml")
                 {
                     var msg = Factory.o27AttachmentBL.LoadMsgFile(strSourcePath);                    
                     c.o27MailSubject = msg.Subject;

@@ -115,14 +115,18 @@
                             <a href="javascript:_edit('o27',@c.pid)">@(c.o27MailSubject != null ? c.o27MailSubject : c.o27OriginalFileName)</a>
                             
                             <br />
-                            <span class="material-icons-outlined-btn">alternate_email</span>
+                            <span class="material-icons-outlined-nosize">alternate_email</span>
                             @if(c.o27MailSenderName != null)
                             {
                                 <span class="badge-light" title="@c.o27MailSenderAddress">@c.o27MailSenderName</span>
                             }
+                            else
+                            {
+                                <span class="badge-light">@c.o27MailSenderAddress</span>
+                            }
                             @if (c.o27MailTo != null)
                             {
-                                <span class="badge text-bg-info">@c.o27MailTo</span>
+                                <span class="badge-lightblue">@c.o27MailTo</span>
                             }
                             @if (c.o27MailDateMessage != null)
                             {
@@ -133,7 +137,12 @@
                                 var atts = BO.Code.Bas.ConvertString2List(c.o27MailAttachments, ",");
                                 foreach(var att in atts)
                                 {
-                                    <a target="_blank" class="att" href="/FileUpload/FileDownloadMsgAttachment?guid=@(c.o27Guid)&origfilename=@(att)">@att</a>
+                                    var po = BO.Code.Bas.OM2(att.Split(".").First(),15);
+                                    var pred = att.Substring(att.Length - 3, 3);
+                                    <a target="_blank" class="att" href="/FileUpload/FileDownloadMsgAttachment?guid=@(c.o27Guid)&origfilename=@(att)">@($"{pred}: {po}")</a>
+
+                                    
+
                                 }
                             }
                         }
@@ -227,8 +236,8 @@
       url: uploadUrl,
       previewTemplate: previewTemplate,
       paramName: "files",          // musí odpovídat názvu v controlleru
-      maxFilesize: 10,             // MB
-      acceptedFiles: ".msg,.eml,.pdf,image/*,.xls,.xlsx,.docx,.doc,.txt",
+      maxFilesize: 20,             // MB
+      acceptedFiles: ".msg,.eml,.pdf,image/*,.xls,.xlsx,.docx,.doc,.txt,.zip,.rar,.7z,.ppt,.pptx,.csv,.mp3,.mp4,.avi,.html,.htm,.odt,.ods,.rtf,.ics",
       uploadMultiple: true,
       parallelUploads: 3,
       thumbnailWidth: 100,

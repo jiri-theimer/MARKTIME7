@@ -120,26 +120,28 @@
     
     @if (Model.IsMail)
     {
-        <tr>
-            <td colspan="2">
-               <span class="badge-light">@_f.tra("Poštovní zpráva")</span>
-            </td>
-        </tr>
-
+        
         <tr>
             <td style="min-width:140px;">
                 @_f.tra("Odesílatel"):
             </td>
             <td>
+                @if(Model.o27MailSenderName != null)
+                {
+                    <span class="badge-light">@Model.o27MailSenderName</span>
+                    <br />
+                }
                 <myval value="@Model.o27MailSenderAddress"></myval>
+                
             </td>
         </tr>
         <tr>
             <td style="min-width:140px;">
-                @_f.tra("Komu"):
+                @_f.tra("Příjemce"):
             </td>
             <td>
-                <myval value="@Model.o27MailTo"></myval>
+                
+                <span class="badge-lightblue">@Model.o27MailTo</span>
             </td>
         </tr>
         @if (Model.o27MailCc != null)
@@ -176,18 +178,28 @@
 
         @if (_atts != null && _atts.Count()>0)
         {
-            @foreach(var att in _atts)
-            {
-                <tr>
-                    <td>
-                        @_f.tra("Příloha zprávy"):
+            
+            <tr>
+                <td>
+                    @_f.tra("Přílohy zprávy")
+                    <span class="badge text-bg-primary">@(_atts.Count())</span>
+
+                </td>
+                <td>
+                    @foreach (var att in _atts)
+                    {
+                        var po = BO.Code.Bas.OM2(att.Split(".").First(), 15);
+                        var pred = att.Substring(att.Length - 3, 3);
+                        <a target="_blank" class="att" href="/FileUpload/FileDownloadMsgAttachment?guid=@(Model.o27Guid)&origfilename=@(att)">@($"{pred}: {po}")</a>
+
                         
-                    </td>
-                    <td>
-                        <a class="att" target="_blank" href="/FileUpload/FileDownloadMsgAttachment?guid=@(Model.o27Guid)&origfilename=@(att)">@att</a>
-                    </td>
-                </tr>
-            }
+                        
+                        
+                    }
+                    
+                </td>
+            </tr>
+            
         }
     }
 

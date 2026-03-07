@@ -87,10 +87,3 @@ tr:hover .edit-link {
 
 
 
-a.att {
-    text-decoration: none;
-    border-radius: 10px;
-    color: gray;
-    border: solid 1px darkgray;
-    padding: 2px 4px 2px 4px;
-}
