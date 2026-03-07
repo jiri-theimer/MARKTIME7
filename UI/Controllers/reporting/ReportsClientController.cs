@@ -9,6 +9,7 @@ using ceTe.DynamicPDF.Merger;
 using BL;
 using ceTe.DynamicPDF.Forms;
 using System.IO.Compression;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Metadata;
 
 
 namespace UI.Controllers
@@ -224,20 +225,7 @@ namespace UI.Controllers
             return View(v);
         }
 
-        private BO.o27Attachment TryImportReportFromDistribution(BO.x31Report rec)
-        {
-            string strFullPath = $"{Factory.App.RootUploadFolder}\\_distribution\\trdx\\{rec.x31Code}.trdx";   //zkusit vzít report z distribution složky
-            if (System.IO.File.Exists(strFullPath))
-            {
-                var recO27 = new BO.o27Attachment() { o27Entity = "x31", o27RecordPid = rec.pid, o27ContentType = "application/trdx" };
-                int intO27ID = Factory.o27AttachmentBL.UploadAndSaveOneFile(recO27, $"{rec.x31Code}.trdx", strFullPath, $"{rec.x31Code}.trdx");
-
-                //System.IO.File.Copy(strFullPath, Factory.UploadFolder + "\\x31\\" + $"{rec.x31Code}.trdx", true);
-
-                return Factory.o27AttachmentBL.Load(intO27ID);
-            }
-            return null;
-        }
+       
         private void RefreshStateReportNoContext(ReportNoContextViewModel v)
         {
             if (v.SelectedX31ID > 0)
@@ -252,27 +240,13 @@ namespace UI.Controllers
                     v.ReportExportName = _basRepSup.GetReportExportName(Factory, 0, v.RecX31,false);
                 }
 
-
-                var recO27 = Factory.x31ReportBL.LoadReportDoc(v.SelectedX31ID);
-                if (recO27 == null)
+                var strTrdxFullPath = Factory.x31ReportBL.LoadTrdxFullPath(v.SelectedX31ID);
+                
+                if (strTrdxFullPath != null)
                 {
-                    recO27 = TryImportReportFromDistribution(v.RecX31);
-                }
-                if (recO27 != null)
-                {
-                    v.ReportFileName = recO27.o27ArchiveFileName;
-                    string strFullPath = $"{Factory.ReportFolder}\\{v.ReportFileName}";
-
-                    if (!System.IO.File.Exists(strFullPath))
-                    {
-                        v.ReportFileName = recO27.o27OriginalFileName;
-                        strFullPath = $"{Factory.ReportFolder}\\{v.ReportFileName}";
-                    }
-                    if (!System.IO.File.Exists(strFullPath))
-                    {
-                        strFullPath = $"{Factory.App.RootUploadFolder}\\_distribution\\trdx\\{v.ReportFileName}";   //zkusit vzít report z distribution složky
-
-                    }
+                    v.ReportFileName = System.IO.Path.GetFileName(strTrdxFullPath);
+                    
+                    
 
                     if (v.RecX31.x31FormatFlag == BO.x31FormatFlagENUM.XLSX)
                     {
@@ -300,9 +274,9 @@ namespace UI.Controllers
                     }
 
 
-                    if (v.RecX31.x31FormatFlag == BO.x31FormatFlagENUM.Telerik && System.IO.File.Exists(strFullPath))
+                    if (v.RecX31.x31FormatFlag == BO.x31FormatFlagENUM.Telerik)
                     {
-                        var strXmlContent = System.IO.File.ReadAllText(strFullPath);
+                        var strXmlContent = System.IO.File.ReadAllText(strTrdxFullPath);
 
                         if (v.RecX31.x31IsPeriodRequired || (strXmlContent.Contains("datFrom", StringComparison.OrdinalIgnoreCase) && strXmlContent.Contains("datUntil", StringComparison.OrdinalIgnoreCase)))
                         {
@@ -324,14 +298,7 @@ namespace UI.Controllers
                 }
                 else
                 {
-                    if (v.RecX31.x31FileName != null && System.IO.File.Exists($"{Factory.ReportFolder}\\{v.RecX31.x31FileName}"))
-                    {
-                        v.ReportFileName = v.RecX31.x31FileName; //chybí záznam v tabulce o27Attachment - je možné, že fyzicky ale existuje na disku
-                    }
-                    else
-                    {
-                        this.AddMessage("Na serveru nelze dohledat soubor šablony zvolené tiskové sestavy.");
-                    }
+                    this.AddMessage("Na serveru nelze dohledat soubor šablony zvolené tiskové sestavy.");
 
 
 
@@ -626,40 +593,24 @@ namespace UI.Controllers
                   
                 }
 
-                var recO27 = Factory.x31ReportBL.LoadReportDoc(v.SelectedX31ID);
-                if (recO27 == null)
+                var strTrdxFullPath = Factory.x31ReportBL.LoadTrdxFullPath(v.SelectedX31ID);                                
+                if (strTrdxFullPath != null)
                 {
-                    recO27 = TryImportReportFromDistribution(v.RecX31);
-                }
-                if (recO27 != null)
-                {
-                    v.ReportFileName = recO27.o27ArchiveFileName;
-                    string strPath = $"{Factory.ReportFolder}\\{v.ReportFileName}";
-                    if (!System.IO.File.Exists(strPath))
-                    {
-                        v.ReportFileName = recO27.o27OriginalFileName;
-                        strPath = $"{Factory.ReportFolder}\\{v.ReportFileName}";
-                    }
-                    if (!System.IO.File.Exists(strPath))
-                    {
-                        strPath = $"{Factory.App.RootUploadFolder}\\_distribution\\trdx\\{v.ReportFileName}";
-                    }
-                    if (System.IO.File.Exists(strPath))
-                    {
-                        //var xmlReportSource = new Telerik.Reporting.XmlReportSource();
-                        var strXmlContent = System.IO.File.ReadAllText(strPath);
-                        if (v.RecX31.x31IsPeriodRequired || (strXmlContent.Contains("datFrom", StringComparison.OrdinalIgnoreCase) && strXmlContent.Contains("datUntil", StringComparison.OrdinalIgnoreCase)))
-                        {
-                            v.IsPeriodFilter = true;
-                            v.PeriodFilter = new myPeriodViewModel() { UserParamKey = "report-period" };
-                            v.PeriodFilter.IsShowButtonRefresh = true;
-                            v.PeriodFilter.LoadUserSetting(_pp, Factory);
+                    v.ReportFileName = System.IO.Path.GetFileName(strTrdxFullPath);
 
-                        }
-                        else
-                        {
-                            v.IsPeriodFilter = false;
-                        }
+
+                    var strXmlContent = System.IO.File.ReadAllText(strTrdxFullPath);
+                    if (v.RecX31.x31IsPeriodRequired || (strXmlContent.Contains("datFrom", StringComparison.OrdinalIgnoreCase) && strXmlContent.Contains("datUntil", StringComparison.OrdinalIgnoreCase)))
+                    {
+                        v.IsPeriodFilter = true;
+                        v.PeriodFilter = new myPeriodViewModel() { UserParamKey = "report-period" };
+                        v.PeriodFilter.IsShowButtonRefresh = true;
+                        v.PeriodFilter.LoadUserSetting(_pp, Factory);
+
+                    }
+                    else
+                    {
+                        v.IsPeriodFilter = false;
                     }
 
                 }
@@ -717,8 +668,9 @@ namespace UI.Controllers
         }
         private List<string> Handle_DocMailMerge(ReportContextViewModel v)
         {
-            var recO27 = Factory.x31ReportBL.LoadReportDoc(v.RecX31.pid);
-            if (recO27 == null)
+            var strDocxFullPath = Factory.x31ReportBL.LoadTrdxFullPath(v.RecX31.pid);
+            
+            if (strDocxFullPath == null)
             {
                 this.AddMessage("Na serveru nelze dohledat soubor šablony zvolené tiskové sestavy."); return null;
             }
@@ -746,7 +698,7 @@ namespace UI.Controllers
             {
                 x += 1;
                 filenames.Add(strFileName + "_" + x.ToString() + ".docx");
-                GenerateOneDoc(recO27, dt, dr, filenames.Last());
+                GenerateOneDoc(strDocxFullPath, dt, dr, filenames.Last());
             }
 
             if (dt.Rows.Count > 1)  //join dokumentů, pokud má zdroj více záznamů
@@ -784,10 +736,11 @@ namespace UI.Controllers
         }
 
 
-        private void GenerateOneDoc(BO.o27Attachment recO27, DataTable dt, DataRow dr, string strTempFileName)
+        private void GenerateOneDoc(string strDocxFullPath, DataTable dt, DataRow dr, string strTempFileName)
         {
+            var strDocxFileName = System.IO.Path.GetFileName(strDocxFullPath);
             string strTempPath = Factory.TempFolder + "\\" + strTempFileName;
-            System.IO.File.Copy(Factory.ReportFolder + "\\" + recO27.o27ArchiveFileName, strTempPath, true);
+            System.IO.File.Copy(Factory.ReportFolder + "\\" + strDocxFileName, strTempPath, true);
             Package wordPackage = Package.Open(strTempPath, FileMode.Open, FileAccess.ReadWrite);
 
             using (WordprocessingDocument wordDocument = WordprocessingDocument.Open(wordPackage))

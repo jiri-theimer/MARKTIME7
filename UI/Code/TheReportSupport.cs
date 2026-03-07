@@ -73,16 +73,9 @@ namespace UI
             string reportXml = null;
             if (!System.IO.File.Exists(strTempFile) || j72id>0)
             {
-                var recO27 = f.x31ReportBL.LoadReportDoc(recX31.pid);
-                string strArchiveFileName = null;
-                if (recO27 != null)
-                {
-                    strArchiveFileName= recO27.o27ArchiveFileName;
-                }
-                else
-                {
-                    strArchiveFileName = recX31.x31FileName;
-                }
+                var strTrdxFullPath = f.x31ReportBL.LoadTrdxFullPath(recX31.pid);
+                var strArchiveFileName = System.IO.Path.GetFileName(strTrdxFullPath);
+                
                 if (System.IO.File.Exists($"{f.ReportFolder}\\{strArchiveFileName}"))
                 {
                     System.IO.File.Copy($"{f.ReportFolder}\\{strArchiveFileName}", strTempFile, true);

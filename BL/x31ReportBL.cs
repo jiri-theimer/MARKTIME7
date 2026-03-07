@@ -8,7 +8,7 @@ namespace BL
         public BO.x31Report LoadByCode(string code, int pid_exclude);
         public IEnumerable<BO.x31Report> GetList(BO.myQueryX31 mq);
         public int Save(BO.x31Report rec, List<BO.x69EntityRole_Assign> lisX69);
-        public BO.o27Attachment LoadReportDoc(int x31id);
+        //public BO.o27Attachment LoadReportDoc(int x31id);
         public string LoadTrdxFullPath(int x31id);
         public bool IsReportWaiting4Generate(DateTime dNow, BO.x31Report rec);
         //public BO.ThePeriod InhalePeriodFilter*/(BL.ThePeriodProvider pp);
@@ -201,25 +201,25 @@ namespace BL
                     ret = $"{_mother.App.RootUploadFolder}\\_distribution\\trdx\\{strFileName}";
                 }
             }
-            if (!System.IO.File.Exists(strFileName))
+            if (ret !=null && !System.IO.File.Exists(ret))
             {
                 ret = null;
             }
 
             return ret;
         }
-        public BO.o27Attachment LoadReportDoc(int x31id)
-        {
-            var mq = new BO.myQueryO27() { x31id=x31id };            
-            var lisO27 = _mother.o27AttachmentBL.GetList(mq);
+        //public BO.o27Attachment LoadReportDoc(int x31id)
+        //{
+        //    var mq = new BO.myQueryO27() { x31id=x31id };            
+        //    var lisO27 = _mother.o27AttachmentBL.GetList(mq);
 
-            if (lisO27.Count() > 0)
-            {
-                return lisO27.First();
-            }
+        //    if (lisO27.Count() > 0)
+        //    {
+        //        return lisO27.First();
+        //    }
 
-            return null;
-        }
+        //    return null;
+        //}
 
         public bool IsReportWaiting4Generate(DateTime dNow,BO.x31Report rec)
         {
