@@ -81,16 +81,17 @@
             </td>
         </tr>
     }
-    <tr>
-        <td class="tdlab">
-            @_f.tra("Název souboru"):
-        </td>
-        <td class="tdval">
-            @(BO.Code.Bas.OM2(Model.o27OriginalFileName,50))
-        </td>
-    </tr>
+    
     @if (!Model.IsMail)
     {
+        <tr>
+            <td class="tdlab">
+                @_f.tra("Název souboru"):
+            </td>
+            <td class="tdval">
+                @Model.o27OriginalFileName
+            </td>
+        </tr>
         <tr>
             <td class="tdlab">
                 @_f.tra("Přípona"):
@@ -120,7 +121,21 @@
     
     @if (Model.IsMail)
     {
-        
+        @if (Model.o27MailSubject != null)
+        {
+            <tr>
+                <td>
+                    @_f.tra("Předmět zprávy"):
+                </td>
+                <td>
+                    <span style="white-space:normal;">
+                        
+                        <myval withoutcss="true" value="@(Model.o27MailSubject)"></myval>
+                    </span>
+                    
+                </td>
+            </tr>
+        }
         <tr>
             <td style="min-width:140px;">
                 @_f.tra("Odesílatel"):
@@ -145,7 +160,7 @@
                     <span class="badge-lightblue">@Model.o27MailToName</span>
                     <br />
                 }
-                <myval value="@Model.o27MailToAddress"></myval>
+                <myval withoutcss="true" value="@Model.o27MailToAddress"></myval>
                 
             </td>
         </tr>
@@ -156,7 +171,7 @@
                     @_f.tra("V kopii"):
                 </td>
                 <td>
-                    <myval value="@Model.o27MailCc"></myval>
+                    <myval withoutcss="true" value="@Model.o27MailCc"></myval>
                 </td>
             </tr>
         }
@@ -169,17 +184,7 @@
                 <myval value="@Model.o27MailDateMessage" datatype="datetime"></myval>
             </td>
         </tr>
-        @if (Model.o27MailSubject != null)
-        {
-            <tr>
-                <td>
-                    @_f.tra("Předmět zprávy"):
-                </td>
-                <td>
-                    <myval value="@(BO.Code.Bas.OM2(Model.o27MailSubject,50))"></myval>
-                </td>
-            </tr>
-        }
+        
 
         @if (_atts != null && _atts.Count()>0)
         {

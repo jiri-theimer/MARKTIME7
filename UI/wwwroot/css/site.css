@@ -1290,9 +1290,10 @@ a.my_private_menu_link {
 
 td.tdval {
     font-size: 1rem;
-    font-weight: 500;
+    font-weight: 500;    
     word-break: break-all;
 }
+
 
 td.tdarchiv {
     font-size: 1rem;
