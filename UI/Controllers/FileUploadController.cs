@@ -175,18 +175,16 @@ namespace UI.Controllers
         }
 
         [HttpGet]
-        public ActionResult FileDownloadX31File(string filename)
+        public ActionResult FileDownloadX31File(int x31id)
         {
-            string fullPath = $"{Factory.UploadFolder}\\X31\\{filename}";
+            string fullPath = Factory.x31ReportBL.LoadTrdxFullPath(x31id);
+            
             if (!System.IO.File.Exists(fullPath))
             {
-                fullPath = $"{Factory.App.RootUploadFolder}\\_distribution\\trdx\\{filename}";
-            }
-            if (!System.IO.File.Exists(fullPath))
-            {
-                return NotFound($"Soubor {filename} neexistuje.");
+                return NotFound($"TRDX soubor report šablony neexistuje.");
 
             }
+            string filename = System.IO.Path.GetFileName(fullPath);
             Response.Headers["Content-Disposition"] = $"inline; filename*=UTF-8''{HttpUtility.UrlEncode(filename)}";
             return new FileContentResult(System.IO.File.ReadAllBytes(fullPath), "application/octet-stream");
         }
