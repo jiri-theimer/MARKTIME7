@@ -78,12 +78,12 @@
     </div>
 
 
-    @if (Model.RecO27 != null)
+    @if (Model.ReportFileName != null)
     {
         <div class="row my-2">
             <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Soubor report šablony"):</label>
             <div class="col-sm-10 col-md-10">
-                <a target="_blank" href="/FileUpload/FileDownloadInline?guid=@Model.RecO27.o27Guid">@Model.RecO27.o27OriginalFileName</a>
+                <a target="_blank" href="/FileUpload/FileDownloadX31File?filename=@Model.ReportFileName">@Model.ReportFileName</a>
             </div>
         </div>
     }

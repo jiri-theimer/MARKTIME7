@@ -9,12 +9,15 @@ namespace UI.Models.Record
     {
         public BO.x31Report Rec { get; set; }
 
-        public BO.o27Attachment RecO27 { get; set; }
+        
         public string UploadGuid { get; set; }
         public string ComboJ25Name { get; set; }
 
         public List<BO.ThePeriod> lisPeriodSource { get; set; }
 
         public RoleAssignViewModel roles { get; set; }
+
+        public string ReportFilePath { get; set; }
+        public string ReportFileName { get; set; }
     }
 }

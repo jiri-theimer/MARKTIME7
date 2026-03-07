@@ -28,7 +28,7 @@ namespace UI.Controllers
                 }
                 v.ComboJ25Name = v.Rec.j25Name;
 
-               
+              
 
             }
             v.Toolbar = new MyToolbarViewModel(v.Rec);
@@ -99,13 +99,25 @@ namespace UI.Controllers
                 c.pid = Factory.x31ReportBL.Save(c, v.roles.getList4Save(Factory));
                 if (c.pid > 0)
                 {
-                    if (Factory.o27AttachmentBL.SaveSingleUpload(v.UploadGuid, "x31", c.pid))
+                    if (Factory.o27AttachmentBL.GetTempFiles(v.UploadGuid).Count() > 0)
                     {
-                        v.SetJavascript_CallOnLoad(c.pid);
-                        return View(v);
+                        var tempfile = Factory.o27AttachmentBL.GetTempFiles(v.UploadGuid).First();
+                        
+                        System.IO.File.Copy(tempfile.FullPath, Factory.ReportFolder + "\\" + tempfile.o27OriginalFileName, true);
+
+                        c = Factory.x31ReportBL.Load(c.pid);
+                        c.x31FileName = tempfile.o27OriginalFileName;
+                        Factory.x31ReportBL.Save(c,null);
+
+                        
                     }
 
-                    
+                    v.SetJavascript_CallOnLoad(c.pid);
+                    return View(v);
+
+                   
+
+
                 }
             }
             this.Notify_RecNotSaved();
@@ -117,8 +129,15 @@ namespace UI.Controllers
         {
             if (v.rec_pid > 0)
             {
-                v.RecO27 = Factory.x31ReportBL.LoadReportDoc(v.rec_pid);               
+                v.ReportFilePath = Factory.x31ReportBL.LoadTrdxFullPath(v.rec_pid);
+                if (v.ReportFilePath != null)
+                {
+                    v.ReportFileName = System.IO.Path.GetFileName(v.ReportFilePath);
+                }
+                
             }
+            
+
             v.lisPeriodSource = new BL.Singleton.ThePeriodProvider().getPallete().Where(p => p.pid > 1).ToList();
 
             if (v.roles == null)

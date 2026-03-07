@@ -9,6 +9,7 @@ namespace BL
         public IEnumerable<BO.x31Report> GetList(BO.myQueryX31 mq);
         public int Save(BO.x31Report rec, List<BO.x69EntityRole_Assign> lisX69);
         public BO.o27Attachment LoadReportDoc(int x31id);
+        public string LoadTrdxFullPath(int x31id);
         public bool IsReportWaiting4Generate(DateTime dNow, BO.x31Report rec);
         //public BO.ThePeriod InhalePeriodFilter*/(BL.ThePeriodProvider pp);
         public string ParseExportFileNameMask(string strExportFileNameMask, string prefix, int pid);
@@ -113,6 +114,8 @@ namespace BL
                 p.AddBool("x31IsPeriodRequired", rec.x31IsPeriodRequired);
                 p.AddBool("x31IsAllowPfx", rec.x31IsAllowPfx);
 
+                p.AddString("x31FileName", rec.x31FileName);
+
                 //p.AddInt("x31LangIndex", rec.x31LangIndex);
                 p.AddDateTime("x31LastScheduledRun", rec.x31LastScheduledRun);
 
@@ -173,6 +176,38 @@ namespace BL
             _db.RunSql("UPDATE x31Report SET x31LastScheduledRun=null WHERE x31ID=@pid", new { pid = x31id });    //vyčistit časovou stopu notifikačního reportu
         }
 
+        public string LoadTrdxFullPath(int x31id)
+        {
+            string ret = null;
+
+            var rec = Load(x31id);
+            if (rec == null) return null;
+
+            var strFileName = rec.x31FileName;
+            if (strFileName == null && rec.x31Code != null)
+            {
+                strFileName =rec.x31Code;
+                if (!strFileName.Contains(".trdx"))
+                {
+                    strFileName =strFileName + ".trdx";
+                }
+            }
+            
+            if (strFileName != null)
+            {
+                ret = $"{_mother.UploadFolder}\\X31\\{strFileName}";
+                if (!System.IO.File.Exists(ret))
+                {
+                    ret = $"{_mother.App.RootUploadFolder}\\_distribution\\trdx\\{strFileName}";
+                }
+            }
+            if (!System.IO.File.Exists(strFileName))
+            {
+                ret = null;
+            }
+
+            return ret;
+        }
         public BO.o27Attachment LoadReportDoc(int x31id)
         {
             var mq = new BO.myQueryO27() { x31id=x31id };            

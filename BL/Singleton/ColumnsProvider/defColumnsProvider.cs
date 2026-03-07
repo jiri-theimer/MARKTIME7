@@ -569,6 +569,7 @@ namespace BL
             AA("RepFormat", "Formát", gdc0, "case a.x31FormatFlag when 1 then 'REPORT' when 2 then 'DOCX' when 3 then 'PLUGIN' when 4 then 'XLS' end");
             oc = AA("Kontext", "Kontext", gdc0, "dbo.get_entity_alias(a.x31Entity)"); oc.FixedWidth = 140;
             AA("x31Code", "Kód sestavy");
+            AA("x31FileName", "Název souboru");
             oc = AF("Kategorie", "Kategorie", "j25x.j25Name"); oc.RelSqlInCol = "LEFT OUTER JOIN j25ReportCategory j25x ON a.j25ID=j25x.j25ID"; oc.DefaultColumnFlag = gdc1;
             AFBOOL("x31IsPeriodRequired", "Filtr čaového období");
             AFBOOL("x31IsAllowPfx", "Podpora Pfx");

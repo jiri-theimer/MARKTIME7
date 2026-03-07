@@ -175,6 +175,23 @@ namespace UI.Controllers
         }
 
         [HttpGet]
+        public ActionResult FileDownloadX31File(string filename)
+        {
+            string fullPath = $"{Factory.UploadFolder}\\X31\\{filename}";
+            if (!System.IO.File.Exists(fullPath))
+            {
+                fullPath = $"{Factory.App.RootUploadFolder}\\_distribution\\trdx\\{filename}";
+            }
+            if (!System.IO.File.Exists(fullPath))
+            {
+                return NotFound($"Soubor {filename} neexistuje.");
+
+            }
+            Response.Headers["Content-Disposition"] = $"inline; filename*=UTF-8''{HttpUtility.UrlEncode(filename)}";
+            return new FileContentResult(System.IO.File.ReadAllBytes(fullPath), "application/octet-stream");
+        }
+
+        [HttpGet]
         public ActionResult FileDownloadInline(string guid)
         {
             var c = Factory.o27AttachmentBL.LoadByGuid(guid);
