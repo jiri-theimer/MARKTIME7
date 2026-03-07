@@ -100,15 +100,24 @@ namespace UI.Controllers
                     {
                         c.o27MailMessageID = msg.MessageId.Id;
                     }
-                    
+                   
                     if (msg.Sender != null)
                     {
                         c.o27MailSenderName = msg.Sender.DisplayName;
                         c.o27MailSenderAddress = msg.Sender.Address;
                     }
+                    else
+                    {
+                        if (msg.From !=null && msg.From.Count() > 0)
+                        {
+                            c.o27MailSenderName = msg.From.First().DisplayName;
+                            c.o27MailSenderAddress = msg.From.First().Address;
+                        }
+                    }
                     if (msg.To != null && msg.To.Count() > 0)
                     {
-                        c.o27MailTo = String.Join(", ", msg.To.Select(p => p.Address));
+                        c.o27MailToAddress = String.Join(", ", msg.To.Select(p => p.Address));
+                        c.o27MailToName = String.Join(", ", msg.To.Select(p => p.DisplayName));
                     }
                     if (msg.CC != null && msg.CC.Count() > 0)
                     {

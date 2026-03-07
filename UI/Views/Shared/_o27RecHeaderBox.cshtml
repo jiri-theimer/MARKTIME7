@@ -86,7 +86,7 @@
             @_f.tra("Název souboru"):
         </td>
         <td class="tdval">
-            @Model.o27OriginalFileName
+            @(BO.Code.Bas.OM2(Model.o27OriginalFileName,50))
         </td>
     </tr>
     @if (!Model.IsMail)
@@ -140,8 +140,13 @@
                 @_f.tra("Příjemce"):
             </td>
             <td>
+                @if (Model.o27MailToName != null)
+                {
+                    <span class="badge-lightblue">@Model.o27MailToName</span>
+                    <br />
+                }
+                <myval value="@Model.o27MailToAddress"></myval>
                 
-                <span class="badge-lightblue">@Model.o27MailTo</span>
             </td>
         </tr>
         @if (Model.o27MailCc != null)
@@ -171,7 +176,7 @@
                     @_f.tra("Předmět zprávy"):
                 </td>
                 <td>
-                    <myval value="@Model.o27MailSubject"></myval>
+                    <myval value="@(BO.Code.Bas.OM2(Model.o27MailSubject,50))"></myval>
                 </td>
             </tr>
         }

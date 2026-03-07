@@ -64,8 +64,8 @@
     <div class="alert alert-success" role="alert" id="divDropzoneInfoMessage" style="display:none;">
     </div>
     <div id="divAfterUpload" style="display:none;">
-        <button type="button" class="btn btn-primary" onclick="continue_to_save()">@_f.tra("Zpracovat nahrané soubory")</button>
-        <button type="button" class="btn btn-light" onclick="save_to_filebox()">@_f.tra("Uložit pouze do FileBox")</button>
+        <button type="button" class="btn btn-primary" style="display:none;" onclick="continue_to_save()">@_f.tra("Zpracovat nahrané soubory")</button>
+        <button type="button" class="btn btn-success" onclick="save_to_filebox()">@_f.tra("Uložit nahrané soubory do FILEBOX")</button>
     </div>
 </form>
 
@@ -124,13 +124,17 @@
                             {
                                 <span class="badge-light">@c.o27MailSenderAddress</span>
                             }
-                            @if (c.o27MailTo != null)
+                            @if (c.o27MailToName != null)
                             {
-                                <span class="badge-lightblue">@c.o27MailTo</span>
+                                <span class="badge-lightblue" title="@c.o27MailToAddress">@c.o27MailToName</span>
+                            }
+                            else
+                            {
+                                <span class="badge-lightblue">@c.o27MailToAddress</span>
                             }
                             @if (c.o27MailDateMessage != null)
-                            {
-                                <span class="badge text-bg-light">@(BO.Code.Bas.ObjectDateTime2String(c.o27MailDateMessage))</span>
+                            {                                
+                                <span class="badge text-bg-light">@(BO.Code.Time.GetTimestamp(c.o27MailDateMessage))</span>
                             }
                             @if (c.o27MailAttachmentsCount > 0)
                             {
@@ -436,10 +440,20 @@
 
             $.post("/Dropzone/SaveToFilebox", { tempguid: tempguid,recprefix: "@Model.RecPrefix",recpid: @Model.RecPid }, function (data) {
 
+                
                 dz.removeAllFiles();
                 refreshstate_dropbox();
-                var link="<strong><a target='_top' href='@(_fileboxUrl)'>FileBox</a></strong>";
-                show_dropzone_message("Soubory máte uložené ve "+link);
+                var link="<strong><a target='_top' href='@(_fileboxUrl)'>FILEBOX</a></strong>";
+                //show_dropzone_message("Soubory máte uložené ve "+link);
+
+                    if (document.getElementById("form1"))
+                    {
+                        _postback();
+                    }else
+                    {
+                        location.replace(location.href);
+                    }
+
             });
      }
      function continue_to_save()

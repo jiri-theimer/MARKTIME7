@@ -29,7 +29,13 @@
 </div>
 
 
-
+@if(Model.Rec.o27MailBodyText != null)
+{
+    <div class="recpageboxauto">
+        <textarea readonly="readonly" class="form-control" style="overflow:auto;width:400px;height:299px;">@Html.Raw(Model.Rec.o27MailBodyText)</textarea>
+    </div>
+    
+}
 
 
 

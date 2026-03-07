@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using UI.Models;
+using UI.Models.Imap;
 using UI.Models.Record;
 using UI.Models.Tab1;
 
@@ -84,6 +85,14 @@ namespace UI.Controllers
 
 
             this.Notify_RecNotSaved();
+            return View(v);
+        }
+
+        public IActionResult MailBodyHtml(int pid)
+        {
+            var v = new BaseViewModel();
+            var rec = Factory.o27AttachmentBL.Load(pid);
+            ViewData["o27MailBodyHtml"] = rec.o27MailBodyHtml;
             return View(v);
         }
     }

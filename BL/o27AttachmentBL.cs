@@ -117,7 +117,8 @@ namespace BL
 
             p.AddString("o27MailSenderAddress", rec.o27MailSenderAddress);
             p.AddString("o27MailSenderName", rec.o27MailSenderName);
-            p.AddString("o27MailTo", rec.o27MailTo);
+            p.AddString("o27MailToAddress", rec.o27MailToAddress);
+            p.AddString("o27MailToName", rec.o27MailToName);
             p.AddString("o27MailCc", rec.o27MailCc);
             p.AddString("o27MailBcc", rec.o27MailBcc);
 

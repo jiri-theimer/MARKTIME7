@@ -46,7 +46,8 @@ namespace BO
         public string o27MailSenderName { get; set; }
         public string o27MailCc { get; set; }
         public string o27MailBcc { get; set; }
-        public string o27MailTo { get; set; }
+        public string o27MailToName { get; set; }
+        public string o27MailToAddress { get; set; }
         public string o27MailAttachments { get; set; }
 
         public bool IsMail { get

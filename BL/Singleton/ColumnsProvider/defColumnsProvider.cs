@@ -602,7 +602,8 @@ namespace BL
             oc = AA("Sender", "Odesílatel", gdc1, "case when a.o27MailSenderName is not null then a.o27MailSenderName else a.o27MailSenderAddress end"); oc.SqlExplicitGroupBy = "case when a.o27MailSenderName is not null then a.o27MailSenderName else a.o27MailSenderAddress end";
             oc = AA("o27MailSenderName", "Od (Jméno)"); oc.SqlExplicitGroupBy = "a.o27MailSenderName";
             oc = AA("o27MailSenderAddress", "Od (E-mail)"); oc.SqlExplicitGroupBy = "a.o27MailSenderAddress";
-            AA("o27MailTo", "Komu");
+            AA("o27MailToName", "Komu (jméno)");
+            AA("o27MailToAddress", "Komu (adresa)");
             AA("o27MailCc", "Cc");
             AA("o27MailBcc", "Bcc");
             AA("o27MailAttachments", "Seznam příloh");

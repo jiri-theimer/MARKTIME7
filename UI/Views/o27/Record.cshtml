@@ -2,7 +2,7 @@
 @inject BL.Factory _f
 
 @{
-    Model.PageTitle = "FILEBOX "+_f.tra("Záznam");
+    Model.PageTitle = "FILEBOX " + _f.tra("Záznam");
     Layout = "~/Views/Shared/_LayoutRecord.cshtml";
 }
 
@@ -15,10 +15,8 @@
         <div class="col-sm-7 col-md-6">
             <input class="form-control record_name" asp-for="Rec.o27Name" />
         </div>
-       
-    </div>
-    
 
+    </div>
 
     <div class="card" style="margin-top:10px;max-width:700px;">
         <div class="card-body">
@@ -34,3 +32,42 @@
 
 
 </div>
+
+
+
+@if (Model.Rec.IsMail)
+{
+    <div class="tabs_container_record">
+        <!-- Tab panes -->
+        <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item onetab" role="presentation">
+                <a id="link_tab1" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab1">TEXT</a>
+            </li>
+            <li class="nav-item onetab" role="presentation" id="litab2">
+                <a id="link_tab2" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab2">HTML</a>
+            </li>
+
+
+
+        </ul>
+    </div>
+
+
+
+    <div class="tab-content">
+        <div class="tab-pane" id="tab1" role="tabpanel">
+            <textarea readonly="readonly" class="form-control" style="margin-top:20px;">@Html.Raw(Model.Rec.o27MailBodyText)</textarea>
+            
+        </div>
+
+        <div class="tab-pane" id="tab2" role="tabpanel">
+            <iframe id="mailbody1" src="/o27/MailBodyHtml?pid=@Model.rec_pid" style="width:99%;height:450px;"></iframe>
+        </div>
+    </div>
+
+
+    
+
+}
+
+
