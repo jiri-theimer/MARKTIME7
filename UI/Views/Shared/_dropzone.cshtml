@@ -42,6 +42,10 @@
     <input type="hidden" id="recprefix" name="recprefix" value="@Model.RecPrefix" />
     <input type="hidden" id="recpid" name="recpid" value="@Model.RecPid" />
 
+    <div id="divNeedToSave" style="display:none;">
+        <button type="button" class="btn btn-success" onclick="save_to_filebox()" style="cursor:pointer !important">@_f.tra("Uložit do FILEBOX")</button>
+    </div>
+
     <div id="divDropzoneMessage" class="dz-message rounded-3 text-center bg-light" style="margin:0;">
 
         <div class="d-flex align-items-center justify-content-center gap-1 flex-wrap">
@@ -313,6 +317,7 @@
         dz.on("queuecomplete", function () {
 
           
+          refreshstate_dropbox();
 
           var isrefresh="@Model.IsAutoSave";
           if (isrefresh=="True")
@@ -454,6 +459,12 @@
      function refreshstate_dropbox()
      {
                 //nic
+                if (dz.files.length>0)
+                {
+                    $("#divNeedToSave").css("display","block");
+                }else{
+                    $("#divNeedToSave").css("display","none");
+                }
      }
 
      
