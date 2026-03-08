@@ -307,9 +307,13 @@ namespace BL
 
                 }
 
-                if (Save(c) > 0)
+                var intO27ID = Save(c);
+                if (intO27ID > 0)
                 {
-
+                    if (recprefix == "o27")
+                    {
+                        _mother.FBL.RunSql("UPDATE o23Doc SET o27ID_Last=@o27id WHERE o23ID=@pid", new { o27id = intO27ID, pid = recpid });
+                    }
                     CopyOneTempFile2Upload(c.o27ArchiveFileName, c.o27ArchiveFolder, c.o27ArchiveFileName);
                     bolOK = true;
                 }
