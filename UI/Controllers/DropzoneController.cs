@@ -3,11 +3,28 @@ using Microsoft.AspNetCore.Mvc;
 using Rebex.Mail;
 
 using System.Web;
+using UI.Models;
 
 namespace UI.Controllers
 {
     public class DropzoneController : BaseController
     {
+        public IActionResult UploadInFrame(string guid, string entity, int recpid)
+        {
+            if (string.IsNullOrEmpty(entity) || string.IsNullOrEmpty(guid))
+            {
+                return this.StopPageSubform("entity or guid is missing");
+            }
+
+            var v = new BaseViewModel();
+
+            ViewData["pid"] = recpid;
+            ViewData["entity"] = entity;
+            ViewData["guid"] = guid;
+
+            return View(v);
+        }
+
         [HttpPost]
         [DisableRequestSizeLimit] // volitelné – když řešíš větší soubory
         public async Task<IActionResult> UploadFiles()
@@ -81,91 +98,7 @@ namespace UI.Controllers
         
         public IActionResult SaveToFilebox(string tempguid,string recprefix,int recpid)
         {
-            var lis = Factory.p85TempboxBL.GetList(tempguid);
-            bool bolOK = false;
-            foreach(var rec in lis)
-            {
-                var strSourcePath = $"{Factory.TempFolder}\\{rec.p85FreeText03}";
-                var c = new BO.o27Attachment() {o27OriginalFileName=rec.p85FreeText01,o27ContentType=rec.p85FreeText02,o27ArchiveFileName=rec.p85FreeText03, o27FileSize = (int)rec.p85FreeNumber01, o27Guid = Guid.NewGuid() };
-                c.o27FileExtension = System.IO.Path.GetExtension(strSourcePath).ToLower();
-                c.o27ArchiveFolder = Factory.o27AttachmentBL.GetUploadFolder("FILEBOX");
-                c.o27Entity = recprefix;
-                c.o27RecordPid = recpid;
-
-                if (c.o27FileExtension == ".msg" || c.o27FileExtension == ".eml")
-                {
-                    var msg = Factory.o27AttachmentBL.LoadMsgFile(strSourcePath);                    
-                    c.o27MailSubject = msg.Subject;
-                    if (msg.MessageId != null)
-                    {
-                        c.o27MailMessageID = msg.MessageId.Id;
-                    }
-                   
-                    if (msg.Sender != null)
-                    {
-                        c.o27MailSenderName = msg.Sender.DisplayName;
-                        c.o27MailSenderAddress = msg.Sender.Address;
-                    }
-                    else
-                    {
-                        if (msg.From !=null && msg.From.Count() > 0)
-                        {
-                            c.o27MailSenderName = msg.From.First().DisplayName;
-                            c.o27MailSenderAddress = msg.From.First().Address;
-                        }
-                    }
-                    if (msg.To != null && msg.To.Count() > 0)
-                    {
-                        c.o27MailToAddress = String.Join(", ", msg.To.Select(p => p.Address));
-                        c.o27MailToName = String.Join(", ", msg.To.Select(p => p.DisplayName));
-                    }
-                    if (msg.CC != null && msg.CC.Count() > 0)
-                    {
-                        c.o27MailCc = String.Join(", ", msg.CC.Select(p => p.Address));
-                    }
-                    if (msg.Bcc != null && msg.Bcc.Count() > 0)
-                    {
-                        c.o27MailBcc = String.Join(", ", msg.CC.Select(p => p.Address));
-                    }
-                    c.o27MailAttachmentsCount = msg.Attachments.Count;
-                    if (msg.Attachments.Count > 0)
-                    {
-                        c.o27MailAttachments = BO.Code.Bas.OM2(string.Join(", ", msg.Attachments.Select(p => p.FileName.Trim())), 490);
-                    }
-                    if (msg.ReceivedDate != null)
-                    {
-                        c.o27MailDateReceived = msg.ReceivedDate.LocalTime;
-                    }
-                    if (msg.Date != null)
-                    {
-                        c.o27MailDateMessage = msg.Date.LocalTime;
-                    }
-                    if (msg.HasBodyHtml)
-                    {
-                        c.o27MailIsBodyHtml = true;
-                        c.o27MailBodyHtml = msg.BodyHtml;
-                    }
-                    else
-                    {
-                        c.o27MailIsBodyHtml = false;
-                    }
-                    if (msg.HasBodyText)
-                    {
-                        c.o27MailBodyText = msg.BodyText;
-                    }
-
-                    
-
-                    
-                }
-
-                if (Factory.o27AttachmentBL.Save(c) > 0)
-                {
-                                        
-                    Factory.o27AttachmentBL.CopyOneTempFile2Upload(c.o27ArchiveFileName, c.o27ArchiveFolder, c.o27ArchiveFileName);
-                    bolOK = true;
-                }
-            }
+            var bolOK = Factory.o27AttachmentBL.SaveDropzoneFromTemp(tempguid, recprefix, recpid);
             if (bolOK)
             {
                 return Ok(new { ok = true });

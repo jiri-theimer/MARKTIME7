@@ -572,7 +572,7 @@ namespace UI.Controllers
 
                     if (v.UploadGuid != null)
                     {
-                        Factory.o27AttachmentBL.SaveChangesAndUpload(v.UploadGuid, "p56", c.pid);
+                        Factory.o27AttachmentBL.SaveDropzoneFromTemp(v.UploadGuid, "p56", c.pid);
                     }
 
                     v.SetJavascript_CallOnLoad(c.pid);

@@ -24,8 +24,10 @@ namespace BL
         public string CreateTempInfoxFile(string strGuid, string strEntity, string strTempFileName, string strOrigFileName, string strContentType);
         public bool CommitNotepdChanges(string strTempNotepadGuid,string strPrefix, int intRecordPid);
         public Rebex.Mail.MailMessage LoadMsgFile(string strMsgPath);
+        
         public void SaveMsgAttachmentsToDisk(o27Attachment rec, Rebex.Mail.MailMessage msg);
-        //public List<BO.StringPair> GetListMsgAttachments(o27Attachment rec);
+
+        public bool SaveDropzoneFromTemp(string tempguid, string recprefix, int recpid);
 
     }
     class o27AttachmentBL : BaseBL, Io27AttachmentBL
@@ -225,7 +227,96 @@ namespace BL
             return true;
         }
 
+        public bool SaveDropzoneFromTemp(string tempguid, string recprefix, int recpid)
+        {
+            var lis = _mother.p85TempboxBL.GetList(tempguid);
+            bool bolOK = false;
+            foreach (var rec in lis)
+            {
+                var strSourcePath = $"{_mother.TempFolder}\\{rec.p85FreeText03}";
+                var c = new BO.o27Attachment() { o27OriginalFileName = rec.p85FreeText01, o27ContentType = rec.p85FreeText02, o27ArchiveFileName = rec.p85FreeText03, o27FileSize = (int)rec.p85FreeNumber01, o27Guid = Guid.NewGuid() };
+                c.o27FileExtension = System.IO.Path.GetExtension(strSourcePath).ToLower();
+                c.o27ArchiveFolder = GetUploadFolder("FILEBOX");
+                c.o27Entity = recprefix;
+                c.o27RecordPid = recpid;
 
+                if (c.o27FileExtension == ".msg" || c.o27FileExtension == ".eml")
+                {
+                    var msg = LoadMsgFile(strSourcePath);
+                    c.o27MailSubject = msg.Subject;
+                    if (msg.MessageId != null)
+                    {
+                        c.o27MailMessageID = msg.MessageId.Id;
+                    }
+
+                    if (msg.Sender != null)
+                    {
+                        c.o27MailSenderName = msg.Sender.DisplayName;
+                        c.o27MailSenderAddress = msg.Sender.Address;
+                    }
+                    else
+                    {
+                        if (msg.From != null && msg.From.Count() > 0)
+                        {
+                            c.o27MailSenderName = msg.From.First().DisplayName;
+                            c.o27MailSenderAddress = msg.From.First().Address;
+                        }
+                    }
+                    if (msg.To != null && msg.To.Count() > 0)
+                    {
+                        c.o27MailToAddress = String.Join(", ", msg.To.Select(p => p.Address));
+                        c.o27MailToName = String.Join(", ", msg.To.Select(p => p.DisplayName));
+                    }
+                    if (msg.CC != null && msg.CC.Count() > 0)
+                    {
+                        c.o27MailCc = String.Join(", ", msg.CC.Select(p => p.Address));
+                    }
+                    if (msg.Bcc != null && msg.Bcc.Count() > 0)
+                    {
+                        c.o27MailBcc = String.Join(", ", msg.CC.Select(p => p.Address));
+                    }
+                    c.o27MailAttachmentsCount = msg.Attachments.Count;
+                    if (msg.Attachments.Count > 0)
+                    {
+                        c.o27MailAttachments = BO.Code.Bas.OM2(string.Join(", ", msg.Attachments.Select(p => p.FileName.Trim())), 490);
+                    }
+                    if (msg.ReceivedDate != null)
+                    {
+                        c.o27MailDateReceived = msg.ReceivedDate.LocalTime;
+                    }
+                    if (msg.Date != null)
+                    {
+                        c.o27MailDateMessage = msg.Date.LocalTime;
+                    }
+                    if (msg.HasBodyHtml)
+                    {
+                        c.o27MailIsBodyHtml = true;
+                        c.o27MailBodyHtml = msg.BodyHtml;
+                    }
+                    else
+                    {
+                        c.o27MailIsBodyHtml = false;
+                    }
+                    if (msg.HasBodyText)
+                    {
+                        c.o27MailBodyText = msg.BodyText;
+                    }
+
+
+
+
+                }
+
+                if (Save(c) > 0)
+                {
+
+                    CopyOneTempFile2Upload(c.o27ArchiveFileName, c.o27ArchiveFolder, c.o27ArchiveFileName);
+                    bolOK = true;
+                }
+            }
+
+            return bolOK;
+        }
         public bool SaveChangesAndUpload(string guid,string entity,int recpid)
         {
             var recs4upload = new List<BO.o27Attachment>();

@@ -8,5 +8,7 @@ namespace UI.Models
         public string RecPrefix{ get; set; }
         public int RecPid { get; set; }
         public bool IsAutoSave { get; set; }
+
+        public bool IsInIframe { get; set; }
     }
 }

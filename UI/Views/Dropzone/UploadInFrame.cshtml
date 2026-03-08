@@ -1,0 +1,25 @@
+﻿@model BaseViewModel
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+
+    var dropzonemodel = new DropzoneViewModel() { IsInIframe = true, RecPid = (int)ViewData["pid"], RecPrefix = ViewData["entity"].ToString(),TempGuid=ViewData["guid"].ToString() };
+}
+
+
+@addTagHelper *, UI
+
+
+@section header_content
+{
+
+    <link rel="stylesheet" href="~/lib/dropzone/dropzone.css" asp-append-version="true" />
+    <script src="~/lib/dropzone/dropzone-min.js" asp-append-version="true"></script>
+    <script src="~/lib/dropzone/DataStream.js"></script>
+    <script src="~/lib/dropzone/msg.reader.js"></script>
+
+}
+
+@await Html.PartialAsync("~/Views/Shared/_dropzone.cshtml", dropzonemodel)
