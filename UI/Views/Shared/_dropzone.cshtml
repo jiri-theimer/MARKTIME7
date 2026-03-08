@@ -458,7 +458,10 @@
 
      function refreshstate_dropbox()
      {
-                //nic
+                if (isinframe=="True")
+                {
+                    return;
+                }
                 if (dz.files.length>0)
                 {
                     $("#divNeedToSave").css("display","block");
