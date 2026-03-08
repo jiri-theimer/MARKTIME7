@@ -31,7 +31,7 @@ namespace UI.Models.Record
         public int b07ID { get; set; }
         //public List<o27Repeator> lisO27 { get; set; }
 
-       public int o43id_source { get; set; }
+       
         public string SelectedComboOwner { get; set; }
 
         public RoleAssignViewModel roles { get; set; }

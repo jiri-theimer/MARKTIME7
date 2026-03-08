@@ -542,9 +542,9 @@ namespace UI.Controllers
 
                     
 
-                    if (v.disp.IsFiles)
+                    if (v.UploadGuid !=null)
                     {
-                        Factory.o27AttachmentBL.SaveChangesAndUpload(v.UploadGuid, "p41", c.pid);
+                        Factory.o27AttachmentBL.SaveDropzoneFromTemp(v.UploadGuid, "p41", c.pid);
 
                     }
                     if (v.reminder != null)

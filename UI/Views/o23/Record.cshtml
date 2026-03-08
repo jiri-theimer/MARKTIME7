@@ -73,7 +73,7 @@
 
 <input type="hidden" asp-for="current_user_lon" />
 <input type="hidden" asp-for="current_cuser_lat" />
-<input type="hidden" asp-for="o43id_source" />
+
 
 @Html.Raw("<div class='modal_record_container_flexi'>")
 @Html.Raw("<div class='tab-content'>")
@@ -359,9 +359,9 @@
 
 
 
-    @if (Model.disp.IsFiles)
+    @if (Model.disp.IsFiles && Model.UploadGuid !=null)
     {
-        <iframe id="fraUpload" src="/FileUpload/DoUpload?recpid=@Model.rec_pid&entity=o23&guid=@Model.UploadGuid" frameborder="0" style="max-width:1200px;height:60px;" scrolling="yes"></iframe>
+        <iframe id="fraUpload" src="/Dropzone/UploadInFrame?recpid=@Model.rec_pid&entity=o23&guid=@Model.UploadGuid" frameborder="0" scrolling="yes" style="max-width:1200px;height:60px;"></iframe>
     }
 
 

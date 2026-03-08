@@ -413,6 +413,10 @@
     </div>
 
   
+    @if (Model.UploadGuid != null)
+    {
+        <iframe id="fraUpload" src="/Dropzone/UploadInFrame?recpid=@Model.rec_pid&entity=p28&guid=@Model.UploadGuid" frameborder="0" scrolling="yes" style="max-width:1200px;height:60px;"></iframe>
+    }
 </div>
 
 

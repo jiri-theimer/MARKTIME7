@@ -227,9 +227,9 @@ namespace UI.Controllers
                 {
                     Factory.o51TagBL.SaveTagging("p90", c.pid, v.TagPids);
                     
-                    if (v.disp.IsFiles)
+                    if (v.UploadGuid !=null)
                     {
-                        Factory.o27AttachmentBL.SaveChangesAndUpload(v.UploadGuid, "p90", c.pid);
+                        Factory.o27AttachmentBL.SaveDropzoneFromTemp(v.UploadGuid, "p90", c.pid);
                     }
                     
 

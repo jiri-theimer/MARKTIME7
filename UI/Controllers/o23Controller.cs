@@ -242,7 +242,12 @@ namespace UI.Controllers
                 if (c.pid > 0)
                 {
                     Factory.o27AttachmentBL.CommitNotepdChanges(v.Notepad.TempGuid, "o23", c.pid);
-                    Factory.o27AttachmentBL.SaveChangesAndUpload(v.UploadGuid, "o23", c.pid);
+                    if (v.UploadGuid != null)
+                    {
+                        Factory.o27AttachmentBL.SaveDropzoneFromTemp(v.UploadGuid, "o23", c.pid);
+                    }
+                    
+                    
 
                     v.SetJavascript_CallOnLoad(c.pid);
                     return View(v);
@@ -259,15 +264,15 @@ namespace UI.Controllers
             return View(v);
         }
 
-        public IActionResult Record(int pid, bool isclone, int o18id, string prefix, int recpid, string rez,int o43id_source)
+        public IActionResult Record(int pid, bool isclone, int o18id, string prefix, int recpid, string rez)
         {
-            var v = new o23Record() { rec_pid = pid, rec_entity = "o23", o18ID = o18id, UploadGuid = BO.Code.Bas.GetGuid(),o43id_source=o43id_source };
+            var v = new o23Record() { rec_pid = pid, rec_entity = "o23", o18ID = o18id, UploadGuid = BO.Code.Bas.GetGuid() };
             v.disp = new DispoziceViewModel();
             v.disp.InitItems("o23", Factory);
 
             if (v.o18ID == 0 && v.rec_pid == 0)
             {
-                return RedirectToAction("SelectDocType", new { prefix = prefix, recpid = recpid, o17id = BO.Code.Bas.InInt(rez), o43id_source= o43id_source });
+                return RedirectToAction("SelectDocType", new { prefix = prefix, recpid = recpid, o17id = BO.Code.Bas.InInt(rez) });
             }
             v.Rec = new BO.o23Doc();
 
@@ -312,10 +317,10 @@ namespace UI.Controllers
                     v.Rec.o23IsEncrypted = true;
                 }
                 InhaleDisp(v, 0);
-                if (v.o43id_source > 0)
-                {
-                    InhaleInboxRecord(v);
-                }
+                //if (v.o43id_source > 0)
+                //{
+                //    InhaleInboxRecord(v);
+                //}
                 InhaleNotepad(v, v.Rec.x04ID, v.Rec.o23Notepad);
             }
 
@@ -687,9 +692,9 @@ namespace UI.Controllers
                     {
                         Factory.o27AttachmentBL.CommitNotepdChanges(v.Notepad.TempGuid, "o23", c.pid);
                     }
-                    if (v.disp.IsFiles)
+                    if (v.disp.IsFiles && v.UploadGuid !=null)
                     {
-                        Factory.o27AttachmentBL.SaveChangesAndUpload(v.UploadGuid, "o23", c.pid);
+                        Factory.o27AttachmentBL.SaveDropzoneFromTemp(v.UploadGuid, "o23", c.pid);
 
                     }
                     if (c.j95ID == 0 && v.RecO18.o18GeoFlag == BO.o18GeoFlagEnum.LoadFromP15) //načíst polohu+počasí z projektu/úkolu záznamu
@@ -703,12 +708,12 @@ namespace UI.Controllers
                     }
                     v.barcodes.CommitChangesIfNewRecords(Factory, c.pid);
 
-                    if (v.o43id_source > 0)
-                    {
-                        var recO43 = Factory.o43InboxBL.Load(v.o43id_source);
-                        recO43.o23ID = c.pid;
-                        Factory.o43InboxBL.Save(recO43);
-                    }
+                    //if (v.o43id_source > 0)
+                    //{
+                    //    var recO43 = Factory.o43InboxBL.Load(v.o43id_source);
+                    //    recO43.o23ID = c.pid;
+                    //    Factory.o43InboxBL.Save(recO43);
+                    //}
 
                     if (v.reminder != null)
                     {
@@ -884,35 +889,35 @@ namespace UI.Controllers
             return perm.OwnerAccess;
         }
 
-        private void InhaleInboxRecord(o23Record v)
-        {
-            if (v.o43id_source > 0)
-            {
-                var recO43 = Factory.o43InboxBL.Load(v.o43id_source);
+        //private void InhaleInboxRecord(o23Record v)
+        //{
+        //    if (v.o43id_source > 0)
+        //    {
+        //        var recO43 = Factory.o43InboxBL.Load(v.o43id_source);
                 
-                v.Rec.o23Name = recO43.o43Subject;
-                if (recO43.o43IsBodyHtml)
-                {
-                    v.Rec.o23Notepad = recO43.o43BodyHtml;
-                }
-                else
-                {
-                    v.Rec.o23Notepad = recO43.o43BodyText;
-                }
-                var files = Factory.o43InboxBL.GetInboxFiles(recO43.pid, true).Where(p => p.Key != "eml" && p.Key != "msg");
-                if (files.Count() > 0)
-                {
-                    v.disp.SetChecked(PosEnum.Files, true); //zapnout rozšíření Nahrávat přílohy                    
-                }
-                foreach (BO.StringPair sp in files)
-                {
-                    System.IO.File.Copy(sp.Value, $"{Factory.TempFolder}\\{sp.Key}",true);
-                    Factory.o27AttachmentBL.CreateTempInfoxFile(v.UploadGuid, "o23", sp.Key, sp.Key, BO.Code.File.GetContentType(sp.Value));
+        //        v.Rec.o23Name = recO43.o43Subject;
+        //        if (recO43.o43IsBodyHtml)
+        //        {
+        //            v.Rec.o23Notepad = recO43.o43BodyHtml;
+        //        }
+        //        else
+        //        {
+        //            v.Rec.o23Notepad = recO43.o43BodyText;
+        //        }
+        //        var files = Factory.o43InboxBL.GetInboxFiles(recO43.pid, true).Where(p => p.Key != "eml" && p.Key != "msg");
+        //        if (files.Count() > 0)
+        //        {
+        //            v.disp.SetChecked(PosEnum.Files, true); //zapnout rozšíření Nahrávat přílohy                    
+        //        }
+        //        foreach (BO.StringPair sp in files)
+        //        {
+        //            System.IO.File.Copy(sp.Value, $"{Factory.TempFolder}\\{sp.Key}",true);
+        //            Factory.o27AttachmentBL.CreateTempInfoxFile(v.UploadGuid, "o23", sp.Key, sp.Key, BO.Code.File.GetContentType(sp.Value));
                     
-                }
+        //        }
                 
 
-            }
-        }
+        //    }
+        //}
     }
 }

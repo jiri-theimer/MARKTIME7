@@ -192,9 +192,9 @@
 
             <mystitky entity="p91Invoice" asp-for="@Model.TagPids" tagnames="@Model.TagNames" taghtml="@Model.TagHtml" buttontext="@_f.tra("Oštítkovat")"></mystitky>
 
-            @if (Model.disp.IsFiles)
+            @if (Model.UploadGuid != null)
             {
-                <iframe id="fraUpload" src="/FileUpload/DoUpload?recpid=@Model.rec_pid&entity=p91&guid=@Model.UploadGuid" frameborder="0" scrolling="yes" style="max-width:1200px;height:60px;"></iframe>
+                <iframe id="fraUpload" src="/Dropzone/UploadInFrame?recpid=@Model.rec_pid&entity=p91&guid=@Model.UploadGuid" frameborder="0" scrolling="yes" style="max-width:1200px;height:60px;"></iframe>
             }
         </div>
         <div class="tab-pane" id="tab2" role="tabpanel">

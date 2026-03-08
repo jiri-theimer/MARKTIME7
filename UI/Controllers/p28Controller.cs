@@ -673,18 +673,12 @@ namespace UI.Controllers
             {
                 Factory.o51TagBL.SaveTagging("p28", c.pid, v.TagPids);
 
-                //if (v.rec_pid == 0 && v.Notepad != null && !string.IsNullOrWhiteSpace(v.Notepad.HtmlContent))  //zda uložit fakturační poznámku
-                //{
-                //    var recB05 = new BO.b05Workflow_History() { b05RecordEntity = "p28", b05IsCommentOnly = true, b05IsManualStep = true, x04ID = v.Notepad.SelectedX04ID, b05RecordPid = c.pid, b05Notepad = v.Notepad.HtmlContent, b05Tab1Flag = 6 };
-                //    Factory.WorkflowBL.Save2History(recB05);
-
-                //}
+                
 
 
-
-                if (v.disp.IsFiles)
+                if (v.UploadGuid !=null)
                 {
-                    Factory.o27AttachmentBL.SaveChangesAndUpload(v.UploadGuid, "p28", c.pid);
+                    Factory.o27AttachmentBL.SaveDropzoneFromTemp(v.UploadGuid, "p28", c.pid);
                 }
                 if (v.reminder != null)
                 {

@@ -517,9 +517,9 @@ namespace UI.Controllers
                     }
                     Factory.o51TagBL.SaveTagging("j02", c.pid, v.TagPids);
 
-                    if (v.disp.IsFiles)
+                    if (v.UploadGuid !=null)
                     {
-                        Factory.o27AttachmentBL.SaveChangesAndUpload(v.UploadGuid, "j02", c.pid);
+                        Factory.o27AttachmentBL.SaveDropzoneFromTemp(v.UploadGuid, "j02", c.pid);
                     }
 
                     if (Factory.o27AttachmentBL.GetTempFiles(v.UploadGuidSignature).Count() > 0)

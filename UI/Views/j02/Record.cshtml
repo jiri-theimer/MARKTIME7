@@ -276,10 +276,7 @@
 
 
 
-    @if (Model.disp.IsFiles)
-    {
-        <iframe id="fraUpload" src="/FileUpload/DoUpload?recpid=@Model.rec_pid&entity=j02&guid=@Model.UploadGuid" frameborder="0" scrolling="yes" style="max-width:1200px;height:60px;"></iframe>
-    }
+    
 
 </div>
 
@@ -422,6 +419,10 @@
         </div>
     </div>
 
+    @if (Model.UploadGuid != null)
+    {
+        <iframe id="fraUpload" src="/Dropzone/UploadInFrame?recpid=@Model.rec_pid&entity=j02&guid=@Model.UploadGuid" frameborder="0" scrolling="yes" style="max-width:1200px;height:60px;"></iframe>
+    }
 
 </div>
 
@@ -466,5 +467,12 @@
     function handle_delete_j15(guid) {
         _postback("delete-j15", "guid=" + guid);
 
+    }
+
+    function hardrefresh(pid, flag) {
+
+        
+
+        _postback();
     }
 </script>

@@ -293,9 +293,9 @@ namespace UI.Controllers
                     Factory.o51TagBL.SaveTagging("p91", c.pid, v.TagPids);
                                        
                     
-                    if (v.disp.IsFiles)
+                    if (v.UploadGuid !=null)
                     {
-                        Factory.o27AttachmentBL.SaveChangesAndUpload(v.UploadGuid, "p91", c.pid);
+                        Factory.o27AttachmentBL.SaveDropzoneFromTemp(v.UploadGuid, "p91", c.pid);
                     }
 
                     

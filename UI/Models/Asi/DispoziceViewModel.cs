@@ -11,7 +11,7 @@ namespace UI.Models
         Tags=64,
         ProjectBudget=128,
         ProjectClient=256,
-        Inbox=512,
+        
         ProjectContacts=1024,
         NotepadIsBillingMemo=2048,
         ContactPersons=4096,
@@ -34,7 +34,7 @@ namespace UI.Models
             {
                 case "p28":
                   
-                    InitItem(f.tra("Přílohy v kartě záznamu"), PosEnum.Files);
+                    InitItem("FILEBOX", PosEnum.Files);
                     InitItem(f.tra("Záložka: Fakturační nastavení"), PosEnum.BillingTab);
                     InitItem(f.tra("Kontaktní osoby"), PosEnum.ContactPersons);
                     InitItem(f.tra("Kontaktní média"), PosEnum.ContactMedia);
@@ -42,7 +42,7 @@ namespace UI.Models
                     break;
                 case "p41":
                    
-                    InitItem(f.tra("Přílohy v kartě záznamu"), PosEnum.Files);
+                    InitItem("FILEBOX", PosEnum.Files);
                     InitItem(f.tra("Záložka: Fakturační nastavení"), PosEnum.BillingTab);
                     InitItem(f.tra("Obsazení projektových rolí"), PosEnum.Roles);
                     InitItem(f.tra("Plán/Rozpočet"), PosEnum.ProjectBudget);
@@ -50,31 +50,31 @@ namespace UI.Models
                     InitItem(f.tra("Kontakty projektu (kromě klienta projektu)"), PosEnum.ProjectContacts);
                     break;
                 case "o23":
-                    InitItem("Nodepad poznámka", PosEnum.Notepad);
-                    InitItem(f.tra("Přílohy"), PosEnum.Files);                    
+                    InitItem("Nodepad", PosEnum.Notepad);
+                    InitItem("FILEBOX", PosEnum.Files);                    
                     InitItem(f.tra("Role | Oprávnění"), PosEnum.Roles);
                     InitItem(f.tra("Štítky"), PosEnum.Tags);
-                    InitItem(f.tra("Inbox: Došlá pošta"), PosEnum.Inbox);
+                    //InitItem(f.tra("Inbox: Došlá pošta"), PosEnum.Inbox);
                     break;
                 case "p31":
                     InitItem(f.tra("Korekce pro vyúčtování"), PosEnum.Trimming);
                     
-                    InitItem(f.tra("Přílohy"), PosEnum.Files);
+                    InitItem("FILEBOX", PosEnum.Files);
                     InitItem(f.tra("Štítky"), PosEnum.Tags);
                     //InitItem(f.tra("Inbox: Došlá pošta"), PosEnum.Inbox);
                     break;
                 case "j02":
                     
-                    InitItem(f.tra("Přílohy v kartě záznamu"), PosEnum.Files);                    
+                    InitItem("FILEBOX", PosEnum.Files);                    
                     break;
                 case "p90":
                     
-                    InitItem(f.tra("Přílohy v kartě záznamu"), PosEnum.Files);
+                    InitItem("FILEBOX", PosEnum.Files);
                     InitItem(f.tra("Role | Oprávnění"), PosEnum.Roles);
                     break;
                 case "p91":
                     
-                    InitItem(f.tra("Přílohy v kartě záznamu"), PosEnum.Files);
+                    InitItem("FILEBOX", PosEnum.Files);
                     InitItem(f.tra("Role | Oprávnění"), PosEnum.Roles);
                     break;
             }
@@ -191,12 +191,12 @@ namespace UI.Models
                     }
                     if (this.IsChecked(PosEnum.Files))
                     {
-                        return "Přílohy";
+                        return "FILEBOX";
                     }
 
-                    return "Poznámka | Přílohy";
+                    return "Poznámka | FILEBOX";
                 case PosEnum.Files:
-                    return "Přílohy";
+                    return "FILEBOX";
                 default:
                     return null;
 
