@@ -306,8 +306,8 @@ namespace UI.Controllers
                 case "o51":
                 case "o53":
                     return Factory.CurrentUser.TestPermission(BO.PermValEnum.GR_o51_Admin);
-                case "o43":
-                    return Factory.CurrentUser.j04IsModule_o43;
+                case "o27":
+                    return Factory.CurrentUser.j04IsModule_o27;
                 case "p11":
                     return Factory.CurrentUser.j04IsModule_p11;
                 case "p49":

@@ -103,6 +103,7 @@ namespace BL
             p.AddBool("j04IsModule_o43", rec.j04IsModule_o43);
             p.AddBool("j04IsModule_r01", rec.j04IsModule_r01);
             p.AddBool("j04IsModule_p49", rec.j04IsModule_p49);
+            p.AddBool("j04IsModule_o27", rec.j04IsModule_o27);
 
             p.AddByte("j04FilesTab", rec.j04FilesTab);
 

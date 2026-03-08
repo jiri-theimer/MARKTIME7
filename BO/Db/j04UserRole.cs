@@ -23,6 +23,7 @@ namespace BO
         public bool j04IsModule_o43 { get; set; }
         public bool j04IsModule_r01 { get; set; }
         public bool j04IsModule_p49 { get; set; }
+        public bool j04IsModule_o27 { get; set; }
         public bool j04IsAllowLoginByGoogle { get; set; }
      
         public string j04HomePageUrl { get; set; }

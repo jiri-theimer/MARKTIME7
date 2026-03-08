@@ -24,9 +24,10 @@ namespace BO
         public bool j04IsModule_Widgets { get; set; }
         public bool j04IsModule_x31 { get; set; }
         public bool j04IsModule_p11 { get; set; }
-        public bool j04IsModule_o43 { get; set; }
+        
         public bool j04IsModule_r01 { get; set; }
         public bool j04IsModule_p49 { get; set; }
+        public bool j04IsModule_o27 { get; set; }
 
         public string PersonalPageUrl { get; }
 

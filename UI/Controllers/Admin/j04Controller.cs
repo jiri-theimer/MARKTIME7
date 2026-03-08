@@ -101,9 +101,10 @@ namespace UI.Controllers
                 c.j04IsModule_o23 = v.Rec.j04IsModule_o23;
                 c.j04IsModule_x31 = v.Rec.j04IsModule_x31;
                 c.j04IsModule_p11 = v.Rec.j04IsModule_p11;
-                c.j04IsModule_o43 = v.Rec.j04IsModule_o43;
+                
                 c.j04IsModule_r01 = v.Rec.j04IsModule_r01;
                 c.j04IsModule_p49 = v.Rec.j04IsModule_p49;
+                c.j04IsModule_o27 = v.Rec.j04IsModule_o27;
 
                 c.j04IsModule_Widgets = v.Rec.j04IsModule_Widgets;
                 

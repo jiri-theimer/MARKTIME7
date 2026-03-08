@@ -15,11 +15,7 @@
     }
 
 
-    string _GridUrlO43 = null;
-    if (_f.CurrentUser.j04IsModule_o43)
-    {
-        _GridUrlO43 = cmenu.GetMainmenuEntityUrl("o43");
-    }
+    
 
     string _GridUrlP24 = null;
     if (_f.CurrentUser.j04IsModule_p28)
@@ -603,14 +599,7 @@
                         <button type="button" data-key="b05" class="pin btn btn-sm"><span class="material-icons-outlined-btn">speaker_notes</span></button>
                     }
 
-                    @if (_GridUrlO43 != null)
-                    {
-                        <a id="linkInbox" class="locallink" href="@(_GridUrlO43)">
-                            <span class="material-icons-outlined-btn">forward_to_inbox</span>
-                            Inbox
-                        </a>
-                        <button type="button" data-key="o43" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
-                    }
+                   
                     @if (_GridUrlP15 != null)
                     {
 

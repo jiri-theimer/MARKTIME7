@@ -368,7 +368,7 @@
 
                             }
                         }
-                        @if (_myMenu.Contains("o27"))
+                        @if (_f.CurrentUser.j04IsModule_o27 && _myMenu.Contains("o27"))
                         {
                             <li title="FILEBOX" class="nonmobile">
                                 <a id="cmdo27" class="nav-link" href="@(cmenu.GetMainmenuEntityUrl("o27"))">
@@ -400,14 +400,7 @@
                                 </a>
                             </li>
                         }
-                        @if (_f.CurrentUser.j04IsModule_o43 && _myMenu.Contains("o43"))
-                        {
-                            <li title="INBOX">
-                                <a id="cmdo43" class="nav-link" href="@(cmenu.GetMainmenuEntityUrl("o43"))">
-                                    <span class="material-icons-outlined-btn" style="color:white">forward_to_inbox</span>
-                                </a>
-                            </li>
-                        }
+                        
                         @if (_myMenu.Contains("b05"))
                         {
                             <li title="Poznámky, workflow historie">

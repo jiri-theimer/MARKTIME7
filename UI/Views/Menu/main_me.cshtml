@@ -145,8 +145,15 @@
 
             <a class="nav-link" href="/TheGrid/FlatView?prefix=x40">
                 <myicon symbol="email"></myicon>
-                @_f.tra("Můj Outbox")
+                @_f.tra("Můj OUTBOX")
             </a>
+            @if (_f.CurrentUser.j04IsModule_o27)
+            {
+                <a class="nav-link" href="/TheGrid/FlatView?prefix=o27">
+                    <myicon symbol="attachment"></myicon>
+                    @_f.tra("Můj FILEBOX")
+                </a>
+            }
             <a class="nav-link" href="javascript:_window_open('/icalgen/Index',2)">
                 <myicon symbol="calendar_add_on"></myicon>
                 @_f.tra("Integrace s Google/Outlook kalendářem")

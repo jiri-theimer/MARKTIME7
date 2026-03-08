@@ -141,11 +141,8 @@ namespace UI.Code
                     Handle_DocsTabs(lisO17, null);
 
 
-                    _tabs.Add(AddTab("Outbox", "x40MailQueue", "/TheGrid/SlaveView?prefix=x40"));
-                    if (_f.CurrentUser.j04IsModule_o43)
-                    {
-                        _tabs.Add(AddTab("Inbox", "o43Inbox", "/TheGrid/SlaveView?prefix=o43", true, Badge1(cpj02.o43_Count)));
-                    }
+                    _tabs.Add(AddTab("OUTBOX", "x40MailQueue", "/TheGrid/SlaveView?prefix=x40"));
+                    
                     
                     _tabs.Add(AddTab("PING Log", "j92PingLog", "/TheGrid/SlaveView?prefix=j92"));
                     _tabs.Add(AddTab("LOGIN Log", "j90LoginAccessLog", "/TheGrid/SlaveView?prefix=j90"));
@@ -192,10 +189,7 @@ namespace UI.Code
                     }
                     Handle_DocsTabs(lisO17, Badge1(cp28.o23_Count));
                     
-                    if (_f.CurrentUser.j04IsModule_o43)
-                    {
-                        _tabs.Add(AddTab("Inbox", "o43Inbox", "/TheGrid/SlaveView?prefix=o43", true, Badge1(cp28.o43_Count)));
-                    }
+                    
                         
                     _tabs.Add(AddTab("<span class='material-icons-outlined-btn'>speaker_notes</span>", "b05", "/Record/TabB05?prefix=p28",false, Badge1(cp28.b05_Count),"Notepad, workflow historie"));
                     break;
@@ -245,10 +239,7 @@ namespace UI.Code
                     }
                     Handle_DocsTabs(lisO17, Badge1(cp41.o23_Count));
                    
-                    if (_f.CurrentUser.j04IsModule_o43)
-                    {
-                        _tabs.Add(AddTab("Inbox", "o43Inbox", "/TheGrid/SlaveView?prefix=o43", true, Badge1(cp41.o43_Count)));
-                    }
+                    
                     
                     _tabs.Add(AddTab("<span class='material-icons-outlined-btn'>speaker_notes</span>", "b05", "/Record/TabB05?prefix=p41", false, Badge1(cp41.b05_Count),"Poznámky, workflow historie"));
                     break;
@@ -268,11 +259,7 @@ namespace UI.Code
                         _tabs.Add(AddTab("Vyúčtování", "p91Invoice", "/TheGrid/SlaveView?prefix=p91", true, Badge1(cpo23.p91_Count)));
                     }
                     
-                    if (_f.CurrentUser.j04IsModule_o43)
-                    {
-                        _tabs.Add(AddTab("Inbox", "o43Inbox", "/TheGrid/SlaveView?prefix=o43", true, Badge1(cpo23.o43_Count)));
-                    }
-                    
+                   
                     _tabs.Add(AddTab("<span class='material-icons-outlined-btn'>speaker_notes</span>", "b05", "/Record/TabB05?prefix=o23", false,null,"Notepad, workflow historie"));
                     
                     break;
@@ -314,10 +301,7 @@ namespace UI.Code
                     {
                         _tabs.Add(AddTab("FP", "p49FinancialPlan", "/TheGrid/SlaveView?prefix=p49", true, Badge1(cp56.p49_Count),"Finanční plány"));
                     }
-                    if (_f.CurrentUser.j04IsModule_o43)
-                    {
-                        _tabs.Add(AddTab("Inbox", "o43Inbox", "/TheGrid/SlaveView?prefix=o43", true, Badge1(cp56.o43_Count)));
-                    }
+                   
                     
                     _tabs.Add(AddTab("<span class='material-icons-outlined-btn'>speaker_notes</span>", "b05", "/Record/TabB05?prefix=p56", false, Badge1(cp56.b05_Count),"Notepad, workflow historie"));
                     break;
@@ -390,10 +374,7 @@ namespace UI.Code
                     }
                     
                     _tabs.Add(AddTab("Uživatelé", "j02User", "/TheGrid/SlaveView?prefix=j02", true, Badge1(cpo51.j02_Count)));
-                    if (_f.CurrentUser.j04IsModule_o43)
-                    {
-                        _tabs.Add(AddTab("Inbox", "o43Inbox", "/TheGrid/SlaveView?prefix=o43", true, Badge1(cpo51.o43_Count)));
-                    }
+                    
                     
                     break;
                 case "p90":
@@ -401,10 +382,7 @@ namespace UI.Code
                     
                     _tabs.Add(AddTab(cp90.p89Name, "tab1", "/p90/Tab1?pid=" + AppendPid2Url(pid)));
                     _tabs.Add(AddTab("Faktury (Vyúčtování)", "p91Invoice", "/TheGrid/SlaveView?prefix=p91", true, Badge1(cp90.p91_Count)));
-                    if (_f.CurrentUser.j04IsModule_o43)
-                    {
-                        _tabs.Add(AddTab("Inbox", "o43Inbox", "/TheGrid/SlaveView?prefix=o43", true, Badge1(cp90.o43_Count)));
-                    }
+                    
                     _tabs.Add(AddTab("<span class='material-icons-outlined-btn'>speaker_notes</span>", "b05", "/Record/TabB05?prefix=p90", false, Badge1(cp90.b05_Count),"Poznámky, workflow historie"));
 
 
@@ -426,10 +404,7 @@ namespace UI.Code
                     _tabs.Add(AddTab("Projekty", "p41Project", "/TheGrid/SlaveView?prefix=p41", true, Badge1(cp91.p41_count)));
                     _tabs.Add(AddTab("Zapojení uživatelé", "j02User", "/TheGrid/SlaveView?prefix=j02", true, Badge1(cp91.j02_count)));
                     _tabs.Add(AddTab("Outbox", "x40MailQueue", "/TheGrid/SlaveView?prefix=x40", true));
-                    if (_f.CurrentUser.j04IsModule_o43)
-                    {
-                        _tabs.Add(AddTab("Inbox", "o43Inbox", "/TheGrid/SlaveView?prefix=o43", true, Badge1(cp91.o43_count)));
-                    }
+                    
                     
                     _tabs.Add(AddTab("<span class='material-icons-outlined-btn'>speaker_notes</span>", "b05", "/Record/TabB05?prefix=p91",false, Badge1(cp91.b05_count),"Poznámky, workflow historie"));
 
