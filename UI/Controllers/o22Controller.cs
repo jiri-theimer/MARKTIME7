@@ -33,7 +33,7 @@ namespace UI.Controllers
 
 
 
-        public IActionResult Record(int pid, bool isclone, int p41id, string wrk_record_prefix, int wrk_record_pid,string d,int j02id,int o21id, int o43id_source)
+        public IActionResult Record(int pid, bool isclone, int p41id, string wrk_record_prefix, int wrk_record_pid,string d,int j02id,int o21id)
         {            
             var v = new o22Record() { rec_pid = pid, rec_entity = "o22", j02id_create_taskfor = j02id, b05RecordEntity = wrk_record_prefix, b05RecordPid = wrk_record_pid, UploadGuid = BO.Code.Bas.GetGuid(), Notepad = new Models.Notepad.EditorViewModel() { Prefix = "o22" } };
             if (v.j02id_create_taskfor == 0) v.j02id_create_taskfor = Factory.CurrentUser.pid;            
@@ -41,32 +41,32 @@ namespace UI.Controllers
             v.Element2Focus = "Rec_o22Name";
             
             v.Rec = new BO.o22Milestone() {o22DurationCount = 1,o21ID=o21id,p41ID= p41id };
-            if (v.rec_pid == 0 && o43id_source > 0)
-            {
-                var recO43 = Factory.o43InboxBL.Load(o43id_source);
-                v.o43id_source = recO43.pid;
-                v.Rec.o22Name = recO43.o43Subject;
-                v.IsShowMore = true;
-                if (recO43.o43IsBodyHtml)
-                {
-                    InhaleNotepad(v, Factory.Lic.x04ID_Default, recO43.o43BodyHtml);
-                }
-                else
-                {
-                    InhaleNotepad(v, Factory.Lic.x04ID_Default, recO43.o43BodyText);
-                }
-                if (recO43.p41ID > 0)
-                {
-                    v.Rec.p41ID = recO43.p41ID;
-                }
-                var files = Factory.o43InboxBL.GetInboxFiles(recO43.pid, true).Where(p => p.Key != "eml" && p.Key != "msg");
-                foreach (BO.StringPair sp in files)
-                {
-                    System.IO.File.Copy(sp.Value, $"{Factory.TempFolder}\\{sp.Key}", true);
-                    Factory.o27AttachmentBL.CreateTempInfoxFile(v.UploadGuid, "o22", sp.Key, sp.Key, BO.Code.File.GetContentType(sp.Value));
+            //if (v.rec_pid == 0 && o43id_source > 0)
+            //{
+            //    var recO43 = Factory.o43InboxBL.Load(o43id_source);
+            //    v.o43id_source = recO43.pid;
+            //    v.Rec.o22Name = recO43.o43Subject;
+            //    v.IsShowMore = true;
+            //    if (recO43.o43IsBodyHtml)
+            //    {
+            //        InhaleNotepad(v, Factory.Lic.x04ID_Default, recO43.o43BodyHtml);
+            //    }
+            //    else
+            //    {
+            //        InhaleNotepad(v, Factory.Lic.x04ID_Default, recO43.o43BodyText);
+            //    }
+            //    if (recO43.p41ID > 0)
+            //    {
+            //        v.Rec.p41ID = recO43.p41ID;
+            //    }
+            //    var files = Factory.o43InboxBL.GetInboxFiles(recO43.pid, true).Where(p => p.Key != "eml" && p.Key != "msg");
+            //    foreach (BO.StringPair sp in files)
+            //    {
+            //        System.IO.File.Copy(sp.Value, $"{Factory.TempFolder}\\{sp.Key}", true);
+            //        Factory.o27AttachmentBL.CreateTempInfoxFile(v.UploadGuid, "o22", sp.Key, sp.Key, BO.Code.File.GetContentType(sp.Value));
 
-                }
-            }
+            //    }
+            //}
             if (v.Rec.p41ID==0 && v.b05RecordEntity == "p41" && v.b05RecordPid > 0)
             {
                 v.Rec.p41ID = v.b05RecordPid;
@@ -275,12 +275,7 @@ namespace UI.Controllers
                         v.reminder.SaveChanges(Factory, c.pid, c.o22PlanUntil);
                     }
 
-                    if (v.o43id_source > 0)
-                    {
-                        var recO43 = Factory.o43InboxBL.Load(v.o43id_source);
-                        recO43.o22ID = c.pid;
-                        Factory.o43InboxBL.Save(recO43);
-                    }
+                    
                     if (v.UploadGuid != null)
                     {
                         Factory.o27AttachmentBL.SaveChangesAndUpload(v.UploadGuid, "o22", c.pid);

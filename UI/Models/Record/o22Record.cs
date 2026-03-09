@@ -18,7 +18,7 @@
 
         public ReminderViewModel reminder { get; set; }
 
-        public int o43id_source { get; set; }
+        
         public string UploadGuid { get; set; }
         public ProjectComboViewModel ProjectCombo { get; set; }
     }

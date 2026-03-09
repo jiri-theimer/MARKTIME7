@@ -353,20 +353,17 @@ namespace UI.Controllers
 
 
 
-        public IActionResult Record(int pid, bool isclone, int p41id, string wrk_record_prefix, int wrk_record_pid, string d, int j02id, int p57id, int o43id_source, int p60id)
+        public IActionResult Record(int pid, bool isclone, int p41id, string wrk_record_prefix, int wrk_record_pid, string d, int j02id, int p57id, int p60id)
         {
             if (BO.Code.Entity.GetPrefixDb(wrk_record_prefix) == "p41" && p41id == 0) p41id = wrk_record_pid;
 
-            var v = new p56Record() { rec_pid = pid, rec_entity = "p56", j02id_create_taskfor = j02id, b05RecordEntity = wrk_record_prefix, b05RecordPid = wrk_record_pid, UploadGuid = BO.Code.Bas.GetGuid(), o43id_source = o43id_source, Notepad = new Models.Notepad.EditorViewModel() { Prefix = "p56" } };
+            var v = new p56Record() { rec_pid = pid, rec_entity = "p56", j02id_create_taskfor = j02id, b05RecordEntity = wrk_record_prefix, b05RecordPid = wrk_record_pid, UploadGuid = BO.Code.Bas.GetGuid(), Notepad = new Models.Notepad.EditorViewModel() { Prefix = "p56" } };
 
             v.Element2Focus = "Rec_p56Name";
             if (v.j02id_create_taskfor == 0) v.j02id_create_taskfor = Factory.CurrentUser.pid;
 
             v.Rec = new BO.p56Task() { p41ID = p41id, p56PlanUntil = DateTime.Today.AddDays(1).AddHours(12), p57ID = p57id, x04ID = Factory.Lic.x04ID_Default };
-            if (v.rec_pid == 0 && v.o43id_source > 0)
-            {
-                InhaleInboxRecord(v);
-            }
+            
             if (p60id > 0)
             {
                 InhaleTemplateRecord(v, p60id);
@@ -563,13 +560,7 @@ namespace UI.Controllers
                     }
                     v.reminder.SaveChanges(Factory, c.pid, c.p56PlanUntil);
 
-                    if (v.o43id_source > 0)
-                    {
-                        var recO43 = Factory.o43InboxBL.Load(v.o43id_source);
-                        recO43.p56ID = c.pid;
-                        Factory.o43InboxBL.Save(recO43);
-                    }
-
+                   
                     if (v.UploadGuid != null)
                     {
                         Factory.o27AttachmentBL.SaveDropzoneFromTemp(v.UploadGuid, "p56", c.pid);
@@ -658,32 +649,7 @@ namespace UI.Controllers
            
             //v.roles.Default_j02ID = v.j02id_create_taskfor; v.roles.Default_Person = Factory.j02UserBL.Load(v.j02id_create_taskfor).FullnameDesc;
         }
-        private void InhaleInboxRecord(p56Record v)
-        {
-            var recO43 = Factory.o43InboxBL.Load(v.o43id_source);
-            v.Rec.p56Name = recO43.o43Subject;
-
-            if (recO43.o43IsBodyHtml)
-            {
-                InhaleNotepad(v, Factory.Lic.x04ID_Default, recO43.o43BodyHtml);
-            }
-            else
-            {
-                InhaleNotepad(v, Factory.Lic.x04ID_Default, recO43.o43BodyText);
-            }
-            if (recO43.p41ID > 0)
-            {
-                v.Rec.p41ID = recO43.p41ID;
-            }
-            var files = Factory.o43InboxBL.GetInboxFiles(recO43.pid, true).Where(p => p.Key != "eml" && p.Key != "msg");
-
-            foreach (BO.StringPair sp in files)
-            {
-                System.IO.File.Copy(sp.Value, $"{Factory.TempFolder}\\{sp.Key}", true);
-                Factory.o27AttachmentBL.CreateTempInfoxFile(v.UploadGuid, "p56", sp.Key, sp.Key, BO.Code.File.GetContentType(sp.Value));
-
-            }
-        }
+        
 
     }
 }

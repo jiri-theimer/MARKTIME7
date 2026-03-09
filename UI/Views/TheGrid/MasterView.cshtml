@@ -94,7 +94,7 @@
             <a class="btn descreet_link_over_grid" title="Stránka záznamu" href="javascript:_recpage_from_grid('@(Model.prefix)')"><span class="material-icons-outlined-btn">maps_home_work</span></a>
         </div>
     }
-    @if (Model.prefix != "p91" && Model.prefix != "p84" && Model.prefix != "o43")
+    @if (Model.prefix != "p91" && Model.prefix != "p84" && Model.prefix != "o27")
     {
         <div class="nonmobile">
             <a class="btn descreet_link_over_grid" href="javascript:_edit('@(Model.prefix)',0,null,'@(Model.rez)')" title="@_f.tra("Nový")"><span class="material-icons-outlined-btn menu_new_record">add_circle_outline</span></a>
@@ -177,22 +177,7 @@
 
 
 
-    @if (Model.prefix == "o43" && _f.CurrentUser.TestPermission(BO.PermValEnum.GR_MyInbox))
-    {
-        <div style="max-width:150px;margin-left:10px;">
-            <select asp-for="o43mavazbu" class="form-select" onchange="change_o43mavazbu(this)" style="@(Model.o43mavazbu > 0 ? "background-color:red;" : "")">
-                <option value="0">Bez ohledu na vazbu</option>
-                <option value="1">Záznamy bez vazby</option>
-                <option value="2">Záznamy s vazbou</option>
-            </select>
-        </div>
-        <div style="margin-left:20px;">
-            <a id="linkMyInbox" href="/o43/MyInbox">
-                <myicon symbol="move_to_inbox"></myicon>
-                @_f.tra("Import poštovních zpráv")
-            </a>
-        </div>
-    }
+    
 
     <div class="showmore" style="margin-left:20px;">
     </div>
@@ -502,12 +487,7 @@
         });
     }
 
-    function change_o43mavazbu(cbx) {
-        $.post("/Common/SetUserParam", { key: "grid-o43-mavazbu", value: cbx.value }, function (data) {
-            reload();
-
-        });
-    }
+    
 
 
     function change_p40filtrovani(cbx) {

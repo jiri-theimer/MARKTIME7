@@ -79,6 +79,11 @@ namespace BL
             var p = new DL.Params4Dapper();
             p.AddInt("pid", rec.pid);
             p.AddInt("x01ID", rec.x01ID == 0 ? _mother.CurrentUser.x01ID : rec.x01ID);
+            if (rec.j02ID_Owner == 0)
+            {
+                rec.j02ID_Owner = _mother.CurrentUser.pid;
+            }
+            p.AddInt("j02ID_Owner", rec.j02ID_Owner, true);
             p.AddString("o27Entity", rec.o27Entity);
             p.AddInt("o27RecordPid", rec.o27RecordPid, true);
            

@@ -480,13 +480,13 @@ namespace BL
             oc = AF("Vlastnik", "Vlastník účtu", "j40_j02x.j02Name"); oc.RelSqlInCol = "LEFT OUTER JOIN j02User j40_j02x ON a.j02ID=j40_j02x.j02ID"; oc.DefaultColumnFlag = gdc1;
             AppendTimestamp();
 
-            //j40 = IMAP pravidla
-            this.EntityName = "o42ImapRule";
-            AA("o42Name", "Název pravidla", gdc1);
-            AA("j40Name", "IMAP účet", gdc1, "j40x.j40Name");
-            AA("WhatToDo", "Cíl pravidla", gdc2, "case a.o42WhatToDoFlag when 1 then 'Vytvořit dokument' when 2 then 'Připojit k projektu' when 3 then 'Připojit k dokumentu' when 4 then 'Připojit ke kontaktu' when 5 then 'Připojit k uživateli' end");
-            AA("o42Description", "Poznámka");
-            AppendTimestamp();
+            ////j40 = IMAP pravidla
+            //this.EntityName = "o42ImapRule";
+            //AA("o42Name", "Název pravidla", gdc1);
+            //AA("j40Name", "IMAP účet", gdc1, "j40x.j40Name");
+            //AA("WhatToDo", "Cíl pravidla", gdc2, "case a.o42WhatToDoFlag when 1 then 'Vytvořit dokument' when 2 then 'Připojit k projektu' when 3 then 'Připojit k dokumentu' when 4 then 'Připojit ke kontaktu' when 5 then 'Připojit k uživateli' end");
+            //AA("o42Description", "Poznámka");
+            //AppendTimestamp();
 
             this.EntityName = "r02CapacityVersion";
             AA("r02Name", "Verze plánu", gdc1, null, "string", false, true);
@@ -683,34 +683,34 @@ namespace BL
             AA("x97OrigSource", "Zdroj");
             AppendTimestamp(false);
 
-            //doručená pošta - INBOX
-            this.EntityName = "o43Inbox";
-            AA("o43DateReceived", "Datum", gdc1, "a.o43DateReceived", "datetime");
-            AA("o43Subject", "Předmět", gdc1);
+            ////doručená pošta - INBOX
+            //this.EntityName = "o43Inbox";
+            //AA("o43DateReceived", "Datum", gdc1, "a.o43DateReceived", "datetime");
+            //AA("o43Subject", "Předmět", gdc1);
 
-            oc = AA("Sender", "Odesílatel", gdc1, "case when a.o43SenderName is not null then a.o43SenderName else a.o43SenderAddress end"); oc.SqlExplicitGroupBy = "case when a.o43SenderName is not null then a.o43SenderName else a.o43SenderAddress end";
-            oc = AA("o43SenderName", "Od (Jméno)"); oc.SqlExplicitGroupBy = "a.o43SenderName";
-            oc = AA("o43SenderAddress", "Od (E-mail)"); oc.SqlExplicitGroupBy = "a.o43SenderAddress";
+            //oc = AA("Sender", "Odesílatel", gdc1, "case when a.o43SenderName is not null then a.o43SenderName else a.o43SenderAddress end"); oc.SqlExplicitGroupBy = "case when a.o43SenderName is not null then a.o43SenderName else a.o43SenderAddress end";
+            //oc = AA("o43SenderName", "Od (Jméno)"); oc.SqlExplicitGroupBy = "a.o43SenderName";
+            //oc = AA("o43SenderAddress", "Od (E-mail)"); oc.SqlExplicitGroupBy = "a.o43SenderAddress";
 
-            AA("o43To", "Komu");
-            AA("o43Cc", "Cc");
-            AA("o43Bcc", "Bcc");
+            //AA("o43To", "Komu");
+            //AA("o43Cc", "Cc");
+            //AA("o43Bcc", "Bcc");
 
-            AA("Velikost", "Velikost", gdc1, "a.o43Length", "filesize").DefaultColumnFlag = gdc2;
+            //AA("Velikost", "Velikost", gdc1, "a.o43Length", "filesize").DefaultColumnFlag = gdc2;
 
-            AA("o43ImapFolder", "Imap složka", gdc1);
-            AA("Inserted", "Naimportováno", gdc1, "a.o43DateInsert", "datetime");
+            //AA("o43ImapFolder", "Imap složka", gdc1);
+            //AA("Inserted", "Naimportováno", gdc1, "a.o43DateInsert", "datetime");
 
-            AA("o43Attachments", "Seznam příloh");
-            AFNUM0("o43AttachmentsCount", "Počet příloh");
-            AA("MaPrilohy", "Má přílohy?", gdc0, "convert(bit,case when a.AttachmentsCount>0 then 1 else 0 end)", "bool");
-            oc = AFBOOL("o43IsSeen", "Přečteno"); oc.SqlExplicitGroupBy = "a.o43IsSeen";
-            oc = AFBOOL("o43IsDraft", "Draft"); oc.SqlExplicitGroupBy = "a.o43IsDraft";
-            oc = AFBOOL("o43IsFlagged", "Flagged"); oc.SqlExplicitGroupBy = "a.o43IsFlagged";
-            AFBOOL("o43IsDeleted", "Deleted");
+            //AA("o43Attachments", "Seznam příloh");
+            //AFNUM0("o43AttachmentsCount", "Počet příloh");
+            //AA("MaPrilohy", "Má přílohy?", gdc0, "convert(bit,case when a.AttachmentsCount>0 then 1 else 0 end)", "bool");
+            //oc = AFBOOL("o43IsSeen", "Přečteno"); oc.SqlExplicitGroupBy = "a.o43IsSeen";
+            //oc = AFBOOL("o43IsDraft", "Draft"); oc.SqlExplicitGroupBy = "a.o43IsDraft";
+            //oc = AFBOOL("o43IsFlagged", "Flagged"); oc.SqlExplicitGroupBy = "a.o43IsFlagged";
+            //AFBOOL("o43IsDeleted", "Deleted");
 
-            AF("MaVazbu", "Má vazbu", "convert(bit,case when a.p41ID IS NOT NULL OR a.o23ID is not null OR a.p56ID IS NOT NULL OR a.b05ID IS NOT NULL OR a.o22ID IS NOT NULL then 1 else 0 end)", "bool");
-            AF("DruhVazby", "Druh vazby", "case when a.p41ID IS NOT NULL then 'Projekt' when a.o23ID is not null then 'Dokument' when a.b05ID IS NOT NULL then 'Notepad' when a.p56ID IS NOT NULL then 'Úkol' when a.o22ID IS NOT NULL then 'Událost/Termín' end");
+            //AF("MaVazbu", "Má vazbu", "convert(bit,case when a.p41ID IS NOT NULL OR a.o23ID is not null OR a.p56ID IS NOT NULL OR a.b05ID IS NOT NULL OR a.o22ID IS NOT NULL then 1 else 0 end)", "bool");
+            //AF("DruhVazby", "Druh vazby", "case when a.p41ID IS NOT NULL then 'Projekt' when a.o23ID is not null then 'Dokument' when a.b05ID IS NOT NULL then 'Notepad' when a.p56ID IS NOT NULL then 'Úkol' when a.o22ID IS NOT NULL then 'Událost/Termín' end");
 
 
 

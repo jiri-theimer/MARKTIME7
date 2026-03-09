@@ -516,9 +516,9 @@ namespace DL
                     case "p28":
                         s = $"{s},a.p28TreePrev as treeprev,a.p28TreeNext as treenext,a.p28RowColorFlag";
                         break;
-                    case "o43":
-                        s = $"{s},a.o43IsFlagged as IsFlagged,a.o43IsDraft as IsDraft,a.o43IsDeleted as IsDeleted,a.o43IsSeen as IsSeen,a.o43AttachmentsCount as AttachmentsCount";
-                        break;
+                    //case "o43":
+                    //    s = $"{s},a.o43IsFlagged as IsFlagged,a.o43IsDraft as IsDraft,a.o43IsDeleted as IsDeleted,a.o43IsSeen as IsSeen,a.o43AttachmentsCount as AttachmentsCount";
+                    //    break;
                     case "j02":
                         s = $"{s},isnull(a.j02IsLoginManualLocked,0) as IsLoginManualLocked,isnull(a.j02IsLoginAutoLocked,0) as IsLoginAutoLocked,a.j02VirtualParentID";
                             break;

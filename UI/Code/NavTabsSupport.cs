@@ -278,9 +278,9 @@ namespace UI.Code
 
 
                     break;
-                case "o43":
-                    _tabs.Add(AddTab("Inbox", "tab1", "/o43/Tab1?pid=" + AppendPid2Url(pid), false));
-                    break;
+                //case "o43":
+                //    _tabs.Add(AddTab("Inbox", "tab1", "/o43/Tab1?pid=" + AppendPid2Url(pid), false));
+                //    break;
                 case "p56":
                     _tabs.Add(AddTab("Úkol", "tab1", "/p56/Tab1?pid=" + AppendPid2Url(pid), false));
                     var cp56 = new BO.p56TaskSum();

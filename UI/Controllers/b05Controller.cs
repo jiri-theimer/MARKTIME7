@@ -43,9 +43,9 @@ namespace UI.Controllers
             }
 
         }
-        public IActionResult Record(int pid,int portalflag,int o43id_source,int recpid,string recprefix,int tab1flag)
+        public IActionResult Record(int pid,int portalflag,int recpid,string recprefix,int tab1flag)
         {
-            var v = new b05Record() { b05ID = pid,o43ID_Source=o43id_source,RecPrefix=recprefix,RecPid=recpid };                       
+            var v = new b05Record() { b05ID = pid,RecPrefix=recprefix,RecPid=recpid };                       
 
             if (v.b05ID == 0 && v.RecPrefix==null)
             {
@@ -91,29 +91,29 @@ namespace UI.Controllers
                 
                 
             }
-            if (v.o43ID_Source > 0)
-            {
-                v.UploadGuid = BO.Code.Bas.GetGuid();
-                var recO43 = Factory.o43InboxBL.Load(v.o43ID_Source);
-                v.RecB05.b05Name = recO43.o43Subject;
-                if (recO43.o43IsBodyHtml)
-                {
-                    v.Notepad.HtmlContent = recO43.o43BodyHtml;
-                }
-                else
-                {
-                    v.Notepad.HtmlContent = recO43.o43BodyText;
-                }
-                v.RecB05.b05Date = recO43.o43DateMessage;
+            //if (v.o43ID_Source > 0)
+            //{
+            //    v.UploadGuid = BO.Code.Bas.GetGuid();
+            //    var recO43 = Factory.o43InboxBL.Load(v.o43ID_Source);
+            //    v.RecB05.b05Name = recO43.o43Subject;
+            //    if (recO43.o43IsBodyHtml)
+            //    {
+            //        v.Notepad.HtmlContent = recO43.o43BodyHtml;
+            //    }
+            //    else
+            //    {
+            //        v.Notepad.HtmlContent = recO43.o43BodyText;
+            //    }
+            //    v.RecB05.b05Date = recO43.o43DateMessage;
 
-                var files = Factory.o43InboxBL.GetInboxFiles(recO43.pid, true).Where(p => p.Key != "eml" && p.Key != "msg");
-                foreach (BO.StringPair sp in files)
-                {
-                    System.IO.File.Copy(sp.Value, $"{Factory.TempFolder}\\{sp.Key}", true);
-                    Factory.o27AttachmentBL.CreateTempInfoxFile(v.UploadGuid, "b05", sp.Key, sp.Key, BO.Code.File.GetContentType(sp.Value));
+            //    var files = Factory.o43InboxBL.GetInboxFiles(recO43.pid, true).Where(p => p.Key != "eml" && p.Key != "msg");
+            //    foreach (BO.StringPair sp in files)
+            //    {
+            //        System.IO.File.Copy(sp.Value, $"{Factory.TempFolder}\\{sp.Key}", true);
+            //        Factory.o27AttachmentBL.CreateTempInfoxFile(v.UploadGuid, "b05", sp.Key, sp.Key, BO.Code.File.GetContentType(sp.Value));
 
-                }
-            }
+            //    }
+            //}
             v.b05Date = v.RecB05.b05Date; v.b05Name = v.RecB05.b05Name;v.IsPortalAccess = (v.RecB05.b05PortalFlag == 1 ? true : false);
 
            
@@ -233,19 +233,19 @@ namespace UI.Controllers
                     this.AddMessage("Chybí vyplnit záznam vazby.");
                     return false;
                 }
-                if (v.o43ID_Source>0 && string.IsNullOrEmpty(v.b05Name))
-                {
-                    this.AddMessage("Notepad zakládaný z INBOX záznamu má povinný název.");
-                    return false;
-                }
+                //if (v.o43ID_Source>0 && string.IsNullOrEmpty(v.b05Name))
+                //{
+                //    this.AddMessage("Notepad zakládaný z INBOX záznamu má povinný název.");
+                //    return false;
+                //}
 
                 v.b05ID=Factory.WorkflowBL.Save2History(v.RecB05);
-                if (v.o43ID_Source > 0)
-                {
-                    var recO43 = Factory.o43InboxBL.Load(v.o43ID_Source);
-                    recO43.b05ID = v.b05ID;
-                    Factory.o43InboxBL.Save(recO43);
-                }
+                //if (v.o43ID_Source > 0)
+                //{
+                //    var recO43 = Factory.o43InboxBL.Load(v.o43ID_Source);
+                //    recO43.b05ID = v.b05ID;
+                //    Factory.o43InboxBL.Save(recO43);
+                //}
             }
             int intTab1Flag = 0;
             if (v.IsTab1) intTab1Flag += 2;

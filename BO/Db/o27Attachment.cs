@@ -11,7 +11,7 @@ namespace BO
     {
 
         public int x01ID { get; set; }
-
+        public int j02ID_Owner { get; set; }
         public string o27Entity { get; set; }
         public int o27RecordPid { get; set; }
         public string o27Name { get; set; }

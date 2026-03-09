@@ -382,7 +382,7 @@ namespace BL
                     {
                         _db.RunSql("DELETE FROM p28Contact_log WHERE ISNULL(RowDate,p28DateUpdate)<@d", new { d = datBefore });
                         _db.RunSql("DELETE FROM o23Doc_Log WHERE ISNULL(RowDate,o23DateUpdate)<@d", new { d = datBefore });
-                        _db.RunSql("DELETE FROM o43Inbox_Log WHERE ISNULL(RowDate,o43DateUpdate)<@d", new { d = datBefore });
+                        //_db.RunSql("DELETE FROM o43Inbox_Log WHERE ISNULL(RowDate,o43DateUpdate)<@d", new { d = datBefore });
                         _db.RunSql("DELETE FROM p56Task_Log WHERE ISNULL(RowDate,p56DateUpdate)<@d", new { d = datBefore });
                         _db.RunSql("DELETE FROM p41Project_Log WHERE ISNULL(RowDate,p41DateUpdate)<@d", new { d = datBefore });
                         _db.RunSql("DELETE FROM p91Invoice_Log WHERE ISNULL(RowDate,p91DateUpdate)<@d", new { d = datBefore });
@@ -391,7 +391,7 @@ namespace BL
                     {
                         _db.RunSql("truncate table p28Contact_log");
                         _db.RunSql("truncate table o23Doc_Log");
-                        _db.RunSql("truncate table o43Inbox_Log");
+                        //_db.RunSql("truncate table o43Inbox_Log");
                         _db.RunSql("truncate table p56Task_Log");
                         _db.RunSql("truncate table p41Project_Log");
                         _db.RunSql("truncate table p91Invoice_Log");

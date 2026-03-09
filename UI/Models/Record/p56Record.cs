@@ -23,7 +23,7 @@
         public ProjectComboViewModel ProjectCombo { get; set; }
         public bool CanEditRecordCode { get; set; }
         public bool IsShowP57Combo { get; set; }
-        public int o43id_source { get; set; }
+        
         public string UploadGuid { get; set; }
 
         

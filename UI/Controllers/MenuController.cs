@@ -137,8 +137,7 @@ namespace UI.Controllers
                     lis = new p91ContextMenu(Factory, pid, source, device).GetItems(); break;
                 case "p84":
                     lis = new p84ContextMenu(Factory, pid, source, device).GetItems(); break;
-                case "o43":
-                    lis = new o43ContextMenu(Factory, pid, source, device).GetItems();break;
+               
                 case "x40":
                     lis = new x40ContextMenu(Factory, pid, source).GetItems(); break;
                 case "b05":

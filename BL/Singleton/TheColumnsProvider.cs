@@ -97,6 +97,7 @@ namespace BL
                 }
                 strLastEntity = c.Entity;
                 strLastEntityAlias = c.EntityAlias;
+
             }
 
 
@@ -193,9 +194,9 @@ namespace BL
 
 
                     break;
-                case "o40":
-                    ret.Add(InhaleColumn4Relation("o40_j02", "j02User", "fullname_desc", rels, bolComboColumns));
-                    break;
+                //case "o40":
+                //    ret.Add(InhaleColumn4Relation("o40_j02", "j02User", "fullname_desc", rels, bolComboColumns));
+                //    break;
                 case "m62":
                     ret.Add(InhaleColumn4Relation("m62_j27slave", "j27Currency", "j27Code", rels, bolComboColumns));
                     break;

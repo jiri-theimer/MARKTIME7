@@ -311,57 +311,57 @@ namespace UI.Controllers
             }
         }
 
-        public ActionResult FileDownloadInbox(int pid,string format)
-        {
-            //ve format je název souboru přilohy
-            format = format.Trim();
-            var files = Factory.o43InboxBL.GetInboxFiles(pid, false);
-            var rec = Factory.o43InboxBL.Load(pid);
+        //public ActionResult FileDownloadInbox(int pid,string format)
+        //{
+        //    //ve format je název souboru přilohy
+        //    format = format.Trim();
+        //    var files = Factory.o43InboxBL.GetInboxFiles(pid, false);
+        //    var rec = Factory.o43InboxBL.Load(pid);
 
-            if (files.Any(p => p.Key.ToLower() == format.ToLower()))
-            {
-                string strPath = files.First(p => p.Key.ToLower() == format.ToLower()).Value;
+        //    if (files.Any(p => p.Key.ToLower() == format.ToLower()))
+        //    {
+        //        string strPath = files.First(p => p.Key.ToLower() == format.ToLower()).Value;
                 
-                if (format=="eml" || format == "msg")
-                {                   
-                    format = $"{rec.o43Subject}.{format}";
-                }
-                Response.Headers["Content-Disposition"] = $"inline; filename={format}";
-                var fileContentResult = new FileContentResult(System.IO.File.ReadAllBytes(strPath), BO.Code.File.GetContentType(strPath));
-                return fileContentResult;
-            }
+        //        if (format=="eml" || format == "msg")
+        //        {                   
+        //            format = $"{rec.o43Subject}.{format}";
+        //        }
+        //        Response.Headers["Content-Disposition"] = $"inline; filename={format}";
+        //        var fileContentResult = new FileContentResult(System.IO.File.ReadAllBytes(strPath), BO.Code.File.GetContentType(strPath));
+        //        return fileContentResult;
+        //    }
 
 
 
-            //var rec = Factory.o43InboxBL.Load(pid);
-            //if (rec.o43ArchiveFolder == null) rec.o43ArchiveFolder = $"{rec.o43DateMessage.Value.Year}\\{rec.o43DateMessage.Value.Month}";
-            //string strFolder = $"{Factory.UploadFolder}\\{rec.o43ArchiveFolder}";
-            //if (rec.o43Subject == null) rec.o43Subject = "Zpráva";
+        //    //var rec = Factory.o43InboxBL.Load(pid);
+        //    //if (rec.o43ArchiveFolder == null) rec.o43ArchiveFolder = $"{rec.o43DateMessage.Value.Year}\\{rec.o43DateMessage.Value.Month}";
+        //    //string strFolder = $"{Factory.UploadFolder}\\{rec.o43ArchiveFolder}";
+        //    //if (rec.o43Subject == null) rec.o43Subject = "Zpráva";
 
-            //if (format=="msg" || format=="eml")
-            //{                
-            //    Response.Headers["Content-Disposition"] = $"inline; filename={rec.o43Subject}.{format}";
-            //    var fileContentResult = new FileContentResult(System.IO.File.ReadAllBytes($"{strFolder}\\{rec.o43MessageID}.{format}"), "application/octet-stream");
-            //    return fileContentResult;
-            //}
+        //    //if (format=="msg" || format=="eml")
+        //    //{                
+        //    //    Response.Headers["Content-Disposition"] = $"inline; filename={rec.o43Subject}.{format}";
+        //    //    var fileContentResult = new FileContentResult(System.IO.File.ReadAllBytes($"{strFolder}\\{rec.o43MessageID}.{format}"), "application/octet-stream");
+        //    //    return fileContentResult;
+        //    //}
             
-            ////ve format je název souboru přilohy
-            //if (!string.IsNullOrEmpty(format))
-            //{
-            //    string strPath = $"{strFolder}\\{rec.o43MessageID}-{format}";
-            //    if (System.IO.File.Exists(strPath))
-            //    {
-            //        Response.Headers["Content-Disposition"] = $"inline; filename={format}";
+        //    ////ve format je název souboru přilohy
+        //    //if (!string.IsNullOrEmpty(format))
+        //    //{
+        //    //    string strPath = $"{strFolder}\\{rec.o43MessageID}-{format}";
+        //    //    if (System.IO.File.Exists(strPath))
+        //    //    {
+        //    //        Response.Headers["Content-Disposition"] = $"inline; filename={format}";
                     
-            //        var fileContentResult = new FileContentResult(System.IO.File.ReadAllBytes(strPath), BO.Code.File.GetContentType(strPath));
-            //        return fileContentResult;
-            //    }
-            //}
+        //    //        var fileContentResult = new FileContentResult(System.IO.File.ReadAllBytes(strPath), BO.Code.File.GetContentType(strPath));
+        //    //        return fileContentResult;
+        //    //    }
+        //    //}
             
 
-            return FileDownloadNotFound();
+        //    return FileDownloadNotFound();
 
-        }
+        //}
 
         public ActionResult FileDownloadTempFile(string tempfilename,bool directdownload)
         {

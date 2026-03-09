@@ -70,7 +70,7 @@ namespace BL
         private Ij25ReportCategoryBL _j25;
         private Ij28BarcodeBL _j28;
         private Ij40MailAccountBL _j40;
-        private o42ImapRuleBL _o42;
+        
         private Ij61TextTemplateBL _j61;
         private Io15AutoCompleteBL _o15;
         
@@ -164,7 +164,7 @@ namespace BL
         private Ix38CodeLogicBL _x38;
         private Ix97TranslateBL _x97;
         private IMailBL _mail;
-        private Io43InboxBL _o43;
+        
 
         private Ij79TotalsTemplateBL _j79;
 
@@ -561,14 +561,7 @@ namespace BL
             }
         }
 
-        public Io42ImapRuleBL o42ImapRuleBL
-        {
-            get
-            {
-                if (_o42 == null) _o42 = new o42ImapRuleBL(this);
-                return _o42;
-            }
-        }
+       
         public Ij40MailAccountBL j40MailAccountBL
         {
             get
@@ -1203,16 +1196,7 @@ namespace BL
             }
         }
 
-        public Io43InboxBL o43InboxBL
-        {
-            get
-            {
-                if (_o43 == null) _o43 = new o43InboxBL(this);
-                return _o43;
-            }
-        }
-
-
+        
         public Ix27EntityFieldGroupBL x27EntityFieldGroupBL
         {
             get

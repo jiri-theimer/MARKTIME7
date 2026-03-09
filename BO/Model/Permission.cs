@@ -17,13 +17,16 @@ namespace BO
         GR_o23_Reader = 10,                   // Čtenář všech dokumentů
         GR_o23_Owner = 11,                    // Vlastnická práva ke všem dokumentům
 
-        GR_MyInbox = 12,                          //Načítat inbox zprávy
-                
-        GR_o43_Reader=13,                       //čtenář všech inbox záznamů
-        GR_o43_Owner = 14,                       //Vlastník všech inbox záznamů
+        //GR_MyInbox = 12,                          //Načítat inbox zprávy                
+        //GR_o43_Reader=13,                       //čtenář všech inbox záznamů
+        //GR_o43_Owner = 14,                       //Vlastník všech inbox záznamů
+
         GR_MyProfile = 15,                        //Můj profil
 
-        GR_b05ReadAll=16,                       //číst všechny b05 záznamy
+        GR_o27_Reader = 13,                       //čtenář všech filebox záznamů
+        GR_o27_Owner = 14,                       //Vlastník všech filebox záznamů
+
+        GR_b05ReadAll =16,                       //číst všechny b05 záznamy
         GR_b05OwnerAll=17,                      //vlastnická práva ke všem b05 záznamům
 
         GR_p90_Creator = 18,                  // vytvářet zálohové faktury

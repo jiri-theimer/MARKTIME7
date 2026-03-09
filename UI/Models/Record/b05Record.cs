@@ -16,7 +16,7 @@
         public bool IsPortalAccess { get; set; }
         public bool IsTab1 { get; set; }
         public bool IsBillingMemo { get; set; }
-        public int o43ID_Source { get; set; }
+        
         public string UploadGuid { get; set; }
 
 
