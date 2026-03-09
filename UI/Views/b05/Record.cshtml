@@ -212,7 +212,7 @@
 
 @if (Model.UploadGuid != null)
 {
-    <iframe id="fraUpload" src="/FileUpload/DoUpload?recpid=@Model.b05ID&entity=b05&guid=@Model.UploadGuid" frameborder="0" scrolling="yes" style="max-width:1200px;height:60px;"></iframe>
+    <iframe id="fraUpload" src="/Dropzone/UploadInFrame?recpid=@Model.b05ID&entity=b05&guid=@Model.UploadGuid" frameborder="0" scrolling="yes" style="max-width:1200px;height:60px;"></iframe>
 }
 
 @if (Model.lisO27_CanDelete != null && Model.lisO27_CanDelete.Count() > 0)
@@ -266,5 +266,10 @@
     }
 
 
+    function hardrefresh(pid, flag) {
+
+
+        _postback();
+    }
 
 </script>

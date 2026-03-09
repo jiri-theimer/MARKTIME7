@@ -5,7 +5,7 @@
 
     Layout = "~/Views/Shared/_LayoutSubform.cshtml";
     if (Model.Rec == null) return;
-    if (BO.Code.Bas.bit_compare_or(Model.Rec.b05Tab1Flag,4) && !_f.CurrentUser.TestPermission(BO.PermValEnum.GR_AllowRates))
+    if (BO.Code.Bas.bit_compare_or(Model.Rec.b05Tab1Flag, 4) && !_f.CurrentUser.TestPermission(BO.PermValEnum.GR_AllowRates))
     {
         return;
     }
@@ -38,16 +38,25 @@
             {
                 _strTreeHeader = BO.Code.Bas.OM2(_f.CBL.GetObjectAlias(Model.Rec.b05RecordEntity, Model.Rec.b05RecordPid), 50);
             }
-            
+
             break;
     }
-    
 
+
+    var dropzonemodel = new DropzoneViewModel() { IsAutoSave = true, RecPid = Model.pid, RecPrefix = Model.prefix };
 }
 
 @addTagHelper *, UI
 
+@section header_content {
 
+
+    <link rel="stylesheet" href="~/lib/dropzone/dropzone.css" asp-append-version="true" />
+    <script src="~/lib/dropzone/dropzone-min.js" asp-append-version="true"></script>
+
+    <script src="~/lib/dropzone/DataStream.js"></script>
+    <script src="~/lib/dropzone/msg.reader.js"></script>
+}
 
 @Html.Raw("<div class='info_record_container'>")
 
@@ -101,9 +110,9 @@
                         <myval value="@Model.Rec.b05Date" datatype="date"></myval>
                     </td>
                 </tr>
-                
+
             }
-            
+
             @if (Model.RecP41 != null)
             {
                 <tr>
@@ -121,7 +130,7 @@
                         }
                     </td>
                 </tr>
-                
+
             }
             else
             {
@@ -130,37 +139,45 @@
                         @(BO.Code.Entity.GetAlias(Model.Rec.b05RecordEntity)):
                     </td>
                     <td class="tdval">
-                        <myval value="@_f.CBL.GetObjectAlias(Model.Rec.b05RecordEntity,Model.Rec.b05RecordPid)" hoverprefix="@Model.Rec.b05RecordEntity" hoverpid="@Model.Rec.b05RecordPid"></myval>
+                        <myval value="@_f.CBL.GetObjectAlias(Model.Rec.b05RecordEntity, Model.Rec.b05RecordPid)" hoverprefix="@Model.Rec.b05RecordEntity" hoverpid="@Model.Rec.b05RecordPid"></myval>
                     </td>
                 </tr>
 
-                
+
             }
 
 
         </table>
 
-        @if (BO.Code.Bas.bit_compare_or(Model.Rec.b05Tab1Flag,4))
+
+        
+        @if (BO.Code.Bas.bit_compare_or(Model.Rec.b05Tab1Flag, 4))
         {
             <span class="badge-light">@_f.tra("Fakturační poznámka")</span>
         }
         @Html.EditorFor(m => m.Rec, "~/Views/Shared/_TimeStamp.cshtml")
 
+        <div style="margin-top:10px;">
+            @await Html.PartialAsync("~/Views/Shared/_dropzone.cshtml", dropzonemodel)
 
+        </div>
     </div>
 
-    @if (Model.lisO27 != null)
-    {
-        @Html.EditorFor(m => m, "~/Views/Shared/_lisO27Tab1.cshtml")
-    }
+
 
 </div>
+
+
+
+
 
 <div>
     @Html.EditorFor(m => _NotepadLookAt, "~/Views/Shared/_NotepadRO.cshtml")
 </div>
 
-@if (_lisB05 != null && _lisB05.Count()>0)
+
+
+@if (_lisB05 != null && _lisB05.Count() > 0)
 {
     <div id="divTree1Container" style="float: left;vertical-align: top;border:none;margin-left:4px;margin-top:4px;">
         <ul class="mytreeview">
@@ -172,11 +189,11 @@
 
                 </a>
 
-                <ul style="display:@(UI.Code.basKendoTreeViewSupport.Get_UL_LastState(_f,"tab1-b05-toggle"))">
+                <ul style="display:@(UI.Code.basKendoTreeViewSupport.Get_UL_LastState(_f, "tab1-b05-toggle"))">
                     @foreach (var c in _lisB05)
                     {
                         <li>
-                            <a class="treeview-link @(Model.pid==c.pid ? "active" : null)" style="margin-left:6px;;" target="_top" href="/Record/@(_strRecPage)?prefix=b05&pid=@(c.pid)">@(BO.Code.Bas.OM2((c.b05Name != null ? c.b05Name : c.b05NotepadText200), 30))</a>
+                            <a class="treeview-link @(Model.pid == c.pid ? "active" : null)" style="margin-left:6px;;" target="_top" href="/Record/@(_strRecPage)?prefix=b05&pid=@(c.pid)">@(BO.Code.Bas.OM2((c.b05Name != null ? c.b05Name : c.b05NotepadText200), 30))</a>
                         </li>
                     }
 

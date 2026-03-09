@@ -28,13 +28,14 @@ namespace UI.Controllers
 
                 v.SetTagging();
 
-                
+
             }
         }
 
         public IActionResult Record(int pid, bool isclone)
         {
             var v = new o27Record() { rec_pid = pid, rec_entity = "o27" };
+
             v.Rec = new BO.o27Attachment();
             if (v.rec_pid > 0)
             {
@@ -45,13 +46,17 @@ namespace UI.Controllers
                 }
 
             }
+            if (v.Rec.j02ID_Owner !=Factory.CurrentUser.pid && !Factory.CurrentUser.TestPermission(BO.PermValEnum.GR_o27_Owner))
+            {
+                return this.StopPage(true, "Nemáte editační oprávnění k tomuto FILEBOX záznamu.");
+            }
             if (v.Rec.o27Entity == "x31")
             {
                 return this.StopPage(true, "Šablona pevné tiskové sestavy");
             }
             v.Toolbar = new MyToolbarViewModel(v.Rec);
             v.Toolbar.AllowClone = false;
-            
+
             if (isclone)
             {
                 v.MakeClone();
@@ -68,7 +73,7 @@ namespace UI.Controllers
 
                 BO.o27Attachment c = Factory.o27AttachmentBL.Load(v.rec_pid);
                 c.o27Name = v.Rec.o27Name;
-                
+
 
                 c.ValidUntil = v.Toolbar.GetValidUntil(c);
                 c.ValidFrom = v.Toolbar.GetValidFrom(c);

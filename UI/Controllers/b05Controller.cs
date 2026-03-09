@@ -27,8 +27,7 @@ namespace UI.Controllers
             var lis = Factory.WorkflowBL.GetList_b05(null, 0, 0, v.pid,0);
             if (lis.Count() == 0) return;
             v.Rec = lis.First();
-            v.lisO27 = Factory.o27AttachmentBL.GetList(new BO.myQueryO27() { entity = "b05", recpid = v.pid });
-
+            
             if (v.Rec.b05RecordEntity == "p41")
             {
                 v.RecP41 = Factory.p41ProjectBL.Load(v.Rec.b05RecordPid);
@@ -45,7 +44,7 @@ namespace UI.Controllers
         }
         public IActionResult Record(int pid,int portalflag,int recpid,string recprefix,int tab1flag)
         {
-            var v = new b05Record() { b05ID = pid,RecPrefix=recprefix,RecPid=recpid };                       
+            var v = new b05Record() { b05ID = pid,RecPrefix=recprefix,RecPid=recpid,UploadGuid= BO.Code.Bas.GetGuid() };                       
 
             if (v.b05ID == 0 && v.RecPrefix==null)
             {
@@ -84,10 +83,10 @@ namespace UI.Controllers
             if (v.b05ID > 0)
             {
                 var lisO27 = Factory.o27AttachmentBL.GetList(new BO.myQueryO27() { entity = "b05", recpid = v.b05ID });
-                if (lisO27.Where(p => p.o27CallerFlag == BO.o27CallerFlagENUM._None).Count() > 0)
-                {
-                    v.UploadGuid = BO.Code.Bas.GetGuid();
-                }
+                //if (lisO27.Where(p => p.o27CallerFlag == BO.o27CallerFlagENUM._None).Count() > 0)
+                //{
+                //    v.UploadGuid = BO.Code.Bas.GetGuid();
+                //}
                 
                 
             }
@@ -251,6 +250,11 @@ namespace UI.Controllers
             if (v.IsTab1) intTab1Flag += 2;
             if (v.IsBillingMemo) intTab1Flag += 4;
 
+            if (v.UploadGuid != null && v.b05ID>0)
+            {
+                Factory.o27AttachmentBL.SaveDropzoneFromTemp(v.UploadGuid, "b05", v.b05ID);
+            }
+
             if (Factory.WorkflowBL.SaveChangesInNotepad(v.b05ID, v.Notepad.HtmlContent, v.Notepad.SelectedX04ID, v.b05Date, v.b05Name,(v.IsPortalAccess==true? 1: 0), intTab1Flag))
             {
                 Factory.o27AttachmentBL.CommitNotepdChanges(v.Notepad.TempGuid, "b05", v.b05ID);
@@ -260,10 +264,7 @@ namespace UI.Controllers
                     v.reminder.SaveChanges(Factory, v.b05ID);
                 }
 
-                if (v.UploadGuid != null)
-                {
-                    Factory.o27AttachmentBL.SaveChangesAndUpload(v.UploadGuid, "b05", v.b05ID);
-                }
+                
 
                 return true;
             }

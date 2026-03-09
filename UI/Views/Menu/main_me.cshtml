@@ -5,6 +5,9 @@
 
     var _culture = System.Globalization.CultureInfo.CurrentUICulture.Name;
 
+    var cmenu = new UI.Menu.TheMenuSupport(_f);
+    var _myfileboxulr = cmenu.GetMainmenuEntityUrl("o27");
+
 }
 
 @addTagHelper *, UI
@@ -149,7 +152,7 @@
             </a>
             @if (_f.CurrentUser.j04IsModule_o27)
             {
-                <a class="nav-link" href="/TheGrid/FlatView?prefix=o27">
+                <a class="nav-link" href="@(_myfileboxulr)">
                     <myicon symbol="attachment"></myicon>
                     @_f.tra("Můj FILEBOX")
                 </a>
