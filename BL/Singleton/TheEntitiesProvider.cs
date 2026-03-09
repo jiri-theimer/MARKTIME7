@@ -206,7 +206,7 @@ namespace BL.Singleton
             AE("o51Tag", "Položky štítků", "Položka štítku", "o51Tag a INNER JOIN o53TagGroup o53x ON a.o53ID=o53x.o53ID", "a.o51ID DESC");
             AE("j40MailAccount", "Poštovní účty", "Poštovní účet", "j40MailAccount a", "a.j40ID DESC");
 
-            //AE("o42ImapRule", "IMAP pravidla", "IMAP pravidlo", "o42ImapRule a INNER JOIN j40MailAccount j40x ON a.j40ID=j40x.j40ID", "a.o42ID DESC");
+            AE("o42ImapRule", "IMAP pravidla", "IMAP pravidlo", "o42ImapRule a INNER JOIN j40MailAccount j40x ON a.j40ID=j40x.j40ID", "a.o42ID DESC");
 
 
             AE("o18DocType", "Typy dokumentů", "Typ dokumentu", "o18DocType a", "a.o18Ordinary");

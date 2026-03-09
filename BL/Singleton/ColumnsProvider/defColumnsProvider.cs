@@ -480,13 +480,13 @@ namespace BL
             oc = AF("Vlastnik", "Vlastník účtu", "j40_j02x.j02Name"); oc.RelSqlInCol = "LEFT OUTER JOIN j02User j40_j02x ON a.j02ID=j40_j02x.j02ID"; oc.DefaultColumnFlag = gdc1;
             AppendTimestamp();
 
-            ////j40 = IMAP pravidla
-            //this.EntityName = "o42ImapRule";
-            //AA("o42Name", "Název pravidla", gdc1);
-            //AA("j40Name", "IMAP účet", gdc1, "j40x.j40Name");
-            //AA("WhatToDo", "Cíl pravidla", gdc2, "case a.o42WhatToDoFlag when 1 then 'Vytvořit dokument' when 2 then 'Připojit k projektu' when 3 then 'Připojit k dokumentu' when 4 then 'Připojit ke kontaktu' when 5 then 'Připojit k uživateli' end");
-            //AA("o42Description", "Poznámka");
-            //AppendTimestamp();
+            ////o42 = IMAP pravidla
+            this.EntityName = "o42ImapRule";
+            AA("o42Name", "Název pravidla", gdc1);
+            AA("j40Name", "IMAP účet", gdc1, "j40x.j40Name");
+            AA("WhatToDo", "Cíl pravidla", gdc2, "case a.o42WhatToDoFlag when 1 then 'Vytvořit dokument' when 2 then 'Příloha k projektu' when 3 then 'Příloha k dokumentu' when 4 then 'Příloha ke kontaktu' when 5 then 'Příloha k uživateli' end");
+            AA("o42Description", "Poznámka");
+            AppendTimestamp();
 
             this.EntityName = "r02CapacityVersion";
             AA("r02Name", "Verze plánu", gdc1, null, "string", false, true);

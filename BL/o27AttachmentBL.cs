@@ -1,6 +1,7 @@
 ﻿
 using BO;
 using DocumentFormat.OpenXml.EMMA;
+using Rebex.Net;
 
 namespace BL
 {
@@ -28,6 +29,8 @@ namespace BL
         public void SaveMsgAttachmentsToDisk(o27Attachment rec, Rebex.Mail.MailMessage msg);
 
         public bool SaveDropzoneFromTemp(string tempguid, string recprefix, int recpid);
+
+        public Imap ConnectToImapServer(BO.j40MailAccount config, string strFolder);
 
     }
     class o27AttachmentBL : BaseBL, Io27AttachmentBL
@@ -581,35 +584,68 @@ namespace BL
             }
         }
 
-        //public List<BO.StringPair> GetListMsgAttachments(o27Attachment rec)
-        //{
-        //    if (rec.o27MailAttachmentsCount == 0 || rec.o27MailAttachments==null)
-        //    {
-        //        return null;
-        //    }
-        //    var ret = new List<BO.StringPair>();
+        public Imap ConnectToImapServer(BO.j40MailAccount config, string strFolder)
+        {
+            if (string.IsNullOrEmpty(strFolder))
+            {
+                strFolder = "Inbox";
+            }
+            var client = new Imap();
+            try
+            {
+                switch (config.j40SslModeFlag)
+                {
+                    case BO.SslModelFlagEnum.Implicit:
+                        if (config.j40ImapPort > 0)
+                        {
+                            client.Connect(config.j40ImapHost, config.j40ImapPort, SslMode.Implicit);
+                        }
+                        else
+                        {
+                            client.Connect(config.j40ImapHost, SslMode.Implicit);
+                        }
+                        break;
+                    case BO.SslModelFlagEnum.Explicit:
+                        if (config.j40ImapPort > 0)
+                        {
+                            client.Connect(config.j40ImapHost, config.j40ImapPort, SslMode.Explicit);
+                        }
+                        else
+                        {
+                            client.Connect(config.j40ImapHost, SslMode.Explicit);
+                        }
+                        break;
+                    default:
+                        if (config.j40ImapPort > 0)
+                        {
+                            client.Connect(config.j40ImapHost, config.j40ImapPort);
+                        }
+                        else
+                        {
+                            client.Connect(config.j40ImapHost);
+                        }
+                        break;
+                }
+            }
+            catch (Exception e)
+            {
+                _mother.CurrentUser.AddMessage(e.Message);
+                return null;
+            }
 
-        //    var lis = BO.Code.Bas.ConvertString2List(rec.o27MailAttachments, ",");
-        //    foreach (var s in lis)
-        //    {
-        //        var strPath = $"{_mother.UploadFolder}\\{rec.o27ArchiveFileName}--ATTACHMENT--{s}";
-        //        if (!System.IO.File.Exists(strPath))
-        //        {
-        //            var msg = LoadMsgFile($"{_mother.UploadFolder}\\{rec.o27ArchiveFileName}");
-        //            if (msg.Attachments.Count() > 0)
-        //            {
-        //                SaveMsgAttachmentsToDisk(rec, msg);
-        //            }
-        //        }
-        //        if (System.IO.File.Exists(strPath))
-        //        {
-        //            ret.Add(new BO.StringPair() { Value = s, Key = rec.o27ArchiveFileName + "--ATTACHMENT--" + s });
-        //        }                    
 
-        //    }
+            if (config.j40ImapEnableSsl && !client.IsSecured)
+            {
+                client.Secure();
 
-        //    return ret;
-        //}
+            }
+            var strPassword = new BO.Code.Cls.Crypto().Decrypt(config.j40ImapPassword);
+
+            client.Login(config.j40ImapLogin, strPassword);
+            client.SelectFolder(strFolder);
+
+            return client;
+        }
 
     }
 }

@@ -76,7 +76,8 @@ namespace BL
         
         private Io23DocBL _o23;
         private Io27AttachmentBL _o27;
-        
+        private Io42ImapRuleBL _o42;
+
         private Io51TagBL _o51;
         private Io53TagGroupBL _o53;
         
@@ -586,10 +587,18 @@ namespace BL
                 return _o15;
             }
         }
-        
-       
-     
-        
+
+
+        public Io42ImapRuleBL o42ImapRuleBL
+        {
+            get
+            {
+                if (_o42 == null) _o42 = new o42ImapRuleBL(this);
+                return _o42;
+            }
+        }
+
+
         public Io27AttachmentBL o27AttachmentBL
         {
             get
