@@ -31,6 +31,9 @@ namespace BL
         public bool SaveDropzoneFromTemp(string tempguid, string recprefix, int recpid);
 
         public Imap ConnectToImapServer(BO.j40MailAccount config, string strFolder);
+        public IEnumerable<ImapMessageInfo> GetMessageList(Imap client, int intTakelastTopMessages, string strSeenFlag, string strFlaggedFlag);
+        public BO.o27Attachment LoadByMessageId(string messageid);
+        public BO.o27Attachment GetRecordFromMessage(Imap client, ImapMessageInfo c);
 
     }
     class o27AttachmentBL : BaseBL, Io27AttachmentBL
@@ -645,6 +648,145 @@ namespace BL
             client.SelectFolder(strFolder);
 
             return client;
+        }
+
+        public BO.o27Attachment LoadByMessageId(string messageid)
+        {
+            return _db.Load<BO.o27Attachment>(GetSQL1(" WHERE a.o27MessageID=@messageid"), new { messageid = messageid });
+        }
+
+        public IEnumerable<ImapMessageInfo> GetMessageList(Imap client, int intTakelastTopMessages, string strSeenFlag, string strFlaggedFlag)
+        {
+            //intTakelastTopMessages: kolik načíst najednou posledních zpráv
+            int intTo = client.CurrentFolder.TotalMessageCount;
+            int intFrom = intTo - intTakelastTopMessages;
+            if (intFrom <= 0)
+            {
+                intFrom = 1;
+            }
+            if (intFrom > intTo)
+            {
+                return null;
+            }
+
+            var set = new ImapMessageSet();
+            set.AddRange(intFrom, intTo);
+
+
+            ImapMessageCollection lis = client.GetMessageList(set);
+            var ret = lis.Take(lis.Count);
+
+
+            if (strSeenFlag == "true")
+            {
+                ret = lis.Where(p => p.IsSeen == true);
+            }
+            if (strSeenFlag == "false")
+            {
+                ret = lis.Where(p => p.IsSeen == false);
+            }
+            if (strFlaggedFlag == "true")
+            {
+                ret = ret.Where(p => p.IsFlagged == true);
+            }
+            if (strFlaggedFlag == "false")
+            {
+                ret = ret.Where(p => p.IsFlagged == false);
+            }
+
+            return ret;
+
+
+
+        }
+
+
+
+        public BO.o27Attachment GetRecordFromMessage(Imap client, ImapMessageInfo c)
+        {
+            Rebex.Mail.MailMessage mail = client.GetMailMessage(c.UniqueId);
+            var rec = new BO.o27Attachment() { j02ID_Owner = _mother.CurrentUser.pid, o27MailMessageID = c.MessageId.Id };
+
+            var cc = mail.AlternateViews[0];
+            var ii = cc.GetContentLength;
+            var ss = cc.ContentString;
+
+            if (mail.ReceivedDate != null)
+            {
+                rec.o27MailDateReceived = mail.ReceivedDate.LocalTime;
+            }
+            if (mail.Date != null)
+            {
+                rec.o27MailDateMessage = mail.Date.LocalTime;
+            }
+
+            if (mail.ReceivedDate != null)
+            {
+                rec.o27MailDateReceived = mail.ReceivedDate.LocalTime;
+            }
+            if (mail.Date != null)
+            {
+                rec.o27MailDateMessage = mail.Date.LocalTime;
+            }
+
+
+            rec.o27MailSubject = mail.Subject;
+
+            if (mail.To != null && mail.To.Count > 0)
+            {
+                rec.o27MailToAddress = String.Join(", ", mail.To.Select(p => p.Address));
+                rec.o27MailToName = String.Join(", ", mail.To.Select(p => p.DisplayName));
+
+            }
+            if (mail.CC != null && mail.CC.Count > 0)
+            {
+                rec.o27MailCc = String.Join(", ", mail.CC.Select(p => p.Address));
+
+            }
+            if (mail.Bcc != null && mail.Bcc.Count > 0)
+            {
+                rec.o27MailBcc = String.Join(", ", mail.Bcc.Select(p => p.Address));
+
+            }
+
+            rec.o27MailAttachmentsCount = mail.Attachments.Count;
+            if (mail.Attachments.Count > 0)
+            {
+                rec.o27MailAttachments = BO.Code.Bas.OM2(string.Join(", ", mail.Attachments.Select(p => p.FileName)), 490);
+            }
+            else
+            {
+                rec.o27MailAttachments = null;
+            }
+            rec.o27MailIsDraft = mail.IsDraft;
+
+            if (mail.HasBodyHtml)
+            {
+                rec.o27MailIsBodyHtml = true;
+                rec.o27MailBodyHtml = mail.BodyHtml;
+            }
+            else
+            {
+                rec.o27MailIsBodyHtml = false;
+            }
+            if (mail.HasBodyText)
+            {   
+                rec.o27MailBodyText = mail.BodyText;
+            }
+
+            rec.o27MailInfoID = c.UniqueId;
+            rec.o27MailIsSeen = c.IsSeen;
+            rec.o27MailIsDeleted = c.IsDeleted;
+            rec.o27MailIsFlagged = c.IsFlagged;
+            rec.o27MailIsDraft = c.IsDraft;
+
+            rec.o27MailSenderName = c.Sender.DisplayName;
+            rec.o27MailSenderAddress = c.Sender.Address;
+
+            rec.o27FileSize = Convert.ToInt32(c.Length);
+
+
+            return rec;
         }
 
     }

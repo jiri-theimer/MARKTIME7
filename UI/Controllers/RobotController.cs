@@ -609,7 +609,7 @@ namespace UI.Controllers
 
         private void Handle_ImapRules(RobotViewModel v)
         {
-            //_f.o42ImapRuleBL.Run_ImapRobot();
+            _f.o42ImapRuleBL.Run_ImapRobot();
         }
 
 

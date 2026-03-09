@@ -50,6 +50,14 @@ namespace BO
         public string o27MailToAddress { get; set; }
         public string o27MailAttachments { get; set; }
 
+        public bool o27MailIsDraft { get; set; }
+        public bool o27MailIsSeen { get; set; }
+        public bool o27MailIsDeleted { get; set; }
+        public bool o27MailIsFlagged { get; set; }
+        public int j40ID { get; set; }
+
+
+
         public bool IsMail { get
             {
                 if (this.o27FileExtension == ".msg" || this.o27FileExtension == ".eml" || this.o27MailMessageID != null)

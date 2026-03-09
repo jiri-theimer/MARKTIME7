@@ -93,19 +93,19 @@ namespace BL
             foreach (var rule in lisO42)
             {
                 var recJ40 = _mother.j40MailAccountBL.Load(rule.j40ID);
-                var imapclient = _mother.o43InboxBL.ConnectToImapServer(recJ40, "Inbox");
+                var imapclient = _mother.o27AttachmentBL.ConnectToImapServer(recJ40, "Inbox");
                 if (imapclient == null)
                 {
                     return;
                 }
                 imapclient.Settings.UsePeekForGetMessage = true;    //nenahazovat IsSeen flag na načtené zprávy
 
-                var messages = _mother.o43InboxBL.GetMessageList(imapclient, 20, null, null);
+                var messages = _mother.o27AttachmentBL.GetMessageList(imapclient, 20, null, null);
 
 
                 foreach (var c in messages)
                 {
-                    var rec = _mother.o43InboxBL.LoadByMessageId(c.MessageId.Id);
+                    var rec = _mother.o27AttachmentBL.LoadByMessageId(c.MessageId.Id);
                     if (rec != null)
                     {
                         continue;
@@ -135,7 +135,7 @@ namespace BL
                     if (bolGo)
                     {
                         bolGo = false;
-                        rec = _mother.o43InboxBL.GetRecordFromMessage(imapclient, c);
+                        rec = _mother.o27AttachmentBL.GetRecordFromMessage(imapclient, c);
                         rec.j40ID = rule.j40ID;
 
                         switch (rule.o42WhatToDoFlag)
@@ -143,34 +143,39 @@ namespace BL
                             case o42WhatToDoFlagENUM.BindWithProject:
                                 if (rule.p41ID_Default > 0)
                                 {
-                                    rec.p41ID = rule.p41ID_Default;
+                                    rec.o27RecordPid = rule.p41ID_Default;
+                                    rec.o27Entity = "p41";
                                     bolGo = true;
                                 }
                                 break;
                             case o42WhatToDoFlagENUM.BindWithContact:
                                 if (rule.p28ID_Default > 0)
                                 {
-                                    rec.p28ID = rule.p28ID_Default;
+                                    rec.o27RecordPid = rule.p28ID_Default;
+                                    rec.o27Entity = "p28";
                                     bolGo = true;
                                 }
                                 break;
                             case o42WhatToDoFlagENUM.BindWithUser:
                                 if (rule.p28ID_Default > 0)
                                 {
-                                    rec.j02ID = rule.j02ID_Default;
+                                    rec.o27RecordPid = rule.j02ID_Default;
+                                    rec.o27Entity = "j02";
                                     bolGo = true;
                                 }
                                 break;
                             case o42WhatToDoFlagENUM.InvoicePayment:    //úhrada faktury
-                                rec.p91ID = Handle_UhradaFaktury(rec, rule);
-                                if (rec.p91ID > 0)
+                                rec.o27RecordPid = Handle_UhradaFaktury(rec, rule);
+                                rec.o27Entity = "p91";
+                                if (rec.o27RecordPid > 0)
                                 {                                    
                                     bolGo = true;
                                 }
                                 break;
                             case o42WhatToDoFlagENUM.ProformaPayment:
-                                rec.p90ID = Handle_UhradaZalohy(rec, rule);
-                                if (rec.p90ID > 0)
+                                rec.o27RecordPid = Handle_UhradaZalohy(rec, rule);
+                                rec.o27Entity = "p90";
+                                if (rec.o27RecordPid > 0)
                                 {
                                     bolGo = true;
                                 }
@@ -180,7 +185,7 @@ namespace BL
 
                         if (bolGo)
                         {
-                            _mother.o43InboxBL.Save(rec);
+                            _mother.o27AttachmentBL.Save(rec);
                         }
                         
                     }
@@ -192,7 +197,7 @@ namespace BL
             }
         }
 
-        private void Najit_VS_A_Castku(BO.o43Inbox rec, BO.o42ImapRule rule,ref string strVS,ref double dblCastka )
+        private void Najit_VS_A_Castku(BO.o27Attachment rec, BO.o42ImapRule rule,ref string strVS,ref double dblCastka )
         {
             string word_vs = _mother.CBL.GetGlobalParamValue(7, rule.pid);
             string word_castka = _mother.CBL.GetGlobalParamValue(8, rule.pid);
@@ -202,11 +207,11 @@ namespace BL
                 return;
             }
             
-            string s = rec.o43BodyText;
+            string s = rec.o27MailBodyText;
             if (string.IsNullOrEmpty(s))
             {
                 var htmldoc = new HtmlAgilityPack.HtmlDocument();
-                htmldoc.LoadHtml(rec.o43BodyHtml);
+                htmldoc.LoadHtml(rec.o27MailBodyHtml);
                 s = htmldoc.DocumentNode.InnerText; //převod html do plaintextu
 
             }
@@ -248,7 +253,7 @@ namespace BL
             
         }
 
-        private int Handle_UhradaFaktury(BO.o43Inbox rec,BO.o42ImapRule rule)  //vrací p91id faktury, kam náleží spárovaná úhrada
+        private int Handle_UhradaFaktury(BO.o27Attachment rec,BO.o42ImapRule rule)  //vrací p91id faktury, kam náleží spárovaná úhrada
         {
            
             string strVS = null;double dblCastka = 0;
@@ -276,7 +281,7 @@ namespace BL
             return 0;
         }
 
-        private int Handle_UhradaZalohy(BO.o43Inbox rec, BO.o42ImapRule rule)  //vrací p90id zálohy, kam náleží spárovaná úhrada
+        private int Handle_UhradaZalohy(BO.o27Attachment rec, BO.o42ImapRule rule)  //vrací p90id zálohy, kam náleží spárovaná úhrada
         {
             string strVS = null; double dblCastka = 0;
             Najit_VS_A_Castku(rec, rule, ref strVS, ref dblCastka);
