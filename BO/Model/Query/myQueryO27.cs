@@ -20,6 +20,8 @@ namespace BO
         
         public int p56id { get; set; }
         public int p91id { get; set; }
+        public int p90id { get; set; }
+        public int o22id { get; set; }
 
         public string entity { get; set; }
         public int recpid { get; set; }
@@ -90,11 +92,19 @@ namespace BO
             }
             if (this.p56id > 0)
             {
-                AQ("a.o27RecPid = @p56id AND a.o27Entity='p26'", "p56id", this.p56id);
+                AQ("a.o27RecPid = @p56id AND a.o27Entity='p56'", "p56id", this.p56id);
             }
             if (this.p91id > 0)
             {
                 AQ("a.o27RecPid = @p91id AND a.o27Entity='p91'", "p91id", this.p91id);
+            }
+            if (this.p90id > 0)
+            {
+                AQ("a.o27RecPid = @p90id AND a.o27Entity='p90'", "p90id", this.p90id);
+            }
+            if (this.o22id > 0)
+            {
+                AQ("a.o27RecPid = @o22id AND a.o27Entity='o22'", "o22id", this.p91id);
             }
             if (this.mavazbu == true)
             {
@@ -121,12 +131,12 @@ namespace BO
                 return; //přístup ke všem inbox záznamům
             }
 
-            if (this.o23id>0 || this.p41id > 0 || this.p28id > 0 || this.p56id > 0 || this.p91id > 0 || this.j02id > 0)
+            if (this.o23id>0 || this.p41id > 0 || this.p28id > 0 || this.p56id > 0 || this.p91id > 0 || this.j02id > 0 || this.p90id > 0 || this.o22id > 0)
             {
                 return; //přístupné, protože uživatel se na filebox dívá z přístupného projektu/kontaktu/úkolu/dokumentu
             }
 
-            string s = "(a.j02ID_Owner=@j02id_query OR a.j02ID=@j02id_query)";
+            string s = "a.j02ID_Owner=@j02id_query";
 
 
             AQ(s, "j02id_query", get_real_j02id_query());

@@ -1040,7 +1040,7 @@ namespace UI.Controllers
                
                 if (v.disp.IsFiles)
                 {
-                    Factory.o27AttachmentBL.SaveChangesAndUpload(v.UploadGuid, "p31", c.pid);
+                    Factory.o27AttachmentBL.SaveDropzoneFromTemp(v.UploadGuid, "p31", c.pid);
                 }
                 if (v.p68ID > 0)
                 {

@@ -278,7 +278,7 @@ namespace UI.Controllers
                     
                     if (v.UploadGuid != null)
                     {
-                        Factory.o27AttachmentBL.SaveChangesAndUpload(v.UploadGuid, "o22", c.pid);
+                        Factory.o27AttachmentBL.SaveDropzoneFromTemp(v.UploadGuid, "o22", c.pid);
                     }
                     
 

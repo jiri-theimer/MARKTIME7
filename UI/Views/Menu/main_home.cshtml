@@ -558,11 +558,7 @@
                         }
                     }
 
-                    <a id="linkGridO27" class="locallink" href="@(cmenu.GetMainmenuEntityUrl("o27"))">
-                        <span class="material-icons-outlined-btn">attachment</span>
-                        FILEBOX
-                    </a>                
-                    <button type="button" data-key="o27" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
+                    
                 </td>
             </tr>
         }
@@ -580,7 +576,14 @@
             <td></td>
             <td style="padding:20px;">
                 <h6>
-
+                    @if (_f.CurrentUser.j04IsModule_o27)
+                    {
+                        <a id="linkGridO27" class="locallink" href="@(cmenu.GetMainmenuEntityUrl("o27"))">
+                            <span class="material-icons-outlined-btn">attachment</span>
+                            FILEBOX
+                        </a>
+                        <button type="button" data-key="o27" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
+                    }
                     @if (_f.CurrentUser.j04IsModule_x31)
                     {
 
