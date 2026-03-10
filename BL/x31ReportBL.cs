@@ -23,7 +23,7 @@ namespace BL
         }
 
 
-        private string GetSQL1(string strAppend = null,bool istestcloud=false)
+        private string GetSQL1(string strAppend = null, bool istestcloud = false)
         {
             sb("SELECT a.*,j25.j25Name,j25.j25Ordinary,j25.j25Code,o27x.o27ArchiveFileName as ReportFileName,o27x.o27ArchiveFolder as ReportFolder,");
             sb(_db.GetSQL1_Ocas("x31"));
@@ -37,8 +37,8 @@ namespace BL
             //    sb(" LEFT OUTER JOIN (select * from o27Attachment WHERE o27Entity='x31' AND o27RecordPid IS NOT NULL) o27 ON a.x31ID=o27.o27RecordPid");
             //}
             sb(" LEFT OUTER JOIN o27Attachment o27x ON a.x31ID=o27x.o27RecordPid AND o27x.o27Entity='x31' AND o27x.o27RecordPid IS NOT NULL");
-            
-            
+
+
             if (istestcloud)
             {
                 sb(AppendCloudQuery(strAppend));
@@ -47,8 +47,8 @@ namespace BL
             {
                 sb(strAppend);
             }
-            
-            
+
+
             return sbret();
         }
         public BO.x31Report Load(int pid)
@@ -57,17 +57,17 @@ namespace BL
         }
         public BO.x31Report LoadByCode(string code, int pid_exclude)
         {
-            
-            return _db.Load<BO.x31Report>(GetSQL1(" WHERE a.x31Code LIKE @code AND a.x31ID<>@pid_exclude",_mother.CurrentUser.IsHostingModeTotalCloud), new { code = code, pid_exclude = pid_exclude });
+
+            return _db.Load<BO.x31Report>(GetSQL1(" WHERE a.x31Code LIKE @code AND a.x31ID<>@pid_exclude", _mother.CurrentUser.IsHostingModeTotalCloud), new { code = code, pid_exclude = pid_exclude });
         }
 
 
         public IEnumerable<BO.x31Report> GetList(BO.myQueryX31 mq)
         {
             if (mq.explicit_orderby == null) mq.explicit_orderby = "j25.j25Ordinary,j25.j25Name,a.x31Ordinary,a.x31Name";
-            
+
             DL.FinalSqlCommand fq = DL.basQuery.GetFinalSql(GetSQL1(), mq, _mother.CurrentUser);
-            return _db.GetList<BO.x31Report>(fq.FinalSql, fq.Parameters);            
+            return _db.GetList<BO.x31Report>(fq.FinalSql, fq.Parameters);
         }
 
 
@@ -152,16 +152,16 @@ namespace BL
             {
                 this.AddMessage("Chybí vyplnit [Kód sestavy]."); return false;
             }
-            
+
             if (rec.x31IsScheduling && rec.x31RunInTime != null)
             {
                 int secs = BO.Code.Time.ConvertTimeToSeconds(rec.x31RunInTime);
                 if (secs > (23 * 60 * 60))
                 {
-                    this.AddMessage("Čas notikace reportu může být technicky maximálně 23:00!");return false;
+                    this.AddMessage("Čas notikace reportu může být technicky maximálně 23:00!"); return false;
                 }
             }
-           
+
             if (LoadByCode(rec.x31Code, rec.pid) != null)
             {
                 this.AddMessageTranslated(string.Format(_mother.tra("V systému existuje jiná sestava s kódem: {0}."), rec.x31Code)); return false;
@@ -184,15 +184,15 @@ namespace BL
             if (rec == null) return null;
 
             var strFileName = rec.x31FileName;
-            if (strFileName == null && rec.x31Code != null)
+            if (strFileName == null && rec.x31Code != null && rec.x31FormatFlag == BO.x31FormatFlagENUM.Telerik)
             {
-                strFileName =rec.x31Code;
+                strFileName = rec.x31Code;
                 if (!strFileName.Contains(".trdx"))
                 {
-                    strFileName =strFileName + ".trdx";
+                    strFileName = strFileName + ".trdx";
                 }
             }
-            
+
             if (strFileName != null)
             {
                 ret = $"{_mother.UploadFolder}\\X31\\{strFileName}";
@@ -201,7 +201,7 @@ namespace BL
                     ret = $"{_mother.App.RootUploadFolder}\\_distribution\\trdx\\{strFileName}";
                 }
             }
-            if (ret !=null && !System.IO.File.Exists(ret))
+            if (ret != null && !System.IO.File.Exists(ret))
             {
                 ret = null;
             }
@@ -221,7 +221,7 @@ namespace BL
         //    return null;
         //}
 
-        public bool IsReportWaiting4Generate(DateTime dNow,BO.x31Report rec)
+        public bool IsReportWaiting4Generate(DateTime dNow, BO.x31Report rec)
         {
             if (!rec.x31IsScheduling) return false;
             bool b = false;
@@ -234,7 +234,7 @@ namespace BL
             if (rec.x31IsRunInDay7 && dNow.DayOfWeek == DayOfWeek.Sunday) b = true;
             if (!b) return false;
 
-           
+
             int secsNow = dNow.Hour * 60 * 60 + dNow.Minute * 60 + dNow.Second;
             if (secsNow >= BO.Code.Time.ConvertTimeToSeconds(rec.x31RunInTime))
             {
@@ -249,15 +249,15 @@ namespace BL
                 }
                 return true;
             }
-            
+
             return false;
 
         }
 
 
-        public string ParseExportFileNameMask(string strExportFileNameMask,string prefix,int pid)
+        public string ParseExportFileNameMask(string strExportFileNameMask, string prefix, int pid)
         {
-            if (pid==0 || prefix == null)
+            if (pid == 0 || prefix == null)
             {
                 return strExportFileNameMask;
             }
@@ -270,7 +270,7 @@ namespace BL
                 strExportFileNameMask = arr[0];
                 strTab = arr[1];
             }
-            
+
             string s = $"SELECT {strExportFileNameMask} as Value FROM {strTab} WHERE {prefix}ID = {pid}";
             s = DL.BAS.ParseMergeSQL(s, pid.ToString());
 

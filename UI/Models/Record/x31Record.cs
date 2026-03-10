@@ -19,5 +19,7 @@ namespace UI.Models.Record
 
         public string ReportFilePath { get; set; }
         public string ReportFileName { get; set; }
+
+        public bool IsClearReportFileName { get; set; }
     }
 }

@@ -10,6 +10,13 @@ namespace UI.Controllers
 {
     public class o42Controller : BaseController
     {
+        public IActionResult RunImapRobot()
+        {
+            var v = new BaseViewModel();
+            Factory.o42ImapRuleBL.Run_ImapRobot();
+
+            return View(v);
+        }
         public IActionResult Record(int pid, bool isclone)
         {
             var v = new o42Record() { rec_pid = pid, rec_entity = "o42" };

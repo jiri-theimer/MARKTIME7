@@ -84,12 +84,32 @@ namespace UI.Code
         public bool ToXLSX(System.Data.DataTable dt, string strFilePath, string strXlsTemplateFullPath)
         {
             //key: název pole, value: záhlaví sloupce
-            using (var workbook = new XLWorkbook(strXlsTemplateFullPath))
+            bool bolZeSablony = false;
+            var sesit = new XLWorkbook();
+            sesit.Worksheets.Add("Data");
+
+            if (!string.IsNullOrEmpty(strXlsTemplateFullPath) && System.IO.File.Exists(strXlsTemplateFullPath))
+            {
+                bolZeSablony = true;
+                sesit = new XLWorkbook(strXlsTemplateFullPath);
+            }
+
+            //using (var workbook = new XLWorkbook(strXlsTemplateFullPath))
+            using (var workbook = sesit)
             {
                 var worksheet = workbook.Worksheets.First();
                 int row = 2;
                 int col = 1;
 
+                if (!bolZeSablony)
+                {
+                    //názvy sloupců podle SQL dotazu
+                    foreach (System.Data.DataColumn c in dt.Columns)
+                    {
+                        worksheet.Cell(1, col).Value = c.ColumnName;
+                        col += 1;
+                    }
+                }
 
 
                 var coltypes = new List<StringPair>();

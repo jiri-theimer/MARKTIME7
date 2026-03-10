@@ -16,6 +16,7 @@ namespace BL
     {
         public o42ImapRuleBL(BL.Factory mother) : base(mother)
         {
+            Rebex.Licensing.Key = "==FmUGVeH5TmvcatEzt0Z4rBvjoahsK0e0albLXKX2bgBB+JxAEBiGKcZlB73B+U5q3G5YP==";
 
         }
 
@@ -102,10 +103,12 @@ namespace BL
 
                 var messages = _mother.o27AttachmentBL.GetMessageList(imapclient, 20, null, null);
 
-
+                
                 foreach (var c in messages)
                 {
+                    
                     var rec = _mother.o27AttachmentBL.LoadByMessageId(c.MessageId.Id);
+                    
                     if (rec != null)
                     {
                         continue;
@@ -137,7 +140,7 @@ namespace BL
                         bolGo = false;
                         rec = _mother.o27AttachmentBL.GetRecordFromMessage(imapclient, c);
                         rec.j40ID = rule.j40ID;
-
+                        
                         switch (rule.o42WhatToDoFlag)
                         {
                             case o42WhatToDoFlagENUM.BindWithProject:
@@ -185,7 +188,10 @@ namespace BL
 
                         if (bolGo)
                         {
-                            _mother.o27AttachmentBL.Save(rec);
+                            if (_mother.o27AttachmentBL.Save(rec) == 0)
+                            {
+                                BO.Code.File.LogInfo(_mother.CurrentUser.GetLastMessageNotify());
+                            }
                         }
                         
                     }
@@ -258,6 +264,8 @@ namespace BL
            
             string strVS = null;double dblCastka = 0;
             Najit_VS_A_Castku(rec, rule,ref strVS,ref dblCastka);
+
+            BO.Code.File.LogInfo($"VS: {strVS}, Částka: {dblCastka}");
 
             if (strVS !=null && dblCastka != 0)
             {

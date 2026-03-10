@@ -57,6 +57,11 @@ namespace UI.Controllers
                     Factory.x31ReportBL.Clear_x31LastScheduledRun(v.rec_pid);
                     this.AddMessageTranslated("Paměť generování této sestavy vyčištěna.", "info");
                 }
+                if (v.PostbackOper == "ClearReportFileName")
+                {
+                    v.IsClearReportFileName = true;
+                    this.AddMessageTranslated("Změny musíte potvrdit tlačítkem [Uložit změny].", "info");
+                }
                 return View(v);
             }
             if (ModelState.IsValid)
@@ -92,6 +97,11 @@ namespace UI.Controllers
                 c.x21ID_Scheduling = v.Rec.x21ID_Scheduling;
                 c.x31IsAllowPfx = v.Rec.x31IsAllowPfx;
                 c.x31QueryFlag = v.Rec.x31QueryFlag;
+
+                if (v.IsClearReportFileName)
+                {
+                    c.x31FileName = null;
+                }
 
                 c.ValidUntil = v.Toolbar.GetValidUntil(c);
                 c.ValidFrom = v.Toolbar.GetValidFrom(c);

@@ -77,29 +77,38 @@
         </div>
     </div>
 
-
-    @if (Model.ReportFileName != null)
+    <input type="hidden" asp-for="IsClearReportFileName" />
+    @if (!Model.IsClearReportFileName)
     {
-        <div class="row my-2">
-            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Soubor report šablony"):</label>
-            <div class="col-sm-10 col-md-10">
-                <a target="_blank" href="/FileUpload/FileDownloadX31File?x31id=@Model.rec_pid">@Model.ReportFileName</a>
-            </div>
-        </div>
-    }
-    else
-    {
-        @if (Model.rec_pid > 0 && Model.Rec.x31FileName !=null)
+        @if (Model.ReportFileName != null)
         {
-            <code>@(Model.Rec.x31FileName) ???</code>
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Soubor report šablony"):</label>
+                <div class="col-sm-10 col-md-10">
+                    <a target="_blank" href="/FileUpload/FileDownloadX31File?x31id=@Model.rec_pid">@Model.ReportFileName</a>
+                </div>
+            </div>
+            @if (Model.Rec.x31FormatFlag != BO.x31FormatFlagENUM.Telerik)
+            {
+                <button type="button" class="btn btn-danger" onclick="clearreportfilename()">@_f.tra("Vyčistit odkaz na report šablonu")</button>
+            }
+
         }
-        
+        else
+        {
+            @if (Model.rec_pid > 0 && Model.Rec.x31FileName != null)
+            {
+                <code>@(Model.Rec.x31FileName) ???</code>
+            }
+
+        }
+        <hr />
+
+        <iframe id="fraUpload" src="/FileUpload/SingleUpload?guid=@Model.UploadGuid" height="350" scrolling="yes"></iframe>
+
+
     }
-    <hr />
-
-    <iframe id="fraUpload" src="/FileUpload/SingleUpload?guid=@Model.UploadGuid" height="350" scrolling="yes"></iframe>
-
-    
+   
 
 
     <div class="row my-2">
@@ -276,6 +285,12 @@
 
     });
 
+
+    function clearreportfilename()
+    {
+        $("#IsClearReportFileName").val("True");
+        _postback("ClearReportFileName");
+    }
 
 </script>
 

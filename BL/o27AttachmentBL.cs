@@ -652,7 +652,7 @@ namespace BL
 
         public BO.o27Attachment LoadByMessageId(string messageid)
         {
-            return _db.Load<BO.o27Attachment>(GetSQL1(" WHERE a.o27MessageID=@messageid"), new { messageid = messageid });
+            return _db.Load<BO.o27Attachment>(GetSQL1(" WHERE a.o27MailMessageID=@messageid"), new { messageid = messageid });
         }
 
         public IEnumerable<ImapMessageInfo> GetMessageList(Imap client, int intTakelastTopMessages, string strSeenFlag, string strFlaggedFlag)
@@ -705,8 +705,17 @@ namespace BL
         public BO.o27Attachment GetRecordFromMessage(Imap client, ImapMessageInfo c)
         {
             Rebex.Mail.MailMessage mail = client.GetMailMessage(c.UniqueId);
-            var rec = new BO.o27Attachment() { j02ID_Owner = _mother.CurrentUser.pid, o27MailMessageID = c.MessageId.Id };
-
+            if (!System.IO.Directory.Exists($"{_mother.UploadFolder}\\IMAP"))
+            {
+                System.IO.Directory.CreateDirectory($"{_mother.UploadFolder}\\IMAP");
+            }
+            if (!System.IO.File.Exists($"{_mother.UploadFolder}\\IMAP\\{c.MessageId.Id}.eml"))
+            {
+                mail.Save($"{_mother.UploadFolder}\\IMAP\\{c.MessageId.Id}.eml", Rebex.Mail.MailFormat.Mime);
+            }
+            
+            var rec = new BO.o27Attachment() { j02ID_Owner = _mother.CurrentUser.pid, o27MailMessageID = c.MessageId.Id,o27ArchiveFileName=$"{c.MessageId.Id}.eml" ,o27ArchiveFolder="IMAP",o27FileExtension=".eml", o27OriginalFileName = $"{c.MessageId.Id}.eml" };
+            
             var cc = mail.AlternateViews[0];
             var ii = cc.GetContentLength;
             var ss = cc.ContentString;

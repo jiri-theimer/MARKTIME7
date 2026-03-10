@@ -143,11 +143,13 @@ namespace UI.Controllers
                 var dt = Factory.FBL.GetDataTable(strSQL);
                 string strTempFileName = $"{Factory.CurrentUser.Inicialy}-MT-EXPORT-{DateTime.Now.ToString("dd-MM-yyyy-HH-mm-ss")}";
                 string filepath_dest = $"{Factory.TempFolder}\\{strTempFileName}.{format}";
-                string filepath_source = $"{Factory.UploadFolder}\\X31\\{v.RecX31.ReportFileName}";
-                if (!System.IO.File.Exists(filepath_source))
-                {
-                    filepath_source = $"{Factory.App.RootUploadFolder}\\_distribution\\trdx\\{v.RecX31.ReportFileName}";
-                }
+                //string filepath_source = $"{Factory.UploadFolder}\\X31\\{v.RecX31.ReportFileName}";
+                string filepath_source = Factory.x31ReportBL.LoadTrdxFullPath(v.RecX31.pid);
+
+                //if (!System.IO.File.Exists(filepath_source))
+                //{
+                //    filepath_source = $"{Factory.App.RootUploadFolder}\\_distribution\\trdx\\{v.RecX31.ReportFileName}";
+                //}
 
                 var cExport = new UI.Code.dataExport();
 
@@ -240,70 +242,68 @@ namespace UI.Controllers
                     v.ReportExportName = _basRepSup.GetReportExportName(Factory, 0, v.RecX31,false);
                 }
 
-                var strTrdxFullPath = Factory.x31ReportBL.LoadTrdxFullPath(v.SelectedX31ID);
-                
-                if (strTrdxFullPath != null)
+                if (v.RecX31.x31FormatFlag == BO.x31FormatFlagENUM.XLSX)
                 {
-                    v.ReportFileName = System.IO.Path.GetFileName(strTrdxFullPath);
-                    
-                    
-
-                    if (v.RecX31.x31FormatFlag == BO.x31FormatFlagENUM.XLSX)
+                    if (v.RecX31.x31DocSqlSource != null && v.RecX31.x31DocSqlSource.Contains("@datfrom"))
                     {
-                        if (v.RecX31.x31DocSqlSource != null && v.RecX31.x31DocSqlSource.Contains("@datfrom"))
-                        {
-                            v.IsPeriodFilter = true;
-                        }
-                        else
-                        {
-                            v.IsPeriodFilter = v.RecX31.x31IsPeriodRequired;
-                        }
-                        if (v.RecX31.x31DocSqlSource != null)
-                        {
-                            if (v.RecX31.x31DocSqlSource.Contains("331=331"))
-                            {
-                                v.lisJ72 = Factory.j72TheGridTemplateBL.GetList("p31Worksheet", Factory.CurrentUser.pid, null).Where(p => p.j72SystemFlag == BO.j72SystemFlagEnum.QueryOnly);
-
-                            }
-                            if (v.RecX31.x31DocSqlSource.Contains("391=391"))
-                            {
-                                v.lisJ72 = Factory.j72TheGridTemplateBL.GetList("p91Invoice", Factory.CurrentUser.pid, null).Where(p => p.j72SystemFlag == BO.j72SystemFlagEnum.QueryOnly);
-
-                            }
-                        }
+                        v.IsPeriodFilter = true;
                     }
-
-
-                    if (v.RecX31.x31FormatFlag == BO.x31FormatFlagENUM.Telerik)
+                    else
                     {
-                        var strXmlContent = System.IO.File.ReadAllText(strTrdxFullPath);
-
-                        if (v.RecX31.x31IsPeriodRequired || (strXmlContent.Contains("datFrom", StringComparison.OrdinalIgnoreCase) && strXmlContent.Contains("datUntil", StringComparison.OrdinalIgnoreCase)))
-                        {
-                            v.IsPeriodFilter = true;
-
-                        }
-                        else
-                        {
-                            v.IsPeriodFilter = false;
-                        }
-                        if (strXmlContent.Contains("331=331"))
+                        v.IsPeriodFilter = v.RecX31.x31IsPeriodRequired;
+                    }
+                    if (v.RecX31.x31DocSqlSource != null)
+                    {
+                        if (v.RecX31.x31DocSqlSource.Contains("331=331"))
                         {
                             v.lisJ72 = Factory.j72TheGridTemplateBL.GetList("p31Worksheet", Factory.CurrentUser.pid, null).Where(p => p.j72SystemFlag == BO.j72SystemFlagEnum.QueryOnly);
 
                         }
+                        if (v.RecX31.x31DocSqlSource.Contains("391=391"))
+                        {
+                            v.lisJ72 = Factory.j72TheGridTemplateBL.GetList("p91Invoice", Factory.CurrentUser.pid, null).Where(p => p.j72SystemFlag == BO.j72SystemFlagEnum.QueryOnly);
+
+                        }
                     }
-
-
                 }
-                else
+                if (v.RecX31.x31FormatFlag == BO.x31FormatFlagENUM.Telerik)
                 {
-                    this.AddMessage("Na serveru nelze dohledat soubor šablony zvolené tiskové sestavy.");
+                    var strTrdxFullPath = Factory.x31ReportBL.LoadTrdxFullPath(v.SelectedX31ID);
+                    if (strTrdxFullPath != null)
+                    {
+                        v.ReportFileName = System.IO.Path.GetFileName(strTrdxFullPath);
+
+                        if (v.RecX31.x31FormatFlag == BO.x31FormatFlagENUM.Telerik)
+                        {
+                            var strXmlContent = System.IO.File.ReadAllText(strTrdxFullPath);
+
+                            if (v.RecX31.x31IsPeriodRequired || (strXmlContent.Contains("datFrom", StringComparison.OrdinalIgnoreCase) && strXmlContent.Contains("datUntil", StringComparison.OrdinalIgnoreCase)))
+                            {
+                                v.IsPeriodFilter = true;
+
+                            }
+                            else
+                            {
+                                v.IsPeriodFilter = false;
+                            }
+                            if (strXmlContent.Contains("331=331"))
+                            {
+                                v.lisJ72 = Factory.j72TheGridTemplateBL.GetList("p31Worksheet", Factory.CurrentUser.pid, null).Where(p => p.j72SystemFlag == BO.j72SystemFlagEnum.QueryOnly);
+
+                            }
+                        }
 
 
+                    }
+                    else
+                    {
+                        this.AddMessage("Na serveru nelze dohledat soubor šablony zvolené tiskové sestavy.");
 
-
+                    }
                 }
+                    
+                
+                
 
                 if (v.IsPeriodFilter)
                 {
