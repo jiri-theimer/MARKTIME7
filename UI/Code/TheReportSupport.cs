@@ -252,7 +252,7 @@ namespace UI
 
                 // vizuální indikace isdoc obrázku, ale netisknout
                 Button isdocIndicator = new Button("IsdocIndicator", 20, 20, 72,24);
-                isdocIndicator.Image = ImageData.GetImage("c:\\temp\\isdoc_icon_with_text.png");
+                isdocIndicator.Image = ImageData.GetImage($"{f.App.WwwRootFolder}\\images\\isdoc_icon_with_text.png");
                 
                 isdocIndicator.LabelImageLayout = LabelImageLayoutOptions.ImageOnly;
                 isdocIndicator.Printable = false;   // klíčové
