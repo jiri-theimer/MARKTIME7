@@ -3,9 +3,11 @@ using BL;
 using BL.Singleton;
 using ceTe.DynamicPDF;
 using ceTe.DynamicPDF.Merger;
-using SQLitePCL;
-using System.ComponentModel;
+using ceTe.DynamicPDF.PageElements.Forms;
+using ceTe.DynamicPDF.IO;
+
 using UI.Views.Shared.Components.myPeriod;
+using ceTe.DynamicPDF.Imaging;
 
 namespace UI
 {
@@ -23,7 +25,7 @@ namespace UI
             {
                 strPath = $"{f.App.RootUploadFolder}\\_distribution\\trdx\\{strTrdxFileName}";
             }
-
+            
             if (f.App.HostingMode == BL.Singleton.HostingModeEnum.SharedApp)    //sdílená aplikace pro N databází: měníme connect-string přímo v trdx šabloně
             {
                 string s = BO.Code.File.GetFileContent(strPath);
@@ -243,11 +245,32 @@ namespace UI
                 string strIsdocPath = BL.Code.p91Support.GenerateIsdoc(rec, new HttpClient(), $"{f.TempFolder}");
                 var docy = new ceTe.DynamicPDF.Merger.MergeDocument();
                 docy.Append($"{f.TempFolder}\\{strUploadGuid}_{strReportFileName}");
+
+                // přidání obrázku na první stránku
+                //ceTe.DynamicPDF.PageElements.Image image = new ceTe.DynamicPDF.PageElements.Image("c:\\temp\\isdoc_icon.png", 0, 0);
+                //docy.Pages[0].Elements.Add(image);
+
+                // vizuální indikace isdoc obrázku, ale netisknout
+                Button isdocIndicator = new Button("IsdocIndicator", 20, 20, 72,24);
+                isdocIndicator.Image = ImageData.GetImage("c:\\temp\\isdoc_icon_with_text.png");
+                
+                isdocIndicator.LabelImageLayout = LabelImageLayoutOptions.ImageOnly;
+                isdocIndicator.Printable = false;   // klíčové
+                isdocIndicator.ReadOnly = true;
+                isdocIndicator.BorderStyle = ceTe.DynamicPDF.PageElements.Forms.BorderStyle.Solid;                
+                isdocIndicator.BackgroundColor = ceTe.DynamicPDF.RgbColor.White;
+                isdocIndicator.BorderColor = ceTe.DynamicPDF.RgbColor.White;
+                isdocIndicator.ToolTip = "PDF obsahuje přiložený ISDOC soubor";
+                isdocIndicator.Action = new JavaScriptAction("app.alert('Tento PDF dokument obsahuje přiložený ISDOC soubor.');");
+
+                docy.Pages[0].Elements.Add(isdocIndicator);
+
+
                 docy.EmbeddedFiles.Add(new EmbeddedFile(strIsdocPath));
 
                 SetPdfFileFields(docy, f.Lic.x01Name, $"MARKTIME {f.App.AppBuild}", rec.p91Client, "ISDOC");   //vlastnosti pdf dokumentu
 
-
+               
                 docy.Draw($"{f.TempFolder}\\{strUploadGuid}1.pdf");
                 System.IO.File.Copy($"{f.TempFolder}\\{strUploadGuid}1.pdf", $"{f.TempFolder}\\{strUploadGuid}_{strReportFileName}", true);
 
@@ -277,6 +300,8 @@ namespace UI
             }
             
         }
+
+        
 
         public void SetPdfFileFields(MergeDocument doc,string strAuthor,string strCreator,string strSubject,string strTitle)
         {

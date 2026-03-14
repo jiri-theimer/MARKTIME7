@@ -188,10 +188,8 @@ namespace BL
 
                         if (bolGo)
                         {
-                            if (_mother.o27AttachmentBL.Save(rec) == 0)
-                            {
-                                BO.Code.File.LogInfo(_mother.CurrentUser.GetLastMessageNotify());
-                            }
+                            _mother.o27AttachmentBL.Save(rec);
+                            
                         }
                         
                     }
