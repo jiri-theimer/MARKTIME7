@@ -126,7 +126,7 @@ namespace BL
             this.EntityName = "p91_vykazano";
             AF("PrvniUkon_Kdy", "První úkon kdy", "a.PrvniUkon_Kdy", "date");
             AF("PosledniUkon_Kdy", "Poslední úkon kdy", "a.PosledniUkon_Kdy", "date");
-            oc = AF("Hodiny", "Vykázané hodiny", "a.Hodiny", "num"); oc.NotShowRelInHeader = true; oc.IsHours = true;
+            oc = AF("Hodiny", "Vykázané hodiny", "a.Hodiny", "num",true); oc.NotShowRelInHeader = true; oc.IsHours = true;
             oc = AF("Hodiny_Fa", "Vykázané Fa hodiny", "a.Hodiny_Fa", "num", true); oc.NotShowRelInHeader = true; oc.IsHours = true;
             oc = AF("Hodiny_NeFa", "Vykázané Nefa hodiny", "a.Hodiny_NeFa", "num", true); oc.NotShowRelInHeader = true; oc.IsHours = true;
             oc = AF("Honorar_Fakturacni", "Vykázaný honorář", "a.Honorar_Fakturacni", "num", true); oc.NotShowRelInHeader = true;
