@@ -20,6 +20,11 @@ namespace UI.Controllers
 
         }
 
+        public IActionResult CreateHelp()
+        {
+            var v = new BaseViewModel();
+            return View(v);
+        }
 
         private IActionResult ViewOnlyForVerified(object v)
         {
@@ -128,6 +133,49 @@ namespace UI.Controllers
 
             return new BO.Result(!bolOK, (bolOK ? "Vygenerováno bez chyb." : "Nějaké chyby!"));
 
+        }
+
+        public BO.Result GenerateHtmlFromObsidian()
+        {
+            var strKostraPath= $"{_f.App.RootUploadFolder}\\_distribution\\help\\kostra\\layout.html";
+            var strObsidianDir = "C:\\OBSIDIAN-VAULT\\MARKTIME7";
+            var strRootOutputDir = $"{_f.App.RootUploadFolder}\\_distribution\\help";
+
+            var files = BO.Code.File.GetFileListFromDir(strObsidianDir, "*.md", SearchOption.AllDirectories, true);
+            foreach(var path in files)
+            {
+                var strOutputDir = strRootOutputDir;
+                var strDir = System.IO.Path.GetDirectoryName(path).Replace(strObsidianDir, "");
+                if (strDir != "")
+                {
+                    strDir = strDir.Substring(2, strDir.Length - 2);
+                    strOutputDir = $"{strRootOutputDir}\\{strDir}";
+                }
+                
+                if (!System.IO.Directory.Exists(strOutputDir))
+                {
+                    System.IO.Directory.CreateDirectory(strOutputDir);
+                }
+                var strName = System.IO.Path.GetFileName(path);
+
+
+                var strInput = System.IO.File.ReadAllText(path);
+
+                
+
+                var strHtmlOutput = UI.Code.ObsidianMarkdown.ToHtml(path, strObsidianDir, strRootOutputDir);
+
+                var strFinalHtml = System.IO.File.ReadAllText(strKostraPath);
+                strFinalHtml = strFinalHtml.Replace("##body##", strHtmlOutput);
+
+                var strHtmlFileName = System.IO.Path.GetFileName(path).Replace(".md", ".html");
+                var strOutputPath = $"{strOutputDir}\\{strHtmlFileName}";
+                System.IO.File.WriteAllText(strOutputPath, strFinalHtml);
+
+            }
+
+            
+            return new BO.Result(false, $"Výstup byl uložen (do {_f.App.RootUploadFolder}\\_distribution\\help");
         }
 
         public IActionResult GenerateScripts()

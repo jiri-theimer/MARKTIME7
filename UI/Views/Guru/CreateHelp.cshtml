@@ -1,0 +1,40 @@
+﻿@model BaseViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = "Generovat OBSIDIAN HELP";
+
+    Layout = "~/Views/Shared/_LayoutAnonym.cshtml";
+
+
+}
+
+<h4>Vítej Guru!</h4>
+
+
+<button type="button" class="btn btn-primary" onclick="generate_html()">Vygenerovat HTML z OBSIDIAN</button>
+<p></p><p></p>
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+
+
+    });
+
+    function generate_html()
+    {
+        $.post("/Guru/GenerateHtmlFromObsidian", {}, function (data){
+
+            alert(data.message);
+            
+        });
+    }
+
+    
+</script>
+
