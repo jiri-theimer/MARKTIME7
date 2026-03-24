@@ -163,7 +163,7 @@ namespace UI.Controllers
 
                 
 
-                var strHtmlOutput = UI.Code.ObsidianMarkdown.ToHtml(path, strObsidianDir, strRootOutputDir);
+                var strHtmlOutput = UI.Code.ObsidianMarkdown.ToHtml(path, strObsidianDir, strOutputDir);
 
                 var strFinalHtml = System.IO.File.ReadAllText(strKostraPath);
                 strFinalHtml = strFinalHtml.Replace("##body##", strHtmlOutput);
