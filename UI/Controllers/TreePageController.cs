@@ -309,7 +309,7 @@ namespace UI.Controllers
                         if (recP28.p28ID_Client > 0)
                         {
                             var n = new UI.Models.Asi.TreeNode() { Id = -1 * recP28.p28ID_Client, IdParent = 0, Name = recP28.Client, Prefix = "p28" };
-                            n.Url = $"/Record/RecPage?prefix=p28&pid={recP28.p28ID_Client}";
+                            //n.Url = $"/Record/RecPage?prefix=p28&pid={recP28.p28ID_Client}";
                             lisflat.Add(n);
                         }
 

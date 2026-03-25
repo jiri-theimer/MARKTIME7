@@ -1,6 +1,7 @@
 ﻿
 using BL;
 using BO;
+using DocumentFormat.OpenXml.VariantTypes;
 using Microsoft.AspNetCore.Mvc;
 
 using UI.Models;
@@ -137,7 +138,9 @@ namespace UI.Controllers
 
         public BO.Result GenerateHtmlFromObsidian()
         {
-            var strKostraPath= $"{_f.App.RootUploadFolder}\\_distribution\\help\\kostra\\layout.html";
+            var arrfiles = new List<string>();
+            var arrdirs = new List<string>();
+
             var strObsidianDir = "C:\\OBSIDIAN-VAULT\\MARKTIME7";
             var strRootOutputDir = $"{_f.App.RootUploadFolder}\\_distribution\\help";
 
@@ -148,7 +151,11 @@ namespace UI.Controllers
                 var strDir = System.IO.Path.GetDirectoryName(path).Replace(strObsidianDir, "");
                 if (strDir != "")
                 {
-                    strDir = strDir.Substring(2, strDir.Length - 2);
+                    strDir = strDir.Substring(1, strDir.Length - 1).Trim();
+                    if (BO.Code.Bas.InInt(strDir.Substring(0, 2))>0 || strDir.Substring(0, 2)=="00")
+                    {
+                        strDir = strDir.Substring(2, strDir.Length - 2).Trim();
+                    }
                     strOutputDir = $"{strRootOutputDir}\\{strDir}";
                 }
                 
@@ -157,6 +164,11 @@ namespace UI.Controllers
                     System.IO.Directory.CreateDirectory(strOutputDir);
                 }
                 var strName = System.IO.Path.GetFileName(path);
+                if (BO.Code.Bas.InInt(strName.Substring(0, 2)) > 0 || strName.Substring(0, 2)=="00")
+                {
+                    strName = strName.Substring(2, strName.Length - 2).Trim();
+                }
+
 
 
                 var strInput = System.IO.File.ReadAllText(path);
@@ -165,12 +177,23 @@ namespace UI.Controllers
 
                 var strHtmlOutput = UI.Code.ObsidianMarkdown.ToHtml(path, strObsidianDir, strOutputDir);
 
-                var strFinalHtml = System.IO.File.ReadAllText(strKostraPath);
-                strFinalHtml = strFinalHtml.Replace("##body##", strHtmlOutput);
+                //var strFinalHtml = System.IO.File.ReadAllText(strKostraPath);
+                //strFinalHtml = strFinalHtml.Replace("##body##", strHtmlOutput);
 
-                var strHtmlFileName = System.IO.Path.GetFileName(path).Replace(".md", ".html");
+                var strHtmlFileName = strName.Replace(".md", ".html");
+
+                arrfiles.Add(strDir+"|"+strHtmlFileName);
+                if (!arrdirs.Contains(strDir))
+                {
+                    arrdirs.Add(strDir);
+                }
+                
+
+                System.IO.File.WriteAllText($"{strRootOutputDir}\\files.pdw", string.Join("\n",arrfiles));
+                System.IO.File.WriteAllText($"{strRootOutputDir}\\dirs.pdw", string.Join("\n", arrdirs));
+
                 var strOutputPath = $"{strOutputDir}\\{strHtmlFileName}";
-                System.IO.File.WriteAllText(strOutputPath, strFinalHtml);
+                System.IO.File.WriteAllText(strOutputPath, strHtmlOutput);
 
             }
 

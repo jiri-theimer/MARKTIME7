@@ -15,7 +15,15 @@
     else
     {
         <div class="leaf rounded">
-            <a class="nav-link" data-id="@node.Id" data-prefix="@node.Prefix">@node.Name</a>
+            @if(node.Url != null)
+            {
+                <a class="nav-link" href="@node.Url" data-id="@node.Id" data-prefix="@node.Prefix">@node.Name</a>
+            }
+            else
+            {
+                <a class="nav-link" data-id="@node.Id" data-prefix="@node.Prefix">@node.Name</a>
+            }
+            
         </div>
     }
 }
