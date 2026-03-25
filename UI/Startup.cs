@@ -239,12 +239,16 @@ namespace UI
             app.UseStaticFiles(new StaticFileOptions
             {
 
-                FileProvider = new PhysicalFileProvider(
-                    Path.Combine(Configuration.GetSection("Folders")["RootUpload"], "_users")),
-                RequestPath = "/_users"
+                FileProvider = new PhysicalFileProvider(Path.Combine(Configuration.GetSection("Folders")["RootUpload"], "_users"))
+                ,RequestPath = "/_users"
             });
 
+            app.UseStaticFiles(new StaticFileOptions
+            {
 
+                FileProvider = new PhysicalFileProvider(Path.Combine(Configuration.GetSection("Folders")["RootUpload"]+"\\_distribution", "help")),
+                RequestPath = "/_help"
+            });
 
 
 

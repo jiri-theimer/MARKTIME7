@@ -8,14 +8,14 @@ namespace UI.Code
 
 public static class ObsidianMarkdown
 {
-    public static string ToHtml(string mdFilePath, string vaultPath, string webRootPath)
+    public static string ToHtml(string mdFilePath, string vaultPath, string webRootPath,string dirName)
     {
         var markdown = File.ReadAllText(mdFilePath);
-        markdown = ReplaceObsidianImages(markdown, vaultPath, webRootPath);
+        markdown = ReplaceObsidianImages(markdown, vaultPath, webRootPath, dirName);
         return Markdown.ToHtml(markdown);
     }
 
-    private static string ReplaceObsidianImages(string markdown, string vaultPath, string webRootPath)
+    private static string ReplaceObsidianImages(string markdown, string vaultPath, string webRootPath,string dirName)
     {
         return Regex.Replace(markdown, @"!\[\[([^\]]+)\]\]", match =>
         {
@@ -28,7 +28,7 @@ public static class ObsidianMarkdown
             var fileName = Path.GetFileName(imagePath);
             CopyImage(imagePath, vaultPath, webRootPath);
 
-            return $"<br><img class=\"zoomable\" src=\"images/{WebUtility.HtmlEncode(fileName)}\" alt=\"{WebUtility.HtmlEncode(Path.GetFileNameWithoutExtension(fileName))}\">";
+            return $"<br><img class=\"zoomable\" src=\"/_help/{dirName}/images/{WebUtility.HtmlEncode(fileName)}\" alt=\"{WebUtility.HtmlEncode(Path.GetFileNameWithoutExtension(fileName))}\"><br>";
         });
     }
 

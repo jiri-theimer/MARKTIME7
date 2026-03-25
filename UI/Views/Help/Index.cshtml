@@ -2,7 +2,11 @@
 @inject BL.Factory _f
 
 @{
-    Model.PageTitle = _f.tra("Nápověda");
+    Model.PageTitle = _f.tra("Uživatelská příručka");
+    if (Model.Header != null)
+    {
+        Model.PageTitle = $"{Model.Header} ({Model.PageTitle})";
+    }
     Layout = "~/Views/Shared/_LayoutHelp.cshtml";
 
     var _returnurl = @Context.Request.Query["returnurl"];
@@ -40,17 +44,12 @@
         <!-- CONTENT -->
         <div class="col-12 col-lg-9 p-4">
             <!-- obsah kapitoly -->
-
-            <h1>@(Model.Header)</h1>
-            <p>
-                Tady bude obsah vybrané kapitoly. Můžeš sem dávat text, obrázky,
-                tabulky nebo cokoliv dalšího.
-            </p>
-
-            <p>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-            </p>
+            @if(Model.SelectedHtml != null)
+            {
+                @Html.Raw(Model.SelectedHtml)
+            }
+            
+            
         </div>
 
     </div>

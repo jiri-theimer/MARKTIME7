@@ -82,7 +82,8 @@
     {
         _lisP56 = _f.p56TaskBL.GetList(new BO.myQueryP56() { IsRecordValid = true, p41id = Model.pid, MyRecordsDisponible = true });
     }
-
+    IEnumerable<BO.o22Milestone> _lisO22 = _f.o22MilestoneBL.GetList(new BO.myQueryO22() { IsRecordValid = true, p41id = Model.pid, MyRecordsDisponible = true }); ;
+    
     IEnumerable<BO.o23Doc> _lisO23 = null;
     if (_f.CurrentUser.j04IsModule_o23)
     {
@@ -130,13 +131,16 @@
 {
     <div class="card recpagebox400" id="divRecPageBox1">
         <div class="card-body">
-            @Html.EditorFor(m => m.Rec, "~/Views/Shared/_p41RecHeaderBox.cshtml")
-
-            @Html.EditorFor(m => m.ff1, "~/Views/Shared/_FreeFieldsRO.cshtml")
+            @await Html.PartialAsync("~/Views/Shared/_p41RecHeaderBox.cshtml", Model.Rec)
+            
+            @await Html.PartialAsync("~/Views/Shared/_FreeFieldsRO.cshtml", Model.ff1)
+            
+            
 
             @if (Model.lisP26 != null && Model.lisP26.Count() > 0)
             {
-                @Html.EditorFor(m => m.lisP26, "~/Views/Shared/_lisP26.cshtml")
+                @await Html.PartialAsync("~/Views/Shared/_lisP26.cshtml", Model.lisP26)
+                
             }
             @if (_tg != null && _tg.TagHtml != null)
             {
@@ -145,16 +149,19 @@
 
             }
 
-
-            @Html.EditorFor(m => m.Rec, "~/Views/Shared/_TimeStamp.cshtml")
+            @await Html.PartialAsync("~/Views/Shared/_TimeStamp.cshtml", Model.Rec)
+            
         </div>
     </div>
 }
 
 @Html.Raw("<div id='divTree1Container' style='float: left;vertical-align: top;border:none;margin-left:4px;margin-top:4px;'>")
 
-@Html.EditorFor(m => _lisO24, "~/Views/Shared/_o24TreeView.cshtml")
-@Html.EditorFor(m => _lisB20, "~/Views/Shared/_b20TreeView.cshtml")
+@await Html.PartialAsync("~/Views/Shared/_o22TreeView.cshtml", _lisO22)
+
+@await Html.PartialAsync("~/Views/Shared/_o24TreeView.cshtml", _lisO24)
+@await Html.PartialAsync("~/Views/Shared/_b20TreeView.cshtml", _lisB20)
+
 
 
 

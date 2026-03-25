@@ -13,20 +13,52 @@ namespace UI.Controllers
         }
         public IActionResult Index(string file)
         {
-            var v = new HelpViewModel() { Header = "Hovado",SelectedFile=file };
+            var v = new HelpViewModel() { SelectedFile=file };
 
+            RefreshState(v);
+
+
+            if (v.SelectedFile != null)
+            {
+                var c = v.lisFiles.FirstOrDefault(p => p == v.SelectedFile);
+                if (c != null)
+                {
+                    var arr = c.Split("|");
+                    v.SelectedFile = arr[1];
+                   
+                    var strPath = $"{_f.App.RootUploadFolder}\\_distribution\\help";
+                    
+                    if (!string.IsNullOrEmpty(arr[0]))
+                    {
+                        strPath = $"{strPath}\\{arr[0]}";
+                    }
+                    strPath = $"{strPath}\\{arr[1]}";
+                    if (System.IO.File.Exists(strPath))
+                    {
+                        v.Header = System.IO.Path.GetFileNameWithoutExtension(strPath);
+                        v.SelectedHtml = System.IO.File.ReadAllText(strPath);
+                    }
+                    
+                }
+            }
+
+            return View(v);
+        }
+
+        private void RefreshState(HelpViewModel v)
+        {
             var lisflat = new List<UI.Models.Asi.TreeNode>();
 
-            var strPath = $"{_f.App.RootUploadFolder}\\_distribution\\help\\dirs.pdw";            
+            var strPath = $"{_f.App.RootUploadFolder}\\_distribution\\help\\dirs.pdw";
             var dirs = BO.Code.Bas.ConvertString2List(System.IO.File.ReadAllText(strPath), "\n");
             strPath = $"{_f.App.RootUploadFolder}\\_distribution\\help\\files.pdw";
-            var files = BO.Code.Bas.ConvertString2List(System.IO.File.ReadAllText(strPath), "\n");
+            v.lisFiles = BO.Code.Bas.ConvertString2List(System.IO.File.ReadAllText(strPath), "\n");
 
             int y = 100000;
-            for(int x = 0; x < dirs.Count(); x++)
+            for (int x = 0; x < dirs.Count(); x++)
             {
-                lisflat.Add(new UI.Models.Asi.TreeNode() { Id = x+1, IdParent = 0, Name = dirs[x] });
-                foreach(var s in files)
+                lisflat.Add(new UI.Models.Asi.TreeNode() { Id = x + 1, IdParent = 0, Name = dirs[x] });
+                foreach (var s in v.lisFiles)
                 {
                     var arr = s.Split("|");
                     if (arr[0] == dirs[x])
@@ -36,17 +68,15 @@ namespace UI.Controllers
                         lisflat.Add(n);
                         y += 1;
 
-                        if (v.SelectedFile !=null && v.SelectedFile == s)
+                        if (v.SelectedFile != null && v.SelectedFile == s)
                         {
                             v.SelectedId = n.Id;
                         }
                     }
                 }
             }
-            
-            v.treeNodes = UI.Code.basTree.BuildTree(lisflat);
 
-            return View(v);
+            v.treeNodes = UI.Code.basTree.BuildTree(lisflat);
         }
     }
 }
