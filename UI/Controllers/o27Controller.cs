@@ -100,5 +100,13 @@ namespace UI.Controllers
             ViewData["o27MailBodyHtml"] = rec.o27MailBodyHtml;
             return View(v);
         }
+
+        public IActionResult Fronta(string prefix,int pid)
+        {
+            var v = new DropzoneFrontaViewModel() { prefix = prefix, pid = pid };
+
+            v.lisO27 = Factory.o27AttachmentBL.GetList(new BO.myQueryO27() { mavazbu=false });
+            return View(v);
+        }
     }
 }

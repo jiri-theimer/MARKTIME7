@@ -76,43 +76,43 @@ namespace BO
 
             if (this.j02id > 0)
             {
-                AQ("a.o27RecPid = @j02id AND a.o27Entity='j02'", "j02id", this.j02id);
+                AQ("a.o27RecordPid = @j02id AND a.o27Entity='j02'", "j02id", this.j02id);
             }
             if (this.p41id > 0)
             {
-                AQ("a.o27RecPid = @p41id AND a.o27Entity='p41'", "p41id", this.p41id);
+                AQ("a.o27RecordPid = @p41id AND a.o27Entity='p41'", "p41id", this.p41id);
             }
             if (this.p28id > 0)
             {
-                AQ("a.o27RecPid = @p28id AND a.o27Entity='p28'", "p28id", this.p28id);
+                AQ("a.o27RecordPid = @p28id AND a.o27Entity='p28'", "p28id", this.p28id);
             }
             if (this.o23id > 0)
             {
-                AQ("a.o27RecPid = @o23id AND a.o27Entity='o23'", "o23id", this.o23id);
+                AQ("a.o27RecordPid = @o23id AND a.o27Entity='o23'", "o23id", this.o23id);
             }
             if (this.p56id > 0)
             {
-                AQ("a.o27RecPid = @p56id AND a.o27Entity='p56'", "p56id", this.p56id);
+                AQ("a.o27RecordPid = @p56id AND a.o27Entity='p56'", "p56id", this.p56id);
             }
             if (this.p91id > 0)
             {
-                AQ("a.o27RecPid = @p91id AND a.o27Entity='p91'", "p91id", this.p91id);
+                AQ("a.o27RecordPid = @p91id AND a.o27Entity='p91'", "p91id", this.p91id);
             }
             if (this.p90id > 0)
             {
-                AQ("a.o27RecPid = @p90id AND a.o27Entity='p90'", "p90id", this.p90id);
+                AQ("a.o27RecordPid = @p90id AND a.o27Entity='p90'", "p90id", this.p90id);
             }
             if (this.o22id > 0)
             {
-                AQ("a.o27RecPid = @o22id AND a.o27Entity='o22'", "o22id", this.p91id);
+                AQ("a.o27RecordPid = @o22id AND a.o27Entity='o22'", "o22id", this.p91id);
             }
             if (this.mavazbu == true)
             {
-                AQ("(a.o27Entity IS NOT NULL AND o27RecPid IS NOT NULL)", null, null);
+                AQ("(a.o27Entity IS NOT NULL AND o27RecordPid IS NOT NULL)", null, null);
             }
             if (this.mavazbu == false)
             {
-                AQ("a.o27Entity IS NULL AND o27RecPid IS NULL", null, null);
+                AQ("a.o27Entity IS NULL AND o27RecordPid IS NULL", null, null);
             }
 
             if (this.MyRecordsDisponible)

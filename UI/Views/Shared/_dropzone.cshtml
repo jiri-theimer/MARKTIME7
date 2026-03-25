@@ -68,11 +68,13 @@
             
 
         </div>
-
+        
     </div>
 
     
 </form>
+
+<a href="javascript:fronta_bez_vazby()">@_f.tra("FILEBOX fronta")</a>
 
 @if (Model.IsInIframe)
 {
@@ -495,9 +497,9 @@
 
             });
      }
-     function continue_to_save()
+     function fronta_bez_vazby()
      {
-
+         _window_open("/o27/Fronta?prefix=@(Model.RecPrefix)&pid=@(Model.RecPid)");
      }
 
 </script>

@@ -1,0 +1,66 @@
+﻿@model UI.Models.DropzoneFrontaViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = _f.tra("FILEBOX fronta k zatřídění");
+
+
+}
+
+@addTagHelper *, UI
+
+<h1>@(_f.CBL.GetObjectAlias(Model.prefix, Model.pid))</h1>
+
+<form id="form1" asp-controller="o27" asp-action="Fronta" method="POST">
+
+    <div class="bg-light row my-2" style="width:99%;">
+
+        <div class="col-auto">
+            
+            <button id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+        </div>
+
+      
+    </div>
+
+
+    <input type="hidden" asp-for="pid" />
+    <input type="hidden" asp-for="prefix" />
+
+
+    
+
+</form>
+
+@if (Model.lisO27.Count() > 0)
+{
+    <table class="table table-sm table-hover">
+        @foreach (var c in Model.lisO27)
+        {
+            <tr>
+                <td>
+                    @c.o27OriginalFileName
+                </td>
+            </tr>
+        }
+    </table>
+}
+
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+
+
+
+    })
+
+
+
+</script>
+
