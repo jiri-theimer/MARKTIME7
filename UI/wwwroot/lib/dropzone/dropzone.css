@@ -87,3 +87,12 @@ tr:hover .edit-link {
 
 
 
+#linkDropzoneFronta {
+  display: none;
+}
+
+
+
+#dropzone-container:hover #linkDropzoneFronta {
+  display: inline; /* nebo block podle potřeby */
+}

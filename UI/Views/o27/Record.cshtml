@@ -22,6 +22,10 @@
         <div class="card-body">
             @await Html.PartialAsync("~/Views/Shared/_o27RecHeaderBox.cshtml", Model.Rec)
 
+            @if(Model.Rec.o27RecordPid>0 && Model.Rec.o27Entity !=null && ( _f.CurrentUser.j02ID==Model.Rec.j02ID_Owner || _f.CurrentUser.TestPermission(BO.PermValEnum.GR_o27_Owner)))
+            {
+                <button type="button" onclick="VycistitVazbu(@Model.Rec.pid)" class="btn btn-sm btn-danger">@_f.tra("Vyčistit vazbu")</button>
+            }
 
 
             @Html.EditorFor(m => m.Rec, "~/Views/Shared/_TimeStamp.cshtml")
@@ -71,3 +75,13 @@
 }
 
 
+<script>
+    function VycistitVazbu(o27id)
+    {
+        if (confirm("Opravdu vyčistit vazbu?"))
+        {
+            _postback("vycistit-vazbu");
+        }
+        
+    }
+</script>

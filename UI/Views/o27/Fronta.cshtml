@@ -5,12 +5,15 @@
     Layout = "~/Views/Shared/_LayoutModal.cshtml";
     Model.PageTitle = _f.tra("FILEBOX fronta k zatřídění");
 
-
+    if (Model.lisO27 == null)
+    {
+        return;
+    }
 }
 
 @addTagHelper *, UI
 
-<h1>@(_f.CBL.GetObjectAlias(Model.prefix, Model.pid))</h1>
+
 
 <form id="form1" asp-controller="o27" asp-action="Fronta" method="POST">
 
@@ -35,13 +38,108 @@
 
 @if (Model.lisO27.Count() > 0)
 {
-    <table class="table table-sm table-hover">
+
+    <div class="alert alert-primary input-group" role="alert">
+        @_f.tra("Vyberte položku k zatřídění")
+        <mark class="mx-4 rounded px-3">@(_f.CBL.GetObjectAlias(Model.prefix, Model.pid))</mark>
+
+        <input type="text" class="form-control mx-4" id="searchInput" placeholder="Hledat...">
+
+    </div>
+
+   
+
+    <table class="table table-sm table-hover" id="tab1">
         @foreach (var c in Model.lisO27)
         {
             <tr>
-                <td>
-                    @c.o27OriginalFileName
+                <td style="width:50px;">
+                    <button type="button" class="btn btn-sm btn-light" onclick="Potvrdit(@c.pid)">@_f.tra("Potvrdit")</button>
                 </td>
+              
+                    
+                <td>
+
+
+
+                    @if (c.IsMail)
+                    {
+                        <a href="javascript:_edit('o27',@c.pid)">@(c.o27MailSubject != null ? c.o27MailSubject : c.o27OriginalFileName)</a>
+
+                        <br />
+                        <span class="material-icons-outlined-nosize">alternate_email</span>
+                        @if (c.o27MailSenderName != null)
+                        {
+                            <span class="badge-light" title="@c.o27MailSenderAddress">@c.o27MailSenderName</span>
+                        }
+                        else
+                        {
+                            <span class="badge-light">@c.o27MailSenderAddress</span>
+                        }
+                        @if (c.o27MailToName != null)
+                        {
+                            <span class="badge-lightblue" title="@c.o27MailToAddress">@c.o27MailToName</span>
+                        }
+                        else
+                        {
+                            <span class="badge-lightblue">@c.o27MailToAddress</span>
+                        }
+                        @if (c.o27MailDateMessage != null)
+                        {
+                            <span class="badge text-bg-light">@(BO.Code.Time.GetTimestamp(c.o27MailDateMessage))</span>
+                        }
+                        @if (c.o27MailAttachmentsCount > 0)
+                        {
+                            var atts = BO.Code.Bas.ConvertString2List(c.o27MailAttachments, ",");
+                            foreach (var att in atts)
+                            {
+                                var po = BO.Code.Bas.OM2(att.Split(".").First(), 15);
+                                var pred = att.Substring(att.Length - 3, 3);
+                                <a target="_blank" class="att" href="/FileUpload/FileDownloadMsgAttachment?guid=@(c.o27Guid)&origfilename=@(att)">@($"{pred}: {po}")</a>
+
+
+
+                            }
+                        }
+                    }
+                    else
+                    {
+                        @if (c.o27WwwRootFolder != null)
+                        {
+                            <a target="_blank" href="@("/_users/" + _f.Lic.x01Guid + "/" + c.o27WwwRootFolder.Replace("\\", "/") + "/" + c.o27ArchiveFileName)">@c.o27OriginalFileName</a>
+                        }
+                        else
+                        {
+                            <a target="_blank" href="/FileUpload/FileDownloadInline?guid=@c.o27Guid">@c.o27OriginalFileName</a>
+                        }
+                    }
+
+                </td>
+                <td style="text-align:right;">
+                    @(BO.Code.Bas.FormatFileSize(c.o27FileSize))
+                </td>
+                <td>
+                    @if (c.o27CallerFlag == BO.o27CallerFlagENUM.Notepad)
+                    {
+                        <code>Notepad</code>
+                        @if (c.o27WwwRootFolder != null)
+                        {
+                            <var>image</var>
+                        }
+                    }
+                    @if (c.o27Name != null)
+                    {
+                        <var style="background-color:lightyellow;">@c.o27Name</var>
+                    }
+
+                </td>
+                
+                <td>
+                    <small>
+                        @(BO.Code.Time.GetTimestamp(c.DateInsert))
+                    </small>
+                </td>
+
             </tr>
         }
     </table>
@@ -54,13 +152,33 @@
     $(document).ready(function () {
 
 
-
+        document.getElementById("searchInput").addEventListener("keyup", searchTable);
 
 
 
     })
 
 
+    function Potvrdit(o27id)
+    {
+        _postback("potvrdit","o27id="+o27id);
+    }
 
+
+
+    function searchTable() {
+      const input = document.getElementById("searchInput").value.toLowerCase();
+      const table = document.getElementById("tab1");
+      const rows = table.getElementsByTagName("tr");
+
+      for (let i = 0; i < rows.length; i++) {
+        const rowText = rows[i].textContent.toLowerCase();
+        rows[i].style.display = rowText.includes(input) ? "" : "none";
+      }
+    }
+
+    function hardrefresh(pid){
+        
+    }
 </script>
 

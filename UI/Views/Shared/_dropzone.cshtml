@@ -20,7 +20,7 @@
     }
 }
 
-
+@Html.Raw("<div id='dropzone-container'>")
 @if (Model.IsInIframe)
 {
     @Html.Raw("<div class='row m-0 p-0'><div class='col-auto'>")
@@ -74,12 +74,14 @@
     
 </form>
 
-<a class="btn btn-sm btn-light" href="javascript:fronta_bez_vazby()">@_f.tra("FILEBOX fronta")</a>
+
 
 @if (Model.IsInIframe)
 {
     @Html.Raw("</div><div class='col-auto'>")
+    
 }
+
 
 
 
@@ -227,8 +229,27 @@
 
 @if (Model.IsInIframe)
 {
+    @if (Model.RecPid > 0 && Model.RecPrefix !=null)
+    {
+        <a class="btn btn-sm btn-light" id="linkDropzoneFronta" title="Zatřidit přílohy bez vazby." href="javascript:fronta_bez_vazby()">@_f.tra("FILEBOX fronta")</a>
+    }
+    
     @Html.Raw("</div></div>")
 }
+else
+{
+    @if (Model.RecPid > 0 && Model.RecPrefix != null)
+    {
+        <div style="padding-bottom:20px;">
+            <a class="btn btn-sm btn-light" id="linkDropzoneFronta" title="Zatřidit přílohy bez vazby." href="javascript:fronta_bez_vazby()">@_f.tra("FILEBOX fronta")</a>
+        </div>
+    }
+    
+    
+}
+
+
+@Html.Raw("</div>")
 
 <script>
     const isinframe="@(Model.IsInIframe)";

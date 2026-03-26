@@ -70,13 +70,20 @@ namespace UI.Controllers
 
             if (ModelState.IsValid)
             {
-
+                
                 BO.o27Attachment c = Factory.o27AttachmentBL.Load(v.rec_pid);
                 c.o27Name = v.Rec.o27Name;
 
 
                 c.ValidUntil = v.Toolbar.GetValidUntil(c);
                 c.ValidFrom = v.Toolbar.GetValidFrom(c);
+
+
+                if (v.PostbackOper == "vycistit-vazbu")
+                {
+                    c.o27Entity = null;
+                    c.o27RecordPid = 0;
+                }
 
                 c.pid = Factory.o27AttachmentBL.Save(c);
                 if (c.pid > 0)
@@ -106,6 +113,29 @@ namespace UI.Controllers
             var v = new DropzoneFrontaViewModel() { prefix = prefix, pid = pid };
 
             v.lisO27 = Factory.o27AttachmentBL.GetList(new BO.myQueryO27() { mavazbu=false });
+            return View(v);
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Fronta(UI.Models.DropzoneFrontaViewModel v,int o27id)
+        {
+
+            if (ModelState.IsValid)
+            {
+
+                var rec = Factory.o27AttachmentBL.Load(o27id);
+                rec.o27RecordPid = v.pid;
+                rec.o27Entity = v.prefix;
+                Factory.o27AttachmentBL.Save(rec);
+                v.SetJavascript_CallOnLoad(0);
+                return View(v);
+
+            }
+
+
+            this.Notify_RecNotSaved();
             return View(v);
         }
     }
