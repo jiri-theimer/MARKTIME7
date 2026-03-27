@@ -140,9 +140,15 @@ namespace UI.Controllers
 
                 BO.p41Project c = Factory.p41ProjectBL.Load(v.p41ID);
                 c.pid = 0;
+                
                 c.p41Name = v.p41Name;
                 c.p41NameShort = v.p41NameShort;
-                
+
+
+                var recP42 = Factory.p42ProjectTypeBL.Load(c.p42ID);
+                c.p41Code = Factory.x38CodeLogicBL.x38_get_freecode(recP42.x38ID, "p41", 0);
+
+
                 c.p28ID_Client = v.p28ID_Client;
                 c.ValidFrom = DateTime.Now;
                 c.ValidUntil = new DateTime(3000, 1, 1);
@@ -251,7 +257,7 @@ namespace UI.Controllers
                         }
                     }
 
-                    if (v.hlidac != null)
+                    if (v.hlidac != null && v.hlidac.lisItems !=null)
                     {
                         foreach(var cc in v.hlidac.lisItems)
                         {
@@ -261,7 +267,7 @@ namespace UI.Controllers
                         v.hlidac.SaveChanges(Factory, c.pid);
                         
                     }
-                    if (v.reminder != null)
+                    if (v.reminder != null && v.reminder.lisReminder !=null)
                     {
                         foreach (var cc in v.reminder.lisReminder)
                         {
