@@ -857,27 +857,28 @@ namespace UI.Controllers
         [HttpPost]
         public async Task<IActionResult> UploadJsonFile(IFormFile jsonFile)
         {
+            //nahrání json souboru REC šablony na server
+
             if (jsonFile == null || jsonFile.Length == 0)
             {
                 return BadRequest(new { message = "Nebyl nahrán žádný soubor." });
             }
 
-            
             try
             {
                 using var stream = jsonFile.OpenReadStream();
                 using var reader = new StreamReader(stream);
+                var guid = BO.Code.Bas.GetGuid();
                 var content = await reader.ReadToEndAsync();
 
                 using var jsonDocument = JsonDocument.Parse(content);
 
-                System.IO.File.WriteAllText($"{Factory.TempFolder}\\{jsonFile.FileName}", content);
+                System.IO.File.WriteAllText($"{Factory.TempFolder}\\{guid}.json", content);
 
                 return Ok(new
                 {
                     message = "JSON byl úspěšně načten.",
-                    fileName = jsonFile.FileName,
-                    json = jsonDocument.RootElement.Clone()
+                    filename = guid+".json"
                 });
             }
             catch (JsonException ex)

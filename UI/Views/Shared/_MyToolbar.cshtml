@@ -244,22 +244,32 @@
             const file = input.files[0];
             if (!file) return;
 
-            alert(file);
-
+           
             const formData = new FormData();
             formData.append("jsonFile", file);
 
-            try {
-                const response = await fetch("/Record/UploadJsonFile", {method: "POST"
-                ,body: formData
-            });
+            try
+            {
+                const response = await fetch("/Record/UploadJsonFile", {method: "POST",body: formData});
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                var guid=data.filename;
 
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
+                var url=_removeUrlParam("generate_rec_template_jsonfile",window.location.href);
+                url=url+"&generate_rec_template_jsonfile="+guid;
+               
+                
+                location.replace(url);
+        
+        
+        
+                
 
-            const result = await response.json();
-            alert("Server odpověděl:"+result);
+            
             }
             catch (err)
             {
