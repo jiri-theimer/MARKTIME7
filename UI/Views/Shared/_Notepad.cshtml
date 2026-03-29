@@ -3,13 +3,17 @@
 
 @{
 
-    BO.x04NotepadConfig _recX04 = new BO.x04NotepadConfig() { x04PlaceHolder = _f.tra("Nejlepší html editor se sadou silných funkcí! Vložte Word/Excel (CTRL+V), nahrávejte obrázky a dokumenty, PDF export/tisk, video odkazy, fulltext a další.") };
+    BO.x04NotepadConfig _recX04 = new BO.x04NotepadConfig(); //{ x04PlaceHolder = _f.tra("Nejlepší html editor se sadou silných funkcí! Vložte Word/Excel (CTRL+V), nahrávejte obrázky a dokumenty, PDF export/tisk, video odkazy, fulltext a další.") };
 
     IEnumerable<BO.x04NotepadConfig> _lisX04 = _f.x04NotepadConfigBL.GetList(new BO.myQuery("x04"));
 
     if (Model.SelectedX04ID > 0 && !_lisX04.Any(p => p.pid == Model.SelectedX04ID))
     {
         Model.SelectedX04ID = 0;
+    }
+    if (Model.SelectedX04ID == 0 && _lisX04.Count()>0)
+    {
+        Model.SelectedX04ID = _lisX04.First().pid;
     }
     if (Model.SelectedX04ID > 0)
     {
@@ -62,7 +66,7 @@ else
 
 
 
-<div class="nonmobile">
+<div style="display:none;">
     <myshowmore></myshowmore>
 
     <button type="button" class="btn btn-sm btn-light py-0 showmore" tabindex="-1" onclick="editor_clear()" style="margin-left:15px;">Vyčistit</button>

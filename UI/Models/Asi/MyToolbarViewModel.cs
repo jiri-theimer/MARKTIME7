@@ -1,8 +1,4 @@
-﻿using Microsoft.Extensions.Primitives;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿
 
 namespace UI.Models
 {
@@ -35,11 +31,13 @@ namespace UI.Models
         //public string ArchiveFlag { get; set; }
         public string BG;
 
-        private BO.BaseBO _rec { get; set; }
+        //private BO.BaseBO _rec { get; set; }
+        public BO.BaseBO BaseRecord { get; set; }
 
         public MyToolbarViewModel(BO.BaseBO rec,bool bolAllowArchive=true)
         {
-            _rec = rec;
+            this.BaseRecord = rec;
+            //_rec = rec;
             this.AllowArchive = bolAllowArchive;
             this.RecordEntity = rec.entity;
             this.RecordPID = rec.pid;
@@ -49,8 +47,9 @@ namespace UI.Models
                 if (rec.ValidFrom !=null) this.ExplicitValidFrom = BO.Code.Bas.ObjectDate2String(rec.ValidFrom);
                 if (rec.ValidUntil !=null) this.ExplicitValidUntil = BO.Code.Bas.ObjectDate2String(rec.ValidUntil);
             }
-           
 
+            
+            
             RefreshState();
 
         }
@@ -61,54 +60,54 @@ namespace UI.Models
 
         public string getTimeStampHtml(BL.Factory f)
         {
-            if (_rec == null)
+            if (this.BaseRecord == null)
             {
                 return null;
             }
-            if (_rec.pid > 0)
+            if (this.BaseRecord.pid > 0)
             {
                 var sb = new System.Text.StringBuilder();
                 //sb.AppendLine("<div style='border-top:solid 1px #F5F5F5;margin-top:20px;'>");
-                if (_rec.DateInsert != null)
+                if (this.BaseRecord.DateInsert != null)
                 {
                     sb.Append("<small style='color:silver'>"+f.tra("Založení záznamu")+ ":&nbsp;</small>");
                                       
                     sb.Append("<small>");
-                    sb.Append(_rec.UserInsert + " / " + BO.Code.Time.GetTimestamp(_rec.DateInsert));
+                    sb.Append(this.BaseRecord.UserInsert + " / " + BO.Code.Time.GetTimestamp(this.BaseRecord.DateInsert));
                     sb.Append("</small>");
                 }
-                if (_rec.DateUpdate > _rec.DateInsert)
+                if (this.BaseRecord.DateUpdate > this.BaseRecord.DateInsert)
                 {
                     sb.Append("<small style='color:silver;margin-left:20px;'>"+f.tra("Poslední aktualizace")+ ":&nbsp;</small>");
 
                     sb.Append("<small style='color:brown'>");
-                    if (_rec.UserInsert == _rec.UserUpdate)
+                    if (this.BaseRecord.UserInsert == this.BaseRecord.UserUpdate)
                     {
-                        sb.Append(BO.Code.Time.GetTimestamp(_rec.DateUpdate));
+                        sb.Append(BO.Code.Time.GetTimestamp(this.BaseRecord.DateUpdate));
                     }
                     else
                     {
-                        sb.Append(_rec.UserUpdate + " / " + BO.Code.Time.GetTimestamp(_rec.DateUpdate));
+                        sb.Append(this.BaseRecord.UserUpdate + " / " + BO.Code.Time.GetTimestamp(this.BaseRecord.DateUpdate));
                     }
                     
                     sb.Append("</small>");
                 }
-                if (this.AllowArchive && _rec.ValidFrom != null && _rec.ValidUntil != null)
+                if (this.AllowArchive && this.BaseRecord.ValidFrom != null && this.BaseRecord.ValidUntil != null)
                 {
-                    //this.ExplicitValidFrom = BO.Code.Bas.ObjectDateTime2String(_rec.ValidFrom);
-                    this.ExplicitValidFrom = BO.Code.Time.GetTimestamp(_rec.ValidFrom);
-                    //this.ExplicitValidUntil = BO.Code.Bas.ObjectDateTime2String(_rec.ValidUntil);
-                    this.ExplicitValidUntil = BO.Code.Time.GetTimestamp(_rec.ValidUntil);
+                    //this.ExplicitValidFrom = BO.Code.Bas.ObjectDateTime2String(this.BaseRecord.ValidFrom);
+                    this.ExplicitValidFrom = BO.Code.Time.GetTimestamp(this.BaseRecord.ValidFrom);
+                    //this.ExplicitValidUntil = BO.Code.Bas.ObjectDateTime2String(this.BaseRecord.ValidUntil);
+                    this.ExplicitValidUntil = BO.Code.Time.GetTimestamp(this.BaseRecord.ValidUntil);
 
                     sb.Append("<small style='margin-left:20px;color:silver;'>"+f.tra("Platnost záznamu")+ ":&nbsp;</small>");
                     sb.Append("<small class='text-info'>");
-                    if (_rec.ValidUntil > DateTime.Now && _rec.ValidFrom <= DateTime.Now)
+                    if (this.BaseRecord.ValidUntil > DateTime.Now && this.BaseRecord.ValidFrom <= DateTime.Now)
                     {
                         sb.Append(" "+f.tra("Záznam je časově platný."));
                     }
                     else
                     {
-                        sb.Append(_rec.ValidFrom.ToString() + " - " + _rec.ValidUntil.ToString());
+                        sb.Append(this.BaseRecord.ValidFrom.ToString() + " - " + this.BaseRecord.ValidUntil.ToString());
                         sb.Append("<kbd style='font-size:120%;'>"+f.tra("Záznam je v archivu.")+"</kbd>");
                     }
                     sb.Append("</small>");

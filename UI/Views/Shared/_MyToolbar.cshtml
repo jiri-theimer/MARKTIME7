@@ -6,6 +6,16 @@
         return;
     }
     Model.RefreshState();
+
+    string _strTemplateRecordJsonFileName = null;
+    if (Context.Request.Query["generate_rec_template"]=="true")
+    {
+        //na vstupu je žádost o vygenerování šablony záznamu
+        var json = BO.Code.basJson.SerializeObject(Model.BaseRecord);
+        _strTemplateRecordJsonFileName = $"template-record-{Model.RecordEntity}-{Model.RecordPID}.json";
+        BO.Code.File.WriteText2File($"{_f.TempFolder}\\{_strTemplateRecordJsonFileName}", json);
+
+    }
 }
 
 
@@ -80,20 +90,34 @@
 
         <span id="toolbar_changeinfo" class="text-danger" style="float:right;"></span>
     </div>
+
+   
    
 </div>
 
 
+@if (_strTemplateRecordJsonFileName != null)
+{
+    
+    <script>       
+        
+        window.onload = function () {
+            window.location.href = "/FileUpload/FileDownloadTempFileNDB?tempfilename=@(_strTemplateRecordJsonFileName)";
+        };
+
+    </script>
+    
+    
+}
 
 
-
-<input type="hidden" id="hidRecordPID" asp-for="@Model.RecordPID" />
-<input type="hidden" id="hidRecordIsClosed" asp-for="@Model.RecordIsClosed" />
-<input type="hidden" id="hidRecordEntity" asp-for="@Model.RecordEntity" />
-<input type="hidden" id="hidAllowArchive" asp-for="@Model.AllowArchive" />
-<input type="hidden" id="hidAllowClone" asp-for="@Model.AllowClone" />
-<input type="hidden" id="hidExplicitD1" asp-for="@Model.ExplicitValidFrom" />
-<input type="hidden" id="hidExplicitD2" asp-for="@Model.ExplicitValidUntil" />
+<input type="hidden" id="hidRecordPID" asp-for="RecordPID" />
+<input type="hidden" id="hidRecordIsClosed" asp-for="RecordIsClosed" />
+<input type="hidden" id="hidRecordEntity" asp-for="RecordEntity" />
+<input type="hidden" id="hidAllowArchive" asp-for="AllowArchive" />
+<input type="hidden" id="hidAllowClone" asp-for="AllowClone" />
+<input type="hidden" id="hidExplicitD1" asp-for="ExplicitValidFrom" />
+<input type="hidden" id="hidExplicitD2" asp-for="ExplicitValidUntil" />
 
 
 
@@ -194,5 +218,55 @@
         _zoom(e, "", "", "250", "@_f.tra("Časová platnost záznamu")", url);
     }
 
+
+
+    function toolbar_save_rectemplate(e) {
+        
+        var url=window.location.href;
+        if (url.indexOf("generate_rec_template")==-1)
+        {
+            url=url+"&generate_rec_template=true";
+        }
+        
+        location.replace(url);
+
+        
+
+    }
+
+    function toolbar_load_rectemplate(e)
+    {
+        const input = document.getElementById("fileInputJson");
+        input.click(); // otevře dialog pro načtení json souboru
+
+
+        input.addEventListener("change", async () => {
+            const file = input.files[0];
+            if (!file) return;
+
+            alert(file);
+
+            const formData = new FormData();
+            formData.append("jsonFile", file);
+
+            try {
+                const response = await fetch("/Record/UploadJsonFile", {method: "POST"
+                ,body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            const result = await response.json();
+            alert("Server odpověděl:"+result);
+            }
+            catch (err)
+            {
+            alert("Chyba při uploadu:"+err);
+            }
+        });
+
+    }
 
 </script>

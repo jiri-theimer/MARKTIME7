@@ -4,6 +4,6 @@
     {
         public BO.o27Attachment Rec { get; set; }
 
-        
+        public Notepad.EditorViewModel Notepad { get; set; }
     }
 }

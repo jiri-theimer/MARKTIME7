@@ -33,5 +33,6 @@
         public string current_cuser_lat { get; set; }   //aktuální souřadnice uživatele
 
         public ReminderViewModel reminder { get; set; }
+        public string UploadGuid { get; set; }
     }
 }

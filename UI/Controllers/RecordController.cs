@@ -1,6 +1,7 @@
 ﻿
 using Microsoft.AspNetCore.Mvc;
 using System.Data;
+using System.Text.Json;
 using UI.Models;
 using UI.Models.a55;
 using UI.Models.Record;
@@ -851,6 +852,51 @@ namespace UI.Controllers
 
         }
 
+
+
+        [HttpPost]
+        public async Task<IActionResult> UploadJsonFile(IFormFile jsonFile)
+        {
+            if (jsonFile == null || jsonFile.Length == 0)
+            {
+                return BadRequest(new { message = "Nebyl nahrán žádný soubor." });
+            }
+
+            
+            try
+            {
+                using var stream = jsonFile.OpenReadStream();
+                using var reader = new StreamReader(stream);
+                var content = await reader.ReadToEndAsync();
+
+                using var jsonDocument = JsonDocument.Parse(content);
+
+                System.IO.File.WriteAllText($"{Factory.TempFolder}\\{jsonFile.FileName}", content);
+
+                return Ok(new
+                {
+                    message = "JSON byl úspěšně načten.",
+                    fileName = jsonFile.FileName,
+                    json = jsonDocument.RootElement.Clone()
+                });
+            }
+            catch (JsonException ex)
+            {
+                return BadRequest(new
+                {
+                    message = "Soubor neobsahuje validní JSON.",
+                    detail = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = "Došlo k chybě při zpracování souboru.",
+                    detail = ex.Message
+                });
+            }
+        }
 
     }
 }

@@ -282,6 +282,12 @@ namespace UI.Controllers
 
 
             v.Rec = new BO.j02User() { j04ID = j04id };
+
+            //var json0 = BO.Code.File.GetFileContent("c:\\temp\\hovado.json");
+            //v.Rec = BO.Code.basJson.DeserializeData<BO.j02User>(json0);
+            //v.rec_pid = v.Rec.pid;
+            //isclone = true;
+
             if (Factory.Lic.x01LoginDomain != null)
             {
                 v.Rec.j02Login = "@" + Factory.Lic.x01LoginDomain;
@@ -291,11 +297,17 @@ namespace UI.Controllers
             {
                 v.RecJ04 = Factory.j04UserRoleBL.Load(v.Rec.j04ID);
                 v.ComboJ04Name = v.RecJ04.j04Name;
+
+                
+                
+
             }
 
             if (v.rec_pid > 0)
             {
                 v.Rec = Factory.j02UserBL.Load(v.rec_pid);
+                
+
                 if (v.Rec == null)
                 {
                     return RecNotFound(v);
@@ -331,6 +343,7 @@ namespace UI.Controllers
 
 
             v.Toolbar = new MyToolbarViewModel(v.Rec);
+            
             if (isclone)
             {
                 v.MakeClone();

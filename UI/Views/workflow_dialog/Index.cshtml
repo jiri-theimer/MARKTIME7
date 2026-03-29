@@ -214,27 +214,35 @@
 
         </div>
 
-        <div>
-            @Html.EditorFor(m => m.reminder, "~/Views/Shared/_Reminder.cshtml")
-        </div>
+        
 
     }
     
 
-    <input type="hidden" asp-for="@Model.RecordEntity" />
-    <input type="hidden" asp-for="@Model.RecordPid" />
-    <input type="hidden" asp-for="@Model.b01ID" />
-    <input type="hidden" asp-for="@Model.b02ID" />
-    <input type="hidden" asp-for="@Model.current_user_lon" />
-    <input type="hidden" asp-for="@Model.current_cuser_lat" />
+    <input type="hidden" asp-for="RecordEntity" />
+    <input type="hidden" asp-for="RecordPid" />
+    <input type="hidden" asp-for="b01ID" />
+    <input type="hidden" asp-for="b02ID" />
+    <input type="hidden" asp-for="current_user_lon" />
+    <input type="hidden" asp-for="current_cuser_lat" />
     <input type="hidden" asp-for="NameIsRequired" />
     <input type="hidden" asp-for="Caller" />
+    <input type="hidden" asp-for="UploadGuid" />
 </form>
 
 
 
 
 @Html.Raw("</div>")
+
+@if (Model.UploadGuid != null)
+{
+    <iframe id="fraUpload" src="/Dropzone/UploadInFrame?entity=b05&guid=@Model.UploadGuid" frameborder="0" scrolling="yes" style="max-width:1200px;height:60px;"></iframe>
+}
+
+<div>
+    @Html.EditorFor(m => m.reminder, "~/Views/Shared/_Reminder.cshtml")
+</div>
 
 @if (_lisB05 !=null && _lisB05.Count() > 0)
 {

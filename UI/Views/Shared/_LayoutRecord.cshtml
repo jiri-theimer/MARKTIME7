@@ -18,13 +18,13 @@
     <link href="~/lib/qtip/jquery.qtip.css" rel="stylesheet" type="text/css" />
     <link href="~/lib/autocomplete/jquery.autocomplete.css" rel="stylesheet" type="text/css" />
     <style type="text/css">
-        :root {
-            --pozadi: @_f.CurrentUser.j02SkinBackColor;
-            --popredi: @_f.CurrentUser.j02SkinForeColor;
-            --oznaceno: @_f.CurrentUser.j02SkinSelColor;
-        }
+            :root {
+                --pozadi: @_f.CurrentUser.j02SkinBackColor;
+                --popredi: @_f.CurrentUser.j02SkinForeColor;
+                --oznaceno: @_f.CurrentUser.j02SkinSelColor;
+            }
     </style>
-    @if(_f.CurrentUser.IsMobileDisplay())
+    @if (_f.CurrentUser.IsMobileDisplay())
     {
         <link rel="stylesheet" href="~/css/mobile.css" />
     }
@@ -51,9 +51,9 @@
 </head>
 <body>
     <script type="text/javascript">
-        var _relpath = "@(Url.Content("~/favicon.ico").Replace("favicon.ico", ""))";   //relativní cesta: detekce kvůli případnému IIS virtuálnímu adresáři
+            var _relpath = "@(Url.Content("~/favicon.ico").Replace("favicon.ico", ""))";   //relativní cesta: detekce kvůli případnému IIS virtuálnímu adresáři
 
-        var event_form1_beforesave = new CustomEvent("form1_beforesave", { detail: { cancel: false } });
+            var event_form1_beforesave = new CustomEvent("form1_beforesave", { detail: { cancel: false } });
 
     </script>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
@@ -87,13 +87,13 @@
     <script src="~/js/mycontrols.js" asp-append-version="true"></script>
 
     <script type="text/javascript">
-        @if (Model.Javascript_CallOnLoad != null)
-        {
-            @Html.Raw(Model.Javascript_CallOnLoad)
+            @if (Model.Javascript_CallOnLoad != null)
+            {
+                    @Html.Raw(Model.Javascript_CallOnLoad)
             
 
 
-        }
+            }
 
 
     </script>
@@ -103,7 +103,7 @@
         <h4 style="white-space:nowrap;">
             @if (Model.rec_entity != null)
             {
-                <myicon prefix="@Model.rec_entity.Substring(0,3)" symbol="@Model.PageSymbol" perc="150"></myicon>
+                <myicon prefix="@Model.rec_entity.Substring(0, 3)" symbol="@Model.PageSymbol" perc="150"></myicon>
             }
             
             @Model.PageTitle
@@ -127,23 +127,54 @@
             @RenderBody()
 
         </form>
-        <div style="margin-top:20px;">
+        <div class="d-flex flex-row" style="margin-top:20px;">
             @if (Model.rec_pid > 0 && Model.Toolbar != null)
             {
                 @Html.Raw(Model.Toolbar.getTimeStampHtml(_f))
                 
-
-
-
             }
-            @if (Model.Toolbar != null && Model.Toolbar.AllowArchive)
-            {
-                <button type="button" tabindex="-1" onclick="toolbar_handle_validity(event)" class="btn btn-light btn-sm">@_f.tra("Časová platnost záznamu")</button>
-            }
-            @if(Model.rec_pid>0 && _f.CurrentUser.IsAdmin && (Model.rec_entity=="p31" || Model.rec_entity=="p41" || Model.rec_entity=="p28" || Model.rec_entity=="p91" || Model.rec_entity=="o23" || Model.rec_entity=="p56"))
-            {
-                <button type="button" tabindex="-1" onclick="_window_open('/ChangeLog/@(Model.rec_entity)?pid=@(Model.rec_pid)')" class="btn btn-light btn-sm">CHANGE-LOG</button>
-            }
+            <div class="dropdown mx-3">
+                <a class="btn btn-sm btn-light dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    @_f.tra("Více")
+                </a>
+
+                <ul class="dropdown-menu" style="width: 200px;">
+
+                    @if (Model.Toolbar != null && Model.Toolbar.AllowArchive)
+                    {
+                        <li class="p-2">
+                            <button type="button" tabindex="-1" onclick="toolbar_handle_validity(event)" class="btn btn-light btn-sm">@_f.tra("Časová platnost záznamu")</button>
+                        </li>
+                        
+                    }
+                    @if (Model.rec_pid > 0 && _f.CurrentUser.IsAdmin && (Model.rec_entity == "p31" || Model.rec_entity == "p41" || Model.rec_entity == "p28" || Model.rec_entity == "p91" || Model.rec_entity == "o23" || Model.rec_entity == "p56"))
+                    {
+                        <li class="p-2">
+                            <button type="button" tabindex="-1" onclick="_window_open('/ChangeLog/@(Model.rec_entity)?pid=@(Model.rec_pid)')" class="btn btn-light btn-sm">CHANGE-LOG</button>
+                        </li>
+                    }
+                    @if (Model.rec_pid > 0)
+                    {
+                        <li class="p-2">
+                            <button type="button" tabindex="-1" onclick="toolbar_save_rectemplate(event)" class="btn btn-light btn-sm">@_f.tra("Uložit jako REC šablonu")</button>
+                        </li>
+                        }
+                        else
+                        {
+                        <li class="p-2">
+                            <button type="button" tabindex="-1" onclick="toolbar_load_rectemplate(event)" class="btn btn-light btn-sm">@_f.tra("Načíst záznam z REC šablony")</button>
+                            
+                            <input type="file" id="fileInputJson" accept=".json,application/json" hidden />
+
+                            
+                        </li>
+                        }
+
+                    
+                </ul>
+            </div>
+            
+            
             
         </div>
     </div>
@@ -155,302 +186,302 @@
 
 
     <script type="text/javascript">
-        var _modal;
-        var _element2focus = "@Model.Element2Focus";
+            var _modal;
+            var _element2focus = "@Model.Element2Focus";
         
 
-        $(document).ready(function () {
-            $("#IsPostback").val("false");  //vyčistit info o případném předchozím postbacku
-            $("#PostbackOper").val("");    //vyčistit info o případném předchozím postbacku
+            $(document).ready(function () {
+                $("#IsPostback").val("false");  //vyčistit info o případném předchozím postbacku
+                $("#PostbackOper").val("");    //vyčistit info o případném předchozím postbacku
 
             
             
 
-            if (document.getElementById("link_tab1")) {
-                $(".tab-pane").removeClass("active");
+                if (document.getElementById("link_tab1")) {
+                    $(".tab-pane").removeClass("active");
 
-                $("#tab@(Model.ActiveTabIndex)").addClass("active");
-                $("#link_tab@(Model.ActiveTabIndex)").attr("class", "nav-link active");
+                    $("#tab@(Model.ActiveTabIndex)").addClass("active");
+                    $("#link_tab@(Model.ActiveTabIndex)").attr("class", "nav-link active");
 
-                $('a[data-bs-toggle="tab"]').on("shown.bs.tab", function (e) {
-                    // v e.target.id je id kliknutá záložka
+                    $('a[data-bs-toggle="tab"]').on("shown.bs.tab", function (e) {
+                        // v e.target.id je id kliknutá záložka
 
-                    var tabindex = e.target.id.substring(e.target.id.length - 1, e.target.id.length);
-                    $("#ActiveTabIndex").val(tabindex);
-                    _resize_textareas();
-                })
-            }
-
-
-        @if (_f.CurrentUser.Messages4Notify != null)
-        {
-            @foreach (var c in _f.CurrentUser.Messages4Notify)
-            {  // <----  placed on the same line, WORKING !!!
-
-                @:_notify_message("@Html.Raw(c.Value)", "@c.Key");
-
-            }
-        }
-                if ($("#toolbar_changeinfo").length) {
-                //události na editačních formulářích
-                $("form").submit(function () {
-                    if ($(document.activeElement).attr("type") == "submit")
-                        return true;
-                    else return false;
-                });
-
-                _resize_textareas();
-            }
-
-
-
-            $(document).on("click", function (e) {
-                if (e.target == _modal) {
-                    _window_in_modal_close();
+                        var tabindex = e.target.id.substring(e.target.id.length - 1, e.target.id.length);
+                        $("#ActiveTabIndex").val(tabindex);
+                        _resize_textareas();
+                    })
                 }
-            });
-            
-            $(document).on("keydown", function (e) {                
-                if (e.keyCode == 27)
-                {
-                    if (document.getElementById("myModalPellEditorPreview"))
-                    {
-                        if ($("#myModalPellEditorPreview").css("display")=="block")
-                        {
-                            $('#myModalPellEditorPreview').modal('hide');
-                            return; //neuzavírat okno náhledu Pell editoru
-                        }
-                        
-                    }
-                    if (document.getElementById("myModalPellEditorMarkup"))
-                    {
-                        if ($("#myModalPellEditorMarkup").css("display")=="block")
-                        {
-                            $('#myModalPellEditorMarkup').modal('hide');
-                            return; //neuzavírat okno náhledu Pell editoru
-                        }
+
+
+            @if (_f.CurrentUser.Messages4Notify != null)
+            {
+                    @foreach (var c in _f.CurrentUser.Messages4Notify)
+                    {  // <----  placed on the same line, WORKING !!!
+
+                            @:_notify_message("@Html.Raw(c.Value)", "@c.Key");
 
                     }
+            }
+                    if ($("#toolbar_changeinfo").length) {
+                    //události na editačních formulářích
+                    $("form").submit(function () {
+                        if ($(document.activeElement).attr("type") == "submit")
+                            return true;
+                        else return false;
+                    });
+
+                    _resize_textareas();
+                }
+
+
+
+                $(document).on("click", function (e) {
+                    if (e.target == _modal) {
+                        _window_in_modal_close();
+                    }
+                });
+            
+                $(document).on("keydown", function (e) {
+                    if (e.keyCode == 27)
+                    {
+                        if (document.getElementById("myModalPellEditorPreview"))
+                        {
+                            if ($("#myModalPellEditorPreview").css("display")=="block")
+                            {
+                                $('#myModalPellEditorPreview').modal('hide');
+                                return; //neuzavírat okno náhledu Pell editoru
+                            }
+                        
+                        }
+                        if (document.getElementById("myModalPellEditorMarkup"))
+                        {
+                            if ($("#myModalPellEditorMarkup").css("display")=="block")
+                            {
+                                $('#myModalPellEditorMarkup').modal('hide');
+                                return; //neuzavírat okno náhledu Pell editoru
+                            }
+
+                        }
 
                     
-                    if (document.getElementsByClassName("modal-dialog-inner").length > 0 && document.getElementsByClassName("modal-dialog-inner")[0].style.display == "block")
-                    {        
-                        //na stránce je lokální modal dialog - zavřít ho, ale nikoliv celé okno
-                        $(document.getElementsByClassName("modal-dialog-inner")[0]).css("display", "none");
-                        return;
+                        if (document.getElementsByClassName("modal-dialog-inner").length > 0 && document.getElementsByClassName("modal-dialog-inner")[0].style.display == "block")
+                        {
+                            //na stránce je lokální modal dialog - zavřít ho, ale nikoliv celé okno
+                            $(document.getElementsByClassName("modal-dialog-inner")[0]).css("display", "none");
+                            return;
                         
-                    }
-                    if (_modal != null && _modal.style.display == "block") {                        
-                        _window_in_modal_close();
-                    } else {
-                        try_close_with_confirm(e);
-                    }
+                        }
+                        if (_modal != null && _modal.style.display == "block") {
+                            _window_in_modal_close();
+                        } else {
+                            try_close_with_confirm(e);
+                        }
 
-                    return;
-                }
+                        return;
+                    }
                
-                if (e.keyCode == 13 && e.target.nodeName != "BUTTON" && e.target.nodeName != "TEXTAREA" && e.target.nodeName != "DIV") {                //zabránit submit formuláře po stisknutí ENTER na jakémkoliv non-submit input elementu
-                    e.preventDefault();
-                    return false;
+                    if (e.keyCode == 13 && e.target.nodeName != "BUTTON" && e.target.nodeName != "TEXTAREA" && e.target.nodeName != "DIV") {                //zabránit submit formuláře po stisknutí ENTER na jakémkoliv non-submit input elementu
+                        e.preventDefault();
+                        return false;
+                    }
+                });
+
+
+
+
+            
+
+                if (_device.isMobile) {
+                    _init_elements_for_mobile();
+                } else {
+                    _init_qtip_onpage(document);
                 }
+
+
+                if (_element2focus != "" && document.getElementById(_element2focus)) {
+                    $("#" + _element2focus).focus();
+                    $("#" + _element2focus).select();
+               
+                }
+
             });
 
 
 
+            function _window_close() {
 
-            
-
-            if (_device.isMobile) {
-                _init_elements_for_mobile();
-            } else {
-                _init_qtip_onpage(document);
-            }
-
-
-            if (_element2focus != "" && document.getElementById(_element2focus)) {                       
-                $("#" + _element2focus).focus();
-                $("#" + _element2focus).select();
-               
-            }
-
-        });
-
-
-
-        function _window_close() {
-
-            if (document.getElementById("myModalContainer")) {
-                if ($(_modal).css("display") == "block") {  //test, zda o zavření volá modální okno nebo okno otevřené z modálního okna (3.vrstva)
-                    _window_in_modal_close();
-                    return;
+                if (document.getElementById("myModalContainer")) {
+                    if ($(_modal).css("display") == "block") {  //test, zda o zavření volá modální okno nebo okno otevřené z modálního okna (3.vrstva)
+                        _window_in_modal_close();
+                        return;
+                    }
                 }
-            }
 
-            if (window != top) {
+                if (window != top) {
 
-                window.parent._window_close();  //toto okno je uvnitř iframe
-            } else {
-                window.close();
-            }
-        }
-
-        function try_close_with_confirm(e) {            
-            var bolChanges = false;
-
-            if (document.getElementById("PostbackBylUzKolikrat"))
-            {
-                if ($("#PostbackBylUzKolikrat").val() !="0") bolChanges = true;
-            }
-
-
-            if (!bolChanges && document.getElementById("toolbar_changeinfo")) {                
-                if ($("#toolbar_changeinfo").text() != "") {
-                    bolChanges = true;
-                }
-            }
-
-            if (!bolChanges) {
-                _window_close();
-                return;
-            }
-
-            if (confirm("@_f.tra("Chcete zavřít okno bez uložení změn?")")) {
-                $("#toolbar_changeinfo").text("");
-                $("#PostbackBylUzKolikrat").val("0");
-                _window_close();
-            }
-
-        }
-
-        function _window_in_modal_close() {
-            if (_modal==null) return;
-                        
-            var iframe = document.getElementById("fraModalContent");
-            var elmnt = iframe.contentWindow.document.getElementById("toolbar_changeinfo");
-            
-            if ($(elmnt).text() !== "") {
-                if (confirm("@_f.tra("Chcete zavřít okno bez uložení změn?")")) {
-                    $(_modal).css("display", "none");
+                    window.parent._window_close();  //toto okno je uvnitř iframe
                 } else {
-                    return;
+                    window.close();
                 }
             }
-            $(_modal).css("display", "none");
-        }
+
+            function try_close_with_confirm(e) {
+                var bolChanges = false;
+
+                if (document.getElementById("PostbackBylUzKolikrat"))
+                {
+                    if ($("#PostbackBylUzKolikrat").val() !="0") bolChanges = true;
+                }
+
+
+                if (!bolChanges && document.getElementById("toolbar_changeinfo")) {
+                    if ($("#toolbar_changeinfo").text() != "") {
+                        bolChanges = true;
+                    }
+                }
+
+                if (!bolChanges) {
+                    _window_close();
+                    return;
+                }
+
+                if (confirm("@_f.tra("Chcete zavřít okno bez uložení změn?")")) {
+                    $("#toolbar_changeinfo").text("");
+                    $("#PostbackBylUzKolikrat").val("0");
+                    _window_close();
+                }
+
+            }
+
+            function _window_in_modal_close() {
+                if (_modal==null) return;
+                        
+                var iframe = document.getElementById("fraModalContent");
+                var elmnt = iframe.contentWindow.document.getElementById("toolbar_changeinfo");
+            
+                if ($(elmnt).text() !== "") {
+                    if (confirm("@_f.tra("Chcete zavřít okno bez uložení změn?")")) {
+                        $(_modal).css("display", "none");
+                    } else {
+                        return;
+                    }
+                }
+                $(_modal).css("display", "none");
+            }
 
         
 
-        function _window_open(url, flag, header, layout) {
-            if (location.href.indexOf("p31dayline/Zoom") > 0) {
-                //otevření okna se ZOOM okna v rámci kalendáře nebo dayline
-                window.parent._window_open(url, flag, header, layout);
-                return;
-            }
-            if (typeof header === "undefined") header = "";
-            if (document.getElementById("myModalContainer")) {
-                //modal div na stránce již existuje
-                $("#fraModalContent").css("visibility", "hidden");
-                $("#iframe_is_loading").text("Loading...");
-            } else {
-                var el = document.createElement("DIV");
-                $(el).css("position", "absolute");
-
-                el.id = "myModalContainer";
-                document.body.appendChild(el);
-
-                var s = "<div id='myModalContent'>";
-                s += "<div style='height:30px;background-color: green;color:white;padding:3px;'>";
-                s += "<button class='btn btn-success btn-sm float-left' onclick='_window_in_modal_close()' style='margin-left:3px;margin-right:3px;'>&times;</button>";
-                s += "<span>" + header + "</span><span id='iframe_is_loading'>Loading...</span>";
-                s += "<button class='btn btn-success btn-sm float-end' onclick='_window_in_modal_close()' style='margin-right:3px;'>&times;</button>";
-                s += "</div>";
-                s += "<div id='myModalFrame' style='padding: 0px; margin:0px 0px 0px 10px; overflow: auto; -webkit-overflow-scrolling: touch;'>";
-                s += "<iframe id='fraModalContent' name='fraModalContent' frameborder='0' onload='iframe_loaded()'></iframe>";
-                s += "</div>";
-                s += "</div>";
-
-                _modal = document.getElementById("myModalContainer");
-                $(_modal).html(s);
-                _make_element_draggable(document.getElementById("myModalContent"), document.getElementById("myModalFrame")); //předávání nefunguje přes jquery
-            }
-
-
-            var okno = $("#myModalContent");
-            var fra = $("#fraModalContent");
-
-            var w = window.innerWidth - 40;
-
-            var h = window.innerHeight - 30;
-            var x = 0;
-            var y = 0;
-
-            $(okno).css("width", w);
-            $(okno).css("height", h);
-            $(okno).css("left", x);
-            $(okno).css("top", y);
-            $(fra).css("width", w - 15);
-            $(fra).css("height", h - 30 - 10);    //10 padding dole, 30 div header
-
-            if (url !== "") {
-                if (layout == undefined || layout == null) {
-                    layout = "record";
+            function _window_open(url, flag, header, layout) {
+                if (location.href.indexOf("p31dayline/Zoom") > 0) {
+                    //otevření okna se ZOOM okna v rámci kalendáře nebo dayline
+                    window.parent._window_open(url, flag, header, layout);
+                    return;
                 }
-                if (url.indexOf("?") > 0) {
-                    url = url + "&layout=" + layout;
+                if (typeof header === "undefined") header = "";
+                if (document.getElementById("myModalContainer")) {
+                    //modal div na stránce již existuje
+                    $("#fraModalContent").css("visibility", "hidden");
+                    $("#iframe_is_loading").text("Loading...");
                 } else {
-                    url = url + "?layout=" + layout;
+                    var el = document.createElement("DIV");
+                    $(el).css("position", "absolute");
+
+                    el.id = "myModalContainer";
+                    document.body.appendChild(el);
+
+                    var s = "<div id='myModalContent'>";
+                    s += "<div style='height:30px;background-color: green;color:white;padding:3px;'>";
+                    s += "<button class='btn btn-success btn-sm float-left' onclick='_window_in_modal_close()' style='margin-left:3px;margin-right:3px;'>&times;</button>";
+                    s += "<span>" + header + "</span><span id='iframe_is_loading'>Loading...</span>";
+                    s += "<button class='btn btn-success btn-sm float-end' onclick='_window_in_modal_close()' style='margin-right:3px;'>&times;</button>";
+                    s += "</div>";
+                    s += "<div id='myModalFrame' style='padding: 0px; margin:0px 0px 0px 10px; overflow: auto; -webkit-overflow-scrolling: touch;'>";
+                    s += "<iframe id='fraModalContent' name='fraModalContent' frameborder='0' onload='iframe_loaded()'></iframe>";
+                    s += "</div>";
+                    s += "</div>";
+
+                    _modal = document.getElementById("myModalContainer");
+                    $(_modal).html(s);
+                    _make_element_draggable(document.getElementById("myModalContent"), document.getElementById("myModalFrame")); //předávání nefunguje přes jquery
                 }
 
-                url = _ep(url);
-                $(fra).attr("src", url);
+
+                var okno = $("#myModalContent");
+                var fra = $("#fraModalContent");
+
+                var w = window.innerWidth - 40;
+
+                var h = window.innerHeight - 30;
+                var x = 0;
+                var y = 0;
+
+                $(okno).css("width", w);
+                $(okno).css("height", h);
+                $(okno).css("left", x);
+                $(okno).css("top", y);
+                $(fra).css("width", w - 15);
+                $(fra).css("height", h - 30 - 10);    //10 padding dole, 30 div header
+
+                if (url !== "") {
+                    if (layout == undefined || layout == null) {
+                        layout = "record";
+                    }
+                    if (url.indexOf("?") > 0) {
+                        url = url + "&layout=" + layout;
+                    } else {
+                        url = url + "?layout=" + layout;
+                    }
+
+                    url = _ep(url);
+                    $(fra).attr("src", url);
+                }
+
+
+                $(_modal).css("display", "block");
             }
 
 
-            $(_modal).css("display", "block");
-        }
+            function iframe_loaded() {
+                $("#fraModalContent").css("visibility", "visible");
+                $("#iframe_is_loading").text("");
+            }
 
-
-        function iframe_loaded() {
-            $("#fraModalContent").css("visibility", "visible");
-            $("#iframe_is_loading").text("");
-        }
-
-        function _postback(oper, ocas) 
-        {
-            if (event)
+            function _postback(oper, ocas)
             {
-                var element = event.target;
-                if (element.tagName == "SPAN")
+                if (event)
                 {
-                    element = element.parentElement;                    
-                }
-                if (element.tagName == "MYICON") {
-                    element = element.parentElement;                    
-                }
-                if (element.tagName == "BUTTON") {
-                    $(element).text("Processing...");
-                    $(element).attr("disabled", true);
-                }else{
-                    _loading_show("postback");
-                }
+                    var element = event.target;
+                    if (element.tagName == "SPAN")
+                    {
+                        element = element.parentElement;
+                    }
+                    if (element.tagName == "MYICON") {
+                        element = element.parentElement;
+                    }
+                    if (element.tagName == "BUTTON") {
+                        $(element).text("Processing...");
+                        $(element).attr("disabled", true);
+                    }else{
+                        _loading_show("postback");
+                    }
 
-            }
+                }
             
            
-            $("#IsPostback").val(true);
-            if (typeof oper === "undefined") oper = "";
-            if (typeof ocas === "undefined" || ocas==null) ocas = "";
-            $("#PostbackOper").val(oper);
+                $("#IsPostback").val(true);
+                if (typeof oper === "undefined") oper = "";
+                if (typeof ocas === "undefined" || ocas==null) ocas = "";
+                $("#PostbackOper").val(oper);
 
-            if (ocas !="")
-            {
-                form1.action=form1.action+"?"+ocas;
-            }
+                if (ocas !="")
+                {
+                    form1.action=form1.action+"?"+ocas;
+                }
 
-            $("#PostbackBylUzKolikrat").val(parseInt($("#PostbackBylUzKolikrat").val())+1);
+                $("#PostbackBylUzKolikrat").val(parseInt($("#PostbackBylUzKolikrat").val())+1);
             
-            form1.submit();
-        }
+                form1.submit();
+            }
 
     </script>
 

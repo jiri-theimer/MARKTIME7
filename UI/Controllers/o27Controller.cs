@@ -35,6 +35,7 @@ namespace UI.Controllers
         public IActionResult Record(int pid, bool isclone)
         {
             var v = new o27Record() { rec_pid = pid, rec_entity = "o27" };
+            //v.Notepad = new Models.Notepad.EditorViewModel() { Prefix = "o27" };
 
             v.Rec = new BO.o27Attachment();
             if (v.rec_pid > 0)
@@ -44,7 +45,11 @@ namespace UI.Controllers
                 {
                     return RecNotFound(v);
                 }
-
+                if (v.Notepad != null)
+                {
+                    v.Notepad.HtmlContent = v.Rec.o27FullText;
+                }
+                
             }
             if (v.Rec.j02ID_Owner !=Factory.CurrentUser.pid && !Factory.CurrentUser.TestPermission(BO.PermValEnum.GR_o27_Owner))
             {
@@ -73,7 +78,11 @@ namespace UI.Controllers
                 
                 BO.o27Attachment c = Factory.o27AttachmentBL.Load(v.rec_pid);
                 c.o27Name = v.Rec.o27Name;
-
+                if (v.Notepad != null)
+                {
+                    c.o27FullText = v.Notepad.HtmlContent;
+                }
+                
 
                 c.ValidUntil = v.Toolbar.GetValidUntil(c);
                 c.ValidFrom = v.Toolbar.GetValidFrom(c);
@@ -128,6 +137,7 @@ namespace UI.Controllers
                 var rec = Factory.o27AttachmentBL.Load(o27id);
                 rec.o27RecordPid = v.pid;
                 rec.o27Entity = v.prefix;
+                
                 Factory.o27AttachmentBL.Save(rec);
                 v.SetJavascript_CallOnLoad(0);
                 return View(v);

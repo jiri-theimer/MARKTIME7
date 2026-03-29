@@ -14,6 +14,12 @@
 
     var _strPath = $"{_f.UploadFolder}\\{Model.o27ArchiveFolder}\\{Model.o27ArchiveFileName}";
 
+    @if (Model.o27CallerFlag == BO.o27CallerFlagENUM.Notepad)
+    {
+        _strPath = $"{_f.WwwUsersFolder}\\{Model.o27WwwRootFolder}\\{Model.o27ArchiveFileName}";
+        
+    }
+
 
     bool _fileExists = System.IO.File.Exists(_strPath);
 
@@ -45,7 +51,16 @@
     <div>
         @if (_fileExists)
         {
-            <a target="_blank" href="/FileUpload/FileDownloadInline?guid=@Model.o27Guid">@_f.tra("Otevřít/Stáhnout")</a>
+            @if (Model.o27CallerFlag == BO.o27CallerFlagENUM.Notepad)
+            {
+                
+                <a target="_blank" href="@("/_users/" + _f.Lic.x01Guid + "/" + Model.o27WwwRootFolder.Replace("\\", "/") + "/" + Model.o27ArchiveFileName)">@Model.o27OriginalFileName</a>
+            }
+            else
+            {
+                <a target="_blank" href="/FileUpload/FileDownloadInline?guid=@Model.o27Guid">@_f.tra("Otevřít/Stáhnout")</a>
+            }
+            
         }
         else
         {

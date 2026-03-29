@@ -17,12 +17,12 @@ namespace UI.Controllers.wrk
                 record_pid = Factory.CurrentUser.pid;
                 record_prefix = "j02";  //pro ještě neuložený úkon uložit b05 záznam dočasně k uživateli
             }
-            var v = new WorkflowDialogViewModel() { RecordPid = record_pid, RecordEntity = record_prefix, Caller = caller, NameIsRequired = povinnynazev };
+            var v = new WorkflowDialogViewModel() { RecordPid = record_pid, RecordEntity = record_prefix, Caller = caller, NameIsRequired = povinnynazev,UploadGuid=BO.Code.Bas.GetGuid() };
             if (caller == "portal")
             {
                 v.NameIsRequired = true; v.IsPortalAccess = true;
             }
-
+            
             v.Notepad = new Models.Notepad.EditorViewModel() { Prefix = "b05", SelectedX04ID = Factory.Lic.x04ID_Default };
             if (v.RecordEntity != "o22" && v.RecordEntity != "p31" && v.RecordEntity != "j02" && v.RecordEntity != "p90" && v.RecordEntity != "p84")
             {
@@ -279,6 +279,11 @@ namespace UI.Controllers.wrk
                 if (v.Notepad != null)
                 {
                     Factory.o27AttachmentBL.CommitNotepdChanges(v.Notepad.TempGuid, "b05", intB05ID);
+                }
+
+                if (v.UploadGuid != null)
+                {
+                    Factory.o27AttachmentBL.SaveDropzoneFromTemp(v.UploadGuid, "b05", intB05ID);
                 }
 
                 if (v.reminder != null)
