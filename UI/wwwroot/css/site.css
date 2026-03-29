@@ -1842,6 +1842,7 @@ a.att {
     top: 100%;
     left: 0%;
     transform: translateX(-50%);
+    transform: translateY(10%);
     padding: 10px;
     background-color: lightskyblue;
     transition: opacity 0.2s ease 0.5s;
@@ -1864,6 +1865,10 @@ a.att {
 /* výchozí: pod elementem */
 .mylabelhelp:hover .mylabelhelptext {
     visibility: visible;
-    opacity: 1;        
-    transform: translateY(10%);
+    opacity: 1;
+    
+    
+}
+.mylabelhelp:hover {
+    border-color:navy;
 }
