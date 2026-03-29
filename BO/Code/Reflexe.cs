@@ -1,5 +1,7 @@
 ﻿
 
+using System.Reflection;
+
 namespace BO.Code
 {
     public static class Reflexe
@@ -25,7 +27,29 @@ namespace BO.Code
             return PropValue;
         }
 
+        public static void SetPropertyValueReadonlyInclude(object obj, string PropName, object objNewValue)
+        {
+            //funguje i na přepis readonly atributů
+            var type = obj.GetType();
 
+            // najdi property (kvůli typu a názvu)
+            var prop = type.GetProperty(
+                PropName,
+                BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+
+            if (prop == null)
+                throw new Exception($"Property {PropName} not found");
+
+            // najdi backing field
+            var field = type.GetField(
+                $"<{prop.Name}>k__BackingField",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+
+            if (field == null)
+                throw new Exception($"Backing field for {prop.Name} not found");
+
+            field.SetValue(obj, objNewValue);
+        }
 
         public static void SetPropertyValue(object obj, string PropName, object objNewValue)
         {

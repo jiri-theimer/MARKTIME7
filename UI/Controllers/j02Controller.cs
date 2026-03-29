@@ -2,6 +2,7 @@
 using BL;
 using DocumentFormat.OpenXml.Presentation;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
 using System.Drawing;
 using UI.Models;
 using UI.Models.capacity;
@@ -287,9 +288,12 @@ namespace UI.Controllers
             {
                 var templatepath = $"{Factory.TempFolder}\\{Request.Query["generate_rec_template_jsonfile"].ToString()}";
                 var json = BO.Code.File.GetFileContent(templatepath);
-                v.Rec = BO.Code.basJson.DeserializeData<BO.j02User>(json);
-                v.rec_pid = v.Rec.pid;
-                isclone = true;
+                //v.Rec = BO.Code.basJson.DeserializeData<BO.j02User>(json);
+                
+                //v.Rec = Newtonsoft.Json.JsonConvert.DeserializeObject<BO.j02User>(json);
+                //v.rec_pid = v.Rec.pid;
+                //isclone = true;
+
             }
 
 
@@ -314,6 +318,7 @@ namespace UI.Controllers
             if (v.rec_pid > 0)
             {
                 v.Rec = Factory.j02UserBL.Load(v.rec_pid);
+
                 
 
                 if (v.Rec == null)
@@ -326,11 +331,21 @@ namespace UI.Controllers
                 }
                 v.RecJ04 = Factory.j04UserRoleBL.Load(v.Rec.j04ID);
                 v.SetTagging(Factory.o51TagBL.GetTagging("j02", v.rec_pid));
+
+
+                BO.Code.Reflexe.SetPropertyValueReadonlyInclude(v.Rec, "j07ID", v.Rec.j07ID);
+                BO.Code.Reflexe.SetPropertyValue(v.Rec, "DateInsert", v.Rec.DateInsert);
+                BO.Code.Reflexe.SetPropertyValue(v.Rec, "isclosed", v.Rec.isclosed);
+                BO.Code.Reflexe.SetPropertyValueReadonlyInclude(v.Rec, "j02FirstName", "Hovado");
+                BO.Code.Reflexe.SetPropertyValueReadonlyInclude(v.Rec, "j07Name", "Hovado");
+
                 v.ComboC21Name = v.Rec.c21Name;
                 v.ComboJ07Name = v.Rec.j07Name;
                 v.ComboJ04Name = v.Rec.j04Name;
                 v.ComboJ18Name = v.Rec.j18Name;
 
+
+                
 
                 InhaleDisp(v);
 

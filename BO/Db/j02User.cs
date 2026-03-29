@@ -1,5 +1,7 @@
-﻿using System;
+﻿using BO.Integrace.Ecomail.CreateSubscriber;
+using System;
 using System.Text;
+using System.Text.Json.Serialization;
 
 namespace BO
 {
@@ -33,6 +35,7 @@ namespace BO
 
     public class j02User : BaseBO
     {
+       
         public string j02MyMenuLinks { get; set; }
         public string j02PasswordHash { get; } //nový soupec verze 7
         public bool j02IsDebugLog { get; set; }     //nový sloupec verze 7
