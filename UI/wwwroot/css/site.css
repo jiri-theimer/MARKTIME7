@@ -1813,3 +1813,58 @@ a.att {
     a.att:hover {
         background-color: #F0FFFF;
     }
+
+
+
+
+
+/*TOOLTIP pro prvek mylabel a mytooltip*/
+/*static: obsah je rovnou na stránce bez ajax volání*/
+.mylabelhelp {
+    cursor: help;
+    position: relative;
+    border-bottom: dotted 2px #C8E5EE;
+}
+
+
+
+.mylabelhelptext {
+    cursor: default;
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+    min-width: 220px;
+    text-align: left;
+    font-weight: normal;
+    border-radius: 6px;
+    border: 1px solid silver;
+    z-index: 9999;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 10px;
+    background-color: lightskyblue;
+    transition: opacity 0.2s ease 0.5s;
+    line-height: 1.4;
+}
+
+    .mylabelhelptext::after {
+        content: "";
+        position: absolute;
+        bottom: 100%; /* napojí se NAHORU tooltipu */
+        left: 50%;
+        transform: translateX(-50%);
+        border-width: 6px;
+        border-style: solid;
+        border-color: transparent transparent lightskyblue transparent;
+    }
+
+
+
+/* výchozí: pod elementem */
+.mylabelhelp:hover .mylabelhelptext {
+    visibility: visible;
+    opacity: 1;
+    left: 100%;
+    transform: translateX(-50%);
+}

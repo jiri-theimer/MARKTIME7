@@ -44,15 +44,13 @@
             <input type="checkbox" asp-for="@Model.Rec.p32IsTextRequired" />
             <label class="col-form-label" for="Rec_p32IsTextRequired">@_f.tra("Při vykazování je povinný podrobný popis")</label>
         </div>
-
-        <label class="col-sm-2 col-md-2 col-form-label">@_f.tra("Výchozí hodnota úkonu"):</label>
+        <mylabel class="col-sm-2 col-md-2 col-form-label" explicit-for="numRec_p32Value_Default" text="@_f.tra("Výchozí hodnota úkonu")" tooltip="Pro časové aktivity se jedná o výchozí počet hodin, které systém předvyplní při vykazování úkonu.<hr>Pro kusovníkový úkon je to výchozí počet kusů.<hr>Pro peněžní úkon výchozí částka bez dph."></mylabel>
+        
         <div class="col-sm-2 col-md-2">
             <mynumber asp-for="Rec.p32Value_Default" decimal-digits="2"></mynumber>
             
         </div>
-        <div class="col-sm-1 col-md-1">
-            <mytooltip text="Pro časové aktivity se jedná o výchozí počet hodin, které systém předvyplní při vykazování úkonu.<hr>Pro kusovníkový úkon je to výchozí počet kusů.<hr>Pro peněžní úkon výchozí částka bez dph."></mytooltip>
-        </div>
+       
     </div>
     <div class="row my-2">
         <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Fakturační oddíl"):</label>
