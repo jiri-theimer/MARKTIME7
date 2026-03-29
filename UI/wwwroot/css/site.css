@@ -1840,7 +1840,7 @@ a.att {
     border: 1px solid silver;
     z-index: 9999;
     top: 100%;
-    left: 50%;
+    left: 0%;
     transform: translateX(-50%);
     padding: 10px;
     background-color: lightskyblue;
@@ -1852,7 +1852,7 @@ a.att {
         content: "";
         position: absolute;
         bottom: 100%; /* napojí se NAHORU tooltipu */
-        left: 50%;
+        left: 10%;
         transform: translateX(-50%);
         border-width: 6px;
         border-style: solid;
@@ -1864,7 +1864,6 @@ a.att {
 /* výchozí: pod elementem */
 .mylabelhelp:hover .mylabelhelptext {
     visibility: visible;
-    opacity: 1;
-    left: 100%;
-    transform: translateX(-50%);
+    opacity: 1;        
+    transform: translateY(10%);
 }

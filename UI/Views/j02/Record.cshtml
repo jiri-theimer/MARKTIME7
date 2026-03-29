@@ -240,7 +240,7 @@
     </div>
 
     <div class="row my-2">
-        <label for="cmdComboRec_j07ID" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Pozice"):</label>
+        <mylabel for="cmdComboRec_j07ID" class="col-sm-1 col-md-2 col-form-label" text="@_f.tra("Pozice")" tooltip="Pozice neovlivňuje oprávnění uživatele.<hr>Pro řízení oprávnění slouží [Aplikační role]."></mylabel>
         <div class="col-sm-5 col-md-4">
             <mycombo entity="j07PersonPosition" asp-for="Rec.j07ID" selectedtext="@Model.ComboJ07Name" view-flag="2" event_after_changevalue="j07id_change"></mycombo>
         </div>
@@ -258,7 +258,7 @@
         <div class="col-sm-5 col-md-4">
             <mycombo entity="c21FondCalendar" asp-for="Rec.c21ID" selectedtext="@Model.ComboC21Name" view-flag="2"></mycombo>
         </div>
-        <label for="cmdComboRec_j18ID" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Středisko"):</label>
+        <mylabel explicit-for="cmdComboRec_j18ID" class="col-sm-1 col-md-2 col-form-label" text="@_f.tra("Středisko")" tooltip="Vazbu na středisko je možné nastavit v kartě uživatele (kde sedí na židli) a v kartě projektu."></mylabel>
         <div class="col-sm-5 col-md-4">
             <mycombo entity="j18CostUnit" asp-for="Rec.j18ID" selectedtext="@Model.ComboJ18Name" view-flag="2"></mycombo>
 
@@ -331,7 +331,7 @@
         </div>
 
         <div class="row my-2">
-            <label class="col-sm-2 col-md-3 col-form-label">@_f.tra("Preferovaný formát hodin"):</label>
+            <mylabel class="col-sm-2 col-md-3 col-form-label" text="@_f.tra("Preferovaný formát hodin")" tooltip="Systém bude uživateli zobrazovat hodiny buď v dekadickém formátu jako číslo s desetinnou čárkou nebo ve formátu HH:MM"></mylabel>
             <div class="col-sm-2 col-md-2">
                 <select asp-for="Rec.j02DefaultHoursFormat" class="form-select">
                     <option value="N">@_f.tra("Dekadické číslo (např. 1,5)")</option>
@@ -341,7 +341,7 @@
         </div>
 
         <div class="row my-2">
-            <label class="col-sm-2 col-md-3 col-form-label">@_f.tra("Simulační nákladová sazba"):</label>
+            <mylabel class="col-sm-2 col-md-3 col-form-label" text="@_f.tra("Simulační nákladová sazba")" tooltip="Slouží k výpočtům ve výsledovkách."></mylabel>
             <div class="col-sm-2 col-md-2">
                 <mynumber asp-for="Rec.j02Plan_Internal_Rate" decimal-digits="2"></mynumber>
             </div>

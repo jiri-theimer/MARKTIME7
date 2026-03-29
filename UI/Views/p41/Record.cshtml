@@ -366,7 +366,7 @@
         else
         {
             <div class="row my-2">
-                <label class="col-sm-1 col-md-2 col-form-label recpagelabel">@(_f.tra("Plán hodin")):</label>
+                <mylabel class="col-sm-1 col-md-2 col-form-label recpagelabel" text="@(_f.tra("Plán hodin"))" tooltip="Plán hodin fakturovatelných i nefakturovatelných dohromady"></mylabel>
                 <div class="col-sm-2 col-md-2">
                     <mynumber asp-for="Rec.p41Plan_Hours_Billable" decimal-digits="2"></mynumber>
 
@@ -382,12 +382,12 @@
 
 
         <div class="row my-2">
-            <label class="col-sm-1 col-md-2 col-form-label recpagelabel">@(_f.tra("Plán nákladového honoráře")):</label>
+            <mylabel text="@_f.tra("Plán nákladového honoráře")" explicit-for="Rec_p41Plan_Internal_Fee" class="col-sm-1 col-md-2 col-form-label recpagelabel" tooltip="Odhad nákladové ceny hodin (hodiny x nějaká nákladová sazba)"></mylabel>
             <div class="col-sm-2 col-md-2">
                 <mynumber asp-for="Rec.p41Plan_Internal_Fee" decimal-digits="2"></mynumber>
 
             </div>
-            <div class="col-auto"><mytooltip text="Odhad nákladové ceny hodin (hodiny x nějaká nákladová sazba)"></mytooltip></div>
+            
         </div>
 
         <div class="row my-2">
@@ -410,24 +410,20 @@
 
         <hr />
         <div class="row my-2">
-            <label class="col-sm-1 col-md-2 col-form-label recpagelabel">@(_f.tra("Plán peněžních výdajů")):</label>
+            <mylabel text="@(_f.tra("Plán peněžních výdajů"))" class="col-sm-1 col-md-2 col-form-label recpagelabel" tooltip="Plánovaná výše peněžních výdajů, subdodávek apod. (bez ohledu na jejich případnou přefakturaci)."></mylabel>
             <div class="col-sm-2 col-md-2">
                 <mynumber asp-for="Rec.p41Plan_Expenses" decimal-digits="2"></mynumber>
 
             </div>
-            <div class="col-auto">
-                <mytooltip text="Plánovaná výše peněžních výdajů, subdodávek apod. (bez ohledu na jejich případnou přefakturaci)."></mytooltip>
-            </div>
+           
         </div>
         <div class="row my-2">
-            <label class="col-sm-1 col-md-2 col-form-label recpagelabel">@(_f.tra("Plán fakturace")):</label>
+            <mylabel class="col-sm-1 col-md-2 col-form-label recpagelabel" tooltip="Odhad částky vyúčtování projektu" text="@(_f.tra("Plán fakturace"))"></mylabel>
             <div class="col-sm-2 col-md-2">
                 <mynumber asp-for="Rec.p41Plan_Revenue" decimal-digits="2"></mynumber>
 
             </div>
-            <div class="col-auto">
-                <mytooltip text="Odhad částky vyúčtování projektu"></mytooltip>
-            </div>
+         
         </div>
 
 
@@ -453,10 +449,10 @@
     </div>
 
     <div class="row my-2">
-        <label class="col-sm-1 col-md-2 col-form-label">
-            @_f.tra("Klastr aktivit")
-            <mytooltip text="Klastr je pojmenovaná množina aktivit napříč sešity. Cílem je uživatelům zúžit nabídku aktivit podle povahy projektu při vykazování.<hr> Klastr můžete přiřadit i v typu projektu v administraci.<hr>Klastry aktivit se spravují v administraci."></mytooltip>
-        </label>
+        <mylabel text="@_f.tra("Klastr aktivit")" class="col-sm-1 col-md-2 col-form-label" tooltip="Klastr je pojmenovaná množina aktivit napříč sešity. Cílem je uživatelům zúžit nabídku aktivit podle povahy projektu při vykazování.<hr> Klastr můžete přiřadit i v typu projektu v administraci.<hr>Klastry aktivit se spravují v administraci.">
+            
+            
+        </mylabel>
         <div class="col-sm-11 col-md-10">
             <mycombo entity="p61ActivityCluster" asp-for="Rec.p61ID" selectedtext="@Model.SelectedComboP61Name"></mycombo>
         </div>
