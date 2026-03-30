@@ -40,24 +40,20 @@
         <li class="nav-item onetab" role="presentation">
             <a id="link_tab1" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab1">@_FirstTabCaption</a>
         </li>
-        @if (Model.disp.IsBilling)
-        {
-            <li class="nav-item onetab" role="presentation">
-                <a id="link_tab2" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab2">@_f.tra(Model.disp.GetTabText(PosEnum.BillingTab))</a>
-            </li>
-            <li class="nav-item onetab" role="presentation">
-                <a id="link_tab3" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab3">@_f.tra("Fakturační poznámka")</a>
-            </li>
+        
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab2" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab2">@_f.tra(Model.disp.GetTabText(PosEnum.BillingTab))</a>
+        </li>
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab3" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab3">@_f.tra("Fakturační poznámka")</a>
+        </li>
 
-        }
+        
 
 
-        @if (Model.disp.IsBudget)
-        {
-            <li class="nav-item onetab" role="presentation">
-                <a id="link_tab4" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab4">@_f.tra("Plán/Rozpočet")</a>
-            </li>
-        }
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab4" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab4">@_f.tra("Plán/Rozpočet")</a>
+        </li>
         @if (Model.ff1.VisibleInputsCount > 0)
         {
             <li class="nav-item onetab" role="presentation">
@@ -110,20 +106,19 @@
 
         </div>
     </div>
-    @if (Model.disp.IsProjectClient)
-    {
-        <div class="row my-2">
-            <label for="cmdComboRec_p28ID_Client" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Klient"):</label>
-            <div class="col-sm-7 col-md-7">
-                <mycombo entity="p28Contact" asp-for="Rec.p28ID_Client" selectedtext="@Model.SelectedComboClient" filter-flag="1" search-result-width="700"></mycombo>
-            </div>
-            <label class="col-sm-1 col-md-1" for="cmdComboRec_j18ID">@_f.tra("Středisko"):</label>
-            <div class="col-sm-3 col-md-2">
-                <mycombo entity="j18Region" asp-for="Rec.j18ID" selectedtext="@Model.SelectedComboJ18Name"></mycombo>
-
-            </div>
+   
+    <div class="row my-2">
+        <label for="cmdComboRec_p28ID_Client" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Klient projektu"):</label>
+        <div class="col-sm-7 col-md-7">
+            <mycombo entity="p28Contact" asp-for="Rec.p28ID_Client" selectedtext="@Model.SelectedComboClient" filter-flag="1" search-result-width="700"></mycombo>
         </div>
-    }
+        <label class="col-sm-1 col-md-1" for="cmdComboRec_j18ID">@_f.tra("Středisko"):</label>
+        <div class="col-sm-3 col-md-2">
+            <mycombo entity="j18Region" asp-for="Rec.j18ID" selectedtext="@Model.SelectedComboJ18Name"></mycombo>
+
+        </div>
+    </div>
+    
 
     <div class="row my-2">
         <div class="col-sm-8 col-md-9"></div>
@@ -167,10 +162,7 @@
 
         </div>
     }
-    @if (Model.disp.IsRoles)
-    {
-        @Html.EditorFor(m => m.roles, "~/Views/Shared/_RoleAssign.cshtml")
-    }
+    @Html.EditorFor(m => m.roles, "~/Views/Shared/_RoleAssign.cshtml")
 
     
 
@@ -263,48 +255,43 @@
     <mystitky entity="@Model.TagEntity" asp-for="@Model.TagPids" tagnames="@Model.TagNames" taghtml="@Model.TagHtml" buttontext="@_f.tra("Oštítkovat")"></mystitky>
 
 
-    @if (Model.disp.IsProjectContacts)
-    {
-        @Html.EditorFor(m => m, "~/Views/Shared/_p41Contacts.cshtml")
-    }
+    @Html.EditorFor(m => m, "~/Views/Shared/_p41Contacts.cshtml")
 
 </div>
 
 
-@if (Model.disp.IsBilling)
-{
-    <div class="tab-pane tab-pane-fixed" id="tab2" role="tabpanel">
-        <!-- Tab2 -->
-        @if (Model.RecP42 == null || Model.RecP42.p42BillingFlag == 0)
+
+<div class="tab-pane tab-pane-fixed" id="tab2" role="tabpanel">
+    <!-- Tab2 -->
+    @if (Model.RecP42 == null || Model.RecP42.p42BillingFlag == 0)
+    {
+        @Html.EditorFor(m => Model, "~/Views/Shared/_p41BillingTab.cshtml")
+    }
+    else
+    {
+        @if (Model.RecP42.p42BillingFlag == 99)
         {
-            @Html.EditorFor(m => Model, "~/Views/Shared/_p41BillingTab.cshtml")
+            <p> <myicon symbol="local_cafe"></myicon></p>
+
+            <h2>@_f.tra("Interní projekt: Nulové sazby, bez možnosti schvalování/vyúčtování")</h2>
+            <input type="hidden" asp-for="Rec.p41BillingFlag" value="NuloveSazbyBezWip" />
         }
-        else
+        @if (Model.RecP42.p42BillingFlag == 6)
         {
-            @if (Model.RecP42.p42BillingFlag == 99)
-            {
-                <p> <myicon symbol="local_cafe"></myicon></p>
-
-                <h2>@_f.tra("Interní projekt: Nulové sazby, bez možnosti schvalování/vyúčtování")</h2>
-                <input type="hidden" asp-for="Rec.p41BillingFlag" value="NuloveSazbyBezWip" />
-            }
-            @if (Model.RecP42.p42BillingFlag == 6)
-            {
-                <p><myicon symbol="local_bar"></myicon></p>
-                <h2>@_f.tra("Interní projekt: Nulové sazby, možnost schvalování/vyúčtování")</h2>
-                <input type="hidden" asp-for="Rec.p41BillingFlag" value="NuloveSazbyWip" />
-            }
+            <p><myicon symbol="local_bar"></myicon></p>
+            <h2>@_f.tra("Interní projekt: Nulové sazby, možnost schvalování/vyúčtování")</h2>
+            <input type="hidden" asp-for="Rec.p41BillingFlag" value="NuloveSazbyWip" />
         }
+    }
 
 
-    </div>
+</div>
 
-    <div class="tab-pane tab-pane-fixed" id="tab3" role="tabpanel">
-        <!-- Tab3 -->
+<div class="tab-pane tab-pane-fixed" id="tab3" role="tabpanel">
+    <!-- Tab3 -->
+    @Html.EditorFor(m => m.BillingMemo, "~/Views/Shared/_PellEditor.cshtml")
 
-        @Html.EditorFor(m => m.BillingMemo, "~/Views/Shared/_PellEditor.cshtml")
-
-        <div style="margin-top:20px;">
+    <div style="margin-top:20px;">
         @if (Model.rec_pid > 0)
         {
             <button type="button" class="bog" onclick="fp()">@_f.tra("Napsat další fakturační poznámku (Neomezený Notepad)")</button>
@@ -314,121 +301,120 @@
             }
         }
 
-        </div>
+    </div>
         
+</div>
+
+
+
+
+
+
+
+<div class="tab-pane tab-pane-fixed" id="tab4" role="tabpanel">
+    <!-- Tab4 Rozpočet -->
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@(_f.tra("Plánované zahájení")):</label>
+        <div class="col-sm-2 col-md-2">
+            <mydate asp-for="@Model.Rec.p41PlanFrom" include-time="false"></mydate>
+
+        </div>
     </div>
-}
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@(_f.tra("Plánované dokončení")):</label>
+        <div class="col-sm-2 col-md-2">
+            <mydate asp-for="@Model.Rec.p41PlanUntil" include-time="false"></mydate>
 
+        </div>
 
+    </div>
 
-
-
-@if (Model.disp.IsBudget)
-{
-    <div class="tab-pane tab-pane-fixed" id="tab4" role="tabpanel">
-        <!-- Tab4 Rozpočet -->
-        <div class="row">
-            <label class="col-sm-1 col-md-2 col-form-label">@(_f.tra("Plánované zahájení")):</label>
+    <hr />
+    @if (_f.Lic.x01IsCapacityFaNefa)
+    {
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@(_f.tra("Plán Fa hodin")):</label>
             <div class="col-sm-2 col-md-2">
-                <mydate asp-for="@Model.Rec.p41PlanFrom" include-time="false"></mydate>
+                <mynumber asp-for="Rec.p41Plan_Hours_Billable" decimal-digits="2"></mynumber>
 
             </div>
+            <div class="col-auto"><i>Plán hodin vykázaných na fakturovatelné (zelené) aktivity (bez ohledu na jejich reálné vyúčtování).</i></div>
         </div>
         <div class="row my-2">
-            <label class="col-sm-1 col-md-2 col-form-label">@(_f.tra("Plánované dokončení")):</label>
+            <label class="col-sm-1 col-md-2 col-form-label">@(_f.tra("Plán Nefa hodin")):</label>
             <div class="col-sm-2 col-md-2">
-                <mydate asp-for="@Model.Rec.p41PlanUntil" include-time="false"></mydate>
+                <mynumber asp-for="Rec.p41Plan_Hours_Nonbillable" decimal-digits="2"></mynumber>
 
             </div>
-
+            <div class="col-auto"><i>Plán hodin vykázaných na nefakturovatelné (červené) aktivity.</i></div>
         </div>
+    }
+    else
+    {
+        <div class="row my-2">
+            <mylabel class="col-sm-1 col-md-2 col-form-label" text="@(_f.tra("Plán hodin"))" tooltip="Plán hodin fakturovatelných i nefakturovatelných dohromady"></mylabel>
+            <div class="col-sm-2 col-md-2">
+                <mynumber asp-for="Rec.p41Plan_Hours_Billable" decimal-digits="2"></mynumber>
 
-        <hr />
-        @if (_f.Lic.x01IsCapacityFaNefa)
-        {
-            <div class="row my-2">
-                <label class="col-sm-1 col-md-2 col-form-label">@(_f.tra("Plán Fa hodin")):</label>
-                <div class="col-sm-2 col-md-2">
-                    <mynumber asp-for="Rec.p41Plan_Hours_Billable" decimal-digits="2"></mynumber>
-
-                </div>
-                <div class="col-auto"><i>Plán hodin vykázaných na fakturovatelné (zelené) aktivity (bez ohledu na jejich reálné vyúčtování).</i></div>
             </div>
-            <div class="row my-2">
-                <label class="col-sm-1 col-md-2 col-form-label">@(_f.tra("Plán Nefa hodin")):</label>
-                <div class="col-sm-2 col-md-2">
-                    <mynumber asp-for="Rec.p41Plan_Hours_Nonbillable" decimal-digits="2"></mynumber>
-
-                </div>
-                <div class="col-auto"><i>Plán hodin vykázaných na nefakturovatelné (červené) aktivity.</i></div>
-            </div>
-        }
-        else
-        {
-            <div class="row my-2">
-                <mylabel class="col-sm-1 col-md-2 col-form-label" text="@(_f.tra("Plán hodin"))" tooltip="Plán hodin fakturovatelných i nefakturovatelných dohromady"></mylabel>
-                <div class="col-sm-2 col-md-2">
-                    <mynumber asp-for="Rec.p41Plan_Hours_Billable" decimal-digits="2"></mynumber>
-
-                </div>
+            <div class="col-auto">
                 <div class="col-auto">
-                    <div class="col-auto">
-                        Pro rozpis plánu hodin na [Plán Fa hodin] a [Plán Nefa hodin] zaškrtněte v <a href="javascript:_window_open('/x01/Record?pid=@(_f.CurrentUser.x01ID)')">administraci</a> volbu <strong>V plánování rozdělovat plán hodin na [Plán Fa...</strong>
-                    </div>
+                    Pro rozpis plánu hodin na [Plán Fa hodin] a [Plán Nefa hodin] zaškrtněte v <a href="javascript:_window_open('/x01/Record?pid=@(_f.CurrentUser.x01ID)')">administraci</a> volbu <strong>V plánování rozdělovat plán hodin na [Plán Fa...</strong>
                 </div>
             </div>
-        }
+        </div>
+    }
 
 
 
-        <div class="row my-2">
-            <mylabel text="@_f.tra("Plán nákladového honoráře")" explicit-for="Rec_p41Plan_Internal_Fee" class="col-sm-1 col-md-2 col-form-label" tooltip="Odhad nákladové ceny hodin (hodiny x nějaká nákladová sazba)"></mylabel>
-            <div class="col-sm-2 col-md-2">
-                <mynumber asp-for="Rec.p41Plan_Internal_Fee" decimal-digits="2"></mynumber>
+    <div class="row my-2">
+        <mylabel text="@_f.tra("Plán nákladového honoráře")" explicit-for="Rec_p41Plan_Internal_Fee" class="col-sm-1 col-md-2 col-form-label" tooltip="Odhad nákladové ceny hodin (hodiny x nějaká nákladová sazba)"></mylabel>
+        <div class="col-sm-2 col-md-2">
+            <mynumber asp-for="Rec.p41Plan_Internal_Fee" decimal-digits="2"></mynumber>
 
-            </div>
+        </div>
             
-        </div>
+    </div>
 
-        <div class="row my-2">
-            <mylabel class="col-sm-1 col-md-2 col-form-label" text="@(_f.tra("Ceník nákladových sazeb"))" tooltip="Pokud není vyplněný nákladový ceník projektu, platí globální nákladový ceník."></mylabel>
-            <div class="col-sm-6 col-md-5">
-                <mycombo entity="p51PriceList" asp-for="Rec.p51ID_Internal" selectedtext="@Model.SelectedComboP51Name_Internal" myqueryinline="typeflag|int|2|iscustomtailor|bool|false"></mycombo>
-
-            </div>
+    <div class="row my-2">
+        <mylabel class="col-sm-1 col-md-2 col-form-label" text="@(_f.tra("Ceník nákladových sazeb"))" tooltip="Pokud není vyplněný nákladový ceník projektu, platí globální nákladový ceník."></mylabel>
+        <div class="col-sm-6 col-md-5">
+            <mycombo entity="p51PriceList" asp-for="Rec.p51ID_Internal" selectedtext="@Model.SelectedComboP51Name_Internal" myqueryinline="typeflag|int|2|iscustomtailor|bool|false"></mycombo>
 
         </div>
-
-        <div class="row my-2">
-            <label class="col-sm-1 col-md-2 col-form-label">@(_f.tra("Simulační nákladová sazba")):</label>
-            <div class="col-sm-2 col-md-2">
-                <mynumber asp-for="Rec.p41Plan_Internal_Rate" decimal-digits="2"></mynumber>
-
-            </div>
-
-        </div>
-
-        <hr />
-        <div class="row my-2">
-            <mylabel text="@(_f.tra("Plán peněžních výdajů"))" class="col-sm-1 col-md-2 col-form-label" tooltip="Plánovaná výše peněžních výdajů, subdodávek apod. (bez ohledu na jejich případnou přefakturaci)."></mylabel>
-            <div class="col-sm-2 col-md-2">
-                <mynumber asp-for="Rec.p41Plan_Expenses" decimal-digits="2"></mynumber>
-
-            </div>
-           
-        </div>
-        <div class="row my-2">
-            <mylabel class="col-sm-1 col-md-2 col-form-label" tooltip="Odhad částky vyúčtování projektu" text="@(_f.tra("Plán fakturace"))"></mylabel>
-            <div class="col-sm-2 col-md-2">
-                <mynumber asp-for="Rec.p41Plan_Revenue" decimal-digits="2"></mynumber>
-
-            </div>
-         
-        </div>
-
 
     </div>
-}
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@(_f.tra("Simulační nákladová sazba")):</label>
+        <div class="col-sm-2 col-md-2">
+            <mynumber asp-for="Rec.p41Plan_Internal_Rate" decimal-digits="2"></mynumber>
+
+        </div>
+
+    </div>
+
+    <hr />
+    <div class="row my-2">
+        <mylabel text="@(_f.tra("Plán peněžních výdajů"))" class="col-sm-1 col-md-2 col-form-label" tooltip="Plánovaná výše peněžních výdajů, subdodávek apod. (bez ohledu na jejich případnou přefakturaci)."></mylabel>
+        <div class="col-sm-2 col-md-2">
+            <mynumber asp-for="Rec.p41Plan_Expenses" decimal-digits="2"></mynumber>
+
+        </div>
+           
+    </div>
+    <div class="row my-2">
+        <mylabel class="col-sm-1 col-md-2 col-form-label" tooltip="Odhad částky vyúčtování projektu" text="@(_f.tra("Plán fakturace"))"></mylabel>
+        <div class="col-sm-2 col-md-2">
+            <mynumber asp-for="Rec.p41Plan_Revenue" decimal-digits="2"></mynumber>
+
+        </div>
+         
+    </div>
+
+
+</div>
+
 
 @if (Model.ff1.VisibleInputsCount > 0)
 {
@@ -449,7 +435,7 @@
     </div>
 
     <div class="row my-2">
-        <mylabel text="@_f.tra("Klastr aktivit")" class="col-sm-1 col-md-2 col-form-label" tooltip="Klastr je pojmenovaná množina aktivit napříč sešity. Cílem je uživatelům zúžit nabídku aktivit podle povahy projektu při vykazování.<hr> Klastr můžete přiřadit i v typu projektu v administraci.<hr>Klastry aktivit se spravují v administraci.">            
+        <mylabel text="@_f.tra("Klastr aktivit")" class="col-sm-1 col-md-2 col-form-label" tooltip="Klastr je pojmenovaná množina aktivit napříč sešity. Cílem je uživatelům zúžit nabídku aktivit podle povahy projektu při vykazování.<hr> Klastr můžete přiřadit i v typu projektu v administraci.<hr>Klastry aktivit se spravují v administraci.">
         </mylabel>
         <div class="col-sm-11 col-md-10">
             <mycombo entity="p61ActivityCluster" asp-for="Rec.p61ID" selectedtext="@Model.SelectedComboP61Name"></mycombo>
@@ -485,7 +471,7 @@
 
     
 
-    @if (Model.UploadGuid !=null)
+    @if (Model.UploadGuid != null)
     {
         <iframe id="fraUpload" src="/Dropzone/UploadInFrame?recpid=@Model.rec_pid&entity=p41&guid=@Model.UploadGuid" frameborder="0" scrolling="yes" style="max-width:1200px;height:60px;"></iframe>
     }

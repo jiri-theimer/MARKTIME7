@@ -258,6 +258,7 @@ namespace UI.Models
         {
             get
             {
+                
                 return this.IsChecked(PosEnum.ProjectClient);
             }
         }
