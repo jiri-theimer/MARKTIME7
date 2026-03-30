@@ -115,10 +115,8 @@
                     <mycombo entity="p63Overhead" asp-for="Rec.p63ID" selectedtext="@Model.ComboP63Name"></mycombo>
                 </div>
 
-                <label for="Rec_p91VatCodePohoda" class="col-sm-1 col-md-1 col-form-label">
-                    Členění DPH
-                    <mytooltip text="Klasifikace DPH v účetním IS: Kód/Členění DPH pro export vydaných faktur do IS POHODA."></mytooltip>
-                </label>
+                <mylabel explicit-for="Rec_p91VatCodePohoda" class="col-sm-1 col-md-1 col-form-label" text="Členění DPH" tooltip="Klasifikace DPH v účetním IS: Kód/Členění DPH pro export vydaných faktur do IS POHODA.">
+                </mylabel>
                 <div class="col-sm-2 col-md-2">
                     <input type="text" class="form-control" asp-for="Rec.p91VatCodePohoda" />
                 </div>

@@ -284,17 +284,17 @@ namespace UI.Controllers
 
             v.Rec = new BO.j02User() { j04ID = j04id };
 
-            if (!string.IsNullOrEmpty(Request.Query["generate_rec_template_jsonfile"]))
-            {
-                var templatepath = $"{Factory.TempFolder}\\{Request.Query["generate_rec_template_jsonfile"].ToString()}";
-                var json = BO.Code.File.GetFileContent(templatepath);
-                //v.Rec = BO.Code.basJson.DeserializeData<BO.j02User>(json);
+            //if (!string.IsNullOrEmpty(Request.Query["generate_rec_template_jsonfile"]))
+            //{
+            //    var templatepath = $"{Factory.TempFolder}\\{Request.Query["generate_rec_template_jsonfile"].ToString()}";
+            //    var json = BO.Code.File.GetFileContent(templatepath);
+            //    //v.Rec = BO.Code.basJson.DeserializeData<BO.j02User>(json);
                 
-                //v.Rec = Newtonsoft.Json.JsonConvert.DeserializeObject<BO.j02User>(json);
-                //v.rec_pid = v.Rec.pid;
-                //isclone = true;
+            //    //v.Rec = Newtonsoft.Json.JsonConvert.DeserializeObject<BO.j02User>(json);
+            //    //v.rec_pid = v.Rec.pid;
+            //    //isclone = true;
 
-            }
+            //}
 
 
 

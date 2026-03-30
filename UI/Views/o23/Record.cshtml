@@ -168,28 +168,13 @@
                 <div class="col-sm-1 col-md-2"></div>
                 <div class="col-sm-7 col-md-7">
                     <input type="checkbox" asp-for="@Model.lisFields[i].CheckInput" />
-                    <label class="col-sm-1 col-md-2 col-form-label" for="lisFields_@(i)__CheckInput">
-                    @(Model.lisFields[i].o16Name)
-                    @if (Model.lisFields[i].o16HelpText != null)
-                    {
-                        <mytooltip text="@(Model.lisFields[i].o16HelpText)"></mytooltip>
-                        
-                    }
-                    :
-                    </label>
+                    <mylabel class="col-sm-1 col-md-2 col-form-label" bez-dvojtecky="true" explicit-for="lisFields_@(i)__CheckInput" text="@(Model.lisFields[i].o16Name)" tooltip="@(Model.lisFields[i].o16HelpText)">                                                           
+                    </mylabel>
                 </div>
             }
             else
             {
-                <label class="col-sm-1 col-md-2 col-form-label recpagelabel" style="color:@(Model.lisFields[i].o16IsEntryRequired ? "red": "black")">
-                    @(Model.lisFields[i].o16Name)
-                    @if(Model.lisFields[i].o16HelpText != null)
-                    {
-                        <mytooltip text="@(Model.lisFields[i].o16HelpText)"></mytooltip>
-                        
-                    }
-                    :
-                </label>
+                <mylabel class="col-sm-1 col-md-2 col-form-label" style="color:@(Model.lisFields[i].o16IsEntryRequired ? "red" : "black")" text="@(Model.lisFields[i].o16Name)" tooltip="@(Model.lisFields[i].o16HelpText)"></mylabel>
             }
 
 

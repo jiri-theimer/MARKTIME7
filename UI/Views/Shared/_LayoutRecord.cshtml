@@ -26,7 +26,7 @@
     </style>
     @if (_f.CurrentUser.IsMobileDisplay())
     {
-        <link rel="stylesheet" href="~/css/mobile.css" />
+        <link rel="stylesheet" href="~/css/mobile.css" asp-append-version="true" />
     }
     else
     {
@@ -34,7 +34,7 @@
     }
     
     
-    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/contextmenu.css" />
     @if (_f.CurrentUser.x01CustomCssFile != null)
     {
@@ -89,7 +89,7 @@
     <script type="text/javascript">
             @if (Model.Javascript_CallOnLoad != null)
             {
-                    @Html.Raw(Model.Javascript_CallOnLoad)
+                        @Html.Raw(Model.Javascript_CallOnLoad)
             
 
 
@@ -131,37 +131,37 @@
             @if (Model.rec_pid > 0 && Model.Toolbar != null)
             {
                 @Html.Raw(Model.Toolbar.getTimeStampHtml(_f))
-                
-            }
-            <div class="dropdown mx-3">
-                <a class="btn btn-sm btn-light dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    @_f.tra("Více")
-                </a>
 
-                <ul class="dropdown-menu" style="width: 200px;">
 
-                    @if (Model.Toolbar != null && Model.Toolbar.AllowArchive)
-                    {
-                        <li class="p-2">
-                            <button type="button" tabindex="-1" onclick="toolbar_handle_validity(event)" class="btn btn-light btn-sm">@_f.tra("Časová platnost záznamu")</button>
-                        </li>
+                <div class="dropdown mx-3">
+                    <a class="btn btn-sm btn-light dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        @_f.tra("Více")
+                    </a>
+
+                    <ul class="dropdown-menu" style="width: 200px;">
+
+                        @if (Model.Toolbar.AllowArchive)
+                        {
+                            <li class="p-2">
+                                <button type="button" tabindex="-1" onclick="toolbar_handle_validity(event)" class="btn btn-light btn-sm">@_f.tra("Časová platnost záznamu")</button>
+                            </li>
                         
-                    }
-                    @if (Model.rec_pid > 0 && _f.CurrentUser.IsAdmin && (Model.rec_entity == "p31" || Model.rec_entity == "p41" || Model.rec_entity == "p28" || Model.rec_entity == "p91" || Model.rec_entity == "o23" || Model.rec_entity == "p56"))
-                    {
-                        <li class="p-2">
-                            <button type="button" tabindex="-1" onclick="_window_open('/ChangeLog/@(Model.rec_entity)?pid=@(Model.rec_pid)')" class="btn btn-light btn-sm">CHANGE-LOG</button>
-                        </li>
-                    }
-                    @if (Model.rec_pid > 0)
-                    {
-                        <li class="p-2">
+                        }
+                        @if (_f.CurrentUser.IsAdmin && (Model.rec_entity == "p31" || Model.rec_entity == "p41" || Model.rec_entity == "p28" || Model.rec_entity == "p91" || Model.rec_entity == "o23" || Model.rec_entity == "p56"))
+                        {
+                            <li class="p-2">
+                                <button type="button" tabindex="-1" onclick="_window_open('/ChangeLog/@(Model.rec_entity)?pid=@(Model.rec_pid)')" class="btn btn-light btn-sm">CHANGE-LOG</button>
+                            </li>
+                        }
+                        @if (Model.rec_pid > 0)
+                        {
+                        <li class="p-2" style="display:none;">
                             <button type="button" tabindex="-1" onclick="toolbar_save_rectemplate(event)" class="btn btn-light btn-sm">@_f.tra("Uložit jako REC šablonu")</button>
                         </li>
                         }
                         else
                         {
-                        <li class="p-2">
+                        <li class="p-2" style="display:none;">
                             <button type="button" tabindex="-1" onclick="toolbar_load_rectemplate(event)" class="btn btn-light btn-sm">@_f.tra("Načíst záznam z REC šablony")</button>
                             
                             <input type="file" id="fileInputJson" accept=".json,application/json" hidden />
@@ -169,10 +169,14 @@
                             
                         </li>
                         }
+                            
 
                     
-                </ul>
-            </div>
+                    </ul>
+                </div>
+                
+            }
+            
             
             
             
@@ -215,12 +219,12 @@
 
             @if (_f.CurrentUser.Messages4Notify != null)
             {
-                    @foreach (var c in _f.CurrentUser.Messages4Notify)
-                    {  // <----  placed on the same line, WORKING !!!
+                        @foreach (var c in _f.CurrentUser.Messages4Notify)
+                        {  // <----  placed on the same line, WORKING !!!
 
-                            @:_notify_message("@Html.Raw(c.Value)", "@c.Key");
+                                    @:_notify_message("@Html.Raw(c.Value)", "@c.Key");
 
-                    }
+                        }
             }
                     if ($("#toolbar_changeinfo").length) {
                     //události na editačních formulářích

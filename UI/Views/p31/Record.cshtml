@@ -179,16 +179,18 @@ else
 
 
 
-<div class="row my-2">
+<div class="row my-2">    
+        
+    @if (Model.RecP32 != null && Model.RecP32.p32HelpText != null)
+    {
+        <mylabel explicit-for="cmdComboRec_p32ID" class="col-sm-1 col-md-1 col-form-label" text="@_f.tra("Aktivita")" tooltip="@(Model.RecP32.p32HelpText)"></mylabel>
 
-    <label for="cmdComboRec_p32ID" class="col-sm-1 col-md-1 col-form-label">
-        @_f.tra("Aktivita"):
-        @if (Model.RecP32 != null && Model.RecP32.p32HelpText != null)
-        {
+    }
+    else
+    {
+        <mylabel explicit-for="cmdComboRec_p32ID" class="col-sm-1 col-md-1 col-form-label" text="@_f.tra("Aktivita")"></mylabel>
+    }
 
-            <a data-toggle="tooltip" id="p32help" title="@(Model.RecP32.p32HelpText)"><span class="material-icons-outlined-btn">help</span></a>
-        }
-    </label>
     <div class="col-sm-10 col-md-9">
         @if (Model.RecP34 != null)
         {
@@ -220,7 +222,7 @@ else
 
 <div class="row my-2">
 
-    @if (_isMobile || Model.p31Date==null)
+    @if (_isMobile || Model.p31Date == null)
     {
         <label for="p31Datehelper" class="col-sm-1 col-md-1 col-form-label">@_f.tra("Datum"):</label>
     }
@@ -278,7 +280,7 @@ else
     if (Model.RecP34.p33ID == BO.p33IdENUM.Cas && !Model.Setting.TimesheetEntryByMinutes)
     {
         <div class="row my-2">
-            <label for="Rec_Value_Orig" class="col-sm-1 col-md-1 col-form-label nonmobile">@_f.tra("Hodiny"):</label>
+            <mylabel for="Rec_Value_Orig" class="col-sm-1 col-md-1 col-form-label nonmobile" text="@_f.tra("Hodiny")" tooltip="Hodiny vykazujte jako dekadické číslo (např. 1,5) nebo ve formátu HH:MM (01:30).<hr>Pro více nastavení klikněte na tlačítko vpravo <span class='material-icons-outlined-btn''>schedule</span>"></mylabel>
             <div class="col-sm-2 col-md-2 col-6">
                 <myhours asp-for="Rec.Value_Orig" showsettingbutton="true" hoursentryformat="@(_f.CurrentUser.j02DefaultHoursFormat)" hoursentryflag="@(_f.CurrentUser.j02HesBitStream)"></myhours>
 
@@ -462,9 +464,9 @@ else
 
             <div>
                 <input type="checkbox" asp-for="IsNavicKusovnik" tabindex="-1" onchange="_postback('navic-kusovnik')" />
-                <label for="IsNavicKusovnik">
-                    @_f.tra("K hodinám vykázat i kusovníkové úkony")
-                </label>
+                <mylabel explicit-for="IsNavicKusovnik" text="@_f.tra("K hodinám vykázat i kusovníkové úkony")">
+                    
+                </mylabel>
             </div>
         }
     }
@@ -667,7 +669,7 @@ else
 
     @if (Model.Setting.TimesheetEntryByMinutes)
     {
-                        @:_theukon.timesheet_by_minutes=true;
+                            @:_theukon.timesheet_by_minutes=true;
     }
 
 
