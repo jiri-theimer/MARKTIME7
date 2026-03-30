@@ -11,13 +11,11 @@
 
 <div class="modal_record_container">
     <div class="row my-2">
-        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("ISO kód státu"):</label>
+        <mylabel class="col-sm-1 col-md-2 col-form-label" text="@_f.tra("ISO kód státu")" tooltip="Slouží pro kontrolu s kódem státu vystavovatele faktury nebo s kódem státu střediska projektu"></mylabel>
         <div class="col-sm-4 col-md-3">
             @Html.EditorFor(m => m.Rec.p53CountryCode, "~/Views/Shared/_CountryCodeCombo.cshtml")
         </div>
-        <div class="col-auto">
-            <mytooltip text="Slouží pro kontrolu s kódem státu vystavovatele faktury nebo s kódem státu střediska projektu"></mytooltip>
-        </div>
+       
     </div>
     <div class="row my-2">
         <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Hodnota sazby (%)"):</label>
@@ -43,7 +41,7 @@
 
     </div>
     <div class="row my-2">
-        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Hladina DPH"):</label>
+        <mylabel class="col-sm-1 col-md-2 col-form-label" text="@_f.tra("Hladina DPH")" tooltip="Hladika 'Speciální sazba DPH' slouží jako případná druhá snížená sazba DPH."></mylabel>
         <div class="col-sm-4 col-md-3">
             <select asp-for="@Model.Rec.x15ID" class="form-select">
                 <option value="Nic"></option>
@@ -54,22 +52,17 @@
             </select>
 
         </div>
-        <div class="col-auto">
-            <mytooltip text="Hladika 'Speciální sazba DPH' slouží jako případná druhá snížená sazba DPH."></mytooltip>
-        </div>
+        
     </div>
     
 
     
     <div class="row my-2">
-        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Měna"):</label>
+        <mylabel class="col-sm-1 col-md-2 col-form-label" text="@_f.tra("Měna")" tooltip="Měnu není povinné vyplňovat.<hr>Má význam, pokud v jedné databázi pracujete s více státy na úrovni vystavovatele faktur a střediska projektů."></mylabel>
         <div class="col-sm-4 col-md-3">
             <mycombo entity="j27Currency" asp-for="Rec.j27ID" selectedtext="@Model.ComboJ27Code" view-flag="2"></mycombo>
         </div>
-        <div class="col-auto">
-            <mytooltip text="Měnu není povinné vyplňovat.<hr>Má význam, pokud v jedné databázi pracujete s více státy na úrovni vystavovatele faktur a střediska projektů."></mytooltip>
-            
-        </div>
+        
     </div>
 
 

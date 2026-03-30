@@ -84,32 +84,26 @@
 
                     </div>
                     <div class="row my-2">
-                        <label class="col-sm-6 col-md-7 col-form-label recpagelabel">@(_f.tra("Datum generování bude o X dní před/po RD (-/+)")):</label>
+                        <mylabel class="col-sm-6 col-md-7 col-form-label" text="@(_f.tra("Datum generování bude o X dní před/po RD (-/+)"))" tooltip="Mínus číslo: dny před RD, Plus číslo: dny po RD"></mylabel>
                         <div class="col-sm-2 col-md-3">
                             <mynumber asp-for="Rec.p58Generate_DaysToBase_D" class="record_ordinary" decimal-digits="0"></mynumber>
                         </div>
-                        <div class="col-auto">
-                            <mytooltip text="Mínus číslo: dny před RD, Plus číslo: dny po RD"></mytooltip>
-                        </div>
+                        
                     </div>
                     <div class="row my-2">
-                        <label class="col-sm-6 col-md-7 col-form-label recpagelabel">@(_f.tra("Datum generování bude o X měsíců před/po RD (-/+)")):</label>
+                        <mylabel class="col-sm-6 col-md-7 col-form-label" text="@(_f.tra("Datum generování bude o X měsíců před/po RD (-/+)"))" tooltip="Mínus číslo: měsíce před RD, Plus číslo: měsíce po RD"></mylabel>
                         <div class="col-sm-2 col-md-3">
                             <mynumber asp-for="Rec.p58Generate_DaysToBase_M" class="record_ordinary" decimal-digits="0"></mynumber>
                         </div>
-                        <div class="col-auto">
-                            <mytooltip text="Mínus číslo: měsíce před RD, Plus číslo: měsíce po RD"></mytooltip>
-                        </div>
+                        
                     </div>
                     <div class="row">
-                        <label class="col-sm-5 col-md-6 col-form-label recpagelabel">@(_f.tra("Poslední rozhodné datum")):</label>
+                        <mylabel class="col-sm-5 col-md-6 col-form-label" text="@(_f.tra("Poslední rozhodné datum"))" tooltip="Datum, kdy má skončit generování úkolů podle této šablony.<hr>Generování skoční i v případě, že tento záznam přesunuete do archivu."></mylabel>
                         <div class="col-sm-3 col-md-4">
                             <mydate asp-for="Rec.p58BaseDateEnd" include-time="false"></mydate>
 
                         </div>
-                        <div class="col-auto">
-                            <mytooltip text="Datum, kdy má skončit generování úkolů podle této šablony.<hr>Generování skoční i v případě, že tento záznam přesunuete do archivu."></mytooltip>
-                        </div>
+                       
                     </div>
                 </td>
             </tr>
@@ -133,22 +127,18 @@
 @if (Model.Rec.p58IsPlanUntil)
 {
     <div class="row my-2">
-        <label class="col-sm-2 col-md-3 col-form-label recpagelabel">@(_f.tra("Termín bude o X dní před/po RD (-/+)")):</label>
+        <mylabel class="col-sm-2 col-md-3 col-form-label" text="@(_f.tra("Termín bude o X dní před/po RD (-/+)"))" tooltip="Mínus číslo: dny před RD, Plus číslo: dny po RD"></mylabel>
         <div class="col-sm-1 col-md-1">
             <mynumber asp-for="Rec.p58PlanUntil_D2Base" class="record_ordinary" decimal-digits="0"></mynumber>
         </div>
-        <div class="col-auto">
-            <mytooltip text="Mínus číslo: dny před RD, Plus číslo: dny po RD"></mytooltip>
-        </div>
+      
     </div>
     <div class="row my-2">
-        <label class="col-sm-2 col-md-3 col-form-label recpagelabel">@(_f.tra("Termín bude o X měsíců před/po RD (-/+)")):</label>
+        <mylabel class="col-sm-2 col-md-3 col-form-label" text="@(_f.tra("Termín bude o X měsíců před/po RD (-/+)"))" tooltip="Mínus číslo: měsíce před RD, Plus číslo: měsíce po RD"></mylabel>
         <div class="col-sm-1 col-md-1">
             <mynumber asp-for="Rec.p58PlanUntil_M2Base" class="record_ordinary" decimal-digits="0"></mynumber>
         </div>
-        <div class="col-auto">
-            <mytooltip text="Mínus číslo: měsíce před RD, Plus číslo: měsíce po RD"></mytooltip>
-        </div>
+       
     </div>
 }
 
@@ -161,22 +151,18 @@
 @if (Model.Rec.p58IsPlanFrom)
 {
     <div class="row my-2">
-        <label class="col-sm-2 col-md-3 col-form-label recpagelabel">@(_f.tra("Zahájení bude o X dní před/po RD (-/+)")):</label>
+        <mylabel class="col-sm-2 col-md-3 col-form-label" text="@(_f.tra("Zahájení bude o X dní před/po RD (-/+)"))" tooltip="Mínus číslo: dny před RD, Plus číslo: dny po RD"></mylabel>
         <div class="col-sm-1 col-md-1">
             <mynumber asp-for="Rec.p58PlanFrom_D2Base" class="record_ordinary" decimal-digits="0"></mynumber>
         </div>
-        <div class="col-auto">
-            <mytooltip text="Mínus číslo: dny před RD, Plus číslo: dny po RD"></mytooltip>
-        </div>
+        
     </div>
     <div class="row my-2">
-        <label class="col-sm-2 col-md-3 col-form-label recpagelabel">@(_f.tra("Zahájení bude o X měsíců před/po RD (-/+)")):</label>
+        <mylabel class="col-sm-2 col-md-3 col-form-label" text="@(_f.tra("Zahájení bude o X měsíců před/po RD (-/+)"))" tooltip="Mínus číslo: měsíce před RD, Plus číslo: měsíce po RD"></mylabel>
         <div class="col-sm-1 col-md-1">
             <mynumber asp-for="Rec.p58PlanFrom_M2Base" class="record_ordinary" decimal-digits="0"></mynumber>
         </div>
-        <div class="col-auto">
-            <mytooltip text="Mínus číslo: měsíce před RD, Plus číslo: měsíce po RD"></mytooltip>
-        </div>
+        
     </div>
 }
 

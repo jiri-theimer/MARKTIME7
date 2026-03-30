@@ -107,14 +107,12 @@
                 </div>
 
                 <div class="row my-2">
-                    <label class="col-sm-1 col-md-2 col-form-label">
-                        @_f.tra("Automatické vyplňování formulářů")
-                        <mytooltip text="Zda v modálních oknech povolit/zakázat funcki [Autocomplete].<hr>Html atribut autocomplete off/on."></mytooltip>
-                        </label>
+                    <mylabel class="col-sm-1 col-md-2 col-form-label" text="@_f.tra("Automatické vyplňování formulářů")" tooltip="Zda v modálních oknech povolit/zakázat funcki [Autocomplete].<hr>Html atribut autocomplete off/on.">
+                    </mylabel>
                     <div class="col-sm-6 col-md-5">
                         <select asp-for="RecJ02.j02AutocompleteFlag" class="form-select">
                             <option value="0">@_f.tra("Vypnuto")</option>
-                            <option value="1">@_f.tra("Zapnuto")</option>                            
+                            <option value="1">@_f.tra("Zapnuto")</option>
                         </select>
 
                     </div>
@@ -527,79 +525,79 @@
 
         
 
-        $("#infoAvailResolution").text(_device.availWidth + " x " + _device.availHeight);
-        $("#infoInnerResolution").text(_device.innerWidth + " x " + _device.innerHeight);
-        $("#infoMobile").text(_device.type);
+    $("#infoAvailResolution").text(_device.availWidth + " x " + _device.availHeight);
+    $("#infoInnerResolution").text(_device.innerWidth + " x " + _device.innerHeight);
+    $("#infoMobile").text(_device.type);
 
 
-        $("#cmdKdoJsem").click(function () {
-            $("#kdojsem").toggle();
-        });
+    $("#cmdKdoJsem").click(function () {
+    $("#kdojsem").toggle();
+    });
 
 
-        $('a[data-bs-toggle="tab"]').on("shown.bs.tab", function (e) {
+    $('a[data-bs-toggle="tab"]').on("shown.bs.tab", function (e) {
 
 
 
-        })
+    })
 
-        $("#SearchboxTopRecs").change(function () {
-            $.post("/Common/SetUserParam", { key: "searchbox-toprecs", value: $(this).val() }, function (data) {
-                _postback("reload");
-            });
-        });
+    $("#SearchboxTopRecs").change(function () {
+    $.post("/Common/SetUserParam", { key: "searchbox-toprecs", value: $(this).val() }, function (data) {
+    _postback("reload");
+    });
+    });
 
-        $("#cmdAddJ40").click(function () {
+    $("#cmdAddJ40").click(function () {
 
-            _window_open("/j40/Record?pid=0", 1);
-        });
+    _window_open("/j40/Record?pid=0", 1);
+    });
 
-        _mainmenu_highlight_current("cmdme");
+    _mainmenu_highlight_current("cmdme");
 
-        $("#cmdDefaultMenuLinks").click(function () {
-            if (confirm("@_f.tra("Opravdu resetovat MENU odkazy do výchozího stavu?")")) {
-                _postback("resetmenu");
+    $("#cmdDefaultMenuLinks").click(function () {
+    if (confirm("@_f.tra("Opravdu resetovat MENU odkazy do výchozího stavu?")")) {
+    _postback("resetmenu");
 
-            }
+    }
 
-        });
-        $("#cmdClearMenuLinks").click(function () {
-            if (confirm("@_f.tra("Opravdu vyčistit MENU odkazy?")")) {
-                _postback("clearmenu");
+    });
+    $("#cmdClearMenuLinks").click(function () {
+    if (confirm("@_f.tra("Opravdu vyčistit MENU odkazy?")")) {
+    _postback("clearmenu");
 
-            }
+    }
 
-        });
+    });
 
-        $("#cmdClearParams").click(function () {
-            if (confirm("@_f.tra("Opravdu vyčištit servech cache?")")) {
-                $(this).text("Processing...");
-                $(this).attr("disabled", true);
-                form1.action = "/Home/MyProfile?oper=clearparams";
-                form1.submit();
-            }
+    $("#cmdClearParams").click(function () {
+    if (confirm("@_f.tra("Opravdu vyčištit servech cache?")")) {
+    $(this).text("Processing...");
+    $(this).attr("disabled", true);
+    form1.action = "/Home/MyProfile?oper=clearparams";
+    form1.submit();
+    }
 
-        });
+    });
 
-        var qrcode = new QRCode("qrcode1", {
-            text: location.href,
-            width: 128,
-            height: 128,
-            colorDark: "#000000",
-            colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.H
-        });
+    var qrcode = new QRCode("qrcode1", {
+    text: location.href,
+    width: 128,
+    height: 128,
+    colorDark: "#000000",
+    colorLight: "#ffffff",
+    correctLevel: QRCode.CorrectLevel.H
+    });
 
-        _resize_textareas();
+    _resize_textareas();
     });
 
 
     function setskin(bgcolor, selcolor, forecolor) {
-        bgcolor = bgcolor.replace("#", "");
-        forecolor = forecolor.replace("#", "");
-        selcolor = selcolor.replace("#", "");
-        form1.action = "/Home/MyProfile?oper=skin&bgcolor=" + bgcolor + "&forecolor=" + forecolor + "&selcolor=" + selcolor;
-        form1.submit();
+    bgcolor = bgcolor.replace("#", "");
+    forecolor = forecolor.replace("#", "");
+    selcolor = selcolor.replace("#", "");
+    form1.action = "/Home/MyProfile?oper=skin&bgcolor=" + bgcolor + "&forecolor=" + forecolor + "&selcolor=" + selcolor;
+    form1.submit();
     }
 
    
@@ -620,52 +618,52 @@
 
     $(document).ready(function () {
 
-        $("#infoAvailResolution").text(_device.availWidth + " x " + _device.availHeight);
-        $("#infoInnerResolution").text(_device.innerWidth + " x " + _device.innerHeight);
-        $("#infoMobile").text(_device.type);
+    $("#infoAvailResolution").text(_device.availWidth + " x " + _device.availHeight);
+    $("#infoInnerResolution").text(_device.innerWidth + " x " + _device.innerHeight);
+    $("#infoMobile").text(_device.type);
 
 
 
 
 
-        $('a[data-bs-toggle="tab"]').on("shown.bs.tab", function (e) {
+    $('a[data-bs-toggle="tab"]').on("shown.bs.tab", function (e) {
 
-            tg_adjust_for_screen();
+    tg_adjust_for_screen();
 
-        })
+    })
 
-        $("#cmdAddJ40").click(function () {
+    $("#cmdAddJ40").click(function () {
 
-            _window_open("/j40/Record?pid=0", 1);
-        });
+    _window_open("/j40/Record?pid=0", 1);
+    });
 
-        _mainmenu_highlight_current("cmdme");
+    _mainmenu_highlight_current("cmdme");
 
         
 
-        _resize_textareas();
+    _resize_textareas();
     });
 
 
     function grid_designer(prefix) {
-        _prefix_grid_designer = prefix;
+    _prefix_grid_designer = prefix;
 
-        var cols = $("#Searchbox" + prefix.toUpperCase()).val();
+    var cols = $("#Searchbox" + prefix.toUpperCase()).val();
 
-        _window_open("/TheGridDesigner?prefix=" + prefix + "&cols=" + cols);
+    _window_open("/TheGridDesigner?prefix=" + prefix + "&cols=" + cols);
 
 
 
     }
 
     function reload_after_griddesigner(pid, cols) {
-        $("#Searchbox" + _prefix_grid_designer.toUpperCase()).val(cols);
+    $("#Searchbox" + _prefix_grid_designer.toUpperCase()).val(cols);
 
-        var key = "searchbox-" + _prefix_grid_designer;
+    var key = "searchbox-" + _prefix_grid_designer;
 
-        $.post("/Common/SetUserParam", { key: key, value: cols }, function (data) {
-            _postback("searchbox");
-        });
+    $.post("/Common/SetUserParam", { key: key, value: cols }, function (data) {
+    _postback("searchbox");
+    });
 
 
 
