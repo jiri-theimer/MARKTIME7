@@ -22,7 +22,7 @@
         </div>
     </div>
     <div class="row my-2">
-        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Sešit"):</label>
+        <mylabel class="col-sm-1 col-md-2 col-form-label" text="@_f.tra("Sešit")" tooltip="<mark>Sešit</mark> slouží k základním dělení aktivit podle formátu úkonu (čas/peníze/kusovník)"></mylabel>
         <div class="col-sm-6 col-md-5">
             <mycombo entity="p34ActivityGroup" asp-for="@Model.Rec.p34ID" selectedtext="@Model.ComboP34Name" event_after_changevalue="change_p34id"></mycombo>
 
@@ -30,7 +30,7 @@
 
         <div class="col-auto">
             <input type="checkbox" asp-for="Rec.p32IsSupplier" />
-            <label class="col-form-label" for="Rec_p32IsSupplier">@_f.tra("Při vykazování nabízet vazbu na dodavatele")</label>
+            <mylabel class="col-form-label" explicit-for="Rec_p32IsSupplier" text="@_f.tra("Při vykazování nabízet vazbu na dodavatele")" tooltip="Použitelné pro vykazování peněžních výdajů"></mylabel>
         </div>
 
 
@@ -38,11 +38,11 @@
     <div class="row my-2">
         <div class="col-sm-2 col-md-2">
             <input type="checkbox" asp-for="@Model.Rec.p32IsBillable" />
-            <label class="col-form-label" for="Rec_p32IsBillable">@_f.tra("Fakturovatelné")</label>
+            <mylabel class="col-form-label" explicit-for="Rec_p32IsBillable" bez-dvojtecky="true" text="@_f.tra("Fakturovatelné")" tooltip="<mark>Fakturovatelné</mark> neznamená, že úkon se skutečně vyfakturuje za nějakou cenu.<hr>Fakturant se nakonec může rozhodnout úkon odepsat/zahrnout do paušálu."></mylabel>
         </div>
         <div class="col-sm-5 col-md-5">
             <input type="checkbox" asp-for="@Model.Rec.p32IsTextRequired" />
-            <label class="col-form-label" for="Rec_p32IsTextRequired">@_f.tra("Při vykazování je povinný podrobný popis")</label>
+            <label class="col-form-label" for="Rec_p32IsTextRequired">@_f.tra("Při vykazování je povinné vyplnit text úkonu")</label>
         </div>
         <mylabel class="col-sm-2 col-md-2 col-form-label" explicit-for="numRec_p32Value_Default" text="@_f.tra("Výchozí hodnota úkonu")" tooltip="Pro časové aktivity se jedná o výchozí počet hodin, které systém předvyplní při vykazování úkonu.<hr>Pro kusovníkový úkon je to výchozí počet kusů.<hr>Pro peněžní úkon výchozí částka bez dph."></mylabel>
         
@@ -53,7 +53,7 @@
        
     </div>
     <div class="row my-2">
-        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Fakturační oddíl"):</label>
+        <mylabel class="col-sm-1 col-md-2 col-form-label" text="@_f.tra("Fakturační oddíl")" tooltip="Podle fakturačních oddílů a DPH sazby systém generuje tabulku souhrnného cenového rozpisu faktury"></mylabel>
         <div class="col-sm-6 col-md-5">
             <mycombo entity="p95InvoiceRow" asp-for="@Model.Rec.p95ID" selectedtext="@Model.ComboP95Name"></mycombo>
         </div>
@@ -87,7 +87,7 @@
 
     <div class="row my-2">
 
-        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Barva úkonu v kalendáři"):</label>
+        <mylabel class="col-sm-1 col-md-2 col-form-label" text="@_f.tra("Barva úkonu v kalendáři")" tooltip="Barva pozadí úkonu v kalendáři nebo v DAYLINE"></mylabel>
         <div class="col-sm-4 col-md-3">
             @Html.EditorFor(m => m.Rec.p32Color, "~/Views/Shared/_ColorCombo.cshtml")
 
@@ -155,14 +155,14 @@
         </div>
         <div class="tab-pane" id="tab2" role="tabpanel">
             <div class="row">
-                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Výchozí text úkonu"):</label>
+                <mylabel class="col-sm-1 col-md-2 col-form-label" text="@_f.tra("Výchozí text úkonu")" tooltip="Systémem předvyplňovaný text úkonu aktivity"></mylabel>
                 <div class="col-sm-11 col-md-10">
                     <textarea class="form-control" asp-for="Rec.p32DefaultWorksheetText"></textarea>
                 </div>
 
             </div>
             <div class="row my-2">
-                <label class="col-sm-1 col-md-2 col-form-label">@(_f.Lic.x01BillingLang1):</label>
+                <mylabel class="col-sm-1 col-md-2 col-form-label" text="@(_f.Lic.x01BillingLang1)" tooltip="Systémem předvyplňovaný text úkonu, pokud projekt/klient má fakturační jazyk #1"></mylabel>
                 <div class="col-sm-11 col-md-10">
                     <textarea class="form-control" asp-for="Rec.p32DefaultWorksheetText_Lang1"></textarea>
                 </div>

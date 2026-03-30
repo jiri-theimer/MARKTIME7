@@ -64,7 +64,7 @@
 
     </div>
     <div class="row my-2">
-        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Výchozí sazba"):</label>
+        <mylabel class="col-sm-1 col-md-2 col-form-label" text="@_f.tra("Výchozí sazba")" tooltip="Výchozí sazba platí, pokud neexistuje položková sazba v ceníku sazeb."></mylabel>
         <div class="col-sm-3 col-md-3">
             <mynumber asp-for="Rec.p51DefaultRateT" decimal-digits="2"></mynumber>
 

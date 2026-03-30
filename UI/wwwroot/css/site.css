@@ -1824,6 +1824,7 @@ a.att {
     cursor: help;
     position: relative;
     border-bottom: dotted 2px #C8E5EE;
+    
 }
 
 
@@ -1847,6 +1848,8 @@ a.att {
     background-color: lightskyblue;
     transition: opacity 0.2s ease 0.5s;
     line-height: 1.4;
+    
+    
 }
 
     .mylabelhelptext::after {

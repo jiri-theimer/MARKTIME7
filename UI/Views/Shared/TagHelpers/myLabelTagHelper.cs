@@ -21,7 +21,8 @@ namespace UI.Views.Shared.TagHelpers
         [HtmlAttributeName("explicit-for")]
         public string ExplicitFor { get; set; }
 
-
+        [HtmlAttributeName("bez-dvojtecky")]
+        public bool IsBezDvojtecky { get; set; }
 
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
@@ -29,8 +30,18 @@ namespace UI.Views.Shared.TagHelpers
             if (classAttr != null)
             {
                 output.Content.AppendHtml($"<label class='{classAttr.Value}'");
+
             }
-            
+            else
+            {
+                output.Content.AppendHtml($"<label");
+            }
+
+
+            if (!this.IsBezDvojtecky)
+            {
+                this.LabelText = $"{this.LabelText}:";
+            }
 
             if (this.ExplicitFor != null)
             {
@@ -47,17 +58,16 @@ namespace UI.Views.Shared.TagHelpers
 
             if (!string.IsNullOrEmpty(this.Tooltip))
             {
+                output.Content.AppendHtml($"<span class='mylabelhelp'>{this.LabelText}");
 
-                output.Content.AppendHtml($"<span class='mylabelhelp'>{this.LabelText}:");
-
-                output.Content.AppendHtml($"<span class='mylabelhelptext'>{this.Tooltip}</span></span>");
+                output.Content.AppendHtml($"<span class='mylabelhelptext' style='color:black'>{this.Tooltip}</span></span>");
             }
             else
             {
-                output.Content.AppendHtml($"{this.LabelText}:");
+                output.Content.AppendHtml($"{this.LabelText}");
             }
 
-
+            
 
             output.Content.AppendHtml("</label>");
 

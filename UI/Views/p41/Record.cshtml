@@ -328,14 +328,14 @@
     <div class="tab-pane tab-pane-fixed" id="tab4" role="tabpanel">
         <!-- Tab4 Rozpočet -->
         <div class="row">
-            <label class="col-sm-1 col-md-2 col-form-label recpagelabel">@(_f.tra("Plánované zahájení")):</label>
+            <label class="col-sm-1 col-md-2 col-form-label">@(_f.tra("Plánované zahájení")):</label>
             <div class="col-sm-2 col-md-2">
                 <mydate asp-for="@Model.Rec.p41PlanFrom" include-time="false"></mydate>
 
             </div>
         </div>
         <div class="row my-2">
-            <label class="col-sm-1 col-md-2 col-form-label recpagelabel">@(_f.tra("Plánované dokončení")):</label>
+            <label class="col-sm-1 col-md-2 col-form-label">@(_f.tra("Plánované dokončení")):</label>
             <div class="col-sm-2 col-md-2">
                 <mydate asp-for="@Model.Rec.p41PlanUntil" include-time="false"></mydate>
 
@@ -347,7 +347,7 @@
         @if (_f.Lic.x01IsCapacityFaNefa)
         {
             <div class="row my-2">
-                <label class="col-sm-1 col-md-2 col-form-label recpagelabel">@(_f.tra("Plán Fa hodin")):</label>
+                <label class="col-sm-1 col-md-2 col-form-label">@(_f.tra("Plán Fa hodin")):</label>
                 <div class="col-sm-2 col-md-2">
                     <mynumber asp-for="Rec.p41Plan_Hours_Billable" decimal-digits="2"></mynumber>
 
@@ -355,7 +355,7 @@
                 <div class="col-auto"><i>Plán hodin vykázaných na fakturovatelné (zelené) aktivity (bez ohledu na jejich reálné vyúčtování).</i></div>
             </div>
             <div class="row my-2">
-                <label class="col-sm-1 col-md-2 col-form-label recpagelabel">@(_f.tra("Plán Nefa hodin")):</label>
+                <label class="col-sm-1 col-md-2 col-form-label">@(_f.tra("Plán Nefa hodin")):</label>
                 <div class="col-sm-2 col-md-2">
                     <mynumber asp-for="Rec.p41Plan_Hours_Nonbillable" decimal-digits="2"></mynumber>
 
@@ -366,7 +366,7 @@
         else
         {
             <div class="row my-2">
-                <mylabel class="col-sm-1 col-md-2 col-form-label recpagelabel" text="@(_f.tra("Plán hodin"))" tooltip="Plán hodin fakturovatelných i nefakturovatelných dohromady"></mylabel>
+                <mylabel class="col-sm-1 col-md-2 col-form-label" text="@(_f.tra("Plán hodin"))" tooltip="Plán hodin fakturovatelných i nefakturovatelných dohromady"></mylabel>
                 <div class="col-sm-2 col-md-2">
                     <mynumber asp-for="Rec.p41Plan_Hours_Billable" decimal-digits="2"></mynumber>
 
@@ -382,7 +382,7 @@
 
 
         <div class="row my-2">
-            <mylabel text="@_f.tra("Plán nákladového honoráře")" explicit-for="Rec_p41Plan_Internal_Fee" class="col-sm-1 col-md-2 col-form-label recpagelabel" tooltip="Odhad nákladové ceny hodin (hodiny x nějaká nákladová sazba)"></mylabel>
+            <mylabel text="@_f.tra("Plán nákladového honoráře")" explicit-for="Rec_p41Plan_Internal_Fee" class="col-sm-1 col-md-2 col-form-label" tooltip="Odhad nákladové ceny hodin (hodiny x nějaká nákladová sazba)"></mylabel>
             <div class="col-sm-2 col-md-2">
                 <mynumber asp-for="Rec.p41Plan_Internal_Fee" decimal-digits="2"></mynumber>
 
@@ -391,7 +391,7 @@
         </div>
 
         <div class="row my-2">
-            <label class="col-sm-1 col-md-2 col-form-label recpagelabel">@(_f.tra("Ceník nákladových sazeb")):</label>
+            <mylabel class="col-sm-1 col-md-2 col-form-label" text="@(_f.tra("Ceník nákladových sazeb"))" tooltip="Pokud není vyplněný nákladový ceník projektu, platí globální nákladový ceník."></mylabel>
             <div class="col-sm-6 col-md-5">
                 <mycombo entity="p51PriceList" asp-for="Rec.p51ID_Internal" selectedtext="@Model.SelectedComboP51Name_Internal" myqueryinline="typeflag|int|2|iscustomtailor|bool|false"></mycombo>
 
@@ -400,7 +400,7 @@
         </div>
 
         <div class="row my-2">
-            <label class="col-sm-1 col-md-2 col-form-label recpagelabel">@(_f.tra("Simulační nákladová sazba")):</label>
+            <label class="col-sm-1 col-md-2 col-form-label">@(_f.tra("Simulační nákladová sazba")):</label>
             <div class="col-sm-2 col-md-2">
                 <mynumber asp-for="Rec.p41Plan_Internal_Rate" decimal-digits="2"></mynumber>
 
@@ -410,7 +410,7 @@
 
         <hr />
         <div class="row my-2">
-            <mylabel text="@(_f.tra("Plán peněžních výdajů"))" class="col-sm-1 col-md-2 col-form-label recpagelabel" tooltip="Plánovaná výše peněžních výdajů, subdodávek apod. (bez ohledu na jejich případnou přefakturaci)."></mylabel>
+            <mylabel text="@(_f.tra("Plán peněžních výdajů"))" class="col-sm-1 col-md-2 col-form-label" tooltip="Plánovaná výše peněžních výdajů, subdodávek apod. (bez ohledu na jejich případnou přefakturaci)."></mylabel>
             <div class="col-sm-2 col-md-2">
                 <mynumber asp-for="Rec.p41Plan_Expenses" decimal-digits="2"></mynumber>
 
@@ -418,7 +418,7 @@
            
         </div>
         <div class="row my-2">
-            <mylabel class="col-sm-1 col-md-2 col-form-label recpagelabel" tooltip="Odhad částky vyúčtování projektu" text="@(_f.tra("Plán fakturace"))"></mylabel>
+            <mylabel class="col-sm-1 col-md-2 col-form-label" tooltip="Odhad částky vyúčtování projektu" text="@(_f.tra("Plán fakturace"))"></mylabel>
             <div class="col-sm-2 col-md-2">
                 <mynumber asp-for="Rec.p41Plan_Revenue" decimal-digits="2"></mynumber>
 
@@ -449,9 +449,7 @@
     </div>
 
     <div class="row my-2">
-        <mylabel text="@_f.tra("Klastr aktivit")" class="col-sm-1 col-md-2 col-form-label" tooltip="Klastr je pojmenovaná množina aktivit napříč sešity. Cílem je uživatelům zúžit nabídku aktivit podle povahy projektu při vykazování.<hr> Klastr můžete přiřadit i v typu projektu v administraci.<hr>Klastry aktivit se spravují v administraci.">
-            
-            
+        <mylabel text="@_f.tra("Klastr aktivit")" class="col-sm-1 col-md-2 col-form-label" tooltip="Klastr je pojmenovaná množina aktivit napříč sešity. Cílem je uživatelům zúžit nabídku aktivit podle povahy projektu při vykazování.<hr> Klastr můžete přiřadit i v typu projektu v administraci.<hr>Klastry aktivit se spravují v administraci.">            
         </mylabel>
         <div class="col-sm-11 col-md-10">
             <mycombo entity="p61ActivityCluster" asp-for="Rec.p61ID" selectedtext="@Model.SelectedComboP61Name"></mycombo>

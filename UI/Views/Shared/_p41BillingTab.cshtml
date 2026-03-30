@@ -15,22 +15,22 @@
         <div class="card">
             <div class="card-header">
                 @_f.tra("Ceník fakturačních hodinových sazeb")
+                
             </div>
             <div class="card-body">
                 <input type="radio" id="Radiop51Flag1" asp-for="@Model.Rec.p41BillingFlag" value="CenikDedit" onchange="_postback()">
-                    <label for="Radiop51Flag1">
+                    <label for="Radiop51Flag1" class="mylabelhelp">
                         @_f.tra("Projekt nemá vlastní ceník fakturačních sazeb, sazby se dědí z klienta nebo z ROOT ceníku")
-                        <mytooltip text="Fakturační sazby se dědí z ceníku klient projektu. Pokud klient nemá sazby, dědí se z ROOT ceníku."></mytooltip>
+                        <span class="mylabelhelptext">Fakturační sazby se dědí z ceníku klient projektu. Pokud klient nemá sazby, dědí se z ROOT ceníku.</span>
+                        
                     </label>
                     <br />
                     <input type="radio" id="Radiop51Flag2" asp-for="@Model.Rec.p41BillingFlag" value="CenikPrirazeny" onchange="_postback()">
                         <label for="Radiop51Flag2">@_f.tra("Svázat projekt s jedním z pojmenovaných (sdílených) ceníků")</label>
                         <br />
                         <input type="radio" id="Radiop51Flag3" asp-for="@Model.Rec.p41BillingFlag" value="CenikIndividualni" onchange="_postback()">
-                            <label for="Radiop51Flag3">
-                                @_f.tra("Projekt má individuální hodinové sazby na míru")
-                                <mytooltip text="Sazby zde nadefinované platí pouze pro tento projekt."></mytooltip>
-                            </label>
+                            <mylabel explicit-for="Radiop51Flag3" text="@_f.tra("Projekt má individuální hodinové sazby na míru")" tooltip="Sazby zde nadefinované platí pouze pro tento projekt.">
+                            </mylabel>
 
 
                         </div>
@@ -86,7 +86,7 @@
 
 
             <div class="row my-2">
-                <mylabel class="col-sm-1 col-md-2 col-form-label" text="@_f.tra("Výchozí typ faktury")" tooltip="Lze nastavit i v klientovi projektu.">                    
+                <mylabel class="col-sm-1 col-md-2 col-form-label" text="@_f.tra("Výchozí typ faktury")" tooltip="Typ faktury pro vytvořené vyúčtování projektu. V procesu generování vyúčtování lze ručně změnit.">                    
                 </mylabel>
                 <div class="col-sm-7 col-md-6">
                     <mycombo entity="p92InvoiceType" asp-for="@Model.Rec.p92ID" selectedtext="@Model.SelectedComboP92Name"></mycombo>
@@ -101,8 +101,8 @@
             </div>
             <div class="row my-2">
                 <div class="col-sm-1 col-md-2">
-                    @_f.tra("Předkontace v účetním IS"):
-                    <mytooltip text="Slouží pro export faktury do účetního IS (POHODA)."></mytooltip>
+                    <mylabel text="@_f.tra("Předkontace v účetním IS")" tooltip="Slouží pro export faktury do účetního IS (POHODA)."></mylabel>
+                    
                 </div>
                 <div class="col-sm-7 col-md-6">
                     <input class="form-control" asp-for="Rec.p41AccountingIds" />
