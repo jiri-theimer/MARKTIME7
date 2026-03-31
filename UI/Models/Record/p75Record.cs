@@ -15,6 +15,8 @@
 
         public ProjectComboViewModel ProjectCombo { get; set; }
 
-
+        public string ComboP32 { get; set; }
+        public string ComboJ02 { get; set; }
+        public string ComboJ27Code { get; set; }
     }
 }

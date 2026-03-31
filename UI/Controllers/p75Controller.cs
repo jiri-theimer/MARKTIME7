@@ -14,8 +14,10 @@ namespace UI.Controllers
         public IActionResult Tab1(int pid, string caller)
         {
             var v = new p75Tab1() { Factory = this.Factory, prefix = "p75", pid = pid, caller = caller };
-
+            
             RefreshStateTab1(v);
+
+
             return View(v);
         }
         private void RefreshStateTab1(p75Tab1 v)
@@ -58,7 +60,10 @@ namespace UI.Controllers
             DateTime d0 = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).AddDays(-1);
             v.Rec = new BO.p75InvoiceRecurrence() {p75Generate_DaysToBase_D=-1, p75DateMaturityDaysAfter=10, p41ID = p41id,p28ID=p28id, p75BaseDateStart = d0, p75RecurrenceType = BO.Code.RecurrenceTypeENUM.Month,p75BaseDateEnd=d0.AddYears(2) };
             v.Rec.p75InvoiceText = "Měsíční vyúčtování [YYYY]/[MM]";
-            
+            v.Rec.j02ID_Ukon = Factory.CurrentUser.pid;
+            v.ComboJ02 = v.ComboOwner;
+            v.Rec.j27ID_Ukon = Factory.Lic.j27ID;
+            v.ComboJ27Code = Factory.FBL.LoadCurrencyByID(v.Rec.j27ID_Ukon).j27Code;
 
             if (v.rec_pid > 0)
             {
@@ -82,16 +87,17 @@ namespace UI.Controllers
                     
                 }
                 
-
-
             }
             else
             {
                 v.ComboOwner = Factory.CurrentUser.FullnameDesc;
-
+                
             }
 
+            
+
             RefreshStateRecord(v);
+            
             v.Toolbar = new MyToolbarViewModel(v.Rec);
             if (isclone)
             {
@@ -122,8 +128,18 @@ namespace UI.Controllers
                     v.ProjectCombo.SelectedProject = v.RecP41.FullName;
                 }
             }
-
-
+            if (v.Rec.j02ID_Ukon > 0)
+            {
+                v.ComboJ02 = Factory.j02UserBL.Load(v.Rec.j02ID_Ukon).FullnameDesc;                
+            }
+            if (v.Rec.p32ID_Ukon > 0)
+            {
+                v.ComboP32 = Factory.p32ActivityBL.Load(v.Rec.p32ID_Ukon).p32Name;
+            }
+            if (v.Rec.j27ID_Ukon > 0)
+            {
+                v.ComboJ27Code = Factory.FBL.LoadCurrencyByID(v.Rec.j27ID_Ukon).j27Code;
+            }
 
             if (v.rec_pid == 0 && v.Rec.j02ID_Owner == 0)
             {
@@ -175,6 +191,15 @@ namespace UI.Controllers
                 c.ValidFrom = v.Toolbar.GetValidFrom(c);
 
                 c.p75PeriodFlag = v.Rec.p75PeriodFlag;
+
+                c.p70ID_Hours = v.Rec.p70ID_Hours;
+                c.p70ID_Expenses = v.Rec.p70ID_Expenses;
+
+                c.j02ID_Ukon = v.Rec.j02ID_Ukon;
+                c.p32ID_Ukon = v.Rec.p32ID_Ukon;
+                c.j27ID_Ukon = v.Rec.j27ID_Ukon;
+                c.p75Value_Ukon = v.Rec.p75Value_Ukon;
+                c.p75Text_Ukon = v.Rec.p75Text_Ukon;
 
                 c.pid = Factory.p75InvoiceRecurrenceBL.Save(c);
                 if (c.pid > 0)

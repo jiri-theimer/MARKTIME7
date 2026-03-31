@@ -11,6 +11,7 @@ namespace BO
         public int p41id { get; set; }
         public bool? isabsence { get; set; }
         public bool? ismoneyinput { get; set; }
+        public bool? isodmena { get; set; }
         
         public bool? isbillable { get; set; }
         public myQueryP32()
@@ -51,6 +52,17 @@ namespace BO
                 else
                 {
                     AQ("a.p34ID IN (select p34ID FROM p34ActivityGroup WHERE p33ID IN (1,3))", null, null);
+                }
+            }
+            if (this.isodmena != null)
+            {
+                if (this.isodmena == true)
+                {
+                    AQ("a.p34ID IN (select p34ID FROM p34ActivityGroup WHERE p33ID IN (2,5) AND p34IncomeStatementFlag=2)", null, null);
+                }
+                else
+                {
+                    AQ("a.p34ID IN (select p34ID FROM p34ActivityGroup WHERE p33ID IN (1,3) AND p34IncomeStatementFlag=1)", null, null);
                 }
             }
             if (this.isbillable != null)

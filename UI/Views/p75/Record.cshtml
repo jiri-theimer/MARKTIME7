@@ -24,9 +24,9 @@
 </div>
 
 <div class="row my-2">
-    <label for="cmdComboRec_p28ID_Client" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Klient"):</label>
+    <mylabel explicit-for="cmdComboRec_p28ID_Client" class="col-sm-1 col-md-2 col-form-label" text="@_f.tra("Klient")" tooltip="V kartě projektu nebo v kartě klienta (záložka [Fakturační nastavení] musí být vyplněný [Typ faktury]!"></mylabel>
     <div class="col-sm-11 col-md-10">
-        <mycombo entity="p28Contact" asp-for="Rec.p28ID" selectedtext="@Model.ComboP28" filter-flag="1" search-result-width="700"></mycombo>
+        <mycombo entity="p28Contact" asp-for="Rec.p28ID" selectedtext="ComboP28" filter-flag="1" search-result-width="700"></mycombo>
     </div>
 
 </div>
@@ -47,13 +47,13 @@
 
 
 
-                    <input type="radio" value="Month" id="chkMonth" asp-for="@Model.Rec.p75RecurrenceType" />
+                    <input type="radio" value="Month" id="chkMonth" asp-for="Rec.p75RecurrenceType" />
                     <label for="chkMonth">@_f.tra("Měsíční opakování")</label>
                     <p></p>
-                    <input type="radio" value="Quarter" id="chkQuarter" asp-for="@Model.Rec.p75RecurrenceType" />
+                    <input type="radio" value="Quarter" id="chkQuarter" asp-for="Rec.p75RecurrenceType" />
                     <label for="chkQuarter">@_f.tra("Čtvrtletní opakování")</label>
                     <p></p>
-                    <input type="radio" value="Year" id="chkYear" asp-for="@Model.Rec.p75RecurrenceType" />
+                    <input type="radio" value="Year" id="chkYear" asp-for="Rec.p75RecurrenceType" />
                     <label for="chkYear">@_f.tra("Roční opakování")</label>
                     <p></p>
                 </td>
@@ -67,24 +67,20 @@
 
                     </div>
                     <div class="row my-2">
-                        <label class="col-sm-6 col-md-7 col-form-label recpagelabel">@(_f.tra("Datum generování bude o X dní před/po RD (-/+)")):</label>
-                        <div class="col-sm-2 col-md-3">
+                        <mylabel class="col-sm-7 col-md-8 col-form-label" text="@(_f.tra("Datum generování bude o X dní před/po RD (-/+)"))" tooltip="Mínus číslo: dny před RD, Plus číslo: dny po RD"></mylabel>
+                        <div class="col-sm-1 col-md-2">
                             <mynumber asp-for="Rec.p75Generate_DaysToBase_D" class="record_ordinary" decimal-digits="0"></mynumber>
                         </div>
-                        <div class="col-auto">
-                            <mytooltip text="Mínus číslo: dny před RD, Plus číslo: dny po RD"></mytooltip>
-                        </div>
+                        
                     </div>
 
                     <div class="row">
-                        <label class="col-sm-5 col-md-6 col-form-label recpagelabel">@(_f.tra("Poslední rozhodné datum")):</label>
+                        <mylabel class="col-sm-5 col-md-6 col-form-label" text="@(_f.tra("Poslední rozhodné datum"))" tooltip="Datum, kdy má skončit generování faktur podle této šablony.<hr>Generování skoční i v případě, že tento záznam přesunuete do archivu."></mylabel>
                         <div class="col-sm-3 col-md-4">
                             <mydate asp-for="Rec.p75BaseDateEnd" include-time="false"></mydate>
 
                         </div>
-                        <div class="col-auto">
-                            <mytooltip text="Datum, kdy má skončit generování faktur podle této šablony.<hr>Generování skoční i v případě, že tento záznam přesunuete do archivu."></mytooltip>
-                        </div>
+                        
                     </div>
                 </td>
             </tr>
@@ -99,7 +95,7 @@
 <div class="row my-2">
     <label class="col-sm-2 col-md-3 col-form-label">@(_f.tra("Datum plnění")):</label>
     <div class="col-sm-4 col-md-4">
-        <select asp-for="@Model.Rec.p75DateSupplyFlag" class="form-select">
+        <select asp-for="Rec.p75DateSupplyFlag" class="form-select">
 
             <option value="1">@_f.tra("Datum generování")</option>
             <option value="2">@_f.tra("Datum RD")</option>
@@ -110,37 +106,56 @@
 </div>
 
 <div class="row my-2">
-    <label class="col-sm-2 col-md-3 col-form-label recpagelabel">@(_f.tra("Datum splatnosti o X dní po RD (-/+)")):</label>
+    <mylabel class="col-sm-2 col-md-3 col-form-label" text="@(_f.tra("Datum splatnosti o X dní po RD (-/+)"))" tooltip="Mínus číslo: dny před RD, Plus číslo: dny po RD"></mylabel>
     <div class="col-sm-1 col-md-1">
         <mynumber asp-for="Rec.p75DateMaturityDaysAfter" class="record_ordinary" decimal-digits="0"></mynumber>
     </div>
-    <div class="col-auto">
-        <mytooltip text="Mínus číslo: dny před RD, Plus číslo: dny po RD"></mytooltip>
-    </div>
+  
 </div>
 
 
 
 <div class="col-sm-2 col-md-2">
-    <input type="checkbox" asp-for="@Model.Rec.p75IsDraft" />
+    <input type="checkbox" asp-for="Rec.p75IsDraft" />
     <label class="col-form-label" for="Rec_p75IsDraft">@_f.tra("Draft faktura")</label>
 </div>
 
 <div class="row my-2">
     <label class="col-sm-2 col-md-3 col-form-label">@(_f.tra("Období vyúčtovaných úkonů")):</label>
     <div class="col-sm-4 col-md-4">
-        <select asp-for="@Model.Rec.p75PeriodFlag" class="form-select">
+        <select asp-for="Rec.p75PeriodFlag" class="form-select">
 
             <option value="0">@_f.tra("Bez omezení časového období")</option>
-            <option value="2">@_f.tra("Měsíc RD")</option>
-            <option value="3">@_f.tra("Kvartál RD")</option>
-            <option value="4">@_f.tra("Rok RD")</option>
+            <option value="1">@_f.tra("Měsíc RD")</option>
+            <option value="2">@_f.tra("Kvartál RD")</option>
+            <option value="3">@_f.tra("Rok RD")</option>
         </select>
     </div>
 </div>
 
+<div class="row my-2">
+    <label class="col-sm-2 col-md-3 col-form-label">@(_f.tra("Hodiny odepsat statusem")):</label>
+    <div class="col-sm-4 col-md-4">
+        <select asp-for="Rec.p70ID_Hours" class="form-select">   
+            <option value="0"></option>
+            <option value="6">@_f.tra("Zahrnout do paušálu")</option>
+            <option value="2">@_f.tra("Viditelný odpis")</option>
+            <option value="3">@_f.tra("Skrytý odpis")</option>            
+        </select>
+    </div>
+</div>
 
-
+<div class="row my-2">
+    <label class="col-sm-2 col-md-3 col-form-label">@(_f.tra("Peněžní výdaje odepsat statusem")):</label>
+    <div class="col-sm-4 col-md-4">
+        <select asp-for="Rec.p70ID_Expenses" class="form-select">
+            <option value="0"></option>
+            <option value="6">@_f.tra("Zahrnout do paušálu")</option>
+            <option value="2">@_f.tra("Viditelný odpis")</option>
+            <option value="3">@_f.tra("Skrytý odpis")</option>
+        </select>
+    </div>
+</div>
 
 <div class="form-floating my-2">
     <textarea class="form-control" asp-for="@Model.Rec.p75InvoiceText"></textarea>
@@ -151,16 +166,45 @@
 </div>
 
 
-<div class="alert alert-info">
-    <p>Vyplňte buď projekt nebo klienta.</p>
-    <hr />
-    <p>V kartě projektu nebo v kartě klienta (záložka [Fakturační nastavení] musí být vyplněný [Typ faktury]!</p>
-    <hr />
-    <p>Do vygenerované faktury se automaticky nahrnou všechny nevyúčtované úkony bez ohledu na jejich období!</p>
+
+
+<div class="card">
+    <div class="card-header">
+        @_f.tra("Pevná odměna ve faktuře")
+        <i>...navíc k případným opakovaným nebo ručně vykázaným odměnám</i>
+    </div>
+    <div class="card-body">
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Jméno/Uživatel"):</label>
+            <div class="col-sm-10 col-md-9">
+                <mycombo entity="j02User" asp-for="Rec.j02ID_Ukon" selectedtext="@Model.ComboJ02" view-flag="1"></mycombo>
+            </div>
+        </div>
+
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Aktivita"):</label>
+            <div class="col-sm-10 col-md-9">
+                <mycombo entity="p32Activity" asp-for="Rec.p32ID_Ukon" selectedtext="@Model.ComboP32" myqueryinline="isodmena|bool|1"></mycombo>
+            </div>
+        </div>
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Bez DPH"):</label>
+            <div class="col-sm-2 col-md-2">
+                <mynumber asp-for="Rec.p75Value_Ukon" decimal-digits="2"></mynumber>
+
+            </div>
+            <div class="col-auto">
+                <mycombo entity="j27Currency" asp-for="Rec.j27ID_Ukon" selectedtext="@Model.ComboJ27Code"></mycombo>
+            </div>
+    
+        </div>
+       
+        <div class="form-floating my-2">
+            <textarea class="form-control" asp-for="Rec.p75Text_Ukon"></textarea>
+            <label for="Rec_p75Text_Ukon">@_f.tra("Text úkonu")</label>
+        </div>
+    </div>
 </div>
-
-
-
 
 
 

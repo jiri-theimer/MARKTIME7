@@ -2,14 +2,17 @@
 @inject BL.Factory _f
 
 @{
-
+    if (Model == null)
+    {
+        return;
+    }
 
     string _placeholderName = @_f.tra("Pozice/vztah...");
 }
 
 
 @addTagHelper *, UI
-@if (Model.lisP30.Count() > 0)
+@if (Model.lisP30 !=null && Model.lisP30.Count() > 0)
 {
     <div class="card my-2">
         <div class="card-header">

@@ -263,6 +263,10 @@ namespace BL
             oc = AA("p75RecurrenceType", "Frekvence generování", gdc1, "case a.p75RecurrenceType when 3 then 'Měsíční' when 4 then 'Čtvrtletní' when 5 then 'Roční' end", "string", false, true); oc.FixedWidth = 90;
             AA("p75BaseDateStart", "První rozhodné datum", gdc1, null, "date");
             AA("p75BaseDateEnd", "Poslední rozhodné datum", gdc1, null, "date");
+
+            oc = AF("p70NameHours", "Odpis hodin", "p70hours.p70Name"); oc.RelSqlInCol = "LEFT OUTER JOIN p70BillingStatus p70hours On a.p70ID_Hours=p70hours.p70ID";
+            oc = AF("p70NameExpenses", "Odpis výdajů", "p70expenses.p70Name"); oc.RelSqlInCol = "LEFT OUTER JOIN p70BillingStatus p70expenses On a.p70ID_Expenses=p70expenses.p70ID";
+
             AppendTimestamp();
 
             this.EntityName = "p58TaskRecurrence";

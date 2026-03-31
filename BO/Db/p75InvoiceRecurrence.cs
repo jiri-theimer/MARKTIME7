@@ -29,5 +29,12 @@ namespace BO
         public int p75PeriodFlag { get; set; }  //0:bez období, 1:měsíc,2:kvartál,3:rok
 
 
+        public int p70ID_Hours { get; set; }
+        public int p70ID_Expenses { get; set; }
+        public int j02ID_Ukon { get; set; }
+        public int p32ID_Ukon { get; set; }
+        public double p75Value_Ukon { get; set; }
+        public int j27ID_Ukon { get; set; }
+        public string p75Text_Ukon { get; set; }
     }
 }
