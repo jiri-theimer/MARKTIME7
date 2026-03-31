@@ -95,7 +95,11 @@ namespace BL
                 p.AddInt("p70ID_Hours", rec.p70ID_Hours, true);
                 p.AddInt("p70ID_Expenses", rec.p70ID_Expenses, true);
 
-                p.AddInt("j02ID_Ukon", rec.j02ID_Ukon, true);
+                if (rec.p32ID_Ukon > 0)
+                {
+                    rec.j02ID_Ukon = _mother.CurrentUser.pid;
+                }
+                p.AddInt("j02ID_Ukon", rec.j02ID_Ukon, true);                
                 p.AddInt("p32ID_Ukon", rec.p32ID_Ukon, true);
                 p.AddInt("j27ID_Ukon", rec.j27ID_Ukon, true);
                 p.AddDouble("p75Value_Ukon", rec.p75Value_Ukon);
@@ -179,9 +183,17 @@ namespace BL
                 this.AddMessage("Definujete příliš dlouhé období. Snižte datum posledního rozhodného datumu."); return false;
             }
 
+            if (rec.p32ID_Ukon > 0 && (rec.p41ID==0))
+            {
+                this.AddMessage("Pokud se generuje opakovaná odměna, musí být vyplněný projekt."); return false;
+            }
             if (rec.p32ID_Ukon>0 && (rec.p75Value_Ukon == 0 || rec.p75Text_Ukon==null))
             {
                 this.AddMessage("Částka a text pevné odměny k fakturaci jsou povinná pole."); return false;
+            }
+            if (rec.p32ID_Ukon>0 && rec.j27ID_Ukon == 0)
+            {
+                rec.j27ID_Ukon = _mother.Lic.j27ID;
             }
 
             return true;
@@ -247,6 +259,21 @@ namespace BL
                     break;
                 default:    //nefiltrovat období
                     break;
+            }
+
+            if (recp75.p32ID_Ukon > 0 & recp75.p75Value_Ukon !=0 && recp75.p75Text_Ukon !=null)
+            {
+                //vygenerovat nový úkon pevné odměny
+                var recP31 = new BO.p31WorksheetEntryInput() { p32ID = recp75.p32ID_Ukon, j02ID = recp75.j02ID_Ukon, p31Text = recp75.p75Text_Ukon,p41ID=recp75.p41ID,Amount_WithoutVat_Orig=recp75.p75Value_Ukon,j27ID_Billing_Orig=recp75.j27ID_Ukon };
+                recP31.Addp31Date((DateTime)recp76.p76DateSupply);
+                recP31.p34ID = _mother.p32ActivityBL.Load(recp75.p32ID_Ukon).p34ID;
+                
+                if (_mother.p31WorksheetBL.SaveOrigRecord(recP31, BO.p33IdENUM.PenizeBezDPH, null) == 0)
+                {
+                    BO.Code.File.LogInfo(_mother.GetFirstNotifyMessage());
+                    this.AddMessage(_mother.GetFirstNotifyMessage());
+                    return 0;
+                }
             }
             var mq = new BO.myQueryP31() { p41id = recp75.p41ID, p28id = recp75.p28ID, iswip = true };    //rozpracované úkony
             if (gd1 != null)

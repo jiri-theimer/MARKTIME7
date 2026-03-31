@@ -677,8 +677,7 @@ namespace UI.Controllers
 
             string strO27Guid = HttpContext.Request.Form["o27guid"];
 
-            System.IO.File.WriteAllText("c:\\temp\\hovado.txt", "files count: " + HttpContext.Request.Form.Files.ToString());
-
+           
 
             // Get the server path, wwwroot
             string webRootPath = _env.WebRootPath;

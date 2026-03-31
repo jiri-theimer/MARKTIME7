@@ -32,6 +32,7 @@ namespace BO
         public int p70ID_Hours { get; set; }
         public int p70ID_Expenses { get; set; }
         public int j02ID_Ukon { get; set; }
+        
         public int p32ID_Ukon { get; set; }
         public double p75Value_Ukon { get; set; }
         public int j27ID_Ukon { get; set; }

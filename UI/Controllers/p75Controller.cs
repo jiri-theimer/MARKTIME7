@@ -61,9 +61,8 @@ namespace UI.Controllers
             v.Rec = new BO.p75InvoiceRecurrence() {p75Generate_DaysToBase_D=-1, p75DateMaturityDaysAfter=10, p41ID = p41id,p28ID=p28id, p75BaseDateStart = d0, p75RecurrenceType = BO.Code.RecurrenceTypeENUM.Month,p75BaseDateEnd=d0.AddYears(2) };
             v.Rec.p75InvoiceText = "Měsíční vyúčtování [YYYY]/[MM]";
             
-            v.Rec.j27ID_Ukon = Factory.Lic.j27ID;
-            v.ComboJ27Code = Factory.FBL.LoadCurrencyByID(v.Rec.j27ID_Ukon).j27Code;
-
+            
+            
             if (v.rec_pid > 0)
             {
                 v.Rec = Factory.p75InvoiceRecurrenceBL.Load(v.rec_pid);
@@ -127,6 +126,7 @@ namespace UI.Controllers
                     v.ProjectCombo.SelectedProject = v.RecP41.FullName;
                 }
             }
+            
             if (v.Rec.j02ID_Ukon > 0)
             {
                 v.ComboJ02 = Factory.j02UserBL.Load(v.Rec.j02ID_Ukon).FullnameDesc;                

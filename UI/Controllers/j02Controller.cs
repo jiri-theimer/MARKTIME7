@@ -333,11 +333,7 @@ namespace UI.Controllers
                 v.SetTagging(Factory.o51TagBL.GetTagging("j02", v.rec_pid));
 
 
-                BO.Code.Reflexe.SetPropertyValueReadonlyInclude(v.Rec, "j07ID", v.Rec.j07ID);
-                BO.Code.Reflexe.SetPropertyValue(v.Rec, "DateInsert", v.Rec.DateInsert);
-                BO.Code.Reflexe.SetPropertyValue(v.Rec, "isclosed", v.Rec.isclosed);
-                BO.Code.Reflexe.SetPropertyValueReadonlyInclude(v.Rec, "j02FirstName", "Hovado");
-                BO.Code.Reflexe.SetPropertyValueReadonlyInclude(v.Rec, "j07Name", "Hovado");
+               
 
                 v.ComboC21Name = v.Rec.c21Name;
                 v.ComboJ07Name = v.Rec.j07Name;

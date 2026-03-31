@@ -12,7 +12,10 @@
         public BO.p41Project RecP41 { get; set; }
         public BO.p28Contact RecP28 { get; set; }
 
+        
 
+
+        public BO.p41Project RecP41Ukon { get; set; }
         public ProjectComboViewModel ProjectCombo { get; set; }
 
         public string ComboP32 { get; set; }
