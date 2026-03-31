@@ -179,6 +179,10 @@ namespace BL
                 this.AddMessage("Definujete příliš dlouhé období. Snižte datum posledního rozhodného datumu."); return false;
             }
 
+            if (rec.p32ID_Ukon>0 && (rec.p75Value_Ukon == 0 || rec.p75Text_Ukon==null))
+            {
+                this.AddMessage("Částka a text pevné odměny k fakturaci jsou povinná pole."); return false;
+            }
 
             return true;
         }

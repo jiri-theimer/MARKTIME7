@@ -60,8 +60,7 @@ namespace UI.Controllers
             DateTime d0 = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).AddDays(-1);
             v.Rec = new BO.p75InvoiceRecurrence() {p75Generate_DaysToBase_D=-1, p75DateMaturityDaysAfter=10, p41ID = p41id,p28ID=p28id, p75BaseDateStart = d0, p75RecurrenceType = BO.Code.RecurrenceTypeENUM.Month,p75BaseDateEnd=d0.AddYears(2) };
             v.Rec.p75InvoiceText = "Měsíční vyúčtování [YYYY]/[MM]";
-            v.Rec.j02ID_Ukon = Factory.CurrentUser.pid;
-            v.ComboJ02 = v.ComboOwner;
+            
             v.Rec.j27ID_Ukon = Factory.Lic.j27ID;
             v.ComboJ27Code = Factory.FBL.LoadCurrencyByID(v.Rec.j27ID_Ukon).j27Code;
 
