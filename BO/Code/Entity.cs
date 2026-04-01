@@ -102,6 +102,7 @@ namespace BO.Code
                 case "b05": return "b05Workflow_History";
                 case "p11": return "p11Attendance";
                 case "o27": return "o27Attachment";
+                case "p75": return "p75InvoiceRecurrence";
 
                 case "o51": return "o51Tag";
                 case "o53": return "o53TagGroup";

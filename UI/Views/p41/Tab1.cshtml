@@ -76,6 +76,11 @@
     {
         _lisP40 = _f.p40WorkSheet_RecurrenceBL.GetList(new BO.myQueryP40() { p41id = Model.pid });
     }
+    IEnumerable<BO.p75InvoiceRecurrence> _lisP75 = null;
+    if (_f.CurrentUser.IsRatesAccess)
+    {
+        _lisP75 = _f.p75InvoiceRecurrenceBL.GetList(new BO.myQueryP75() { p41id = Model.pid });
+    }
 
     IEnumerable<BO.p56Task> _lisP56 = null;
     if (_f.CurrentUser.j04IsModule_p56)
@@ -306,7 +311,42 @@
         </li>
     </ul>
 }
+@if (_lisP75 != null && _lisP75.Count() > 0)
+{
+    <ul class="mytreeview">
+        <li>
+            <a class="mytreeview-toggle-kontejner" onclick="_treeview_toggle(this,'tab1-p41-toggle-p75')">
+                <span class="material-icons-outlined-btn mytreeview-toggle-sipka">@(UI.Code.basKendoTreeViewSupport.Get_Arrow_LastState(_f, "tab1-p41-toggle-p75", "collapsed"))</span>
+                <span class="material-icons-outlined-btn">repeat_on</span>
+                <span>@_f.tra("Opakované vyúčtování") (@(_lisP75.Count()))</span>
 
+            </a>
+
+            <ul style="display:@(UI.Code.basKendoTreeViewSupport.Get_UL_LastState(_f, "tab1-p41-toggle-p75", "collapsed"))">
+                @foreach (var c in _lisP75)
+                {
+                    <li>
+                        <a class="treeview-link" target="_top" href="/Record/@(_strRecPage)?prefix=p75&pid=@(c.pid)">@(BO.Code.Bas.OM2(c.p75Name, 20))</a>
+                        @if (c.p32ID_Ukon > 0)
+                        {
+                            <small style="color:green;">
+                                @(BO.Code.Bas.Number2String(c.p75Value_Ukon))
+                            </small>
+                            @_f.FBL.LoadCurrencyByID(c.j27ID_Ukon).j27Code
+                        }
+                        
+                        @if (c.p75BaseDateEnd < DateTime.Now)
+                        {
+                            <small class="badge text-bg-warning">Expirovalo</small>
+                        }
+                    </li>
+                }
+
+            </ul>
+
+        </li>
+    </ul>
+}
 @if (_lisP56 != null && _lisP56.Count() > 0)
 {
     <ul class="mytreeview">

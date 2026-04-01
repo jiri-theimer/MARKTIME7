@@ -121,7 +121,8 @@
 </div>
 
 <div class="row my-2">
-    <label class="col-sm-2 col-md-3 col-form-label">@(_f.tra("Období vyúčtovaných úkonů")):</label>
+    <mylabel class="col-sm-2 col-md-3 col-form-label" text="@(_f.tra("Období vyúčtovaných úkonů"))" tooltip="Systém vloží do vyúčtování úkony pouze za vybrané období.
+"></mylabel>
     <div class="col-sm-4 col-md-4">
         <select asp-for="Rec.p75PeriodFlag" class="form-select">
 
@@ -134,7 +135,7 @@
 </div>
 
 <div class="row my-2">
-    <label class="col-sm-2 col-md-3 col-form-label">@(_f.tra("Hodiny odepsat statusem")):</label>
+    <mylabel class="col-sm-2 col-md-3 col-form-label" text="@(_f.tra("Hodiny odepsat statusem"))" tooltip="Nevyúčtované hodiny systém technicky vloží do faktury, ale s nulovou cenou."></mylabel>
     <div class="col-sm-4 col-md-4">
         <select asp-for="Rec.p70ID_Hours" class="form-select">   
             <option value="0"></option>
@@ -146,7 +147,7 @@
 </div>
 
 <div class="row my-2">
-    <label class="col-sm-2 col-md-3 col-form-label">@(_f.tra("Peněžní výdaje odepsat statusem")):</label>
+    <mylabel class="col-sm-2 col-md-3 col-form-label" text="@(_f.tra("Peněžní výdaje odepsat statusem"))" tooltip="Nevyúčtované výdaje systém technicky vloží do faktury, ale s nulovou cenou."></mylabel>
     <div class="col-sm-4 col-md-4">
         <select asp-for="Rec.p70ID_Expenses" class="form-select">
             <option value="0"></option>

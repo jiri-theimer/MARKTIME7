@@ -504,7 +504,12 @@ namespace UI.Controllers
                         return this.StopPage(false, "Nemáte oprávnění pro tento Modul.");
                     }
                     break;
-
+                case "p75":
+                    if (!Factory.CurrentUser.j04IsModule_p91)
+                    {
+                        return this.StopPage(false, "Nemáte oprávnění pro tento Modul.");
+                    }
+                    break;
             }            
             
 
@@ -724,6 +729,9 @@ namespace UI.Controllers
                     break;
                 case "p40":
                     v.TabName = Factory.tra("Stránka předpisu opakovaného úkonu");
+                    break;
+                case "p75":
+                    v.TabName = Factory.tra("Stránka předpisu opakovaného vyúčtování");
                     break;
                 case "le1":
                 case "le2":

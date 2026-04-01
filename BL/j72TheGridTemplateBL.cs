@@ -865,6 +865,17 @@ namespace BL
                         s = "a__b05Workflow_History__b05DateInsert,a__b05Workflow_History__UserInsert_b05Workflow_History";
                     }
                     break;
+                case "p75":
+                    s = "a__p75InvoiceRecurrence__p75Name,a__p75InvoiceRecurrence__p75RecurrenceType,a__p75InvoiceRecurrence__p75BaseDateStart,a__p75InvoiceRecurrence__p75BaseDateEnd,p75_p41__p41Project__p41Name,p75_p28__p28Contact__p28Name,a__p75InvoiceRecurrence__p75InvoiceText";
+                    if (master_entity == "mobile")
+                    {
+                        s = "a__b05Workflow_History__b05DateInsert,a__b05Workflow_History__NazevPlusText,a__b05Workflow_History__UserInsert_b05Workflow_History";
+                    }
+                    if (master_entity == "recpage")
+                    {
+                        s = "a__p75InvoiceRecurrence__p75Name,a__p75InvoiceRecurrence__p75RecurrenceType,p75_p41__p41Project__p41Name,p75_p28__p28Contact__p28Name";
+                    }
+                    break;
                 case "fp1":
                     s = "fp1_p41__p41Project__KlientProjektu,fp1_p41__p41Project__p41Name,fp1_p56__p56Task__p56Name,a__fp1__PlanOdmeny,a__fp1__PlanVydaje,a__fp1__PlanZisk,fp1_p31__fp1_p31__Hodiny,fp1_p31__fp1_p31__Odmeny,fp1_p31__fp1_p31__Vydaje,fp1_p31__fp1_p31__HonorarInterni,fp1_p31__fp1_p31__Zisk1";
                     break;
