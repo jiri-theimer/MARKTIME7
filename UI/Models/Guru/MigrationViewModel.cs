@@ -10,7 +10,7 @@ namespace UI.Models.Guru
         public string SourceDbName { get; set; }
         public string CountryCode { get; set; }
         public List<CreateLicenseKey> lisKeys { get; set; }
-        public string SourceConnectString { get; set; } = "server=SQL2017.mycore.cloud\\MARKTIME;database=tomaierlegal;uid=MARKTIME;pwd=58PMapN2jhBvdblxqnIB;";
+        public string SourceConnectString { get; set; } = "server=SQL2025.mycore.cloud\\MARKTIME;database=tomaierlegal;uid=MARKTIME;pwd=58PMapN2jhBvdblxqnIB;";
         public string DestConnectString { get; set; } = "server=LAPTOP-4H8SPDMA\\SQLEXPRESS;database=a7MARKTIME_EMPTY;uid=sa;pwd=a;";
         public int DestX01ID { get; set; } = 1;
         public string DestPassword { get; set; }

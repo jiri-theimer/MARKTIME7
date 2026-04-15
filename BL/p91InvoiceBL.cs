@@ -162,6 +162,7 @@ namespace BL
             }
 
             string strFileName = $"{rec.p91Code}-{x31code}-{rec.p91Supplier}-{rec.p91Supplier_RegID}-{rec.p91Client}-{rec.p91Client_RegID}";
+            strFileName = strFileName.Replace(".", "");
             strFileName = BO.Code.File.ConvertToSafeFileName(strFileName, 250);
             if (System.IO.File.Exists($"{strFullDir}\\{strFileName}.pdf"))
             {

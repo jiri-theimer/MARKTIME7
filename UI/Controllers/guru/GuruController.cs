@@ -57,7 +57,7 @@ namespace UI.Controllers
         {
             if (string.IsNullOrEmpty(connstring))
             {
-                connstring = "server=SQL2017.mycore.cloud\\MARKTIME;database=master;uid=MARKTIME;pwd=58PMapN2jhBvdblxqnIB;";
+                connstring = "server=SQL2025.mycore.cloud\\MARKTIME;database=master;uid=MARKTIME;pwd=58PMapN2jhBvdblxqnIB;";
             }
             else
             {
@@ -76,7 +76,7 @@ namespace UI.Controllers
         {
             if (string.IsNullOrEmpty(connstring))
             {
-                connstring = "server=SQL2017.mycore.cloud\\MARKTIME;database=master;uid=MARKTIME;pwd=58PMapN2jhBvdblxqnIB;";
+                connstring = "server=SQL2025.mycore.cloud\\MARKTIME;database=master;uid=MARKTIME;pwd=58PMapN2jhBvdblxqnIB;";
             }
             else
             {

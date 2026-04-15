@@ -711,10 +711,19 @@ namespace UI.Controllers
                 if (recJ61.j61MailCC != null && recJ61.j61MailCC.Contains("["))
                 {
                     recJ61.j61MailCC = BO.Code.MergeContent.GetMergedContent(recJ61.j61MailCC, dt);
+                    if (!string.IsNullOrEmpty(recJ61.j61MailCC))
+                    {
+                        recJ61.j61MailCC = string.Join(";", BO.Code.Bas.ConvertString2List(recJ61.j61MailCC, ";").Distinct());
+                    }
                 }
                 if (recJ61.j61MailBCC != null && recJ61.j61MailBCC.Contains("["))
                 {
                     recJ61.j61MailBCC = BO.Code.MergeContent.GetMergedContent(recJ61.j61MailBCC, dt);
+                    if (!string.IsNullOrEmpty(recJ61.j61MailBCC))
+                    {
+                        recJ61.j61MailBCC = string.Join(";", BO.Code.Bas.ConvertString2List(recJ61.j61MailBCC, ";").Distinct());
+                    }
+                    
                 }
 
 
