@@ -202,6 +202,12 @@ namespace BO
             {
                 return;
             }
+            if (this.CurrentUser.IsMasterPerson && this.CurrentUser.j05IsSlavesAllUsers)
+            {
+                //přístup ke všem uživatelům přes nadřízenost
+                return;
+            }
+           
             if (this.CurrentUser.IsMasterPerson)
             {
                 string s = "(a.j02ID IN (SELECT j02ID_Slave FROM j05MasterSlave WHERE j02ID_Master=@j02id_me)";

@@ -60,6 +60,7 @@ namespace UI.Controllers.Admin
                 c.j05Disposition_p31 = v.Rec.j05Disposition_p31;
                 c.j05IsCreate_p31 = v.Rec.j05IsCreate_p31;
                 c.j05Disposition_j02 = v.Rec.j05Disposition_j02;
+                c.j05IsSlavesAllUsers = v.Rec.j05IsSlavesAllUsers;
 
                 c.ValidUntil = v.Toolbar.GetValidUntil(c);
                 c.ValidFrom = v.Toolbar.GetValidFrom(c);

@@ -18,33 +18,47 @@
         </div>
        
     </div>
-    <div class="my-2">
-        <input type="radio" value="True" id="SlaveIsTeamTrue" asp-for="@Model.SlaveIsTeam" onchange="_postback()" /><label for="SlaveIsTeamTrue">@_f.tra("Podřízený je tým")</label>
-        <br />
-        <input type="radio" value="False" id="SlaveIsTeamFalse" asp-for="@Model.SlaveIsTeam" onchange="_postback()" /><label for="SlaveIsTeamFalse">@_f.tra("Podřízený je uživatel")</label>
+    @if (!Model.Rec.j05IsSlavesAllUsers)
+    {
+        <div class="my-2">
+            <input type="radio" value="True" id="SlaveIsTeamTrue" asp-for="SlaveIsTeam" onchange="_postback()" /><label for="SlaveIsTeamTrue">@_f.tra("Podřízený je tým")</label>
+            <br />
+            <input type="radio" value="False" id="SlaveIsTeamFalse" asp-for="SlaveIsTeam" onchange="_postback()" /><label for="SlaveIsTeamFalse">@_f.tra("Podřízený je uživatel")</label>
 
+        </div>
+    }
+    
+
+    <div class="my-2">
+        
+        <input type="checkbox" asp-for="Rec.j05IsSlavesAllUsers" onchange="_postback()" />
+        <label class="col-form-label" for="Rec_j05IsSlavesAllUsers">@_f.tra("Podřízení jsou všichni uživatelé")</label>
     </div>
     
-    @if (Model.SlaveIsTeam)
+    @if (!Model.Rec.j05IsSlavesAllUsers)
     {
-        <div class="row my-2">
-            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Tým uživatelů"):</label>
-            <div class="col-sm-11 col-md-10">
-                <mycombo entity="j11Team" asp-for="Rec.j11ID_Slave" selectedtext="@Model.ComboTeamSlave" view-flag="2"></mycombo>
-            </div>
+        @if (Model.SlaveIsTeam)
+        {
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Tým uživatelů"):</label>
+                <div class="col-sm-11 col-md-10">
+                    <mycombo entity="j11Team" asp-for="Rec.j11ID_Slave" selectedtext="@Model.ComboTeamSlave" view-flag="2"></mycombo>
+                </div>
 
-        </div>
-    }
-    else
-    {
-        <div class="row">
-            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Uživatel"):</label>
-            <div class="col-sm-11 col-md-10">
-                <mycombo entity="j02User" asp-for="Rec.j02ID_Slave" selectedtext="@Model.ComboPersonSlave" view-flag="1"></mycombo>
             </div>
+        }
+        else
+        {
+            <div class="row">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Uživatel"):</label>
+                <div class="col-sm-11 col-md-10">
+                    <mycombo entity="j02User" asp-for="Rec.j02ID_Slave" selectedtext="@Model.ComboPersonSlave" view-flag="1"></mycombo>
+                </div>
 
-        </div>
+            </div>
+        }
     }
+    
    
     <div class="card my-2">
         <div class="card-header">

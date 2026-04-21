@@ -41,6 +41,8 @@ namespace BO
 
         public int j02CalendarTotalFlagValue { get; set; }
         public string j11IDs { get; }          // seznam týmů osoby
+
+        public bool j05IsSlavesAllUsers { get; set; }
         public string MasterSlave_j02IDs { get; }
         public string MasterSlave_Approve_j02IDs { get; }
         public string o17IDs { get; }          //seznam nabízených menu agend

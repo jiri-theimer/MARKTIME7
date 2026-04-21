@@ -360,6 +360,12 @@ namespace BO
            
             if (this.CurrentUser.TestPermission(PermValEnum.GR_P31_Reader)) return; //oprávnění vidět všechny záznamy
 
+            if (this.CurrentUser.IsMasterPerson && this.CurrentUser.j05IsSlavesAllUsers)
+            {
+                //přístup ke všem uživatelům podle nadřízenosti
+                return;
+            }
+
             var sb = new System.Text.StringBuilder();            
 
             sb.Append("a.j02ID=@j02id_query");
@@ -372,7 +378,7 @@ namespace BO
             sb.Append(")");
             
             if (this.CurrentUser.IsMasterPerson)
-            {
+            {                
                 if (this.CurrentUser.MasterSlave_j02IDs != null)
                 {
                     sb.Append($" OR a.j02ID IN ({this.CurrentUser.MasterSlave_j02IDs})");
