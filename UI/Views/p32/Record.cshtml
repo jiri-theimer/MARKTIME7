@@ -192,6 +192,12 @@
                 </div>
 
             </div>
+            <div class="row my-2">
+                <mylabel class="col-sm-1 col-md-2 col-form-label" text="@_f.tra("Maximální počet znaků textu")" tooltip="Maximální délka textu úkonu. Pokud není vyplněno, použije se výchozí limit 2 000 znaků. Maximální hodnota je limitována velikostí pole v databázi (většinou 2.000 znaků)"></mylabel>
+                <div class="col-sm-1 col-md-1">
+                    <mynumber asp-for="Rec.p32WorksheetTextMaxSize" decimal-digits="0"></mynumber>
+                </div>
+            </div>
         </div>
 
         <div class="tab-pane" id="tab3" role="tabpanel">
@@ -276,7 +282,7 @@
                     <input class="form-control" asp-for="Rec.p32ExternalCode" />
                 </div>
             </div>
-
+           
         </div>
         
         <div class="tab-pane" id="tab5" role="tabpanel">

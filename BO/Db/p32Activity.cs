@@ -75,6 +75,7 @@ namespace BO
         public int p41ID_Absence { get; set; }
         public string p32Color { get; set; }
         public string p32HelpText { get; set; }
+        public int p32WorksheetTextMaxSize { get; set; }
 
         public string p34Name { get; }
         

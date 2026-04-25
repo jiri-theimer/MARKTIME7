@@ -125,6 +125,7 @@ namespace BL
             p.AddInt("p41ID_Absence", rec.p41ID_Absence, true);
             p.AddString("p32Color", rec.p32Color);
             p.AddString("p32HelpText", rec.p32HelpText);
+            p.AddInt("p32WorksheetTextMaxSize", rec.p32WorksheetTextMaxSize);
 
 
             int intPID = _db.SaveRecord("p32Activity", p, rec);

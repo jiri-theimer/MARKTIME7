@@ -102,6 +102,7 @@ namespace UI.Controllers
                 c.p32Color = v.Rec.p32Color;
                 c.p32AbsenceFlag = v.Rec.p32AbsenceFlag;
                 c.p32AbsenceBreakFlag = v.Rec.p32AbsenceBreakFlag;
+                c.p32WorksheetTextMaxSize = v.Rec.p32WorksheetTextMaxSize;
 
                 c.ValidUntil = v.Toolbar.GetValidUntil(c);
                 c.ValidFrom = v.Toolbar.GetValidFrom(c);

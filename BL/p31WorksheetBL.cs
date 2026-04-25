@@ -255,7 +255,7 @@ namespace BL
 
 
             var vlds = BL.Code.p31Support.ValidateBeforeSaveOrigRecord(_mother, _db, rec);
-
+            
             foreach (BO.p31ValidateBeforeSave vld in vlds)
             {
                 if (!string.IsNullOrEmpty(vld.ErrorMessage))
@@ -269,7 +269,7 @@ namespace BL
                         this.AddMessage(rec.ErrorMessage); return 0;
                     }
                 }
-
+               
                 switch (vld.p33ID)
                 {
                     case BO.p33IdENUM.Cas:

@@ -338,6 +338,7 @@ namespace BL
             AA("p32Value_Minimum", "MIN", gdc0, null, "num");
             AA("p32Value_Maximum", "MAX", gdc0, null, "num");
             AA("p32DefaultWorksheetText", "Výchozí text úkonu");
+            AFNUM0("p32WorksheetTextMaxSize", "Maximální délka textu");
             AA("p32HelpText", "Nápověda/Metodika");
             AA("p32Name_BillingLang1", "Název #1");
             AA("p32Name_BillingLang2", "Název #2");
