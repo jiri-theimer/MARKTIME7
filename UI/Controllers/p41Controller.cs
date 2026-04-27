@@ -326,14 +326,23 @@ namespace UI.Controllers
             if (v.SelectedP07ID > 0)
             {
                 v.RecP07 = Factory.lisP07.Where(p => p.pid == v.SelectedP07ID).First();
-                v.lisParentLevels = Factory.lisP07.Where(p => !p.isclosed && p.p07Level < v.RecP07.p07Level);
+               
             }
             else
             {
-                v.RecP07= Factory.lisP07.Where(p => p.p07Level == 5).First(); ;
+                v.RecP07= Factory.lisP07.Where(p => p.p07Level == 5).First();
+                
             }
-
-
+            if (Factory.lisP07.Count() > 1)
+            {
+                v.lisParentLevels = Factory.lisP07.Where(p => !p.isclosed && p.p07Level < v.RecP07.p07Level);
+                if (v.SelectedParentLevelIndex == 0)
+                {
+                    v.SelectedParentLevelIndex = v.RecP07.p07Level - 1;
+                }
+                
+            }
+            
 
             v.TagEntity = $"le{v.RecP07.p07Level}";
 
