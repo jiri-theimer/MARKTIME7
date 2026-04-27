@@ -82,6 +82,7 @@ namespace BO
         public string p42Name { get; }
         public bool p42IsP54 { get; }
         public string j18Name { get; }
+        public int j18Ordinary { get; }
         public string j18CountryCode { get; }
         public string b02Name { get; }
         public string b02Color { get; }

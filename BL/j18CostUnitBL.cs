@@ -49,8 +49,11 @@ namespace BL
 
         public IEnumerable<BO.j18CostUnit> GetList(BO.myQuery mq)
         {
+            if (mq.explicit_orderby == null) { mq.explicit_orderby = "a.j18Ordinary"; }
+
             mq.x01id = _mother.CurrentUser.x01ID;
             DL.FinalSqlCommand fq = DL.basQuery.GetFinalSql(GetSQL1(), mq, _mother.CurrentUser);
+
             return _db.GetList<BO.j18CostUnit>(fq.FinalSql, fq.Parameters);
         }
 

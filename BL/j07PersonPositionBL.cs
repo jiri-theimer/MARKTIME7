@@ -33,6 +33,8 @@ namespace BL
 
         public IEnumerable<BO.j07PersonPosition> GetList(BO.myQuery mq)
         {
+            if (mq.explicit_orderby == null) { mq.explicit_orderby = "a.j07Ordinary"; }
+            
             DL.FinalSqlCommand fq = DL.basQuery.GetFinalSql(GetSQL1(), mq, _mother.CurrentUser);
             return _db.GetList<BO.j07PersonPosition>(fq.FinalSql, fq.Parameters);
         }

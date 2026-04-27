@@ -46,7 +46,7 @@ namespace BL
             sb(",a.p41Plan_Hours_Billable,a.p41Plan_Hours_Nonbillable,a.p41Plan_Hours,a.p41Plan_Expenses,a.p41Plan_Revenue");
             sb(",p28client.p28Name as Client,p07x.p07Level,p07x.p07Name,a.p41ExternalCode,a.p41BillingMemo200");
             sb(",a.p41TreeLevel,a.p41TreeIndex,a.p41TreePrev,a.p41TreeNext,a.p41TreePath");
-            sb(",p42x.p42Name,p42x.p42IsP54,b02.b02Name,b02.b02Color,j18.j18Name,j18.j18CountryCode,p92.p92Name,a.p41BillingLangIndex,p28client.p28BillingLangIndex,p28client.p28BillingMemo200");
+            sb(",p42x.p42Name,p42x.p42IsP54,b02.b02Name,b02.b02Color,j18.j18Name,j18.j18CountryCode,j18.j18Ordinary,p92.p92Name,a.p41BillingLangIndex,p28client.p28BillingLangIndex,p28client.p28BillingMemo200");
             sb(",a.p41ID_P07Level1,a.p41ID_P07Level2,a.p41ID_P07Level3,a.p41ID_P07Level4,a.p41ParentID,a.p41Plan_Internal_Rate,a.p41Plan_Internal_Fee");
             sb(",j02owner.j02Name as Owner,p42x.b01ID,a.p41IsStopNotify");
             sb(",p42x.x38ID,a.p41BitStream,a.p41CapacityStream,a.p41BillingFlag,p42x.p61ID as p61ID_Byp42ID,a.p41WorksheetOperFlag,a.p28ID_Billing,a.p41Round2Minutes,a.p41AccountingIds");
