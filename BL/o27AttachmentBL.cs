@@ -326,6 +326,11 @@ namespace BL
                         _mother.FBL.RunSql("if exists(select o23ID FROM o23Doc WHERE o27ID_Last=@pid) UPDATE o23Doc SET o27ID_Last=NULL WHERE o27ID_Last=@pid", new { pid = intO27ID });
                         _mother.FBL.RunSql("UPDATE o23Doc SET o27ID_Last=@o27id WHERE o23ID=@pid", new { o27id = intO27ID, pid = recpid });
                     }
+                    if (recprefix == "p31")
+                    {
+                        _mother.FBL.RunSql("if exists(select p31ID FROM p31Worksheet WHERE o27ID_Last=@pid) UPDATE p31Worksheet SET o27ID_Last=NULL WHERE o27ID_Last=@pid", new { pid = intO27ID });
+                        _mother.FBL.RunSql("UPDATE p31Worksheet SET o27ID_Last=@o27id WHERE p31ID=@pid", new { o27id = intO27ID, pid = recpid });
+                    }
                     CopyOneTempFile2Upload(c.o27ArchiveFileName, c.o27ArchiveFolder, c.o27ArchiveFileName);
                     bolOK = true;
                 }
@@ -354,6 +359,9 @@ namespace BL
                             case "o23":
                                 _mother.FBL.RunSql("UPDATE o23Doc SET o27ID_Last=@o27id WHERE o23ID=@pid", new { o27id = intO27ID, pid = recpid });
                                 break;
+                            case "p31":
+                                _mother.FBL.RunSql("UPDATE p31Worksheet SET o27ID_Last=@o27id WHERE p31ID=@pid", new { o27id = intO27ID, pid = recpid });
+                                break;
                         }
                     }
                     else
@@ -376,6 +384,9 @@ namespace BL
                     {
                         case "o23":
                             _mother.FBL.RunSql("if exists(select o23ID FROM o23Doc WHERE o27ID_Last=@pid) UPDATE o23Doc SET o27ID_Last=NULL WHERE o27ID_Last=@pid", new { pid = recTemp.p85DataPID });
+                            break;
+                        case "p31":
+                            _mother.FBL.RunSql("if exists(select p31ID FROM p31Worksheet WHERE o27ID_Last=@pid) UPDATE p31Worksheet SET o27ID_Last=NULL WHERE o27ID_Last=@pid", new { pid = recTemp.p85DataPID });
                             break;
                     }
                 }

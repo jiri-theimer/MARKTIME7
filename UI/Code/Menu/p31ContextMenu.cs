@@ -147,6 +147,11 @@ namespace UI.Menu
                         }
 
                     }
+                    var lisO23 = _f.o23DocBL.GetList(new BO.myQueryO23() { p31id = rec.pid });
+                    foreach(var c in lisO23)
+                    {
+                        AMI_RecPage(c.o18Name + ": " + c.o23Name, "o23", c.pid,"rel");
+                    }
                 }
                 
                 

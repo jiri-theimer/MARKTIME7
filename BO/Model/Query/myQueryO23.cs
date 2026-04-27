@@ -11,6 +11,7 @@ namespace BO
         public int p41id { get; set; }
         public int p28id { get; set; }
         public int o51id { get; set; }
+        public int p31id { get; set; }
         public int leindex { get; set; }   //nadřízená vertikální úrověň projektu #1 - #4
         public int lepid { get; set; }     //nadřízená vertikální úrověň projektu, hodnota p41id
         
@@ -41,8 +42,11 @@ namespace BO
             {
                 this.entity = "p41"; this.recpid = this.p41id;
             }
+            if (this.p31id > 0)
+            {
+                this.entity = "p31"; this.recpid = this.p31id;
+            }
 
-           
 
             if (this.o51id > 0)
             {
