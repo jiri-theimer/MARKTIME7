@@ -255,6 +255,7 @@ namespace BL
                     of = AF("p31Worksheet", "KlientProjektu", "p41x.p28ID_Client", "Klient projektu", "p28Contact", "canbe_client|bool|1", "multi");
                     of = AF("p31Worksheet", "Dodavatel", "a.p28ID_Supplier", "Dodavatel výdaje", "p28Contact", "canbe_supplier|bool|1", "multi");
                     of = AF("p31Worksheet", "MenaUkonu", "a.j27ID_Billing_Orig", "Měna úkonu", "j27Currency", null, "multi");
+                    of = AF("p31Worksheet", "DruhUhrady", "a.j19ID", "Druh úhrady", "j19PaymentType", null, "multi");
 
                     of = AF("p31Worksheet", "PouzeHodiny", "p34x.p33ID=1", "Pouze hodiny", null, null, "bool1x");
                     of = AF("p31Worksheet", "PouzeVydaje", "p34x.p33ID IN (2,5) AND p34x.p34IncomeStatementFlag=1", "Pouze výdaje", null, null, "bool1x");

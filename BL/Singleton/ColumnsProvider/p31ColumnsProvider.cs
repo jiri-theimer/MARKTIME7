@@ -30,6 +30,7 @@ namespace BL
 
             AF("p31ExternalCode", "Externí kód");
             oc = AF("DodavatelUkonu", "Dodavatel", "p28dodavatel.p28Name", "string"); oc.IHRC = true; oc.RelSqlInCol = "LEFT OUTER JOIN p28Contact p28dodavatel ON a.p28ID_Supplier=p28dodavatel.p28ID"; oc.SqlExplicitGroupBy = "a.p28ID_Supplier";
+            oc = AF("j19Name_Orig", "Druh úhrady", "j19.j19Name", "string"); oc.IHRC = true; oc.RelSqlInCol = "LEFT OUTER JOIN j19PaymentType j19 ON a.j19ID=j19.j19ID"; oc.FixedWidth = 100; oc.SqlExplicitGroupBy = "a.j19ID";
 
 
             //AF("p31RecordSourceFlag_Alias", "Zdrojová aplikace", "case a.p31RecordSourceFlag when 1 then 'Mobil' else 'MT' end");
