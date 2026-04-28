@@ -671,10 +671,16 @@ namespace UI.Views.Shared.Components.myGrid
                         {
                             _s.Append($"<span class='material-icons-outlined-nosize'>speaker_notes</span>");
                         }
+                        
+                        if (dbRow["o27ID_Last"] != System.DBNull.Value)
+                        {
+                            _s.Append("<span class='material-icons-outlined-nosize'>attachment</span>");
+                        }
                         if (dbRow["o23ID"] != System.DBNull.Value)
                         {
                             _s.Append($"<span class='material-icons-outlined-nosize'>file_present</span>");
                         }
+
                         break;
                     case "p41":
                     case "le5":

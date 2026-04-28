@@ -40,7 +40,7 @@ namespace BL
             oc = AF("p91DateSupplyYear", "Rok DUZP", "convert(varchar(4),a.p91DateSupply,126)"); oc.SqlExplicitGroupBy = "convert(varchar(4),a.p91DateSupply,126)"; oc.FixedWidth = 80;
             oc = AF("p91DateSupplyMesic", "Měsíc DUZP", "convert(varchar(7),a.p91DateSupply,126)"); oc.SqlExplicitGroupBy = "convert(varchar(7),a.p91DateSupply,126)"; oc.FixedWidth = 80;
             oc = AFDATE("p91DateMaturity", "Splatnost", "a.p91DateMaturity"); oc.DefaultColumnFlag = gdc2; oc.SqlExplicitGroupBy = "a.p91DateMaturity";
-            AF("DnuPoSplatnosti", "Dnů do splatnosti", "case When a.p91Amount_Debt=0 Then null Else datediff(day, a.p91DateMaturity, dbo.get_today()) End", "num0");
+            AF("DnuPoSplatnosti", "Dnů po splatnosti", "case When a.p91Amount_Debt=0 Then null Else datediff(day, a.p91DateMaturity, dbo.get_today()) End", "num0");
             AFDATE("p91DateBilled", "Datum úhrady", "a.p91DateBilled");
             AFDATE("p91DateExchange", "Datum měn.kurzu");
 

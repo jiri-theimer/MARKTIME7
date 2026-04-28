@@ -503,7 +503,7 @@ namespace DL
                         s = $"{s},a.p91IsDraft,a.p91DateMaturity,a.p91Amount_Debt,a.p91Amount_TotalDue,a.p91LockFlag,a.p91RowColorFlag,b02x.b02Color,a.p84ID_Last";
                         break;
                     case "p31":
-                        s = $"{s},a.p72ID_AfterApprove,a.p72ID_AfterTrimming,a.p70ID,a.p71ID,a.p91ID,p91x.p91IsDraft,p34x.p33ID,p34x.p34IncomeStatementFlag,p32x.p32IsBillable,a.p31Rate_Billing_Orig,a.p31Amount_WithoutVat_Orig,p41x.p41BillingFlag,a.p31ExcludeBillingFlag,a.b05ID_Last,a.p31RowColorFlag,a.o23ID";
+                        s = $"{s},a.p72ID_AfterApprove,a.p72ID_AfterTrimming,a.p70ID,a.p71ID,a.p91ID,p91x.p91IsDraft,p34x.p33ID,p34x.p34IncomeStatementFlag,p32x.p32IsBillable,a.p31Rate_Billing_Orig,a.p31Amount_WithoutVat_Orig,p41x.p41BillingFlag,a.p31ExcludeBillingFlag,a.b05ID_Last,a.p31RowColorFlag,a.o23ID,a.o27ID_Last";
                         break;
                     case "p41":
                     case "le5":

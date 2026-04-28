@@ -271,10 +271,11 @@ namespace BL
 
                     
                         AF("p31Worksheet", "BudouciNepritomnost", "ISNULL(p32x.p32AbsenceFlag,0)>0", "Aktivita budoucí nepřítomnosti", null, null, "bool1x");
-                    
-                    AF("p31Worksheet", "SDokumentem", "a.o23ID IS NOT NULL", "Vazba s dokumentem", null, null, "bool1x");
+
+                    AF("p31Worksheet", "SFileBox", "a.o27ID_Last IS NOT NULL", "Vazba s FILEBOX", null, null, "bool1x");                    
                     AF("p31Worksheet", "SDodavatelem", "a.p28ID_Supplier IS NOT NULL", "Vazba s dodavatelem výdaje", null, null, "bool1x");
                     AF("p31Worksheet", "SKontaktniOsobou", "a.p28ID_ContactPerson IS NOT NULL", "Vazba s kontaktní osobou", null, null, "bool1x");
+                    AF("p31Worksheet", "SDokumentem", "a.o23ID IS NOT NULL", "Vazba se záznamem dokumentu", null, null, "bool1x");
                     AF("p31Worksheet", "SKodem", "a.p31Code IS NOT NULL", "Vyplněn kód dokladu", null, null, "bool1x");
                     AF("p31Worksheet", "PripojenyNotepad", "EXISTS (SELECT 1 FROM b05Workflow_History WHERE b05RecordPid=a.p31ID AND b05RecordEntity='p31')", "Připojena poznámka (Notepad)", null, null, "bool1x");
                     AF("p31Worksheet", "VygenerovanoRobotem", "a.p40ID_Source IS NOT NULL","Vygenerováno robotem (opakovaná odměna)", null, null, "bool1x");
