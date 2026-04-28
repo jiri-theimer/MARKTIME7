@@ -406,25 +406,46 @@ namespace UI.Controllers
         {
             if (string.IsNullOrEmpty(downloadfilename)) downloadfilename = tempfilename;
             string strFullPath = $"{Factory.TempFolder}\\{tempfilename}";
-            if (string.IsNullOrEmpty(contenttype)) contenttype = "application/octet-stream";
-
             if (!string.IsNullOrEmpty(subfolder))
             {
                 strFullPath = $"{Factory.TempFolder}\\{subfolder}\\{tempfilename}";
             }
-
             if (!System.IO.File.Exists(strFullPath))
             {
                 return FileDownloadNotFound(new BO.o27Attachment() { o27OriginalFileName = tempfilename, o27ArchiveFolder = "TEMP" });
             }
-            Response.Headers["Content-Disposition"] = string.Format("inline; filename={0}", downloadfilename);
-            var fileContentResult = new FileContentResult(System.IO.File.ReadAllBytes(strFullPath), contenttype);
-            return fileContentResult;
+            if (string.IsNullOrEmpty(contenttype))
+            {
+                contenttype = "application/octet-stream";
+            }
+
+            byte[] fileBytes = System.IO.File.ReadAllBytes(strFullPath);
+            Response.Headers["Content-Type"] = contenttype;
+            Response.Headers["Content-Length"] = fileBytes.Length.ToString();
+            return File(fileBytes, contenttype, downloadfilename);
+
+
+
+            //if (contenttype== "application/octet-stream")
+            //{
+            //    Response.Headers["Content-Type"] = contenttype;
+            //    Response.Headers["Content-Length"] = fileBytes.Length.ToString();
+            //    return File(fileBytes, contenttype, downloadfilename);
+            //}
+            //else
+            //{
+            //    BO.Code.File.LogInfo($"filename: {downloadfilename}, contenttype: {contenttype}");
+            //    Response.Headers["Content-Disposition"] = $"inline; filename=\"{downloadfilename}\"; filename*=UTF-8''{Uri.EscapeDataString(downloadfilename)}";
+            //    var fileContentResult = new FileContentResult(fileBytes, contenttype);
+            //    return fileContentResult;
+            //}
+
+           
         }
 
+
+
         
-
-
 
 
         public ActionResult FileDownloadNotFound(BO.o27Attachment c)
