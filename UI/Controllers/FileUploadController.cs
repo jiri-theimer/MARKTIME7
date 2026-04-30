@@ -455,7 +455,7 @@ namespace UI.Controllers
             }
             var c = lis.First();
 
-            string fullPath = Factory.UploadFolder + "\\" + c.o59ArchiveFolder + "\\" + c.o59ArchiveFileName;
+            string fullPath = Factory.UploadFolder + "\\o59\\" + c.o59ArchiveFolder + "\\" + c.o59ArchiveFileName;
 
             
 
