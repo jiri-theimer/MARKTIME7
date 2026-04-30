@@ -25,14 +25,21 @@
             </td>
 
             <td>
-                @if (c.DataTypeName == "string" && c.o59ValueString !=null && c.o59ValueString.Contains("http"))
+                @if (c.o59ValueString !=null && c.o59ValueString.StartsWith("http"))
                 {
                     <myval datatype="link" linktarget="_blank" linkurl="@c.o59ValueString" value="@c.o58Name"></myval>
                 }
                 else
                 {
-
-                    <myval datatype="@c.DataTypeName" value="@c.DataValue"></myval>
+                    if (c.o59ValueString != null && c.o59ValueString.StartsWith("attachment"))
+                    {
+                        <myval datatype="link" linktarget="_blank" linkurl="/FileUpload/FileDownloadO59?prefix=@c.o59RecPrefix&pid=@c.o59RecPid&filename=@c.o59ValueString" value="@c.o59ArchiveFileName"></myval>
+                    }
+                    else
+                    {
+                        <myval datatype="@c.DataTypeName" value="@c.DataValue"></myval>
+                    }
+                    
                     
                 }
                 

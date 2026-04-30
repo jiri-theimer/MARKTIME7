@@ -16,7 +16,10 @@ namespace BO
         public double o59ValueNum { get; set; }
         public bool? o59ValueBoolean { get; set; }
         public DateTime? o59ValueDate { get; set; }
-
+        public string o59ArchiveFileName { get; set; }
+        public string o59ArchiveFolder { get; set; }
+        public string o59ContentType { get; set; }
+        
         public object DataValue { get
             {
                 switch (this.x24ID)

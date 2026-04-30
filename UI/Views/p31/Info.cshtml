@@ -46,6 +46,8 @@
             _kontaktniOsoba = recP28CP.p28Name;
         }
     }
+
+    var _lisFieldBagParams = _f.FBL.GetList_FieldBagParam("p31", Model.Rec.pid);
 }
 
 @addTagHelper *, UI
@@ -676,6 +678,11 @@
 @Html.EditorFor(m => m, "~/Views/Shared/_TagsTab1.cshtml")
 
 @Html.EditorFor(m => m, "~/Views/Shared/_lisO27Tab1.cshtml")
+
+@if (_lisFieldBagParams != null && _lisFieldBagParams.Count() > 0)
+{
+    @await Html.PartialAsync("~/Views/Shared/_FieldBagParams.cshtml", _lisFieldBagParams)
+}
 
 <div style="clear:both;"></div>
 

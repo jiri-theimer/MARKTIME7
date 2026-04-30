@@ -444,8 +444,43 @@ namespace UI.Controllers
         }
 
 
+        [HttpGet]
+        public ActionResult FileDownloadO59(string prefix,int pid,string filename)
+        {
+            var lis = Factory.FBL.GetList_FieldBagParam(prefix, pid).Where(p => p.o59ValueString == filename);
 
-        
+            if (lis.Count() == 0)
+            {
+                return FileDownloadNotFound(new BO.o27Attachment() { o27OriginalFileName = filename, o27ArchiveFolder = "o59" });
+            }
+            var c = lis.First();
+
+            string fullPath = Factory.UploadFolder + "\\" + c.o59ArchiveFolder + "\\" + c.o59ArchiveFileName;
+
+            
+
+            if (System.IO.File.Exists(fullPath))
+            {
+                Response.Headers["Content-Disposition"] = $"inline; filename*=UTF-8''{HttpUtility.UrlEncode(c.o59ArchiveFileName)}";
+                if (c.o59ContentType != null)
+                {
+                    var fileContentResult = new FileContentResult(System.IO.File.ReadAllBytes(fullPath), c.o59ContentType);
+
+                    return fileContentResult;
+                }
+                else
+                {
+                    return new FileContentResult(System.IO.File.ReadAllBytes(fullPath), "application/octet-stream");
+                }
+
+            }
+            else
+            {
+                return FileDownloadNotFound(new BO.o27Attachment() { o27OriginalFileName = c.o59ArchiveFileName, o27ArchiveFolder = "o59" });
+            }
+
+        }
+
 
 
         public ActionResult FileDownloadNotFound(BO.o27Attachment c)

@@ -596,7 +596,7 @@ namespace BL
             {
                 return null;
             }
-            return _db.GetList<BO.FieldBagParam>("SELECT a.o58ID,a.o58Name,a.o58Code,a.x24ID,b.o59RecPrefix,b.o59RecPid,b.o59ValueString,b.o59ValueDate,b.o59ValueNum,b.o59ValueBoolean FROM o58FieldBag a INNER JOIN o59FieldBagValue b ON a.o58ID=b.o58ID WHERE b.o59RecPrefix=@prefix AND b.o59RecPid=@pid ORDER BY a.o58Ordinary", new { prefix = prefix, pid = pid });
+            return _db.GetList<BO.FieldBagParam>("SELECT a.o58ID,a.o58Name,a.o58Code,a.x24ID,b.o59RecPrefix,b.o59RecPid,b.o59ValueString,b.o59ValueDate,b.o59ValueNum,b.o59ValueBoolean,b.o59ArchiveFileName,b.o59ArchiveFolder,b.o59ContentType FROM o58FieldBag a INNER JOIN o59FieldBagValue b ON a.o58ID=b.o58ID WHERE b.o59RecPrefix=@prefix AND b.o59RecPid=@pid ORDER BY a.o58Ordinary", new { prefix = prefix, pid = pid });
         }
     }
 }
