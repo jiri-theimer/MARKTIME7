@@ -1,0 +1,44 @@
+﻿@model IEnumerable<BO.FieldBagParam>
+
+
+
+@{
+
+
+    if (Model == null || Model.Count() == 0)
+    {
+        return;
+    }
+
+    
+
+}
+
+@addTagHelper *, UI
+
+<table class="table table-hover">
+    @foreach (var c in Model)
+    {
+        <tr>
+            <td style="max-width:100px;">
+                @c.o58Name
+            </td>
+
+            <td>
+                @if (c.DataTypeName == "string" && c.o59ValueString !=null && c.o59ValueString.Contains("http"))
+                {
+                    <myval datatype="link" linktarget="_blank" linkurl="@c.o59ValueString" value="@c.o58Name"></myval>
+                }
+                else
+                {
+
+                    <myval datatype="@c.DataTypeName" value="@c.DataValue"></myval>
+                    
+                }
+                
+                
+            </td>
+        </tr>
+    }
+
+</table>

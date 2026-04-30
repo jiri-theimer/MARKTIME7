@@ -23,6 +23,8 @@
 
     var _lisB05 = _f.WorkflowBL.GetList_b05("p31", Model.rec_pid, 0, 0, 0);
     bool _isMobile = _f.CurrentUser.IsMobileDisplay();
+
+    var _lisFieldBagParams = _f.FBL.GetList_FieldBagParam("p31", Model.rec_pid);
 }
 
 @addTagHelper *, UI
@@ -582,6 +584,11 @@ else
 }
 
 @Html.Raw("</div>")
+
+@if (_lisFieldBagParams != null && _lisFieldBagParams.Count()>0)
+{
+    @await Html.PartialAsync("~/Views/Shared/_FieldBagParams.cshtml", _lisFieldBagParams)
+}
 
 @if (Model.disp.IsFiles)
 {

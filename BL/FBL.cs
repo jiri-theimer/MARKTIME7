@@ -40,6 +40,7 @@ namespace BL
         public bool SetHidden_j97(int j97id, bool bolHidden);
         public void RunRecovery_Permissions();
         public string BackupDatabase(string strDbName, string strDestFolder = null);
+        public IEnumerable<BO.FieldBagParam> GetList_FieldBagParam(string prefix, int pid);
 
     }
     class FBL : BaseBL, IFBL
@@ -586,6 +587,16 @@ namespace BL
             return strBakFileName;
 
 
+        }
+
+
+        public IEnumerable<BO.FieldBagParam> GetList_FieldBagParam(string prefix, int pid)
+        {
+          if (pid == 0 || prefix==null)
+            {
+                return null;
+            }
+            return _db.GetList<BO.FieldBagParam>("SELECT a.o58ID,a.o58Name,a.o58Code,a.x24ID,b.o59RecPrefix,b.o59RecPid,b.o59ValueString,b.o59ValueDate,b.o59ValueNum,b.o59ValueBoolean FROM o58FieldBag a INNER JOIN o59FieldBagValue b ON a.o58ID=b.o58ID WHERE b.o59RecPrefix=@prefix AND b.o59RecPid=@pid ORDER BY a.o58Ordinary", new { prefix = prefix, pid = pid });
         }
     }
 }

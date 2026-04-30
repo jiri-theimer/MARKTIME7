@@ -93,6 +93,7 @@ namespace UI.Models.Record
         public bool IsOfferNavicKusovnik { get; set; }
         public int p34ID_Kusovnik { get; set; }
         public List<KusovnikInline> lisKusovnik { get; set; }
+        
     }
 
     public class KusovnikInline
