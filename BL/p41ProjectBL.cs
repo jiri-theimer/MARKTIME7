@@ -280,7 +280,7 @@ namespace BL
                     }
                     if (lisP26 != null)
                     {
-                        foreach (var c in lisP26)
+                        foreach (var c in lisP26.OrderByDescending(p=>p.IsSetAsDeleted))
                         {
                             var recP27 = _mother.p27PctypeBL.Load(c.p27ID);                            
                             if (c.IsSetAsDeleted)
@@ -290,7 +290,7 @@ namespace BL
                                     _db.RunSql("DELETE FROM p26ProjectContact WHERE p26ID=@pid", new { pid = c.pid });
                                     if (recP27.p27Field != null)
                                     {
-                                        _db.RunSql($"UPDATE p22ProjectContactInline SET {recP27.p27Field}=NULL WHERE p41ID=@pid", new { pid = c.pid });
+                                        _db.RunSql($"UPDATE p22ProjectContactInline SET {recP27.p27Field}=NULL WHERE p41ID=@p41id", new { p41id = intPID });
                                     }
                                     
                                 }
@@ -311,7 +311,7 @@ namespace BL
                                 
                                 if (_db.SaveRecord("p26ProjectContact", p, recP26, false, true) > 0 && recP27.p27Field != null)
                                 {
-                                    _db.RunSql($"if not exists(select p22ID FROM p22ProjectContactInline where p41ID=@p41id) INSERT INTO p22ProjectContactInline(p41ID) VALUES(@p41id); UPDATE p22ProjectContactInline SET {recP27.p27Field}=@p28name WHERE p41ID=@p41id", new { p41id = intPID,p28name=c.p28Name });
+                                    _db.RunSql($"if not exists(select p22ID FROM p22ProjectContactInline where p41ID=@p41id) INSERT INTO p22ProjectContactInline(p41ID,{recP27.p27Field}) VALUES(@p41id,@p28name) else UPDATE p22ProjectContactInline SET {recP27.p27Field}=@p28name WHERE p41ID=@p41id", new { p41id = intPID,p28name=_mother.p28ContactBL.Load(c.p28ID).p28Name });
                                 }
                             }
                         }
