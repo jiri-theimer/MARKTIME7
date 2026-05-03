@@ -168,7 +168,7 @@ namespace UI.Views.Shared.TagHelpers
                 
             }
 
-            if (this.ValueAfter != null)
+            if (!string.IsNullOrEmpty(this.ValueAfter))
             {                
                 if (this.ValueAfter.Contains("<"))
                 {

@@ -483,7 +483,7 @@ namespace BL
         }
         public IEnumerable<BO.p26ProjectContact> GetList_p26(int p28id)
         {
-            string s = "select a.*," + _db.GetSQL1_Ocas("p26", false, false) + ", p41.p41Name,p28.p28Name FROM p26ProjectContact a INNER JOIN p41Project p41 ON a.p41ID=p41.p41ID INNER JOIN p28Contact p28 ON a.p28ID=p28.p28ID WHERE a.p28ID=@p28id";
+            string s = "select a.*," + _db.GetSQL1_Ocas("p26", false, false) + ", p41.p41Name,p28.p28Name,p27.p27Name FROM p26ProjectContact a INNER JOIN p41Project p41 ON a.p41ID=p41.p41ID INNER JOIN p28Contact p28 ON a.p28ID=p28.p28ID LEFT OUTER JOIN p27Pctype p27 ON a.p27ID=p27.p27ID WHERE a.p28ID=@p28id";
            
             return _db.GetList<BO.p26ProjectContact>(s, new { p28id = p28id });
         }

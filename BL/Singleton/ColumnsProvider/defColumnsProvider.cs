@@ -64,7 +64,8 @@ namespace BL
             AppendTimestamp();
 
             this.EntityName = "p27Pctype";
-            AA("p27Name", "Název", gdc1, null, "string", false, true);            
+            AA("p27Name", "Název", gdc1, null, "string", false, true);
+            AFNUM0("p27Ordinary", "#").DefaultColumnFlag = gdc2;
             AppendTimestamp();
 
             this.EntityName = "j11Team";

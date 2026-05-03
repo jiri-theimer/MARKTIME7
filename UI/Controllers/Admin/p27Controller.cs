@@ -36,7 +36,8 @@ namespace UI.Controllers
                 BO.p27Pctype c = new BO.p27Pctype();
                 if (v.rec_pid > 0) c = Factory.p27PctypeBL.Load(v.rec_pid);
                 c.p27Name = v.Rec.p27Name;
-                
+                c.p27Ordinary = v.Rec.p27Ordinary;
+
                 c.ValidUntil = v.Toolbar.GetValidUntil(c);
                 c.ValidFrom = v.Toolbar.GetValidFrom(c);
 

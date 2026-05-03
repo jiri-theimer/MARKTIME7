@@ -32,6 +32,7 @@ namespace BL
 
         public IEnumerable<BO.p27Pctype> GetList(BO.myQuery mq)
         {
+            if (mq.explicit_orderby == null) mq.explicit_orderby = "a.p27Ordinary";
             DL.FinalSqlCommand fq = DL.basQuery.GetFinalSql(GetSQL1(), mq, _mother.CurrentUser);
             return _db.GetList<BO.p27Pctype>(fq.FinalSql, fq.Parameters);
         }
@@ -48,7 +49,19 @@ namespace BL
             p.AddInt("pid", rec.pid);
             p.AddInt("x01ID", rec.x01ID == 0 ? _mother.CurrentUser.x01ID : rec.x01ID, true);
             p.AddString("p27Name", rec.p27Name);
-            
+            p.AddInt("p27Ordinary", rec.p27Ordinary);
+
+            if (rec.p27Field == null)//najít volné pole pro grid
+            {
+                var lis = GetList(new BO.myQuery("p27")).Where(p => p.p27Field != null).OrderByDescending(p => p.p27Field);
+                int intFieldIndex = 1;
+                if (lis.Count() > 0)
+                {
+                    intFieldIndex = 1 + Convert.ToInt32(BO.Code.Bas.RightString(lis.First().p27Field, 2));
+                }
+                rec.p27Field = "p22Item" + BO.Code.Bas.RightString("0" + intFieldIndex.ToString(), 2);
+
+            }
 
             return _db.SaveRecord("p27Pctype", p, rec);
         }
