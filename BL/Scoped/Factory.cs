@@ -64,6 +64,7 @@ namespace BL
         private Ip28ContactBL _p28;
         private Ip29ContactTypeBL _p29;
         private Ip24ContactGroupBL _p24;
+        private Ip27PctypeBL _p27;
         private Ij11TeamBL _j11;
         
         private Ij18CostUnitBL _j18;
@@ -875,7 +876,14 @@ namespace BL
                 return _p35;
             }
         }
-
+        public Ip27PctypeBL p27PctypeBL
+        {
+            get
+            {
+                if (_p27 == null) _p27 = new p27PctypeBL(this);
+                return _p27;
+            }
+        }
         public Ix07IntegrationBL x07IntegrationBL
         {
             get

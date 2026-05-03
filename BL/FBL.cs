@@ -21,7 +21,7 @@ namespace BL
         public IEnumerable<BO.x21DatePeriod> GetListX21(int j02id);
         public bool SaveX21Batch(List<BO.x21DatePeriod> lisX21);
         public IEnumerable<BO.x90Migration> GetListX90();
-        public IEnumerable<BO.p27Pctype> GetListP27();
+        
         public DataTable GetDataTable(string sql, string constring = null);
         public bool RunSql(string sql, object param = null, string constring = null);
         public IEnumerable<BO.Sys.SysDbObject> Sys_GetList_SysObjects();
@@ -54,10 +54,7 @@ namespace BL
         {
             return _db.GetList<BO.x90Migration>("select * from x90Migration ORDER BY x90Ordinary,x90ID");
         }
-        public IEnumerable<BO.p27Pctype> GetListP27()
-        {
-            return _db.GetList<BO.p27Pctype>($"SELECT {_db.GetSQL1_Ocas("p27")},a.* FROM p27Pctype a WHERE a.x01ID=@x01id", new { x01id = _mother.CurrentUser.x01ID });
-        }
+        
         public IEnumerable<BO.j19PaymentType> GetListJ19()
         {
             return _db.GetList<BO.j19PaymentType>("SELECT " + _db.GetSQL1_Ocas("j19") + ",a.* FROM j19PaymentType a");

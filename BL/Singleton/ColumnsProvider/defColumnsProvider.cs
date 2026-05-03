@@ -63,6 +63,10 @@ namespace BL
             AA("p24Email", "Skupinový e-mail");
             AppendTimestamp();
 
+            this.EntityName = "p27Pctype";
+            AA("p27Name", "Název", gdc1, null, "string", false, true);            
+            AppendTimestamp();
+
             this.EntityName = "j11Team";
             AA("j11Name", "Pracovní tým", gdc1, null, "string", false, true);
             AA("j11Email", "Skupinový e-mail");

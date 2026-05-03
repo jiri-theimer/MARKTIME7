@@ -184,10 +184,12 @@ namespace BL.Singleton
             AE("p28Contact", "Kontakty", "Kontakt", "p28Contact a INNER JOIN p29ContactType p29x ON a.p29ID=p29x.p29ID", "a.p28Name");
             AE("p29ContactType", "Typy kontaktu", "Typ kontaktu", "p29ContactType a", "a.p29Ordinary,a.p29Name");
             AE("p24ContactGroup", "Skupiny kontaktů", "Skupina kontaktů", "p24ContactGroup a ", "a.p24Name");
+            
 
             AE("p07ProjectLevel", "Úrovně projektů", "Úroveň projektu", "p07ProjectLevel a", "a.p07Level DESC", "a.p07Level DESC");
             AE("p42ProjectType", "Typy projektů", "Typ projektu", "p42ProjectType a", "a.p42Ordinary", "a.p42Ordinary");
             AE("p51PriceList", "Ceníky sazeb", "Ceník sazeb", "p51PriceList a", "a.p51Ordinary");
+            AE("p27Pctype", "Vazby kontaktů", "Vazba kontaktů", "p27Pctype a ","a.p27Name");
 
             AE("p44ProjectTemplate", "Šablony projektů", "Projektová šablona", "p44ProjectTemplate a LEFT OUTER JOIN p41Project p41x ON a.p41ID_Pattern=p41x.p41ID LEFT OUTER JOIN p28Contact p28x ON p41x.p28ID_Client=p28x.p28ID", "a.p44Ordinary");
 
@@ -336,7 +338,7 @@ namespace BL.Singleton
                     lis.Add(getREL("com_nevyuctovano", "p28_nevyuctovano", "Nevyúčtováno", "LEFT OUTER JOIN [%p28_nevyuctovano.sql%] p28_nevyuctovano ON a.p28ID=p28_nevyuctovano.p28ID"));
                     lis.Add(getREL("com_vyuctovano", "p28_invoice", "Vyúčtováno", "LEFT OUTER JOIN [%p28_vyuctovano.sql%] p28_invoice ON a.p28ID=p28_invoice.p28ID"));
 
-                    lis.Add(getREL("view_28_kontaktni_osoby", "p28_ko", "Kontaktní osoba", "LEFT OUTER JOIN dbo.view_28_kontaktni_osoby p28_ko ON a.p28ID=p28_ko.p28ID"));
+                    //lis.Add(getREL("view_28_kontaktni_osoby", "p28_ko", "Kontaktní osoba", "LEFT OUTER JOIN dbo.view_28_kontaktni_osoby p28_ko ON a.p28ID=p28_ko.p28ID"));
                     break;
                 case "p31":
                     lis.Add(getREL("j02User", "p31_j02", "Uživatel", "LEFT OUTER JOIN j02User p31_j02 ON a.j02ID=p31_j02.j02ID"));

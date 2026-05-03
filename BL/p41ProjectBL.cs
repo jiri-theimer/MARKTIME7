@@ -372,7 +372,11 @@ namespace BL
 
             if (lisP26 != null && lisP26.Any(p => p.p28ID == 0 && p.IsSetAsDeleted == false))
             {
-                return this.FalsehMessage("Ve svázaných kontaktech projektu chybí vazba na záznam kontaktu.");
+                return this.FalsehMessage("Ve vazbách na kontakty projektu chybí vazba na záznam kontaktu.");
+            }
+            if (lisP26 != null && lisP26.Any(p => p.p27ID == 0 && p.IsSetAsDeleted == false))
+            {
+                return this.FalsehMessage("Ve vazbách na kontakty projektu chybí vyplnit typ vazby.");
             }
 
             if (rec.ValidUntil < DateTime.Now && rec.pid > 0 && (int)rec.p41BillingFlag<99)
