@@ -394,7 +394,8 @@ namespace BL.Singleton
                     lis.Add(getREL("com_nevyuctovano", "p41_nevyuctovano", "Nevyúčtováno", "LEFT OUTER JOIN [%p41_nevyuctovano.sql%] p41_nevyuctovano ON a.p41ID=p41_nevyuctovano.p41ID"));
                     lis.Add(getREL("com_vyuctovano", "p41_vyuctovano", "Vyúčtováno", "LEFT OUTER JOIN [%p41_vyuctovano.sql%] p41_vyuctovano ON a.p41ID=p41_vyuctovano.p41ID"));
 
-                    
+                    lis.Add(getREL("p22ProjectContactInline", "p41_p22", "Kontakty projektu ", "LEFT OUTER JOIN p22ProjectContactInline p41_p22 ON a.p41ID=p41_p22.p41ID"));
+
                     break;
                 case "p56":
                     lis.Add(getREL("p41Project", "p56_p41", "Projekt", "LEFT OUTER JOIN p41Project p56_p41 ON a.p41ID=p56_p41.p41ID"));

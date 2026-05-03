@@ -11,6 +11,10 @@ namespace BL
                 Handle_o23UserFields(f);    //dokumenty přes o16DocType_FieldSetting
             }
            
+            if (prefix == "p41")
+            {
+                Handle_p22UserFields(f);
+            }
 
             Handle_x67Roles(f,prefix);         //role v záznamech
 
@@ -215,6 +219,19 @@ namespace BL
                 oc.NotShowRelInHeader = true;
                 oc.RelSqlInCol = $"LEFT OUTER JOIN x71EntityRole_Inline x71Free{c.pid} ON a.{c.x67Entity}ID=x71Free{c.pid}.x71RecordPid AND x71Free{c.pid}.x67ID={c.pid} AND x71Free{c.pid}.x71RecordEntity='{c.x67Entity}'";
                 oc.SqlExplicitGroupBy = $"x71Free{c.pid}.x71Value";
+            }
+        }
+
+        private void Handle_p22UserFields(BL.Factory f)
+        {
+            //this.EntityName = "p41Project";
+            this.EntityName = "p22ProjectContactInline";
+            //this.CurrentFieldGroup = "Kontakty projektu";
+            var lisP27 = f.p27PctypeBL.GetList(new BO.myQuery("p27")).Where(p => p.p27Field != null);
+            foreach (var c in lisP27)
+            {
+                oc = AF($"Free{c.p27Field}", c.p27Name, $"a.{c.p27Field}");
+                oc.NotShowRelInHeader = true;
             }
         }
         private void Handle_o23UserFields(BL.Factory f)
