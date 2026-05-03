@@ -282,11 +282,17 @@ namespace BL
                     {
                         foreach (var c in lisP26)
                         {
+                            var recP27 = _mother.p27PctypeBL.Load(c.p27ID);                            
                             if (c.IsSetAsDeleted)
                             {
                                 if (c.pid > 0)
                                 {
                                     _db.RunSql("DELETE FROM p26ProjectContact WHERE p26ID=@pid", new { pid = c.pid });
+                                    if (recP27.p27Field != null)
+                                    {
+                                        _db.RunSql($"UPDATE p22ProjectContactInline SET {recP27.p27Field}=NULL WHERE p41ID=@pid", new { pid = c.pid });
+                                    }
+                                    
                                 }
                             }
                             else
@@ -302,8 +308,11 @@ namespace BL
                                 p.AddString("p26Name", c.p26Name);
                                 p.AddInt("p28ID", c.p28ID);
                                 p.AddInt("p27ID", c.p27ID);
-
-                                _db.SaveRecord("p26ProjectContact", p, recP26, false, true);
+                                
+                                if (_db.SaveRecord("p26ProjectContact", p, recP26, false, true) > 0 && recP27.p27Field != null)
+                                {
+                                    _db.RunSql($"if not exists(select p22ID FROM p22ProjectContactInline where p41ID=@p41id) INSERT INTO p22ProjectContactInline(p41ID) VALUES(@p41id); UPDATE p22ProjectContactInline SET {recP27.p27Field}=@p28name WHERE p41ID=@p41id", new { p41id = intPID,p28name=c.p28Name });
+                                }
                             }
                         }
                     }
@@ -531,7 +540,7 @@ namespace BL
 
         public IEnumerable<BO.p26ProjectContact> GetList_p26(int p41id)
         {
-            string s = $"select a.*,{_db.GetSQL1_Ocas("p26", false, false)}, p28.p28Name,p27.p27Name FROM p26ProjectContact a INNER JOIN p28Contact p28 ON a.p28ID=p28.p28ID LEFT OUTER JOIN p27Pctype p27 ON a.p27ID=p27.p27ID WHERE a.p41ID=@p41id";
+            string s = $"select a.*,{_db.GetSQL1_Ocas("p26", false, false)}, p28.p28Name,p27.p27Name,p27.p27Field FROM p26ProjectContact a INNER JOIN p28Contact p28 ON a.p28ID=p28.p28ID LEFT OUTER JOIN p27Pctype p27 ON a.p27ID=p27.p27ID WHERE a.p41ID=@p41id";
 
             return _db.GetList<BO.p26ProjectContact>(s, new { p41id = p41id });
         }

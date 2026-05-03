@@ -526,13 +526,14 @@ namespace UI.Controllers
                     lisP26 = new List<BO.p26ProjectContact>();
                     foreach (var cc in v.lisP26)
                     {
+                        
                         lisP26.Add(new BO.p26ProjectContact()
                         {
                             IsSetAsDeleted = cc.IsTempDeleted,
                             pid = cc.pid,
                             p26Name = cc.p26Name,
                             p28ID = cc.p28ID,
-                            p27ID = cc.p27ID
+                            p27ID = cc.p27ID                           
                         });
                     }
                 }

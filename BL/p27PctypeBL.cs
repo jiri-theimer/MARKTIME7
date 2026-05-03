@@ -62,6 +62,7 @@ namespace BL
                 rec.p27Field = "p22Item" + BO.Code.Bas.RightString("0" + intFieldIndex.ToString(), 2);
 
             }
+            p.AddString("p27Field", rec.p27Field);
 
             return _db.SaveRecord("p27Pctype", p, rec);
         }

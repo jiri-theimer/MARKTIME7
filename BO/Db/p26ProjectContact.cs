@@ -13,6 +13,7 @@ namespace BO
         public string p28Name { get; }
         public string p41Name { get; }
         public string p27Name { get; }
+       
 
     }
 }
