@@ -14,12 +14,12 @@ namespace UI.Controllers
 
     public class p31Controller : BaseController
     {
-        public IActionResult Info(int pid, bool isrecord,bool isdelrecord=false)
+        public IActionResult Info(int pid, bool isrecord, bool isdelrecord = false)
         {
             return Tab1(pid, "info", isrecord, isdelrecord);
         }
         public IActionResult Day(string d, int j02id)
-        {                        
+        {
             var v = new p31DayViewModel() { d = d, j02id = j02id };
             return View(v);
         }
@@ -28,7 +28,7 @@ namespace UI.Controllers
         {
             var v = new p31Tab1() { Factory = this.Factory, prefix = "p31", pid = pid, caller = caller, IsRecord = isrecord };
             v.Rec = Factory.p31WorksheetBL.Load(v.pid, isdelrecord);
-           
+
             if (v.Rec == null)
             {
                 return this.StopPageSubform("Záznam nebyl nalezen.");
@@ -41,13 +41,13 @@ namespace UI.Controllers
         }
 
 
-        public IActionResult Record(int pid, bool isclone, int j02id, int p34id,int p32id, string newrec_prefix, int newrec_pid, string d, string t1, string t2, string approve_guid, int p91id,int p68id,int p49id)
+        public IActionResult Record(int pid, bool isclone, int j02id, int p34id, int p32id, string newrec_prefix, int newrec_pid, string d, string t1, string t2, string approve_guid, int p91id, int p68id, int p49id)
         {
             if (!Factory.CurrentUser.j04IsModule_p31)
             {
                 return this.StopPage(true, "Nemáte přístup do modulu [Úkony].");
             }
-            var v = new p31Record() { rec_pid = pid, rec_entity = "p31", GuidApprove = approve_guid, Element2Focus = "cmdComboRec_p41ID", UploadGuid = BO.Code.Bas.GetGuid(), p91ID = p91id,p68ID=p68id,p49ID=p49id };
+            var v = new p31Record() { rec_pid = pid, rec_entity = "p31", GuidApprove = approve_guid, Element2Focus = "cmdComboRec_p41ID", UploadGuid = BO.Code.Bas.GetGuid(), p91ID = p91id, p68ID = p68id, p49ID = p49id };
             v.disp = new DispoziceViewModel();
             v.disp.InitItems("p31", Factory);
             v.PravaZaJineho = Factory.CBL.LoadUserParamInt("p31/Record-PravaZaJineho", 1);
@@ -55,7 +55,7 @@ namespace UI.Controllers
 
             v.IsNavicKusovnik = Factory.CBL.LoadUserParamBool("p31/Record-IsNavicKusovnik", false);
 
-            if (v.IsNavicKusovnik || Factory.p34ActivityGroupBL.GetList(new BO.myQueryP34() { iskusovnik = true,IsRecordValid=true }).Count() > 0)
+            if (v.IsNavicKusovnik || Factory.p34ActivityGroupBL.GetList(new BO.myQueryP34() { iskusovnik = true, IsRecordValid = true }).Count() > 0)
             {
                 v.IsOfferNavicKusovnik = true;
             }
@@ -72,7 +72,7 @@ namespace UI.Controllers
                 newrec_pid = Factory.p31WorksheetBL.GetList(new BO.myQueryP31() { tempguid = v.GuidApprove }).First().p41ID;
             }
             if (p32id > 0)
-            {                
+            {
                 v.RecP32 = Factory.p32ActivityBL.Load(p32id);
                 p34id = v.RecP32.p34ID;
                 if (v.RecP32.p41ID_Absence > 0)
@@ -80,8 +80,8 @@ namespace UI.Controllers
                     newrec_prefix = "p41";
                     newrec_pid = v.RecP32.p41ID_Absence;
                 }
-                
-                
+
+
 
             }
             if (p91id > 0)
@@ -92,8 +92,8 @@ namespace UI.Controllers
             }
 
             v.Rec = new BO.p31WorksheetEntryInput() { pid = pid, p34ID = p34id, j02ID = j02id, p32ID = p32id };
-            
-            if (p32id > 0 && v.RecP32 !=null)
+
+            if (p32id > 0 && v.RecP32 != null)
             {
                 v.Rec.p31Text = InhaleActivityDefaultText(v);
             }
@@ -105,7 +105,7 @@ namespace UI.Controllers
             {
                 InhaleFromPlan(v);  //načíst záznam z finančního plánu
             }
-            
+
             switch (newrec_prefix)
             {
                 case "p41":
@@ -122,7 +122,7 @@ namespace UI.Controllers
 
                     v.Element2Focus = "cmdComboRec_p32ID";
                     break;
-               
+
                 case "p56":
                     var recP56 = Factory.p56TaskBL.Load(newrec_pid);
                     if (recP56 != null && recP56.p41ID == 0)
@@ -150,7 +150,7 @@ namespace UI.Controllers
                         //v.SelectedLevelIndex = v.RecP41.p07Level;
                         InhaleP56Combo(v);
                     }
-                    
+
                     v.Element2Focus = "p31Datehelper";
                     break;
                 case "p28":
@@ -181,7 +181,7 @@ namespace UI.Controllers
                     if (recO18.o18TemplateFlag == BO.o18TemplateENUM.Uctenka)
                     {
                         //účtenka                        
-                        InhaleFromUctenka(v,recO23,recO18);
+                        InhaleFromUctenka(v, recO23, recO18);
                     }
                     else
                     {
@@ -195,7 +195,7 @@ namespace UI.Controllers
                             //v.SelectedLevelIndex = v.RecP41.p07Level;
                         }
                     }
-                    
+
                     break;
             }
 
@@ -229,7 +229,7 @@ namespace UI.Controllers
                 }
                 if (recP31.isdeleted)
                 {
-                    return RedirectToAction("Info", new { pid = pid, isrecord = true });                    
+                    return RedirectToAction("Info", new { pid = pid, isrecord = true });
                 }
                 var disp = InhalePermissions(v, recP31);
                 if (!disp.ReadAccess)
@@ -247,7 +247,7 @@ namespace UI.Controllers
 
 
                 LoadRecordSetting(v);
-                
+
                 v.Rec = Factory.p31WorksheetBL.CovertRec2Input(recP31, v.Setting.TimesheetEntryByMinutes);
 
                 v.p31Date = v.Rec.p31Date.First();
@@ -275,7 +275,7 @@ namespace UI.Controllers
                     {
                         //nic
                     }
-                    
+
                 }
                 if (v.Rec.p35ID > 0)
                 {
@@ -293,7 +293,7 @@ namespace UI.Controllers
                     v.SetTagging(Factory.o51TagBL.GetTagging("p31", v.rec_pid));
                 }
 
-                
+
                 InhaleP56Combo(v);
 
                 if (isclone && recP31.p31Date != DateTime.Today)
@@ -316,7 +316,7 @@ namespace UI.Controllers
             }
 
             v.Toolbar = new MyToolbarViewModel(v.Rec) { AllowArchive = false };
-            
+
             RefreshState_Record(v);
 
             if (isclone)
@@ -324,7 +324,7 @@ namespace UI.Controllers
                 v.MakeClone();
             }
 
-            if (v.Rec.pid > 0 && v.Rec.p40ID_FixPrice==0 && v.Rec.p72ID_AfterTrimming != BO.p72IdENUM._NotSpecified)
+            if (v.Rec.pid > 0 && v.Rec.p40ID_FixPrice == 0 && v.Rec.p72ID_AfterTrimming != BO.p72IdENUM._NotSpecified)
             {
                 v.IsValueTrimming = true;   //u úkonu je vyplněná korekce -> je třeba zapnout v záznamu korekci
                 if ((int)v.Rec.p72ID_AfterTrimming != v.p72ID_DefaultTrimming)
@@ -332,7 +332,7 @@ namespace UI.Controllers
                     v.disp.SetChecked(PosEnum.Trimming, true);
 
                 }
-               
+
             }
 
             if (v.Rec.pid == 0 && v.lisP40 != null && v.lisP40.Count() > 0 && v.lisP40.Any(p => p.p40FreeHours > p.Cerpano_Hodiny)) //nahodit výchozí paušál
@@ -340,7 +340,7 @@ namespace UI.Controllers
                 v.Rec.p40ID_FixPrice = v.lisP40.First(p => p.p40FreeHours > p.Cerpano_Hodiny).pid;  //výchozí vazba na paušální odměnu
             }
 
-            if (v.Rec.pid==0 && v.RecP41 == null)
+            if (v.Rec.pid == 0 && v.RecP41 == null)
             {
                 v.AutoOpenProjectSearchbox = true;
             }
@@ -359,20 +359,20 @@ namespace UI.Controllers
 
             v.p34TrimmingFlag = v.RecP34.p34TrimmingFlag;
             v.p34FilesFlag = v.RecP34.p34FilesFlag;
-            
+
             v.p34TagsFlag = v.RecP34.p34TagsFlag;
             //v.p34InboxFlag = v.RecP34.p34InboxFlag;
 
             int intCache = (v.rec_pid == 0 ? Factory.j02UserBL.LoadBitstreamFromUserCache("p31", v.RecP34.pid) : 0);    //pro nový záznam načíst uložená rozšíření z cache
-            //int intCache = 0;   //cache nepoužívat
-            
+                                                                                                                        //int intCache = 0;   //cache nepoužívat
+
             v.p34FilesFlag = v.disp.SetVal(PosEnum.Files, v.p34FilesFlag, bitstream, v.rec_pid, intCache);
             v.p34TrimmingFlag = v.disp.SetVal(PosEnum.Trimming, v.p34TrimmingFlag, bitstream, v.rec_pid, intCache);
             v.p34TagsFlag = v.disp.SetVal(PosEnum.Tags, v.p34TagsFlag, bitstream, v.rec_pid, intCache);
             //v.p34InboxFlag = v.disp.SetVal(PosEnum.Inbox, v.p34InboxFlag, bitstream, v.rec_pid, intCache);
-            
 
-            
+
+
         }
 
         private void Handle_Defaults(p31Record v)
@@ -472,7 +472,7 @@ namespace UI.Controllers
                 {
                     v.lisLevelIndex.Add(new BO.ListItemValue() { Text = Factory.tra("Všechny úrovně"), Value = 0 });
 
-                    for (int i = 5; i >=1; i--)
+                    for (int i = 5; i >= 1; i--)
                     {
                         if (Factory.getP07Level(i, true) != null)
                         {
@@ -489,8 +489,8 @@ namespace UI.Controllers
             {
                 v.ProjectEntity = $"le{v.SelectedLevelIndex}";
             }
-            
-            
+
+
 
             if (v.Rec.p41ID > 0)
             {
@@ -507,7 +507,7 @@ namespace UI.Controllers
                 }
                 v.BillingLangIndex = Factory.p41ProjectBL.GetBillingLangIndex(v.RecP41);
                 v.BillingLangFlagHtml = Factory.p41ProjectBL.GetBillingLangFlagHtml(v.BillingLangIndex);
-                
+
             }
             else
             {
@@ -517,9 +517,9 @@ namespace UI.Controllers
             {
                 v.RecP34 = Factory.p34ActivityGroupBL.Load(v.Rec.p34ID);
             }
-            
+
             v.MyQueryInline_Project = $"p07level|int|{v.SelectedLevelIndex}";
-        
+
             if (v.PravaZaJineho == 1)
             {
                 v.MyQueryInline_Project = $"j02id_query|int|{v.Rec.j02ID}|p07level|int|{v.SelectedLevelIndex}";
@@ -578,7 +578,7 @@ namespace UI.Controllers
                 }
             }
 
-            
+
 
             if (v.Rec.p32ID > 0 && v.RecP32 == null)
             {
@@ -614,20 +614,20 @@ namespace UI.Controllers
                 }
 
             }
-            if (v.lisP40 == null && v.RecP41 != null && v.RecP34 !=null && v.RecP34.p33ID == BO.p33IdENUM.Cas)
+            if (v.lisP40 == null && v.RecP41 != null && v.RecP34 != null && v.RecP34.p33ID == BO.p33IdENUM.Cas)
             {
                 v.lisP40 = Factory.p40WorkSheet_RecurrenceBL.GetList(new BO.myQueryP40() { p41id = v.RecP41.pid }).Where(p => p.p33ID == 2 || p.p33ID == 5);
-                
+
             }
 
-            if (v.lisP54==null && v.RecP41 != null && v.RecP41.p42IsP54 && v.RecP34 != null && v.RecP34.p33ID == BO.p33IdENUM.Cas)
+            if (v.lisP54 == null && v.RecP41 != null && v.RecP41.p42IsP54 && v.RecP34 != null && v.RecP34.p33ID == BO.p33IdENUM.Cas)
             {
                 v.lisP54 = Factory.p54OvertimeLevelBL.GetList(new BO.myQuery("p54"));   //nabídka přesčasů
             }
-            if (v.RecP41 != null && v.RecP41.p28ID_Client>0)
+            if (v.RecP41 != null && v.RecP41.p28ID_Client > 0)
             {
                 v.lisP30 = Factory.p28ContactBL.GetList_p30_p31entry(v.RecP41.p28ID_Client);
-                
+
             }
 
 
@@ -636,14 +636,14 @@ namespace UI.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Record(p31Record v,string oper, List<IFormFile> files)
+        public IActionResult Record(p31Record v, string oper, List<IFormFile> files)
         {
-            if (oper== "isdoc_upload" && files != null && files.Count()>0)
+            if (oper == "isdoc_upload" && files != null && files.Count() > 0)
             {
                 Handle_Isdoc_Import(v, files);  //nahrání isdoc souboru
-                
+
                 RefreshState_Record(v);
-                
+
                 return View(v);
 
             }
@@ -652,7 +652,7 @@ namespace UI.Controllers
             if (v.IsPostback)
             {
                 Handle_Postback_Record(v);
-               
+
                 return View(v);
             }
 
@@ -668,7 +668,7 @@ namespace UI.Controllers
                 int intP31ID = Handle_Save_Record(v);   //zde save
                 if (intP31ID > 0)
                 {
-                    if (oper== "saveandclone")
+                    if (oper == "saveandclone")
                     {
                         return RedirectToAction("Record", new { pid = intP31ID, isclone = true });
                     }
@@ -712,11 +712,11 @@ namespace UI.Controllers
                             v.lisKusovnik.Add(new KusovnikInline());
                             var lisP32 = Factory.p32ActivityBL.GetList(new BO.myQueryP32() { p34id = v.p34ID_Kusovnik });
                         }
-                            
-                        
-                       
+
+
+
                     }
-                    
+
 
                     break;
                 case "kusovnik_add":
@@ -730,7 +730,7 @@ namespace UI.Controllers
                     if (v.IsMultiDate && !Factory.CurrentUser.IsMobileDisplay())
                     {
                         this.AddMessage("Můžete vykazovat hodiny za více dnů najednou", "info");
-                    }                    
+                    }
                     break;
                 case "j02id":
                     v.Element2Focus = "cmdComboRec_p41ID";
@@ -738,7 +738,7 @@ namespace UI.Controllers
                 case "p34id":
 
                     InhaleP34(v, v.disp.GetBitStream());
-                    
+
 
                     if (v.Rec.p34ID > 0)
                     {
@@ -766,7 +766,7 @@ namespace UI.Controllers
                     v.Rec.p56ID = 0; v.SelectedComboTask = null; v.IsShowP56Combo = false;
                     if (v.Rec.p41ID > 0)
                     {
-                        if (v.RecP34 !=null && v.RecP34.p34ActivityEntryFlag == BO.p34ActivityEntryFlagENUM.AktivitaSeNezadava)
+                        if (v.RecP34 != null && v.RecP34.p34ActivityEntryFlag == BO.p34ActivityEntryFlagENUM.AktivitaSeNezadava)
                         {
                             v.Element2Focus = "Rec_Value_Orig";
                         }
@@ -774,8 +774,8 @@ namespace UI.Controllers
                         {
                             v.Element2Focus = "cmdComboRec_p32ID";
                         }
-                        
-                        
+
+
                         v.RecP41 = Factory.p41ProjectBL.Load(v.Rec.p41ID);
                         v.SelectedComboProject = v.RecP41.FullName;
                         InhaleP56Combo(v);
@@ -807,18 +807,18 @@ namespace UI.Controllers
                     if (v.Rec.p72ID_AfterTrimming == BO.p72IdENUM.Fakturovat || v.Rec.p72ID_AfterTrimming == BO.p72IdENUM.FakturovatPozdeji)
                     {
                         v.Rec.Value_Trimmed = v.Rec.Value_Orig;
-                        
+
                     }
                     else
                     {
                         v.Rec.Value_Trimmed = "0";
                     }
-                    
+
                     break;
                 case "p32id":
                     if (v.Rec.p32ID > 0)
                     {
-                        
+
                         v.Element2Focus = "Rec_Value_Orig";
                         //v.Element2Focus = "Rec_p31Text";
                     }
@@ -827,37 +827,61 @@ namespace UI.Controllers
                         v.Element2Focus = "cmdComboRec_p32ID";
                     }
                     RefreshState_Record(v);
-
-                    if (v.rec_pid == 0 && v.RecP32 != null)
+                    
+                    if (v.RecP32 != null)
                     {
-                        
-                        v.DefaultText = InhaleActivityDefaultText(v);
-
-                        v.Rec.p31MarginHidden = v.RecP32.p32MarginHidden;
-                        v.Rec.p31MarginTransparent = v.RecP32.p32MarginTransparent;
+                        string strCountryCode = null;                        
                         if (v.RecP32.x15ID != BO.x15IdEnum.Nic)
                         {
-                            string strCountryCode = v.RecP41.j18CountryCode;
-                            if (strCountryCode == null && v.Rec.j02ID>0)
+                            strCountryCode = v.RecP41.j18CountryCode;
+                            v.Rec.VatRate_Orig = Factory.p53VatRateBL.NajdiSazbu(v.p31Date.Value, v.RecP32.x15ID, v.Rec.j27ID_Billing_Orig, strCountryCode);
+
+                            if (strCountryCode == null && v.Rec.j02ID > 0)
                             {
                                 strCountryCode = Factory.j02UserBL.Load(v.Rec.j02ID).j02CountryCode;
                             }
-                            if (strCountryCode==null)
+                            if (strCountryCode == null)
                             {
                                 strCountryCode = Factory.Lic.x01CountryCode;
                             }
-                            v.Rec.VatRate_Orig = Factory.p53VatRateBL.NajdiSazbu(v.p31Date.Value, v.RecP32.x15ID, v.Rec.j27ID_Billing_Orig, strCountryCode);
                         }
-                        if (v.RecP32.p32Value_Default > 0 && v.p68ID==0 && v.Rec.TimeFrom==null && v.Rec.TimeUntil==null)
+
+                        if (v.rec_pid == 0)
                         {
-                            if ((v.RecP34.p33ID == BO.p33IdENUM.Cas || v.RecP34.p33ID == BO.p33IdENUM.Kusovnik) && BO.Code.Bas.InDouble(v.Rec.Value_Orig) == 0)
-                            {
-                                v.Rec.Value_Orig = v.RecP32.p32Value_Default.ToString();
+                            v.DefaultText = InhaleActivityDefaultText(v);
+
+                            v.Rec.p31MarginHidden = v.RecP32.p32MarginHidden;
+                            v.Rec.p31MarginTransparent = v.RecP32.p32MarginTransparent;
+                            if (v.RecP32.x15ID != BO.x15IdEnum.Nic)
+                            {                                                                
+                                if ((v.RecP34.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu) && v.Rec.Amount_WithoutVat_Orig != 0)
+                                {
+                                    v.Rec.Amount_Vat_Orig = v.Rec.Amount_WithoutVat_Orig * v.Rec.VatRate_Orig / 100;
+                                    v.Rec.Amount_WithVat_Orig = v.Rec.Amount_Vat_Orig + v.Rec.Amount_WithoutVat_Orig;
+                                }
                             }
-                            if ((v.RecP34.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu || v.RecP34.p33ID == BO.p33IdENUM.PenizeBezDPH) && v.Rec.Amount_WithoutVat_Orig == 0)
+                            if (v.RecP32.p32Value_Default > 0 && v.p68ID == 0 && v.Rec.TimeFrom == null && v.Rec.TimeUntil == null)
+                            {
+                                if ((v.RecP34.p33ID == BO.p33IdENUM.Cas || v.RecP34.p33ID == BO.p33IdENUM.Kusovnik) && BO.Code.Bas.InDouble(v.Rec.Value_Orig) == 0)
+                                {
+                                    v.Rec.Value_Orig = v.RecP32.p32Value_Default.ToString();
+                                }
+                                if ((v.RecP34.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu || v.RecP34.p33ID == BO.p33IdENUM.PenizeBezDPH) && v.Rec.Amount_WithoutVat_Orig == 0)
+                                {
+                                    v.Rec.Amount_WithoutVat_Orig = v.RecP32.p32Value_Default;
+                                    if (v.RecP34.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu)
+                                    {
+                                        v.Rec.Amount_Vat_Orig = v.Rec.Amount_WithoutVat_Orig * v.Rec.VatRate_Orig / 100;
+                                        v.Rec.Amount_WithVat_Orig = v.Rec.Amount_Vat_Orig + v.Rec.Amount_WithoutVat_Orig;
+                                    }
+                                }
+                            }
+                        }
+                        else
                         {
-                                v.Rec.Amount_WithoutVat_Orig = v.RecP32.p32Value_Default;
-                                if (v.RecP34.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu)
+                            if (v.RecP32.x15ID != BO.x15IdEnum.Nic)
+                            {                                                                
+                                if ((v.RecP34.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu) && v.Rec.Amount_WithoutVat_Orig != 0)
                                 {
                                     v.Rec.Amount_Vat_Orig = v.Rec.Amount_WithoutVat_Orig * v.Rec.VatRate_Orig / 100;
                                     v.Rec.Amount_WithVat_Orig = v.Rec.Amount_Vat_Orig + v.Rec.Amount_WithoutVat_Orig;
@@ -865,6 +889,7 @@ namespace UI.Controllers
                             }
                         }
                         
+
                     }
                     break;
                 case "today":
@@ -877,13 +902,13 @@ namespace UI.Controllers
                     this.AddMessage("Změny je třeba potvrdit tlačítkem [Uložit změny]", "info");
                     break;
                 case "clear_p49id":
-                    v.Rec.p49ID = 0;                    
+                    v.Rec.p49ID = 0;
                     this.AddMessage("Změny je třeba potvrdit tlačítkem [Uložit změny]", "info");
                     break;
                 case "pravazajineho":
                     Factory.CBL.SetUserParam("p31/Record-PravaZaJineho", v.PravaZaJineho.ToString());
                     break;
-               
+
             }
 
             if (v.PostbackOper != "p32id")
@@ -903,7 +928,7 @@ namespace UI.Controllers
             if (v.IsMultiDate)
             {
                 var arr = BO.Code.Bas.ConvertString2List(v.MultiDate, ",");
-                foreach(var s in arr)
+                foreach (var s in arr)
                 {
                     c.Addp31Date(BO.Code.Bas.String2Date(s));
                 }
@@ -912,7 +937,7 @@ namespace UI.Controllers
             {
                 c.Addp31Date(v.p31Date.Value);
             }
-            
+
             c.j02ID = v.Rec.j02ID;
             c.p41ID = v.Rec.p41ID;
             c.o23ID = v.Rec.o23ID;
@@ -920,7 +945,7 @@ namespace UI.Controllers
             c.p32ID = v.Rec.p32ID;
             c.p56ID = v.Rec.p56ID;
             c.p49ID = v.Rec.p49ID;
-            
+
             c.Value_Orig = v.Rec.Value_Orig;
 
             switch (v.RecP34.p33ID)
@@ -947,7 +972,7 @@ namespace UI.Controllers
 
                     c.p31Calc_PieceAmount = v.Rec.p31Calc_PieceAmount;
                     c.p31Calc_Pieces = v.Rec.p31Calc_Pieces;
-                    
+
 
                     c.p31PostCode = v.Rec.p31PostCode;
                     c.p31PostFlag = v.Rec.p31PostFlag;
@@ -959,7 +984,7 @@ namespace UI.Controllers
                     break;
             }
 
-            if (v.RecP32 !=null)
+            if (v.RecP32 != null)
             {
                 if (v.RecP32.p32ManualFeeFlag == 1)
                 {
@@ -970,7 +995,7 @@ namespace UI.Controllers
                     c.p28ID_Supplier = v.Rec.p28ID_Supplier;
                 }
             }
-            
+
 
             c.Amount_WithoutVat_Orig = v.Rec.Amount_WithoutVat_Orig;
             c.VatRate_Orig = v.Rec.VatRate_Orig;
@@ -998,7 +1023,7 @@ namespace UI.Controllers
             }
             c.p31BitStream = v.disp.GetBitStream();
 
-            
+
 
             c.ValidUntil = v.Toolbar.GetValidUntil(c);
             c.ValidFrom = v.Toolbar.GetValidFrom(c);
@@ -1026,7 +1051,7 @@ namespace UI.Controllers
                         this.AddMessageTranslated("Kusovník vyžaduje zadat počet kusů.");
                         return 0;
                     }
-                    
+
                 }
             }
 
@@ -1038,7 +1063,7 @@ namespace UI.Controllers
                     Factory.o51TagBL.SaveTagging("p31", c.pid, v.TagPids);
                 }
 
-               
+
                 if (v.disp.IsFiles)
                 {
                     Factory.o27AttachmentBL.SaveDropzoneFromTemp(v.UploadGuid, "p31", c.pid);
@@ -1047,17 +1072,17 @@ namespace UI.Controllers
                 {
                     Factory.CBL.DeleteRecord("p68", v.p68ID);   //odstranit záznam ze stopek
                 }
-               
 
-                if (v.IsNavicKusovnik && v.lisKusovnik !=null && v.lisKusovnik.Count() > 0)
+
+                if (v.IsNavicKusovnik && v.lisKusovnik != null && v.lisKusovnik.Count() > 0)
                 {
                     //uložit k časovému úkonu ještě kusovníky (pouze režim nového záznamu
-                    foreach(var kus in v.lisKusovnik)
-                    {                        
+                    foreach (var kus in v.lisKusovnik)
+                    {
                         var recMaster = Factory.p31WorksheetBL.Load(c.pid); //vzorový úkon
-                        var recSlave = new BO.p31WorksheetEntryInput() {p31MasterID=c.pid, p31Text=kus.p31Text,p34ID=v.p34ID_Kusovnik,p32ID=kus.p32ID,Value_Orig=kus.Pocet.ToString(), p41ID=recMaster.p41ID,p56ID=recMaster.p56ID, j02ID = recMaster.j02ID };
+                        var recSlave = new BO.p31WorksheetEntryInput() { p31MasterID = c.pid, p31Text = kus.p31Text, p34ID = v.p34ID_Kusovnik, p32ID = kus.p32ID, Value_Orig = kus.Pocet.ToString(), p41ID = recMaster.p41ID, p56ID = recMaster.p56ID, j02ID = recMaster.j02ID };
                         recSlave.p31Date = new List<DateTime>(); recSlave.p31Date.Add(recMaster.p31Date);
-                        recSlave.p40ID_FixPrice = recMaster.p40ID_FixPrice; recSlave.p54ID = recMaster.p54ID;                      
+                        recSlave.p40ID_FixPrice = recMaster.p40ID_FixPrice; recSlave.p54ID = recMaster.p54ID;
                         Factory.p31WorksheetBL.SaveOrigRecord(recSlave, BO.p33IdENUM.Kusovnik, null);
                     }
                 }
@@ -1075,7 +1100,7 @@ namespace UI.Controllers
 
                     Factory.p31WorksheetBL.DeleteTempRecord(v.GuidApprove, c.pid);
                     bool bolSetDefaultApproveState = Factory.CurrentUser.IsHes(131072); //zda nahazovat automaticky fakturační status u schvalovaného úkonu
-                    
+
                     BL.Code.p31Support.SetupTempApproving(this.Factory, lisP31, v.GuidApprove, 0, bolSetDefaultApproveState, p72id);
                 }
 
@@ -1149,7 +1174,7 @@ namespace UI.Controllers
                 }
             }
             string s = null;
-            
+
             if (hours_orig != null && hours_orig.Contains(":"))
             {
                 s = $"{BO.Code.Time.GetTimeFromSeconds(seconds)} (HH:mm) -> {Convert.ToDouble(seconds) / 60 / 60} (h)";
@@ -1178,7 +1203,7 @@ namespace UI.Controllers
             //caller může být: hours/timefrom/timeuntil
             var ret = new UI.Models.p31oper.p31CasOdDo();
 
-            if (!string.IsNullOrEmpty(hours) && caller=="hours")
+            if (!string.IsNullOrEmpty(hours) && caller == "hours")
             {
                 hours = hours.Trim();
                 if (hours.Length >= 4 && !hours.Contains(":") && !hours.Contains(","))
@@ -1186,12 +1211,12 @@ namespace UI.Controllers
                     hours = $"{hours.Substring(0, 2)}:{hours.Substring(2, 2)}";
                     ret.update_orig_hours = "true";
                 }
-                            
+
             }
             if (!string.IsNullOrEmpty(timefrom))
             {
                 timefrom = timefrom.Replace(",", ":").Replace(".", ":");
-                if (timefrom.Length>=4 && BO.Code.Bas.InInt(timefrom)>0)
+                if (timefrom.Length >= 4 && BO.Code.Bas.InInt(timefrom) > 0)
                 {
                     timefrom = $"{timefrom.Substring(0, 2)}:{timefrom.Substring(2, 2)}";
                 }
@@ -1207,7 +1232,7 @@ namespace UI.Controllers
 
             if (string.IsNullOrEmpty(hoursformat)) hoursformat = "N";
 
-            
+
 
             int hrs = BO.Code.Time.ConvertTimeToSeconds(hours);
             int t1 = BO.Code.Time.ConvertTimeToSeconds(timefrom);
@@ -1256,12 +1281,12 @@ namespace UI.Controllers
                 {
                     t2 = 36 * 60 * 60;
                 }
-                t2 = t2-24*60*60;
+                t2 = t2 - 24 * 60 * 60;
             }
             //if (t1 > t2 && hrs>8*60*60) //pokud vykazuji přes půlnoc, tak hodiny musí být pod 8 hodin
             //{
             //    ret.error = Factory.tra("[Čas do] musí být větší než [Čas od].");
-               
+
             //}
             if (t1 < 0)
             {
@@ -1275,7 +1300,7 @@ namespace UI.Controllers
                 ret.duration = BO.Code.Time.GetTimeFromSeconds(t2 - t1);
                 ret.info = Record_RecalcDuration_getInfo(t2 - t1, p41id, hours);
             }
-            if (t1>0 && t2>0 && t1>t2)
+            if (t1 > 0 && t2 > 0 && t1 > t2)
             {
                 //čas od-do přes půlnoc
                 ret.duration = BO.Code.Time.GetTimeFromSeconds(t2 + (24 * 60 * 60) - t1);
@@ -1283,7 +1308,7 @@ namespace UI.Controllers
             }
 
 
-            if (ret.update_orig_hours==null && (caller != "hours" || hoursformat=="T" || (t1>0 && t2>0)))
+            if (ret.update_orig_hours == null && (caller != "hours" || hoursformat == "T" || (t1 > 0 && t2 > 0)))
             {
                 ret.update_orig_hours = "true";
             }
@@ -1291,7 +1316,7 @@ namespace UI.Controllers
         }
 
 
-       
+
 
         private void InhaleP56Combo(p31Record v)
         {
@@ -1321,7 +1346,7 @@ namespace UI.Controllers
                 var recP32 = Factory.p32ActivityBL.Load(c.p32ID);
                 v.Rec.p32ID = recP32.pid;
                 v.Rec.p34ID = recP32.p34ID;
-                if (v.RecP34 !=null && v.Rec.p34ID != v.RecP34.pid)
+                if (v.RecP34 != null && v.Rec.p34ID != v.RecP34.pid)
                 {
                     v.RecP34 = Factory.p34ActivityGroupBL.Load(v.Rec.p34ID);
                 }
@@ -1330,7 +1355,7 @@ namespace UI.Controllers
             }
             else
             {
-                if (v.RecP34 != null && v.RecP34.p33ID !=BO.p33IdENUM.Cas)
+                if (v.RecP34 != null && v.RecP34.p33ID != BO.p33IdENUM.Cas)
                 {
                     //předvyplnit časový sešit
                     v.RecP34 = null;
@@ -1339,15 +1364,15 @@ namespace UI.Controllers
             }
             v.Rec.p31Text = c.p68Text;
             v.Rec.Value_Orig = BO.Code.Time.GetTimeFromSeconds((double)c.p68Duration);
-            
+
 
             v.Element2Focus = "cmdComboRec_p32ID";
         }
-        private void InhaleFromUctenka(p31Record v,BO.o23Doc recO23,BO.o18DocType recO18)
-        {            
+        private void InhaleFromUctenka(p31Record v, BO.o23Doc recO23, BO.o18DocType recO18)
+        {
             v.p31Date = recO23.o23FreeDate01;
             v.Rec.p34ID = recO23.p34ID_Expense;
-            if (recO23.p32ID_Expense==0 && recO18.p32ID_Uctenka > 0)
+            if (recO23.p32ID_Expense == 0 && recO18.p32ID_Uctenka > 0)
             {
                 recO23.p32ID_Expense = recO18.p32ID_Uctenka;
             }
@@ -1356,14 +1381,14 @@ namespace UI.Controllers
                 v.Rec.p32ID = recO23.p32ID_Expense;
                 v.SelectedComboP32Name = Factory.p32ActivityBL.Load(v.Rec.p32ID).p32Name;
             }
-          
+
             if (recO23.j27ID_Expense > 0)
             {
                 v.Rec.j27ID_Billing_Orig = recO23.j27ID_Expense;
                 v.SelectedComboJ27Code = Factory.FBL.LoadCurrencyByID(recO23.j27ID_Expense).j27Code;
             }
             v.SelectedComboP34Name = Factory.p34ActivityGroupBL.Load(v.Rec.p34ID).p34Name;
-            v.Rec.p31Text = recO23.o23Name ;
+            v.Rec.p31Text = recO23.o23Name;
             if (recO23.p41ID_Expense > 0)
             {
                 v.Rec.p41ID = recO23.p41ID_Expense;
@@ -1378,13 +1403,13 @@ namespace UI.Controllers
             {
                 v.SelectedComboPerson = Factory.j02UserBL.Load(recO23.j02ID_Owner).FullnameDesc;
             }
-            
+
             v.Rec.p31Code = recO23.o23Code;
             v.Rec.p31Text = recO23.o23Name;
-            
+
             v.Rec.Amount_WithVat_Orig = recO23.o23FreeNumber01;
             v.Rec.VatRate_Orig = recO23.o23FreeNumber02;
-            v.Rec.Amount_WithoutVat_Orig = recO23.o23FreeNumber03;            
+            v.Rec.Amount_WithoutVat_Orig = recO23.o23FreeNumber03;
             v.Rec.Amount_Vat_Orig = recO23.o23FreeNumber04;
         }
         private void InhaleFromPlan(p31Record v)
@@ -1424,19 +1449,19 @@ namespace UI.Controllers
             {
                 case 1:
                     return v.RecP32.p32DefaultWorksheetText_Lang1;
-                    
+
                 case 2:
                     return v.RecP32.p32DefaultWorksheetText_Lang2;
-                    
+
                 case 3:
                     return v.RecP32.p32DefaultWorksheetText_Lang3;
-                    
+
                 case 4:
                     return v.RecP32.p32DefaultWorksheetText_Lang4;
-                    
+
             }
             return v.RecP32.p32DefaultWorksheetText;
-            
+
 
         }
 
@@ -1451,7 +1476,7 @@ namespace UI.Controllers
             if (formFile.FileName.ToLower().Contains(".pdf"))
             {
                 var pdfsup = new UI.PdfSupport();
-                strPath=pdfsup.SaveIsdocAttachmentToTemp(strPath, $"{Factory.TempFolder}\\{BO.Code.Bas.GetGuid()}.xml");
+                strPath = pdfsup.SaveIsdocAttachmentToTemp(strPath, $"{Factory.TempFolder}\\{BO.Code.Bas.GetGuid()}.xml");
                 if (strPath == null)
                 {
                     this.AddMessageTranslated("PDF soubor neobsahuje ISDOC soubor.");
@@ -1463,12 +1488,12 @@ namespace UI.Controllers
             xmldoc.Load(strPath);
             var xx = BL.Code.p31Support.ImportIsDoc(xmldoc.InnerXml, null);
             v.IsdocLastUpload = formFile.FileName;
-            v.IsdocLastDokladText = xx.doklad_text;            
+            v.IsdocLastDokladText = xx.doklad_text;
             v.Rec.p31Code = xx.doklad_id;
             v.Rec.Amount_WithoutVat_Orig = xx.castka_bezdph;
             v.Rec.Amount_WithVat_Orig = xx.castka_vcdphh;
             v.Rec.Amount_Vat_Orig = xx.castka_dph;
-            v.Rec.VatRate_Orig = xx.sazba_dph;            
+            v.Rec.VatRate_Orig = xx.sazba_dph;
             v.Rec.p31Text = xx.doklad_text;
             if (xx.mena != null)
             {
@@ -1504,8 +1529,8 @@ namespace UI.Controllers
                     this.AddMessageTranslated($"Subjekt {xx.dodavatel_nazev} (IČO: {xx.dodavatel_ico}) není zaveden v kontaktech.", "info");
                 }
             }
-            
-            
+
+
             v.p31Date = xx.datum_duzp;
 
             Factory.o27AttachmentBL.CreateTempInfoxFile(v.UploadGuid, "p31", $"{v.UploadGuid}_{formFile.FileName}", formFile.FileName, formFile.ContentType);

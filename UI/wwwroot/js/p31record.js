@@ -93,7 +93,8 @@ $(document).ready(function () {
 
         $("#numRec_VatRate_Orig").on("input", function () {     //změna dph sazby
             var bezdph = _string2number($("#Rec_Amount_WithoutVat_Orig").val());
-            if (bezdph != 0) {
+            
+            if (bezdph != 0) {                
                 handle_recalc_after_bezdph();
                 return;
             }
