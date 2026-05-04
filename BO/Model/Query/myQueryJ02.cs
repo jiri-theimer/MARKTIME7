@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿
 
 namespace BO
 {
@@ -66,12 +64,17 @@ namespace BO
             {
                 if (this.allowed_for_p31_entry==true)   //zda oprávnění zapisovat za uživatele úkony
                 {
+                    
                     if (this.CurrentUser.IsMasterPerson)
                     {
-                        string s = "(a.j02ID IN (SELECT j02ID_Slave FROM j05MasterSlave WHERE j02ID_Master=@j02id_me AND j05IsCreate_p31=1)";
-                        s += " OR a.j02ID IN (SELECT j12.j02ID FROM j12Team_Person j12 INNER JOIN j05MasterSlave xj05 ON j12.j11ID=xj05.j11ID_Slave WHERE xj05.j02ID_Master=@j02id_me AND xj05.j05IsCreate_p31=1)";
-                        s += " OR a.j02ID=@j02id_me)";
-                        AQ(s, "j02id_me", this.CurrentUser.pid);
+                        if (!this.CurrentUser.j05IsSlavesAllUsers)
+                        {
+                            string s = "(a.j02ID IN (SELECT j02ID_Slave FROM j05MasterSlave WHERE j02ID_Master=@j02id_me AND j05IsCreate_p31=1)";
+                            s += " OR a.j02ID IN (SELECT j12.j02ID FROM j12Team_Person j12 INNER JOIN j05MasterSlave xj05 ON j12.j11ID=xj05.j11ID_Slave WHERE xj05.j02ID_Master=@j02id_me AND xj05.j05IsCreate_p31=1)";
+                            s += " OR a.j02ID=@j02id_me)";
+                            AQ(s, "j02id_me", this.CurrentUser.pid);
+                        }
+                        
                     }
                     else
                     {

@@ -160,17 +160,19 @@
     <!-- Tab2 -->
 
     <div class="row mt-2">
-        <label class="col-sm-2 col-md-3 col-form-label">Zaokrouhlovat vykazovaný čas:</label>
+        
+        <mylabel class="col-sm-2 col-md-3 col-form-label" explicit-for="Rec_x01Round2Minutes" text="@_f.tra("Zaokrouhlovat vykazovaný čas")" tooltip="Definuje se v minutách.<hr>Výchozí jednotka zaokrouhlování hodin se definuje v administraci (základní parametry databáze).<hr>Pokud uvedete -1, systém nebude zaokrouhlovat čas vůbec."></mylabel>
+
         <div class="col-sm-3 col-md-2">
-            <input class="form-control" type="number" asp-for="Rec.x01Round2Minutes" />
+                <input class="form-control" type="number" asp-for="Rec.x01Round2Minutes" />
         </div>
-        <div class="col-sm-5 co-md-5">
-            <i>Na kolik minut systém bude systém zaokrouhlovat vykázaný čas směrem nahoru.</i>
-        </div>
+       
     </div>
 
     <div class="row my-2">
-        <label class="col-sm-2 col-md-3 col-form-label">Výchozí splatnost faktury:</label>
+        
+        <mylabel class="col-sm-2 col-md-3 col-form-label" explicit-for="Rec_x01InvoiceMaturityDays" text="@_f.tra("Výchozí splatnost faktury")" tooltip="Počet dní, nebere v potaz víkendy a svátky. Individuálně lze definovat v kartě projektu nebo klienta projektu."></mylabel>
+
         <div class="col-sm-3 col-md-2">
             <input class="form-control" type="number" asp-for="Rec.x01InvoiceMaturityDays" />
         </div>
@@ -179,7 +181,9 @@
         </div>
     </div>
     <div class="row my-2">
-        <label class="col-sm-2 col-md-3 col-form-label">@_f.tra("Výchozí sazba DPH"):</label>
+        <mylabel class="col-sm-2 col-md-3 col-form-label" text="@_f.tra("Výchozí hladina sazby DPH")" tooltip="Výchozí sazbu DPH můžete nastavit u každé aktivity."></mylabel>
+
+        
         <div class="col-sm-3 col-md-2">
             @Html.EditorFor(m => m.Rec.x15ID, "~/Views/Shared/_x15Combo.cshtml")
 

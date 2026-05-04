@@ -76,7 +76,7 @@
                 <div class="col-sm-4 col-md-4">
                     <mycombo entity="p92InvoiceType" asp-for="@Model.Rec.p92ID" selectedtext="@Model.SelectedComboP92Name"></mycombo>
                 </div>
-                <mylabel class="col-sm-2 col-md-2" explicit-for="numRec_p28Round2Minutes" text="@_f.tra("Zaokrouhlování času na míru")" tooltip="Definuje se v minutách.<hr>Výchozí jednotka zaokrouhlování hodin se definuje v administraci (základní parametry databáze).">                 
+                <mylabel class="col-sm-2 col-md-2" explicit-for="numRec_p28Round2Minutes" text="@_f.tra("Zaokrouhlování času na míru")" tooltip="Definuje se v minutách.<hr>Výchozí jednotka zaokrouhlování hodin se definuje v administraci (základní parametry databáze).<hr>Pokud uvedete -1, systém nebude zaokrouhlovat čas vůbec.">
                 </mylabel>
                 <div class="col-sm-1 col-md-1">
                     <mynumber asp-for="@Model.Rec.p28Round2Minutes" decimal-digits="0"></mynumber>
