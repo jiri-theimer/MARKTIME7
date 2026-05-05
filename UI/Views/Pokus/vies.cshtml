@@ -1,0 +1,33 @@
+﻿@model BaseViewModel
+
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+
+    var pokus = (BL.Code.ViesSubjectResult) ViewBag.pokus;
+}
+
+<h2>Ověření DIČ (VIES)</h2>
+
+<form method="get">
+    <input type="text" name="dic" placeholder="CZ12345678" value="@Context.Request.Query["dic"]" />
+    <button type="submit">Ověřit</button>
+</form>
+
+@if (ViewBag.Error != null)
+{
+    <div style="color:red">@ViewBag.Error</div>
+}
+
+@if (pokus != null)
+{
+    <h3>Výsledek</h3>
+    <ul>
+        <li><strong>DIČ:</strong> @pokus.CountryCode@pokus.VatNumber</li>
+        <li><strong>Platné:</strong> @(pokus.IsValid ? "Ano" : "Ne")</li>
+        <li><strong>Název:</strong> @pokus.Name</li>
+        <li><strong>Adresa:</strong> @pokus.Address</li>
+        <li><strong>Datum dotazu:</strong> @pokus.RequestDate</li>
+    </ul>
+}

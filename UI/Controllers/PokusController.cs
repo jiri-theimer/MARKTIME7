@@ -1,4 +1,5 @@
-﻿using DocumentFormat.OpenXml.Drawing;
+﻿using BL.Code;
+using DocumentFormat.OpenXml.Drawing;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.IO;
@@ -18,6 +19,37 @@ namespace UI.Controllers
         static readonly string openAiEndpoint = "https://api.openai.com/v1/chat/completions";
 
         private const string UploadDir = @"c:\temp\_uploadpokus";
+
+        private readonly BL.Code.IViesClient _viesClient;
+
+
+        public PokusController(BL.Code.IViesClient viesClient)
+        {
+            _viesClient = viesClient;
+        }
+
+        public async Task<IActionResult> vies(string? dic, CancellationToken ct)
+        {
+            var v = new BaseViewModel();
+            try
+            {
+                var result = await _viesClient.CheckAsync(dic, ct);
+                ViewBag.pokus = result;
+                return View(v);
+            }
+            catch (ArgumentException ex)
+            {
+                ViewBag.Error = ex.Message;
+                return View(v);
+            }
+            catch (ViesException ex)
+            {
+                ViewBag.Error = "Chyba při komunikaci se službou VIES: " + ex.Message;
+                return View(v);
+            }
+
+            
+        }
 
         public IActionResult webdatarocks()
         {

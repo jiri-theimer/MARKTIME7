@@ -95,6 +95,12 @@ namespace UI
             services.AddSingleton<BL.Singleton.ThePeriodProvider>();
             services.AddSingleton<BL.Singleton.BackgroundWorkerQueue>();
 
+            //VIES služba
+            services.AddHttpClient<BL.Code.IViesClient, BL.Code.ViesClient>(client =>
+            {
+                client.BaseAddress = new Uri("http://ec.europa.eu/taxation_customs/vies/services/");
+                client.Timeout = TimeSpan.FromSeconds(15);
+            });
 
             var strDefaultCultureCode = Configuration.GetSection("App")["CultureCode"];
             if (string.IsNullOrEmpty(strDefaultCultureCode)) strDefaultCultureCode = "cs-CZ";
