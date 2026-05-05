@@ -833,7 +833,11 @@ namespace UI.Controllers
                         string strCountryCode = null;                        
                         if (v.RecP32.x15ID != BO.x15IdEnum.Nic)
                         {
-                            strCountryCode = v.RecP41.j18CountryCode;
+                            if (v.RecP41 != null)
+                            {
+                                strCountryCode = v.RecP41.j18CountryCode;
+                            }
+                            
                             v.Rec.VatRate_Orig = Factory.p53VatRateBL.NajdiSazbu(v.p31Date.Value, v.RecP32.x15ID, v.Rec.j27ID_Billing_Orig, strCountryCode);
 
                             if (strCountryCode == null && v.Rec.j02ID > 0)

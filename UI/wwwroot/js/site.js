@@ -40,7 +40,8 @@ document.onkeydown = function (e) {
                 var pid = $("#tg_selected_pid").val();
                 
                 var prefix = _thegrid.entity.substr(0, 3);
-                if (pid != "0" && pid != "" && (prefix == "le5" || prefix == "p56" || prefix == "p28"))
+                
+                if (pid != "0" && pid != "" && (prefix == "p41" || prefix == "p56" || prefix == "p28"))
                 {
                     _p31_entry_from_grid();
                     return;
@@ -68,7 +69,7 @@ document.onkeydown = function (e) {
             if (window.location.href.indexOf("TheGrid/") > 0 || window.location.href.indexOf("/RecPage") > 0) {                  
                 var prefix = _thegrid.entity.substr(0, 3);
                 
-                if (prefix == "le5" || prefix == "p31" || prefix == "p28" || prefix == "p56" || prefix == "j02") {                    
+                if (prefix == "p41" || prefix == "p31" || prefix == "p28" || prefix == "p56" || prefix == "j02") {                    
                     tg_approve();
                 }
                 
@@ -106,7 +107,7 @@ document.onkeydown = function (e) {
         var prefix = _thegrid.entity.substr(0, 3);
         var pids = $("#tg_selected_pids").val();
 
-        if ((prefix == "p31" || prefix == "le5" || prefix=="p28" || prefix=="p91" || prefix=="o23") && (e.key == "1" || e.key == "2" || e.key == "3" || e.key == "4" || e.key == "5")) {            
+        if ((prefix == "p31" || prefix == "p41" || prefix=="p28" || prefix=="p91" || prefix=="o23") && (e.key == "1" || e.key == "2" || e.key == "3" || e.key == "4" || e.key == "5")) {            
             if (pids === "") {
                 _notify_message("Musíte zaškrtnout/označit minimálně jeden záznam.");
                 return;
@@ -116,7 +117,7 @@ document.onkeydown = function (e) {
 
             _notify_message("Barevné záznamy #" + e.key + ".", "info");
         }
-        if ((prefix == "p31" || prefix == "le5" || prefix == "p28" || prefix == "p91" || prefix=="o23") && e.key == "6") {            
+        if ((prefix == "p31" || prefix == "p41" || prefix == "p28" || prefix == "p91" || prefix=="o23") && e.key == "6") {            
             if (pids === "") {
                 _notify_message("Musíte zaškrtnout/označit minimálně jeden záznam.");
                 return;
@@ -1278,7 +1279,7 @@ function _p31_new_from_everywhere()
         var pid = $("#tg_selected_pid").val();
 
         var prefix = _thegrid.entity.substr(0, 3);
-        if (pid != "0" && pid != "" && (prefix == "le5" || prefix == "p56" || prefix == "p28" || prefix=="p41")) {
+        if (pid != "0" && pid != "" && (prefix == "p41" || prefix == "p56" || prefix == "p28" || prefix=="p41")) {
             _p31_entry_from_grid();
             return;
         }
