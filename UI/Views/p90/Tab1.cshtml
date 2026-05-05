@@ -10,6 +10,8 @@
     int _b05Count = _f.WorkflowBL.GetB05CommentsCount("p90", Model.pid);
 
     var dropzonemodel = new DropzoneViewModel() { IsAutoSave = true, RecPid = Model.pid, RecPrefix = Model.prefix };
+
+    IEnumerable<BO.x40MailQueue> _lisX40 = _f.MailBL.GetList(new BO.myQueryX40() { IsRecordValid = null, explicit_orderby = "a.x40ID DESC", p90id = Model.pid });
 }
 
 @addTagHelper *, UI
@@ -67,6 +69,31 @@
                         <myval value="@Model.Rec.p28Name" hoverprefix="p28" hoverpid="@Model.Rec.p28ID"></myval>
                     </td>
                 </tr>
+                @if (_lisX40.Count() > 0)
+                {
+                    <tr>
+                        <td class="tdlab" style="font-size:90%">
+                            @_f.tra("Elektronicky odesláno"):
+                        </td>
+                        <td class="tdval">
+                            <a href="javascript:_window_open('/Mail/Record?pid=@_lisX40.First().pid')" style="text-decoration:none;">
+                                @(BO.Code.Bas.ObjectDateTime2String(_lisX40.First().x40DatetimeProcessed) + " (" + _lisX40.First().x40Recipient + ")")
+
+                            </a>
+                
+
+                            @if (_lisX40.First().x40Status != BO.x40StateENUM.IsProceeded)
+                            {
+                                <code>
+                                    @_lisX40.First().StatusAlias
+                                </code>
+
+                            }
+
+                        </td>
+
+                    </tr>
+                }
                 <tr>
                     <td class="tdlab">
                         @_f.tra("Datum"):
@@ -83,6 +110,8 @@
                         <myval datatype="date" value="@Model.Rec.p90DateMaturity"></myval>
                     </td>
                 </tr>
+
+                
             </table>
 
 

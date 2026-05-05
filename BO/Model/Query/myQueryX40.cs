@@ -9,6 +9,7 @@ namespace BO
         public int j02id { get; set; }
         public int j02id_creator { get; set; }
         public int p91id { get; set; }
+        public int p90id { get; set; }
         public int p84id { get; set; }
 
         public myQueryX40()
@@ -34,6 +35,10 @@ namespace BO
             if (this.p84id > 0)
             {
                 AQ("a.x40RecordEntity='p91' AND a.x40RecordPid=@p91id", "p91id", this.p91id);
+            }
+            if (this.p90id > 0)
+            {
+                AQ("a.x40RecordEntity='p90' AND a.x40RecordPid=@p90id", "p90id", this.p90id);
             }
 
             return this.InhaleRows();

@@ -45,7 +45,11 @@ namespace BL
             oc = AF("ChybiSparovat", "Zbývá spárovat", "isnull(uhrazeno.JizUhrazeno,0)-isnull(sparovano.JizSparovano,0)", "num", true); oc.RelSqlInCol = s;
             oc = AF("NaposledyUhrazeno", "Kdy uhrazeno", "uhrazeno.NaposledyUhrazeno", "date");
 
-            
+
+            this.CurrentFieldGroup = "Elektronicky odesláno";
+            oc = AF("p90VomKdyOdeslano", "Čas odeslání", "p90vom.Kdy_Odeslano", "datetime"); oc.RelSqlInCol = "LEFT OUTER JOIN view_p90_sendbyemail p90vom On a.p90ID = p90vom.p90ID";
+            oc = AF("p90VomStav", "Stav odeslání", "p90vom.AktualniStav"); oc.RelSqlInCol = "LEFT OUTER JOIN view_p90_sendbyemail p90vom On a.p90ID = p90vom.p90ID"; oc.SqlExplicitGroupBy = "vom.AktualniStav";
+            oc = AF("p90VomKomu", "Komu odesláno", "p90vom.Komu"); oc.RelSqlInCol = "LEFT OUTER JOIN view_p90_sendbyemail p90vom On a.p90ID = p90vom.p90ID";
 
             AppendTimestamp();
         }
