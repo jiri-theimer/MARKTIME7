@@ -82,14 +82,23 @@
             <a class="btn descreet_link_over_grid" title="Stránka záznamu" href="javascript:_recpage_from_grid('@(Model.prefix)')"><span class="material-icons-outlined-btn">maps_home_work</span></a>
         </div>
     }
-
-    @if (Model.prefix != "x40" && Model.prefix != "o43" && Model.prefix != "p11" && Model.prefix != "p84")
+    @if (Model.prefix == "p31")
     {
-        <div class="nonmobile" title="@_f.tra("Nový")">
-            <a class="btn descreet_link_over_grid" href="javascript:_newrec_from_grid('@(Model.prefix)','@(Model.rez)')"><span class="material-icons-outlined-btn menu_new_record">add_circle_outline</span></a>
-
-        </div>
+        <a class="btn descreet_link_over_grid" href="javascript:_p31_entry_from_grid()"><span class="material-icons-outlined-btn menu_new_record">add_circle_outline</span></a>
     }
+    else
+    {
+        @if (Model.prefix != "x40" && Model.prefix != "o43" && Model.prefix != "p11" && Model.prefix != "p84")
+        {
+            <div class="nonmobile" title="@_f.tra("Nový")">
+            
+                <a class="btn descreet_link_over_grid" href="javascript:_newrec_from_grid('@(Model.prefix)','@(Model.rez)')"><span class="material-icons-outlined-btn menu_new_record">add_circle_outline</span></a>
+
+            
+            </div>
+        }
+    }
+    
 
 
 

@@ -208,17 +208,33 @@ function _p31_entry_from_grid() {       //vykázat úkon z gridu projektu nebo k
     var pid = $("#tg_selected_pid").val();
     var prefix = _thegrid.entity.substr(0, 3);
 
-    if (prefix == "p31" && _thegrid.master_entity=="")
-    {
-        _window_open("/p31/Record?pid=0", 3);
-        return;
-    }
+    //alert("pid: " + pid + ", prefix: " + prefix);
+    //if (prefix == "p31" && _thegrid.master_entity=="")
+    //{
+    //    _window_open("/p31/Record?pid=0", 3);
+    //    return;
+    //}
     
-    if (prefix == "p31" && _thegrid.master_entity != "") {
-        prefix = _thegrid.master_entity.substr(0, 3);
-        pid = _thegrid.master_pid;
+    if (prefix == "p31") {
+        if (_thegrid.master_entity != "") {
+            prefix = _thegrid.master_entity.substr(0, 3);
+            pid = _thegrid.master_pid;
+        }
+        else
+        {
+            if (pid == "" || pid == "0")
+            {
+                _window_open("/p31/Record?pid=0", 3);
+                return;
+            }
+            
+            
+        }
+        
     }
 
+    
+    
     if (pid == "" || pid=="0")
     {
         _notify_message("Musíte vybrat záznam v Přehledu.", "error");

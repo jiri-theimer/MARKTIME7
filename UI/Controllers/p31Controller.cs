@@ -122,7 +122,12 @@ namespace UI.Controllers
 
                     v.Element2Focus = "cmdComboRec_p32ID";
                     break;
-
+                case "p31":
+                    var recP31 = Factory.p31WorksheetBL.Load(newrec_pid);
+                    v.Rec.p41ID = recP31.p41ID;
+                    v.RecP41 = Factory.p41ProjectBL.Load(v.Rec.p41ID);
+                    v.Element2Focus = "cmdComboRec_p32ID";
+                    break;
                 case "p56":
                     var recP56 = Factory.p56TaskBL.Load(newrec_pid);
                     if (recP56 != null && recP56.p41ID == 0)

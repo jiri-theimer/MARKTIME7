@@ -41,7 +41,7 @@ document.onkeydown = function (e) {
                 
                 var prefix = _thegrid.entity.substr(0, 3);
                 
-                if (pid != "0" && pid != "" && (prefix == "p41" || prefix == "p56" || prefix == "p28"))
+                if (pid != "0" && pid != "" && (prefix == "p41" || prefix == "p56" || prefix == "p28" || prefix=="p31"))
                 {
                     _p31_entry_from_grid();
                     return;
@@ -49,8 +49,10 @@ document.onkeydown = function (e) {
                 
                 
             }
+
+            _p31_new_from_everywhere();
  
-            _window_open("/p31/Record?pid=0", 3);
+            //_window_open("/p31/Record?pid=0", 3);
         }
         if (e.key == "q" || e.key == "Q") {
             if (parent.window.document.getElementById("cmdSaveMyToolbar")) {
@@ -1275,9 +1277,10 @@ function _adjust_divheight_small_display(divID){
 
 function _p31_new_from_everywhere()
 {
+    
     if (window.location.href.indexOf("TheGrid/") > 0 || window.location.href.indexOf("/RecPage") > 0) {
         var pid = $("#tg_selected_pid").val();
-
+        
         var prefix = _thegrid.entity.substr(0, 3);
         if (pid != "0" && pid != "" && (prefix == "p41" || prefix == "p56" || prefix == "p28" || prefix=="p41")) {
             _p31_entry_from_grid();
@@ -1286,9 +1289,9 @@ function _p31_new_from_everywhere()
 
 
     }
-    if (window.location.href.indexOf("TreePage") > 0)
+    if (window.location.href.indexOf("/TreePage") > 0)
     {
-        var p41id = $("#pid").val();
+        var p41id = $("#pid").val();        
         var url = "/p31/Record?pid=0&newrec_prefix=p41&newrec_pid=" + p41id;
         
         _window_open(url, 3);
