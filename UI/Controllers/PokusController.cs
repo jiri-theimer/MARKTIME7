@@ -1,5 +1,5 @@
 ﻿using BL.Code;
-using DocumentFormat.OpenXml.Drawing;
+
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.IO;
@@ -31,10 +31,12 @@ namespace UI.Controllers
         public async Task<IActionResult> vies(string? dic, CancellationToken ct)
         {
             var v = new BaseViewModel();
+            //var viesClient = HttpContext.RequestServices.GetRequiredService<IViesClient>();
             try
             {
                 var result = await _viesClient.CheckAsync(dic, ct);
-                ViewBag.pokus = result;
+                //var result = await viesClient.CheckAsync(dic, ct);
+                ViewBag.pokus=result;
                 return View(v);
             }
             catch (ArgumentException ex)

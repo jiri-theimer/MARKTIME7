@@ -41,7 +41,8 @@ namespace UI.Controllers
 
         private void Handle_TryImportContacts(ImportViewModel v)
         {
-            var cr = new BL.Code.RejstrikySupport();
+            var viesClient = HttpContext.RequestServices.GetRequiredService<BL.Code.IViesClient>();
+            var cr = new BL.Code.RejstrikySupport(viesClient);
             var hc = new HttpClient();
 
             v.lisRejstrik = new List<BO.Rejstrik.DefaultZaznam>();

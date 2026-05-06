@@ -715,7 +715,8 @@ namespace UI.Controllers
 
         public BO.Rejstrik.DefaultZaznam LoadRejstrikSubjekt(string strPole, string strHodnota, string strCountryCode)
         {
-            var engine = new BL.Code.RejstrikySupport();
+            var viesClient = HttpContext.RequestServices.GetRequiredService<BL.Code.IViesClient>();
+            var engine = new BL.Code.RejstrikySupport(viesClient);
             var ret = engine.LoadDefaultZaznam(strPole, strHodnota, strCountryCode, _httpclientfactory.CreateClient());
             try
             {

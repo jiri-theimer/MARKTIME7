@@ -262,7 +262,7 @@ namespace BL
 
         private bool Handle_TestovatHlidace_ZmenaAdresy(ref System.Text.StringBuilder sb, HttpClient hc,BO.b20Hlidac recB20, BO.b21HlidacBinding recB21, IEnumerable<BO.j94HlidacLog> lisLog, ref string strRobotValue)
         {
-            var cr = new BL.Code.RejstrikySupport();
+            var cr = new BL.Code.RejstrikySupport(null);
             var recP28 = _mother.p28ContactBL.Load(recB21.b21RecordPid);
             DefaultZaznam c = null;string strPole = null;
             try

@@ -114,8 +114,8 @@ namespace UI.Controllers
 
         private void Handle_CheckSubjects(checkaddressViewModel v)
         {
-            
-            var cr = new BL.Code.RejstrikySupport();
+            var viesClient = HttpContext.RequestServices.GetRequiredService<BL.Code.IViesClient>();
+            var cr = new BL.Code.RejstrikySupport(viesClient);
             var hc = new HttpClient();
 
             foreach (var recP28 in v.lisP28)

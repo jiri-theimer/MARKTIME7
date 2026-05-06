@@ -1,4 +1,5 @@
-﻿using BO.Rejstrik;
+﻿using BL.Code;
+using BO.Rejstrik;
 using Microsoft.AspNetCore.Mvc;
 using UI.Models.batch;
 
@@ -6,6 +7,8 @@ namespace UI.Controllers.batch
 {
     public class BatchUpdateController : BaseController
     {
+        
+        
         public IActionResult Index(string pids, string prefix, int j72id, string guid_pids)
         {
             if (!string.IsNullOrEmpty(guid_pids))
@@ -592,7 +595,8 @@ namespace UI.Controllers.batch
                    
                 case "rejstrik":
                     DefaultZaznam c = null;
-                    var cr = new BL.Code.RejstrikySupport();
+                    var viesClient = HttpContext.RequestServices.GetRequiredService<BL.Code.IViesClient>();
+                    var cr = new BL.Code.RejstrikySupport(viesClient);
                     
                     if (rec.p28RegID != null)
                     {

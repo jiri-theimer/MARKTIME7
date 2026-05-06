@@ -99,7 +99,7 @@ namespace UI
             services.AddHttpClient<BL.Code.IViesClient, BL.Code.ViesClient>(client =>
             {
                 client.BaseAddress = new Uri("http://ec.europa.eu/taxation_customs/vies/services/");
-                client.Timeout = TimeSpan.FromSeconds(15);
+                client.Timeout = TimeSpan.FromSeconds(5);
             });
 
             var strDefaultCultureCode = Configuration.GetSection("App")["CultureCode"];

@@ -295,7 +295,8 @@ namespace UI.Controllers.guru
 
             if (!string.IsNullOrEmpty(v.p93RegID))
             {
-                var engine = new BL.Code.RejstrikySupport();
+                var viesClient = HttpContext.RequestServices.GetRequiredService<BL.Code.IViesClient>();
+                var engine = new BL.Code.RejstrikySupport(viesClient);
                 var ret = engine.LoadDefaultZaznam("ico", v.p93RegID, v.Rec.x01CountryCode, new HttpClient());
                 try
                 {             
