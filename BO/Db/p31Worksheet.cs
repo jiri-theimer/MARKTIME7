@@ -60,6 +60,7 @@ namespace BO
         public int p95ID { get; }
         public string p95Name { get; }
         public int o23ID { get; set; }
+        public int o27ID_Last { get; set; }
         public int p54ID { get; set; }   //stupeň přesčasu
         public int p40ID_Source { get; set; }   //zdroj opakované odměny, která vygenerovala úkon
         public int p40ID_FixPrice { get; set; }   //vazba na paušální odměnu        

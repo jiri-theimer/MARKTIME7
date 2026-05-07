@@ -2,7 +2,7 @@
 @inject BL.Factory _f
 
 @{
-
+    
     if (Model.entity == null)
     {
         return;
@@ -75,7 +75,7 @@
         </ul>
     </div>
 
-    @if(Model.TheGridQueryButton != null)
+    @if (Model.TheGridQueryButton != null)
     {
         <div>
             @Html.EditorFor(m => Model.TheGridQueryButton, "~/Views/Shared/_ButtonGridQuery.cshtml")
@@ -123,10 +123,10 @@
         </div>
     }
     <div class="showmore">
-    @if (Model.recordbinquery != null)
-    {
-        @Html.EditorFor(m => Model.recordbinquery,"~/Views/Shared/_RecordBinQuery.cshtml")
-    }
+        @if (Model.recordbinquery != null)
+        {
+            @Html.EditorFor(m => Model.recordbinquery,"~/Views/Shared/_RecordBinQuery.cshtml")
+        }
     </div>
     
 
@@ -138,183 +138,227 @@
     }
 
     <div class="showmore">
-        <myhelpbutton></myhelpbutton>
-    </div>
+        <div class="dropdown">
+            <button class="btn btn-light dropdown-toggle bog" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                @_f.tra("Dvojklik")
+            </button>
+            <ul class="dropdown-menu form-check" style="min-width:180px;padding:10px;">
+                <li>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" id="radioDefault1" asp-for="dblClickSetting" value="default" onchange="change_dblClickSetting(this)">
+                            <label class="form-check-label" for="radioDefault1">
+                                Zahájit schvalování
+                            </label>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" id="radioDefault2" asp-for="dblClickSetting" value="recpage" onchange="change_dblClickSetting(this)">
+                                <label class="form-check-label" for="radioDefault2">
+                                    Přejít na stránku záznamu
+                                </label>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" id="radioDefault3" asp-for="dblClickSetting" value="edit" onchange="change_dblClickSetting(this)">
+                                    <label class="form-check-label" for="radioDefault3">
+                                        Otevřít kartu záznamu
+                                    </label>
+                                </div>
+                            </li>
 
-
-
-
-
-</div>
-
-<div id="divMore" style="background-color:#F5F5F5;border:solid 1px silver;">
-    <div class="input-group" style="padding:10px;">
-        <button type="button" class="btn btn-sm bog" id="cmdBatch4" onclick="run(1,4)"><span class="material-icons-outlined-btn" style="color:green;">approval</span>@_f.tra("Fakturovat")<br /><strong>Výchozí scénář</strong></button>
-
-        
-        
-        <div style="margin-left:10px;">
-            <button type="button" class="btn btn-sm bog" id="cmdBatch6" onclick="run(1,6)"><span class="material-icons-outlined-btn" style="color:pink;">approval</span>@_f.tra("Hodiny do paušálu")<br /><i>Výdaje+Odměny fakturovat</i></button>
-        
-            
-        </div>
-
-        <myshowmore classname_target="gogo"></myshowmore>
-
-        
-        <div class="gogo">
-            <button type="button" class="btn btn-sm bog" id="cmdBatch2" onclick="run(1,2)"><span class="material-icons-outlined-btn" style="color: red;">approval</span>@_f.tra("Hodiny viditelný odpis")<br /><i>Výdaje+Odměny fakturovat</i></button>
-            <button type="button" class="btn btn-sm bog" id="cmdBatch3" onclick="run(1,3)"><span class="material-icons-outlined-btn" style="color: brown;">approval</span>@_f.tra("Hodiny skrytý odpis")<br /><i>Výdaje+Odměny fakturovat</i></button>
-        </div>
-        
-
-        <div class="gogo" style="margin-left:10px;">
-            <button type="button" class="btn btn-sm bog" id="cmdBatch7" onclick="run(1,7)"><span class="material-icons-outlined-btn" style="color: gold;">approval</span>@_f.tra("Fakturovat později")<br /><i>Všechny úkony</i></button>
-        </div>
-        
-        <div class="gogo" style="margin-left:10px;">
-            <button type="button" class="btn btn-sm bog" id="cmdBatch0" onclick="run(0,0)"><span class="material-icons-outlined-btn">edit</span>@_f.tra("Schválené úkony")<br /><i>Vrátit do rozpracovanosti</i></button>
-        </div>
-       
-        <div class="gogo" style="margin-left:10px;">
-            <button type="button" class="btn btn-sm bog" onclick="vyloucit()"><span class="material-icons-outlined-btn">delete_sweep</span>@_f.tra("Hodiny přesunout")<br /><i>Do [Vyloučené z vyúčtování]</i></button>
-        </div>
-        
-        <div class="showmore" style="margin-left:10px;">
-            <i>Operace s hodinami se vztahují i na kusovníkové úkony.</i><br /><i>Zahájit vyúčtování lze i dvojklikem na záznamu v přehledu.</i>
-        </div>
-    </div>
-
-
-</div>
-
-@await Component.InvokeAsync("myGrid",Model.gridinput)
-
-
-
-<script type="text/javascript">
-    var _localprefix = "@Model.prefix";
-    var _rez = "@Model.rez";
-    var _local_p31statequery = "@Model.p31statequery.Value";
-    var _local_p31tabquery = "@Model.p31tabquery.Value";
-    var _local_j72id_query = "@Model.TheGridQueryButton.j72id";
-    var _j27id = "@Model.j27id_query";
-    var _ismobile = "@_isMobile";
-
-    //$(document.body).css("overflow", "hidden");
-
-
-
-
-
-    $(document).ready(function () {
-        _init_qtip_onpage();
-
-        _mainmenu_highlight_current("cmdapproving");
-
-        if (_local_p31tabquery != "")
-        {
-            $(".showmore").toggle();
-        }
-        
-        $("#j27id_query").val(_j27id);
-        if (_j27id != "0") {
-            $("#j27id_query").css("background-color", "red");
-        }
-
-        $(".gogo").css("display", "none");
-
-        if (_ismobile == "True")
-        {
-            
-            tg_adjust_for_screen();
-        }
-
-    });
-
-    function reload() {
-        //_showloading();
-        _redirect("/TheGrid/ApproveView?prefix=" + _localprefix);
-
-    }
-
-
-
-    function change_grid(j72id) {
-        var strKey = "approveview-j72id-" + _localprefix + "-" + _rez;
-
-        $.post(_ep("/Common/SetUserParam"), { key: strKey, value: j72id }, function (data) {
-            reload();
-
-        });
-    }
-
-    function report_nocontext(x31id) {
-        _window_open("/x31/ReportNoContext?x31id=" + x31id, 2);
-    }
-
-
-    function change_tab(prefix) {    //uložit aktuální záložku
-        
-        $.post("/Common/SetUserParam", { key: "approveview-prefix", value: prefix }, function (data) {
-            _redirect("/TheGrid/ApproveView?prefix=" + prefix);
-
-        });
-
-        
-    }
+                
+                
+                        </ul>
+                    </div>
+                </div>
 
 
     
-    function change_j27id_query(cbx) {    //uložit aktuální záložku
-        $.post("/Common/SetUserParam", { key: "approveview-j27id", value: cbx.value }, function (data) {
-            reload();
-
-        });
-
-    }
 
 
+            </div>
+
+            <div id="divMore" style="background-color:#F5F5F5;border:solid 1px silver;">
+                <div class="input-group" style="padding:10px;">
+                    <button type="button" class="btn btn-sm bog" id="cmdBatch4" onclick="run(1,4)"><span class="material-icons-outlined-btn" style="color:green;">approval</span>@_f.tra("Fakturovat")<br /><strong>Výchozí scénář</strong></button>
+
+        
+        
+                    <div style="margin-left:10px;">
+                        <button type="button" class="btn btn-sm bog" id="cmdBatch6" onclick="run(1,6)"><span class="material-icons-outlined-btn" style="color:pink;">approval</span>@_f.tra("Hodiny do paušálu")<br /><i>Výdaje+Odměny fakturovat</i></button>
+        
+            
+                    </div>
+
+                    <myshowmore classname_target="gogo"></myshowmore>
+
+        
+                    <div class="gogo">
+                        <button type="button" class="btn btn-sm bog" id="cmdBatch2" onclick="run(1,2)"><span class="material-icons-outlined-btn" style="color: red;">approval</span>@_f.tra("Hodiny viditelný odpis")<br /><i>Výdaje+Odměny fakturovat</i></button>
+                        <button type="button" class="btn btn-sm bog" id="cmdBatch3" onclick="run(1,3)"><span class="material-icons-outlined-btn" style="color: brown;">approval</span>@_f.tra("Hodiny skrytý odpis")<br /><i>Výdaje+Odměny fakturovat</i></button>
+                    </div>
+        
+
+                    <div class="gogo" style="margin-left:10px;">
+                        <button type="button" class="btn btn-sm bog" id="cmdBatch7" onclick="run(1,7)"><span class="material-icons-outlined-btn" style="color: gold;">approval</span>@_f.tra("Fakturovat později")<br /><i>Všechny úkony</i></button>
+                    </div>
+        
+                    <div class="gogo" style="margin-left:10px;">
+                        <button type="button" class="btn btn-sm bog" id="cmdBatch0" onclick="run(0,0)"><span class="material-icons-outlined-btn">edit</span>@_f.tra("Schválené úkony")<br /><i>Vrátit do rozpracovanosti</i></button>
+                    </div>
+       
+                    <div class="gogo" style="margin-left:10px;">
+                        <button type="button" class="btn btn-sm bog" onclick="vyloucit()"><span class="material-icons-outlined-btn">delete_sweep</span>@_f.tra("Hodiny přesunout")<br /><i>Do [Vyloučené z vyúčtování]</i></button>
+                    </div>
+        
+                    <div class="showmore" style="margin-left:10px;">
+                        <i>Operace s hodinami se vztahují i na kusovníkové úkony.</i><br /><i>Zahájit vyúčtování lze i dvojklikem na záznamu v přehledu.</i>
+                    </div>
+                </div>
 
 
-    function grid_dblclick(row) {
-        run(1, 4);
-    }
+            </div>
 
-
-    function run(p71id, p72id) {
-
-        var pids = $("#tg_selected_pids").val();
-        if (pids === "") {
-            _notify_message(_tg_musite_vybrat_zaznam);
-
-            return;
-        }
-
-        var millis = new Date().getTime();
-
-        var url = "/p31approveinput/Index?prefix=" + _localprefix + "&p71id=" + p71id + "&p72id=" + p72id + "&millis=" + millis;
-        url = url + "&p31statequery=" + _local_p31statequery + "&p31tabquery=" + _local_p31tabquery;
-        url = url + "&period=" + _period_get_as_string();
-        url = url + "&pids=" + pids;
-
-        _window_open(url, 2);
-
-
-    }
-
-    function vyloucit() {
-        var pids = $("#tg_selected_pids").val();
-        if (pids === "") {
-            _notify_message(_tg_musite_vybrat_zaznam);
-
-            return;
-        }
-
-        _window_open("/p31excludebilling/Index?flag=1&pids=" + pids + "&prefix=" + _localprefix);
+            @await Component.InvokeAsync("myGrid",Model.gridinput)
 
 
 
-    }
-</script>
+            <script type="text/javascript">
+                var _localprefix = "@Model.prefix";
+                var _rez = "@Model.rez";
+                var _local_p31statequery = "@Model.p31statequery.Value";
+                var _local_p31tabquery = "@Model.p31tabquery.Value";
+                var _local_j72id_query = "@Model.TheGridQueryButton.j72id";
+                var _j27id = "@Model.j27id_query";
+                var _ismobile = "@_isMobile";
+
+                //$(document.body).css("overflow", "hidden");
+
+
+
+
+
+                $(document).ready(function () {
+                    _init_qtip_onpage();
+
+                    _mainmenu_highlight_current("cmdapproving");
+
+                    if (_local_p31tabquery != "")
+                    {
+                        $(".showmore").toggle();
+                    }
+        
+                    $("#j27id_query").val(_j27id);
+                    if (_j27id != "0") {
+                        $("#j27id_query").css("background-color", "red");
+                    }
+
+                    $(".gogo").css("display", "none");
+
+                    if (_ismobile == "True")
+                    {
+            
+                        tg_adjust_for_screen();
+                    }
+
+                });
+
+                function reload() {
+                    //_showloading();
+                    _redirect("/TheGrid/ApproveView?prefix=" + _localprefix);
+
+                }
+
+
+
+                function change_grid(j72id) {
+                    var strKey = "approveview-j72id-" + _localprefix + "-" + _rez;
+
+                    $.post(_ep("/Common/SetUserParam"), { key: strKey, value: j72id }, function (data) {
+                        reload();
+
+                    });
+                }
+
+                function report_nocontext(x31id) {
+                    _window_open("/x31/ReportNoContext?x31id=" + x31id, 2);
+                }
+
+
+                function change_tab(prefix) {    //uložit aktuální záložku
+        
+                    $.post("/Common/SetUserParam", { key: "approveview-prefix", value: prefix }, function (data) {
+                        _redirect("/TheGrid/ApproveView?prefix=" + prefix);
+
+                    });
+
+        
+                }
+
+
+    
+                function change_j27id_query(cbx) {    //uložit aktuální záložku
+                    $.post("/Common/SetUserParam", { key: "approveview-j27id", value: cbx.value }, function (data) {
+                        reload();
+
+                    });
+
+                }
+
+
+
+
+                function grid_dblclick(row) {
+                    run(1, 4);
+                }
+
+
+                function run(p71id, p72id) {
+
+                    var pids = $("#tg_selected_pids").val();
+                    if (pids === "") {
+                        _notify_message(_tg_musite_vybrat_zaznam);
+
+                        return;
+                    }
+
+                    var millis = new Date().getTime();
+
+                    var url = "/p31approveinput/Index?prefix=" + _localprefix + "&p71id=" + p71id + "&p72id=" + p72id + "&millis=" + millis;
+                    url = url + "&p31statequery=" + _local_p31statequery + "&p31tabquery=" + _local_p31tabquery;
+                    url = url + "&period=" + _period_get_as_string();
+                    url = url + "&pids=" + pids;
+
+                    _window_open(url, 2);
+
+
+                }
+
+                function vyloucit() {
+                    var pids = $("#tg_selected_pids").val();
+                    if (pids === "") {
+                        _notify_message(_tg_musite_vybrat_zaznam);
+
+                        return;
+                    }
+
+                    _window_open("/p31excludebilling/Index?flag=1&pids=" + pids + "&prefix=" + _localprefix);
+
+
+
+                }
+
+
+                function change_dblClickSetting(ctl) {
+                    
+                    var strKey = "ApproveView-dblClickSetting-"+_localprefix;
+
+                    $.post(_ep("/Common/SetUserParam"), { key: strKey, value: ctl.value }, function (data) {
+                        reload();
+
+                    });
+                 }            
+            </script>
 

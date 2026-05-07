@@ -115,44 +115,56 @@ namespace UI.Menu
             AMI_RowColor("p31", rec.pid);
 
 
-            if (_f.CurrentUser.j04IsModule_p41)
+            if (_f.CurrentUser.j04IsModule_p41 || rec.o27ID_Last>0)
             {
                 AMI("Vazby", null, null, null, "rel");
-                var recP41 = _f.p41ProjectBL.Load(rec.p41ID);
-                AMI_RecPage($"{recP41.p42Name}: {recP41.FullName}", "p41", recP41.pid, "rel");
-                if (_f.CurrentUser.j04IsModule_p28)
+                if (rec.o27ID_Last > 0)
                 {
-                    if (recP41.p28ID_Client > 0)
-                    {
-                        var recP28 = _f.p28ContactBL.Load(recP41.p28ID_Client);
-                        if (recP28 != null)
-                        {
-                            AMI_RecPage(_f.tra("Klient") + ": " + recP28.p28Name, "p28", recP41.p28ID_Client, "rel");
-                        }                        
-                    }
-                    if (rec.p28ID_ContactPerson > 0)
-                    {
-                        var recP28CP = f.p28ContactBL.Load(rec.p28ID_ContactPerson);
-                        if (recP28CP != null)
-                        {
-                            AMI_RecPage(_f.tra("Kontaktní osoba") + ": " + recP28CP.p28Name, "p28", rec.p28ID_ContactPerson, "rel");
-                        }
-                    }
-                    if (rec.p28ID_Supplier > 0)
-                    {
-                        var recP28 = _f.p28ContactBL.Load(rec.p28ID_Supplier);
-                        if (recP28 != null)
-                        {
-                            AMI_RecPage(_f.tra("Dodavatel") + ": " + recP28.p28Name, "p28", rec.p28ID_Supplier, "rel");
-                        }
+                    var recO27 = _f.o27AttachmentBL.Load(rec.o27ID_Last);
+                    AMI("FILEBOX příloha", $"/FileUpload/FileDownloadInline?guid={recO27.o27Guid}", "attachment","rel",null,"_blank");
+                }
 
-                    }
-                    var lisO23 = _f.o23DocBL.GetList(new BO.myQueryO23() { p31id = rec.pid });
-                    foreach(var c in lisO23)
+                if (_f.CurrentUser.j04IsModule_p41)
+                {                    
+                    var recP41 = _f.p41ProjectBL.Load(rec.p41ID);
+                    AMI_RecPage($"{recP41.p42Name}: {recP41.FullName}", "p41", recP41.pid, "rel");
+
+                    if (_f.CurrentUser.j04IsModule_p28)
                     {
-                        AMI_RecPage(c.o18Name + ": " + c.o23Name, "o23", c.pid,"rel");
+                        if (recP41.p28ID_Client > 0)
+                        {
+                            var recP28 = _f.p28ContactBL.Load(recP41.p28ID_Client);
+                            if (recP28 != null)
+                            {
+                                AMI_RecPage(_f.tra("Klient") + ": " + recP28.p28Name, "p28", recP41.p28ID_Client, "rel");
+                            }
+                        }
+                        if (rec.p28ID_ContactPerson > 0)
+                        {
+                            var recP28CP = f.p28ContactBL.Load(rec.p28ID_ContactPerson);
+                            if (recP28CP != null)
+                            {
+                                AMI_RecPage(_f.tra("Kontaktní osoba") + ": " + recP28CP.p28Name, "p28", rec.p28ID_ContactPerson, "rel");
+                            }
+                        }
+                        if (rec.p28ID_Supplier > 0)
+                        {
+                            var recP28 = _f.p28ContactBL.Load(rec.p28ID_Supplier);
+                            if (recP28 != null)
+                            {
+                                AMI_RecPage(_f.tra("Dodavatel") + ": " + recP28.p28Name, "p28", rec.p28ID_Supplier, "rel");
+                            }
+
+                        }
+                        var lisO23 = _f.o23DocBL.GetList(new BO.myQueryO23() { p31id = rec.pid });
+                        foreach (var c in lisO23)
+                        {
+                            AMI_RecPage(c.o18Name + ": " + c.o23Name, "o23", c.pid, "rel");
+                        }
                     }
                 }
+                
+                
                 
                 
                 if (rec.p56ID > 0)

@@ -11,7 +11,7 @@ namespace BL
                 Handle_o23UserFields(f);    //dokumenty přes o16DocType_FieldSetting
             }
            
-            if (prefix == "p41")
+            if (prefix == "p41" || prefix=="p91")
             {
                 Handle_p22UserFields(f);
             }

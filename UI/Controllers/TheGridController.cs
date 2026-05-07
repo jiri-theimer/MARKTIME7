@@ -73,6 +73,7 @@ namespace UI.Controllers
             Handle_InhaleQuery(v, $"approveview-query-j72id-{prefix}-{rez}");
 
 
+            v.dblClickSetting = Factory.CBL.LoadUserParam($"ApproveView-dblClickSetting-{prefix}","default");
             return View(v);
         }
 

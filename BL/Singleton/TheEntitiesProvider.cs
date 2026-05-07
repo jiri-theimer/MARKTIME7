@@ -418,6 +418,7 @@ namespace BL.Singleton
                     lis.Add(getREL("p41Project", "p91_p41", "První projekt", "LEFT OUTER JOIN p41Project p91_p41 ON a.p41ID_First=p91_p41.p41ID"));
                     lis.Add(getREL("p28Contact", "p91_p28", "Klient (vazba)", "LEFT OUTER JOIN p28Contact p91_p28 ON a.p28ID=p91_p28.p28ID"));
                     lis.Add(getREL("p84Upominka", "p91_p84", "Poslední upomínka", "LEFT OUTER JOIN p84Upominka p91_p84 ON a.p84ID_Last=p91_p84.p84ID"));
+                    lis.Add(getREL("p22ProjectContactInline", "p41_p22", "Kontakty projektu ", "LEFT OUTER JOIN p22ProjectContactInline p41_p22 ON a.p41ID_First=p41_p22.p41ID"));
                     break;
                 case "p58":
                     lis.Add(getREL("p41Project", "p58_p41", "Projekt", "LEFT OUTER JOIN p41Project p58_p41 ON a.p41ID=p58_p41.p41ID"));
