@@ -311,6 +311,19 @@
 
 
                 function grid_dblclick(row) {
+                    const dblClickSetting="@Model.dblClickSetting";
+                    const pid=$("#tg_selected_pid").val();
+                    
+                    if (dblClickSetting=="recpage")
+                    {
+                        _redirect("/Record/RecPage?prefix="+_localprefix+"&pid="+pid);
+                        return;
+                    }
+                    if (dblClickSetting=="edit")
+                    {
+                        _edit(_localprefix,pid);
+                        return;
+                    }
                     run(1, 4);
                 }
 

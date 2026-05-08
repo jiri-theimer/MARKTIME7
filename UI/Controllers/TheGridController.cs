@@ -361,14 +361,20 @@ namespace UI.Controllers
                         }
                         else
                         {
-                            if (v.myqueryinline == null)
+                            var intLeIndex = Factory.p41ProjectBL.Loadp07Level(v.master_pid);
+                            if (intLeIndex <= 4)
                             {
-                                v.myqueryinline = $"lepid|int|{v.master_pid}|leindex|int|4";  //uživatel chce vidět úkony bez podřízených projektů
+                                if (v.myqueryinline == null)
+                                {
+                                    v.myqueryinline = $"lepid|int|{v.master_pid}|leindex|int|{intLeIndex}";  //uživatel chce vidět úkony vč. podřízených projektů
+                                }
+                                else
+                                {
+                                    v.myqueryinline += $"|lepid|int|{v.master_pid}|leindex|int|{intLeIndex}";  //uživatel chce vidět úkony vč. podřízených projektů
+                                }
                             }
-                            else
-                            {
-                                v.myqueryinline += $"|lepid|int|{v.master_pid}|leindex|int|4";  //uživatel chce vidět úkony bez podřízených projektů
-                            }
+                            
+                            
                         }
                     }
 

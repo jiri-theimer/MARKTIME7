@@ -25,7 +25,9 @@ namespace BL
         public IEnumerable<BO.p41BoxRec> GetList_p41InProjectBox(List<int> p28ids);
         public IEnumerable<BO.p41BoxRec> GetList_p41InProjectBox(int p41id_level4, int p41id_level3, int p41id_level2, int p41id_level1);
         public string LoadBillingMemo(int p41id);
-        
+        public int Loadp07Level(int p41id);
+
+
 
     }
     class p41ProjectBL : BaseBL, Ip41ProjectBL
@@ -156,7 +158,11 @@ namespace BL
         {
             return _db.Load<BO.GetString>("select p41BillingMemo as Value FROM p41Project WHERE p41ID=@pid", new { pid = p41id }).Value;
         }
-       
+        public int Loadp07Level(int p41id)
+        {
+            return _db.Load<BO.GetInteger>("select b.p07Level as Value FROM p41Project a INNER JOIN p07ProjectLevel b ON a.p07ID=b.p07ID WHERE a.p41ID=@pid", new { pid = p41id }).Value;
+        }
+
         public IEnumerable<BO.p41MyTop10> GetList_MyTop10(int j02id,int toprecs)
         {
             
