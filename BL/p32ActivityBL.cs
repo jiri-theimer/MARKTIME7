@@ -119,6 +119,7 @@ namespace BL
 
             p.AddDouble("p32MarginHidden", rec.p32MarginHidden);
             p.AddDouble("p32MarginTransparent", rec.p32MarginTransparent);
+            
 
             p.AddEnumInt("p32AbsenceFlag", rec.p32AbsenceFlag);
             p.AddEnumInt("p32AbsenceBreakFlag", rec.p32AbsenceBreakFlag);

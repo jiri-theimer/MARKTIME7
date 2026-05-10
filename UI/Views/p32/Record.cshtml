@@ -76,12 +76,23 @@
     </div>
     <div class="row my-2">
 
-
-
         <label class="col-sm-2 col-md-2 col-form-label">@_f.tra("Výchozí DPH sazba"):</label>
         <div class="col-sm-2 col-md-2">
             @Html.EditorFor(m => m.Rec.x15ID, "~/Views/Shared/_x15Combo.cshtml")
         </div>
+
+        <div class="col-sm-3 col-md-3">
+
+        </div>
+        
+        @if (Model.IsPenezniVydaj)
+        {
+            <mylabel class="col-sm-2 col-md-2 col-form-label" text="@_f.tra("Skrytá marže (%)")" tooltip="Procento, o které se navýší částka peněžního výdaje. Navýšení ceny se zatají před klientem.<hr>Pokud zde vyplněno, marže se nabídne k vyplnění při vykazování úkonu."></mylabel>
+            <div class="col-sm-2 col-md-2">
+                <mynumber asp-for="Rec.p32MarginHidden" decimal-digits="2"></mynumber>
+            </div>
+        }
+        
 
     </div>
 
@@ -92,9 +103,23 @@
             @Html.EditorFor(m => m.Rec.p32Color, "~/Views/Shared/_ColorCombo.cshtml")
 
         </div>
+
+        <div class="col-sm-2 col-md-2">
+        </div>
+
+        @if (Model.IsPenezniVydaj)
+        {
+            <mylabel class="col-sm-2 col-md-2 col-form-label" text="@_f.tra("Přiznaná marže (%)")" tooltip="Procento, o které se navýší částka peněžního výdaje. Navýšení ceny se přizná klientovi.<hr>Pokud zde vyplněno, marže se nabídne k vyplnění při vykazování úkonu."></mylabel>
+            <div class="col-sm-2 col-md-2">
+                <mynumber asp-for="Rec.p32MarginTransparent" decimal-digits="2"></mynumber>
+
+            
+            </div>
+        }
+        
     </div>
 
-
+    
 
     <div class="tabs_container_record">
         <!-- Tab panes -->

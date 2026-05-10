@@ -14,5 +14,9 @@ namespace UI.Models.Record
         public string ComboP38Name { get; set; }
 
         public ProjectComboViewModel ProjectCombo { get; set; }
+
+
+        public BO.p34ActivityGroup RecP34 { get; set; }
+        public bool IsPenezniVydaj { get; set; }
     }
 }

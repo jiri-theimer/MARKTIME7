@@ -954,7 +954,7 @@ namespace UI.Controllers
             c.p32ID = v.Rec.p32ID;
             c.p56ID = v.Rec.p56ID;
             c.p49ID = v.Rec.p49ID;
-
+            
             c.Value_Orig = v.Rec.Value_Orig;
 
             switch (v.RecP34.p33ID)
@@ -986,6 +986,9 @@ namespace UI.Controllers
                     c.p31PostCode = v.Rec.p31PostCode;
                     c.p31PostFlag = v.Rec.p31PostFlag;
                     c.p31PostRecipient = v.Rec.p31PostRecipient;
+
+                    c.p31MarginHidden = v.Rec.p31MarginHidden;
+                    c.p31MarginTransparent = v.Rec.p31MarginTransparent;
 
                     break;
                 case BO.p33IdENUM.Kusovnik:

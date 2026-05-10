@@ -41,7 +41,15 @@ namespace UI.Controllers
 
         private void RefreshState(p32Record v)
         {
-            
+
+            if (v.Rec.p34ID > 0)
+            {
+                v.RecP34 = Factory.p34ActivityGroupBL.Load(v.Rec.p34ID);
+                if ((v.RecP34.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu || v.RecP34.p33ID == BO.p33IdENUM.PenizeBezDPH) && v.RecP34.p34IncomeStatementFlag==BO.p34IncomeStatementFlagENUM.Vydaj)
+                {
+                    v.IsPenezniVydaj = true;
+                }
+            }
 
         }
         [HttpPost]
@@ -91,8 +99,9 @@ namespace UI.Controllers
                 c.p32ManualFeeFlag = v.Rec.p32ManualFeeFlag;
                 c.p32ManualFeeDefAmount = v.Rec.p32ManualFeeDefAmount;
 
-                //c.p32MarginHidden = v.Rec.p32MarginHidden;
-                //c.p32MarginTransparent = v.Rec.p32MarginTransparent;
+                c.p32MarginHidden = v.Rec.p32MarginHidden;
+                c.p32MarginTransparent = v.Rec.p32MarginTransparent;
+                
                 //c.p32AccountingIDS = v.Rec.p32AccountingIDS;
                 //c.p32ActivityIDS = v.Rec.p32ActivityIDS;
                 c.p32IsCP = v.Rec.p32IsCP;

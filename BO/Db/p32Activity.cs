@@ -70,6 +70,7 @@ namespace BO
         public double p32ManualFeeDefAmount { get; set; }
         public double p32MarginHidden { get; set; }
         public double p32MarginTransparent { get; set; }
+        
         public p32AbsenceFlagENUM p32AbsenceFlag { get; set; }        
         public p32AbsenceBreakFlagENUM p32AbsenceBreakFlag { get; set; }
         public int p41ID_Absence { get; set; }
