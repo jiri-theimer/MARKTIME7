@@ -1,5 +1,7 @@
 ﻿
 
+using DocumentFormat.OpenXml.Drawing.Charts;
+
 namespace BL
 {
     public class p31ColumnsProvider:ColumnsProviderBase
@@ -129,7 +131,12 @@ namespace BL
             oc = AFNUM_OCAS("Vyfakturovano_Pausaly", "Vyúčt.pevná odměna", "p31_ocas.Vyfakturovano_Pausaly", true); oc.IHRC = true;
             oc = AFNUM_OCAS("Vyfakturovano_Pausal_Domestic", "Vyúčt.pevná odměna x kurz", "p31_ocas.Vyfakturovano_Pausal_Domestic", true); oc.IHRC = true;
             oc = AFNUM_OCAS("Vyuctovano_Kusy", "Vyúčt.kusovník", "case when p34x.p33ID=3 AND a.p91ID IS NOT NULL then a.p31Value_Invoiced end", false); oc.IHRC = true;
-            
+
+            this.CurrentFieldGroup = "Předpis opakování";
+            oc = AF("p40Frekvence", "Frekvence generování", "case p31_p40.p40RecurrenceType when 1 then 'Denní' when 2 then 'Týdenní' when 3 then 'Měsíční' when 4 then 'Čtvrtletní' when 5 then 'Roční' end", "string"); oc.IHRC = true; oc.RelSqlInCol = "LEFT OUTER JOIN p40WorkSheet_Recurrence p31_p40 ON a.p40ID_Source = p31_p40.p40ID"; oc.SqlExplicitGroupBy = "p31_p40.p40RecurrenceType";
+            oc = AF("p40Nazev", "Název předpisu", "p31_p40.p40Name", "string"); oc.IHRC = true; oc.RelSqlInCol = "LEFT OUTER JOIN p40WorkSheet_Recurrence p31_p40 ON a.p40ID_Source = p31_p40.p40ID";
+
+
 
             this.CurrentFieldGroup = "Schvalování";//-----------Schvalování---------------------
             oc = AF("StatusSchvalovani", "Status S", "p72.p72Name", "string"); oc.IHRC = true; oc.RelSqlInCol = "LEFT OUTER JOIN p72PreBillingStatus p72 ON a.p72ID_AfterApprove=p72.p72ID"; oc.SqlExplicitGroupBy = "a.p72ID_AfterApprove";

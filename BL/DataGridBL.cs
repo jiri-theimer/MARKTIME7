@@ -441,28 +441,31 @@ namespace BL
                     break;
 
                 case "p90":
-                    sb.Append("a.*,p89.*,p90free.*,p28.*,j27.*");
+                    sb.Append("a.*,p89.*,p90free.*,p28.*,j27.*,x40.*");
                     sb.Append(" FROM p90Proforma a INNER JOIN p89ProformaType p89 ON a.p89ID=p89.p89ID LEFT OUTER JOIN p28Contact p28 ON a.p28ID=p28.p28ID");
                     sb.Append(" LEFT OUTER JOIN j27Currency j27 ON a.j27ID=j27.j27ID");
                     sb.Append(" LEFT OUTER JOIN p90Proforma_FreeField p90free ON a.p90ID=p90free.p90ID");
+                    sb.Append($" LEFT OUTER JOIN (select TOP 1 x40RecordPid,x40DatetimeProcessed as SentWhen,x40Recipient as SentRecipient FROM x40MailQueue WHERE x40RecordEntity='p90' AND x40RecordPid={pid} ORDER BY x40ID DESC) x40 ON a.p91ID=x40.x40RecordPid");
                     break;
                 case "p91":
-                    sb.Append("a.*,p92.*,p93.*,p28.*,j27.*,p91free.*");
+                    sb.Append("a.*,p92.*,p93.*,p28.*,j27.*,p91free.*,x40.*");
                     sb.Append(" FROM p91Invoice a INNER JOIN p92InvoiceType p92 ON a.p92ID=p92.p92ID LEFT OUTER JOIN p28Contact p28 ON a.p28ID=p28.p28ID LEFT OUTER JOIN p93InvoiceHeader p93 on p92.p93ID=p93.p93ID");
                     sb.Append(" LEFT OUTER JOIN j27Currency j27 ON a.j27ID=j27.j27ID");
                     sb.Append(" LEFT OUTER JOIN p91Invoice_FreeField p91free ON a.p91ID=p91free.p91ID");
+                    sb.Append($" LEFT OUTER JOIN (select TOP 1 x40RecordPid,x40DatetimeProcessed as SentWhen,x40Recipient as SentRecipient FROM x40MailQueue WHERE x40RecordEntity IN ('p91') AND x40RecordPid={pid} ORDER BY x40ID DESC) x40 ON a.p91ID=x40.x40RecordPid");
                     break;
                 case "p94":
                     sb.Append("a.p94Date,a.p94Amount,a.p94Description,p91.*,p92.*,p93.*,p28.*,j27.*,p91free.*");
                     sb.Append(" FROM p94Invoice_Payment a INNER JOIN p91Invoice p91 ON a.p91ID=p91.p91ID INNER JOIN p92InvoiceType p92 ON p91.p92ID=p92.p92ID LEFT OUTER JOIN p28Contact p28 ON p91.p28ID=p28.p28ID LEFT OUTER JOIN p93InvoiceHeader p93 on p92.p93ID=p93.p93ID");
                     sb.Append(" LEFT OUTER JOIN j27Currency j27 ON p91.j27ID=j27.j27ID");
-                    sb.Append(" LEFT OUTER JOIN p91Invoice_FreeField p91free ON p91.p91ID=p91free.p91ID");
+                    sb.Append(" LEFT OUTER JOIN p91Invoice_FreeField p91free ON p91.p91ID=p91free.p91ID");                    
                     break;
                 case "p84":
                     var recP84 = _mother.p84UpominkaBL.Load(pid);
-                    sb.Append("a.*,p91.*,p83.*,p86.*,j27.*");
+                    sb.Append("a.*,p91.*,p83.*,p86.*,j27.*,x40.*");
                     sb.Append(" FROM p84Upominka a LEFT OUTER JOIN p91Invoice p91 ON a.p91ID=p91.p91ID LEFT OUTER JOIN p83UpominkaType p83 ON a.p83ID=p83.p83ID LEFT OUTER JOIN j27Currency j27 ON p91.j27ID=j27.j27ID");
                     sb.Append($" LEFT OUTER JOIN (select {recP84.p91ID} as InvoiceID,* FROM p86BankAccount WHERE p86ID=dbo.p91_get_p86id({recP84.p91ID})) p86 ON a.p91ID=p86.InvoiceID");
+                    sb.Append($" LEFT OUTER JOIN (select TOP 1 x40RecordPid,x40DatetimeProcessed as SentWhen,x40Recipient as SentRecipient FROM x40MailQueue WHERE x40RecordEntity IN ('p91') AND x40RecordPid={recP84.p91ID} ORDER BY x40ID DESC) x40 ON a.p91ID=x40.x40RecordPid");
                     break;
                 case "p28":
                     sb.Append("a.*,p29.*,p28free.*");
