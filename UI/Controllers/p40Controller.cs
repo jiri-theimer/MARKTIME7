@@ -27,7 +27,10 @@ namespace UI.Controllers
             {
                 return -1;
             }
-            return Factory.p40WorkSheet_RecurrenceBL.Generate_Recurrence_Instance(rec);
+            var ffi = new FreeFieldsViewModel();
+            ffi.InhaleFreeFieldsView(Factory, recP40.pid, "p31", "p40WorkSheet_Recurrence_FreeField");
+
+            return Factory.p40WorkSheet_RecurrenceBL.Generate_Recurrence_Instance(rec,ffi.inputs);
         }
         public IActionResult Info(int pid)
         {
@@ -92,7 +95,7 @@ namespace UI.Controllers
             RefreshState_PostGenerate(v);
             if (v.IsPostback)
             {
-
+                
 
                 return View(v);
             }
@@ -113,7 +116,10 @@ namespace UI.Controllers
                 bool bolOK = false;
                 foreach (var c in v.lisP39)
                 {
-                    if (Factory.p40WorkSheet_RecurrenceBL.Generate_Recurrence_Instance(c) > 0)
+                    var ffi = new FreeFieldsViewModel();
+                    ffi.InhaleFreeFieldsView(Factory, c.p40ID, "p31", "p40WorkSheet_Recurrence_FreeField");
+
+                    if (Factory.p40WorkSheet_RecurrenceBL.Generate_Recurrence_Instance(c, ffi.inputs) > 0)
                     {
                         bolOK = true;
                     }

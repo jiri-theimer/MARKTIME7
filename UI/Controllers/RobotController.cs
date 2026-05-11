@@ -532,7 +532,10 @@ namespace UI.Controllers
             var lisP39 = _f.p40WorkSheet_RecurrenceBL.GetList_p39_waiting_on_generate(v.Today.AddDays(-31), v.D0);
             foreach (var c in lisP39)
             {
-                _f.p40WorkSheet_RecurrenceBL.Generate_Recurrence_Instance(c);
+                var ffi = new FreeFieldsViewModel();               
+                ffi.InhaleFreeFieldsView(_f, c.p40ID, "p31", "p40WorkSheet_Recurrence_FreeField");
+                
+                _f.p40WorkSheet_RecurrenceBL.Generate_Recurrence_Instance(c,ffi.inputs);
 
             }
 

@@ -12,7 +12,7 @@ namespace BL
         public IEnumerable<BO.p39WorkSheet_Recurrence_Plan> GetList_p39_waiting_on_generate(DateTime d1, DateTime d2,List<int> p40ids=null);
         public int Save(BO.p40WorkSheet_Recurrence rec, List<BO.FreeFieldInput> lisFFI);
         public BO.p31WorksheetEntryInput Convert_p39_to_p31(BO.p39WorkSheet_Recurrence_Plan recP39);
-        public int Generate_Recurrence_Instance(BO.p39WorkSheet_Recurrence_Plan c);
+        public int Generate_Recurrence_Instance(BO.p39WorkSheet_Recurrence_Plan c, List<BO.FreeFieldInput> lisFFI);
         public int Generate_Clear(BO.p39WorkSheet_Recurrence_Plan c);
 
     }
@@ -103,14 +103,16 @@ namespace BL
             _db.RunSql("UPDATE p39WorkSheet_Recurrence_Plan set p39ErrorMessage_NewInstance=null, p31ID_NewInstance=null WHERE p39ID=@p39id", new { p39id = c.p39ID });
             return 1;
         }
-        public int Generate_Recurrence_Instance(BO.p39WorkSheet_Recurrence_Plan c)  //vrací p31id vygenerovaného úkonu
+        public int Generate_Recurrence_Instance(BO.p39WorkSheet_Recurrence_Plan c, List<BO.FreeFieldInput> lisFFI)  //vrací p31id vygenerovaného úkonu
         {
             var recP31 = Convert_p39_to_p31(c);
             var vlds = _mother.p31WorksheetBL.ValidateBeforeSaveOrigRecord(recP31);
             if (string.IsNullOrEmpty(vlds.First().ErrorMessage))
             {
                 var recP34 = _mother.p34ActivityGroupBL.Load(recP31.p34ID);
-                int intP31ID = _mother.p31WorksheetBL.SaveOrigRecord(recP31, recP34.p33ID, null);
+
+                
+                int intP31ID = _mother.p31WorksheetBL.SaveOrigRecord(recP31, recP34.p33ID, lisFFI);
                 if (intP31ID > 0)
                 {
                     _db.RunSql("UPDATE p39WorkSheet_Recurrence_Plan set p39ErrorMessage_NewInstance=null, p31ID_NewInstance=@p31id WHERE p39ID=@p39id", new { p31id = intP31ID, p39id = c.p39ID });
