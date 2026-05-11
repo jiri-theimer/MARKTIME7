@@ -270,7 +270,7 @@ namespace UI.Controllers
             if (v.ff1 == null)
             {
                 v.ff1 = new FreeFieldsViewModel();
-                v.ff1.InhaleFreeFieldsView(Factory, 0, "p31");
+                v.ff1.InhaleFreeFieldsView(Factory, v.rec_pid, "p31", "p40WorkSheet_Recurrence_FreeField");
             }
             v.ff1.RefreshInputsVisibility(Factory, 0, "p31",v.Rec.p34ID);
         }

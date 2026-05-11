@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
 
 namespace BL
 {
@@ -13,7 +9,7 @@ namespace BL
         public IEnumerable<BO.x28EntityField> GetList_ApplicableInForm(string prefix, int intEntityTypeID, bool bolTestUserAccess);
         public int Save(BO.x28EntityField rec,List<BO.x26EntityField_Binding> lisX26);
         public IEnumerable<BO.x26EntityField_Binding> GetList_x26(int x28id);
-        public System.Data.DataTable GetFieldsValues(int pid, IEnumerable<BO.x28EntityField> fields);   //vrací hodnoty polí v odpovídající tabulce entity
+        public System.Data.DataTable GetFieldsValues(int pid, IEnumerable<BO.x28EntityField> fields, string strSourceTableName = null);   //vrací hodnoty polí v odpovídající tabulce entity
 
     }
     class x28EntityFieldBL : BaseBL, Ix28EntityFieldBL
@@ -102,15 +98,23 @@ namespace BL
             return _db.GetList<BO.x26EntityField_Binding>("select *,convert(bit,1) as IsChecked from x26EntityField_Binding where x28ID=@pid", new { pid = x28id });
         }
 
-        public System.Data.DataTable GetFieldsValues(int pid, IEnumerable<BO.x28EntityField> fields)
+        public System.Data.DataTable GetFieldsValues(int pid, IEnumerable<BO.x28EntityField> fields,string strSourceTableName=null)
         {
             if (fields.Count() == 0)
             {
                 return null;
             }
+            //string strPkField = fields.First().x28Entity + "ID";
 
-            //string strSQL = "SELECT "+pid.ToString()+" AS pid," + string.Join(",", fields.Select(p => p.x28Field)) + " FROM " + fields.First().SourceTableName + " WHERE " + fields.First().x28Entity + "ID = "+pid.ToString();
-            string strSQL = $"SELECT {pid} AS pid,{string.Join(",", fields.Select(p => p.x28Field))} FROM {fields.First().SourceTableName} WHERE {fields.First().x28Entity}ID = {pid}";
+            if (strSourceTableName == null)
+            {
+                strSourceTableName = fields.First().SourceTableName;                
+            }
+            string strPkField = strSourceTableName.Substring(0, 3) + "ID";
+
+            string strSQL = $"SELECT {pid} AS pid,{string.Join(",", fields.Select(p => p.x28Field))} FROM {strSourceTableName} WHERE {strPkField} = {pid}";
+            BO.Code.File.LogInfo(strSQL);
+            //string strSQL = $"SELECT {pid} AS pid,{string.Join(",", fields.Select(p => p.x28Field))} FROM {fields.First().SourceTableName} WHERE {fields.First().x28Entity}ID = {pid}";
 
 
             return _db.GetDataTable(strSQL);

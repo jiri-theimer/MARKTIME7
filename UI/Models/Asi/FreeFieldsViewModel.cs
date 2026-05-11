@@ -19,13 +19,13 @@ namespace UI.Models
         }
         
        
-        public void InhaleFreeFieldsView(BL.Factory f, int rec_pid, string prefix)
+        public void InhaleFreeFieldsView(BL.Factory f, int rec_pid, string prefix,string strExplicitFFTableName=null)
         {
 
             var lisX28 = f.x28EntityFieldBL.GetList(new BO.myQuery("x28")).Where(p => p.x28Flag == BO.x28FlagENUM.UserField && p.x28Entity == prefix).OrderBy(p => p.x28Ordinary);
             if (lisX28.Count() > 0)
             {
-                SetupInputs(lisX28, f.x28EntityFieldBL.GetFieldsValues(rec_pid, lisX28));
+                SetupInputs(lisX28, f.x28EntityFieldBL.GetFieldsValues(rec_pid, lisX28,strExplicitFFTableName));
             }
             
         }

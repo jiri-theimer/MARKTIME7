@@ -154,7 +154,7 @@ namespace BL
             int intPID = _db.SaveRecord("p40WorkSheet_Recurrence", p, rec);
             if (intPID > 0)
             {
-                if (!DL.BAS.SaveFreeFields(_db, intPID, lisFFI))
+                if (!DL.BAS.SaveFreeFields(_db, intPID, lisFFI, "p40WorkSheet_Recurrence_FreeField"))
                 {
                     return 0;
                 }

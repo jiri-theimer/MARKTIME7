@@ -66,18 +66,21 @@ namespace DL
 
         }
 
-        public static bool SaveFreeFields(DL.DbHandler db, int intSourcePID, List<BO.FreeFieldInput> lisFFI)
+        public static bool SaveFreeFields(DL.DbHandler db, int intSourcePID, List<BO.FreeFieldInput> lisFFI,string strExplicitFFTable=null)
         {
             if (lisFFI == null || lisFFI.Where(p => p.IsVisible).Count() == 0)
             {
                 return true;
             }
-            string strTable = lisFFI[0].SourceTableName;
-            strTable = "p40WorkSheet_Recurrence_FreeField";
-            string strPrefix = strTable.Substring(0, 3);
+            if (strExplicitFFTable == null)
+            {
+                strExplicitFFTable = lisFFI[0].SourceTableName;
+            }             
+            
+            string strPrefix = strExplicitFFTable.Substring(0, 3);
             string strFieldPID = $"{strPrefix}ID";
 
-            int intSavedPID = db.GetIntegerFromSql($"select {strFieldPID} FROM {strTable} WHERE {strFieldPID}={intSourcePID}");
+            int intSavedPID = db.GetIntegerFromSql($"select {strFieldPID} FROM {strExplicitFFTable} WHERE {strFieldPID}={intSourcePID}");
 
             if (lisFFI.Where(p => !p.IsVisible).Count() > 0)
             {
@@ -150,7 +153,7 @@ namespace DL
                         if (c.StringInput != null && c.StringInput.Length > 20)
                         {
                             //kontrola velikosti obsahu string polí
-                            int intMaxSize = db.Load<BO.GetInteger>("select dbo.getfieldsize(@fld, @tbl) as Value", new { fld = c.x28Field, tbl = strTable }).Value;
+                            int intMaxSize = db.Load<BO.GetInteger>("select dbo.getfieldsize(@fld, @tbl) as Value", new { fld = c.x28Field, tbl = strExplicitFFTable }).Value;
                             if (intMaxSize > 0 && c.StringInput.Length > intMaxSize)
                             {
                                 db.CurrentUser.AddMessage($"Délka pole ** {c.x28Name} ** může být maximálně {intMaxSize} znaků. Vy posíláte {c.StringInput.Length} znaků."); return false;
@@ -169,11 +172,11 @@ namespace DL
             if (intSavedPID == 0)
             {
 
-                strSQL = "INSERT INTO " + strTable + " (" + strFieldPID + "," + string.Join(",", lisFFI.Select(p => p.x28Field)) + ") VALUES (@pid," + string.Join(",", lisFFI.Select(p => "@" + p.x28Field)) + ")";
+                strSQL = "INSERT INTO " + strExplicitFFTable + " (" + strFieldPID + "," + string.Join(",", lisFFI.Select(p => p.x28Field)) + ") VALUES (@pid," + string.Join(",", lisFFI.Select(p => "@" + p.x28Field)) + ")";
             }
             else
             {
-                strSQL = "UPDATE " + strTable + " SET " + string.Join(",", lisFFI.Select(p => p.x28Field + " = @" + p.x28Field)) + " WHERE " + strFieldPID + " = @pid";
+                strSQL = "UPDATE " + strExplicitFFTable + " SET " + string.Join(",", lisFFI.Select(p => p.x28Field + " = @" + p.x28Field)) + " WHERE " + strFieldPID + " = @pid";
             }
 
 
