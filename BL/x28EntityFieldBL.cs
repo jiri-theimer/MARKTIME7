@@ -113,7 +113,7 @@ namespace BL
             string strPkField = strSourceTableName.Substring(0, 3) + "ID";
 
             string strSQL = $"SELECT {pid} AS pid,{string.Join(",", fields.Select(p => p.x28Field))} FROM {strSourceTableName} WHERE {strPkField} = {pid}";
-            BO.Code.File.LogInfo(strSQL);
+            
             //string strSQL = $"SELECT {pid} AS pid,{string.Join(",", fields.Select(p => p.x28Field))} FROM {fields.First().SourceTableName} WHERE {fields.First().x28Entity}ID = {pid}";
 
 
