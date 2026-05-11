@@ -218,7 +218,7 @@ namespace UI.Controllers
                             rec.p40LastSupplyDate = rec.p40FirstSupplyDate.Value.AddYears(5);
                             rec.ValidFrom = DateTime.Today;
                             rec.ValidUntil = new DateTime(3000, 1, 1);
-                            Factory.p40WorkSheet_RecurrenceBL.Save(rec);
+                            Factory.p40WorkSheet_RecurrenceBL.Save(rec,null);
                         }
                     }
                     if (v.lisP56 != null)

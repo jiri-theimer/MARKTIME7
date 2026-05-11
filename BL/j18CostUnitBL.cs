@@ -76,6 +76,9 @@ namespace BL
                 p.AddString("j18Code", rec.j18Code);
                 p.AddString("j18CountryCode", rec.j18CountryCode);
 
+
+
+
                 int intPID = _db.SaveRecord("j18CostUnit", p, rec);
                 if (intPID > 0)
                 {

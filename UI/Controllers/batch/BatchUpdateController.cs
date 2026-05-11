@@ -744,7 +744,7 @@ namespace UI.Controllers.batch
 
             }
 
-            int intPID = Factory.p40WorkSheet_RecurrenceBL.Save(rec);
+            int intPID = Factory.p40WorkSheet_RecurrenceBL.Save(rec,null);
             if (intPID == 0)
             {
                 v.ErrsCount += 1;

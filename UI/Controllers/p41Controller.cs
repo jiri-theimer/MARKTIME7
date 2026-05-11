@@ -580,7 +580,7 @@ namespace UI.Controllers
                         {
                             var recP40 = Factory.p40WorkSheet_RecurrenceBL.Load(cc.pid);
                             recP40.p40Name = cc.p40Name; recP40.p40Value = cc.p40Value; recP40.p40Text = cc.p40Text;recP40.p40TextInternal = cc.p40TextInternal; recP40.pid = 0; recP40.ValidFrom = DateTime.Now; recP40.ValidUntil = new DateTime(3000, 1, 1); recP40.p41ID = c.pid; recP40.p40FirstSupplyDate = cc.p40FirstSupplyDate; recP40.p40LastSupplyDate = cc.p40LastSupplyDate;
-                            Factory.p40WorkSheet_RecurrenceBL.Save(recP40);
+                            Factory.p40WorkSheet_RecurrenceBL.Save(recP40,null);
                         }
                     }
                     

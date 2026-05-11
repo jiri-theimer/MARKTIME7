@@ -96,9 +96,18 @@ namespace BL
             {
                 lis = lis.Where(p => p.j27ID == intJ27ID || p.j27ID == 0);
             }
+            
             if (!string.IsNullOrEmpty(strCountryCode))
             {
                 lis = lis.Where(p => p.p53CountryCode == strCountryCode || p.p53CountryCode == null);
+            }
+            else
+            {
+                if (lis.Any(p => p.p53CountryCode == _mother.Lic.x01CountryCode))
+                {
+                    lis = lis.Where(p => p.p53CountryCode == _mother.Lic.x01CountryCode);
+                }
+                
             }
             if (lis.Count() == 0) return 0;
             if (lis.Count() ==1) return lis.First().p53Value;

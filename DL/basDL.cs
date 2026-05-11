@@ -73,6 +73,7 @@ namespace DL
                 return true;
             }
             string strTable = lisFFI[0].SourceTableName;
+            strTable = "p40WorkSheet_Recurrence_FreeField";
             string strPrefix = strTable.Substring(0, 3);
             string strFieldPID = $"{strPrefix}ID";
 

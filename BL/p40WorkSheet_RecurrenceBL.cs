@@ -10,7 +10,7 @@ namespace BL
         public IEnumerable<BO.p40WorkSheet_Recurrence> GetList(BO.myQueryP40 mq);
         public IEnumerable<BO.p39WorkSheet_Recurrence_Plan> GetList_p39(int p40id, int days_inhistory = 0, int p41id = 0);
         public IEnumerable<BO.p39WorkSheet_Recurrence_Plan> GetList_p39_waiting_on_generate(DateTime d1, DateTime d2,List<int> p40ids=null);
-        public int Save(BO.p40WorkSheet_Recurrence rec);
+        public int Save(BO.p40WorkSheet_Recurrence rec, List<BO.FreeFieldInput> lisFFI);
         public BO.p31WorksheetEntryInput Convert_p39_to_p31(BO.p39WorkSheet_Recurrence_Plan recP39);
         public int Generate_Recurrence_Instance(BO.p39WorkSheet_Recurrence_Plan c);
         public int Generate_Clear(BO.p39WorkSheet_Recurrence_Plan c);
@@ -126,7 +126,7 @@ namespace BL
             }
         }
 
-        public int Save(BO.p40WorkSheet_Recurrence rec)
+        public int Save(BO.p40WorkSheet_Recurrence rec, List<BO.FreeFieldInput> lisFFI)
         {
             if (!ValidateBeforeSave(rec))
             {
@@ -154,6 +154,11 @@ namespace BL
             int intPID = _db.SaveRecord("p40WorkSheet_Recurrence", p, rec);
             if (intPID > 0)
             {
+                if (!DL.BAS.SaveFreeFields(_db, intPID, lisFFI))
+                {
+                    return 0;
+                }
+
                 _db.RunSql("exec dbo.p40_aftersave @p40id,@j02id_sys", new { p40id = intPID, j02id_sys = _mother.CurrentUser.pid });
             }
 

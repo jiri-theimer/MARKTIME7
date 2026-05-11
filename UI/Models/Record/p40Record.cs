@@ -13,5 +13,9 @@
         public ProjectComboViewModel ProjectCombo { get; set; }
 
         public string ValueLabel { get; set; }
+
+
+
+        public FreeFieldsViewModel ff1 { get; set; }
     }
 }

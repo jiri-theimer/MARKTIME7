@@ -266,6 +266,13 @@ namespace UI.Controllers
             {
                 v.ValueLabel = Factory.tra("Hodnota úkonu");
             }
+
+            if (v.ff1 == null)
+            {
+                v.ff1 = new FreeFieldsViewModel();
+                v.ff1.InhaleFreeFieldsView(Factory, 0, "p31");
+            }
+            v.ff1.RefreshInputsVisibility(Factory, 0, "p31",v.Rec.p34ID);
         }
 
 
@@ -310,8 +317,8 @@ namespace UI.Controllers
                     return this.StopPage(true, "Nedisponujete vlastnickým oprávněním k projektu.");
                 }
 
-
-                c.pid = Factory.p40WorkSheet_RecurrenceBL.Save(c);
+                
+                c.pid = Factory.p40WorkSheet_RecurrenceBL.Save(c, v.ff1.inputs);
                 if (c.pid > 0)
                 {
                     v.SetJavascript_CallOnLoad(c.pid);
