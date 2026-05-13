@@ -3,11 +3,17 @@ using Microsoft.AspNetCore.Mvc;
 
 using UI.Models;
 using UI.Models.Record;
+using UI.Models.Tab1;
 
 namespace UI.Controllers
 {
     public class c21Controller : BaseController
     {
+        public IActionResult Info(int pid)
+        {
+            var v = new BaseTab1ViewModel() { prefix = "c21", pid = pid };
+            return View(v);
+        }
         public IActionResult Record(int pid, bool isclone)
         {
             var v = new c21Record() { rec_pid = pid, rec_entity = "c21" };

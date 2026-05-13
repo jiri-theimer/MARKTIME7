@@ -1,11 +1,17 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using UI.Models;
 using UI.Models.Record;
+using UI.Models.Tab1;
 
 namespace UI.Controllers
 {
     public class j11Controller : BaseController
     {
+        public IActionResult Info(int pid)
+        {
+            var v = new BaseTab1ViewModel() { prefix = "j11", pid = pid };
+            return View(v);
+        }
         public IActionResult Record(int pid, bool isclone)
         {
             var v = new j11Record() { rec_pid = pid, rec_entity = "j11" };
