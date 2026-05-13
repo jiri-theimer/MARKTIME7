@@ -1,8 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿
+using Microsoft.AspNetCore.Mvc;
+
 using UI.Models;
 using UI.Models.Record;
 
@@ -22,7 +20,21 @@ namespace UI.Controllers
                     return RecNotFound(v);
                 }
 
-                
+                var lis = Factory.c21FondCalendarBL.GetList_c28(v.rec_pid).ToList();
+                v.lisC28 = new List<c28Repeater>();
+                foreach (var c in lis)
+                {
+
+                    v.lisC28.Add(new c28Repeater()
+                    {
+                        TempGuid = BO.Code.Bas.GetGuid(),
+                        c21ID = c.c21ID_Log,
+                        c28ValidFrom = c.ValidFrom,
+                        c28ValidUntil = c.ValidUntil,
+                        ComboC21 = Factory.c21FondCalendarBL.Load(c.c21ID_Log).c21Name
+
+                    });
+                }
             }
             
             RefreshState(v);
@@ -37,16 +49,32 @@ namespace UI.Controllers
 
         private void RefreshState(c21Record v)
         {
-           
+            if (v.lisC28 == null)
+            {
+                v.lisC28 = new List<c28Repeater>();
+            }
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Record(c21Record v)
+        public IActionResult Record(c21Record v, string guid)
         {
             RefreshState(v);
 
             if (v.IsPostback)
             {
+                if (v.PostbackOper == "add_row")
+                {
+                    var c = new c28Repeater() { TempGuid = BO.Code.Bas.GetGuid() };
+                    v.lisC28.Add(c);
+
+                }
+
+                if (v.PostbackOper == "delete_row")
+                {
+                    v.lisC28.First(p => p.TempGuid == guid).IsTempDeleted = true;
+
+                }
+
                 return View(v);
             }
             
@@ -69,7 +97,16 @@ namespace UI.Controllers
                 c.ValidUntil = v.Toolbar.GetValidUntil(c);
                 c.ValidFrom = v.Toolbar.GetValidFrom(c);
 
-                c.pid = Factory.c21FondCalendarBL.Save(c);
+               
+                var lis = new List<BO.c28FondCalendar_Log>();
+                foreach (var row in v.lisC28.Where(p => p.IsTempDeleted == false))
+                {
+                    var cc = new BO.c28FondCalendar_Log() { c21ID_Log = row.c21ID,ValidFrom = row.c28ValidFrom, ValidUntil = row.c28ValidUntil };
+                    lis.Add(cc);
+                }
+
+
+                c.pid = Factory.c21FondCalendarBL.Save(c, lis);
                 if (c.pid > 0)
                 {
 

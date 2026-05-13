@@ -79,7 +79,47 @@
     }
 
 
+    
 
+
+    <div class="card">
+        <div class="card-header">
+            @_f.tra("Časová historie fondu")
+            <button type="button" class="btn btn-outline-primary btn-sm" onclick="handle_add_row()">@_f.tra("Přidat řádek")</button>
+        </div>
+        <div class="card-body">
+            <table class="table table-hover" style="table-layout: fixed;">
+                <tr>
+                    <th>@_f.tra("Pracovní fond")</th>
+                    <th>@_f.tra("Platné od")</th>
+                    <th>@_f.tra("Platné do")</th>
+                    <th style="width:40px;"></th>
+                </tr>
+                @for (int i = 0; i < Model.lisC28.Count; i++)
+                {
+                    <tr style="@(Model.lisC28[i].CssTempDisplay)">
+                        <td>
+                            <input type="hidden" asp-for="lisC28[i].IsTempDeleted" value="@Model.lisC28[i].IsTempDeleted" />
+                            <input type="hidden" asp-for="lisC28[i].TempGuid" value="@Model.lisC28[i].TempGuid" />
+
+                            <mycombo entity="c21FondCalendar" asp-for="@Model.lisC28[i].c21ID" selectedtext="@Model.lisC28[i].ComboC21" view-flag="2"></mycombo>
+                        </td>
+                        <td>
+                            <mydate asp-for="@Model.lisC28[i].c28ValidFrom" include-time="false"></mydate>
+                        </td>
+                        <td>
+                            <mydate asp-for="@Model.lisC28[i].c28ValidUntil" include-time="false"></mydate>
+                        </td>
+
+                        <td>
+                            <button type="button" class="btn btn-danger" title="@_f.tra("Odstranit řádek")" onclick="handle_delete_row('@(Model.lisC28[i].TempGuid)')">x</button>
+                        </td>
+
+                    </tr>
+                }
+            </table>
+        </div>
+    </div>
     
 
 </div>
@@ -94,7 +134,15 @@
     });
 
    
+    function handle_delete_row(guid) {
+        _postback("delete_row", "guid=" + guid);
+      
 
+    }
+    function handle_add_row() {
+        _postback("add_row");
+       
+    }
     
 
 </script>

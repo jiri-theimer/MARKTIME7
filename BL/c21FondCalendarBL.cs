@@ -10,10 +10,11 @@ namespace BL
     {
         public BO.c21FondCalendar Load(int pid);
         public IEnumerable<BO.c21FondCalendar> GetList(BO.myQuery mq);
-        public int Save(BO.c21FondCalendar rec);
+        public int Save(BO.c21FondCalendar rec, List<BO.c28FondCalendar_Log> lisC28);
         public double GetSumHours(int c21id,string countrycode,  DateTime d1, DateTime d2);
         public IEnumerable<BO.FondHours> GetSumHoursPerMonth(int c21id, string countrycode, DateTime d1, DateTime d2);
         public IEnumerable<BO.c22FondCalendar_Date> GetList_c22(int c21id, string countrycode, DateTime d1, DateTime d2);
+        public IEnumerable<BO.c28FondCalendar_Log> GetList_c28(int c21id);
 
     }
     class c21FondCalendarBL : BaseBL, Ic21FondCalendarBL
@@ -46,9 +47,9 @@ namespace BL
 
       
 
-        public int Save(BO.c21FondCalendar rec)
+        public int Save(BO.c21FondCalendar rec,List<BO.c28FondCalendar_Log> lisC28)
         {
-            if (!ValidateBeforeSave(rec))
+            if (!ValidateBeforeSave(rec,lisC28))
             {
                 return 0;
             }
@@ -70,20 +71,47 @@ namespace BL
             int intPID = _db.SaveRecord("c21FondCalendar", p, rec);
             if (intPID > 0)
             {
-              
+              if (lisC28 != null)
+                {
+                    _db.RunSql("DELETE FROM c28FondCalendar_Log WHERE c21ID=@pid", new { pid = intPID });
+                    foreach(var c in lisC28)
+                    {
+                        _db.RunSql("INSERT INTO c28FondCalendar_Log(c21ID,c21ID_Log,c28ValidFrom,c28ValidUntil) VALUES(@pid,@c21id_log,@d1,@d2)", new { pid = intPID, c21id_log=c.c21ID_Log,d1=c.ValidFrom,d2=c.ValidUntil });
+                    }
+                    
+                }
                 _db.RunSql("exec dbo.c21_aftersave @c21id,@j02id_sys", new { c21id = intPID, j02id_sys = _mother.CurrentUser.pid });
 
             }
             return intPID;
         }
-        private bool ValidateBeforeSave(BO.c21FondCalendar rec)
+        private bool ValidateBeforeSave(BO.c21FondCalendar rec, List<BO.c28FondCalendar_Log> lisC28)
         {
             if (string.IsNullOrEmpty(rec.c21Name))
             {
                 this.AddMessage("Chybí vyplnit [Název]."); return false;
             }
 
+            if (lisC28 != null)
+            {
+                if (lisC28.Any(p => p.c21ID_Log == 0 || p.ValidFrom==null || p.ValidUntil==null))
+                {
+                    this.AddMessageTranslated("V časové historii nejsou vyplněné všechny údaje."); return false;
+                }
 
+                if (lisC28.Any(p => p.c21ID_Log==rec.pid))
+                {
+                    this.AddMessageTranslated("V časové historii je neplatný odkaz na fond."); return false;
+                }
+                if (lisC28.Any(p => p.ValidUntil > DateTime.Today || p.ValidFrom > DateTime.Today))
+                {
+                    this.AddMessageTranslated("V časové historii musí být [Platnost do] i [Platnost od] menší než aktuální datum.");return false;
+                }
+                if (lisC28.Any(p => p.ValidUntil < p.ValidFrom))
+                {
+                    this.AddMessageTranslated("V časové historii fondu nesmí být platnost od větší než platnost do."); return false;
+                }
+            }
             return true;
         }
 
@@ -115,6 +143,16 @@ namespace BL
             if (string.IsNullOrEmpty(countrycode)) countrycode = _mother.CurrentUser.x01CountryCode;
             string s = "select * from c22FondCalendar_Date WHERE c21ID=@c21id AND isnull(c22CountryCode,@defcountrycode)=@countrycode AND c22Date BETWEEN @d1 AND @d2";
             return _db.GetList<BO.c22FondCalendar_Date>(s, new { c21id = c21id, countrycode = countrycode, defcountrycode = _mother.CurrentUser.x01CountryCode, d1 = d1, d2 = d2 });
+        }
+
+
+
+        public IEnumerable<BO.c28FondCalendar_Log> GetList_c28(int c21id)
+        {
+            sb("select a.*,a.c28ValidFrom as ValidFrom,a.c28ValidUntil as ValidUntil");
+            sb(" FROM c28FondCalendar_Log a");
+            sb(" WHERE a.c21ID=@c21id");
+            return _db.GetList<BO.c28FondCalendar_Log>(sbret(), new { c21id = c21id });
         }
 
     }
