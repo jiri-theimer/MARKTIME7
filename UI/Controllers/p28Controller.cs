@@ -1,4 +1,5 @@
 ﻿
+using DocumentFormat.OpenXml.ExtendedProperties;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using UI.Models;
@@ -18,6 +19,58 @@ namespace UI.Controllers
         public IActionResult Info(int pid)
         {
             return Tab1(pid, "info");
+        }
+        public IActionResult Qrcode(int pid)
+        {
+            var v = new BaseViewModel();
+
+            
+            var rec = Factory.p28ContactBL.Load(pid);
+            var lisO32 = Factory.p28ContactBL.GetList_o32(pid, 0, 0);
+
+            string strTel = null; string strEmail = null; string strUrl= null;string strCompany = rec.p28CompanyName;
+
+            ViewBag.Image = UI.Code.basQRCoder.GenerateContactQrPng(rec.p28FirstName, rec.p28LastName, strCompany, null, null, null);
+
+
+            if (lisO32.Count() > 0)
+            {
+                strTel = (lisO32.Any(p => p.o33ID == BO.o33FlagEnum.Tel) ? lisO32.First(p => p.o33ID == BO.o33FlagEnum.Tel).o32Value : null);
+                strEmail = (lisO32.Any(p => p.o33ID == BO.o33FlagEnum.Email) ? lisO32.First(p => p.o33ID == BO.o33FlagEnum.Email).o32Value : null);
+                strUrl = (lisO32.Any(p => p.o33ID == BO.o33FlagEnum.URL) ? lisO32.First(p => p.o33ID == BO.o33FlagEnum.URL).o32Value : null);
+
+            }
+
+            if (!rec.p28IsCompany)
+            {
+                var lisP30 = Factory.p28ContactBL.GetList_p30_mother(rec.pid);
+                if (lisP30.Count() > 0)
+                {
+                    var recMother = Factory.p28ContactBL.Load(lisP30.First().p28ID);
+                    strCompany = recMother.p28CompanyName;
+                    lisO32 = Factory.p28ContactBL.GetList_o32(recMother.pid, 0, 0);
+                    if (strTel == null)
+                    {
+                        strTel = (lisO32.Any(p => p.o33ID == BO.o33FlagEnum.Tel) ? lisO32.First(p => p.o33ID == BO.o33FlagEnum.Tel).o32Value : null);
+                    }
+                    if (strEmail == null)
+                    {
+                        strEmail = (lisO32.Any(p => p.o33ID == BO.o33FlagEnum.Email) ? lisO32.First(p => p.o33ID == BO.o33FlagEnum.Email).o32Value : null);
+                    }
+                    if (strUrl == null)
+                    {
+                        strUrl = (lisO32.Any(p => p.o33ID == BO.o33FlagEnum.URL) ? lisO32.First(p => p.o33ID == BO.o33FlagEnum.URL).o32Value : null);
+                    }
+                }
+            }
+
+
+            ViewBag.Image = UI.Code.basQRCoder.GenerateContactQrPng(rec.p28FirstName, rec.p28LastName, strCompany, strTel, strEmail, strUrl);
+
+            ViewBag.Vcf = UI.Code.basQRCoder.GenerateVcf(rec.p28FirstName, rec.p28LastName, strCompany, strTel, strEmail, strUrl);
+
+            ViewBag.Filename = $"contact-{BO.Code.File.ConvertToSafeFileName(rec.p28Name)}.vcf";
+            return View(v);
         }
         public IActionResult Tab1(int pid, string caller)
         {

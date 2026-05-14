@@ -1,0 +1,15 @@
+﻿@model UI.Models.BaseViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+}
+
+
+
+
+<img src="data:image/png;base64,@Convert.ToBase64String((byte[])ViewBag.Image)" />
+
+
+<a download="@(ViewBag.Filename)" href="data:text/vcard;charset=utf-8,@Uri.EscapeDataString((string)ViewBag.Vcf)">Stáhnout kontakt (.vcf)</a>
+

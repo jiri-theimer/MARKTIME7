@@ -6,6 +6,7 @@ using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Net.NetworkInformation;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -57,7 +58,12 @@ namespace UI.Controllers
         {
             var v = new BaseViewModel();
 
-            return View(v);
+
+            var vizitka = UI.Code.basQRCoder.GenerateContactQrPng(null, null, "SK Chvojkovice Brod", null, "hovado@email.cz", "https://wwww.google.com");
+
+            return File(vizitka, "image/png", "contact-františek-koudelka.png");
+
+            //return View(v);
         }
 
         public IActionResult LoadDatasource()
