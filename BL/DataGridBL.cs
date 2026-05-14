@@ -445,7 +445,7 @@ namespace BL
                     sb.Append(" FROM p90Proforma a INNER JOIN p89ProformaType p89 ON a.p89ID=p89.p89ID LEFT OUTER JOIN p28Contact p28 ON a.p28ID=p28.p28ID");
                     sb.Append(" LEFT OUTER JOIN j27Currency j27 ON a.j27ID=j27.j27ID");
                     sb.Append(" LEFT OUTER JOIN p90Proforma_FreeField p90free ON a.p90ID=p90free.p90ID");
-                    sb.Append($" LEFT OUTER JOIN (select TOP 1 x40RecordPid,x40DatetimeProcessed as SentWhen,x40Recipient as SentRecipient FROM x40MailQueue WHERE x40RecordEntity='p90' AND x40RecordPid={pid} ORDER BY x40ID DESC) x40 ON a.p91ID=x40.x40RecordPid");
+                    sb.Append($" LEFT OUTER JOIN (select TOP 1 x40RecordPid,x40DatetimeProcessed as SentWhen,x40Recipient as SentRecipient FROM x40MailQueue WHERE x40RecordEntity='p90' AND x40RecordPid={pid} ORDER BY x40ID DESC) x40 ON a.p90ID=x40.x40RecordPid");
                     break;
                 case "p91":
                     sb.Append("a.*,p92.*,p93.*,p28.*,j27.*,p91free.*,x40.*");
