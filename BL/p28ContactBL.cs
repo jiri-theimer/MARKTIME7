@@ -1,5 +1,7 @@
 ﻿
 
+using DocumentFormat.OpenXml.Wordprocessing;
+
 namespace BL
 {
     public interface Ip28ContactBL
@@ -26,7 +28,9 @@ namespace BL
         public IEnumerable<BO.p28MyTop10> GetList_MyTop10(int j02id, int toprecs);   //nabídka naposledy vykazovaných klientů
         public BO.p28Contact LoadTreeTopRec(BO.p28Contact rec);
         public string LoadBillingMemo(int p28id);
-        
+        public string GetVcard(int p28id);
+
+
     }
     class p28ContactBL : BaseBL,Ip28ContactBL
     {
@@ -541,6 +545,61 @@ namespace BL
         }
 
         
+        public string GetVcard(int p28id)
+        {
+            var rec = Load(p28id);
+            var lisO32 = GetList_o32(p28id, 0, 0);
+
+            string strTel = null; string strEmail = null; string strUrl = null; string strCompany = rec.p28CompanyName;
+
+            if (lisO32.Count() > 0)
+            {
+                strTel = (lisO32.Any(p => p.o33ID == BO.o33FlagEnum.Tel) ? lisO32.First(p => p.o33ID == BO.o33FlagEnum.Tel).o32Value : null);
+                strEmail = (lisO32.Any(p => p.o33ID == BO.o33FlagEnum.Email) ? lisO32.First(p => p.o33ID == BO.o33FlagEnum.Email).o32Value : null);
+                strUrl = (lisO32.Any(p => p.o33ID == BO.o33FlagEnum.URL) ? lisO32.First(p => p.o33ID == BO.o33FlagEnum.URL).o32Value : null);
+
+            }
+
+            if (!rec.p28IsCompany)
+            {
+                var lisP30 =GetList_p30_mother(rec.pid);
+                if (lisP30.Count() > 0)
+                {
+                    var recMother = Load(lisP30.First().p28ID);
+                    strCompany = recMother.p28CompanyName;
+                    lisO32 = GetList_o32(recMother.pid, 0, 0);
+                    if (strTel == null)
+                    {
+                        strTel = (lisO32.Any(p => p.o33ID == BO.o33FlagEnum.Tel) ? lisO32.First(p => p.o33ID == BO.o33FlagEnum.Tel).o32Value : null);
+                    }
+                    if (strEmail == null)
+                    {
+                        strEmail = (lisO32.Any(p => p.o33ID == BO.o33FlagEnum.Email) ? lisO32.First(p => p.o33ID == BO.o33FlagEnum.Email).o32Value : null);
+                    }
+                    if (strUrl == null)
+                    {
+                        strUrl = (lisO32.Any(p => p.o33ID == BO.o33FlagEnum.URL) ? lisO32.First(p => p.o33ID == BO.o33FlagEnum.URL).o32Value : null);
+                    }
+                }
+            }
+
+
+            string vcard = $"""
+BEGIN:VCARD
+VERSION:3.0
+N:{rec.p28LastName};{rec.p28FirstName};;;
+FN:{rec.p28FirstName} {rec.p28LastName}
+ORG:{strCompany}
+TEL;TYPE=CELL:{strTel}
+EMAIL:{strEmail}
+URL:{strUrl}
+END:VCARD
+""";
+
+
+            return vcard;
+
+        }
 
         public BO.p28Contact LoadTreeTopRec(BO.p28Contact rec)
         {

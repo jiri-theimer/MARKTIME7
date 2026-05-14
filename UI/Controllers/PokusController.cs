@@ -59,11 +59,7 @@ namespace UI.Controllers
             var v = new BaseViewModel();
 
 
-            var vizitka = UI.Code.basQRCoder.GenerateContactQrPng(null, null, "SK Chvojkovice Brod", null, "hovado@email.cz", "https://wwww.google.com");
-
-            return File(vizitka, "image/png", "contact-františek-koudelka.png");
-
-            //return View(v);
+            return View(v);
         }
 
         public IActionResult LoadDatasource()
