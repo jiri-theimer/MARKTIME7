@@ -411,15 +411,19 @@ namespace UI.Code
 
                     break;
                 case "p84":
-                    var lisB05 = _f.WorkflowBL.GetList_b05("p84", pid, 0, 0, 0);
+                    var lisB05a = _f.WorkflowBL.GetList_b05("p84", pid, 0, 0, 0);
                     _tabs.Add(AddTab("Upomínka", "tab1", "/p84/Tab1?pid=" + AppendPid2Url(pid), false));
                     _tabs.Add(AddTab("Outbox", "x40MailQueue", "/TheGrid/SlaveView?prefix=x40", true));
-                    _tabs.Add(AddTab("<span class='material-icons-outlined-btn'>speaker_notes</span>", "b05", "/Record/TabB05?prefix=p84", false, Badge1(lisB05.Count()), "Poznámky"));
-
-
+                    _tabs.Add(AddTab("<span class='material-icons-outlined-btn'>speaker_notes</span>", "b05", "/Record/TabB05?prefix=p84", false, Badge1(lisB05a.Count()), "Poznámky"));
 
                     break;
+                case "p78":
+                    var lisB05b = _f.WorkflowBL.GetList_b05("p78", pid, 0, 0, 0);
+                    _tabs.Add(AddTab("Upomínka", "tab1", "/p78/Tab1?pid=" + AppendPid2Url(pid), false));
+                    _tabs.Add(AddTab("Outbox", "x40MailQueue", "/TheGrid/SlaveView?prefix=x40", true));
+                    _tabs.Add(AddTab("<span class='material-icons-outlined-btn'>speaker_notes</span>", "b05", "/Record/TabB05?prefix=p78", false, Badge1(lisB05b.Count()), "Poznámky"));
 
+                    break;
 
             }
             if (_tabs.Count()>0 && _tabs[0].Name == null)

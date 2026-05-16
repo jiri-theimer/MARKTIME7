@@ -329,7 +329,9 @@ namespace BL
                     AF("p84Upominka", "TypUpominky", "a.p83ID", "Typ upomínky", "p83UpominkaType", null, "multi");
                     AF("p84Upominka", "TypFakturyUpominky", "p91x.p92ID", "Typ faktury", "p92InvoiceType", null, "multi");
 
-                   
+                    break;
+                case "p78":
+                    AF("p78UpominkaSdruzena", "ExistujiUpominky", "EXISTS (SELECT 1 FROM p79UpominkaSdruzenaBinding WHERE p78ID=a.p78ID)", "Obsahuje upomínky", null, null, "bool1x");
 
 
                     break;
