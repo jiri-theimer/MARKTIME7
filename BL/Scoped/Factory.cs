@@ -128,6 +128,7 @@ namespace BL
         private Ip95InvoiceRowBL _p95;
         private Ip83UpominkaTypeBL _p83;
         private Ip84UpominkaBL _p84;
+        private Ip78UpominkaSdruzenaBL _p78;
         private Ip86BankAccountBL _p86;
         private Ip92InvoiceTypeBL _p92;        
         private Ip93InvoiceHeaderBL _p93;
@@ -975,6 +976,14 @@ namespace BL
             {
                 if (_p84 == null) _p84 = new p84UpominkaBL(this);
                 return _p84;
+            }
+        }
+        public Ip78UpominkaSdruzenaBL p78UpominkaSdruzenaBL
+        {
+            get
+            {
+                if (_p78 == null) _p78 = new p78UpominkaSdruzenaBL(this);
+                return _p78;
             }
         }
         public Ip92InvoiceTypeBL p92InvoiceTypeBL

@@ -241,7 +241,7 @@ namespace UI.Controllers
             {
                 return this.StopPage(false, "Nemáte oprávnění pro tento Modul.");
             }
-            if (go2pid == 0 && (prefix == "p28" || prefix == "p91" || prefix == "p41" || prefix == "j02" || prefix == "o23" || prefix == "p90" || prefix == "p51" || prefix == "p40" || prefix == "o43" || prefix=="p84"))
+            if (go2pid == 0 && (prefix == "p28" || prefix == "p91" || prefix == "p41" || prefix == "j02" || prefix == "o23" || prefix == "p90" || prefix == "p51" || prefix == "p40" || prefix == "o43" || prefix=="p84" || prefix=="p78"))
             {
                 go2pid = LoadLastUsedPid(prefix, rez);
             }
@@ -289,6 +289,7 @@ namespace UI.Controllers
                     return Factory.CurrentUser.j04IsModule_p90;                
                 case "p91":
                 case "p84":
+                case "p78":
                     return Factory.CurrentUser.j04IsModule_p91;
                 case "j02":
                     return Factory.CurrentUser.j04IsModule_j02;

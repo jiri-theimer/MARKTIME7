@@ -67,11 +67,11 @@ namespace BL
             _lis.InsertRange(0, new p31ColumnsProvider().getColumns());
             _lis.InsertRange(0, new o23ColumnsProvider().getColumns());
 
-            _lis.InsertRange(0, new le1ColumnsProvider().getColumns());
-            _lis.InsertRange(0, new le2ColumnsProvider().getColumns());
-            _lis.InsertRange(0, new le3ColumnsProvider().getColumns());
-            _lis.InsertRange(0, new le4ColumnsProvider().getColumns());
-            _lis.InsertRange(0, new le5ColumnsProvider().getColumns());
+            //_lis.InsertRange(0, new le1ColumnsProvider().getColumns());
+            //_lis.InsertRange(0, new le2ColumnsProvider().getColumns());
+            //_lis.InsertRange(0, new le3ColumnsProvider().getColumns());
+            //_lis.InsertRange(0, new le4ColumnsProvider().getColumns());
+            //_lis.InsertRange(0, new le5ColumnsProvider().getColumns());
 
             _lis.InsertRange(0, new p90ColumnsProvider().getColumns());
             _lis.InsertRange(0, new p91ColumnsProvider().getColumns());
@@ -81,6 +81,7 @@ namespace BL
             _lis.InsertRange(0, new p11ColumnsProvider().getColumns());
             _lis.InsertRange(0, new b05ColumnsProvider().getColumns());
             _lis.InsertRange(0, new p84ColumnsProvider().getColumns());
+            _lis.InsertRange(0, new p78ColumnsProvider().getColumns());
             _lis.InsertRange(0, new fpColumnsProvider().getColumns());
 
             string strLastEntity = "";

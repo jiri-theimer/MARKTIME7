@@ -245,6 +245,8 @@ namespace BL.Singleton
 
             AE("p84Upominka", "Upomínky", "Upomínka", "p84Upominka a INNER JOIN p91Invoice p91x ON a.p91ID=p91x.p91ID INNER JOIN p83UpominkaType p83x ON a.p83ID=p83x.p83ID", "a.p84ID DESC");
 
+            AE("p78UpominkaSdruzena", "Sdružené upomínky", "Sdružená upomínka", "p78UpominkaSdruzena a", "a.p78ID DESC");
+
             AE("p28_vykazano", "Vykázáno", "Vykázáno", "?????", "a.p28ID");
             AE("p28_rozpracovano", "Rozpracováno", "Rozpracováno", "?????", "a.p28ID");
             AE("p28_nevyuctovano", "Nevyúčtováno", "Nevyúčtováno", "?????", "a.p28ID");
@@ -488,6 +490,9 @@ namespace BL.Singleton
                     break;
                 case "p84":
                     lis.Add(getREL("p91Invoice", "p84_p91", "Vyúčtování", "LEFT OUTER JOIN p91Invoice p84_p91 ON a.p91ID=p84_p91.p91ID"));
+                    break;
+                case "p78":
+                    lis.Add(getREL("p28Contact", "p78_p28", "Klient", "LEFT OUTER JOIN p28Contact p78_p28 ON a.p28ID=p78_p28.p28ID"));
                     break;
                 case "j06":
                     lis.Add(getREL("j02User", "j06_j02", "Uživatel", "LEFT OUTER JOIN j02User j06_j02 ON a.j02ID=j06_j02.j02ID"));
