@@ -55,7 +55,15 @@ namespace UI.Controllers
                     }
                     wl($"<tr class='{strTrClass}' data-v='{c.pid}' data-prefix='p28'>");
                     wltd(c.p29Name);
-                    wltd(c.p28Name);
+                    
+                    if (c.p28ShortName != null)
+                    {
+                        wltd($"{c.FullNameDesc} <code>{c.p28ShortName}</code>");
+                    }
+                    else
+                    {
+                        wltd(c.p28Name);
+                    }
                     wltd(c.GetFullAddress(1));
                     wltd(c.p28RegID);
                     wl("</tr>");
@@ -88,7 +96,15 @@ namespace UI.Controllers
                     }
                     else
                     {
-                        wltd(c.p41Name);
+                        if (c.p41NameShort != null)
+                        {
+                            wltd($"{c.p41Name} <code>{c.p41NameShort}</code>");
+                        }
+                        else
+                        {
+                            wltd(c.p41Name);
+                        }
+                        
                     }
                     wltd(c.Client);
                     wltd(c.p41Code);

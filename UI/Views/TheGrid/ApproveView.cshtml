@@ -27,6 +27,15 @@
 <div class="input-group" style="padding-top:8px;">
     <div>
         <ul class="nav nav-tabs">
+            <li class="onetab" title="EXPORT/REPORTING">
+                <a id="cmdMore" class="nav-link onetab-offcanvas" tabindex="-1" role="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvas_more">
+
+                    <span class="onetab-caret"></span>
+                    
+                       
+                </a>
+            </li>
+
             <li class="onetab">
                 <a class="nav-link text-dark @(Model.prefix=="p41" ? "active": null)" id="tabP41" href="javascript:change_tab('p41')">
                     @_f.tra("Projekty").ToUpper()
@@ -225,7 +234,24 @@
 
 
 
+            <div class="offcanvas offcanvas-start" tabindex="-1" data-bs-scroll="true" data-bs-backdrop="true" data-bs-keyboard="true" id="offcanvas_more">
+
+                <div class="offcanvas-header">
+                    <h5 class="offcanvas-title">
+                        <a href="javascript:reload()" title="Občerstvit">
+                            <myicon symbol="refresh"></myicon>
+                        </a>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+                </div>
+
+                <div class="offcanvas-body p-0 m-0" id="offcanvas_more_body">
+                </div>
+            </div>
+
+
             <script type="text/javascript">
+                let _offcanvasIsLoaded = false;
                 var _localprefix = "@Model.prefix";
                 var _rez = "@Model.rez";
                 var _local_p31statequery = "@Model.p31statequery.Value";
@@ -241,6 +267,21 @@
 
 
                 $(document).ready(function () {
+
+                    $("#offcanvas_more").on("show.bs.offcanvas", function () {
+                        if (_offcanvasIsLoaded)
+                        {
+                            
+                            RefreshExportAccording();   //js var _GridExport.cshtml
+                            return;
+                        }
+
+                        _offcanvasIsLoaded = true;
+
+                        render_menu("cmdMore","offcanvas_more_body","/Menu/grid_extension?prefix=" + _localprefix+"&rezerva=ApproveView");
+
+                    });
+
                     _init_qtip_onpage();
 
                     _mainmenu_highlight_current("cmdapproving");

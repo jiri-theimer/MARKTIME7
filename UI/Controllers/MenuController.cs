@@ -52,9 +52,9 @@ namespace UI.Controllers
         }
         
 
-        public IActionResult grid_extension(string prefix)
+        public IActionResult grid_extension(string prefix,string rezerva)
         {
-            return View(new DynamicMenuViewModel() { Prefix = prefix });
+            return View(new DynamicMenuViewModel() { Prefix = prefix,Rezerva=rezerva });
         }
         public IActionResult grid_selected(string prefix,string master_prefix,int master_pid)
         {

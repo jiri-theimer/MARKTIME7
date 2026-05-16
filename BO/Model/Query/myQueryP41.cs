@@ -159,7 +159,7 @@ namespace BO
                 if (_searchstring.Length == 1)
                 {
                     //hledat pouze podle počátečních písmen
-                    s = "a.p41Name COLLATE Latin1_General_CI_AI LIKE @expr+'%' OR a.p41Code LIKE '%'+@expr+'%' OR a.p41NameShort LIKE @expr+'%'";
+                    s = "a.p41Name COLLATE Latin1_General_CI_AI LIKE @expr+'%' OR a.p41Code LIKE '%'+@expr+'%' OR a.p41NameShort LIKE '%'+@expr+'%'";
                     s += " OR a.p28ID_Client IN (select p28ID FROM p28Contact WHERE p28Name COLLATE Latin1_General_CI_AI LIKE @expr+'%' OR p28CompanyName LIKE @expr+'%')";
                 }
                 else

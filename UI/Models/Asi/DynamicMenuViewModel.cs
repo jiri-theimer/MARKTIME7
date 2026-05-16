@@ -8,6 +8,8 @@
         public string Rez { get; set; }
         public int p07Level { get; set; }   //předává se pro menu main_p41
         public int j72id { get; set; }  //předává se pro grid_menu
+
+        public string Rezerva { get; set; }
         
     }
 }
