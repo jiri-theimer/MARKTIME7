@@ -42,6 +42,15 @@
     </div>
 
     <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Dlužná částka"):</label>
+        <div class="col-sm-3 col-md-2">
+            <mynumber asp-for="Rec.p84AmountDebt"></mynumber>
+        </div>
+       
+    </div>
+
+
+    <div class="row my-2">
         <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Hlavní text"):</label>
         <div class="col-sm-11 col-md-10">
             <textarea class="form-control" asp-for="Rec.p84TextA"></textarea>

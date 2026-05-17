@@ -9,6 +9,7 @@ namespace BL.Singleton.ColumnsProvider
             this.EntityName = "p84Upominka";
             this.CurrentFieldGroup = "Root";
             oc = AF("p84Code", "Číslo upomínky", null, "string"); oc.FixedWidth = 110;
+            AF("p84AmountDebt", "Dlužná částka", "a.p84AmountDebt", "num");
             oc = AF("CisloFaktury", "Číslo faktury", "p91x.p91Code", "string"); oc.DefaultColumnFlag = gdc1; oc.NotShowRelInHeader = true; oc.FixedWidth = 110;
             oc = AF("p84Name", "Název"); oc.NotShowRelInHeader = true; oc.DefaultColumnFlag = gdc1;
 

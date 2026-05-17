@@ -152,6 +152,8 @@ namespace BL
                 rec.p84Index = intStupenCeka;
 
             }
+
+            rec.p84AmountDebt = recP91.p91Amount_Debt;
             
             rec.p84Code = $"{recP91.p91Code}-U{rec.p84Index}";
             
@@ -199,6 +201,11 @@ namespace BL
             p.AddString("p84TextA", rec.p84TextA);            
             p.AddString("p84TextB", rec.p84TextB);
             p.AddDateTime("p84Date", rec.p84Date);
+            if (rec.p84AmountDebt <= 0 && rec.p91ID>0)
+            {
+                rec.p84AmountDebt = _mother.p91InvoiceBL.Load(rec.p91ID).p91Amount_Debt;
+            }
+            p.AddDouble("p84AmountDebt", rec.p84AmountDebt);
 
             int intPID = _db.SaveRecord("p84Upominka", p, rec);
             if (intPID > 0)

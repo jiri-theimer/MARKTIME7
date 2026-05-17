@@ -163,6 +163,7 @@ namespace UI.Controllers
                 BO.p84Upominka c = new BO.p84Upominka();
                 if (v.rec_pid > 0) c = Factory.p84UpominkaBL.Load(v.rec_pid);
                 c.p84Name = v.Rec.p84Name;
+                c.p84AmountDebt = v.Rec.p84AmountDebt;
                 c.p83ID = v.Rec.p83ID;
                 c.p84Code = v.Rec.p84Code;
                 c.p84TextA = v.Rec.p84TextA;

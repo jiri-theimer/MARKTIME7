@@ -4,6 +4,7 @@ namespace BO
     public class p84Upominka:BaseBO
     {
         public string p84Name { get; set; }
+        public double p84AmountDebt { get; set; }
         public int p84Index { get; set; }
         public int p83ID { get; set; }
         public int p91ID { get; set; }
