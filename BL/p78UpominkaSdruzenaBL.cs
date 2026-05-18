@@ -5,7 +5,7 @@ namespace BL
     public interface Ip78UpominkaSdruzenaBL
     {
         public BO.p78UpominkaSdruzena Load(int pid);
-        public IEnumerable<BO.p78UpominkaSdruzena> GetList(BO.myQuery mq);
+        public IEnumerable<BO.p78UpominkaSdruzena> GetList(BO.myQueryP78 mq);
         public int Save(BO.p78UpominkaSdruzena rec, List<int> p84ids);
 
     }
@@ -19,9 +19,9 @@ namespace BL
 
         private string GetSQL1(string strAppend = null)
         {
-            sb("SELECT a.*,p28.p28Name,j02owner.j02Name as Owner,");
+            sb("SELECT a.*,p28x.p28Name,j02owner.j02Name as Owner,");
             sb(_db.GetSQL1_Ocas("p78"));
-            sb(" FROM p78UpominkaSdruzena a INNER JOIN p28Contact p28 ON a.p28ID=p28.p28ID LEFT OUTER JOIN j02User j02owner ON a.j02ID_Owner=j02owner.j02ID");
+            sb(" FROM p78UpominkaSdruzena a INNER JOIN p28Contact p28x ON a.p28ID=p28x.p28ID LEFT OUTER JOIN j02User j02owner ON a.j02ID_Owner=j02owner.j02ID");
             sb(strAppend);
             return sbret();
         }
@@ -30,7 +30,7 @@ namespace BL
             return _db.Load<BO.p78UpominkaSdruzena>(GetSQL1(" WHERE a.p78ID=@pid"), new { pid = pid });
         }
 
-        public IEnumerable<BO.p78UpominkaSdruzena> GetList(BO.myQuery mq)
+        public IEnumerable<BO.p78UpominkaSdruzena> GetList(BO.myQueryP78 mq)
         {
             DL.FinalSqlCommand fq = DL.basQuery.GetFinalSql(GetSQL1(), mq, _mother.CurrentUser);
             return _db.GetList<BO.p78UpominkaSdruzena>(fq.FinalSql, fq.Parameters);
@@ -82,5 +82,6 @@ namespace BL
             return true;
         }
 
+        
     }
 }

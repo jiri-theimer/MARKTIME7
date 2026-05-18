@@ -245,7 +245,7 @@ namespace BL.Singleton
 
             AE("p84Upominka", "Upomínky", "Upomínka", "p84Upominka a INNER JOIN p91Invoice p91x ON a.p91ID=p91x.p91ID INNER JOIN p83UpominkaType p83x ON a.p83ID=p83x.p83ID", "a.p84ID DESC");
 
-            AE("p78UpominkaSdruzena", "Sdružené upomínky", "Sdružená upomínka", "p78UpominkaSdruzena a", "a.p78ID DESC");
+            AE("p78UpominkaSdruzena", "Sdružené upomínky", "Sdružená upomínka", "p78UpominkaSdruzena a INNER JOIN p28Contact p28x ON a.p28ID=p28x.p28ID", "a.p78ID DESC");
 
             AE("p28_vykazano", "Vykázáno", "Vykázáno", "?????", "a.p28ID");
             AE("p28_rozpracovano", "Rozpracováno", "Rozpracováno", "?????", "a.p28ID");

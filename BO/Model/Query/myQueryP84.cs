@@ -7,6 +7,7 @@ namespace BO
         public int p28id { get; set; }
         public int p91id { get; set; }
         public int p83id { get; set; }
+        public int p78id { get; set; }  //sdružená upomínka
 
         public myQueryP84()
         {
@@ -23,6 +24,10 @@ namespace BO
             if (this.p83id > 0)
             {
                 AQ("a.p83ID=@p83id", "p83id", this.p83id);
+            }
+            if (this.p78id > 0)
+            {
+                AQ("a.p84ID IN (select p84ID FROM p79UpominkaSdruzenaBinding WHERE p78ID=@p78id)", "p78id", this.p78id);
             }
             if (this.p28id > 0)
             {
@@ -83,7 +88,7 @@ namespace BO
 
             if (_searchstring != null && _searchstring.Length > 2)
             {
-                AQ("(a.p90Code like '%'+@expr+'%' OR a.p90Text1 LIKE '%'+@expr+'%' OR a.p28ID IN (select p28ID FROM p28Contact WHERE p28Name like '%'+@expr+'%'))", "expr", _searchstring);
+                AQ("(a.p84Code like '%'+@expr+'%' OR a.p84TextA LIKE '%'+@expr+'%' OR p91x.p91Client LIKE '%'+@expr+'%')", "expr", _searchstring);
 
             }
 
@@ -99,7 +104,7 @@ namespace BO
 
         private void Handle_MyDisponible()
         {
-            if ((this.CurrentUser.IsAdmin || this.CurrentUser.TestPermission(PermValEnum.GR_p90_Owner) || this.CurrentUser.TestPermission(PermValEnum.GR_p90_Reader)))
+            if ((this.CurrentUser.IsAdmin || this.CurrentUser.TestPermission(PermValEnum.GR_P91_Owner) || this.CurrentUser.TestPermission(PermValEnum.GR_P91_Reader)))
             {
                 return; //přístup ke všem zálohám v systému
             }
@@ -107,14 +112,14 @@ namespace BO
 
             string s = "a.j02ID_Owner=@j02id_query";
             s += " OR EXISTS (SELECT 1 FROM x69EntityRole_Assign xa inner join x67EntityRole xb ON xa.x67ID=xb.x67ID";
-            s += " WHERE xb.x67Entity='p90' and (xa.j02ID=@j02id_query OR xa.x69IsAllUsers=1";
+            s += " WHERE xb.x67Entity='p84' and (xa.j02ID=@j02id_query OR xa.x69IsAllUsers=1";
 
             if (!string.IsNullOrEmpty(this.CurrentUser.j11IDs))
             {
                 s += " OR xa.j11ID IN (" + this.CurrentUser.j11IDs + ")";
             }
             s += ")";
-            s += " AND xa.x69RecordEntity='p90' AND xa.x69RecordPid=a.p90ID";
+            s += " AND xa.x69RecordEntity='p84' AND xa.x69RecordPid=a.p84ID";
             s += ")";
 
 

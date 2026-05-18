@@ -57,7 +57,7 @@
                         @_f.tra("Faktura"):
                     </td>
                     <td>
-                        <myval value="@Model.RecP91.p91Code" hoverprefix="p91" hoverpid="@Model.Rec.p91ID"></myval>
+                        <myval value="@Model.RecP91.p91Code" linktarget="_top" hoverprefix="p91" hoverpid="@Model.Rec.p91ID" datatype="@(_f.CurrentUser.j04IsModule_p91 ? "link" : "string")" linkurl="@(_f.CurrentUser.j04IsModule_p91 ? $"/Record/RecPage?prefix=p91&pid={Model.Rec.p91ID}" : "")"></myval>
                     </td>
                 </tr>
                 <tr>
@@ -65,7 +65,16 @@
                         @_f.tra("Typ upomínky"):
                     </td>
                     <td>
-                        <myval value="@Model.Rec.p83Name"></myval>
+                        @if (_f.CurrentUser.IsAdmin)
+                        {
+                            <myval value="@Model.Rec.p83Name" hoverprefix="p83" hoverpid="@Model.Rec.p83ID"></myval>
+                        }
+                        else
+                        {
+                            <myval value="@Model.Rec.p83Name"></myval>
+                        }
+                        
+                        
                     </td>
                 </tr>
                 <tr>

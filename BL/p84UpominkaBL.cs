@@ -61,6 +61,35 @@ namespace BL
             return intMaxIndex + 1;
         }
 
+        private int Handle_SdruzenaUpominka(int p84id)
+        {
+            
+            var lis = _mother.p78UpominkaSdruzenaBL.GetList(new BO.myQueryP78() { p84id = p84id });
+            if (lis.Count() > 0)
+            {
+                return lis.First().pid; //upomínka již je ve sdružené upomínce
+            }
+            var rec = Load(p84id);
+
+            lis = _mother.p78UpominkaSdruzenaBL.GetList(new BO.myQueryP78() { p28id = rec.p28ID });
+            if (lis.Count() > 0)
+            {
+                //přidat upomínku do sdružené upomínky
+                _db.RunSql("INSERT INTO p79UpominkaSdruzenaBinding(p78ID,p84ID) VALUES(@p78id,@p84id)", new { p78id = lis.First().pid, p84id = p84id });
+                return lis.First().pid;
+            }
+            else
+            {
+                //založit novou sdruženou upomínku
+                var c = new BO.p78UpominkaSdruzena();
+                c.p78Date = System.DateTime.Today;
+                
+                return _mother.p78UpominkaSdruzenaBL.Save(c, new List<int>() { p84id});
+            }
+
+            
+        }
+
         public int TryCreate(int p91id,int p83id=0)
         {
             if (p91id==0)
@@ -158,7 +187,14 @@ namespace BL
             rec.p84Code = $"{recP91.p91Code}-U{rec.p84Index}";
             
 
-            return Save(rec);                        
+            var intPID = Save(rec);
+            if (intPID > 0)
+            {
+                Handle_SdruzenaUpominka(intPID);
+            }
+            
+
+            return intPID;
         }
 
 
@@ -214,10 +250,14 @@ namespace BL
 
 
                 _db.RunSql("UPDATE p91Invoice SET p84ID_Last=null WHERE p91ID=@p91id; UPDATE a set p84ID_Last=b.p84ID FROM p91Invoice a INNER JOIN (select top 1 p84ID,p91ID FROM p84Upominka WHERE p84ValidUntil>GETDATE() AND p91ID=@p91id ORDER BY p84Index DESC) b ON a.p91ID=b.p91ID WHERE a.p91ID=@p91id", new {p91id=rec.p91ID});
+
+                Handle_SdruzenaUpominka(intPID);
             }
             return intPID;
 
         }
+
+        
         private bool ValidateBeforeSave(BO.p84Upominka rec)
         {
             if (rec.p83ID==0)

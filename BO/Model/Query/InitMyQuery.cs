@@ -102,6 +102,8 @@ namespace BO
                     return handle_myquery_reflexe(new BO.myQueryP41("le5") { p07level = 5, CurrentUser = _CurrentUser });
                 case "p84":
                     return handle_myquery_reflexe(new BO.myQueryP84() { CurrentUser = _CurrentUser });
+                case "p78":
+                    return handle_myquery_reflexe(new BO.myQueryP78() { CurrentUser = _CurrentUser });
                 case "p11":
                     return handle_myquery_reflexe(new BO.myQueryP11() { CurrentUser = _CurrentUser });
                 case "b05":
