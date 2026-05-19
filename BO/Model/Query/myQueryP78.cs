@@ -7,6 +7,7 @@ namespace BO
         public int p28id { get; set; }
         public int p91id { get; set; }
         public int p84id { get; set; }
+        public int j27id { get; set; }
        
         public myQueryP78()
         {
@@ -28,6 +29,10 @@ namespace BO
             if (this.p28id > 0)
             {
                 AQ("a.p28ID=@p28id", "p28id", this.p28id);
+            }
+            if (this.j27id > 0)
+            {
+                AQ("a.j27ID=@j27id", "j27id", this.j27id);
             }
 
             if (this.IsActivePeriodQuery())

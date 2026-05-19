@@ -22,7 +22,7 @@ namespace BL
 
         private string GetSQL1(string strAppend = null, int toprec = 0, bool istestcloud = false)
         {
-            sb("SELECT a.*,p83x.p83Name,p91.p91Code,j02owner.j02LastName+' '+j02owner.j02FirstName as Owner,p83x.x31ID_Index1,p83x.x31ID_Index2,p83x.x31ID_Index3,p83x.j61ID_Index1,p83x.j61ID_Index2,p83x.j61ID_Index3,p83x.p83Days_Index1,p83x.p83Days_Index2,p83x.p83Days_Index3,p91.p28ID,p91.p92ID,");
+            sb("SELECT a.*,p83x.p83Name,p91.p91Code,j02owner.j02LastName+' '+j02owner.j02FirstName as Owner,p83x.x31ID_Index1,p83x.x31ID_Index2,p83x.x31ID_Index3,p83x.j61ID_Index1,p83x.j61ID_Index2,p83x.j61ID_Index3,p83x.p83Days_Index1,p83x.p83Days_Index2,p83x.p83Days_Index3,p91.p28ID,p91.p92ID,p91.j27ID,");
             sb(_db.GetSQL1_Ocas("p84"));
             sb(" FROM p84Upominka a INNER JOIN p83UpominkaType p83x ON a.p83ID=p83x.p83ID LEFT OUTER JOIN p91Invoice p91 ON a.p91ID=p91.p91ID LEFT OUTER JOIN j02User j02owner ON a.j02ID_Owner=j02owner.j02ID");
             if (istestcloud)
@@ -70,8 +70,8 @@ namespace BL
                 return lis.First().pid; //upomínka již je ve sdružené upomínce
             }
             var rec = Load(p84id);
-
-            lis = _mother.p78UpominkaSdruzenaBL.GetList(new BO.myQueryP78() { p28id = rec.p28ID });
+          
+            lis = _mother.p78UpominkaSdruzenaBL.GetList(new BO.myQueryP78() { p28id = rec.p28ID,j27id=rec.j27ID });
             if (lis.Count() > 0)
             {
                 //přidat upomínku do sdružené upomínky
@@ -95,8 +95,10 @@ namespace BL
                 c.p78ClientAddress1_ZIP = recP91.p91ClientAddress1_ZIP;
                 c.p78ClientAddress1_Before = recP91.p91ClientAddress1_Before;
                 c.p78ClientAddress1_Country = recP91.p91ClientAddress1_Country;
+                c.j27ID = recP91.j27ID;                
+                c.p78Amount_Debt = recP91.p91Amount_Debt;
+                c.p78Amount_Debt_KratKurz = recP91.Debt_Krat_Kurz;
 
-                c.deb
                 return _mother.p78UpominkaSdruzenaBL.Save(c, new List<int>() { p84id});
             }
 

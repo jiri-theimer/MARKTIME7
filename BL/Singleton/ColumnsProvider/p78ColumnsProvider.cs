@@ -12,7 +12,13 @@ namespace BL.Singleton.ColumnsProvider
             oc = AF("p78Name", "Název"); oc.NotShowRelInHeader = true; oc.DefaultColumnFlag = gdc1;
 
             AF("p78Date", "Datum upomínky", null, "date").DefaultColumnFlag = gdc1;
-            
+
+            this.CurrentFieldGroup = "Dluh";
+            oc = AF("p78Amount_Debt", "Dluh", null, "num", true); oc.DefaultColumnFlag = gdc1;
+            AF("DluhKratKurz", "Dluh x Kurz", "a.p78Amount_Debt_KratKurz", "num", true);
+            oc = AF("j27Code", "Měna", "p78_j27x.j27Code"); oc.RelSqlInCol = "LEFT OUTER JOIN j27Currency p78_j27x ON a.j27ID=p78_j27x.j27ID"; oc.DefaultColumnFlag = gdc1; oc.FixedWidth = 60; oc.SqlExplicitGroupBy = "a.j27ID";
+
+
             AF("p78TextA", "Text upomínky").DefaultColumnFlag = gdc2;
             AF("p78TextB", "Technický text");
 
@@ -29,10 +35,7 @@ namespace BL.Singleton.ColumnsProvider
             AF("p78ClientAddress1_Before", "Doplnění adresy");
 
 
-            this.CurrentFieldGroup = "Dluh";
-            AF("p78Amount_Debt", "Dluh", null, "num", true);
-            AF("DluhKratKurz", "Dluh x Kurz", "case When a.j27ID=a.j27ID_Domestic Then p78Amount_Debt Else p78Amount_Debt*p78ExchangeRate End", "num", true);
-
+            
             AppendTimestamp();
         }
     }

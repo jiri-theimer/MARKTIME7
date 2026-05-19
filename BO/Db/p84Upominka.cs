@@ -29,5 +29,6 @@ namespace BO
         public int p83Days_Index1 { get; }
         public int p83Days_Index2 { get; }
         public int p83Days_Index3 { get; }
+        public int j27ID { get; }
     }
 }
