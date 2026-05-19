@@ -12,13 +12,14 @@ namespace BL.Singleton.ColumnsProvider
             oc = AF("p78Name", "Název"); oc.NotShowRelInHeader = true; oc.DefaultColumnFlag = gdc1;
 
             AF("p78Date", "Datum upomínky", null, "date").DefaultColumnFlag = gdc1;
+            oc = AF("PocetUpominek", "Počet upomínek", "p78soucty.Pocet", "num0"); oc.RelSqlInCol = "LEFT OUTER JOIN view_p78_soucty p78soucty On a.p78ID = p78soucty.p78ID";
+
 
             this.CurrentFieldGroup = "Dluh";
             oc = AF("p78Amount_Debt", "Dluh", null, "num", true); oc.DefaultColumnFlag = gdc1;
             AF("DluhKratKurz", "Dluh x Kurz", "a.p78Amount_Debt_KratKurz", "num", true);
             oc = AF("j27Code", "Měna", "p78_j27x.j27Code"); oc.RelSqlInCol = "LEFT OUTER JOIN j27Currency p78_j27x ON a.j27ID=p78_j27x.j27ID"; oc.DefaultColumnFlag = gdc1; oc.FixedWidth = 60; oc.SqlExplicitGroupBy = "a.j27ID";
-
-
+            
             AF("p78TextA", "Text upomínky").DefaultColumnFlag = gdc2;
             AF("p78TextB", "Technický text");
 

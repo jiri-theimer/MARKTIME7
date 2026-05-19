@@ -818,11 +818,11 @@ namespace BL
                     }
                     break;
                 case "p78":
-                    s = "p78_p28__p28Contact__p28Name,a__p78UpominkaSdruzena__p78Name,a__p78UpominkaSdruzena__p78Date,a__p78UpominkaSdruzena__p78TextA";
+                    s = "a__p78UpominkaSdruzena__p78Code,a__p78UpominkaSdruzena__p78Name,a__p78UpominkaSdruzena__p78Date,a__p78UpominkaSdruzena__p78Client,a__p78UpominkaSdruzena__p78Client_RegID,a__p78UpominkaSdruzena__p78Amount_Debt,a__p78UpominkaSdruzena__j27Code";
                     switch (master_entity)
                     {
                         case "recpage":
-                            s = "p78_p28__p28Contact__p28Name,a__p78UpominkaSdruzena__p78Name";
+                            s = "a__p78UpominkaSdruzena__p78Code,a__p78UpominkaSdruzena__p78Amount_Debt,a__p78UpominkaSdruzena__p78Client";
                             break;
 
 
