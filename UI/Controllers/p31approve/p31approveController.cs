@@ -421,7 +421,7 @@ namespace UI.Controllers.p31approve
                     {
                         c.p31Value_FixPrice = BO.Code.Time.ShowAsDec(rec.hodinypausal);
                     }
-
+                    
                     c.Value_Approved_Internal = BO.Code.Time.ShowAsDec(rec.hodinyinterni);
                     c.Rate_Internal_Approved = recTemp.p31Rate_Internal_Approved;
 

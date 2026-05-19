@@ -249,9 +249,8 @@ function handle_rec_load(pid, p31guid) {
             _notify_message(data.errormessage);
             return;
         }
+        
         $("#Rec_pid").val(pid);
-
-
 
         $("#Rec_p33id").val(data.p33id);
 
@@ -284,6 +283,7 @@ function handle_rec_load(pid, p31guid) {
         if (data.p33id == 1) {
             $("#Rec_hodiny").val(data.hodiny);
             $("#Rec_hodinypausal").val(data.hodinypausal);
+            
             $("#Rec_hodinyinterni").val(data.hodinyinterni);
         }
         if (data.p33id == 1 || data.p33id == 3) {
@@ -427,22 +427,30 @@ function save_temp_record(pid, p31guid) {
     var p71id = $("input[name='Rec.p71id']:checked").val();
     var p72id = $("input[name='Rec.p72id']:checked").val();
     var p33id = $("#Rec_p33id").val();
-
+    
     var c = {
         p31id: pid,
         p71id: p71id,
         p72id: p72id,
-        p33id: p33id,
-        uroven: $("#Rec_uroven").val(),
-        hodiny: $("#Rec_hodiny").val(),
-        hodinyinterni: $("#Rec_hodinyinterni").val(),
-        sazba: $("#numRec_sazba").val(),
-        hodinypausal: $("#Rec_hodinypausal").val(),
+        p33id: p33id,        
+        hodiny: $("#Rec_hodiny").val(),        
+        sazba: $("#numRec_sazba").val(),        
         popis: $("#Rec_Popis").val(),
         bezdph: $("#numRec_bezdph").val(),
         dphsazba: $("#numRec_dphsazba").val()
 
     };
+
+    if (document.getElementById("Rec_hodinyinterni")) {
+        c.hodinyinterni = $("#Rec_hodinyinterni").val();
+        
+    }
+    if (document.getElementById("Rec_uroven")) {
+        c.uroven = $("#Rec_uroven").val();
+    }
+    if (document.getElementById("Rec_hodinypausal")) {
+        c.hodinypausal = $("#Rec_hodinypausal").val();
+    }
 
     $.post(_ep("/p31approve/SaveTempRecord"), { rec: c, p31id: pid, guid: p31guid }, function (data) {
 

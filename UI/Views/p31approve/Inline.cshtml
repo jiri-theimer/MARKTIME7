@@ -431,6 +431,11 @@
                         <select class="editable p72id" asp-items="@_sliP72"></select>
                         <input type="hidden" class="p33id" value="@Model.lisRecs[i].p33id" />
                        
+                        @if (!_IsInterniHodiny && ( Model.lisRecs[i].p33id == 1 || Model.lisRecs[i].p33id == 3))
+                        {
+                            <input type="hidden" value="@Model.lisRecs[i].hodinyinterni" class="editable hodinyinterni cislo" />
+                        }
+                        
                     </td>
                     <td>
                         <div>
@@ -582,7 +587,7 @@
                             }
                         </td>
                     }
-
+                    
                     <td>
                         <textarea class="popis editable form-control">@Model.lisRecs[i].Popis</textarea>
                         @if(Model.lisRecs[i].PopisInterni != null)
