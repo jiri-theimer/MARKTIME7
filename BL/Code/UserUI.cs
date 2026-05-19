@@ -36,7 +36,7 @@ namespace BL.Code
                 case "le4":
                 case "p78":
                     return 256;
-                
+
                 case "o43":
                 case "le2":
                     return 1024;
@@ -60,10 +60,9 @@ namespace BL.Code
                 case "p28": return 2048;
                 case "p91": return 4096;
                 case "j02": return 8192;                
-                case "p56": return 16384;                
-                case "le5":
+                case "p56": return 16384;                               
                 case "p41": return 32768;
-                case "le4": return 65536;                
+                case "p78": return 65536;                
                 case "o23": return 262144;
                 case "p90": return 524288;
                 case "o43":
