@@ -169,6 +169,10 @@
 
     </div>
 }
+else
+{
+    <input type="hidden" asp-for="@Model.Rec.hodinyinterni" />
+}
 
 @if (_f.CurrentUser.IsHes(65536))
 {
