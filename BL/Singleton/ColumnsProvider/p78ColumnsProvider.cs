@@ -18,7 +18,7 @@ namespace BL.Singleton.ColumnsProvider
 
 
             this.CurrentFieldGroup = "Dlužník";
-            oc = AF("p78Client", "Název klienta"); oc.DefaultColumnFlag = gdc1; oc.SqlExplicitGroupBy = "a.p78Client";
+            oc = AF("p78Client", "Název dlužníka"); oc.DefaultColumnFlag = gdc1; oc.SqlExplicitGroupBy = "a.p78Client";
             oc = AF("p78Client_RegID", "IČO"); oc.FixedWidth = 100;
             oc = AF("p78Client_VatID", "DIČ"); oc.FixedWidth = 100;
             oc = AF("p78Client_ICDPH_SK", "IČ DPH (SK)"); oc.FixedWidth = 100;
@@ -27,6 +27,11 @@ namespace BL.Singleton.ColumnsProvider
             oc = AF("p78ClientAddress1_ZIP", "PSČ"); oc.FixedWidth = 70;
             AF("p78ClientAddress1_Country", "Stát");
             AF("p78ClientAddress1_Before", "Doplnění adresy");
+
+
+            this.CurrentFieldGroup = "Dluh";
+            AF("p78Amount_Debt", "Dluh", null, "num", true);
+            AF("DluhKratKurz", "Dluh x Kurz", "case When a.j27ID=a.j27ID_Domestic Then p91Amount_Debt Else p91Amount_Debt*p91ExchangeRate End", "num", true);
 
             AppendTimestamp();
         }
