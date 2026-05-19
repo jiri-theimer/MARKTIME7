@@ -66,6 +66,10 @@ namespace BL
             
             p.AddString("p78Client_ICDPH_SK", rec.p78Client_ICDPH_SK);
 
+            p.AddInt("j27ID", rec.j27ID, true);
+            p.AddInt("j27ID_Domestic", rec.j27ID_Domestic, true);
+            p.AddDouble("p78Amount_Debt", rec.p78Amount_Debt);
+            p.AddDouble("p78ExchangeRate", rec.p78ExchangeRate);
 
             var intPID= _db.SaveRecord("p78UpominkaSdruzena", p, rec);
             if (intPID > 0 && p84ids !=null)                

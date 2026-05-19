@@ -22,6 +22,10 @@ namespace BO
         public string p78ClientAddress1_Country { get; set; }
         public string p78ClientAddress1_Before { get; set; }
 
+        public double p78Amount_Debt { get; set; }
+        public double p78ExchangeRate { get; set; }
+        public int j27ID { get; set; }
+        public int j27ID_Domestic { get; set; }
         public string p28Name { get; }
         public string Owner { get; }
     }

@@ -31,7 +31,7 @@ namespace BL.Singleton.ColumnsProvider
 
             this.CurrentFieldGroup = "Dluh";
             AF("p78Amount_Debt", "Dluh", null, "num", true);
-            AF("DluhKratKurz", "Dluh x Kurz", "case When a.j27ID=a.j27ID_Domestic Then p91Amount_Debt Else p91Amount_Debt*p91ExchangeRate End", "num", true);
+            AF("DluhKratKurz", "Dluh x Kurz", "case When a.j27ID=a.j27ID_Domestic Then p78Amount_Debt Else p78Amount_Debt*p78ExchangeRate End", "num", true);
 
             AppendTimestamp();
         }

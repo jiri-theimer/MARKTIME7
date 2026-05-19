@@ -96,6 +96,7 @@ namespace BL
                 c.p78ClientAddress1_Before = recP91.p91ClientAddress1_Before;
                 c.p78ClientAddress1_Country = recP91.p91ClientAddress1_Country;
 
+                c.deb
                 return _mother.p78UpominkaSdruzenaBL.Save(c, new List<int>() { p84id});
             }
 
