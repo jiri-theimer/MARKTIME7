@@ -66,6 +66,15 @@ namespace BL
             
             p.AddString("p78Client_ICDPH_SK", rec.p78Client_ICDPH_SK);
 
+            if (p84ids != null)
+            {
+                var mq = new BO.myQueryP84() { pids = p84ids };
+                var lis = _mother.p84UpominkaBL.GetList(mq);
+                rec.j27ID = lis.First().j27ID;
+                rec.p78Amount_Debt = lis.Sum(p => p.p84AmountDebt);
+            }
+            
+
             p.AddInt("j27ID", rec.j27ID, true);
             
             p.AddDouble("p78Amount_Debt", rec.p78Amount_Debt);

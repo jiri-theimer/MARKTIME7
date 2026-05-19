@@ -35,11 +35,10 @@
     <div class="row my-2">
         <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Dlužná částka"):</label>
         <div class="col-sm-3 col-md-2">
-            <mynumber asp-for="Rec.p78Amount_Debt"></mynumber>
+            <myval value="@Model.Rec.p78Amount_Debt" datatype="num" valueafter="@Model.ComboJ27Code"></myval>
         </div>
-        <div class="col-sm-3 col-md-2">
-            <mycombo entity="j27Currency" asp-for="Rec.j27ID" selectedtext="@Model.ComboJ27Code"></mycombo>
-        </div>
+        <input type="hidden" asp-for="Rec.p78Amount_Debt" />
+        <input type="hidden" asp-for="ComboJ27Code" />
     </div>
 
     <div class="card">
@@ -143,11 +142,11 @@
     @Html.EditorFor(m => m.reminder, "~/Views/Shared/_Reminder.cshtml")
 
     <div class="row my-2" style="display:none;">
-            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Vlastník záznamu"):</label>
-            <div class="col-sm-4 col-md-4">
-                <mycombo entity="j02User" asp-for="Rec.j02ID_Owner" selectedtext="@Model.ComboOwner" view-flag="1"></mycombo>
-            </div>
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Vlastník záznamu"):</label>
+        <div class="col-sm-4 col-md-4">
+            <mycombo entity="j02User" asp-for="Rec.j02ID_Owner" selectedtext="@Model.ComboOwner" view-flag="1"></mycombo>
         </div>
+    </div>
 
 
     <script>
