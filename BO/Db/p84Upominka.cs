@@ -31,5 +31,13 @@ namespace BO
         public int p83Days_Index3 { get; }
         public int j27ID { get; }
         public string j27Code { get; }
+
+        public string p91CodeWithAmount
+        {
+            get
+            {
+                return $"{this.p91Code}: {BO.Code.Bas.Number2String(this.p84AmountDebt)} {this.j27Code}";
+            }
+        }
     }
 }

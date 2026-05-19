@@ -44,7 +44,20 @@ namespace UI.Controllers
                     v.ComboOwner = Factory.j02UserBL.Load(v.Rec.j02ID_Owner).FullnameDesc;
 
                 }
+                if (v.Rec.p28ID > 0)
+                {
+                    v.ComboP28Name = v.Rec.p28Name;
+                }
+                if (v.Rec.j27ID > 0)
+                {
+                    v.ComboJ27Code = Factory.FBL.LoadCurrencyByID(v.Rec.j27ID).j27Code;
+                }
 
+                var lisP84 = Factory.p84UpominkaBL.GetList(new BO.myQueryP84() { p78id = v.rec_pid });
+                if (lisP84.Count() > 0)
+                {
+                    v.SelectedP84IDs = lisP84.Select(p => p.pid).ToList();
+                }
             }
             else
             {
@@ -67,7 +80,15 @@ namespace UI.Controllers
             {
                 v.reminder = new ReminderViewModel() { is_static_date = true, record_pid = v.rec_pid, record_prefix = "p78" };
             }
-
+            if (v.Rec.p28ID > 0)
+            {
+                v.lisAllP84 = Factory.p84UpominkaBL.GetList(new BO.myQueryP84() { p28id = v.Rec.p28ID });
+            }
+            else
+            {
+                v.lisAllP84 = Factory.p84UpominkaBL.GetList(new BO.myQueryP84() { p28id = -88888 });
+            }
+            
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -90,6 +111,7 @@ namespace UI.Controllers
                 BO.p78UpominkaSdruzena c = new BO.p78UpominkaSdruzena();
                 if (v.rec_pid > 0) c = Factory.p78UpominkaSdruzenaBL.Load(v.rec_pid);
                 c.p78Name = v.Rec.p78Name;
+                c.j27ID = v.Rec.j27ID;
                 
                 c.p78Code = v.Rec.p78Code;
                 c.p78TextA = v.Rec.p78TextA;
@@ -101,7 +123,7 @@ namespace UI.Controllers
                 c.ValidUntil = v.Toolbar.GetValidUntil(c);
                 c.ValidFrom = v.Toolbar.GetValidFrom(c);
 
-                c.pid = Factory.p78UpominkaSdruzenaBL.Save(c,null);
+                c.pid = Factory.p78UpominkaSdruzenaBL.Save(c,v.SelectedP84IDs.Where(p=>p>0).ToList());
                 if (c.pid > 0)
                 {
 

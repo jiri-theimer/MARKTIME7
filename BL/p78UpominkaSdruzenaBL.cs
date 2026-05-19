@@ -40,7 +40,7 @@ namespace BL
 
         public int Save(BO.p78UpominkaSdruzena rec,List<int> p84ids)
         {
-            if (!ValidateBeforeSave(rec))
+            if (!ValidateBeforeSave(rec,p84ids))
             {
                 return 0;
             }
@@ -86,8 +86,21 @@ namespace BL
 
             return intPID;
         }
-        private bool ValidateBeforeSave(BO.p78UpominkaSdruzena rec)
+        private bool ValidateBeforeSave(BO.p78UpominkaSdruzena rec, List<int> p84ids)
         {
+            if (p84ids !=null)
+            {
+                if (p84ids.Count() == 0)
+                {
+                    this.AddMessage("Musíte zaškrtnout alespoň jednu upomínku."); return false;
+                }
+                var mq = new BO.myQueryP84() { pids = p84ids };
+                var lis = _mother.p84UpominkaBL.GetList(mq);
+                if (lis.GroupBy(p => p.j27ID).Count() > 1)
+                {
+                    this.AddMessage("Sdružené upomínky musí být ve stejné měně."); return false;
+                }
+            }
             if (string.IsNullOrEmpty(rec.p78Name))
             {
                 this.AddMessage("Chybí vyplnit [Název]."); return false;
