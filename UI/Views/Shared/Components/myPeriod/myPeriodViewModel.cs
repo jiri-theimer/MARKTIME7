@@ -146,10 +146,10 @@ namespace UI.Views.Shared.Components.myPeriod
         {
             SetIsLoaded();
             int x = f.CBL.LoadUserParamInt($"{this.UserParamKey}-value", default_value);  //podformuláře filtrují období za sebe a nikoliv globálně jako flatview/masterview
-            if (x > 0)
-            {
-                this.PeriodField = f.CBL.LoadUserParam($"{this.UserParamKey}-field");
-            }
+
+            string deffield = null;
+            if (this.prefix == "p91") deffield = "p91DateSupply";
+            this.PeriodField = f.CBL.LoadUserParam($"{this.UserParamKey}-field", deffield);
 
             if (x > 60)
             {
@@ -234,6 +234,7 @@ namespace UI.Views.Shared.Components.myPeriod
                     case "p41PlanUntil":
                         s = f.tra("Plán dokončení"); break;
                     case "p84Date":
+                    case "p78Date":
                         s = f.tra("Datum upomínky"); break;
                     case "p39Date":
                         s = f.tra("Datum úkonu"); break;

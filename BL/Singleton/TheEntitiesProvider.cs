@@ -492,7 +492,7 @@ namespace BL.Singleton
                     lis.Add(getREL("p91Invoice", "p84_p91", "Vyúčtování", "LEFT OUTER JOIN p91Invoice p84_p91 ON a.p91ID=p84_p91.p91ID"));
                     break;
                 case "p78":
-                    lis.Add(getREL("p28Contact", "p78_p28", "Klient", "LEFT OUTER JOIN p28Contact p78_p28 ON a.p28ID=p78_p28.p28ID"));
+                    lis.Add(getREL("p28Contact", "p78_p28", "Klient (vazba)", "LEFT OUTER JOIN p28Contact p78_p28 ON a.p28ID=p78_p28.p28ID"));
                     break;
                 case "j06":
                     lis.Add(getREL("j02User", "j06_j02", "Uživatel", "LEFT OUTER JOIN j02User j06_j02 ON a.j02ID=j06_j02.j02ID"));

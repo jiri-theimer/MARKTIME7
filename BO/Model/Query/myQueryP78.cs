@@ -22,7 +22,7 @@ namespace BO
             }
             if (this.p84id > 0)
             {
-                AQ("a.p78ID IN (select p78ID FROM p79UpominkaSdruzenaBinding WHERE p84ID=@p84id", "p84id", this.p84id);
+                AQ("a.p78ID IN (select p78ID FROM p79UpominkaSdruzenaBinding WHERE p84ID=@p84id)", "p84id", this.p84id);
             }
           
             if (this.p28id > 0)

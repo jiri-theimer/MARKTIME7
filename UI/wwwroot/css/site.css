@@ -82,7 +82,9 @@
     direction: ltr;
 }
 
-
+.rotate-60 {
+    transform: rotate(-60deg)
+}
 
 
 body {

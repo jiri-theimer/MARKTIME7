@@ -16,6 +16,18 @@ namespace BL.Singleton.ColumnsProvider
             AF("p78TextA", "Text upomínky").DefaultColumnFlag = gdc2;
             AF("p78TextB", "Technický text");
 
+
+            this.CurrentFieldGroup = "Dlužník";
+            oc = AF("p78Client", "Název klienta"); oc.DefaultColumnFlag = gdc1; oc.SqlExplicitGroupBy = "a.p78Client";
+            oc = AF("p78Client_RegID", "IČO"); oc.FixedWidth = 100;
+            oc = AF("p78Client_VatID", "DIČ"); oc.FixedWidth = 100;
+            oc = AF("p78Client_ICDPH_SK", "IČ DPH (SK)"); oc.FixedWidth = 100;
+            AF("p78ClientAddress1_Street", "Ulice");
+            AF("p78ClientAddress1_City", "Město");
+            oc = AF("p78ClientAddress1_ZIP", "PSČ"); oc.FixedWidth = 70;
+            AF("p78ClientAddress1_Country", "Stát");
+            AF("p78ClientAddress1_Before", "Doplnění adresy");
+
             AppendTimestamp();
         }
     }

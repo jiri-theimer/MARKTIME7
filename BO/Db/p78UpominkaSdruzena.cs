@@ -11,6 +11,17 @@ namespace BO
         public string p78TextB { get; set; }
         public DateTime p78Date { get; set; }
 
+
+        public string p78Client { get; set; }
+        public string p78Client_RegID { get; set; }
+        public string p78Client_VatID { get; set; }
+        public string p78Client_ICDPH_SK { get; set; }
+        public string p78ClientAddress1_Street { get; set; }
+        public string p78ClientAddress1_City { get; set; }
+        public string p78ClientAddress1_ZIP { get; set; }
+        public string p78ClientAddress1_Country { get; set; }
+        public string p78ClientAddress1_Before { get; set; }
+
         public string p28Name { get; }
         public string Owner { get; }
     }

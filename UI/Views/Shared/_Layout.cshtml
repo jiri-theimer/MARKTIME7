@@ -341,6 +341,15 @@
 
                             </li>
                         }
+                        @if (_f.CurrentUser.j04IsModule_p91 && _myMenu.Contains("p78"))
+                        {
+                            <li title="Sdružené upomínky">
+                                <a id="cmdp78" class="nav-link" href="@(cmenu.GetMainmenuEntityUrl("p78"))">
+                                    <span class="material-icons-outlined-btn rotate-60" style="color:white">gavel</span>
+                                </a>
+
+                            </li>
+                        }
 
                         @if (_f.CurrentUser.j04IsModule_p90 && _myMenu.Contains("p90"))
                         {

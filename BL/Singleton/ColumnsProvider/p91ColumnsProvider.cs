@@ -76,7 +76,7 @@ namespace BL
 
             this.CurrentFieldGroup = "Klient vyúčtování";
             oc = AF("p91Client", "Název klienta"); oc.DefaultColumnFlag = gdc1; oc.SqlExplicitGroupBy = "a.p91Client";
-            oc = AF("p91Client_RegID", "IČ klienta"); oc.FixedWidth = 100;
+            oc = AF("p91Client_RegID", "IČO klienta"); oc.FixedWidth = 100;
             oc = AF("p91Client_VatID", "DIČ klienta"); oc.FixedWidth = 100;
             oc = AF("p91Client_ICDPH_SK", "IČ DPH (SK)"); oc.FixedWidth = 100;
             AF("p91ClientAddress1_Street", "Ulice klienta");
@@ -88,7 +88,7 @@ namespace BL
 
             this.CurrentFieldGroup = "Vystavovatel/Dodavatel";
             oc = AF("p91Supplier", "Název vystavovatele"); oc.DefaultColumnFlag = gdc1; oc.SqlExplicitGroupBy = "a.p91Supplier";
-            oc = AF("p91Supplier_RegID", "IČ vystavovatele"); oc.FixedWidth = 100;
+            oc = AF("p91Supplier_RegID", "IČO vystavovatele"); oc.FixedWidth = 100;
             oc = AF("p91Supplier_VatID", "DIČ vystavovatele"); oc.FixedWidth = 100;
             oc = AF("p91Supplier_ICDPH_SK", "IČ DPH vystavovatele"); oc.FixedWidth = 100;
             oc = AF("p91Supplier_Street", "Ulice vystavovatele");

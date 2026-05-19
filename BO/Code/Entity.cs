@@ -93,6 +93,7 @@ namespace BO.Code
                 case "p82": return "p82Proforma_Payment";
                 case "p83": return "p83UpominkaType";
                 case "p84": return "p84Upominka";
+                case "p78": return "p78UpominkaSdruzena";
                 case "p85": return "p85TempBox";
                 case "p15": return "p15Location";
                 case "o43": return "o43Inbox";

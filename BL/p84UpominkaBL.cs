@@ -81,9 +81,21 @@ namespace BL
             else
             {
                 //založit novou sdruženou upomínku
+                var recP91 = _mother.p91InvoiceBL.Load(rec.p91ID);                
                 var c = new BO.p78UpominkaSdruzena();
-                c.p78Date = System.DateTime.Today;
-                
+                c.p28ID = rec.p28ID;
+                c.p78Date = rec.p84Date;
+                c.p78Code = $"{rec.p84Date.Year}-{recP91.p91Code}-01";
+                c.p78Name = $"Sdružená upomínka {recP91.p91Client}";
+                c.p78Client = recP91.p91Client;
+                c.p78Client_VatID = recP91.p91Client_VatID;
+                c.p78Client_RegID = recP91.p91Client_RegID;
+                c.p78Client_ICDPH_SK = recP91.p91Client_ICDPH_SK;
+                c.p78ClientAddress1_City = recP91.p91ClientAddress1_City;
+                c.p78ClientAddress1_ZIP = recP91.p91ClientAddress1_ZIP;
+                c.p78ClientAddress1_Before = recP91.p91ClientAddress1_Before;
+                c.p78ClientAddress1_Country = recP91.p91ClientAddress1_Country;
+
                 return _mother.p78UpominkaSdruzenaBL.Save(c, new List<int>() { p84id});
             }
 

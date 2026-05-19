@@ -47,11 +47,24 @@ namespace BL
             var p = new DL.Params4Dapper();
             p.AddInt("pid", rec.pid);
             p.AddInt("p28ID", rec.p28ID, true);
+            if (rec.j02ID_Owner == 0) rec.j02ID_Owner = _mother.CurrentUser.pid;
+            p.AddInt("j02ID_Owner", rec.j02ID_Owner, true);
             p.AddString("p78Name", rec.p78Name);
             p.AddString("p78Code", rec.p78Code);
             p.AddString("p78TextA", rec.p78TextA);
             p.AddString("p78TextB", rec.p78TextB);
             p.AddDateTime("p78Date", rec.p78Date);
+
+            p.AddString("p78Client", rec.p78Client);
+            p.AddString("p78Client_RegID", rec.p78Client_RegID);
+            p.AddString("p78Client_VatID", rec.p78Client_VatID);
+            p.AddString("p78ClientAddress1_Street", rec.p78ClientAddress1_Street);
+            p.AddString("p78ClientAddress1_City", rec.p78ClientAddress1_City);
+            p.AddString("p78ClientAddress1_ZIP", rec.p78ClientAddress1_ZIP);
+            p.AddString("p78ClientAddress1_Country", rec.p78ClientAddress1_Country);
+            p.AddString("p78ClientAddress1_Before", rec.p78ClientAddress1_Before);
+            
+            p.AddString("p78Client_ICDPH_SK", rec.p78Client_ICDPH_SK);
 
 
             var intPID= _db.SaveRecord("p78UpominkaSdruzena", p, rec);

@@ -508,11 +508,22 @@
                         </a>
                         <button type="button" data-key="p84" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
 
+                        <a id="linkP78" class="locallink" href="@(cmenu.GetMainmenuEntityUrl("p78"))">
+                            
+                            <span class="material-icons-outlined-btn rotate-60">gavel</span>
+                            
+                            
+                            
+                            @_f.tra("Sdružené upomínky")
+                        </a>
+                        <button type="button" data-key="p78" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
+
+
                         @if (_f.CurrentUser.TestPermission(BO.PermValEnum.GR_P91_Owner))
                         {
                             <a id="linkBanka" class="locallink" href="/BankaImport/Index">
                                 <span class="material-icons-outlined-btn">sync</span>
-                                @_f.tra("Import bankovních výpisů")
+                                @_f.tra("Import bank.výpisů")
                             </a>
 
                             <a class="locallink" href="/p91MultiReport">
@@ -876,6 +887,9 @@
 
     if (url.indexOf("p84") > 0) {
         $("#linkP84").addClass("active");
+    }
+    if (url.indexOf("p78") > 0) {
+        $("#linkP78").addClass("active");
     }
 
     if (urllower.indexOf("admin/index") > 0) {

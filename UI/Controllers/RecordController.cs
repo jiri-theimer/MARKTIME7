@@ -480,12 +480,14 @@ namespace UI.Controllers
 
                     break;
                 case "p84":
+                case "p78":
                     if (!Factory.CurrentUser.j04IsModule_p91)
                     {
                         return this.StopPage(false, "Nemáte oprávnění pro tento Modul.");
                     }
                     
                     break;
+               
                 case "j02":
                     if (!Factory.CurrentUser.j04IsModule_j02)
                     {
@@ -748,6 +750,7 @@ namespace UI.Controllers
                     v.TabName = Factory.tra("Stránka vyúčtování");
                     break;
                 case "p84":
+                case "p78":
                     v.TabName = Factory.tra("Stránka upomínky");
                     break;
                 case "o43":

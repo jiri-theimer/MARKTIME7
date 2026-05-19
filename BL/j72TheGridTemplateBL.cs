@@ -817,6 +817,17 @@ namespace BL
 
                     }
                     break;
+                case "p78":
+                    s = "p78_p28__p28Contact__p28Name,a__p78UpominkaSdruzena__p78Name,a__p78UpominkaSdruzena__p78Date,a__p78UpominkaSdruzena__p78TextA";
+                    switch (master_entity)
+                    {
+                        case "recpage":
+                            s = "p78_p28__p28Contact__p28Name,a__p78UpominkaSdruzena__p78Name";
+                            break;
+
+
+                    }
+                    break;
                 case "o23":
                     s = "a__o23Doc__o23Name,a__o23Doc__DocType,a__o23Doc__DateInsert_o23Doc,a__o23Doc__UserInsert_o23Doc";
                     if (master_entity == "recpage")
