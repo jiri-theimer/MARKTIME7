@@ -651,6 +651,9 @@
 </div>
 
 <script type="text/javascript">
+    var _zoom_normal = null;
+    var _zoom_maximized = false;
+
     var _j02id = "@Model.j02ID";
     var _current_mouseover_date = null;
     var _current_abs_focused = false;
@@ -969,6 +972,14 @@
             y=0;
         }
 
+        _zoom_normal = {
+            left: x,
+            top: y,
+            width: w,
+            height: h
+        };
+
+
         $(c).css("display", "block");
         $(c).css("width", w + "px");
         $(c).css("height", h + "px");
@@ -976,6 +987,7 @@
         $(c).css("top", y + "px");
         $(c).html("<iframe id='frazoom' style='border:solid 1px gray;' width='" + (w - 50) + "px' height='" + (h - 40) + "px' src='" + url + "'></iframe>");
 
+        _zoom_maximized = false;
     }
     function zoom_close() {
         if ($("#zoomwin").css("display") == "block") {
@@ -983,7 +995,54 @@
         }
 
         $(".zoom_ctl_current").removeClass("zoom_ctl_current");
+
+        _zoom_maximized = false;
     }
+
+       function zoom_toggle() {
+
+       var c = $("#zoomwin");
+
+       if (!_zoom_maximized) {
+
+       _zoom_normal = {
+       left: parseInt(c.css("left")),
+       top: parseInt(c.css("top")),
+       width: c.width(),
+       height: c.height()
+       };
+
+       c.css({
+       left: "0px",
+       top: "0px",
+       width: "100vw",
+       height: "100vh"
+       });
+
+    
+   
+
+       _zoom_maximized = true;
+
+       } else {
+
+       c.css({
+       left: _zoom_normal.left + "px",
+       top: _zoom_normal.top + "px",
+       width: _zoom_normal.width + "px",
+       height: _zoom_normal.height + "px"
+       });
+
+       $("#frazoom").css({
+       height: (_zoom_normal.height - 41) + "px"
+       });
+
+       $("#cmdZoomMax").html("□");
+
+       _zoom_maximized = false;
+       }
+    }
+
     function report() {
         _window_open("/ReportsClient/ReportContext?pid=" + _j02id + "&prefix=j02");
     }

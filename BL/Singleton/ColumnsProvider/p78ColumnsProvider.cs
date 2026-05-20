@@ -7,8 +7,9 @@ namespace BL.Singleton.ColumnsProvider
         {
             this.EntityName = "p78UpominkaSdruzena";
             this.CurrentFieldGroup = "Root";
-            oc = AF("p78Code", "Číslo upomínky", null, "string"); oc.FixedWidth = 110;
-            
+            oc = AF("p78Code", "Kód upomínky", null, "string"); oc.FixedWidth = 110;
+            oc = AF("p78VariableSymbol", "Variabilní symbol", null, "string"); oc.FixedWidth = 110;
+
             oc = AF("p78Name", "Název"); oc.NotShowRelInHeader = true; oc.DefaultColumnFlag = gdc1;
 
             AF("p78Date", "Datum upomínky", null, "date").DefaultColumnFlag = gdc1;

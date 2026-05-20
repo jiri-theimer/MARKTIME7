@@ -118,7 +118,9 @@ namespace UI.Controllers
                 c.p78TextA = v.Rec.p78TextA;
                 c.p78TextB = v.Rec.p78TextB;
                 c.p78Date = v.Rec.p78Date;
-                
+                c.p78VariableSymbol = v.Rec.p78VariableSymbol;
+
+
                 c.j02ID_Owner = v.Rec.j02ID_Owner;
 
                 c.ValidUntil = v.Toolbar.GetValidUntil(c);

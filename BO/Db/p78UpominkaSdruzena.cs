@@ -11,7 +11,7 @@ namespace BO
         public string p78TextB { get; set; }
         public DateTime p78Date { get; set; }
 
-
+        public string p78VariableSymbol { get; set; }
         public string p78Client { get; set; }
         public string p78Client_RegID { get; set; }
         public string p78Client_VatID { get; set; }
