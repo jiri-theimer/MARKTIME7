@@ -31,7 +31,7 @@ namespace UI.Controllers
         public IActionResult Record(int pid, bool isclone)
         {
             var v = new p78Record() { rec_pid = pid, rec_entity = "p78" };
-            v.Rec = new BO.p78UpominkaSdruzena();
+            v.Rec = new BO.p78UpominkaSdruzena() { p78Date = DateTime.Today,p78Name="Hromadná upomínka" };
             if (v.rec_pid > 0)
             {
                 v.Rec = Factory.p78UpominkaSdruzenaBL.Load(v.rec_pid);
