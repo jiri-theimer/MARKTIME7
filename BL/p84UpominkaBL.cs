@@ -89,7 +89,8 @@ namespace BL
                 var c = new BO.p78UpominkaSdruzena();
                 c.p28ID = rec.p28ID;
                 c.p78Date = rec.p84Date;
-                c.p78Code = $"{rec.p84Date.Year}-{recP91.p91Code}-01";
+                c.p78Code = $"{recP91.p91Code}";
+                c.p78VariableSymbol= $"{recP91.p91Code}";
                 c.p78Name = $"Hromadná upomínka {recP91.p91Client}";
                 c.p78Client = recP91.p91Client;
                 c.p78Client_VatID = recP91.p91Client_VatID;
@@ -107,7 +108,8 @@ namespace BL
                 return _mother.p78UpominkaSdruzenaBL.Save(c, new List<int>() { p84id});
             }
 
-            
+
+
         }
 
         public int TryCreate(int p91id,int p83id=0)
