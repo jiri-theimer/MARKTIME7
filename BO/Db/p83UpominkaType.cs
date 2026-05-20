@@ -26,5 +26,8 @@ namespace BO
         public int j61ID_Index2 { get; set; }
         public int j61ID_Index3 { get; set; }
 
+        public bool p83IsAutoSdruzena { get; set; }
+        public int x31ID_Sdruzena { get; set; }
+        public int j61ID_Sdruzena { get; set; }
     }
 }

@@ -16,7 +16,7 @@ namespace UI.Controllers.Admin
         public IActionResult Record(int pid, bool isclone)
         {
             var v = new p83Record() { rec_pid = pid, rec_entity = "p83" };
-            v.Rec = new BO.p83UpominkaType();
+            v.Rec = new BO.p83UpominkaType() { p83IsAutoSdruzena = true };
             if (v.rec_pid > 0)
             {
                 v.Rec = Factory.p83UpominkaTypeBL.Load(v.rec_pid);
@@ -50,7 +50,16 @@ namespace UI.Controllers.Admin
                     {
                         v.ComboJ61_Index3 = Factory.j61TextTemplateBL.Load(v.Rec.j61ID_Index3).j61Name;
                     }
-                }catch(Exception e)
+                    if (v.Rec.j61ID_Sdruzena > 0)
+                    {
+                        v.ComboJ61_Sdruzena = Factory.j61TextTemplateBL.Load(v.Rec.j61ID_Sdruzena).j61Name;
+                    }
+                    if (v.Rec.x31ID_Sdruzena > 0)
+                    {
+                        v.ComboX31_Sdruzena = Factory.x31ReportBL.Load(v.Rec.x31ID_Sdruzena).x31Name;
+                    }
+                }
+                catch(Exception e)
                 {
                     this.AddMessageTranslated(e.Message);
                     //nic
@@ -105,6 +114,9 @@ namespace UI.Controllers.Admin
                 c.j61ID_Index1 = v.Rec.j61ID_Index1;
                 c.j61ID_Index2 = v.Rec.j61ID_Index2;
                 c.j61ID_Index3 = v.Rec.j61ID_Index3;
+                c.j61ID_Sdruzena = v.Rec.j61ID_Sdruzena;
+                c.x31ID_Sdruzena = v.Rec.x31ID_Sdruzena;
+                c.p83IsAutoSdruzena = v.Rec.p83IsAutoSdruzena;
 
                 c.ValidUntil = v.Toolbar.GetValidUntil(c);
                 c.ValidFrom = v.Toolbar.GetValidFrom(c);

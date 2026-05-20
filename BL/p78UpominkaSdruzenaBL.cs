@@ -36,6 +36,7 @@ namespace BL
             return _db.GetList<BO.p78UpominkaSdruzena>(fq.FinalSql, fq.Parameters);
         }
 
+        
 
 
         public int Save(BO.p78UpominkaSdruzena rec,List<int> p84ids)

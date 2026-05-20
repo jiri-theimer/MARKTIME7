@@ -7,6 +7,7 @@ namespace BL
         public BO.p83UpominkaType Load(int pid);
         public IEnumerable<BO.p83UpominkaType> GetList(BO.myQuery mq);
         public int Save(BO.p83UpominkaType rec);
+        public BO.p83UpominkaType LoadTypSdruzeneUpominky(int p78id);
 
     }
     class p83UpominkaTypeBL : BaseBL, Ip83UpominkaTypeBL
@@ -29,6 +30,12 @@ namespace BL
         {
             return _db.Load<BO.p83UpominkaType>(GetSQL1(" WHERE a.p83ID=@pid"), new { pid = pid });
         }
+
+        public BO.p83UpominkaType LoadTypSdruzeneUpominky(int p78id)
+        {
+            return _db.Load<BO.p83UpominkaType>(GetSQL1(" INNER JOIN p84Upominka p84 ON a.p83ID=p84.p83ID INNER JOIN p79UpominkaSdruzenaBinding p79 ON p84.p84ID=p79.p84ID WHERE p79.p78ID=@p78id"), new { p78id = p78id });
+        }
+
 
         public IEnumerable<BO.p83UpominkaType> GetList(BO.myQuery mq)
         {
@@ -70,7 +77,12 @@ namespace BL
             p.AddInt("j61ID_Index2", rec.j61ID_Index2, true);
             p.AddInt("j61ID_Index3", rec.j61ID_Index3, true);
 
+            p.AddBool("p83IsAutoSdruzena", rec.p83IsAutoSdruzena);
+            p.AddInt("x31ID_Sdruzena", rec.x31ID_Sdruzena, true);
+            p.AddInt("j61ID_Sdruzena", rec.j61ID_Sdruzena, true);
+
             return _db.SaveRecord("p83UpominkaType", p, rec);
+            
 
         }
         private bool ValidateBeforeSave(BO.p83UpominkaType rec)

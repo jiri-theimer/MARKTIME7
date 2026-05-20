@@ -10,5 +10,8 @@
         public string ComboJ61_Index1 { get; set; }
         public string ComboJ61_Index2 { get; set; }
         public string ComboJ61_Index3 { get; set; }
+
+        public string ComboX31_Sdruzena { get; set; }
+        public string ComboJ61_Sdruzena { get; set; }
     }
 }
