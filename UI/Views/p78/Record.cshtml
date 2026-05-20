@@ -22,10 +22,10 @@
 
     <div class="row my-2">
         <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název"):</label>
-        <div class="col-sm-7 col-md-6">
+        <div class="col-sm-9 col-md-8">
             <input class="form-control" asp-for="Rec.p78Name" />
         </div>
-        <div class="col-sm-3 col-md-2">
+        <div class="col-sm-2 col-md-2">
             <input class="form-control" placeholder="Kód upomínky" asp-for="Rec.p78Code" />
         </div>
     </div>
@@ -33,10 +33,13 @@
   
     <div class="row my-2">
         <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Datum upomínky"):</label>
-        <div class="col-sm-7 col-md-6">
+        <div class="col-sm-3 col-md-2">
             <mydate asp-for="Rec.p78Date"></mydate>
         </div>
-        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Variabilní symbol"):</label>
+        <div class="col-sm-4 col-md-4">
+            
+        </div>
+        <label class="col-sm-1 col-md-2 col-form-label text-end">@_f.tra("Variabilní symbol"):</label>
         <div class="col-sm-3 col-md-2">
             <input class="form-control" asp-for="Rec.p78VariableSymbol" />
         </div>
