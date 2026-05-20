@@ -86,7 +86,7 @@ namespace UI.Controllers
             }
             else
             {
-                v.lisAllP84 = Factory.p84UpominkaBL.GetList(new BO.myQueryP84() { p28id = -88888 });
+                v.lisAllP84 = Factory.p84UpominkaBL.GetList(new BO.myQueryP84() { p28id = 999988888 }); //prázdný seznam upomínek k zaškrtnutí
             }
             
         }
@@ -122,6 +122,15 @@ namespace UI.Controllers
 
                 c.ValidUntil = v.Toolbar.GetValidUntil(c);
                 c.ValidFrom = v.Toolbar.GetValidFrom(c);
+
+                c.p78Client = v.Rec.p78Client;
+                c.p78Client_ICDPH_SK = v.Rec.p78Client_ICDPH_SK;
+                c.p78Client_RegID = v.Rec.p78Client_RegID;
+                c.p78Client_VatID = v.Rec.p78Client_VatID;
+                c.p78ClientAddress1_City = v.Rec.p78ClientAddress1_City;
+                c.p78ClientAddress1_Country = v.Rec.p78ClientAddress1_Country;
+                c.p78ClientAddress1_Before = v.Rec.p78ClientAddress1_Before;
+                c.p78ClientAddress1_Street = v.Rec.p78ClientAddress1_Street;
 
                 c.pid = Factory.p78UpominkaSdruzenaBL.Save(c,v.SelectedP84IDs.Where(p=>p>0).ToList());
                 if (c.pid > 0)

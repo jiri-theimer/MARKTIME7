@@ -97,6 +97,10 @@ namespace BL
         }
         private bool ValidateBeforeSave(BO.p78UpominkaSdruzena rec, List<int> p84ids)
         {
+            if (rec.p28ID == 0)
+            {
+                this.AddMessage("Chybí vyplnit [Dlužník]."); return false;
+            }
             if (p84ids !=null)
             {
                 if (p84ids.Count() == 0)

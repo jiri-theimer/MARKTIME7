@@ -92,6 +92,7 @@ namespace BL
                 c.p78Client_RegID = recP91.p91Client_RegID;
                 c.p78Client_ICDPH_SK = recP91.p91Client_ICDPH_SK;
                 c.p78ClientAddress1_City = recP91.p91ClientAddress1_City;
+                c.p78ClientAddress1_Street = recP91.p91ClientAddress1_Street;
                 c.p78ClientAddress1_ZIP = recP91.p91ClientAddress1_ZIP;
                 c.p78ClientAddress1_Before = recP91.p91ClientAddress1_Before;
                 c.p78ClientAddress1_Country = recP91.p91ClientAddress1_Country;

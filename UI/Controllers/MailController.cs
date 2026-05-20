@@ -378,14 +378,18 @@ namespace UI.Controllers
                     Factory.CBL.SetUserParam($"sendmail-gridcolumns-{v.Rec.x40RecordEntity}", v.j61GridColumns);
 
                 }
-                if (v.PostbackOper == "j61id")
+                if (v.PostbackOper == "j61id" && v.SelectedJ61ID>0)
                 {
                     var recJ61 = MailMergeByTextTemplate(v.SelectedJ61ID, v.Rec.x40RecordEntity, v.Rec.x40RecordPid);
-                    v.j61MailBody = recJ61.j61MailBody;
-                    if (recJ61.j61GridColumnsFlag == BO.j61UserFlagEnum.Yes)
+                    if (recJ61 != null)
                     {
-                        v.j61GridColumns = recJ61.j61GridColumns;
+                        v.j61MailBody = recJ61.j61MailBody;
+                        if (recJ61.j61GridColumnsFlag == BO.j61UserFlagEnum.Yes)
+                        {
+                            v.j61GridColumns = recJ61.j61GridColumns;
+                        }
                     }
+                    
 
 
                     RefreshState_SendMail(v);

@@ -465,7 +465,14 @@ namespace BL
                     sb.Append("a.*,p91.*,p83.*,p86.*,j27.*,x40.*");
                     sb.Append(" FROM p84Upominka a LEFT OUTER JOIN p91Invoice p91 ON a.p91ID=p91.p91ID LEFT OUTER JOIN p83UpominkaType p83 ON a.p83ID=p83.p83ID LEFT OUTER JOIN j27Currency j27 ON p91.j27ID=j27.j27ID");
                     sb.Append($" LEFT OUTER JOIN (select {recP84.p91ID} as InvoiceID,* FROM p86BankAccount WHERE p86ID=dbo.p91_get_p86id({recP84.p91ID})) p86 ON a.p91ID=p86.InvoiceID");
-                    sb.Append($" LEFT OUTER JOIN (select TOP 1 x40RecordPid,x40DatetimeProcessed as SentWhen,x40Recipient as SentRecipient FROM x40MailQueue WHERE x40RecordEntity IN ('p91') AND x40RecordPid={recP84.p91ID} ORDER BY x40ID DESC) x40 ON a.p91ID=x40.x40RecordPid");
+                    sb.Append($" LEFT OUTER JOIN (select TOP 1 x40RecordPid,x40DatetimeProcessed as SentWhen,x40Recipient as SentRecipient FROM x40MailQueue WHERE x40RecordEntity IN ('p84') AND x40RecordPid={recP84.pid} ORDER BY x40ID DESC) x40 ON a.p84ID=x40.x40RecordPid");
+                    break;
+                case "p78":
+                    var recP78 = _mother.p78UpominkaSdruzenaBL.Load(pid);
+                    sb.Append("a.*,p28.*,j27.*,x40.*,suma.pocet");
+                    sb.Append(" FROM p78UpominkaSdruzena a LEFT OUTER JOIN p28Contact p28 ON a.p28ID=p28.p28ID LEFT OUTER JOIN j27Currency j27 ON a.j27ID=j27.j27ID");
+                    sb.Append($" LEFT OUTER JOIN (select {recP78.pid} as pid,count(*) as pocet FROM p79UpominkaSdruzenaBinding WHERE p78ID={recP78.pid}) suma ON a.p78ID=suma.pid");
+                    sb.Append($" LEFT OUTER JOIN (select TOP 1 x40RecordPid,x40DatetimeProcessed as SentWhen,x40Recipient as SentRecipient FROM x40MailQueue WHERE x40RecordEntity IN ('p78') AND x40RecordPid={recP78.pid} ORDER BY x40ID DESC) x40 ON a.p78ID=x40.x40RecordPid");
                     break;
                 case "p28":
                     sb.Append("a.*,p29.*,p28free.*");

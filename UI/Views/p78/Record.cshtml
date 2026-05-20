@@ -12,6 +12,13 @@
 
 
 <div class="modal_record_container">
+    <div class="row my-2">
+        <label for="cmdComboRec_p28ID" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Dlužník"):</label>
+        <div class="col-sm-11 col-md-10">
+            <mycombo entity="p28Contact" asp-for="Rec.p28ID" selectedtext="@Model.ComboP28Name" filter-flag="1" event_after_changevalue="p28id_change"></mycombo>
+        </div>
+
+    </div>
 
     <div class="row my-2">
         <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název"):</label>
@@ -31,15 +38,18 @@
         </div>
        
     </div>
-
-    <div class="row my-2">
-        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Dlužná částka"):</label>
-        <div class="col-sm-3 col-md-2">
-            <myval value="@Model.Rec.p78Amount_Debt" datatype="num" valueafter="@Model.ComboJ27Code"></myval>
+    @if (Model.Rec.p78Amount_Debt != 0)
+    {
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Dlužná částka"):</label>
+            <div class="col-sm-3 col-md-2">
+                <myval value="@Model.Rec.p78Amount_Debt" datatype="num" valueafter="@Model.ComboJ27Code"></myval>
+            </div>
+            <input type="hidden" asp-for="Rec.p78Amount_Debt" />
+            <input type="hidden" asp-for="ComboJ27Code" />
         </div>
-        <input type="hidden" asp-for="Rec.p78Amount_Debt" />
-        <input type="hidden" asp-for="ComboJ27Code" />
-    </div>
+    }
+    
 
     <div class="card">
         <div class="card-header">
@@ -69,13 +79,7 @@
 
     </div>
 
-    <div class="row">
-        <label for="cmdComboRec_p28ID" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Dlužník"):</label>
-        <div class="col-sm-11 col-md-10">
-            <mycombo entity="p28Contact" asp-for="Rec.p28ID" selectedtext="@Model.ComboP28Name" filter-flag="1" event_after_changevalue="p28id_change"></mycombo>
-        </div>
-
-    </div>
+    
 
     <div class="card my-2">
         <div class="card-header">
@@ -148,65 +152,65 @@
         </div>
     </div>
 
+</div>
+<script>
 
-    <script>
-
-            $(document).ready(function () {
+    $(document).ready(function () {
 
 
-                $("#cmdLoadClient").click(function () {
+        $("#cmdLoadClient").click(function () {
 
-                    var p28id = $("#Rec_p28ID").val();
-                    if (p28id == "" || p28id == "0") {
-                        _notify_message("Chybí vybrat [Dlužník].");
-                        return;
+            var p28id = $("#Rec_p28ID").val();
+            if (p28id == "" || p28id == "0") {
+                _notify_message("Chybí vybrat [Dlužník].");
+                return;
+            }
+            $.post("/p91/LoadClientProfile", { p28id: p28id }, function (data) {
+
+                if (data.p28IsCompany) {
+                    $("#Rec_p78Client").val(data.p28CompanyName);  //kvůli vyloučení zkráceného jména klienta je třeba používat company
+                }
+                else
+                {
+                    if (data.p28TitleBeforeName == null) {
+                        data.p28TitleBeforeName = ""
                     }
-                    $.post("/p91/LoadClientProfile", { p28id: p28id }, function (data) {
-
-                        if (data.p28IsCompany) {
-                            $("#Rec_p78Client").val(data.p28CompanyName);  //kvůli vyloučení zkráceného jména klienta je třeba používat company
-                        }
-                        else
-                        {
-                            if (data.p28TitleBeforeName == null) {
-                                data.p28TitleBeforeName = ""
-                            }
-                            $("#Rec_p78Client").val((data.p28TitleBeforeName+" "+data.p28FirstName + " " + data.p28LastName).trim());  //kvůli vyloučení zkráceného jména klienta je třeba používat company
-                        }
+                    $("#Rec_p78Client").val((data.p28TitleBeforeName+" "+data.p28FirstName + " " + data.p28LastName).trim());  //kvůli vyloučení zkráceného jména klienta je třeba používat company
+                }
                 
 
-                        $("#Rec_p78Client_RegID").val(data.p28RegID);
-                        $("#Rec_p78Client_VatID").val(data.p28VatID);
-                        $("#Rec_p78Client_ICDPH_SK").val(data.p28ICDPH_SK);
+                $("#Rec_p78Client_RegID").val(data.p28RegID);
+                $("#Rec_p78Client_VatID").val(data.p28VatID);
+                $("#Rec_p78Client_ICDPH_SK").val(data.p28ICDPH_SK);
 
-                        $("#Rec_p78ClientAddress1_Street").val(data.p28Street1);
-                        $("#Rec_p78ClientAddress1_City").val(data.p28City1);
-                        $("#Rec_p78ClientAddress1_ZIP").val(data.p28PostCode1);
-                        $("#Rec_p78ClientAddress1_Before").val(data.p28BeforeAddress1);
-                        $("#Rec_p78ClientAddress1_Country").val(data.p28Country1);
-                    });
-
-
-
-
-
-                });
+                $("#Rec_p78ClientAddress1_Street").val(data.p28Street1);
+                $("#Rec_p78ClientAddress1_City").val(data.p28City1);
+                $("#Rec_p78ClientAddress1_ZIP").val(data.p28PostCode1);
+                $("#Rec_p78ClientAddress1_Before").val(data.p28BeforeAddress1);
+                $("#Rec_p78ClientAddress1_Country").val(data.p28Country1);
             });
 
 
-            function p28id_change(p28id) {
-                _postback("p28id");
 
+
+
+        });
+    });
+
+
+    function p28id_change(p28id) {
+        _postback("p28id");
+
+    }
+    function hardrefresh(pid, flag) {
+        if (flag != undefined) {
+            if (flag.includes("recordcode")) {
+                $("#Rec_p91Code").val(flag.split("|")[1]);
             }
-            function hardrefresh(pid, flag) {
-                if (flag != undefined) {
-                    if (flag.includes("recordcode")) {
-                        $("#Rec_p91Code").val(flag.split("|")[1]);
-                    }
 
-                }
+        }
 
 
-                _postback();
-            }
-    </script>
+        _postback();
+    }
+</script>
