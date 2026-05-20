@@ -101,6 +101,7 @@ namespace BL
             {
                 this.AddMessage("Chybí vyplnit [Dlužník]."); return false;
             }
+            
             if (p84ids !=null)
             {
                 if (p84ids.Count() == 0)
@@ -111,7 +112,7 @@ namespace BL
                 var lis = _mother.p84UpominkaBL.GetList(mq);
                 if (lis.GroupBy(p => p.j27ID).Count() > 1)
                 {
-                    this.AddMessage("Sdružené upomínky musí být ve stejné měně."); return false;
+                    this.AddMessage("Zaškrtlé upomínky musí být ve stejné měně."); return false;
                 }
             }
             if (string.IsNullOrEmpty(rec.p78Name))

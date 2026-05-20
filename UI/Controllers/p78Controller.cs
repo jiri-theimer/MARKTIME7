@@ -98,6 +98,7 @@ namespace UI.Controllers
 
             if (v.IsPostback)
             {
+               
                 return View(v);
             }
 
@@ -132,7 +133,13 @@ namespace UI.Controllers
                 c.p78ClientAddress1_Before = v.Rec.p78ClientAddress1_Before;
                 c.p78ClientAddress1_Street = v.Rec.p78ClientAddress1_Street;
 
-                c.pid = Factory.p78UpominkaSdruzenaBL.Save(c,v.SelectedP84IDs.Where(p=>p>0).ToList());
+                List<int> p84ids = null;
+                if (v.SelectedP84IDs != null)
+                {
+                    p84ids=v.SelectedP84IDs.Where(p => p > 0).ToList();
+                }
+
+                c.pid = Factory.p78UpominkaSdruzenaBL.Save(c,p84ids);
                 if (c.pid > 0)
                 {
 

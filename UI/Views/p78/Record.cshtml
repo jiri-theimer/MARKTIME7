@@ -2,7 +2,7 @@
 @inject BL.Factory _f
 
 @{
-    Model.PageTitle = _f.tra("Sdružená upomínka");
+    Model.PageTitle = _f.tra("Hromadná upomínka");
     Layout = "~/Views/Shared/_LayoutRecord.cshtml";
     Model.PageSymbol = "gavel";
 }
@@ -53,7 +53,7 @@
 
     <div class="card">
         <div class="card-header">
-            @_f.tra("Sdružené upomínky")
+            @_f.tra("Seznam upomínek")
            
         </div>
         <div class="card-body" id="divP84">
@@ -153,10 +153,17 @@
     </div>
 
 </div>
+
+
+
 <script>
+
+    
 
     $(document).ready(function () {
 
+     
+        
 
         $("#cmdLoadClient").click(function () {
 
@@ -195,6 +202,15 @@
 
 
         });
+
+
+        @if (Model.PostbackOper == "p28id" && Model.rec_pid == 0 && Model.Rec.p28ID > 0)
+        {
+                  <text>
+                  document.getElementById("cmdLoadClient").click();
+                                                      
+                  </text>
+        }
     });
 
 

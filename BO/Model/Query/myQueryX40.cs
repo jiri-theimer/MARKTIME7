@@ -11,6 +11,7 @@ namespace BO
         public int p91id { get; set; }
         public int p90id { get; set; }
         public int p84id { get; set; }
+        public int p78id { get; set; }
 
         public myQueryX40()
         {
@@ -34,7 +35,11 @@ namespace BO
             }
             if (this.p84id > 0)
             {
-                AQ("a.x40RecordEntity='p91' AND a.x40RecordPid=@p91id", "p91id", this.p91id);
+                AQ("(a.x40RecordEntity='p84' AND a.x40RecordPid=@p84id) OR (a.x40RecordEntity='p91' AND a.x40RecordPid IN (select p91ID FROM p84Upominka WHERE p84ID=@p84id)) ", "p84id", this.p84id);
+            }
+            if (this.p78id > 0)
+            {
+                AQ("(a.x40RecordEntity='p78' AND a.x40RecordPid=@p78id) OR (a.x40RecordEntity='p84' AND a.x40RecordPid IN (select p84ID FROM p79UpominkaSdruzenaBinding WHERE p78ID=@p78id)) ", "p78id", this.p78id);
             }
             if (this.p90id > 0)
             {
