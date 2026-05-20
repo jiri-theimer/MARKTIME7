@@ -111,6 +111,8 @@ namespace UI.Controllers
 
                 BO.p78UpominkaSdruzena c = new BO.p78UpominkaSdruzena();
                 if (v.rec_pid > 0) c = Factory.p78UpominkaSdruzenaBL.Load(v.rec_pid);
+                c.p28ID = v.Rec.p28ID;
+
                 c.p78Name = v.Rec.p78Name;
                 c.j27ID = v.Rec.j27ID;
                 

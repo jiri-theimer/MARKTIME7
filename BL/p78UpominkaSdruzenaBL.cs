@@ -55,6 +55,10 @@ namespace BL
             p.AddString("p78TextA", rec.p78TextA);
             p.AddString("p78TextB", rec.p78TextB);
             p.AddDateTime("p78Date", rec.p78Date);
+            if (rec.p78VariableSymbol == null)
+            {
+                rec.p78VariableSymbol = rec.p78Code;
+            }
             p.AddString("p78VariableSymbol", rec.p78VariableSymbol);
 
             p.AddString("p78Client", rec.p78Client);
