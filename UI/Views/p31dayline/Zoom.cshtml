@@ -8,8 +8,8 @@
 
 @addTagHelper *, UI
 
-<div style="padding: 3px;background-color: #2D89EF;">
-    <span style="color:white;">
+<div class="input-group" style="padding: 3px;background-color: #2D89EF;color:white;">
+    <div style="flex:1;">
         @if (Model.SelectedDate1 == Model.SelectedDate2)
         {
             @(BO.Code.Bas.ObjectDate2String(Model.SelectedDate1) + ": " + Model.RecJ02.FullNameAsc)
@@ -19,7 +19,13 @@
             @(BO.Code.Bas.ObjectDate2String(Model.SelectedDate1) +" - "+ BO.Code.Bas.ObjectDate2String(Model.SelectedDate2) + ": " + Model.RecJ02.FullNameAsc)
         }
 
-    </span>
+    </div>
+    <div style="width:30px;text-align:center;">
+        <a href="javascript:toggle_parent_zoom()"><span id="spanToggle" class="material-icons-outlined-btn" style="color:white;">crop_landscape</span></a>
+    </div>
+    <div style="width:30px;text-align:center;">
+        <a href="javascript:window.parent.zoom_close()"><span class="material-icons-outlined-btn" style="color:white;">close</span></a>
+    </div>
 </div>
 
 <div class="bg-light input-group" style="padding-left: 10px;padding-top:2px;">
@@ -60,7 +66,10 @@
     <input type="hidden" asp-for="@Model.p41ID" />
 </form>
 
-@await Component.InvokeAsync("myGrid",Model.gridinput)
+<div id="divMyGrid">
+    @await Component.InvokeAsync("myGrid", Model.gridinput)
+</div>
+
 
 
 <script type="text/javascript">
@@ -109,5 +118,11 @@
     function navrhar_sloupcu() {
         var s = location.pathname;
         _window_open("/TheGridDesigner?j72id=" + _thegrid.j72id + "&pathname=" + s, 2);
+    }
+
+    function toggle_parent_zoom()
+    {
+        window.parent.zoom_toggle();
+        
     }
 </script>

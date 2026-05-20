@@ -698,6 +698,9 @@
 </div>
 
 <script type="text/javascript">
+    var _zoom_normal = null;
+    var _zoom_maximized = false;
+
     var _zoomwin = document.getElementById("zoomwin");
     var _lasturl = "";
     var _lastctl = null;
@@ -715,131 +718,131 @@
     $(document).ready(function () {
 
 
-        //_mainmenu_highlight_current("cmdp31", "p31dayline_mylink");
-        $("#cmdp31_dayline").addClass("active");
-        $("#cmddayline").addClass("active");
+    //_mainmenu_highlight_current("cmdp31", "p31dayline_mylink");
+    $("#cmdp31_dayline").addClass("active");
+    $("#cmddayline").addClass("active");
 
 
-        $("#d0helper").change(function () {
-            reload();
-        });
+    $("#d0helper").change(function () {
+    reload();
+    });
 
-        $(".dc").dblclick(function () {
-            var j02id = $(this).attr("data-j02id");
-            var d = $(this).attr("data-d");
-            _window_open("/p31/Record?j02id=" + j02id + "&d=" + d, 3);
-        });
+    $(".dc").dblclick(function () {
+    var j02id = $(this).attr("data-j02id");
+    var d = $(this).attr("data-d");
+    _window_open("/p31/Record?j02id=" + j02id + "&d=" + d, 3);
+    });
 
-        if (_ismobile == "True") {
-            $(".hz").attr("onclick", "");
-            $(".hz").css("cursor", "default");
-            $(".hz").css("text-decoration", "none");
+    if (_ismobile == "True") {
+    $(".hz").attr("onclick", "");
+    $(".hz").css("cursor", "default");
+    $(".hz").css("text-decoration", "none");
 
-            $(".hz").removeClass("hz");
-        }
-
-
-
-
-        $(document).on("keydown", function (e) {
-            if (e.keyCode == 27 && _zoomwin.style.display == "block") {   //klávese ESCAPE
-                zoom_close();
-            }
-
-        });
-
-        $(document).on("click", function (e) {
-            if ($(e.target).hasClass("hz") == false) {
-                zoom_close();
-            }
-
-
-        });
-
-        register_menu("cmdgridquerymenu", "cmdgridquerymenu_menu", "/Menu/grid_query?prefix=p31&j72id=@(Model.TheGridQueryButton.j72id)");
-
-        var h = _device.innerHeight - $("#timeline_tbody1").offset().top;
-        //h = h - 50;
-        h = h - 20;
-        $("#timeline_tbody1").height(h);
-
-        if (_j02ids != "" || _j11ids != "" || _j07ids != "" || _statequery != "0" || _j72id != "0") {
-            $(".showmore").toggle();
-        }
+    $(".hz").removeClass("hz");
+    }
 
 
 
-        handle_table_width();
+
+    $(document).on("keydown", function (e) {
+    if (e.keyCode == 27 && _zoomwin.style.display == "block") {   //klávese ESCAPE
+    zoom_close();
+    }
+
+    });
+
+    $(document).on("click", function (e) {
+    if ($(e.target).hasClass("hz") == false) {
+    zoom_close();
+    }
 
 
-        if (_isxls == "True")
-        {
-            exportTableToExcel("timeline_table1");  //spustit export do xls
-        }
+    });
+
+    register_menu("cmdgridquerymenu", "cmdgridquerymenu_menu", "/Menu/grid_query?prefix=p31&j72id=@(Model.TheGridQueryButton.j72id)");
+
+    var h = _device.innerHeight - $("#timeline_tbody1").offset().top;
+    //h = h - 50;
+    h = h - 20;
+    $("#timeline_tbody1").height(h);
+
+    if (_j02ids != "" || _j11ids != "" || _j07ids != "" || _statequery != "0" || _j72id != "0") {
+    $(".showmore").toggle();
+    }
+
+
+
+    handle_table_width();
+
+
+    if (_isxls == "True")
+    {
+    exportTableToExcel("timeline_table1");  //spustit export do xls
+    }
 
     });
 
 
 
     function _save_param_and_reload(url, mykey, myval) {
-        if (mykey == undefined || myval == undefined) {
-            _redirect(url);
-            return;
-        }
-        $.post("/Common/SetUserParam", { key: mykey, value: myval }, function (data) {
-            _redirect(url);
-        });
+    if (mykey == undefined || myval == undefined) {
+    _redirect(url);
+    return;
+    }
+    $.post("/Common/SetUserParam", { key: mykey, value: myval }, function (data) {
+    _redirect(url);
+    });
 
-        alert("save_param_and_reload: ERROR");
+    alert("save_param_and_reload: ERROR");
     }
     function month_prev() {
-        var d0 = datepicker_get_value("d0");
-        if (d0 == null) {
-            d0 = new Date();
-        }
-        var d1 = new Date(d0.getFullYear(), d0.getMonth() - 1, 1);
-        datepicker_set_value("d0", d1); //tímto se spustí se $("#d0helper").change
+    var d0 = datepicker_get_value("d0");
+    if (d0 == null) {
+    d0 = new Date();
+    }
+    var d1 = new Date(d0.getFullYear(), d0.getMonth() - 1, 1);
+    datepicker_set_value("d0", d1); //tímto se spustí se $("#d0helper").change
 
 
     }
     function month_next() {
-        var d0 = datepicker_get_value("d0");
-        if (d0 == null) {
-            d0 = new Date();
-        }
-        var d1 = new Date(d0.getFullYear(), d0.getMonth() + 1, 1);
-        datepicker_set_value("d0", d1); //tímto se spustí se $("#d0helper").change
+    var d0 = datepicker_get_value("d0");
+    if (d0 == null) {
+    d0 = new Date();
+    }
+    var d1 = new Date(d0.getFullYear(), d0.getMonth() + 1, 1);
+    datepicker_set_value("d0", d1); //tímto se spustí se $("#d0helper").change
 
 
 
     }
 
     function reload() {
-        var d = $("#d0helper").val();
-        _redirect("/p31dayline/Index?d=" + d);
+    var d = $("#d0helper").val();
+    _redirect("/p31dayline/Index?d=" + d);
     }
 
     function showp56_setting() {
 
-        var s = "false";
-        if ($("#chkShowP56").prop("checked") == true) {
-            s = "true";
-        }
-        $.post(_ep("/Common/SetUserParam"), { key: "dayline-showp56", value: s }, function (data) {
-            reload();
-        });
+    var s = "false";
+    if ($("#chkShowP56").prop("checked") == true) {
+    s = "true";
+    }
+    $.post(_ep("/Common/SetUserParam"), { key: "dayline-showp56", value: s }, function (data) {
+    reload();
+    });
 
 
     }
     function showo22_setting() {
 
-        var s = "false";
-        if ($("#chkShowO22").prop("checked") == true) {
-            s = "true";
-        }
-        $.post(_ep("/Common/SetUserParam"), { key: "dayline-showo22", value: s }, function (data) {
-            reload();
-        });
+    var s = "false";
+    if ($("#chkShowO22").prop("checked") == true) {
+    s = "true";
+    }
+    $.post(_ep("/Common/SetUserParam"), { key: "dayline-showo22", value: s }, function (data) {
+    reload();
+    });
 
 
     }
@@ -848,265 +851,323 @@
 
 
 
-        $.post(_ep("/Common/SetUserParam"), { key: "dayline-groupby", value: opg.value }, function (data) {
-            reload();
+    $.post(_ep("/Common/SetUserParam"), { key: "dayline-groupby", value: opg.value }, function (data) {
+    reload();
 
-        });
+    });
     }
 
     function handle_can_reload(s) {
-        $("#cmdRefresh").css("display", "block");
+    $("#cmdRefresh").css("display", "block");
     }
 
     function save_setting_and_reload() {
-        var k = [];
-        var v = [];
-        k.push("dayline-j02ids");
-        v.push($("#j02IDs").val());
-        k.push("dayline-j07ids");
-        v.push($("#j07IDs").val());
-        k.push("dayline-j11ids");
-        v.push($("#j11IDs").val());
-        k.push("dayline-x67id_p56");
-        v.push($("#x67ID_p56").val());
-        k.push("dayline-x67id_o22");
-        v.push($("#x67ID_o22").val());
-        k.push("dayline-scaleindex");
-        v.push($("#ScaleIndex").val());
+    var k = [];
+    var v = [];
+    k.push("dayline-j02ids");
+    v.push($("#j02IDs").val());
+    k.push("dayline-j07ids");
+    v.push($("#j07IDs").val());
+    k.push("dayline-j11ids");
+    v.push($("#j11IDs").val());
+    k.push("dayline-x67id_p56");
+    v.push($("#x67ID_p56").val());
+    k.push("dayline-x67id_o22");
+    v.push($("#x67ID_o22").val());
+    k.push("dayline-scaleindex");
+    v.push($("#ScaleIndex").val());
 
-        $.post("/Common/SetUserParams", { keys: k, values: v }, function (data) {
+    $.post("/Common/SetUserParams", { keys: k, values: v }, function (data) {
 
-            reload();
+    reload();
 
-        });
+    });
 
 
 
     }
 
     function re(ctl, j02id, d) {
-        var url = _ep("/p31dayline/Zoom?j02id=" + j02id + "&d=" + d);
-        zoom_open(ctl, url);
+    var url = _ep("/p31dayline/Zoom?j02id=" + j02id + "&d=" + d);
+    zoom_open(ctl, url);
     }
 
     function zoom_allmonth(ctl, j02id) {
-        var url = _ep("/p31dayline/Zoom?j02id=" + j02id + "&m=@(Model.d0.Month)&y=@(Model.d0.Year)");
-        zoom_open(ctl, url);
+    var url = _ep("/p31dayline/Zoom?j02id=" + j02id + "&m=@(Model.d0.Month)&y=@(Model.d0.Year)");
+    zoom_open(ctl, url);
 
     }
     function zoom_allmonth_p28(ctl, j02id, p28id) {
-        var url = _ep("/p31dayline/Zoom?j02id=" + j02id + "&p28id=" + p28id + "&m=@(Model.d0.Month)&y=@(Model.d0.Year)");
-        zoom_open(ctl, url);
+    var url = _ep("/p31dayline/Zoom?j02id=" + j02id + "&p28id=" + p28id + "&m=@(Model.d0.Month)&y=@(Model.d0.Year)");
+    zoom_open(ctl, url);
     }
     function zoom_allmonth_p41(ctl, j02id, p41id) {
-        var url = _ep("/p31dayline/Zoom?j02id=" + j02id + "&p41id=" + p41id + "&m=@(Model.d0.Month)&y=@(Model.d0.Year)");
-        zoom_open(ctl, url);
+    var url = _ep("/p31dayline/Zoom?j02id=" + j02id + "&p41id=" + p41id + "&m=@(Model.d0.Month)&y=@(Model.d0.Year)");
+    zoom_open(ctl, url);
     }
 
-    function zoom_open(ctl, url) {
-        if (_lasturl == url && _lastctl == ctl && $("#zoomwin").css("display") == "block") {
-            zoom_close();
-            return;
-        }
-        _lasturl = url;
-        _lastctl = ctl;
-
-        $(".zoom_ctl_current").removeClass("zoom_ctl_current");
-        $(ctl).addClass("zoom_ctl_current");
-
-        var c = $("#zoomwin");
-
-        var w = _device.innerWidth - 100;
-        var h = 450;
-        var y = $(ctl).offset().top + 20;
-        if (y + h + 20 > _device.innerHeight) {
-            y = $(ctl).offset().top - h - 2;
-        }
-
-        if (_device.innerWidth < w) w = _device.innerWidth;
-        if (_device.innerHeight < h) h = _device.innerHeight;
-        x = (_device.innerWidth - w) / 2;
-
-        if (x < 0) {
-            x = 0;
-        }
-        if (y < 0) {
-            y = 0;
-        }
-
-        $(c).css("display", "block");
-        $(c).css("width", w + "px");
-        $(c).css("height", h + "px");
-        $(c).css("left", x + "px");
-        $(c).css("top", y + "px");
-        $(c).html("<iframe id='frazoom' style='border:solid 1px gray;' width='" + (w - 50) + "px' height='" + (h - 40) + "px' src='" + url + "'></iframe>");
+function zoom_open(ctl, url) {
+    if (_lasturl == url && _lastctl == ctl && $("#zoomwin").css("display") == "block") {
+    zoom_close();
+    return;
     }
 
-    function zoom_close() {
-        if ($("#zoomwin").css("display") == "block") {
-            $("#zoomwin").css("display", "none");
-        }
+    
+    _lasturl = url;
+    _lastctl = ctl;
 
-        $(".zoom_ctl_current").removeClass("zoom_ctl_current");
+    $(".zoom_ctl_current").removeClass("zoom_ctl_current");
+    $(ctl).addClass("zoom_ctl_current");
+
+    var c = $("#zoomwin");
+
+    var w = _device.innerWidth - 100;
+    var h = 450;
+    var y = $(ctl).offset().top + 20;
+    if (y + h + 20 > _device.innerHeight) {
+    y = $(ctl).offset().top - h - 2;
     }
+
+    if (_device.innerWidth < w) w = _device.innerWidth;
+    if (_device.innerHeight < h) h = _device.innerHeight;
+    x = (_device.innerWidth - w) / 2;
+
+    if (x < 0) {
+    x = 0;
+    }
+    if (y < 0) {
+    y = 0;
+    }
+
+    _zoom_normal = {
+    left: x,
+    top: y,
+    width: w,
+    height: h
+    };
+
+    $(c).css("display", "block");
+    $(c).css("width", w + "px");
+    $(c).css("height", h + "px");
+    $(c).css("left", x + "px");
+    $(c).css("top", y + "px");
+    $(c).html("<iframe id='frazoom' style='border:solid 1px gray;' width='" + (w - 50) + "px' height='" + (h - 40) + "px' src='" + url + "'></iframe>");
+
+    _zoom_maximized = false;
+}
+
+function zoom_close() {
+    if ($("#zoomwin").css("display") == "block") {
+    $("#zoomwin").css("display", "none");
+    }
+
+    $(".zoom_ctl_current").removeClass("zoom_ctl_current");
+
+    _zoom_maximized = false;
+}
+
+
+function zoom_toggle() {
+
+    var c = $("#zoomwin");
+
+    if (!_zoom_maximized) {
+
+    _zoom_normal = {
+    left: parseInt(c.css("left")),
+    top: parseInt(c.css("top")),
+    width: c.width(),
+    height: c.height()
+    };
+
+    c.css({
+    left: "0px",
+    top: "0px",
+    width: "100vw",
+    height: "100vh"
+    });
+
+    
+   
+
+    _zoom_maximized = true;
+
+    } else {
+
+    c.css({
+    left: _zoom_normal.left + "px",
+    top: _zoom_normal.top + "px",
+    width: _zoom_normal.width + "px",
+    height: _zoom_normal.height + "px"
+    });
+
+    $("#frazoom").css({
+    height: (_zoom_normal.height - 41) + "px"
+    });
+
+    $("#cmdZoomMax").html("□");
+
+    _zoom_maximized = false;
+    }
+ }
 
 
 
     function handle_table_width() {
-        var w = ($(".th_day").length * 45) + ($(".th_day_empty").length * 30);
-        if (_scaleindex == "1" || _scaleindex == "2") {
-            w = ($(".th_day_week").length * 100) + ($(".th_day_empty").length * 30);
-        }
+    var w = ($(".th_day").length * 45) + ($(".th_day_empty").length * 30);
+    if (_scaleindex == "1" || _scaleindex == "2") {
+    w = ($(".th_day_week").length * 100) + ($(".th_day_empty").length * 30);
+    }
 
 
-        w = w + 80 + 120 + 180;
-        w = w + 30;
+    w = w + 80 + 120 + 180;
+    w = w + 30;
 
-        $("#timeline_table1").width(w);
-
-
-        var offset_container = $("#timeline_tbody1").offset();
-        var h = _device.innerHeight - offset_container.top - 20;
+    $("#timeline_table1").width(w);
 
 
-        $("#timeline_tbody1").height(h);
+    var offset_container = $("#timeline_tbody1").offset();
+    var h = _device.innerHeight - offset_container.top - 20;
+
+
+    $("#timeline_tbody1").height(h);
     }
 
 
     function p31c(d, t1, t2, j02id) {
-        var url = "/p31/Record?j02id=" + j02id + "&d=" + d;
-        if (t1 != undefined && t1 != null) {
-            url = url + "&t1=" + t1 + "&t2=" + t2;
-        }
+    var url = "/p31/Record?j02id=" + j02id + "&d=" + d;
+    if (t1 != undefined && t1 != null) {
+    url = url + "&t1=" + t1 + "&t2=" + t2;
+    }
 
-        _window_open(url, 3);
+    _window_open(url, 3);
     }
     function p56c(d, t1, t2, j02id) {
-        var url = "/p56/Record?j02id=" + j02id + "&d=" + d;
+    var url = "/p56/Record?j02id=" + j02id + "&d=" + d;
 
-        _window_open(url, 3);
+    _window_open(url, 3);
     }
     function o22c(d, t1, t2, j02id) {
-        var url = "/o22/Record?j02id=" + j02id + "&d=" + d;
+    var url = "/o22/Record?j02id=" + j02id + "&d=" + d;
 
-        _window_open(url, 3);
+    _window_open(url, 3);
     }
 
     function showcalmenu(e, ctl, d, j02id) {
 
-        if (d == _current_mouseover_date && j02id == _currrent_mouseover_j02id) {
-            return;
-        }
+    if (d == _current_mouseover_date && j02id == _currrent_mouseover_j02id) {
+    return;
+    }
 
-        if ((d != _current_mouseover_date || j02id != _currrent_mouseover_j02id) && $("#divCal").css("display") == "block") {
-            $("#divCal").css("display", "none");
-        }
+    if ((d != _current_mouseover_date || j02id != _currrent_mouseover_j02id) && $("#divCal").css("display") == "block") {
+    $("#divCal").css("display", "none");
+    }
 
-        $("#spanCurrentDate").text(d);
+    $("#spanCurrentDate").text(d);
 
-        _current_mouseover_date = d;
-        _currrent_mouseover_j02id = j02id;
-        $("#cmdP31").prop("title", "Vykázat úkon do dne: " + d);
-        $("#cmdP31").prop("href", "javascript:p31c('" + d + "',null,null," + j02id + ")");
-        $("#cmdP56").prop("href", "javascript:p56c('" + d + "',null,null," + j02id + ")");
-        $("#cmdO22").prop("href", "javascript:o22c('" + d + "',null,null," + j02id + ")");
+    _current_mouseover_date = d;
+    _currrent_mouseover_j02id = j02id;
+    $("#cmdP31").prop("title", "Vykázat úkon do dne: " + d);
+    $("#cmdP31").prop("href", "javascript:p31c('" + d + "',null,null," + j02id + ")");
+    $("#cmdP56").prop("href", "javascript:p56c('" + d + "',null,null," + j02id + ")");
+    $("#cmdO22").prop("href", "javascript:o22c('" + d + "',null,null," + j02id + ")");
 
-        var x = $(ctl).offset().left + 17;
-        if (_scaleindex == "1" || _scaleindex == "2") {
-            x = x - 20;
-        }
-        var y = $(ctl).offset().top + 5;
+    var x = $(ctl).offset().left + 17;
+    if (_scaleindex == "1" || _scaleindex == "2") {
+    x = x - 20;
+    }
+    var y = $(ctl).offset().top + 5;
 
-        $("#calmenu1").css("background-color", "");
+    $("#calmenu1").css("background-color", "");
 
-        $("#calmenu1").css("display", "block");
-        $("#calmenu1").css("left", x + 10);
-        $("#calmenu1").css("top", y - 5);
+    $("#calmenu1").css("display", "block");
+    $("#calmenu1").css("left", x + 10);
+    $("#calmenu1").css("top", y - 5);
     }
 
     function calmenu_init_content() {
 
-        if ($("#divCal").css("display") == "none") {
-            $("#divCal").css("display", "block");
-        } else {
-            $("#divCal").css("display", "none");
-        }
+    if ($("#divCal").css("display") == "none") {
+    $("#divCal").css("display", "block");
+    } else {
+    $("#divCal").css("display", "none");
+    }
 
     }
 
     function c24c(c24id) {
 
-        $.post(_ep("/p31calendar/SaveC23Record"), { d: _current_mouseover_date, c24id: c24id, j02id: _currrent_mouseover_j02id }, function (data) {
-            reload();
-        });
+    $.post(_ep("/p31calendar/SaveC23Record"), { d: _current_mouseover_date, c24id: c24id, j02id: _currrent_mouseover_j02id }, function (data) {
+    reload();
+    });
 
     }
 
     function futc(p32id) {
 
-        $.post(_ep("/p31calendar/SaveFutRecord"), { d: _current_mouseover_date, p32id: p32id, j02id: _currrent_mouseover_j02id }, function (data) {
-            if (data.message != null) {
-                if (data.message == "manual") {
-                    _notify_message("V nastavení aktivity není uvedena výchozí hodnota úkonu nebo projekt - proto nelze vykazovat úplně automaticky", "info");
-                    var url = "/p31/Record?j02id=" + _currrent_mouseover_j02id + "&p32id=" + p32id + "&d=" + _current_mouseover_date;
-                    _window_open(url, 3);
-                    return;
-                }
-                alert(data.message);
-            } else {
-                reload();
-            }
+    $.post(_ep("/p31calendar/SaveFutRecord"), { d: _current_mouseover_date, p32id: p32id, j02id: _currrent_mouseover_j02id }, function (data) {
+    if (data.message != null) {
+    if (data.message == "manual") {
+    _notify_message("V nastavení aktivity není uvedena výchozí hodnota úkonu nebo projekt - proto nelze vykazovat úplně automaticky", "info");
+    var url = "/p31/Record?j02id=" + _currrent_mouseover_j02id + "&p32id=" + p32id + "&d=" + _current_mouseover_date;
+    _window_open(url, 3);
+    return;
+    }
+    alert(data.message);
+    } else {
+    reload();
+    }
 
-        });
+    });
 
     }
 
     function reccmp56(e, p56id) {
-        _cm(e, "p56Task", p56id, "task");
+    _cm(e, "p56Task", p56id, "task");
     }
     function reccmo22(e, o22id) {
-        _cm(e, "o22Milestone", o22id, "calendar");
+    _cm(e, "o22Milestone", o22id, "calendar");
     }
 
 
     function ical_generator() {
-        _window_open("/icalgen/Index", 3);
+    _window_open("/icalgen/Index", 3);
     }
 
     function p31_rec(pid) {
-        _window_open("/p31/Record?pid=" + pid, 3);
+    _window_open("/p31/Record?pid=" + pid, 3);
     }
 
 
     function exportTableToExcel(tableId, filename = "dayline.xlsx") {
-        var table = document.getElementById(tableId);
+    var table = document.getElementById(tableId);
 
 
-        var tab0 = document.createElement("table");
-        $(tab0).html($(table).html());
+    var tab0 = document.createElement("table");
+    $(tab0).html($(table).html());
 
-        document.body.appendChild(tab0);
+    document.body.appendChild(tab0);
 
-        $(tab0).find(".cm").remove();
-
-
+    $(tab0).find(".cm").remove();
 
 
 
-        var wb = XLSX.utils.book_new();
-        var ws = XLSX.utils.table_to_sheet(tab0);
-
-        XLSX.utils.book_append_sheet(wb, ws, "List1");
-        XLSX.writeFile(wb, filename);
 
 
-        document.body.removeChild(tab0);
+    var wb = XLSX.utils.book_new();
+    var ws = XLSX.utils.table_to_sheet(tab0);
+
+    XLSX.utils.book_append_sheet(wb, ws, "List1");
+    XLSX.writeFile(wb, filename);
+
+
+    document.body.removeChild(tab0);
     }
 
 
     function export_to_xls() {
-        var d = $("#d0helper").val();
-        _redirect("/p31dayline/Index?d=" + d+"&export_to_xls=true");
+    var d = $("#d0helper").val();
+    _redirect("/p31dayline/Index?d=" + d+"&export_to_xls=true");
     }
 
 </script>

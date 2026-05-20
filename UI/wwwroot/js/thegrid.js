@@ -1209,7 +1209,7 @@ function tg_adjust_for_screen(strParentElementID)
 
         $("#container_vScroll").css("height", hh + "px");
 
-
+        
 
     }
     else
