@@ -21,6 +21,8 @@
 
     var _lisO24 = _f.o24ReminderBL.GetList("p84", Model.pid);
 
+    var _lisP78 = _f.p78UpominkaSdruzenaBL.GetList(new BO.myQueryP78() { p84id = Model.pid });
+
 }
 
 @addTagHelper *, UI
@@ -77,6 +79,20 @@
                         
                     </td>
                 </tr>
+                @if (_lisP78.Count() > 0)
+                {
+                    @foreach (var c in _lisP78)
+                    {
+                        <tr>
+                            <td class="tdlab">
+                                @_f.tra("Hromadná upomínka"):
+                            </td>
+                            <td>
+                                <myval value="@c.p78Code" linktarget="_top" hoverprefix="p78" hoverpid="@c.pid" datatype="@(_f.CurrentUser.j04IsModule_p91 ? "link" : "string")" linkurl="@(_f.CurrentUser.j04IsModule_p91 ? $"/Record/RecPage?prefix=p78&pid={c.pid}" : "")"></myval>
+                            </td>
+                        </tr>
+                    }
+                }
                 <tr>
                     <td class="tdlab">
                         @_f.tra("Klient"):

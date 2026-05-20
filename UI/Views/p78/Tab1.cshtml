@@ -17,7 +17,7 @@
     int _b05Count = _f.WorkflowBL.GetB05CommentsCount("p78", Model.pid);
     IEnumerable<BO.b05Workflow_History> _lisB05 = _f.WorkflowBL.GetList_b05("p78", Model.pid, 0, 0, 0).Where(p => BO.Code.Bas.bit_compare_or(p.b05Tab1Flag, 2) == true);
 
-    var _lisP84 = _f.p84UpominkaBL.GetList(new BO.myQueryP84() { p78id = Model.Rec.pid });
+    var _lisP84 = _f.p84UpominkaBL.GetList(new BO.myQueryP84() { p78id = Model.Rec.pid }).OrderBy(p=>p.p91Code);
 
     var _lisO24 = _f.o24ReminderBL.GetList("p78", Model.pid);
 
@@ -97,7 +97,7 @@
     <div class="card recpageboxauto">
         <div class="card-body">
             <div class="card-title recpagetitle bgp90">
-                @_f.tra("Seznam upomínek")
+                @_f.tra("Seznam upomínaných faktur")
             </div>
             <table class="table table-sm table-hover">
                 @foreach (var c in _lisP84)
@@ -105,8 +105,11 @@
                     <tr style="border-bottom-color:white;">
                         
                         
-                        <td>
+                        <td title="@c.p83Name">
                             @c.p84Code
+                        </td>
+                        <td>
+                            @BO.Code.Bas.ObjectDate2String(c.p84Date)
                         </td>
                         <td>
                             

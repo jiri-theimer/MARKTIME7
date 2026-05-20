@@ -86,7 +86,7 @@ namespace BL
                 c.p28ID = rec.p28ID;
                 c.p78Date = rec.p84Date;
                 c.p78Code = $"{rec.p84Date.Year}-{recP91.p91Code}-01";
-                c.p78Name = $"Sdružená upomínka {recP91.p91Client}";
+                c.p78Name = $"Hromadná upomínka {recP91.p91Client}";
                 c.p78Client = recP91.p91Client;
                 c.p78Client_VatID = recP91.p91Client_VatID;
                 c.p78Client_RegID = recP91.p91Client_RegID;

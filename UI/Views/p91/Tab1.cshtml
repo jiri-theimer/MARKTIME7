@@ -17,6 +17,7 @@
 
     IEnumerable<BO.p84Upominka> _lisP84 = null;
     BO.p83UpominkaType _recP83 = null;
+    IEnumerable<BO.p78UpominkaSdruzena> _lisP78 = null;
 
     if (!Model.Rec.p91IsDraft)
     {
@@ -24,7 +25,10 @@
         if (_lisP84.Count() > 0 && Model.Rec.p83ID > 0)
         {
             _recP83 = _f.p83UpominkaTypeBL.Load(Model.Rec.p83ID);
+
+            _lisP78 = _f.p78UpominkaSdruzenaBL.GetList(new BO.myQueryP78() { p91id = Model.pid });
         }
+        
     }
 
     var _lisP91 = _f.p91InvoiceBL.GetList(new BO.myQueryP91() { p28id = Model.Rec.p28ID }).Where(p => p.p28ID != 0);
@@ -135,6 +139,30 @@
                                 }
                             </td>
                         </tr>
+                    }
+                </table>
+            }
+            @if(_lisP78 !=null && _lisP78.Count() > 0)
+            {
+                <table>
+                    @foreach (var c in _lisP78)
+                    {
+                        <tr style="vertical-align:top;">
+                            <td>
+                                <span class="material-icons-outlined-btn rotate-60">gavel</span>
+                            </td>
+                            <td class="td2" style="width:20px;"><a class="cm" onclick="_cm(event, 'p78', @(c.pid),'grid',null)">&#9776;</a></td>
+                            <td>
+                                @_f.tra("Hromadná upomínka")
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-sm bog" onclick="p78sendmail(@c.pid)"><span class="material-icons-outlined-btn">alternate_email</span></button>
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-sm bog" onclick="p78report(@c.pid)"><span class="material-icons-outlined-btn">print</span></button>
+                            </td>
+                        </tr>
+
                     }
                 </table>
             }
@@ -522,6 +550,13 @@
     }
     function p84sendmail(j61id, p84id) {
         _window_open("/Mail/SendMail?record_entity=p84&record_pid=" + p84id + "&j61id=" + j61id);
+    }
+
+    function p78sendmail(p78id) {
+        _window_open("/Mail/SendMail?record_entity=p78&record_pid=" + p78id);
+    }
+    function p78report(p78id) {
+        _window_open("/ReportsClient/ReportContext?prefix=p78&pid=" + p78id);
     }
 
     function chkOstatniFaktury_Change(chk) {

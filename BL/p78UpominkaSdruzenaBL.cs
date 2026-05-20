@@ -69,9 +69,10 @@ namespace BL
             if (p84ids != null)
             {
                 var mq = new BO.myQueryP84() { pids = p84ids };
-                var lis = _mother.p84UpominkaBL.GetList(mq);
+                var p91ids = _mother.p84UpominkaBL.GetList(mq).Select(p => p.p91ID).Distinct();
+                var lis = _mother.p91InvoiceBL.GetList(new BO.myQueryP91() { pids = p91ids.ToList() });
                 rec.j27ID = lis.First().j27ID;
-                rec.p78Amount_Debt = lis.Sum(p => p.p84AmountDebt);
+                rec.p78Amount_Debt = lis.Sum(p => p.p91Amount_Debt);
             }
             
 
@@ -106,13 +107,13 @@ namespace BL
             {
                 if (p84ids.Count() == 0)
                 {
-                    this.AddMessage("Musíte zaškrtnout alespoň jednu upomínku."); return false;
+                    this.AddMessage("Musíte zaškrtnout alespoň jednu fakturu (dílčí upomínku)."); return false;
                 }
                 var mq = new BO.myQueryP84() { pids = p84ids };
                 var lis = _mother.p84UpominkaBL.GetList(mq);
                 if (lis.GroupBy(p => p.j27ID).Count() > 1)
                 {
-                    this.AddMessage("Zaškrtlé upomínky musí být ve stejné měně."); return false;
+                    this.AddMessage("Zaškrtlé faktury (dílčí upomínky) musí být ve stejné měně."); return false;
                 }
             }
             if (string.IsNullOrEmpty(rec.p78Name))
