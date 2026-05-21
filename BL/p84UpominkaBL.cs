@@ -79,8 +79,12 @@ namespace BL
             if (lis.Count() > 0)
             {
                 //přidat upomínku do sdružené upomínky
-                _db.RunSql("INSERT INTO p79UpominkaSdruzenaBinding(p78ID,p84ID) VALUES(@p78id,@p84id)", new { p78id = lis.First().pid, p84id = p84id });
-                return lis.First().pid;
+                var recP78 = _mother.p78UpominkaSdruzenaBL.Load(lis.First().pid);
+                var p84ids = GetList(new BO.myQueryP84() { p78id = recP78.pid }).Select(p => p.pid).ToList();
+                p84ids.Add(p84id);
+                //_db.RunSql("INSERT INTO p79UpominkaSdruzenaBinding(p78ID,p84ID) VALUES(@p78id,@p84id)", new { p78id = recP78.pid, p84id = p84id });
+                return _mother.p78UpominkaSdruzenaBL.Save(recP78, p84ids);
+                
             }
             else
             {
