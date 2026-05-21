@@ -52,6 +52,8 @@ namespace UI.Controllers
                 v.guid = Factory.CurrentUser.j02Login + "_temp_gridreport";
             }
             v.gridState = Factory.j72TheGridTemplateBL.LoadState(v.j72id, Factory.CurrentUser.pid);
+            
+
             if (v.gridState.j75GroupDataField != null)
             {
                 v.GroupByColumn = v.gridState.j75GroupDataField;
@@ -635,6 +637,7 @@ namespace UI.Controllers
             if (v.gridState.j72MasterEntity == "approve_aio")
             {
                 p1.UserParamKey = "approve-index-period";   //schvalovací rozhraní
+                mq.p31statequery = 3;   //nevyúčtované
             }
             
 
