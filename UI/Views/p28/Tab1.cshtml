@@ -76,9 +76,11 @@
     }
 
     IEnumerable<BO.p91Invoice> _lisP91 = null;
+    IEnumerable<BO.p78UpominkaSdruzena> _lisP78=null;
     if (_f.CurrentUser.j04IsModule_p91)
     {
         _lisP91 = _f.p91InvoiceBL.GetList(new BO.myQueryP91() { p28id = Model.pid, MyRecordsDisponible = true });
+        _lisP78 = _f.p78UpominkaSdruzenaBL.GetList(new BO.myQueryP78() { p28id = Model.pid });
     }
 
     var _lisB20 = _f.b20HlidacBL.GetListB21("p28", Model.pid);
@@ -526,6 +528,48 @@
                                         <td class="tdcastka" style="text-align:right;">
 
                                             @(BO.Code.Bas.Number2String(c.p91Amount_WithoutVat)) @c.j27Code
+
+                                        </td>
+
+
+
+
+                                    </tr>
+                                }
+                            </table>
+                        </li>
+
+                    </ul>
+
+                </li>
+            </ul>
+        }
+
+        @if (_lisP78 != null && _lisP78.Count() > 0)
+        {
+            <ul class="mytreeview">
+                <li>
+                    <a class="mytreeview-toggle-kontejner" onclick="_treeview_toggle(this,'tab1-p28-toggle-p78')">
+                        <span class="material-icons-outlined-btn mytreeview-toggle-sipka">@(UI.Code.basKendoTreeViewSupport.Get_Arrow_LastState(_f, "tab1-p28-toggle-p78"))</span>
+                        <span class="material-icons-outlined-btn" onclick="_treeview_toggle(this)">gavel</span>
+                        <span>@_f.tra("Hromadné upomínky") (@(_lisP78.Count()))</span>
+                    </a>
+                    <ul style="display:@(UI.Code.basKendoTreeViewSupport.Get_UL_LastState(_f, "tab1-p28-toggle-p78", "collapsed"))">
+                        <li>
+
+                            <table class="table-sm table-hover table">
+                                @foreach (var c in _lisP78)
+                                {
+                                    <tr>
+                                        <td>
+                                            <a class="treeview-link" target="_top" href="/Record/@(_strRecPage)?prefix=p78&pid=@(c.pid)">@c.p78Code</a>
+                                        </td>
+                                        <td>
+                                            @(BO.Code.Bas.ObjectDate2String(c.p78Date, "dd.MM.yyyy"))
+                                        </td>
+                                        <td class="tdcastka" style="text-align:right;">
+
+                                            @(BO.Code.Bas.Number2String(c.p78Amount_Debt)) @c.j27Code
 
                                         </td>
 

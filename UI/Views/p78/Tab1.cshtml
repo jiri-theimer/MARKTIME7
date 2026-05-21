@@ -17,7 +17,7 @@
     int _b05Count = _f.WorkflowBL.GetB05CommentsCount("p78", Model.pid);
     IEnumerable<BO.b05Workflow_History> _lisB05 = _f.WorkflowBL.GetList_b05("p78", Model.pid, 0, 0, 0).Where(p => BO.Code.Bas.bit_compare_or(p.b05Tab1Flag, 2) == true);
 
-    var _lisP84 = _f.p84UpominkaBL.GetList(new BO.myQueryP84() { p78id = Model.Rec.pid }).OrderBy(p=>p.p91Code);
+    var _lisP84 = _f.p84UpominkaBL.GetList(new BO.myQueryP84() { p78id = Model.Rec.pid,IsRecordValid=null }).OrderBy(p=>p.p91Code);
 
     var _lisO24 = _f.o24ReminderBL.GetList("p78", Model.pid);
 
@@ -102,14 +102,15 @@
             <table class="table table-sm table-hover">
                 @foreach (var c in _lisP84)
                 {
-                    <tr style="border-bottom-color:white;">
+                    <tr style="border-bottom-color:white;@(c.isclosed ? "text-decoration: line-through;":null)">
                         
                         
                         <td title="@c.p83Name">
-                            @c.p84Code
+                            <myval value="@c.p84Code" linktarget="_top" hoverprefix="p84" hoverpid="@c.pid" datatype="@(_f.CurrentUser.j04IsModule_p91 ? "link" : "string")" linkurl="@(_f.CurrentUser.j04IsModule_p91 ? $"/Record/RecPage?prefix=p84&pid={c.pid}" : "")"></myval>
                         </td>
                         <td>
                             @BO.Code.Bas.ObjectDate2String(c.p84Date)
+                            
                         </td>
                         <td>
                             
@@ -118,7 +119,7 @@
 
                         <td>
                             
-                            <myval value="c.p84AmountDebt" datatype="num" valueafter="@c.j27Code"></myval>
+                            <myval value="c.p91Amount_Debt" datatype="num" valueafter="@c.j27Code"></myval>
                         </td>
                       
                         

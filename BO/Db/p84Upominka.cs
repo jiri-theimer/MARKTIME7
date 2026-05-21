@@ -17,6 +17,8 @@ namespace BO
 
         public string p83Name { get; }
         public string p91Code { get; }
+        public double p91Amount_Debt { get; }
+        public double p91Amount_TotalDue { get; }
         public string Owner { get; }
         public int p28ID { get; }
         public int p92ID { get; }
@@ -33,11 +35,11 @@ namespace BO
         public int j27ID { get; }
         public string j27Code { get; }
 
-        public string p91CodeWithAmount
+        public string p91CodeWithDebt
         {
             get
             {
-                return $"{this.p91Code}: {BO.Code.Bas.Number2String(this.p84AmountDebt)} {this.j27Code}";
+                return $"{this.p91Code}: {BO.Code.Bas.Number2String(this.p91Amount_Debt)} {this.j27Code}";
             }
         }
     }

@@ -11,6 +11,7 @@ namespace UI.Controllers
         {
             return Tab1(pid, "info");
         }
+       
         public IActionResult Tab1(int pid, string caller)
         {
             var v = new p84Tab1() { Factory = this.Factory, pid = pid, caller = caller };

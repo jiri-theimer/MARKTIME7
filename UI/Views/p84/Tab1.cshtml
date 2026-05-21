@@ -17,7 +17,7 @@
     int _b05Count = _f.WorkflowBL.GetB05CommentsCount("p84", Model.pid);
     IEnumerable<BO.b05Workflow_History> _lisB05 = _f.WorkflowBL.GetList_b05("p84", Model.pid, 0, 0, 0).Where(p => BO.Code.Bas.bit_compare_or(p.b05Tab1Flag, 2) == true);
 
-    var _lisP84 = _f.p84UpominkaBL.GetList(new BO.myQueryP84() { p91id = Model.Rec.p91ID });
+    var _lisP84 = _f.p84UpominkaBL.GetList(new BO.myQueryP84() { p91id = Model.Rec.p91ID,IsRecordValid=true });
 
     var _lisO24 = _f.o24ReminderBL.GetList("p84", Model.pid);
 

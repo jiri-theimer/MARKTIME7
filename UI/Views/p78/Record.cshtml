@@ -53,7 +53,7 @@
             @if (Model.Rec.p78Amount_Debt != 0)
             {
                 <div>
-                  
+                    
                     <myval value="@Model.Rec.p78Amount_Debt" datatype="num" valueafter="@Model.ComboJ27Code"></myval>
                     
                     <input type="hidden" asp-for="Rec.p78Amount_Debt" />
@@ -65,7 +65,7 @@
 
         </div>
         <div class="card-body" id="divP84">
-            <mycheckboxlist asp-for="@Model.SelectedP84IDs" datasource="@Model.lisAllP84" valuefield="pid" textfield="p91CodeWithAmount"></mycheckboxlist>
+            <mycheckboxlist asp-for="@Model.SelectedP84IDs" datasource="@Model.lisAllP84" valuefield="pid" textfield="p91CodeWithDebt"></mycheckboxlist>
         </div>
     </div>
 

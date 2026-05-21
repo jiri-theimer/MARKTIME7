@@ -27,6 +27,7 @@ namespace BO
         public int j27ID { get; set; }
         
         public string p28Name { get; }
+        public string j27Code { get; }
         public string Owner { get; }
     }
 }

@@ -22,7 +22,7 @@ namespace BL
 
         private string GetSQL1(string strAppend = null, int toprec = 0, bool istestcloud = false)
         {
-            sb("SELECT a.*,p83x.p83Name,p91x.p91Code,j02owner.j02LastName+' '+j02owner.j02FirstName as Owner,p83x.x31ID_Index1,p83x.x31ID_Index2,p83x.x31ID_Index3,p83x.j61ID_Index1,p83x.j61ID_Index2,p83x.j61ID_Index3,p83x.p83Days_Index1,p83x.p83Days_Index2,p83x.p83Days_Index3,p91x.p28ID,p91x.p92ID,p91x.j27ID,j27.j27Code,p83x.p83IsAutoSdruzena,");
+            sb("SELECT a.*,p83x.p83Name,p91x.p91Code,j02owner.j02LastName+' '+j02owner.j02FirstName as Owner,p83x.x31ID_Index1,p83x.x31ID_Index2,p83x.x31ID_Index3,p83x.j61ID_Index1,p83x.j61ID_Index2,p83x.j61ID_Index3,p83x.p83Days_Index1,p83x.p83Days_Index2,p83x.p83Days_Index3,p91x.p28ID,p91x.p92ID,p91x.j27ID,j27.j27Code,p83x.p83IsAutoSdruzena,p91x.p91Amount_Debt,p91x.p91Amount_TotalDue,");
             sb(_db.GetSQL1_Ocas("p84"));
             sb(" FROM p84Upominka a INNER JOIN p83UpominkaType p83x ON a.p83ID=p83x.p83ID LEFT OUTER JOIN p91Invoice p91x ON a.p91ID=p91x.p91ID LEFT OUTER JOIN j02User j02owner ON a.j02ID_Owner=j02owner.j02ID LEFT OUTER JOIN j27Currency j27 ON p91x.j27ID=j27.j27ID");
             if (istestcloud)

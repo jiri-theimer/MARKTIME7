@@ -19,9 +19,9 @@ namespace BL
 
         private string GetSQL1(string strAppend = null)
         {
-            sb("SELECT a.*,p28x.p28Name,j02owner.j02Name as Owner,");
+            sb("SELECT a.*,p28x.p28Name,j02owner.j02Name as Owner,j27.j27Code,");
             sb(_db.GetSQL1_Ocas("p78"));
-            sb(" FROM p78UpominkaSdruzena a INNER JOIN p28Contact p28x ON a.p28ID=p28x.p28ID LEFT OUTER JOIN j02User j02owner ON a.j02ID_Owner=j02owner.j02ID");
+            sb(" FROM p78UpominkaSdruzena a INNER JOIN p28Contact p28x ON a.p28ID=p28x.p28ID LEFT OUTER JOIN j02User j02owner ON a.j02ID_Owner=j02owner.j02ID LEFT OUTER JOIN j27Currency j27 ON a.j27ID=j27.j27ID");
             sb(strAppend);
             return sbret();
         }

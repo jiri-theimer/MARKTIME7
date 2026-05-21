@@ -53,7 +53,7 @@ namespace UI.Controllers
                     v.ComboJ27Code = Factory.FBL.LoadCurrencyByID(v.Rec.j27ID).j27Code;
                 }
 
-                var lisP84 = Factory.p84UpominkaBL.GetList(new BO.myQueryP84() { p78id = v.rec_pid });
+                var lisP84 = Factory.p84UpominkaBL.GetList(new BO.myQueryP84() { p78id = v.rec_pid,IsRecordValid=null });
                 if (lisP84.Count() > 0)
                 {
                     v.SelectedP84IDs = lisP84.Select(p => p.pid).ToList();
@@ -82,7 +82,7 @@ namespace UI.Controllers
             }
             if (v.Rec.p28ID > 0)
             {
-                v.lisAllP84 = Factory.p84UpominkaBL.GetList(new BO.myQueryP84() { p28id = v.Rec.p28ID });
+                v.lisAllP84 = Factory.p84UpominkaBL.GetList(new BO.myQueryP84() { p28id = v.Rec.p28ID,IsRecordValid=null });
             }
             else
             {
