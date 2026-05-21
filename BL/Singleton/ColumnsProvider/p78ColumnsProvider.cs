@@ -36,8 +36,13 @@ namespace BL.Singleton.ColumnsProvider
             AF("p78ClientAddress1_Country", "Stát");
             AF("p78ClientAddress1_Before", "Doplnění adresy");
 
+            this.CurrentFieldGroup = "Elektronicky odesláno";
+            oc = AF("p78VomKdyOdeslano", "Čas odeslání", "p78vom.Kdy_Odeslano", "datetime"); oc.RelSqlInCol = "LEFT OUTER JOIN view_p78_sendbyemail p78vom On a.p78ID = p78vom.p78ID";
+            oc = AF("p78VomStav", "Stav odeslání", "p78vom.AktualniStav"); oc.RelSqlInCol = "LEFT OUTER JOIN view_p78_sendbyemail p78vom On a.p78ID = p78vom.p78ID"; oc.SqlExplicitGroupBy = "p78vom.AktualniStav";
+            oc = AF("p78VomKomu", "Komu odesláno", "p78vom.Komu"); oc.RelSqlInCol = "LEFT OUTER JOIN view_p78_sendbyemail p78vom On a.p78ID = p78vom.p78ID";
 
-            
+
+
             AppendTimestamp();
         }
     }

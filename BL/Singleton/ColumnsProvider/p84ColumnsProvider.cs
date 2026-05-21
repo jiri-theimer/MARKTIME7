@@ -21,6 +21,14 @@ namespace BL.Singleton.ColumnsProvider
             AF("p84TextA", "Text upomínky").DefaultColumnFlag = gdc2;
             AF("p84TextB", "Technický text");
 
+
+            this.CurrentFieldGroup = "Elektronicky odesláno";
+            oc = AF("p84VomKdyOdeslano", "Čas odeslání", "p84vom.Kdy_Odeslano", "datetime"); oc.RelSqlInCol = "LEFT OUTER JOIN view_p84_sendbyemail p84vom On a.p84ID = p84vom.p84ID";
+            oc = AF("p84VomStav", "Stav odeslání", "p84vom.AktualniStav"); oc.RelSqlInCol = "LEFT OUTER JOIN view_p84_sendbyemail p84vom On a.p84ID = p84vom.p84ID"; oc.SqlExplicitGroupBy = "p84vom.AktualniStav";
+            oc = AF("p84VomKomu", "Komu odesláno", "p84vom.Komu"); oc.RelSqlInCol = "LEFT OUTER JOIN view_p84_sendbyemail p84vom On a.p84ID = p84vom.p84ID";
+
+
+
             AppendTimestamp();
         }
     }

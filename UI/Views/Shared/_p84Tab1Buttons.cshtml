@@ -14,15 +14,15 @@
 
 @if (Model.Rec.p84Index==1 && Model.RecP83.x31ID_Index1 > 0)
 {
-    <button type="button" class="btn btn-sm bog" onclick="p91report(@(Model.RecP83.x31ID_Index1),@Model.Rec.p91ID)"><span class="material-icons-outlined-btn">print</span> @_f.tra("Upomínka") #1</button>
+    <button type="button" class="btn btn-sm bog" onclick="p84report(@(Model.RecP83.x31ID_Index1),@Model.Rec.pid)"><span class="material-icons-outlined-btn">print</span> @_f.tra("Upomínka") #1</button>
 }
 @if (Model.Rec.p84Index == 2 && Model.RecP83.x31ID_Index2 > 0)
 {
-    <button type="button" class="btn btn-sm bog" onclick="p91report(@(Model.RecP83.x31ID_Index2),@Model.Rec.p91ID)"><span class="material-icons-outlined-btn">print</span> @_f.tra("Upomínka") #2</button>
+    <button type="button" class="btn btn-sm bog" onclick="p84report(@(Model.RecP83.x31ID_Index2),@Model.Rec.pid)"><span class="material-icons-outlined-btn">print</span> @_f.tra("Upomínka") #2</button>
 }
 @if (Model.Rec.p84Index == 3 && Model.RecP83.x31ID_Index3 > 0)
 {
-    <button type="button" class="btn btn-sm bog" onclick="p91report(@(Model.RecP83.x31ID_Index3),@Model.Rec.p91ID)"><span class="material-icons-outlined-btn">print</span> @_f.tra("Upomínka") #3</button>
+    <button type="button" class="btn btn-sm bog" onclick="p84report(@(Model.RecP83.x31ID_Index3),@Model.Rec.pid)"><span class="material-icons-outlined-btn">print</span> @_f.tra("Upomínka") #3</button>
 }
 
 

@@ -153,7 +153,28 @@ namespace UI.Controllers
                 var recJ02 = Factory.j02UserBL.Load(recP31.j02ID);
                 receivers.Add(new BO.x43MailQueue_Recipient() { x43Email = recJ02.j02Email, x43RecipientFlag = BO.x43RecipientIdEnum.recTO });
             }
-            
+            if (v.Rec.x40RecordEntity == "p78" && v.Rec.x40RecordPid > 0)
+            {
+                var recP78 = Factory.p78UpominkaSdruzenaBL.Load(v.Rec.x40RecordPid);
+                var recP83 = Factory.p83UpominkaTypeBL.LoadTypSdruzeneUpominky(recP78.pid);
+
+                if (v.b05ID == 0)
+                {
+                    if (j61id == 0)
+                    {
+                        j61id = recP83.j61ID_Sdruzena;
+                    }
+                    Handle_Najit_Emaily_Klienta(recP78.p28ID, v.Rec.x40RecordEntity, receivers);
+                }
+
+                if (recP83.x31ID_Sdruzena > 0)
+                {
+                    var recX31 = Factory.x31ReportBL.Load(recP83.x31ID_Sdruzena);
+                    var cc = new TheReportSupport();
+                    cc.GeneratePdfReport(Factory, null, recX31, v.UploadGuid, recP78.pid, true, 0, null, null, false);  //pdf vygenerováno do temp složky
+
+                }
+            }
             if (v.Rec.x40RecordEntity == "p84" && v.Rec.x40RecordPid > 0)
             {
                 var recP84 = Factory.p84UpominkaBL.Load(v.Rec.x40RecordPid);
@@ -607,7 +628,7 @@ namespace UI.Controllers
         private void Handle_Najit_Emaily_Klienta(int p28id, string prefix, List<BO.x43MailQueue_Recipient> receivers)
         {
             var lisO32 = Factory.p28ContactBL.GetList_o32(p28id, 0, 0);
-            if (prefix=="p91" || prefix == "p90")
+            if (prefix=="p91" || prefix == "p90" || prefix=="p78" || prefix=="p84")
             {
                 lisO32 = lisO32.Where(p => p.o32IsDefaultInInvoice);
             }
