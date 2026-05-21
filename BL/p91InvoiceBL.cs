@@ -1,4 +1,6 @@
 ﻿
+using DocumentFormat.OpenXml.Spreadsheet;
+using DocumentFormat.OpenXml.Vml;
 using Irony.Parsing;
 using System.Data;
 
@@ -877,10 +879,12 @@ namespace BL
             }
             rec.InvoiceRows = new List<BO.Integrace.InputInvoiceRow>();
             var lisP53 = _mother.p53VatRateBL.GetList(new BO.myQuery("p53") { IsRecordValid = null });
+            
             foreach (var row in rozpis)
             {
                 var line = new BO.Integrace.InputInvoiceRow() { Oddil = row.Oddil, BezDPH = row.BezDPH, DPH = row.DPH, DPHSazba = row.DPHSazba, VcDPH = row.VcDPH, Poradi = row.Poradi, RowPID = row.RowPID, j27Code = row.j27Code };
 
+                
                 if (row.p31ID > 0)
                 {
                     if (row.DPHSazba == 0)
@@ -910,15 +914,19 @@ namespace BL
                     line.p31Code = recP31.p31Code;
                     var recP32 = _mother.p32ActivityBL.Load(recP31.p32ID);
                     string ss = _mother.CBL.GetGlobalParamValue("p32AccountingIds", recP32.pid);
+                    
                     if (ss == null && recP32.p95ID > 0)
                     {
                         ss = _mother.CBL.GetGlobalParamValue("p95AccountingIds", recP32.p95ID);
+                        
                     }
                     if (ss == null)
                     {
                         ss = strPredkontaceDef;
-                    }
+                    }                    
                     line.PredkontaceIS = ss;
+                    
+
                     ss = _mother.CBL.GetGlobalParamValue("p32ActivityIds", recP32.pid);
                     if (ss == null && recP32.p95ID > 0)
                     {
@@ -935,6 +943,8 @@ namespace BL
                     if (row.p95ID > 0)
                     {
                         line.PredkontaceIS = _mother.CBL.GetGlobalParamValue("p95AccountingIds", row.p95ID);
+                        line.PredkontaceIS = "hovado";
+                        
                         if (line.PredkontaceIS == null)
                         {
                             line.PredkontaceIS = strPredkontaceDef;

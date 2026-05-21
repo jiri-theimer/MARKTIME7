@@ -31,7 +31,7 @@
 
         else
         {
-            
+
             Model.lisLevelIndex.Add(new BO.ListItemValue() { Text = _f.tra("Všechny úrovně"), Value = 0 });
             for (int i = 5; i>=1; i--)
             {
@@ -56,14 +56,22 @@
         Model.ProjectEntity = "p41"; 
     }
 
-    
 
 
 
-    
+
+
     if (Model.MyQueryInline != null)
     {
-        _myqueryinline += $"|{Model.MyQueryInline}";
+        if (_myqueryinline == null)
+        {
+            _myqueryinline = Model.MyQueryInline;
+        }
+        else
+        {
+            _myqueryinline += $"|{Model.MyQueryInline}";
+        }
+        
     }
 
 
@@ -94,10 +102,7 @@
     }
 
     
-
-
-
-
+   
     <div class="@(Model.CssClassDiv)">
         <mycombo entity="@(Model.ProjectEntity)" elementid-prefix="@(Model.elementidprefix)" search-result-width="900" asp-for="SelectedP41ID" selectedtext="@Model.SelectedProject" view-flag="1" filter-flag="1" myqueryinline="@(_myqueryinline)" event_after_changevalue="handle_change_p41id"></mycombo>
     </div>

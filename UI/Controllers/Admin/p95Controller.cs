@@ -58,6 +58,7 @@ namespace UI.Controllers
                 c.p95Name_BillingLang3 = v.Rec.p95Name_BillingLang3;
                 c.p95Name_BillingLang4 = v.Rec.p95Name_BillingLang4;
 
+                
                 c.ValidUntil = v.Toolbar.GetValidUntil(c);
                 c.ValidFrom = v.Toolbar.GetValidFrom(c);
 

@@ -51,7 +51,7 @@ namespace UI.Controllers
         {
             var v = new p56TodoListViewModel() { RecordEntity = wrk_record_prefix, RecordPid = wrk_record_pid, Element2Focus = "p55Name" };
             v.ProjectCombo = new ProjectComboViewModel();
-            if ((v.RecordEntity == "p41" || v.RecordEntity == "le5") && v.RecordPid > 0)
+            if ((v.RecordEntity == "p41") && v.RecordPid > 0)
             {
                 v.ProjectCombo.SelectedP41ID = v.RecordPid;
                 

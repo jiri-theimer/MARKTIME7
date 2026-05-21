@@ -307,7 +307,7 @@
        
         <div class="tab-pane tab-pane-fixed" id="tab2" role="tabpanel">
             <!-- Tab2 -->
-            @if (Model.RecP29==null || (Model.RecP29.p29ScopeFlag == BO.p29ScopeFlagENUM.Client || Model.RecP29.p29ScopeFlag == BO.p29ScopeFlagENUM.ClientOrSupplier))
+            @if (Model.RecP29 == null || (Model.RecP29.p29ScopeFlag == BO.p29ScopeFlagENUM.Client || Model.RecP29.p29ScopeFlag == BO.p29ScopeFlagENUM.ClientOrSupplier || Model.RecP29.p29ScopeFlag == BO.p29ScopeFlagENUM.Anyone))
             {
                 @Html.EditorFor(m => m, "~/Views/Shared/_p28BillingTab.cshtml")
             }
