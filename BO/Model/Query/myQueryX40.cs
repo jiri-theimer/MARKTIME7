@@ -31,11 +31,11 @@ namespace BO
             }
             if (this.p91id > 0)
             {
-                AQ("(a.x40RecordEntity='p91' AND a.x40RecordPid=@p91id) OR (a.x40RecordEntity='p84' AND a.x40RecordPid IN (select p84ID FROM p84Upominka WHERE p91ID=@p91id))", "p91id", this.p91id);
+                AQ("a.x40RecordEntity='p91' AND a.x40RecordPid=@p91id", "p91id", this.p91id);
             }
             if (this.p84id > 0)
             {
-                AQ("(a.x40RecordEntity='p84' AND a.x40RecordPid=@p84id) OR (a.x40RecordEntity='p91' AND a.x40RecordPid IN (select p91ID FROM p84Upominka WHERE p84ID=@p84id)) ", "p84id", this.p84id);
+                AQ("a.x40RecordEntity='p84' AND a.x40RecordPid=@p84id", "p84id", this.p84id);
             }
             if (this.p78id > 0)
             {
