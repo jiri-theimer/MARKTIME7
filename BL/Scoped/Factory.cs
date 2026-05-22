@@ -174,6 +174,8 @@ namespace BL
         private Ix27EntityFieldGroupBL _x27;
         private Ix28EntityFieldBL _x28;
         private IWorkflowBL _workflow;
+
+        private Io58GlobalParamBL _o58;
         public Factory(BO.RunningUser ru,Singleton.RunningApp runningapp,Singleton.TheEntitiesProvider ep,Singleton.TheTranslator tt)
         {           
             this.CurrentUser = ru;           
@@ -1246,6 +1248,15 @@ namespace BL
             {
                 if (_workflow == null) _workflow = new WorkflowBL(this);
                 return _workflow;
+            }
+        }
+
+        public Io58GlobalParamBL o58GlobalParamBL
+        {
+            get
+            {
+                if (_o58 == null) _o58 = new o58GlobalParamBL(this);
+                return _o58;
             }
         }
     }
