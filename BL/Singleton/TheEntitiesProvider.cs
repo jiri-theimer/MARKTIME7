@@ -241,6 +241,8 @@ namespace BL.Singleton
             AE("p89ProformaType", "Typy záloh", "Typ zálohy", "p89ProformaType a", "a.p89Name");
             AE("p83UpominkaType", "Typy upomínek", "Typ upomínky", "p83UpominkaType a", "a.p83Ordinary,a.p83Name");
 
+            AE_TINY("o58GlobalParam", "Doplňující parametry", "Doplňující parametr");
+
             //AE("o43Inbox", "Doručená pošta", "Doručená pošta", "o43Inbox a", "a.o43ID DESC");
 
             AE("p84Upominka", "Upomínky", "Upomínka", "p84Upominka a INNER JOIN p91Invoice p91x ON a.p91ID=p91x.p91ID INNER JOIN p83UpominkaType p83x ON a.p83ID=p83x.p83ID", "a.p84ID DESC");

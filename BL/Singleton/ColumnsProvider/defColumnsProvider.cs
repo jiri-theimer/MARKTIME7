@@ -693,6 +693,14 @@ namespace BL
             AA("x97OrigSource", "Zdroj");
             AppendTimestamp(false);
 
+            this.EntityName = "o58GlobalParam";
+            AA("o58Entity", "Entita", gdc2, "dbo.get_entity_alias(a.o58Entity)");
+            AA("o58Name", "Parametr", gdc1, null, "string", false, true);
+            AA("o58Key", "Kód", gdc1);
+            AFNUM0("o58Ordinary", "#").DefaultColumnFlag = gdc2;
+            
+            AppendTimestamp();
+
             ////doručená pošta - INBOX
             //this.EntityName = "o43Inbox";
             //AA("o43DateReceived", "Datum", gdc1, "a.o43DateReceived", "datetime");
