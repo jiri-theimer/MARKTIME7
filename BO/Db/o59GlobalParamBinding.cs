@@ -19,5 +19,7 @@ namespace BO
         public bool o58IsPerUser { get; set; }
         public BO.x24IdENUM x24ID { get; set; }
 
+        public bool IsForDelete { get; set; }
+
     }
 }

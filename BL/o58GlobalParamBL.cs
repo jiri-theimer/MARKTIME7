@@ -100,11 +100,12 @@ namespace BL
 
         private string GetSQL1_o59(string strAppend = null)
         {
-            sb("SELECT a.*,o58.o58Name,o58.o58IsPerUser,j02.j02Name,");
+            sb("SELECT a.*,o58.o58Name,o58.o58IsPerUser,j02.j02Name,o58.x24ID,");
             sb(_db.GetSQL1_Ocas("o59",false,false,false));
             sb(" FROM o59GlobalParamBinding a INNER JOIN o58GlobalParam o58 ON a.o58ID=o58.o58ID");
             sb(" LEFT OUTER JOIN j02User j02 ON a.j02ID=j02.j02ID");
             sb(strAppend);
+            
             return sbret();
         }
 
@@ -116,6 +117,14 @@ namespace BL
 
         public int SaveParamBinding(BO.o59GlobalParamBinding rec)
         {
+            if (rec.IsForDelete)
+            {
+                if (rec.pid > 0)
+                {
+                    _db.RunSql("DELETE FROM o59GlobalParamBinding WHERE o59ID=@pid", new { pid = rec.pid });
+                }
+                return rec.pid;
+            }
             var p = new DL.Params4Dapper();
             p.AddInt("pid", rec.pid);
             p.AddInt("o58ID", rec.o58ID, true);

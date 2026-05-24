@@ -48,23 +48,25 @@
                         <input type="hidden" asp-for="lisO59[i].o58Name" />
                         <input type="hidden" asp-for="lisO59[i].x24ID" />
                         <input type="hidden" asp-for="lisO59[i].o58IsPerUser" />
+                        <input type="hidden" asp-for="lisO59[i].ComboPerson" />
                         
                         
                         <input type="hidden" asp-for="lisO59[i].IsTempDeleted" value="@Model.lisO59[i].IsTempDeleted" />
                         <input type="hidden" asp-for="lisO59[i].TempGuid" value="@Model.lisO59[i].TempGuid" />
                         
-                            
+                        
                     </td>
-                    <td>
+                    <td style="width:200px;">
                         @if (Model.lisO59[i].o58IsPerUser)
                         {
-                        
                             <mycombo entity="j02User" placeholder="Uživatel" asp-for="lisO59[i].j02ID" selectedtext="@Model.lisO59[i].ComboPerson" view-flag="2"></mycombo>
                         
+                            
                         }
                     </td>
                     
                     <td>
+                        
                         @if (Model.lisO59[i].x24ID == BO.x24IdENUM.tDecimal)
                         {
                             <mynumber asp-for="lisO59[i].o59ValueNum" decimal-digits="2" placeholder="Hodnota"></mynumber>

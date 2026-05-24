@@ -21,9 +21,12 @@ namespace UI.Controllers
 
                 v.lisO59.Add(new o59Repeater()
                 {
+                    pid=c.pid,
                     TempGuid = BO.Code.Bas.GetGuid(),
+                    o58ID=c.o58ID,
                     o58Name = c.o58Name,
                     x24ID = c.x24ID,
+                    o58IsPerUser=c.o58IsPerUser,
                     j02ID = c.j02ID,
                     ComboPerson = c.j02Name,
                     o59Memo = c.o59Memo,
@@ -117,7 +120,11 @@ namespace UI.Controllers
                             break;
                     }
 
-
+                    if (v.lisO59[i].IsTempDeleted)
+                    {
+                        c.IsForDelete = true;
+                    }
+                    
                     Factory.o58GlobalParamBL.SaveParamBinding(c);
                     //Factory.CBL.SaveGlobalParam(v.lisParams[i].o58ID, v.pid, v.lisParams[i].o59Value);
                 }
