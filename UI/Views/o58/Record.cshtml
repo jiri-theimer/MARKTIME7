@@ -55,7 +55,20 @@
     </div>
 
 
-    
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Datový formát"):</label>
+        <div class="col-sm-11 col-md-10">
+            <select asp-for="Rec.x24ID" class="form-select">
+                <option value="tString">@_f.tra("String (libovolný text)")</option>
+                <option value="tInteger">@_f.tra("Integer (celé číslo)")</option>
+                <option value="tDecimal">@_f.tra("Decimal (číslo s desetinnou čárkou)")</option>
+                <option value="tDate">@_f.tra("Date (datum)")</option>
+                <option value="tDateTime">@_f.tra("Datetime (datum+čas)")</option>
+                <option value="tBoolean">@_f.tra("Boolen (checkbox)")</option>
+            </select>
+        </div>
+
+    </div>
 
     <div class="my-2">
         <input type="checkbox" asp-for="Rec.o58IsPerUser" />

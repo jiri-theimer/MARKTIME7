@@ -279,7 +279,7 @@ namespace DL
         }
 
         
-        public int SaveRecord(string strTable, Params4Dapper p, BO.BaseBO rec,bool isvalidity=true,bool istimestamp=true)
+        public int SaveRecord(string strTable, Params4Dapper p, BO.BaseBO rec,bool isvalidity=true,bool istimestamp=true,int primarykeynewrowvalue =0)
         {
             
             DynamicParameters pars = p.getDynamicDapperPars();
@@ -288,6 +288,8 @@ namespace DL
             var s = new System.Text.StringBuilder();
             bool bolInsert = true;
             if (rec.pid > 0) bolInsert = false;
+
+            
             
             if (bolInsert)
             {
@@ -321,6 +323,12 @@ namespace DL
             //string strF = "", strV = "";
             List<string> sf = new List<string>();
             List<string> sv = new List<string>();
+
+            if (bolInsert && primarykeynewrowvalue > 0)
+            {
+                sf.Add(strPidField);
+                sv.Add(primarykeynewrowvalue.ToString());
+            }
            
             foreach (var strP in pars.ParameterNames.Where(p => p != "pid"))
             {                                
@@ -342,16 +350,22 @@ namespace DL
             //strV = strV.Substring(1, strV.Length - 1);
             if (bolInsert)
             {
+               
                 string strF = string.Join(",",sf);
+                
                 //strF = strF.Substring(1, strF.Length - 1);
                 //s.Append(strF + ") VALUES (" + strV + ")");
                 s.Append($"{strF}) VALUES ({strV})");
+
+                
             }
             else
             {
                 s.Append(strV);
                 s.Append($" WHERE {strPidField} = @pid");
             }
+
+            
 
 
             using (SqlConnection con = new SqlConnection(_conString))
@@ -371,7 +385,15 @@ namespace DL
                 {
                     if (bolInsert)
                     {
-                        s.Append("; SELECT CAST(SCOPE_IDENTITY() as int) as Value");
+                        if (primarykeynewrowvalue > 0)
+                        {
+                            s.Append($"; SELECT {primarykeynewrowvalue} as Value");
+                        }
+                        else
+                        {
+                            s.Append("; SELECT CAST(SCOPE_IDENTITY() as int) as Value");
+                        }
+                        
 
                         return con.Query<BO.GetInteger>(s.ToString(), pars).FirstOrDefault().Value;
                     }

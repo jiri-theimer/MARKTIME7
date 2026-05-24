@@ -36,8 +36,11 @@ namespace UI.Controllers.Admin
                 BO.o58GlobalParam c = new BO.o58GlobalParam();
                 if (v.rec_pid > 0) c = Factory.o58GlobalParamBL.Load(v.rec_pid);
                 c.o58Name = v.Rec.o58Name;
+                c.x24ID = v.Rec.x24ID;
                 c.o58Key = v.Rec.o58Key;
-
+                c.o58Entity = v.Rec.o58Entity;
+                c.o58IsPerUser = v.Rec.o58IsPerUser;
+                c.o58Ordinary = v.Rec.o58Ordinary;
                 c.ValidUntil = v.Toolbar.GetValidUntil(c);
                 c.ValidFrom = v.Toolbar.GetValidFrom(c);
 

@@ -13,8 +13,11 @@ namespace BO
         public DateTime? o59ValueDate { get; set; }
         public double? o59ValueNum { get; set; }
         public Boolean o59ValueBoolean { get; set; }
-
+        public string o59Memo { get; set; }
         public string j02Name { get; }
         public string o58Name { get; set; }
+        public bool o58IsPerUser { get; set; }
+        public BO.x24IdENUM x24ID { get; set; }
+
     }
 }

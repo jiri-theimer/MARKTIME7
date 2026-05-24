@@ -39,6 +39,8 @@ namespace BL
 
         public IEnumerable<BO.o58GlobalParam> GetList(BO.myQuery mq)
         {
+            if (mq.explicit_orderby == null) { mq.explicit_orderby = "a.o58Ordinary"; }
+
             DL.FinalSqlCommand fq = DL.basQuery.GetFinalSql(GetSQL1(), mq, _mother.CurrentUser);
             return _db.GetList<BO.o58GlobalParam>(fq.FinalSql, fq.Parameters);
         }
@@ -51,17 +53,27 @@ namespace BL
             {
                 return 0;
             }
-            var p = new DL.Params4Dapper();
+            var p = new DL.Params4Dapper();            
             p.AddInt("pid", rec.pid);
             p.AddInt("x01ID", rec.x01ID == 0 ? _mother.CurrentUser.x01ID : rec.x01ID, true);
             p.AddString("o58Entity", rec.o58Entity);
+            p.AddEnumInt("x24ID", rec.x24ID,true);
             p.AddString("o58Key", rec.o58Key);
             p.AddString("o58Name", rec.o58Name);
             p.AddInt("o58Ordinary", rec.o58Ordinary);
             p.AddBool("o58IsPerUser", rec.o58IsPerUser);
 
+            if (rec.pid == 0)
+            {
+                var intPID = _db.GetIntegerFromSql("select max(o58ID) FROM o58GlobalParam") + 1;
+                return _db.SaveRecord("o58GlobalParam", p, rec,true,true, intPID);
+            }
+            else
+            {
+                return _db.SaveRecord("o58GlobalParam", p, rec);
+            }
 
-            return _db.SaveRecord("o58GlobalParam", p, rec);
+            
         }
         private bool ValidateBeforeSave(BO.o58GlobalParam rec)
         {
@@ -77,13 +89,18 @@ namespace BL
             {
                 this.AddMessage("Chybí vyplnit [Entita]."); return false;
             }
+
+            if (_db.GetIntegerFromSql($"select o58ID FROM o58GlobalParam WHERE o58Key like '{rec.o58Key}' AND o58ID<>{rec.pid}") > 0)
+            {
+                this.AddMessage("Kód nemůže být duplicitní."); return false;
+            }
             return true;
         }
 
 
         private string GetSQL1_o59(string strAppend = null)
         {
-            sb("SELECT a.*,o58.o58Name,j02.j02Name,");
+            sb("SELECT a.*,o58.o58Name,o58.o58IsPerUser,j02.j02Name,");
             sb(_db.GetSQL1_Ocas("o59",false,false,false));
             sb(" FROM o59GlobalParamBinding a INNER JOIN o58GlobalParam o58 ON a.o58ID=o58.o58ID");
             sb(" LEFT OUTER JOIN j02User j02 ON a.j02ID=j02.j02ID");
@@ -93,7 +110,7 @@ namespace BL
 
         public IEnumerable<BO.o59GlobalParamBinding> GetList_o59(string prefix, int pid)
         {
-            var s = GetSQL1_o59(" WHERE o58.o58Entity=@prefix AND a.o59RecordPid=@pid ORDER BY o58.o58Ordinary");
+            var s = GetSQL1_o59(" WHERE o58.o58Entity=@prefix AND a.o59RecordPid=@pid ORDER BY o58.o58Ordinary,a.o58ID");
             return _db.GetList<BO.o59GlobalParamBinding>(s, new { prefix = prefix, pid = pid });
         }
 
@@ -109,7 +126,7 @@ namespace BL
             p.AddDouble("o59ValueNum", rec.o59ValueNum);
             p.AddDateTime("o59ValueDate", rec.o59ValueDate);
             p.AddBool("o59ValueBoolean", rec.o59ValueBoolean);
-
+            p.AddString("o59Memo", rec.o59Memo);
 
 
 
