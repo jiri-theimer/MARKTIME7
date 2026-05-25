@@ -203,8 +203,8 @@ namespace BL
 
         private void Najit_VS_A_Castku(BO.o27Attachment rec, BO.o42ImapRule rule,ref string strVS,ref double dblCastka )
         {
-            string word_vs = _mother.CBL.GetGlobalParamValue(7, rule.pid);
-            string word_castka = _mother.CBL.GetGlobalParamValue(8, rule.pid);
+            string word_vs = _mother.o58GlobalParamBL.GetGlobalParamValue(7, rule.pid);
+            string word_castka = _mother.o58GlobalParamBL.GetGlobalParamValue(8, rule.pid);
 
             if (word_vs == null || word_castka == null)
             {

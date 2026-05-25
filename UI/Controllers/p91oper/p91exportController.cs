@@ -121,7 +121,7 @@ namespace UI.Controllers
                     {
                         //zkopírovat pdf do cílové složky
                         var strFileName = BO.Code.File.GetFileInfo(strTempPdfFileName).Name;
-                        var strDir = Factory.CBL.GetGlobalParamValue("p92FolderPdf", c.p92ID);
+                        var strDir = Factory.o58GlobalParamBL.GetGlobalParamValue("p92FolderPdf", c.p92ID);
                         if (string.IsNullOrEmpty(strDir))
                         {
                             var recP93 = Factory.p93InvoiceHeaderBL.Load(recP92.p93ID);

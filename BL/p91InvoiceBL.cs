@@ -812,7 +812,7 @@ namespace BL
             rec.p92TypeFlag = (int)c.p92TypeFlag; rec.p92ID = c.p92ID;
             rec.p91Text1 = c.p91Text1;
             rec.p91Text2 = c.p91Text2;
-            rec.PredkontaceIS = _mother.CBL.GetGlobalParamValue("p92AccountingIds", c.p92ID);    //předkontace na úrovni celé faktury
+            rec.PredkontaceIS = _mother.o58GlobalParamBL.GetGlobalParamValue("p92AccountingIds", c.p92ID);    //předkontace na úrovni celé faktury
             if (c.p41ID_First > 0)
             {
                 var recP41 = _mother.p41ProjectBL.Load(c.p41ID_First);  //zkusit najít předkontaci celé faktury v nastavení fakturovaného projektu.
@@ -823,7 +823,7 @@ namespace BL
             }
             if (c.p91VatCodePohoda == null)
             {
-                rec.KlasifikaceDphIS = _mother.CBL.GetGlobalParamValue("p92ClassificationVatIds", c.p92ID); //členění dph
+                rec.KlasifikaceDphIS = _mother.o58GlobalParamBL.GetGlobalParamValue("p92ClassificationVatIds", c.p92ID); //členění dph
             }
             else
             {
@@ -869,8 +869,8 @@ namespace BL
                 rec.ZchPartner = _db.Load<BO.GetString>($"select dbo.zzz_p28_getonerole_inline({rec.p28ID},56) as Value").Value;
             }
 
-            string strPredkontaceDef = _mother.CBL.GetGlobalParamValue("p92AccountingIds", rec.p92ID);
-            string strCinnostISDef = _mother.CBL.GetGlobalParamValue("p92ActivityIds", rec.p92ID);
+            string strPredkontaceDef = _mother.o58GlobalParamBL.GetGlobalParamValue("p92AccountingIds", rec.p92ID);
+            string strCinnostISDef = _mother.o58GlobalParamBL.GetGlobalParamValue("p92ActivityIds", rec.p92ID);
 
             var rozpis = GetList_CenovyRozpis(c.pid, true, true, 0);
             if (rec.Implementace == "zch")
@@ -913,11 +913,11 @@ namespace BL
                     var recP31 = _mother.p31WorksheetBL.Load(row.p31ID);
                     line.p31Code = recP31.p31Code;
                     var recP32 = _mother.p32ActivityBL.Load(recP31.p32ID);
-                    string ss = _mother.CBL.GetGlobalParamValue("p32AccountingIds", recP32.pid);
+                    string ss = _mother.o58GlobalParamBL.GetGlobalParamValue("p32AccountingIds", recP32.pid);
                     
                     if (ss == null && recP32.p95ID > 0)
                     {
-                        ss = _mother.CBL.GetGlobalParamValue("p95AccountingIds", recP32.p95ID);
+                        ss = _mother.o58GlobalParamBL.GetGlobalParamValue("p95AccountingIds", recP32.p95ID);
                         
                     }
                     if (ss == null)
@@ -927,10 +927,10 @@ namespace BL
                     line.PredkontaceIS = ss;
                     
 
-                    ss = _mother.CBL.GetGlobalParamValue("p32ActivityIds", recP32.pid);
+                    ss = _mother.o58GlobalParamBL.GetGlobalParamValue("p32ActivityIds", recP32.pid);
                     if (ss == null && recP32.p95ID > 0)
                     {
-                        ss = _mother.CBL.GetGlobalParamValue("p95ActivityIds", recP32.p95ID);
+                        ss = _mother.o58GlobalParamBL.GetGlobalParamValue("p95ActivityIds", recP32.p95ID);
                     }
                     if (ss == null)
                     {
@@ -942,14 +942,14 @@ namespace BL
                 {
                     if (row.p95ID > 0)
                     {
-                        line.PredkontaceIS = _mother.CBL.GetGlobalParamValue("p95AccountingIds", row.p95ID);
+                        line.PredkontaceIS = _mother.o58GlobalParamBL.GetGlobalParamValue("p95AccountingIds", row.p95ID);
                         line.PredkontaceIS = "hovado";
                         
                         if (line.PredkontaceIS == null)
                         {
                             line.PredkontaceIS = strPredkontaceDef;
                         }
-                        line.CinnostIS = _mother.CBL.GetGlobalParamValue("p95ActivityIds", row.p95ID);
+                        line.CinnostIS = _mother.o58GlobalParamBL.GetGlobalParamValue("p95ActivityIds", row.p95ID);
                         if (line.CinnostIS == null)
                         {
                             line.CinnostIS = strCinnostISDef;

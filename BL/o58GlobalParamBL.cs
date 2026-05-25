@@ -12,6 +12,7 @@ namespace BL
         public IEnumerable<BO.o59GlobalParamBinding> GetList_o59(string prefix, int pid);
         public int SaveParamBinding(BO.o59GlobalParamBinding rec);
         public string GetGlobalParamValue(string o58key, int pid);
+        public string GetGlobalParamValue(int o58id, int pid);
         public bool ExistsKey(string prefix);
 
     }

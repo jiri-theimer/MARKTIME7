@@ -258,7 +258,7 @@ namespace UI.Controllers.wrk
                     {
                         //zkopírovat pdf do cílové složky
                         var strFileName = BO.Code.File.GetFileInfo(strTempPdfFileName).Name;
-                        var strDir = Factory.CBL.GetGlobalParamValue("p92FolderPdf", recP91.p92ID);
+                        var strDir = Factory.o58GlobalParamBL.GetGlobalParamValue("p92FolderPdf", recP91.p92ID);
                         
                         System.IO.File.Copy(strTempPdfFileName, $"{strDir}\\{strFileName}",true);
 

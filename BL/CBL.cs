@@ -27,10 +27,10 @@ namespace BL
         public BO.Result TestIfAllowCreateRecord(string recprefix, int rectype_pid);
         public int GetRecord_j02ID_Owner(string prefix, int pid);   //vrátí ID vlastníka záznamu
         public int GetRecord_j02ID_Creator(string prefix, int pid); //vrátí ID zakladatele záznamu
-        public bool SaveGlobalParam(int o58id, int pid, string strValue);
-        public string GetGlobalParamValue(int o58id, int pid);
-        public string GetGlobalParamValue(string o58key, int pid);
-        public IEnumerable<BO.GlobalParam> GetList_GlobalParam(string prefix, int pid);
+        //public bool SaveGlobalParam(int o58id, int pid, string strValue);
+        //public string GetGlobalParamValue(int o58id, int pid);
+        //public string GetGlobalParamValue(string o58key, int pid);
+        //public IEnumerable<BO.GlobalParam> GetList_GlobalParam(string prefix, int pid);
         public bool Archive(string prefix, int pid);
         public bool Restore(string prefix, int pid);
         public bool UpdateRowColor(string prefix, List<int> pids, int colorindex);
@@ -458,30 +458,30 @@ namespace BL
 
         }
 
-        public bool SaveGlobalParam(int o58id,int pid,string strValue)
-        {
-            return _db.RunSql("exec dbo.o59_save @o58id,@record_pid,@val", new {o58id=o58id, record_pid = pid, val= strValue });
-        }
-        public string GetGlobalParamValue(int o58id, int pid)
-        {
-            BO.GetString val = _db.Load<BO.GetString>("SELECT o59Value as Value FROM o59GlobalParamBinding WHERE o58ID=@o58id AND o59RecordPid=@record_pid", new { o58id = o58id, record_pid = pid });
-            return (val == null ? null : val.Value);
-        }
-        public string GetGlobalParamValue(string o58key, int pid)
-        {
-            BO.GetString val = _db.Load<BO.GetString>("SELECT a.o59Value as Value FROM o59GlobalParamBinding a INNER JOIN o58GlobalParam b ON a.o58ID=b.o58ID WHERE b.o58Key LIKE @klic AND o59RecordPid=@record_pid", new { klic = o58key, record_pid = pid });
-            return (val == null ? null : val.Value);
-        }
+        //public bool SaveGlobalParam(int o58id,int pid,string strValue)
+        //{
+        //    return _db.RunSql("exec dbo.o59_save @o58id,@record_pid,@val", new {o58id=o58id, record_pid = pid, val= strValue });
+        //}
+        //public string GetGlobalParamValue(int o58id, int pid)
+        //{
+        //    BO.GetString val = _db.Load<BO.GetString>("SELECT o59Value as Value FROM o59GlobalParamBinding WHERE o58ID=@o58id AND o59RecordPid=@record_pid", new { o58id = o58id, record_pid = pid });
+        //    return (val == null ? null : val.Value);
+        //}
+        //public string GetGlobalParamValue(string o58key, int pid)
+        //{
+        //    BO.GetString val = _db.Load<BO.GetString>("SELECT a.o59Value as Value FROM o59GlobalParamBinding a INNER JOIN o58GlobalParam b ON a.o58ID=b.o58ID WHERE b.o58Key LIKE @klic AND o59RecordPid=@record_pid", new { klic = o58key, record_pid = pid });
+        //    return (val == null ? null : val.Value);
+        //}
 
-        public IEnumerable<BO.GlobalParam> GetList_GlobalParam(string prefix,int pid)
-        {
-            if (prefix==null && pid == 0)
-            {
-                return _db.GetList<BO.GlobalParam>("SELECT a.o58ID,a.o58Entity,a.o58Key,a.o58Name,b.o59RecordPid,b.o59Value FROM o58GlobalParam a LEFT OUTER JOIN o59GlobalParamBinding b ON a.o58ID=b.o58ID");
-            }
+        //public IEnumerable<BO.GlobalParam> GetList_GlobalParam(string prefix,int pid)
+        //{
+        //    if (prefix==null && pid == 0)
+        //    {
+        //        return _db.GetList<BO.GlobalParam>("SELECT a.o58ID,a.o58Entity,a.o58Key,a.o58Name,b.o59RecordPid,b.o59Value FROM o58GlobalParam a LEFT OUTER JOIN o59GlobalParamBinding b ON a.o58ID=b.o58ID");
+        //    }
         
-            return _db.GetList<BO.GlobalParam>("SELECT a.o58ID,a.o58Entity,a.o58Key,a.o58Name,b.o59RecordPid,b.o59Value FROM o58GlobalParam a LEFT OUTER JOIN (select * from o59GlobalParamBinding WHERE o59RecordPid=@pid) b ON a.o58ID=b.o58ID WHERE a.o58Entity=@prefix ORDER BY a.o58Ordinary", new { prefix = prefix, pid = pid });
-        }
+        //    return _db.GetList<BO.GlobalParam>("SELECT a.o58ID,a.o58Entity,a.o58Key,a.o58Name,b.o59RecordPid,b.o59Value FROM o58GlobalParam a LEFT OUTER JOIN (select * from o59GlobalParamBinding WHERE o59RecordPid=@pid) b ON a.o58ID=b.o58ID WHERE a.o58Entity=@prefix ORDER BY a.o58Ordinary", new { prefix = prefix, pid = pid });
+        //}
 
         public bool UpdateRowColor(string prefix,List<int> pids,int colorindex)
         {
