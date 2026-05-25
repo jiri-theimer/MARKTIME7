@@ -114,7 +114,7 @@ namespace BL.Code
                         p.AddDateTime("p31ValidUntil", rec.p31ValidUntil);
 
 
-
+                    p.AddDouble("p31Value_Off", rec.Value_OffBilling);
 
 
                     intSavedP31ID = _db.SaveRecord("p31Worksheet", p, rec, true, true);

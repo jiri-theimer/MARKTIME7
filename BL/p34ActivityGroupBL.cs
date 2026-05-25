@@ -129,6 +129,7 @@ namespace BL
                 p.AddByte("p34TagsFlag", rec.p34TagsFlag);
                 p.AddByte("p34InboxFlag", rec.p34InboxFlag);
                 p.AddByte("p34TrimmingFlag", rec.p34TrimmingFlag);
+                p.AddByte("p34ValueOffFlag", rec.p34ValueOffFlag);
 
                 int intPID = _db.SaveRecord("p34ActivityGroup", p, rec);
 

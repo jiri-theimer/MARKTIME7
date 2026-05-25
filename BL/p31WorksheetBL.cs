@@ -82,7 +82,7 @@ namespace BL
 
             sb(",a.p31MarginHidden,a.p31MarginTransparent,a.p31PostRecipient,a.p31PostCode,a.p31PostFlag,a.p31TimerTimestamp,a.p31ExternalCode");
             sb(",p41x.p42ID,p42.p42Name,a.p31BitStream,a.p56ID,p56.p56Name,p56.p56Code,a.p31ExcludeBillingFlag,a.p54ID,a.b05ID_Last,a.p40ID_Source,a.p40ID_FixPrice,p40.p40Name,a.p51ID_BillingRate,a.p51ID_CostRate,a.p31TextInternal,p41x.p41BillingFlag,a.p31Ordinary");
-            sb(",a.p31MasterID,a.o27ID_Last");
+            sb(",a.p31MasterID,a.o27ID_Last,a.p31Value_Off");
             sb(",");
             sb(_db.GetSQL1_Ocas("p31"));
 
@@ -973,6 +973,7 @@ namespace BL
             }
             c.p31BitStream = rec.p31BitStream;
             c.p28ID_ContactPerson = rec.p28ID_ContactPerson;
+            c.Value_OffBilling = rec.p31Value_Off;
 
             return c;
 

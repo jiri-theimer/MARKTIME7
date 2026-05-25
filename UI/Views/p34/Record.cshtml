@@ -54,6 +54,12 @@
                 <option value="Prijem">@_f.tra("Pro výpočet výsledovky má povahu výnosu")</option>
 
             </select>
+            <br />
+            <select asp-for="Rec.p34ValueOffFlag" class="form-select">
+                <option value="0">@_f.tra("Bez možnosti vykazovat OffBilling hodnotu")</option>
+                <option value="1">@_f.tra("Možnost vykazovat i OffBilling hodnotu úkonu")</option>
+
+            </select>
 
         </div>
     </div>

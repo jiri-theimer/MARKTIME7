@@ -279,6 +279,15 @@ else
 
 @if (Model.RecP34 != null)
 {
+    if (Model.RecP34.p34ValueOffFlag == 1)
+    {
+        <div class="row my-2">
+            <mylabel class="col-sm-1 col-md-1 col-form-label" text="@_f.tra("OffBilling hodnota")"></mylabel>            
+            <div class="col-sm-2 col-md-2">                
+                <mynumber asp-for="Rec.Value_OffBilling"></mynumber>
+            </div>
+        </div>
+    }
     if (Model.RecP34.p33ID == BO.p33IdENUM.Cas && !Model.Setting.TimesheetEntryByMinutes)
     {
         <div class="row my-2">

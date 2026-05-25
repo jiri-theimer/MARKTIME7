@@ -35,7 +35,10 @@ namespace BO
         public string p34Name { get; set; }
         public p34IncomeStatementFlagENUM p34IncomeStatementFlag { get; set; }
         public p34ActivityEntryFlagENUM p34ActivityEntryFlag { get; set; }
-        
+
+        public byte p34ValueOffFlag { get; set; }
+
+
         public string p34Code { get; set; }
         
         public int p34Ordinary { get; set; }

@@ -1007,7 +1007,11 @@ namespace UI.Controllers
                     c.p28ID_Supplier = v.Rec.p28ID_Supplier;
                 }
             }
-
+            if (v.RecP34.p34ValueOffFlag == 1)
+            {
+                c.Value_OffBilling = v.Rec.Value_OffBilling;
+            }
+            
 
             c.Amount_WithoutVat_Orig = v.Rec.Amount_WithoutVat_Orig;
             c.VatRate_Orig = v.Rec.VatRate_Orig;
