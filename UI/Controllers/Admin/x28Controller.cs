@@ -23,6 +23,7 @@ namespace UI.Controllers
                     return RecNotFound(v);
                 }
                 v.ComboX27Name = v.Rec.x27Name;
+                v.ComboO18Name = v.Rec.o18Name;
                 v.SelectedJ04IDs = v.Rec.x28NotPublic_j04IDs;                
                 if (v.SelectedJ04IDs != null)
                 {
@@ -154,7 +155,8 @@ namespace UI.Controllers
                 c.x28Name = v.Rec.x28Name;                
                 c.x24ID = v.Rec.x24ID;
                 c.x28Entity = v.Rec.x28Entity;
-                             
+
+                c.o18ID = v.Rec.o18ID;
                 c.x27ID = v.Rec.x27ID;
 
                 c.x28Ordinary = v.Rec.x28Ordinary;

@@ -6,8 +6,11 @@ namespace BO
     {
         public string StringInput { get; set; }
         public double NumInput { get; set; }
+        public int IntInput { get; set; }
         public DateTime? DateInput { get; set; }
         public bool CheckInput { get; set; }
+
+        public string ComboTextInput { get; set; }
 
         public bool IsExternalDataSource { get; set; }
         

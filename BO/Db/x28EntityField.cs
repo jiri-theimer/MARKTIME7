@@ -10,7 +10,7 @@ namespace BO
         tDate = 4,
         tDateTime = 5,
         tTime = 6,
-        tBoolean = 7,
+        tBoolean = 7,       
         tNone = 0
     }
 
@@ -28,7 +28,7 @@ namespace BO
         public string x28Entity { get; set; }
         public x24IdENUM x24ID { get; set; }
         public int x27ID { get; set; }
-        
+        public int o18ID { get; set; }
         public string x28Name { get; set; }
 
         public int x28Ordinary { get; set; }
@@ -61,13 +61,11 @@ namespace BO
 
         public string x27Name { get; }
 
-
+        public string o18Name { get; }
         public string TypeName { get; set; }
 
-        protected string x23Name { get; }
-
-        protected string x23DataSource { get; }
-
+        
+        
 
 
         public string SourceTableName

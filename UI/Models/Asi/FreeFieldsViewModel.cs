@@ -52,7 +52,8 @@ namespace UI.Models
                 var c = new BO.FreeFieldInput() { x28Field = recX28.x28Field, x28Name = recX28.x28Name, TypeName = recX28.TypeName,
                     x28Entity = recX28.x28Entity, x24ID = recX28.x24ID, x28IsRequired = recX28.x28IsRequired,
                     x28DataSource = recX28.x28DataSource, x28IsFixedDataSource = recX28.x28IsFixedDataSource, x28ReminderNotifyBefore = recX28.x28ReminderNotifyBefore,
-                    TextboxHeight = recX28.x28TextboxHeight
+                    TextboxHeight = recX28.x28TextboxHeight,o18ID=recX28.o18ID
+
                 };             
                 
                 this.inputs.Add(c);
@@ -77,9 +78,11 @@ namespace UI.Models
                                 
                                                            
                                 break;
-                            case "decimal":
-                            case "integer":
+                            case "decimal":                            
                                 c.NumInput = Convert.ToDouble(dbRow[c.x28Field]);
+                                break;
+                            case "integer":
+                                c.IntInput = Convert.ToInt32(dbRow[c.x28Field]);
                                 break;
                             default:
                                 c.StringInput = Convert.ToString(dbRow[c.x28Field]);

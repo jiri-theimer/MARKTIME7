@@ -58,18 +58,30 @@
         <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Datový formát"):</label>
         <div class="col-sm-11 col-md-10">
             <select asp-for="Rec.x24ID" class="form-select">
-                <option value="tString">@_f.tra("String (libovolný text)")</option>
-                <option value="tInteger">@_f.tra("Integer (celé číslo)")</option>
+                <option value="tString">@_f.tra("String (libovolný text)")</option>                
                 <option value="tDecimal">@_f.tra("Decimal (číslo s desetinnou čárkou)")</option>
+                <option value="tInteger">@_f.tra("Klíč combo nabídky (integer)")</option>
                 <option value="tDate">@_f.tra("Date (datum)")</option>
                 <option value="tDateTime">@_f.tra("Datetime (datum+čas)")</option>
                 <option value="tBoolean">@_f.tra("Boolen (checkbox)")</option>
+                
             </select>
         </div>
 
     </div>
     @if (Model.Rec.x28Flag == BO.x28FlagENUM.UserField)
     {
+        @if (Model.Rec.x24ID == BO.x24IdENUM.tInteger)
+        {
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Zdroj combo položek"):</label>
+                <div class="col-sm-11 col-md-10">
+                    <mycombo entity="o18DocType" asp-for="Rec.o18ID" selectedtext="@Model.ComboO18Name" view-flag="2"></mycombo>
+                </div>
+
+            </div>
+        }
+        
         <div class="row my-2">
             <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Skupina polí"):</label>
             <div class="col-sm-11 col-md-10">

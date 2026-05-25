@@ -22,9 +22,10 @@ namespace BL
 
         private string GetSQL1(string strAppend = null,bool istestcloud=false)
         {
-            sb("select a.*,x27.x27Name,lower(x24.x24Name) as TypeName,");
+            sb("select a.*,x27.x27Name,lower(x24.x24Name) as TypeName,o18.o18Name,");
             sb(_db.GetSQL1_Ocas("x28"));
             sb(" FROM x28EntityField a inner join x24DataType x24 on a.x24id=x24.x24id LEFT OUTER JOIN x27EntityFieldGroup x27 ON a.x27ID=x27.x27ID");
+            sb(" LEFT OUTER JOIN o18DocType o18 ON a.o18ID=o18.o18ID");
 
             if (istestcloud)
             {
@@ -140,7 +141,8 @@ namespace BL
             p.AddEnumInt("x24id", rec.x24ID);
             p.AddString("x28Entity", rec.x28Entity);
             p.AddInt("x27ID", rec.x27ID,true);
-            
+            p.AddInt("o18ID", rec.o18ID, true);
+
             p.AddString("x28datasource", rec.x28DataSource);
             p.AddBool("x28IsFixedDataSource", rec.x28IsFixedDataSource);
             p.AddBool("x28IsRequired", rec.x28IsRequired);            
@@ -197,6 +199,13 @@ namespace BL
             switch (rec.x28Flag)
             {
                 case BO.x28FlagENUM.UserField:
+                    if (rec.x24ID == BO.x24IdENUM.tInteger)
+                    {
+                        if (rec.o18ID == 0)
+                        {
+                            this.AddMessage("Chybí typ dokumentu."); return false;
+                        }
+                    }
                     if (rec.x28Entity == "o23")
                     {
                         this.AddMessage("Pro entitu [Dokument] je povoleno zakládat pouze GRID sloupec na míru.");return false;

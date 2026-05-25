@@ -10,6 +10,8 @@ namespace BO
         public int j02id { get; set; }
         public int p41id { get; set; }
         public int p28id { get; set; }
+        public int o18id { get; set; }
+        public List<int> o18ids { get; set; }
         public int o51id { get; set; }
         public int p31id { get; set; }
         public int leindex { get; set; }   //nadřízená vertikální úrověň projektu #1 - #4
@@ -29,6 +31,14 @@ namespace BO
             if (this.o17id > 0)
             {
                 AQ("o18x.o17ID=@o17id", "o17id", this.o17id);
+            }
+            if (this.o18id > 0)
+            {
+                AQ("a.o18ID=@o18id", "o18id", this.o18id);
+            }
+            if (this.o18ids != null && this.o18ids.Count > 0)
+            {
+                AQ($"a.o18ID IN ({string.Join(",", this.o18ids)})", null, null);                
             }
             if (this.j02id > 0)
             {

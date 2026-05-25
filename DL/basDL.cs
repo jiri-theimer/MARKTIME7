@@ -134,8 +134,14 @@ namespace DL
                             
                         }
                         break;
-                    case "decimal":
                     case "integer":
+                        if (c.x28IsRequired && c.IntInput == 0)
+                        {
+                            db.CurrentUser.AddMessage($"Pole ** {c.x28Name} ** je povinné k vyplnění. "); return false;
+                        }
+                        p.AddInt(c.x28Field, c.IntInput,true);
+                        break;
+                    case "decimal":                    
                         if (c.x28IsRequired && c.NumInput == 0)
                         {
                             db.CurrentUser.AddMessage($"Pole ** {c.x28Name} ** je povinné k vyplnění. "); return false;
