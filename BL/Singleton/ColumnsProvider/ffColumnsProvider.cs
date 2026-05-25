@@ -43,8 +43,8 @@ namespace BL
                 switch (rec.x24ID)
                 {
                     case BO.x24IdENUM.tInteger:
-                        oc=AF(strField, rec.x28Name, null, "num0", rec.x28IsGridTotals);
-                       
+                        oc=AF(strField, rec.x28Name);
+                        
                         break;
                     case BO.x24IdENUM.tDecimal:
                         oc=AF(strField, rec.x28Name, null, "num", rec.x28IsGridTotals);
@@ -69,9 +69,20 @@ namespace BL
                     oc.RelSqlInCol = rec.x28Grid_SqlFrom;
                 }
                 else
-                {                    
-                    oc.SqlSyntax = "ff_relname_" + strPrefix + "." + rec.x28Field;                   
-                    oc.RelSqlInCol = "LEFT OUTER JOIN " + rec.SourceTableName + " ff_relname_" + strPrefix + " ON a." + strPrefix + "ID = ff_relname_" + strPrefix + "." + strPrefix + "ID";
+                {        
+                    if (rec.o18ID > 0)
+                    {
+
+                        oc.SqlSyntax = $"o23x_{strField}.o23Name";
+                        oc.RelSqlInCol = $"LEFT OUTER JOIN {rec.SourceTableName} ff_relname_{strField} ON a.{strPrefix}ID = ff_relname_{strField}.{strPrefix}ID LEFT OUTER JOIN o23Doc o23x_{strField} ON ff_relname_{strField}.{strField}=o23x_{strField}.o23ID";
+                    }
+                    else
+                    {
+                        oc.SqlSyntax = "ff_relname_" + strPrefix + "." + rec.x28Field;
+                        oc.RelSqlInCol = $"LEFT OUTER JOIN {rec.SourceTableName} ff_relname_{strPrefix} ON a.{strPrefix}ID = ff_relname_{strPrefix}.{strPrefix}ID";
+                        //oc.RelSqlInCol = "LEFT OUTER JOIN " + rec.SourceTableName + " ff_relname_" + strPrefix + " ON a." + strPrefix + "ID = ff_relname_" + strPrefix + "." + strPrefix + "ID";
+                    }
+                    
                     
                 }
                 oc.SqlExplicitGroupBy = oc.SqlSyntax;

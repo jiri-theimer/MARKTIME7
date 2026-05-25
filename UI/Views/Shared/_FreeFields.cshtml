@@ -27,7 +27,7 @@
         @switch (Model.inputs[i].TypeName)
         {
             @case "integer":
-                <label for="numff1_inputs_@(i)__ComboInput" class="@(_labelclassname)">@(Model.inputs[i].x28Name):</label>
+                <label for="ff1_inputs_@(i)__IntInput" class="@(_labelclassname)">@(Model.inputs[i].x28Name):</label>
                 break;
             @case "decimal":
                 <label for="numff1_inputs_@(i)__NumInput" class="@(_labelclassname)">@(Model.inputs[i].x28Name):</label>
@@ -49,13 +49,17 @@
 
             @switch (Model.inputs[i].TypeName)
             {
-                @case "integer":                    
+                @case "integer":
                     <select class="form-select" asp-for="inputs[i].IntInput">
                         <option value="0">-----</option>
-                        @foreach (var c in _lisO23.Where(p => p.o18ID == Model.inputs[i].o18ID))
+                        @if (Model.inputs[i].o18ID > 0)
                         {
-                            <option value="@(c.pid)">@(c.o23Name)</option>
-                        }                        
+                            @foreach (var c in _lisO23.Where(p => p.o18ID == Model.inputs[i].o18ID))
+                            {
+                                <option value="@(c.pid)">@(c.o23Name)</option>
+                            }
+                        }
+                                          
                     </select>
 
                     break;
