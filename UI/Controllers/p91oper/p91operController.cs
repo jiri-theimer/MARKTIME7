@@ -506,7 +506,7 @@ namespace UI.Controllers
                     v.Hours = v.Rec.p31Hours_Invoiced.ToString();
                     v.Hours_FixPrice = v.Rec.p31Value_FixPrice.ToString();
                     v.p31Rate_Billing_Invoiced = v.Rec.p31Rate_Billing_Invoiced;
-
+                    v.Hours_Internal = v.Rec.p31Hours_Approved_Internal.ToString();
                     break;
                 case BO.p33IdENUM.Kusovnik:
                     v.p31Value_Invoiced = v.Rec.p31Value_Invoiced;
@@ -515,7 +515,7 @@ namespace UI.Controllers
                 default:
                     break;
             }
-
+          
             v.p31VatRate_Invoiced = v.Rec.p31VatRate_Invoiced;
             v.p31Amount_WithoutVat_Invoiced = v.Rec.p31Amount_WithoutVat_Invoiced;
             v.p31Amount_Vat_Invoiced = v.Rec.p31Amount_Vat_Invoiced;
@@ -565,7 +565,7 @@ namespace UI.Controllers
                 
                 c.p31Code = v.p31Code;
                 c.p31Ordinary = v.p31Ordinary;
-
+                
                 if (v.SelectedP70ID == BO.p70IdENUM.Vyfakturovano)
                 {
                     c.InvoiceVatRate = v.p31VatRate_Invoiced;
@@ -575,6 +575,7 @@ namespace UI.Controllers
                         case BO.p33IdENUM.Cas:
                             c.InvoiceValue = BO.Code.Time.ShowAsDec(v.Hours);
                             c.InvoiceRate = v.p31Rate_Billing_Invoiced;
+                            c.HoursInternal= BO.Code.Time.ShowAsDec(v.Hours_Internal);
                             break;
                         case BO.p33IdENUM.Kusovnik:
                             c.InvoiceValue = v.p31Value_Invoiced;

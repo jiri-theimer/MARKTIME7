@@ -16,6 +16,7 @@ namespace UI.Models.p91oper
         public double p31Value_Invoiced { get; set; }
         public string Hours { get; set; }
         public string Hours_FixPrice { get; set; }
+        public string Hours_Internal { get; set; }
         public double p31Rate_Billing_Invoiced { get; set; }
         
         public double p31Amount_WithoutVat_Invoiced { get; set; }

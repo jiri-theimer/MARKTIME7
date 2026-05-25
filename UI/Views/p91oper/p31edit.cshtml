@@ -6,6 +6,7 @@
     Model.PageTitle = _f.tra("Upravit položku vyúčtování") + ": " + Model.RecP91.p92Name + " / " + Model.RecP91.p91Code + " (" + Model.RecP91.p91Client + ")";
     Model.PageSymbol = "p91";
 
+    
 }
 
 @addTagHelper *, UI
@@ -103,6 +104,16 @@
                                 </td>
                             </tr>
                         }
+                        <tr>
+                            <td>
+                                @_f.tra("Interně schválené hodiny"):
+                            </td>
+                            <td>
+                                <myhours asp-for="@Model.Hours_Internal" showsettingbutton="false" hoursentryflag="@_f.CurrentUser.j02HesBitStream" hoursentryformat="@_f.CurrentUser.j02DefaultHoursFormat"></myhours>
+                            </td>
+                            <td>
+                            </td>
+                        </tr>
                     }
                     @if (Model.Rec.p33ID == BO.p33IdENUM.Kusovnik)
                     {
@@ -189,14 +200,13 @@
 
                     <tr style="vertical-align:top;">
                         <td>
-                            @_f.tra("Index třídění"):
+
+                            <mylabel text="@_f.tra("Index třídění")" tooltip="Pořadí položky v cenovém rozpisu faktury v režimu 1:1 po úkonech."></mylabel>
                         </td>
                         <td>
                             <mynumber asp-for="p31Ordinary" class="record_ordinary" decimal-digits="0"></mynumber>
                         </td>
-                        <td>
-                            <mytooltip text="Pořadí položky v cenovém rozpisu faktury v režimu 1:1 po úkonech."></mytooltip>
-                        </td>
+                        
                     </tr>
                 </table>
             </div>

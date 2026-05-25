@@ -14,6 +14,7 @@ namespace BO
         public string TextUpdate { get; set; }
         public string TextInternalUpdate { get; set; }
         public double FixPriceValue { get; set; }
+        public double HoursInternal { get; set; }
         public bool p31IsInvoiceManual { get; set; }
         public double ManualFee { get; set; }
         public int p32ManualFeeFlag { get; set; } = 0;

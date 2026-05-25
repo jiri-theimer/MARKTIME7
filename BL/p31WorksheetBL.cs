@@ -412,6 +412,8 @@ namespace BL
                     p85FreeText09 = c.p31Code
                     ,
                     p85OtherKey2=c.p31Ordinary
+                    ,
+                    p85FreeNumber03=c.HoursInternal
                 };
                 _mother.p85TempboxBL.Save(ctemp);
 
