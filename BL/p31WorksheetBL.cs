@@ -299,7 +299,7 @@ namespace BL
                             rec.SetError("Chybí měna.");
                             this.AddMessage(rec.ErrorMessage); return 0;
                         }
-                        if (rec.Amount_WithoutVat_Orig == 0)
+                        if (rec.Amount_WithoutVat_Orig == 0 && rec.Value_OffBilling==0)
                         {
                             rec.SetError("Částka nesmí být NULA.");
                             this.AddMessage(rec.ErrorMessage); return 0;
@@ -313,7 +313,7 @@ namespace BL
                             rec.SetError("Chybí měna.");
                             this.AddMessage(rec.ErrorMessage); return 0;
                         }
-                        if (rec.Amount_WithoutVat_Orig == 0 && rec.Amount_WithVat_Orig == 0)
+                        if (rec.Amount_WithoutVat_Orig == 0 && rec.Amount_WithVat_Orig == 0 && rec.Value_OffBilling==0)
                         {
                             rec.SetError("Částka nesmí být NULA.");
                             this.AddMessage(rec.ErrorMessage); return 0;
