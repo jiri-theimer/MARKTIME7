@@ -139,7 +139,15 @@
                     </a>
 
                     <ul class="dropdown-menu" style="width: 200px;">
-
+                        @if (Model.rec_entity !=null)
+                        {
+                            <li class="p-2">
+                                <button type="button" class="btn btn-light btn-sm" onclick="_window_open('/GlobalParams/Index?prefix=@(Model.rec_entity)&pid=@(Model.rec_pid)')">
+                                    @_f.tra("Doplňující parametry")
+                                </button>
+                            </li>
+                        
+                        }
                         @if (Model.Toolbar.AllowArchive)
                         {
                             <li class="p-2">

@@ -10,7 +10,11 @@
 
 
 <div class="bg-light" style="padding:10px;">
-    <button id="cmdSave" class="btn btn-success" onclick="_submit()">@_f.tra("Uložit změny")</button>
+    @if (Model.lisO58.Count() > 0)
+    {
+        <button id="cmdSave" class="btn btn-success" onclick="_submit()">@_f.tra("Uložit změny")</button>
+    }
+    
 
     <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
 
@@ -33,6 +37,15 @@
             </button>
         }
 
+
+        @if (Model.lisO58.Count() == 0)
+        {
+            <div class="alert alert-primary" role="alert">
+                Pro tuto entitu (@(BO.Code.Entity.GetAlias(Model.prefix))) zatím neexistují doplňující parametry.
+                <hr />
+                Doplňující parametry se definují v administraci <a target="_blank" href="/Admin/Page?area=misc&prefix=o58"><strong>ZDE</strong></a>.
+            </div>
+        }
 
         <table class="table table-hover" style="table-layout: fixed;">
             
@@ -98,10 +111,10 @@
                         <input type="text" class="form-control" asp-for="lisO59[i].o59Memo" placeholder="Poznámka" />
                     </td>
                     <td style="width:40px;">
-                            @if (Model.lisO59[i].o58IsPerUser)
-                            {
+                        @if (Model.lisO59[i].o58IsPerUser)
+                        {
                             <button type="button" class="btn btn-danger" title="@_f.tra("Odstranit řádek")" onclick="handle_delete_row('@(Model.lisO59[i].TempGuid)')">x</button>
-                            }
+                        }
                             
                     </td>
 

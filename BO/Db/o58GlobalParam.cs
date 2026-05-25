@@ -12,5 +12,6 @@ namespace BO
         public int o58Ordinary { get; set; }
         public string o58DefaultValue { get; set; }
         public Boolean o58IsPerUser { get; set; }
+        public bool o58IsEditable { get; set; }
     }
 }

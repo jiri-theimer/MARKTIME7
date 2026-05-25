@@ -12,6 +12,7 @@ namespace BL
         public IEnumerable<BO.o59GlobalParamBinding> GetList_o59(string prefix, int pid);
         public int SaveParamBinding(BO.o59GlobalParamBinding rec);
         public string GetGlobalParamValue(string o58key, int pid);
+        public bool ExistsKey(string prefix);
 
     }
     class o58GlobalParamBL : BaseBL, Io58GlobalParamBL
@@ -37,6 +38,17 @@ namespace BL
             return _db.Load<BO.o58GlobalParam>(GetSQL1(" WHERE a.o58ID=@pid"), new { pid = pid });
         }
 
+        public bool ExistsKey(string prefix)
+        {
+            if (_db.Load<BO.GetInteger>("select top 1 o58ID as Value FROM o58GlobalParam WHERE o58Entity=@prefix", new { prefix = prefix }) == null)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
         public IEnumerable<BO.o58GlobalParam> GetList(BO.myQuery mq)
         {
             if (mq.explicit_orderby == null) { mq.explicit_orderby = "a.o58Ordinary"; }
@@ -62,6 +74,7 @@ namespace BL
             p.AddString("o58Name", rec.o58Name);
             p.AddInt("o58Ordinary", rec.o58Ordinary);
             p.AddBool("o58IsPerUser", rec.o58IsPerUser);
+            p.AddBool("o58IsEditable", rec.o58IsEditable);
 
             if (rec.pid == 0)
             {
@@ -100,7 +113,7 @@ namespace BL
 
         private string GetSQL1_o59(string strAppend = null)
         {
-            sb("SELECT a.*,o58.o58Name,o58.o58IsPerUser,j02.j02Name,o58.x24ID,");
+            sb("SELECT a.*,o58.o58Name,o58.o58IsPerUser,j02.j02Name,ISNULL(o58.x24ID,2) as x24ID,");
             sb(_db.GetSQL1_Ocas("o59",false,false,false));
             sb(" FROM o59GlobalParamBinding a INNER JOIN o58GlobalParam o58 ON a.o58ID=o58.o58ID");
             sb(" LEFT OUTER JOIN j02User j02 ON a.j02ID=j02.j02ID");

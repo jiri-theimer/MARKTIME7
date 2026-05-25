@@ -54,7 +54,7 @@ namespace UI.Controllers
 
         private void RefreshState(GlobalParamsViewModel v)
         {
-            v.lisO58 = Factory.o58GlobalParamBL.GetList(new BO.myQuery("o58"));
+            v.lisO58 = Factory.o58GlobalParamBL.GetList(new BO.myQuery("o58")).Where(p =>p.o58Entity==v.prefix && p.o58IsEditable);
             if (v.lisO59 == null)
             {
                 v.lisO59 = new List<o59Repeater>();

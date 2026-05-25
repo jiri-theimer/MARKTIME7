@@ -43,6 +43,7 @@ namespace UI.Controllers.Admin
                 c.o58Ordinary = v.Rec.o58Ordinary;
                 c.ValidUntil = v.Toolbar.GetValidUntil(c);
                 c.ValidFrom = v.Toolbar.GetValidFrom(c);
+                c.o58IsEditable = true;
 
                 c.pid = Factory.o58GlobalParamBL.Save(c);
                 if (c.pid > 0)
