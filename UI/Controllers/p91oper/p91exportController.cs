@@ -1,8 +1,4 @@
-﻿using DocumentFormat.OpenXml.Drawing;
-using Microsoft.AspNetCore.Mvc;
-using System.Data.SqlTypes;
-using System.Net.Http;
-using System.Text;
+﻿using Microsoft.AspNetCore.Mvc;
 using UI.Models.p91oper;
 
 namespace UI.Controllers
@@ -180,8 +176,13 @@ namespace UI.Controllers
                 switch (v.destformat)
                 {
                     case "isdoc":
+       
+
                         var strFileName = $"{BO.Code.File.PrepareFileName(rec.p91Code, true)}.ISDOC";
-                        var strISDOC = BL.Code.p91Support.GenerateIsdoc(rec, httpclient, $"{Factory.TempFolder}\\{v.tempsubfolder}", strFileName);
+                        //var xx=BL.Code.p91Support.GenerateIsdocAsync(rec, httpclient, $"{Factory.TempFolder}\\{v.tempsubfolder}", strFileName).Result;
+
+                        //var strISDOC = BL.Code.p91Support.GenerateIsdoc(rec, httpclient, $"{Factory.TempFolder}\\{v.tempsubfolder}", strFileName);
+                        var strISDOC = BL.Code.p91ExportIsdocSupport.GenerateIsdoc(rec, $"{Factory.TempFolder}\\{v.tempsubfolder}", strFileName);
                         if (strISDOC != null)
                         {
                             
@@ -198,7 +199,7 @@ namespace UI.Controllers
                 //pro POHODu generovat celý Pack
                 v.FileNames = new List<string>();
                 
-                var strPohodaPack = BL.Code.p91Support.GeneratePohodaXml(lisRecs, httpclient, $"{Factory.TempFolder}\\{v.tempsubfolder}");
+                var strPohodaPack = BL.Code.p91ExportIsdocSupport.GeneratePohodaXml(lisRecs, httpclient, $"{Factory.TempFolder}\\{v.tempsubfolder}");
                 if (strPohodaPack != null)
                 {
                     v.FileNames.Add($"POHODA.xml");

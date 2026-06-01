@@ -326,7 +326,7 @@ namespace BL
             string strLogFile = $"{_mother.UploadFolder}\\{rec.x40EmlFolder}\\{m.MessageId.Id}.log";
             client.LogWriter = new Rebex.FileLogWriter(strLogFile, Rebex.LogLevel.Debug);
 
-
+            
             try
             {
                 switch (_account.j40SslModeFlag)
@@ -336,6 +336,7 @@ namespace BL
                         break;
                     case SslModelFlagEnum.Explicit:
                         client.Connect(_account.j40SmtpHost, _account.j40SmtpPort, Rebex.Net.SslMode.Explicit);
+                        
 
                         break;
                     default:

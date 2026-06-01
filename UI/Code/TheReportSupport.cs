@@ -242,7 +242,8 @@ namespace UI
                 //přiložit isdoc soubor do pdf dokumentu
                 ceTe.DynamicPDF.Document.AddLicense("DPSPROU4223720241231Xap8Eso/OLqTQoAdWV83/EhF3keLURxFeh6eWVIsKRuL5QcYIwkKfrnldyUxzLX17t/Zdk0VJQDF/Ka6byCKNrfL/A");
                 var rec = f.p91InvoiceBL.CreateIntegraceRecord(f.p91InvoiceBL.Load(recpid));
-                string strIsdocPath = BL.Code.p91Support.GenerateIsdoc(rec, new HttpClient(), $"{f.TempFolder}");
+                //string strIsdocPath = BL.Code.p91Support.GenerateIsdoc(rec, new HttpClient(), $"{f.TempFolder}");
+                string strIsdocPath = BL.Code.p91ExportIsdocSupport.GenerateIsdoc(rec, $"{f.TempFolder}");
                 var docy = new ceTe.DynamicPDF.Merger.MergeDocument();
                 docy.Append($"{f.TempFolder}\\{strUploadGuid}_{strReportFileName}");
 
