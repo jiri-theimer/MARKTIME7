@@ -124,13 +124,13 @@ namespace UI.Controllers
                 DefaultZaznam c = null;
                 if (recP28.p28RegID != null)
                 {
-                    c = cr.LoadDefaultZaznam("ico", recP28.p28RegID, recP28.p28CountryCode, hc).Result;
+                    c = cr.LoadDefaultZaznam("ico", recP28.p28RegID, recP28.p28CountryCode,hc).Result;
                 }
                 else
                 {
                     if (recP28.p28VatID != null)
                     {
-                        c = cr.LoadDefaultZaznam("dic", recP28.p28VatID, recP28.p28CountryCode, hc).Result;
+                        c = cr.LoadDefaultZaznam("dic", recP28.p28VatID, recP28.p28CountryCode,hc).Result;
                     }
                 }
                 recP28.UserInsert = null; recP28.UserUpdate = null;

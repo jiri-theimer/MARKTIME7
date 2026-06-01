@@ -77,40 +77,71 @@ namespace BL.Code
                 hc = new HttpClient();
             }
 
-            using (hc)
+            string url = _baseurl + $"&country={countrycode}";
+            if (pole == "ico")
             {
-                string url = _baseurl + $"&country={countrycode}";
-                if (pole=="ico")
-                {
-                    url += "&search_ico=" + hodnota;
-                }
-                if (pole=="dic")
-                {
-                    url += "&search_dic=" + hodnota;
-                }
-                using (var request = new HttpRequestMessage(new HttpMethod("GET"), url))
-                {
+                url += "&search_ico=" + hodnota;
+            }
+            if (pole == "dic")
+            {
+                url += "&search_dic=" + hodnota;
+            }
+            using (var request = new HttpRequestMessage(new HttpMethod("GET"), url))
+            {
 
-                    HttpResponseMessage response = hc.SendAsync(request).Result;
-                    string strResult = response.Content.ReadAsStringAsync().Result;
+                HttpResponseMessage response = hc.SendAsync(request).Result;
+                string strResult = response.Content.ReadAsStringAsync().Result;
 
-                    if (string.IsNullOrEmpty(strResult) || strResult.ToLower() == "false")
-                    {
-                        rec.errormessage = "false";
-                        return rec;
-                    }
-                    if (strResult.Length < 10)
-                    {
-                        rec.errormessage = strResult;
-                        return rec;
-                    }
-                    
-                    rec = JsonConvert.DeserializeObject<DefaultZaznam>(strResult);
-                    
-
+                if (string.IsNullOrEmpty(strResult) || strResult.ToLower() == "false")
+                {
+                    rec.errormessage = "false";
+                    return rec;
                 }
+                if (strResult.Length < 10)
+                {
+                    rec.errormessage = strResult;
+                    return rec;
+                }
+
+                rec = JsonConvert.DeserializeObject<DefaultZaznam>(strResult);
+
 
             }
+
+            //using (hc)
+            //{
+            //    string url = _baseurl + $"&country={countrycode}";
+            //    if (pole=="ico")
+            //    {
+            //        url += "&search_ico=" + hodnota;
+            //    }
+            //    if (pole=="dic")
+            //    {
+            //        url += "&search_dic=" + hodnota;
+            //    }
+            //    using (var request = new HttpRequestMessage(new HttpMethod("GET"), url))
+            //    {
+
+            //        HttpResponseMessage response = hc.SendAsync(request).Result;
+            //        string strResult = response.Content.ReadAsStringAsync().Result;
+
+            //        if (string.IsNullOrEmpty(strResult) || strResult.ToLower() == "false")
+            //        {
+            //            rec.errormessage = "false";
+            //            return rec;
+            //        }
+            //        if (strResult.Length < 10)
+            //        {
+            //            rec.errormessage = strResult;
+            //            return rec;
+            //        }
+
+            //        rec = JsonConvert.DeserializeObject<DefaultZaznam>(strResult);
+
+
+            //    }
+
+            //}
 
 
             return rec;
