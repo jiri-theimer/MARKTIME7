@@ -198,8 +198,9 @@ namespace UI.Controllers
             {
                 //pro POHODu generovat celý Pack
                 v.FileNames = new List<string>();
-                
-                var strPohodaPack = BL.Code.p91ExportIsdocSupport.GeneratePohodaXml(lisRecs, httpclient, $"{Factory.TempFolder}\\{v.tempsubfolder}");
+
+                //var strPohodaPack = BL.Code.p91ExportPohodaSupport.GeneratePohodaXmlByService(lisRecs, httpclient, $"{Factory.TempFolder}\\{v.tempsubfolder}");
+                var strPohodaPack = BL.Code.p91ExportPohodaSupport.GeneratePohodaXml(lisRecs, $"{Factory.TempFolder}\\{v.tempsubfolder}");
                 if (strPohodaPack != null)
                 {
                     v.FileNames.Add($"POHODA.xml");
