@@ -26,28 +26,39 @@ namespace BL
         }
 
 
-        private string GetSQL1(string strAppend = null)
+        private string GetSQL1(string strAppend = null, bool istestcloud=false)
         {
             sb("SELECT a.*");
             sb(",j02owner.j02LastName+' '+j02owner.j02FirstName as Owner");
             sb("," + _db.GetSQL1_Ocas("p75"));
             sb(" FROM p75InvoiceRecurrence a");
             sb(" LEFT OUTER JOIN p41Project p41 ON a.p41ID=p41.p41ID");
-            sb(" LEFT OUTER JOIN j02User j02owner ON a.j02ID_Owner=j02owner.j02ID");
+            
 
-            sb(strAppend);
+            if (istestcloud)
+            {
+                sb(" INNER JOIN j02User j02owner ON a.j02ID_Owner=j02owner.j02ID");
+                sb(" INNER JOIN j04UserRole j04x ON j02owner.j04ID = j04x.j04ID INNER JOIN x67EntityRole x67x ON j04x.x67ID=x67x.x67ID");
+                sb(this.AppendCloudQuery(strAppend, "x67x.x01ID"));
+            }
+            else
+            {
+                sb(" LEFT OUTER JOIN j02User j02owner ON a.j02ID_Owner=j02owner.j02ID");
+                sb(strAppend);
+            }
+            
             return sbret();
         }
         public BO.p75InvoiceRecurrence Load(int pid)
         {
-            return _db.Load<BO.p75InvoiceRecurrence>(GetSQL1(" WHERE a.p75ID=@pid"), new { pid = pid });
+            return _db.Load<BO.p75InvoiceRecurrence>(GetSQL1(" WHERE a.p75ID=@pid", _mother.CurrentUser.IsHostingModeTotalCloud), new { pid = pid });
         }
 
 
 
         public IEnumerable<BO.p75InvoiceRecurrence> GetList(BO.myQueryP75 mq)
         {
-            DL.FinalSqlCommand fq = DL.basQuery.GetFinalSql(GetSQL1(), mq, _mother.CurrentUser);
+            DL.FinalSqlCommand fq = DL.basQuery.GetFinalSql(GetSQL1(null, _mother.CurrentUser.IsHostingModeTotalCloud), mq, _mother.CurrentUser);
             return _db.GetList<BO.p75InvoiceRecurrence>(fq.FinalSql, fq.Parameters);
         }
 

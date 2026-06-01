@@ -17,22 +17,32 @@ namespace BL
         }
 
 
-        private string GetSQL1(string strAppend = null)
+        private string GetSQL1(string strAppend = null, bool istestcloud = false)
         {
             sb("SELECT a.*,p28x.p28Name,j02owner.j02Name as Owner,j27.j27Code,");
             sb(_db.GetSQL1_Ocas("p78"));
             sb(" FROM p78UpominkaSdruzena a INNER JOIN p28Contact p28x ON a.p28ID=p28x.p28ID LEFT OUTER JOIN j02User j02owner ON a.j02ID_Owner=j02owner.j02ID LEFT OUTER JOIN j27Currency j27 ON a.j27ID=j27.j27ID");
-            sb(strAppend);
+           
+            if (istestcloud)
+            {
+                sb(" INNER JOIN p29ContactType p29x ON p28x.p29ID=p29x.p29ID");
+                sb(this.AppendCloudQuery(strAppend, "p29x.x01ID"));
+            }
+            else
+            {                
+                sb(strAppend);
+            }
+            
             return sbret();
         }
         public BO.p78UpominkaSdruzena Load(int pid)
         {
-            return _db.Load<BO.p78UpominkaSdruzena>(GetSQL1(" WHERE a.p78ID=@pid"), new { pid = pid });
+            return _db.Load<BO.p78UpominkaSdruzena>(GetSQL1(" WHERE a.p78ID=@pid", _mother.CurrentUser.IsHostingModeTotalCloud), new { pid = pid });
         }
 
         public IEnumerable<BO.p78UpominkaSdruzena> GetList(BO.myQueryP78 mq)
         {
-            DL.FinalSqlCommand fq = DL.basQuery.GetFinalSql(GetSQL1(), mq, _mother.CurrentUser);
+            DL.FinalSqlCommand fq = DL.basQuery.GetFinalSql(GetSQL1(null, _mother.CurrentUser.IsHostingModeTotalCloud), mq, _mother.CurrentUser);
             return _db.GetList<BO.p78UpominkaSdruzena>(fq.FinalSql, fq.Parameters);
         }
 
