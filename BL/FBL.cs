@@ -561,7 +561,7 @@ namespace BL
             string strBakFileName = $"{strDbName}_{(int)DateTime.Now.DayOfWeek}.bak";
             if (_mother.App.HostingMode == Singleton.HostingModeEnum.SharedApp || _mother.App.HostingMode == Singleton.HostingModeEnum.TotalCloud)
             {
-                strDestFolder = "H:\\SQLServer\\MSSQL14.MARKTIME\\MSSQL\\Backup\\_temp";
+                strDestFolder = "H:\\SQLServer\\MSSQL17.MARKTIME\\MSSQL\\Backup\\_temp";
             }
             else
             {

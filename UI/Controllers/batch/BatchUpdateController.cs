@@ -613,8 +613,9 @@ namespace UI.Controllers.batch
                     {
                         if (c.name != null)
                         {
+                            
                             rec.p28CompanyName = c.name;
-                            if (c.pravniforma == "101" && rec.p28IsCompany && c.name.Contains(" "))
+                            if (c.pravniForma == "101" && rec.p28IsCompany && c.name.Contains(" "))
                             {
                                 rec.p28IsCompany = false;
                                 rec.p28CompanyName = null;
