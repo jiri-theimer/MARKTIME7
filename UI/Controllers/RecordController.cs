@@ -35,6 +35,14 @@ namespace UI.Controllers
             }
             return View(v);
         }
+        public IActionResult HtmlEditor(string textareaid, int j02id,string html)
+        {
+            var v = new BaseViewModel();
+            ViewData["textareaid"] = textareaid;
+            ViewData["html"] = html;
+
+            return View(v);
+        }
         public IActionResult NajitText(string field,int j02id)
         {
             var v = new NajitTextViewModel() {field=field, prefix = field.Substring(0,3) };
@@ -61,6 +69,16 @@ namespace UI.Controllers
                     v.gridinput.query = new BO.InitMyQuery(Factory.CurrentUser).Load("p91");
                     v.gridinput.fixedcolumns = "a__p91Invoice__p91Text2,a__p91Invoice__p91Text1,a__p91Invoice__p91Code,a__p91Invoice__p91Client,a__p91Invoice__p91DateSupply,a__p91Invoice__p91Amount_WithoutVat,a__p91Invoice__j27Code";
 
+                    break;
+                case "p90text1":
+                    v.gridinput = new Views.Shared.Components.myGrid.myGridInput() { is_enable_selecting = true, entity = "p90Proforma", master_entity = "inform", ondblclick = "grid_dblclick" };
+                    v.gridinput.query = new BO.InitMyQuery(Factory.CurrentUser).Load("p90");
+                    v.gridinput.fixedcolumns = "a__p90Proforma__p90Text1,a__p90Proforma__p90Code,a__p90Proforma__Client,a__p90Proforma__p90Date,a__p90Proforma__p90Amount";
+                    break;
+                case "p90text2":
+                    v.gridinput = new Views.Shared.Components.myGrid.myGridInput() { is_enable_selecting = true, entity = "p90Proforma", master_entity = "inform", ondblclick = "grid_dblclick" };
+                    v.gridinput.query = new BO.InitMyQuery(Factory.CurrentUser).Load("p90");
+                    v.gridinput.fixedcolumns = "a__p90Proforma__p90Text2,a__p90Proforma__p90Code,a__p90Proforma__Client,a__p90Proforma__p90Date,a__p90Proforma__p90Amount";
                     break;
             }
            

@@ -1,0 +1,85 @@
+﻿@model BaseViewModel
+@inject BL.Factory _f
+
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    string strHtml = null;
+    if (ViewData["html"] != null)
+    {
+        strHtml = (string)ViewData["html"];
+    }
+
+    var _Notepad = new UI.Models.Notepad.EditorViewModel() { HtmlContent = strHtml };
+
+}
+
+@addTagHelper *, UI
+
+@section header_content {
+    <link href="~/lib/froala-editor/css/froala_editor.pkgd.min.css" rel="stylesheet" type="text/css" />
+}
+
+<form id="form1" asp-controller="Record" asp-action="HtmlEditor" method="POST">
+    <div class="bg-light input-group" style="margin-bottom:20px;">
+        
+        <div>
+            <button type="button" onclick="handle_ok()" class="btn btn-success">OK</button>
+        </div>
+        <div>
+            <button type="button" onclick="local_zoom_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+
+
+        </div>
+
+    </div>
+
+ 
+    @Html.EditorFor(m => _Notepad, "~/Views/Shared/_Notepad.cshtml")
+
+
+
+</form>
+
+
+
+
+<script type="text/javascript">
+    
+    const textareaid = "@(ViewData["textareaid"])";
+    
+    function local_zoom_close()
+    {
+        window.parent.document.getElementById("zoom_okno").style.display = "none";
+    }
+
+    function handle_ok() {
+
+        const txt = window.parent.document.getElementById(textareaid);
+        txt.value=document.getElementById("edi1").value;
+
+        if (window.parent.document.getElementById(textareaid+"-html"))
+        {
+            const div=window.parent.document.getElementById(textareaid+"-html");
+            if (_detect_textarea_content(txt.value) == "html")
+            {
+                $(div).html(txt.value);
+            }
+            else
+            {
+                $(div).html("");
+            }
+            
+
+        }
+        
+
+        
+
+        local_zoom_close();
+    }
+
+    
+    
+
+</script>

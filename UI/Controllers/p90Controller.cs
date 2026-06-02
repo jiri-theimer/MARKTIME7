@@ -283,6 +283,26 @@ namespace UI.Controllers
             }
 
         }
-        
+
+
+        public string GetText1(int p90id)
+        {
+            string s = this.Factory.p90ProformaBL.Load(p90id).p90Text1;
+            if (string.IsNullOrEmpty(s))
+            {
+                s = "";
+            }
+            return s;
+        }
+        public string GetText2(int p90id)
+        {
+            string s = this.Factory.p90ProformaBL.Load(p90id).p90Text2;
+            if (string.IsNullOrEmpty(s))
+            {
+                s = "";
+            }
+            return s;
+        }
+
     }
 }

@@ -57,6 +57,12 @@
         if (field == "p91text2") {
             insert_p91text2(pid);
         }
+        if (field == "p90text1") {
+            insert_p90text1(pid);
+        }
+        if (field == "p90text2") {
+            insert_p90text2(pid);
+        }
 
         local_zoom_close();
     }
@@ -98,6 +104,28 @@
         });
 
     }
+    function insert_p90text1(pid) {
+
+        $.post("/p90/GetText1", { p90id: pid }, function (data) {
+            window.parent.document.getElementById("Rec_p90Text1").value = data;
+
+            var txt = window.parent.document.getElementById("Rec_p90Text1");
+
+            handle_resize(txt);
+        });
+
+    }
+    function insert_p90text2(pid) {
+
+        $.post("/p90/GetText2", { p90id: pid }, function (data) {
+            window.parent.document.getElementById("Rec_p90Text2").value = data;
+
+            var txt = window.parent.document.getElementById("Rec_p90Text2");
+
+            handle_resize(txt);
+        });
+
+    }
 
     function insert_p91text2(pid) {
 
@@ -111,6 +139,49 @@
         });
 
     }
+
+
+    function insert_p90text1(pid) {
+
+        $.post("/p90/GetText1", { p90id: pid }, function (data) {
+            window.parent.document.getElementById("Rec_p90Text1").value = data;
+
+            const div=window.parent.document.getElementById("Rec_p90Text1-html");
+            if (_detect_textarea_content(data) != "html")
+            {
+                data=null;
+            }
+            $(div).html(data);
+
+            var txt = window.parent.document.getElementById("Rec_p90Text1");
+
+            
+            handle_resize(txt);
+        });
+
+    }
+
+    function insert_p90text2(pid) {
+
+        $.post("/p90/GetText2", { p90id: pid }, function (data) {
+            
+            window.parent.document.getElementById("Rec_p90Text2").value = data;
+
+            const div=window.parent.document.getElementById("Rec_p90Text2-html");
+            if (_detect_textarea_content(data) != "html")
+            {
+                data=null;            
+            }
+            $(div).html(data);
+
+            var txt = window.parent.document.getElementById("Rec_p90Text2");
+
+
+            handle_resize(txt);
+        });
+
+    }
+
 
 
     function handle_resize(txt)

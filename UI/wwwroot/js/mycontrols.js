@@ -697,3 +697,39 @@ function _najit_text(txt,event, field,j02id) {
     _zoom(event, null, null, w, "Najít text...", "/Record/NajitText?field=" + field+"&j02id="+j02id);
 
 }
+
+function _html_editor(txt, event, textareaid, j02id) {
+    var ofs = $(txt).offset();
+    var w = _device.availWidth - ofs.left;
+    const s = document.getElementById(textareaid).value
+    
+    _zoom(event, null, null, w, "Html editor...", "/Record/HtmlEditor?textareaid=" + textareaid + "&j02id=" + j02id+"&html="+s);
+
+}
+
+
+
+function _detect_textarea_content(textarea) {
+    const text = (typeof textarea === 'string' ? textarea : textarea.value).trim();
+
+    if (!text) return 'empty';
+
+    const htmlPattern = /<([a-zA-Z][a-zA-Z0-9]*)\b[^>]*>(.*?)<\/\1>|<([a-zA-Z][a-zA-Z0-9]*)\b[^>]*\/>/s;
+    const htmlEntities = /&(amp|lt|gt|nbsp|quot|apos|#\d+|#x[0-9a-fA-F]+);/;
+    const doctype = /<!DOCTYPE\s+html/i;
+    const htmlComment = /<!--[\s\S]*?-->/;
+
+    let score = 0;
+
+    if (htmlPattern.test(text)) score += 3;
+    if (htmlEntities.test(text)) score += 2;
+    if (doctype.test(text)) score += 3;
+    if (htmlComment.test(text)) score += 2;
+
+    // Počet tagů
+    const tagCount = (text.match(/<[a-zA-Z][^>]*>/g) || []).length;
+    if (tagCount >= 2) score += 2;
+    if (tagCount >= 5) score += 2;
+
+    return score >= 3 ? 'html' : 'plaintext';
+}

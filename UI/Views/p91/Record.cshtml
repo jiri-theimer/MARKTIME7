@@ -129,6 +129,8 @@
             </div>
             <div id="divcmdFindText1" style="width:100%;" onmouseover="p91text1_mouseover(this)" onmouseout="p91text1_mouseout(this)">
                 <button type="button" id="cmdFindText1" tabindex="-1" class="btn btn-sm btn-light py-0 my-0" style="visibility:hidden;" onclick="_najit_text(this,event,'p91text1',0)">Najít text</button>
+
+                <button type="button" id="cmdHtmlEditorText1" tabindex="-1" class="btn btn-sm btn-light py-0 my-0" style="visibility:hidden;" onclick="_html_editor(this,event,'Rec_p91Text1',0)">Html editor</button>
             </div>
             
 
@@ -138,6 +140,8 @@
             </div>
             <div id="divcmdFindText2" style="width:100%;" onmouseover="p91text2_mouseover(this)" onmouseout="cmdFindText2_mouseout(this)">
                 <button type="button" id="cmdFindText2" tabindex="-1" class="btn btn-sm btn-light py-0 my-0" style="visibility:hidden;" onclick="_najit_text(this,event,'p91text2',0)">Najít text</button>
+
+                <button type="button" id="cmdHtmlEditorText2" tabindex="-1" class="btn btn-sm btn-light py-0 my-0" style="visibility:hidden;" onclick="_html_editor(this,event,'Rec_p91Text2',0)">Html editor</button>
             </div>
             
 
@@ -465,6 +469,7 @@
 
     function p91text1_mouseover(txt) {
         $("#cmdFindText1").css("visibility", "visible");
+        $("#cmdHtmlEditorText1").css("visibility", "visible");
     }
 
     function p91text1_mouseout(txt) {
@@ -476,6 +481,13 @@
         }
         
         $("#cmdFindText1").css("visibility", "hidden");
+
+        btn = document.getElementById("cmdHtmlEditorText1");
+
+        if (btn.matches(":hover")) {
+            return; //myš je nad tlačítkem
+        }
+        $("#cmdHtmlEditorText1").css("visibility", "hidden");
     }
 
 
@@ -483,10 +495,14 @@
     function cmdFindText1_mouseout(cmd) {
         $("#cmdFindText1").css("visibility", "hidden");
     }
+    function cmdHtmlEditorText1_mouseout(cmd) {
+        $("#cmdHtmlEditorText1").css("visibility", "hidden");
+    }
 
 
     function p91text2_mouseover(txt) {
         $("#cmdFindText2").css("visibility", "visible");
+        $("#cmdHtmlEditorText2").css("visibility", "visible");
     }
 
     function p91text2_mouseout(txt) {
@@ -498,12 +514,22 @@
         }
 
         $("#cmdFindText2").css("visibility", "hidden");
+
+        btn = document.getElementById("cmdHtmlEditorText2");
+
+        if (btn.matches(":hover")) {
+            return; //myš je nad tlačítkem
+        }
+        $("#cmdHtmlEditorText2").css("visibility", "hidden");
     }
 
 
 
     function cmdFindText2_mouseout(cmd) {
         $("#cmdFindText2").css("visibility", "hidden");
+    }
+    function cmdHtmlEditorText2_mouseout(cmd) {
+        $("#cmdHtmlEditorText2").css("visibility", "hidden");
     }
 
 </script>
