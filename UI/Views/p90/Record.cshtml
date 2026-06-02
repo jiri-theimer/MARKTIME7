@@ -120,11 +120,10 @@
 
     <div onmouseover="p90text1_mouseover(this)" onmouseout="p90text1_mouseout(this)">
         <div class="form-floating my-2">
-            <textarea class="form-control" asp-for="Rec.p90Text1"></textarea>
-            <label for="Rec_p90Text2">@_f.tra("Text zálohy")</label>
+            <textarea class="form-control" asp-for="Rec.p90Text1" onchange="show_hide_html()"></textarea>
+            <label for="Rec_p90Text1">@_f.tra("Text zálohy")</label>
         </div>
-        <div id="Rec_p90Text1-html" title="HTML text">
-            @Html.Raw(Model.Rec.p90Text1)
+        <div id="Rec_p90Text1-html" title="HTML text">            
         </div>
 
         <div id="divcmdFindText1" style="width:100%;" onmouseover="p90text1_mouseover(this)" onmouseout="p90text1_mouseout(this)">
@@ -138,13 +137,13 @@
     
     
             
-
-    <div class="form-floating my-2" onmouseover="p90text2_mouseover(this)" onmouseout="p90text2_mouseout(this)">
-        <textarea class="form-control" asp-for="Rec.p90Text2"></textarea>
-        <label for="Rec_p90Text2">@_f.tra("Technický text zálohy")</label>
-    </div>
-    <div id="Rec_p90Text2-html" title="HTML text">
-        @Html.Raw(Model.Rec.p90Text2)
+    <div onmouseover="p90text2_mouseover(this)" onmouseout="p90text2_mouseout(this)">
+        <div class="form-floating my-2">
+            <textarea class="form-control" asp-for="Rec.p90Text2" onchange="show_hide_html()"></textarea>
+            <label for="Rec_p90Text2">@_f.tra("Technický text zálohy")</label>
+        </div>
+        <div id="Rec_p90Text2-html" title="HTML text">
+        </div>        
     </div>
     <div id="divcmdFindText2" style="width:100%;" onmouseover="p90text2_mouseover(this)" onmouseout="p90text2_mouseout(this)">
         <button type="button" id="cmdFindText2" tabindex="-1" class="btn btn-sm btn-light py-0 my-0" style="visibility:hidden;" onclick="_najit_text(this,event,'p90text2',0)">Najít text</button>
@@ -209,7 +208,7 @@
 <script type="text/javascript">
     $(document).ready(function () {
 
-       
+       show_hide_html();
         
 
     });
@@ -309,4 +308,24 @@
     }
 
     
+
+    function show_hide_html()
+    {
+        if (_detect_textarea_content(document.getElementById("Rec_p90Text1").value) == "html")
+        {
+            $("#Rec_p90Text1-html").html(document.getElementById("Rec_p90Text1").value);
+        }
+        else
+        {
+            $("#Rec_p90Text1-html").html(null);
+        }
+        if (_detect_textarea_content(document.getElementById("Rec_p90Text2").value) == "html")
+        {
+            $("#Rec_p90Text2-html").html(document.getElementById("Rec_p90Text2").value);
+        }
+        else
+        {
+            $("#Rec_p90Text2-html").html(null);
+        }
+    }
 </script>

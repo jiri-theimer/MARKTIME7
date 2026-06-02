@@ -123,21 +123,30 @@
 
             </div>
 
-            <div class="form-floating" style="margin:0px;padding:0px;" onmouseover="p91text1_mouseover(this)" onmouseout="p91text1_mouseout(this)">
-                <textarea class="form-control" asp-for="Rec.p91Text1"></textarea>
-                <label for="Rec_p91Text1">@_f.tra("Text faktury")</label>
+            <div onmouseover="p91text1_mouseover(this)" onmouseout="p91text1_mouseout(this)">
+                <div class="form-floating" style="margin:0px;padding:0px;">
+                    <textarea class="form-control" asp-for="Rec.p91Text1" onchange="show_hide_html()"></textarea>
+                    <label for="Rec_p91Text1">@_f.tra("Text faktury")</label>
+                </div>
+                <div id="Rec_p91Text1-html" title="HTML text">
+                </div>
             </div>
+            
             <div id="divcmdFindText1" style="width:100%;" onmouseover="p91text1_mouseover(this)" onmouseout="p91text1_mouseout(this)">
                 <button type="button" id="cmdFindText1" tabindex="-1" class="btn btn-sm btn-light py-0 my-0" style="visibility:hidden;" onclick="_najit_text(this,event,'p91text1',0)">Najít text</button>
 
                 <button type="button" id="cmdHtmlEditorText1" tabindex="-1" class="btn btn-sm btn-light py-0 my-0" style="visibility:hidden;" onclick="_html_editor(this,event,'Rec_p91Text1',0)">Html editor</button>
             </div>
             
-
-            <div class="form-floating" style="margin:0px;padding:0px;" onmouseover="p91text2_mouseover(this)" onmouseout="p91text2_mouseout(this)">
-                <textarea class="form-control" asp-for="Rec.p91Text2"></textarea>
-                <label for="Rec_p91Text2">@_f.tra("Technický text faktury")</label>
+            <div onmouseover="p91text2_mouseover(this)" onmouseout="p91text2_mouseout(this)">
+                <div class="form-floating" style="margin:0px;padding:0px;">
+                    <textarea class="form-control" asp-for="Rec.p91Text2" onchange="show_hide_html()"></textarea>
+                    <label for="Rec_p91Text2">@_f.tra("Technický text faktury")</label>
+                </div>
+                <div id="Rec_p91Text2-html" title="HTML text">
+                </div>
             </div>
+            
             <div id="divcmdFindText2" style="width:100%;" onmouseover="p91text2_mouseover(this)" onmouseout="cmdFindText2_mouseout(this)">
                 <button type="button" id="cmdFindText2" tabindex="-1" class="btn btn-sm btn-light py-0 my-0" style="visibility:hidden;" onclick="_najit_text(this,event,'p91text2',0)">Najít text</button>
 
@@ -371,8 +380,7 @@
 <script type="text/javascript">
     $(document).ready(function () {
 
-
-       
+        show_hide_html();
 
 
         $("#cmdLoadClient").click(function () {
@@ -530,6 +538,28 @@
     }
     function cmdHtmlEditorText2_mouseout(cmd) {
         $("#cmdHtmlEditorText2").css("visibility", "hidden");
+    }
+
+
+    function show_hide_html()
+    {
+        if (_detect_textarea_content(document.getElementById("Rec_p91Text1").value) == "html")
+        {
+            $("#Rec_p91Text1-html").html(document.getElementById("Rec_p91Text1").value);
+        }
+        else
+        {
+            $("#Rec_p91Text1-html").html(null);
+        }
+        if (_detect_textarea_content(document.getElementById("Rec_p91Text2").value) == "html")
+        {
+            $("#Rec_p91Text2-html").html(document.getElementById("Rec_p91Text2").value);
+        }
+        else
+        {
+            $("#Rec_p91Text2-html").html(null);
+        }
+       
     }
 
 </script>
