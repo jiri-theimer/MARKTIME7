@@ -186,6 +186,17 @@ namespace UI.Controllers
                         LogInfo(BO.j91RobotTaskFlag.ClearTemp, null, _f.CurrentUser.GetLastMessageNotify());
                     }
 
+                    //nenávratně odstranit temp soubory                    
+                    if (System.IO.Directory.Exists(_f.TempFolder))
+                    {                        
+                        var files = BO.Code.File.GetFileListFromDir(_f.TempFolder, "*.*", SearchOption.AllDirectories, true);
+                        for (int i = 0; i < files.Count(); i++)
+                        {
+                            System.IO.File.Delete(files[i]);
+                        }
+                        BO.Code.File.LogInfo($"DELETE TEMP FOLDER CONTENT: {_f.TempFolder}");
+                    }
+
                 }
 
                 if (v.ManualOper == "backup" || (DateTime.Now.Hour >= 20 && !UzBezelKrok(BO.j91RobotTaskFlag.DbBackup, DateTime.Today)))

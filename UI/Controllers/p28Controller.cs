@@ -1,4 +1,5 @@
 ﻿
+using BL.Code.Isir;
 using DocumentFormat.OpenXml.ExtendedProperties;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
@@ -27,8 +28,8 @@ namespace UI.Controllers
             return Tab1(pid, "info");
         }
         public IActionResult Qrcode(int pid)
-        {           
-            var vcard= Factory.p28ContactBL.GetVcard(pid);
+        {
+            var vcard = Factory.p28ContactBL.GetVcard(pid);
 
             ViewBag.Image = UI.Code.basQRCoder.GenerateContactQrPng(vcard);
             ViewBag.Vcf = vcard;
@@ -208,7 +209,7 @@ namespace UI.Controllers
             }
         }
 
-        public IActionResult Record(int pid, bool isclone, int p29id, bool kontaktniosoba)
+        public async Task<IActionResult> Record(int pid, bool isclone, int p29id, bool kontaktniosoba)
         {
             var v = new p28Record() { rec_pid = pid, rec_entity = "p28", IsCompany = 1, TempGuid = BO.Code.Bas.GetGuid(), UploadGuid = BO.Code.Bas.GetGuid(), SelectedComboOwner = Factory.CurrentUser.FullnameDesc };
             v.BillingMemo = new PellEditorViewModel();
@@ -305,8 +306,37 @@ namespace UI.Controllers
 
 
             }
+            if (v.Rec.p28RegID != null)
+            {
+                //IsirTest(v.Rec.p28RegID, null);
+            }
+
+            IsirTest("7611301588", "rc");
 
             return View(v);
+        }
+
+        public async void IsirTest(string val, string field)
+        {
+            var result = await BL.Code.Isir.IsirCuzk.SearchAsync(val, IsirCuzk.SearchType.Rc);
+            switch (result.Status)
+            {
+                case InsolvencyStatus.NotFound:
+                    this.AddMessageTranslated("Subjekt není v insolvenčním rejstříku.");
+                    break;
+
+                case InsolvencyStatus.Active:
+                    this.AddMessageTranslated("Subjekt má aktivní insolvenční řízení!");
+                    foreach (var c in result.Cases)
+                        this.AddMessageTranslated($"  {c.SpisZnacka} — {c.StavRizeni}");
+                    break;
+
+                case InsolvencyStatus.Closed:
+                    this.AddMessageTranslated("Subjekt měl insolvenční řízení, již ukončené.");
+                    foreach (var c in result.Cases)
+                        this.AddMessageTranslated($"  {c.SpisZnacka} — {c.StavRizeni}");
+                    break;
+            }
         }
 
         private void Handle_LoadRecord(p28Record v)
@@ -341,7 +371,7 @@ namespace UI.Controllers
             }
 
 
-            
+
 
 
             if (v.disp.IsContactMedia)
@@ -408,11 +438,11 @@ namespace UI.Controllers
             v.disp.SetChecked(PosEnum.ContactPersons, true);
             v.disp.SetChecked(PosEnum.Roles, true);
 
-            if (v.RecP29 !=null)
+            if (v.RecP29 != null)
             {
                 if (v.RecP29.p29ScopeFlag == BO.p29ScopeFlagENUM.ContactPerson)
                 {
-                    v.disp.SetChecked(PosEnum.BillingTab, false);                    
+                    v.disp.SetChecked(PosEnum.BillingTab, false);
                     v.disp.SetChecked(PosEnum.ContactPersons, false);
                     v.disp.SetChecked(PosEnum.Roles, false);
                 }
@@ -423,7 +453,7 @@ namespace UI.Controllers
                 }
             }
 
-            
+
 
         }
         private void InhaleRoles(p28Record v)
@@ -495,7 +525,7 @@ namespace UI.Controllers
                     case "p29id":
                         if (v.Rec.p29ID > 0)
                         {
-                            v.RecP29 = Factory.p29ContactTypeBL.Load(v.Rec.p29ID);                                                       
+                            v.RecP29 = Factory.p29ContactTypeBL.Load(v.Rec.p29ID);
                             RefreshState_Record(v, false);
                             InhaleRoles(v);
 
@@ -690,10 +720,10 @@ namespace UI.Controllers
             {
                 Factory.o51TagBL.SaveTagging("p28", c.pid, v.TagPids);
 
-                
 
 
-                if (v.UploadGuid !=null)
+
+                if (v.UploadGuid != null)
                 {
                     Factory.o27AttachmentBL.SaveDropzoneFromTemp(v.UploadGuid, "p28", c.pid);
                 }
