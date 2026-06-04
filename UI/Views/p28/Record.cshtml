@@ -171,7 +171,7 @@
                         <div class="col-sm-5 col-md-4">
                             <div class="input-group">
                                 <input class="form-control" asp-for="Rec.p28RegID" value="@Model.Rec.p28RegID" />
-                                <button type="button" tabindex="-1" id="cmdAresImport" onclick="_postback('ares-ico')" style="display:@(Model.Rec.p28CountryCode == "CZ" || Model.Rec.p28CountryCode == "SK" ? "block" : "none");" title="Naimportovat název firmy, adresu a DIČ z českých a slovenských rejstříků" class="btn bog"><myicon symbol="sync"></myicon> @Model.Rec.p28CountryCode</button>
+                                <button type="button" tabindex="-1" id="cmdAresImport" onclick="_postback('ares-ico')" style="display:@(Model.Rec.p28CountryCode == "CZ" || Model.Rec.p28CountryCode == "SK" ? "block" : "none");" title="Naimportovat název firmy, adresu a DIČ z českých a slovenských rejstříků. U českých subjektů navíc kontrola insolvence" class="btn bog"><myicon symbol="sync"></myicon> @Model.Rec.p28CountryCode</button>
                             </div>
                         </div>
                         <label for="Rec_p28VatID" class="col-sm-1 md-1 col-form-label">@_f.tra("DIČ"):</label>

@@ -306,23 +306,24 @@ namespace UI.Controllers
 
 
             }
-            if (v.Rec.p28RegID != null)
-            {
-                //IsirTest(v.Rec.p28RegID, null);
-            }
-
-            IsirTest("7611301588", "rc");
-
+            
+            
             return View(v);
         }
 
-        public async void IsirTest(string val, string field)
-        {
-            var result = await BL.Code.Isir.IsirCuzk.SearchAsync(val, IsirCuzk.SearchType.Rc);
+        public async void IsirTest(p28Record v)
+        {            
+            var typ = IsirCuzk.SearchType.Ico;
+            string val = v.Rec.p28RegID;
+            if (v.Rec.p28CountryCode !="CZ" || string.IsNullOrEmpty(val))
+            {
+                return;
+            }
+            var result = await BL.Code.Isir.IsirCuzk.SearchAsync(val, typ);
             switch (result.Status)
             {
                 case InsolvencyStatus.NotFound:
-                    this.AddMessageTranslated("Subjekt není v insolvenčním rejstříku.");
+                    this.AddMessageTranslated("Subjekt není v insolvenčním rejstříku.","info");
                     break;
 
                 case InsolvencyStatus.Active:
@@ -546,6 +547,7 @@ namespace UI.Controllers
                         break;
                     case "ares-ico":
                         Handle_Load_Profile_ByRejstrik(v, "ico", v.Rec.p28RegID);
+                        IsirTest(v);
                         break;
                     case "ares-dic":
                         Handle_Load_Profile_ByRejstrik(v, "dic", v.Rec.p28VatID);
