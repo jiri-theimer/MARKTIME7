@@ -78,7 +78,7 @@ namespace BL.Code
             bool bolForeignInvoice = false; double dblExchangeRate = 1;
 
             var faktura = new invoice() { version = "2.0" };
-            var hlavicka = new invoiceInvoiceHeader() { symVar = BO.Code.Bas.RemoveDiacritics(rec.p91Code), symConst = "0308", date = rec.p91Date };
+            var hlavicka = new invoiceInvoiceHeader() { symVar = BO.Code.Bas.remove_alphacharacters(rec.p91Code), symConst = "0308", date = rec.p91Date };
             if (rec.j27ID != rec.j27ID_Domestic)
             {
                 bolForeignInvoice = true;

@@ -471,6 +471,10 @@ namespace BO.Code
 
         }
 
+        public static string remove_alphacharacters(string input)
+        {
+            return new string(input.Where(c => char.IsDigit(c)).ToArray());
+        }
         public static string RemoveDiacritics(string input)
         {
             if (input == null)

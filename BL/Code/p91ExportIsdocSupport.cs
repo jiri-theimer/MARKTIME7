@@ -304,10 +304,10 @@ namespace BL.Code
             lis.Add($"<Name>{rec.p86BankName}</Name>");
             lis.Add($"<IBAN>{rec.p86IBAN}</IBAN>");
             lis.Add($"<BIC>{rec.p86SWIFT}</BIC>");
-            lis.Add($"<VariableSymbol>{BO.Code.Bas.RemoveDiacritics(rec.p91Code)}</VariableSymbol>");
+            lis.Add($"<VariableSymbol>{BO.Code.Bas.remove_alphacharacters(rec.p91Code)}</VariableSymbol>");
             lis.Add($"<ConstantSymbol></ConstantSymbol>");
             lis.Add($"<SpecificSymbol></SpecificSymbol>");
-
+           
             return $"<Details>{System.Environment.NewLine}{string.Join(System.Environment.NewLine, lis)}{System.Environment.NewLine}</Details>";
         }
 
