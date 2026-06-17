@@ -1,0 +1,123 @@
+﻿@model UI.Models.p31approve.GatewayViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = _f.tra("Brána do schvalování nevyúčtovaných úkonů");
+
+    Model.PageSymbol = "approval";
+
+
+}
+
+@addTagHelper *, UI
+
+
+
+
+<form id="form1" asp-controller="p31approveinput" asp-action="Index" method="POST">
+    <div class="input-group my-2">
+        <div>
+            <button type="button" id="cmdContinue" class="btn btn-primary" onclick="_submit()">@_f.tra("Pokračovat")</button>
+        </div>
+        <div style="margin-left:10px;">
+            <select asp-for="p31statequery" class="form-select" onchange="_postback('p31statequery')">
+                <option value="1">@_f.tra("Rozpracované (Čeká na schvalování)")</option>
+                <option value="3">@_f.tra("Nevyúčtované (Rozpracované/Schválené)")</option>
+                <option value="4">@_f.tra("Schválené (Čeká na vyúčtování)")</option>
+                <optgroup label="-------------------"></optgroup>
+                <option value="5">@_f.tra("Schválené jako [Fakturovat]")</option>
+                <option value="6">@_f.tra("Schválené jako [Zahrnout do paušálu]")</option>
+                <option value="7">@_f.tra("Schválené jako [Skrytý/Viditelný odpis]")</option>
+                <option value="8">@_f.tra("Schválené jako [Fakturovat později]")</option>
+                <option value="9">@_f.tra("Neschválené")</option>
+            </select>
+        </div>
+        @if (_f.CurrentUser.IsMobileDisplay())
+        {
+            <myshowmore classname_target="gogo"></myshowmore>
+        }
+        
+        <div class="gogo" style="margin-left:20px;">
+            @await Component.InvokeAsync("myPeriod",Model.periodinput)
+        </div>
+        
+        <div class="gogo">
+            <select asp-for="p31tabquery" class="form-select" onchange="_postback('refresh')">
+                <option value="">--@_f.tra("Formát úkonů")--</option>
+                <option value="time">@_f.tra("Hodiny")</option>
+                <option value="kusovnik">@_f.tra("Kusovník")</option>
+                <option value="expense">@_f.tra("Peněžní výdaje")</option>
+                <option value="fee">@_f.tra("Pevné odměny")</option>
+            </select>
+        </div>
+
+        <div class="gogo" style="margin-left:20px;">
+            <input type="checkbox" asp-for="IsSkipGateway" onchange="save_skip(this)" />
+            <label for="IsSkipGateway">@_f.tra("Příště přeskočit tuto úvodní stránku")</label>
+        </div>
+
+        <div class="gogo" style="margin-left:20px;">
+            <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
+        </div>
+
+       
+    </div>
+
+
+    <input type="hidden" asp-for="p31guid" />
+    <input type="hidden" asp-for="guid_pids" />
+    <input type="hidden" asp-for="guid_grid_p31" />
+    <input type="hidden" asp-for="prefix" />
+    <input type="hidden" asp-for="pidsinline" />
+
+    <input type="hidden" asp-for="approvinglevel" />
+
+    <input type="hidden" asp-for="p91id" />
+    <input type="hidden" asp-for="p72id" />
+    
+
+
+</form>
+
+
+@await Component.InvokeAsync("myGrid",Model.gridinput)
+
+
+
+
+<script type="text/javascript">
+    var _ismobile = "@_f.CurrentUser.IsMobileDisplay()";
+    var _isskip = "@Model.IsSkipGateway";
+
+    $(document).ready(function () {
+
+        $("#p31statequery").val("@Model.p31statequery");
+
+        if (_ismobile == "True")
+        {
+            $(".gogo").css("display", "none");
+        }
+
+        if (_isskip == "True")
+        {
+            form1.submit();
+        }
+        
+
+    })
+   
+    
+    function reload() {
+        _postback("reload");
+
+    }
+
+    function save_skip(chk)
+    {
+        var val = $(chk).prop("checked");
+        $.post(_ep("/Common/SetUserParam"), { key: "approve-index-IsSkipGateway", value: val }, function (data) {
+            _notify_message("Uloženo. Volbu můžete později změnit ve svém nastavení schvalovacího rozhraní.", "info");
+        });
+    }
+</script>

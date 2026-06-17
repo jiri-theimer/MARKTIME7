@@ -1,0 +1,162 @@
+﻿@model UI.Models.Record.o27Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = "FILEBOX " + _f.tra("Záznam");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+}
+
+@addTagHelper *, UI
+
+
+@if (Model.Notepad !=null)
+{
+    @section header_content {
+        <link href="~/lib/froala-editor/css/froala_editor.pkgd.min.css" rel="stylesheet" type="text/css" />
+    }
+}
+
+
+
+@Html.Raw("<div class='modal_record_container'>")
+
+
+
+<div class="row">
+    <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Uživatelský název"):</label>
+    <div class="col-sm-7 col-md-6">
+        <input class="form-control record_name" asp-for="Rec.o27Name" />
+    </div>
+
+</div>
+
+<div class="card" style="margin-top:10px;max-width:700px;">
+    <div class="card-body">
+        @await Html.PartialAsync("~/Views/Shared/_o27RecHeaderBox.cshtml", Model.Rec)
+
+        @if (Model.Rec.o27RecordPid > 0 && Model.Rec.o27Entity != null && (_f.CurrentUser.j02ID == Model.Rec.j02ID_Owner || _f.CurrentUser.TestPermission(BO.PermValEnum.GR_o27_Owner)))
+        {
+            <button type="button" onclick="VycistitVazbu(@Model.Rec.pid)" class="btn btn-sm btn-warning">
+                <span class="material-icons-outlined-nosize">cancel</span>
+                @_f.tra("Vyčistit vazbu")
+            </button>
+        }
+
+
+        @Html.EditorFor(m => m.Rec, "~/Views/Shared/_TimeStamp.cshtml")
+    </div>
+</div>
+
+
+    
+<div class="tabs_container_record">
+    <!-- Tab panes -->
+    <ul class="nav nav-tabs" role="tablist">
+        @if (Model.Rec.IsMail)
+        {
+            <li class="nav-item onetab" role="presentation">
+                <a id="link_tab1" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab1">TEXT</a>
+            </li>
+            <li class="nav-item onetab" role="presentation" id="litab2">
+                <a id="link_tab2" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab2">HTML</a>
+            </li>
+            @if(Model.Notepad != null)
+            {
+                <li class="nav-item onetab" role="presentation" id="litab3">
+                    <a id="link_tab3" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab3">@_f.tra("Poznámka")</a>
+                </li>
+            }
+
+        }
+        else
+        {
+            @if(Model.Notepad != null)
+            {
+                <li class="nav-item onetab" role="presentation" id="litab1">
+                    <a id="link_tab1" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab1">@_f.tra("Poznámka")</a>
+                </li>
+            }
+            
+        }
+
+
+    </ul>
+</div>
+
+
+
+<div class="tab-content">
+    @if (Model.Rec.IsMail)
+    {
+        <div class="tab-pane" id="tab1" role="tabpanel">
+            <textarea readonly="readonly" class="form-control" style="margin-top:20px;">@Html.Raw(Model.Rec.o27MailBodyText)</textarea>
+            
+        </div>
+
+        <div class="tab-pane" id="tab2" role="tabpanel">
+            <iframe id="mailbody1" src="/o27/MailBodyHtml?pid=@Model.rec_pid" style="width:99%;height:450px;"></iframe>
+        </div>
+        
+            @if (Model.Notepad != null)
+            {
+            <div class="tab-pane" id="tab3" role="tabpanel">
+                @Html.EditorFor(m => m.Notepad, "~/Views/Shared/_Notepad.cshtml")
+            </div>
+            }
+        
+    }
+    else
+    {
+        
+            @if (Model.Notepad != null)
+            {
+            <div class="tab-pane" id="tab1" role="tabpanel">
+                @Html.EditorFor(m => m.Notepad, "~/Views/Shared/_Notepad.cshtml")
+            </div>
+            }
+        
+    }
+
+</div>
+
+
+    
+       
+
+
+
+
+@Html.Raw("</div>")
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+    $(document).ready(function () {
+
+
+       
+
+    });
+
+
+    
+
+    function VycistitVazbu(o27id)
+    {
+        if (confirm("Opravdu vyčistit vazbu?"))
+        {
+            _postback("vycistit-vazbu");
+        }
+        
+    }
+</script>

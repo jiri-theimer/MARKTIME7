@@ -1,0 +1,130 @@
+﻿@model UI.Models.Record.p89Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Typ zálohy");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    Model.PageSymbol = "settings";
+}
+
+@addTagHelper *, UI
+
+<div class="modal_record_container">
+
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název"):</label>
+        <div class="col-sm-11 col-md-10">
+            <input class="form-control record_name" asp-for="Rec.p89Name" />
+        </div>
+
+    </div>
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Číselná řada dokladu"):</label>
+        <div class="col-sm-11 col-md-10">
+            <mycombo entity="x38CodeLogic" asp-for="Rec.x38ID" selectedtext="@Model.ComboX38Name" myqueryinline="x38entity|string|p90"></mycombo>
+        </div>
+
+    </div>
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Vystavovatel zálohy"):</label>
+        <div class="col-sm-11 col-md-10">
+            <mycombo entity="p93InvoiceHeader" asp-for="Rec.p93ID" selectedtext="@Model.ComboP93Name"></mycombo>
+        </div>
+
+    </div>
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Výchozí tisková sestava"):</label>
+        <div class="col-sm-11 col-md-10">
+            <mycombo entity="x31Report" asp-for="Rec.x31ID" selectedtext="@Model.ComboX31Name" myqueryinline="entity|string|p90"></mycombo>
+        </div>
+
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Šablona e-mail zprávy"):</label>
+        <div class="col-sm-11 col-md-10">
+            <mycombo entity="j61TextTemplate" asp-for="Rec.j61ID" selectedtext="@Model.ComboJ61Name" myqueryinline="entity|string|p90"></mycombo>
+        </div>
+
+    </div>
+   
+
+    <div class="card">
+        <div class="card-header">
+            @_f.tra("Doklad o přijaté úhradě zálohy")
+        </div>
+        <div class="card-body">
+            <div class="row my-2">
+                <label class="col-sm-2 col-md-3 col-form-label">@_f.tra("Číselná řada daňového dokladu úhrady"):</label>
+                <div class="col-sm-10 col-md-9">
+                    <mycombo entity="x38CodeLogic" asp-for="Rec.x38ID_Payment" selectedtext="@Model.ComboX38Name_Payment" myqueryinline="x38entity|string|p82"></mycombo>
+                </div>
+
+            </div>
+            <div class="row my-2">
+                <label class="col-sm-2 col-md-3 col-form-label">@_f.tra("Výchozí tisková sestava"):</label>
+                <div class="col-sm-10 col-md-9">
+                    <mycombo entity="x31Report" asp-for="Rec.x31ID_Payment" selectedtext="@Model.ComboX31Name_Payment" myqueryinline="entity|string|p82"></mycombo>
+                </div>
+
+            </div>
+        </div>
+    </div>
+  
+    
+
+    <div class="form-floating my-2">
+        <textarea class="form-control" asp-for="Rec.p89DefaultText1"></textarea>
+        <label for="Rec_p89DefaultText1">@_f.tra("Výchozí text zálohy")</label>
+    </div>
+    <div class="form-floating my-2">
+        <textarea class="form-control" asp-for="Rec.p89DefaultText2"></textarea>
+        <label for="Rec_p89DefaultText2">@_f.tra("Výchozí technický text zálohy")</label>
+    </div>
+    
+
+    @Html.EditorFor(m => m.creates, "~/Views/Shared/_CreateAssign.cshtml")
+
+
+    <div class="card my-2">
+        <div class="card-header">
+            @_f.tra("Výchozí Rozšíření karty zálohy")
+        </div>
+        <div class="card-body">
+            <div class="row my-2">
+
+             
+
+                <div class="col-md">
+                    <label>@_f.tra("Nahrávání příloh v kartě zálohy"):</label>
+                    @Html.EditorFor(m => m.Rec.p89FilesTab, "~/Views/Shared/_BitStreamFlag.cshtml")
+                </div>
+
+                <div class="col-md">
+                    <label>@_f.tra("Role a oprávnění"):</label>
+                    @Html.EditorFor(m => m.Rec.p89RolesTab, "~/Views/Shared/_BitStreamFlag.cshtml")
+                </div>
+            </div>          
+
+        </div>
+    </div>
+
+
+</div>
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+      
+
+
+    });
+
+
+
+
+</script>

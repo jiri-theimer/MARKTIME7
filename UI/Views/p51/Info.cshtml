@@ -1,0 +1,138 @@
+﻿@model UI.Models.Tab1.BaseTab1ViewModel
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+
+
+
+    BO.p51PriceList _rec = _f.p51PriceListBL.Load(Model.pid);
+
+    IEnumerable<BO.p52PriceList_Item> _lisP52 = _f.p51PriceListBL.GetList_p52(_rec.pid);
+
+
+}
+
+@addTagHelper *, UI
+
+
+
+@Html.Raw("<div class='info_record_container'>")
+
+<table style="width:90%;">
+    <tr>
+        <td>
+            <h4>Ceník sazeb</h4>
+        </td>
+        <td>
+            @if (_f.CurrentUser.IsAdmin)
+            {
+                <a href="javascript:_edit('p51',@Model.pid)">@_f.tra("Karta ceníku")</a>
+            }
+        </td>
+    </tr>
+</table>
+
+
+
+
+
+<table class="table table-sm table-hover">
+    <tr>
+        <td style="width:100px;">
+            Typ:
+        </td>
+        <td style="font-weight:bold;">
+            @(_rec.TypeAlias)
+
+            @if (_rec.p51IsCustomTailor)
+            {
+                <span class="badge-light">Individuální sazby na míru</span>
+            }
+
+        </td>
+    </tr>
+    
+    <tr>
+        <td>
+            Název:
+        </td>
+        <td style="font-weight:bold;">
+            @(_rec.p51Name)
+
+        </td>
+    </tr>
+    
+    <tr>
+        <td>
+            Výchozí sazba:
+        </td>
+        <td>
+            @(BO.Code.Bas.Number2String(_rec.p51DefaultRateT))
+            <span class="badge-light">
+                @(_rec.j27Code)
+            </span>
+        </td>
+    </tr>
+
+    <tr>
+        <td>
+            Časová platnost:
+        </td>
+        <td>
+            @($"{BO.Code.Bas.ObjectDate2String(_rec.ValidFrom)} - {BO.Code.Bas.ObjectDate2String(_rec.ValidUntil)}")
+
+        </td>
+    </tr>
+
+
+</table>
+
+
+<div>Výjiky z výchozí sazby:</div>
+
+<table class="table table-sm table-hover">
+    <tr>
+        <th class="tdnum">Sazba</th>
+        <th>Jméno</th>
+        <th>Pozice</th>
+        <th>Aktivita</th>
+        <th>Sešit</th>
+    </tr>
+    @foreach (var c in _lisP52)
+    {
+        <tr>
+            <td class="tdnum">
+                @c.p52Rate
+
+                @_rec.j27Code
+            </td>
+            <td style="width:150px;">
+                @c.Person
+            </td>
+            <td style="width:100px;">
+                @c.j07Name
+            </td>
+            <td style="width:200px;">
+                @c.p32Name
+            </td>
+            <td>
+                @if (!c.p52IsPlusAllTimeSheets)
+                {
+                    @c.p34Name
+                }
+                
+            </td>
+        </tr>
+    }
+</table>
+
+
+
+
+
+
+@Html.Raw("</div>")
+
+

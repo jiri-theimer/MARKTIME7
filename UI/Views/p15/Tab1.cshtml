@@ -1,0 +1,95 @@
+﻿@model UI.Models.Tab1.p15Tab1
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+    if (Model.Rec == null) return;
+
+
+    var _NotepadLookAt = new UI.Models.Notepad.LookAtViewModel() { IsTab1 = true, prefix = "p15", pid = Model.Rec.pid, NotepadContent = Model.Rec.p15Notepad, x04ID = Model.Rec.x04ID };
+
+    UI.Models.Tab1.BaseTab1ViewModel _tabWeather = new UI.Models.Tab1.BaseTab1ViewModel() { prefix = "p15", pid = Model.Rec.pid };
+}
+
+@addTagHelper *, UI
+
+
+
+@Html.Raw("<div class='info_record_container'>")
+
+
+<div class="card recpagebox400">
+    <div class="card-body">
+
+        <table class="table table-hover">
+            <tr>
+                <td colspan="2" class="@(Model.Rec.isclosed ? "tdarchiv": "tdval")">
+                    @Model.Rec.p15Name
+
+                    @if (Model.Rec.p15Latitude > 0)
+                    {
+                        <a target="_blank" style="margin-left:6px;" href="@(Model.Rec.getMapUrlClassic())">Mapa</a>
+                    }
+                </td>
+            </tr>
+
+           
+            <tr>
+                <td class="tdlab">
+                    @_f.tra("Ulice"):
+                </td>
+                <td class="tdval">
+                    <myval value="@Model.Rec.p15Street"></myval>
+
+                </td>
+            </tr>
+           
+            <tr>
+                <td class="tdlab">
+                    @_f.tra("Město"):
+                </td>
+                <td class="tdval">
+                    <myval value="@Model.Rec.p15City"></myval>
+
+                </td>
+            </tr>
+            <tr>
+                <td class="tdlab">
+                    @_f.tra("PSČ"):
+                </td>
+                <td class="tdval">
+                    <myval value="@Model.Rec.p15PostCode"></myval>
+
+                </td>
+            </tr>
+            <tr>
+                <td class="tdlab">
+                    @_f.tra("Stát"):
+                </td>
+                <td class="tdval">
+                    <myval value="@Model.Rec.p15Country"></myval>
+
+                </td>
+            </tr>
+            
+           
+        </table>
+
+
+
+    </div>
+</div>
+
+
+
+
+@await Html.PartialAsync("~/Views/Shared/_WeatherBox.cshtml",_tabWeather)
+
+
+
+@Html.Raw("</div>")
+
+<div style="clear:both;"></div>
+
+@Html.EditorFor(m => _NotepadLookAt, "~/Views/Shared/_NotepadRO.cshtml")

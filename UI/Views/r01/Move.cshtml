@@ -1,0 +1,282 @@
+﻿@model UI.Models.capacity.MoveViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = _f.tra("Změnit/Posunout plán období projektu") + ": " + Model.RecP41.FullName;
+
+
+    Model.PageSymbol = "online_prediction";
+
+
+}
+
+@addTagHelper *, UI
+
+@section header_content{
+
+    <link rel="stylesheet" href="~/css/capacity.css" />
+
+}
+
+<div>
+    <ul class="nav nav-tabs">
+        <li class="onetab">
+            <a class="nav-link" href="/r01/ProjectPlan?p41id=@Model.p41ID">@_f.tra("Kapacitní plán projektu")</a>
+        </li>
+        <li class="onetab">
+            <a class="nav-link" href="/r01/ProjectResources?p41id=@Model.p41ID">@_f.tra("Personální zdroje pro plánování")</a>
+        </li>
+        <li class="onetab">
+            <a class="nav-link active" href="/r01/Move?p41id=@Model.p41ID">@_f.tra("Posunout plán období")</a>
+        </li>
+        <li style="margin-left:40px;">
+            <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
+        </li>
+        <li style="margin-left:20px;">
+            @Html.DisplayFor(m => m.RecP41, "~/Views/Shared/_ProjectPlanPeriod.cshtml")
+        </li>
+    </ul>
+</div>
+
+
+<div class="bg-light input-group">
+    <div style="margin:10px;">
+        <button type="button" id="cmdSave" class="btn btn-success" onclick="_submit()"><span class="material-icons-outlined-btn">done</span>@_f.tra("Uložit změny")</button>
+    </div>
+
+</div>
+
+
+
+
+<form id="form1" asp-controller="r01" asp-action="Move" method="POST">
+    <div style="padding:10px;">
+        <table class="table" style="table-layout: fixed;width:95%;">
+            <tr style="background-color:aliceblue;">
+                <th style="width:120px;">
+
+                </th>
+                <th style="width:120px;">
+                    @_f.tra("Plán zahájení")
+                </th>
+                <th style="width:50px;"></th>
+                <th style="width:120px;">
+                    @_f.tra("Plán dokončení")
+                </th>
+                <th style="width:50px;"></th>
+                <th></th>
+            </tr>
+            <tr>
+                <td>
+                    Původně:
+                </td>
+                <td style="text-align:center;">
+                    <myval value="@Model.d1_orig" datatype="date"></myval>
+
+                    <input type="hidden" asp-for="d1_orig" />
+                </td>
+                <td>
+                    <code>[dp1]</code>
+                </td>
+                <td style="text-align:center;">
+                    <myval value="@Model.d2_orig" datatype="date"></myval>
+
+                    <input type="hidden" asp-for="d2_orig" />
+                </td>
+                <td>
+                    <code>[dp2]</code>
+                </td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>
+                    Nově:
+                </td>
+                <td>
+                    <mydate asp-for="d1"></mydate>
+
+                </td>
+                <td><code>[dn1]</code></td>
+                <td>
+                    <mydate asp-for="d2"></mydate>
+
+                </td>
+                <td><code>[dn2]</code></td>
+                <td>
+
+                    <button type="button" class="btn btn-sm bog" onclick="posun('month_minus')"><myicon symbol="remove_circle_outline"></myicon> měsíc</button>
+                    <button type="button" class="btn btn-sm bog" onclick="posun('month_plus')"><myicon symbol="add_circle_outline"></myicon> měsíc</button>
+                </td>
+            </tr>
+
+        </table>
+    </div>
+
+    <div style="margin:10px;">
+        <button type="button" class="btn bog" onclick="_postback('posunout')"><myicon symbol="sync"></myicon>Posunout záznamy plánů <code>[dn1]-[dp1]</code></button>
+
+        <button type="button" class="btn bog" onclick="_postback('narovnat')"><myicon symbol="sync"></myicon>Narovnat záznamy plánů na celé plán období</button>
+        <button type="button" class="btn bog" onclick="_postback('zleva')"><myicon symbol="sync"></myicon>Narovnat záznamy plánů zleva</button>
+
+    </div>
+    <input type="hidden" asp-for="p41ID" />
+    <input type="hidden" asp-for="r02ID" />
+
+
+
+    <table id="tab1" class="table table-hover" style="table-layout: fixed;width:95%;">
+        <tr style="background-color:aliceblue">
+            <th style="width:150px;">
+                @_f.tra("Personální zdroj")
+            </th>
+
+            <th style="width:120px;text-align:center;">
+                Původně Od
+            </th>
+            <th style="width:120px;text-align:center;">
+                Původně Do
+            </th>
+
+            <th style="width:120px;text-align:center;">
+                Nově Od
+            </th>
+            <th style="width:120px;text-align:center;">
+                Nově Do
+            </th>
+            @if (Model.IsUseFaNefa)
+            {
+                <th style="width:80px;">
+                    Fa
+                </th>
+                <th style="width:80px;">
+                    Nefa
+                </th>
+            }
+            else
+            {
+                <th style="width:80px;">
+                    Plán
+                </th>
+            }
+
+            <th style="width:140px;">
+
+            </th>
+            <th></th>
+
+        </tr>
+        @for (int i = 0; i < Model.lisItems.Count; i++)
+        {
+            <tr style="@Model.lisItems[i].CssTempDisplay">
+                <td>
+                    <input type="hidden" asp-for="@Model.lisItems[i].j02id" />
+                    <input type="hidden" asp-for="@Model.lisItems[i].Person" />
+                    <input type="hidden" asp-for="@Model.lisItems[i].p41id" />
+                    <input type="hidden" asp-for="@Model.lisItems[i].r01id" />
+                    <input type="hidden" asp-for="@Model.lisItems[i].Project" />
+                    <input type="hidden" asp-for="@Model.lisItems[i].Client" />
+
+                    <input type="hidden" asp-for="lisItems[i].IsTempDeleted" value="@Model.lisItems[i].IsTempDeleted" />
+                    <input type="hidden" asp-for="lisItems[i].TempGuid" value="@Model.lisItems[i].TempGuid" />
+
+                    <span>@Model.lisItems[i].Person</span>
+
+
+                </td>
+
+                <td>
+
+                    <myval value="@Model.lisItems[i].d1_orig" datatype="date"></myval>
+                    <input type="hidden" asp-for="@Model.lisItems[i].d1_orig">
+                </td>
+                <td>
+                    <myval value="@Model.lisItems[i].d2_orig" datatype="date"></myval>
+                    <input type="hidden" asp-for="@Model.lisItems[i].d2_orig">
+                </td>
+
+                <td>
+                    <mydate asp-for="@Model.lisItems[i].d1"></mydate>
+                </td>
+                <td>
+                    <mydate asp-for="@Model.lisItems[i].d2"></mydate>
+                </td>
+                <td>
+                    <mynumber asp-for="@Model.lisItems[i].HoursFa" decimal-digits="0"></mynumber>
+                </td>
+                @if (Model.IsUseFaNefa)
+                {
+
+                    <td>
+                        <mynumber asp-for="@Model.lisItems[i].HoursNeFa" decimal-digits="0"></mynumber>
+                    </td>
+                }
+
+                <td>
+                    @Html.EditorFor(m => m.lisItems[i].Color, "~/Views/Shared/_ColorCombo.cshtml")
+                </td>
+
+
+                <td></td>
+
+
+
+            </tr>
+        }
+    </table>
+
+</form>
+
+
+
+
+
+
+
+
+<script type="text/javascript">
+    var _p41id = "@Model.p41ID";
+
+
+    $(document).ready(function () {
+
+
+
+        $("#cmdPeriod").click(function () {
+            $("#divPeriod").toggle();
+        });
+
+
+
+
+    });
+
+    function get_days_in_month(year, month) {
+        return new Date(year, month, 0).getDate();
+    }
+
+    function posun(s) {
+        
+        $.post("/r01/PosunoutDatum", { d: $("#d1helper").val(), s: s }, function (data) {
+            datepicker_set_value("d1", data);
+        });
+
+        $.post("/r01/PosunoutDatum", { d: $("#d2helper").val(), s: s }, function (data) {
+            datepicker_set_value("d2", data);
+        });
+
+        
+
+
+    }
+
+
+
+    function hardrefresh(pid, flag) {
+        _postback("refresh");
+    }
+
+
+
+
+</script>

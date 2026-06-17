@@ -1,0 +1,93 @@
+﻿@model UI.Models.BaseViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    var d0 = DateTime.Today;
+    int _intJ02ID = BO.Code.Bas.InInt(UI.Code.basUI.GetQueryValue(Context, "j02id"));
+    if (_intJ02ID == 0)
+    {
+        _intJ02ID = _f.CurrentUser.pid;
+    }
+    var recJ02 = _f.j02UserBL.Load(_intJ02ID);
+
+    
+
+    var _model1 = new UI.Models.p31view.calendarViewModel() { d0 = d0, j02ID = _intJ02ID, RecJ02 = recJ02, m0 = d0.Month, y0 = d0.Year };
+    _model1.d1 = new DateTime(d0.Year, d0.Month, 1);
+    _model1.d2 = _model1.d1.AddMonths(1).AddDays(-1);
+    _model1.StatTotalsByPrefix = _f.CBL.LoadUserParam("p31calendar-totalsby", "p28");
+    _model1.CurrentView = UI.Models.p31view.CalendarViewEnum.Month;
+
+    var mq = new BO.myQueryP31() { j02id = _intJ02ID, global_d1 = _model1.d1, global_d2 = _model1.d2 };
+    _model1.lisP31 = _f.p31WorksheetBL.GetList(mq).OrderBy(p => p.p31DateTimeFrom_Orig);
+    
+    
+}
+
+@addTagHelper *, UI
+
+<link rel="stylesheet" href="~/css/calendar.css" />
+
+
+@Html.EditorFor(m => _model1, "~/Views/Shared/_CalendarPanel.cshtml")
+
+
+<script type="text/javascript">
+    var _j02id = "@_intJ02ID";
+    var _m1 = "@_model1.d1.Month";
+    var _y1 = "@_model1.d1.Year";
+
+    function p31bystat(prefix, pid) {        
+        
+
+        var url = "/p31/Record?j02id=" + _j02id + "&newrec_prefix=" + prefix + "&newrec_pid=" + pid;
+        
+        window.parent._window_open(url);
+    }
+
+    function zoom_alldays(ctl) {
+        var url = "/p31dayline/Zoom?j02id=" + _j02id + "&m=" + _m1 + "&y=" + _y1;
+
+        window.parent._window_open(url);
+
+    }
+
+    function zoom_stat(ctl, p32isbillable, iswip, p70id, isapproved_and_wait4invoice, p28id, p41id, p32id) {
+        var url = "/p31dayline/Zoom?j02id=" + _j02id + "&m=" + _m1 + "&y=" + _y1;
+
+        if (p32isbillable != undefined || p32isbillable != null) {
+            url = url + "&p32isbillable=" + p32isbillable;
+        }
+        if (iswip != undefined || iswip != null) {
+            url = url + "&iswip=" + iswip;
+        }
+        if (isapproved_and_wait4invoice != undefined || isapproved_and_wait4invoice != null) {
+            url = url + "&isapproved_and_wait4invoice=" + isapproved_and_wait4invoice;
+        }
+        if (p70id != undefined || p70id != null) {
+            url = url + "&p70id=" + p70id;
+        }
+        if (p28id != undefined || p28id != null) {
+            url = url + "&p28id=" + p28id;
+        }
+        if (p41id != undefined || p41id != null) {
+            url = url + "&p41id=" + p41id;
+        }
+        if (p32id != undefined || p32id != null) {
+            url = url + "&p32id=" + p32id;
+        }
+        
+        window.parent._window_open(url);
+    }
+
+    function reload_totalsby(opg) {
+
+        $.post(_ep("/Common/SetUserParam"), { key: "p31calendar-totalsby", value: opg.value }, function (data) {
+            location.replace(location.href);
+
+        });
+
+
+    }
+</script>

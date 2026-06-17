@@ -1,0 +1,78 @@
+﻿@model UI.Models.Record.o58Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Doplňující parametr");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    Model.PageSymbol = "settings";
+}
+
+@addTagHelper *, UI
+
+<div class="modal_record_container">
+
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název"):</label>
+        <div class="col-sm-8 col-md-7">
+            <input class="form-control record_name" asp-for="Rec.o58Name" />
+        </div>
+        <label class="col-sm-1 col-md-1 col-form-label">#@_f.tra("Pořadí"):</label>
+        <div class="col-sm-1 col-md-1">
+            <mynumber asp-for="Rec.o58Ordinary" class="record_ordinary" decimal-digits="0"></mynumber>
+        </div>
+
+    </div>
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Entita"):</label>
+        <div class="col-sm-2 col-md-2">
+            <select asp-for="Rec.o58Entity" class="form-select">
+                <option></option>
+                <option value="p32">@_f.tra("Aktivita")</option>
+                <option value="p95">@_f.tra("Fakturační oddíl")</option>
+                <option value="p92">@_f.tra("Typ faktury")</option>
+                <option value="o42">@_f.tra("Imap pravidlo")</option>
+                <option value="x55">@_f.tra("Widget")</option>
+                <option value="p56">@_f.tra("Úkol")</option>
+                <option value="o22">@_f.tra("Termín/Lhůta")</option>
+                <option value="p41">@_f.tra("Projekt")</option>
+                <option value="p28">@_f.tra("Kontakt")</option>
+                <option value="p91">@_f.tra("Vyúčtování")</option>
+                <option value="p84">@_f.tra("Upomínka")</option>
+                <option value="o23">@_f.tra("Dokument")</option>
+                <option value="p90">@_f.tra("Záloha")</option>
+                <option value="j02">@_f.tra("Uživatel")</option>
+                <option value="p31">@_f.tra("Úkon")</option>
+                <option value="p94">@_f.tra("Úhrada vystavené faktury")</option>
+                <option value="p78">@_f.tra("Hromadná upomínka")</option>
+            </select>
+        </div>
+        <label class="col-auto col-form-label">@_f.tra("Kód"):</label>
+        <div class="col-sm-2 col-md-2">
+            <input class="form-control record_code" asp-for="Rec.o58Key" />
+        </div>
+
+    </div>
+
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Datový formát"):</label>
+        <div class="col-sm-11 col-md-10">
+            <select asp-for="Rec.x24ID" class="form-select">
+                <option value="tString">@_f.tra("String (libovolný text)")</option>
+                <option value="tInteger">@_f.tra("Integer (celé číslo)")</option>
+                <option value="tDecimal">@_f.tra("Decimal (číslo s desetinnou čárkou)")</option>
+                <option value="tDate">@_f.tra("Date (datum)")</option>
+                <option value="tDateTime">@_f.tra("Datetime (datum+čas)")</option>
+                <option value="tBoolean">@_f.tra("Boolen (checkbox)")</option>
+            </select>
+        </div>
+
+    </div>
+
+    <div class="my-2">
+        <input type="checkbox" asp-for="Rec.o58IsPerUser" />
+        <mylabel class="col-form-label" explicit-for="Rec_o58IsPerUser" bez-dvojtecky="true" text="@_f.tra("Zadávat hodnoty za uživatele")" tooltip="Systém nabídne možnost vyplnit parametr za každého uživatele."></mylabel>
+    </div>
+
+</div>

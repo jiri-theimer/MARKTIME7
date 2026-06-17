@@ -1,0 +1,254 @@
+﻿@model BO.o27Attachment
+
+@inject BL.Factory _f
+
+@{
+
+
+    if (Model == null)
+    {
+        return;
+    }
+
+    bool _bolRowHover = UI.Code.basUI.DetectIfCanRowHover(_f, Context, true);
+
+    var _strPath = $"{_f.UploadFolder}\\{Model.o27ArchiveFolder}\\{Model.o27ArchiveFileName}";
+
+    @if (Model.o27CallerFlag == BO.o27CallerFlagENUM.Notepad)
+    {
+        _strPath = $"{_f.WwwUsersFolder}\\{Model.o27WwwRootFolder}\\{Model.o27ArchiveFileName}";
+        
+    }
+
+
+    bool _fileExists = System.IO.File.Exists(_strPath);
+
+    var _linkUrl = $"/Record/RecPage?prefix={Model.o27Entity}&pid={Model.o27RecordPid}";
+    if (Model.o27Entity == "p31")
+    {
+        _linkUrl = $"javascript:_window_open('/p31/Record?pid={Model.o27RecordPid}',3)";
+    }
+
+    
+    List<String> _atts = null;
+    if (Model.IsMail)
+    {
+       
+        _atts = BO.Code.Bas.ConvertString2List(Model.o27MailAttachments, ",");
+    }
+    
+    
+    
+    
+
+
+}
+
+@addTagHelper *, UI
+
+@if(Model.o27Entity != "x31")
+{
+    <div>
+        @if (_fileExists)
+        {
+            @if (Model.o27CallerFlag == BO.o27CallerFlagENUM.Notepad)
+            {
+                
+                <a target="_blank" href="@("/_users/" + _f.Lic.x01Guid + "/" + Model.o27WwwRootFolder.Replace("\\", "/") + "/" + Model.o27ArchiveFileName)">@Model.o27OriginalFileName</a>
+            }
+            else
+            {
+                <a target="_blank" href="/FileUpload/FileDownloadInline?guid=@Model.o27Guid">@_f.tra("Otevřít/Stáhnout")</a>
+            }
+            
+        }
+        else
+        {
+            <div class="alert alert-danger" role="alert">
+                @_f.tra("Soubor neexistuje!")
+            </div>
+        }
+
+
+    </div>
+}
+
+<table class="table table-hover">
+    @if (Model.o27Name != null)
+    {
+        <tr>
+            <td class="tdlab">
+                @_f.tra("Uživatelský název"):
+            </td>
+            <td class="tdval">
+                @Model.o27Name
+            </td>
+        </tr>
+    }
+    @if (Model.o27Entity=="x31")
+    {
+        <tr>
+            <td class="tdlab">
+                @_f.tra("Typ souboru"):
+            </td>
+            <td class="tdval">
+                Šablona pevné tiskové sestavy
+            </td>
+        </tr>
+    }
+    
+    @if (!Model.IsMail)
+    {
+        <tr>
+            <td class="tdlab">
+                @_f.tra("Název souboru"):
+            </td>
+            <td class="tdval">
+                @Model.o27OriginalFileName
+            </td>
+        </tr>
+        <tr>
+            <td class="tdlab">
+                @_f.tra("Přípona"):
+            </td>
+            <td class="tdval">
+                @Model.o27FileExtension
+            </td>
+        </tr>
+        <tr>
+            <td class="tdlab">
+                Content type:
+            </td>
+            <td class="tdval">
+                @Model.o27ContentType
+            </td>
+        </tr>
+    }
+    
+    <tr>
+        <td class="tdlab">
+            @_f.tra("Velikost"):
+        </td>
+        <td class="tdval">
+            @BO.Code.Bas.FormatFileSize(Model.o27FileSize)
+        </td>
+    </tr>
+    
+    @if (Model.IsMail)
+    {
+        @if (Model.o27MailSubject != null)
+        {
+            <tr>
+                <td>
+                    @_f.tra("Předmět zprávy"):
+                </td>
+                <td>
+                    <span style="white-space:normal;">
+                        
+                        <myval withoutcss="true" value="@(Model.o27MailSubject)"></myval>
+                    </span>
+                    
+                </td>
+            </tr>
+        }
+        <tr>
+            <td style="min-width:140px;">
+                @_f.tra("Odesílatel"):
+            </td>
+            <td>
+                @if(Model.o27MailSenderName != null)
+                {
+                    <span class="badge-light">@Model.o27MailSenderName</span>
+                    <br />
+                }
+                <myval withoutcss="true" value="@Model.o27MailSenderAddress"></myval>
+                
+            </td>
+        </tr>
+        <tr>
+            <td style="min-width:140px;">
+                @_f.tra("Příjemce"):
+            </td>
+            <td>
+                @if (Model.o27MailToName != null)
+                {
+                    <span class="badge-lightblue">@Model.o27MailToName</span>
+                    <br />
+                }
+                <myval withoutcss="true" value="@Model.o27MailToAddress"></myval>
+                
+            </td>
+        </tr>
+        @if (Model.o27MailCc != null)
+        {
+            <tr>
+                <td style="min-width:140px;">
+                    @_f.tra("V kopii"):
+                </td>
+                <td>
+                    <myval withoutcss="true" value="@Model.o27MailCc"></myval>
+                </td>
+            </tr>
+        }
+
+        <tr>
+            <td>
+                @_f.tra("Datum zprávy"):
+            </td>
+            <td>
+                <myval value="@Model.o27MailDateMessage" datatype="datetime"></myval>
+            </td>
+        </tr>
+        
+
+        @if (_atts != null && _atts.Count()>0)
+        {
+            
+            <tr>
+                <td>
+                    @_f.tra("Přílohy zprávy")
+                    <span class="badge text-bg-primary">@(_atts.Count())</span>
+
+                </td>
+                <td>
+                    @foreach (var att in _atts)
+                    {
+                        var po = BO.Code.Bas.OM2(att.Split(".").First(), 15);
+                        var pred = att.Substring(att.Length - 3, 3);
+                        <a target="_blank" class="att" href="/FileUpload/FileDownloadMsgAttachment?guid=@(Model.o27Guid)&origfilename=@(att)">@($"{pred}: {po}")</a>
+
+                        
+                        
+                        
+                    }
+                    
+                </td>
+            </tr>
+            
+        }
+    }
+
+
+    @if(Model.o27RecordPid>0 && Model.o27Entity != null && Model.o27Entity !="x31")
+    {
+        <tr>
+            <td class="tdlab">
+                @_f.tra("Vazba"):
+            </td>
+            <td class="tdval">
+                @if (_bolRowHover)
+                {
+                    <myval value="@_f.CBL.GetObjectAlias(Model.o27Entity, Model.o27RecordPid)" hoverprefix="@Model.o27Entity" hoverpid="@Model.o27RecordPid" datatype="link" linktarget="_top" linkurl="@_linkUrl"></myval>
+                }
+                else
+                {
+                    <myval value="@_f.CBL.GetObjectAlias(Model.o27Entity, Model.o27RecordPid)" linktarget="_top"></myval>
+                }
+            </td>
+        </tr>
+    }
+
+   
+
+</table>
+

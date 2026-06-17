@@ -1,0 +1,63 @@
+﻿@model UI.Models.Record.p31Record
+@inject BL.Factory _f
+
+@{
+
+
+    if (Model == null || Model.rec_pid==0 || Model.RecP41 == null || Model.RecP34==null)
+    {
+        return;
+    }
+
+    IEnumerable<BO.p31Worksheet> lisFamily = null;
+    if (Model.Rec.p31MasterID > 0)
+    {
+        //ukaž ostatní podřízené úkony vč. nadřízeného
+        lisFamily = _f.p31WorksheetBL.GetList(new BO.myQueryP31() { p31masterid_includemaster = Model.Rec.p31MasterID }).Where(p => p.pid != Model.Rec.pid);
+    }
+    else
+    {
+        if (Model.RecP34.p33ID != BO.p33IdENUM.Cas)
+        {
+            return;
+        }
+        //ukaž podřízené úkony
+        lisFamily = lisFamily = _f.p31WorksheetBL.GetList(new BO.myQueryP31() { p31masterid = Model.rec_pid }).Where(p => p.pid != Model.Rec.pid);  //podřízené záznamy vůči masterid
+    }
+
+    
+
+}
+@if (lisFamily.Count() > 0)
+{
+    <div><strong>@_f.tra("Související úkony"):</strong></div>
+}
+
+@foreach(var c in lisFamily)
+{
+    <table class="table-hover table" style="table-layout:fixed">
+        <tr>
+            <td>
+                <a href="/p31/Record?pid=@c.pid">@c.p32Name</a>
+            </td>
+           
+            <td>
+                @c.p34Name
+            </td>
+            
+            <td class="tdnum">
+                @BO.Code.Bas.Number2String(c.p31Value_Orig)
+            </td>
+
+            <td>
+                @if (c.p56ID > 0)
+                {
+                    @c.p56Name
+                }
+            </td>
+            <td>
+                @c.p31Text
+            </td>
+        </tr>
+    </table>
+}

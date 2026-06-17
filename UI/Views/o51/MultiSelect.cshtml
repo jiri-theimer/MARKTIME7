@@ -1,0 +1,101 @@
+﻿@model UI.Models.Tags.TagsMultiSelect
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Oštítkovat");
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+    Model.PageSymbol = "local_offer";
+}
+
+@addTagHelper *, UI
+
+<div class="bg-light" style="padding:10px;">
+    <button type="button" onclick="ok()" class="btn btn-success">@_f.tra("OK")</button>
+    <button type="button" onclick="clear_all()" class="btn btn-light">@_f.tra("Vyčistit vše")</button>
+    <button type="button" onclick="stitky_zoom_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+
+
+
+</div>
+
+@for (var i = 0; i < Model.SingleCombos.Count(); i++)
+{
+    <div class="row">
+        <label class="col-sm-2 col-md-3 col-form-label" for="">@(Model.SingleCombos[i].o53Name+":")</label>
+        <div class="col-sm-10 col-md-11">
+            <mycombo entity="o51Tag" asp-for="@Model.SingleCombos[i].o51ID" selectedtext="@Model.SingleCombos[i].o51Name" view-flag="2" masterprefix="o53" masterpid="@Model.SingleCombos[i].o53ID"></mycombo>
+            <input type="hidden" asp-for="@Model.SingleCombos[i].o53ID" />
+        </div>
+    </div>
+}
+
+<mycheckboxlist asp-for="@Model.CheckedO51IDs" textfield="HtmlText" valuefield="pid" groupfield="o53Name" datasource="@Model.ApplicableTags_Multi"></mycheckboxlist>
+
+
+<script type="text/javascript">
+    function stitky_zoom_close() {
+        window.parent.document.getElementById("zoom_okno").style.display = "none";
+    }
+    function ok() {
+        var allpids = document.getElementsByName("CheckedO51IDs");
+        var arr = [];
+        for (var i = 0; i <= allpids.length - 1; i++) {
+            if (allpids[i].value != "0") {
+                arr.push(allpids[i].value);
+            }
+        }
+        var combo_value = "";
+        var combo_o51id = "";
+        @for(var i = 0; i < Model.SingleCombos.Count(); i++)
+        {
+            <text>
+
+        combo_value = $("#SingleCombos_@(i)__o51ID").val();
+        if (combo_value != "" && combo_value != "0") {
+            arr.push(combo_value);
+        }
+
+            </text>
+        }
+
+
+
+        var s = arr.join(",");
+
+        $.post("/o51/GetTagHtml", { o51ids: s }, function (data) {
+            window.parent.document.getElementById("TagHtml").value = data;
+            window.parent.document.getElementById("divTagHtml").innerHTML = data;
+
+        });
+
+        window.parent.document.getElementById("TagPids").value = s;
+
+
+        stitky_zoom_close();
+    }
+
+    function clear_all() {
+        var pids = document.getElementsByName("CheckedO51IDs");
+
+        for (var i = 0; i <= pids.length - 1; i++) {
+            if (pids[i].value != "0") {
+                $("#chkCheckedO51IDs_" + pids[i].value).prop("checked", false);
+
+                pids[i].value = "0";
+            }
+
+        }
+
+        @for(var i = 0; i < Model.SingleCombos.Count(); i++)
+        {
+        <text>
+        $("#SingleCombos_@(i)__o51ID").val("");
+
+        $("#cmdComboSingleCombos_@(i)__o51ID").text("");
+
+        </text>
+
+        }
+
+    }
+</script>

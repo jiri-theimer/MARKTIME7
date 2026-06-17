@@ -1,0 +1,69 @@
+﻿@model UI.Models.Record.x07Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Integrace");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    Model.PageSymbol = "webhook";
+}
+
+@addTagHelper *, UI
+
+<div class="modal_record_container">
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">Typ:</label>
+        <div class="col-sm-5 col-md-4">
+            <select asp-for="Rec.x07Flag" class="form-select" onchange="_postback()">
+                <option value="Ecomail">Ecomail</option>
+                <option value="SmartEmailing">SmartEmailing</option>
+                <option value="AbraFlexi">AbraFlexi</option>
+            </select>
+        </div>
+
+    </div>
+
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název"):</label>
+        <div class="col-sm-6 col-md-5">
+            <input class="form-control record_name" asp-for="Rec.x07Name" />
+        </div>
+        <label class="col-sm-2 col-md-2 col-form-label">#@_f.tra("Pořadí"):</label>
+        <div class="col-sm-1 col-md-1">
+            <mynumber asp-for="Rec.x07Ordinary" class="record_ordinary" decimal-digits="0"></mynumber>
+        </div>
+    </div>
+
+
+    @if (Model.IsShowToken)
+    {
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">Token:</label>
+            <div class="col-sm-11 col-md-10">
+                <input class="form-control" asp-for="Rec.x07Token" />
+            </div>
+
+        </div>
+    }
+    
+    @if (Model.IsShowLoginPassword)
+    {
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">Login:</label>
+            <div class="col-sm-11 col-md-10">
+                <input class="form-control" asp-for="Rec.x07Login" />
+            </div>
+
+        </div>
+
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Heslo"):</label>
+            <div class="col-sm-11 col-md-10">
+                <input class="form-control" asp-for="Rec.x07Password" />
+            </div>
+
+        </div>
+    }
+    
+
+</div>

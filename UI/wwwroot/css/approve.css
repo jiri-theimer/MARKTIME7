@@ -1,0 +1,134 @@
+﻿.tabrow_selected_bydrag {
+    background-color: lightskyblue;
+}
+
+.tabrow_selected_bycheck {
+    background-color: lightskyblue;
+}
+
+
+table.tabinline {
+    border-collapse: collapse;
+    table-layout: fixed;
+    width: 100%;
+}
+
+
+
+.tabinline td {
+    padding: 3px;
+    vertical-align: top;
+    border-bottom: solid 1px #CCCCCC;
+}
+
+
+
+
+
+
+.td30 {
+    width: 30px;
+    text-align: center;
+}
+
+.vykazano {
+    color: gray;
+    
+    text-align: right;
+}
+
+.schvaleno {
+    padding-right: 2px;
+    font-weight: bold;
+    color: green;
+}
+
+.hodiny {
+    color: green !important;
+    font-weight: bold;
+}
+
+
+.hodinypausal {
+    background-color: pink;
+}
+
+.hodinyinterni {
+    background-color: lavender !important;
+}
+
+textarea {
+    min-width: 600px;
+}
+
+.dphsazba {
+    width: 50px !important;
+}
+
+
+
+.cislo {
+    padding-top: 4px;
+    padding-bottom: 3px;
+    padding-right: 12px;
+    
+    width: 80px;
+    text-align: right;
+    border-radius: 5px;
+    border: solid 1px silver;
+}
+
+
+
+.dphsazba {
+    padding-top: 4px;
+    padding-bottom: 3px;
+    padding-right: 12px;
+    width: 50px;
+    
+    text-align: right;
+    border-radius: 5px;
+    border: solid 1px silver;
+}
+.suffix{
+    width:20px;
+}
+
+.ar {
+    text-align: right;
+}
+
+.rozdil_sazba {
+    color: red;
+}
+
+.rozdil_hodnota {
+    color: red;
+}
+
+.rozdil_bezdph {
+    color: red;
+}
+
+tr.expense td{
+    color:brown;
+}
+
+tr.fee td {
+    color: green;
+}
+
+
+a.chkbox
+{
+    
+}
+
+    a.chkbox:hover {
+        /* zachová stav, jen lehce zesvětlí */
+        background-color:#F2F2F2;
+        /* naznačí „tlačítko / záložku“ */
+        box-shadow: inset 0 -2px 0 rgba(255,255,255,.35), 0 2px 6px rgba(0,0,0,.15);
+
+        
+    }

@@ -1,0 +1,190 @@
+﻿@model DynamicMenuViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = null;
+
+    
+    
+
+    IEnumerable<BO.j72TheGridTemplate> _lisJ72 = _f.j72TheGridTemplateBL.GetList(BO.Code.Entity.GetEntity(Model.Prefix), _f.CurrentUser.pid, null).Where(p => p.j72SystemFlag == BO.j72SystemFlagEnum.QueryOnly);
+
+
+    BO.j72TheGridTemplate _curQuery = null;
+
+    if (Model.j72id > 0)
+    {
+        _curQuery = _lisJ72.First(p => p.pid == Model.j72id);
+    }
+
+}
+
+@addTagHelper *, UI
+
+
+<div id="divContainerGridQueryMenu" class="dynamicmenu_container" style="min-width:350px;">
+
+    <div style="padding-left:10px;padding-bottom:10px;">
+        
+        @if(Model.j72id>0)
+        {           
+
+            <button class="btn btn-outline-danger" style="margin-left:3px;" type="button" onclick="local_runquery(0)">
+                @_f.tra("Zrušit aktuální filtr")
+            </button>
+
+            
+        }
+        <a href="javascript:lnf(0)">
+            @_f.tra("Nový filtr")
+        </a>
+        @if (Model.j72id > 0)
+        {
+            @if (_curQuery != null && (_curQuery.j02ID == _f.CurrentUser.pid || _f.CurrentUser.IsAdmin))
+            {
+                <a style="margin-left:3px;" href="javascript: lnf(@(Model.j72id))">
+                    @_f.tra("Upravit")
+                </a>
+            }
+        }
+    </div>
+
+   
+    <table cellpadding="4" cellspacing="4" onmouseout="localtablemouseout()">
+        @foreach (var c in _lisJ72)
+        {
+
+            <tr class="tr@(c.pid)" onmouseover="localtrmouseover(@(c.pid))">
+                <td style="width:20px;">
+                    @if (c.j02ID !=_f.CurrentUser.pid)
+                    {
+                        <span style="color:orange;" class="material-icons-outlined-btn">filter_alt</span>
+                    }
+                    else
+                    {
+                        <span style="color:gray;" class="material-icons-outlined-btn">filter_alt</span>
+                    }
+
+
+                </td>
+                
+
+                <td>
+                    <a style="color:gray;" id="linquery@(c.pid)" href="javascript:local_runquery(@(c.pid))">
+                        @(c.GetName())
+                    </a>
+                    @if (c.j02ID == _f.CurrentUser.pid || _f.CurrentUser.IsAdmin)
+                    {
+                        <button class="btn btn-sm py-0 bog cmd0 cmd@(c.pid)" style="visibility:hidden;margin-left:3px;" type="button" onclick="lnf(@(c.pid))">
+                            @_f.tra("Upravit")
+                        </button>
+                    }
+                    
+                    <button class="btn btn-sm py-0 bog cmd0 cmd@(c.pid)" style="visibility:hidden;" type="button" onclick="lnfsaveas(@(c.pid))">
+                        @_f.tra("Uložit jako")
+                    </button>
+
+                    @if (c.UserInsert !=null)
+                    {
+                        <small class="cmd0" style="visibility:hidden;">
+                            @(c.UserInsert)<var>/</var>@(c.DateInsert)
+                        </small>
+                    }
+                    
+                    
+                </td>
+
+            </tr>
+        }
+
+
+    </table>
+
+
+
+</div>
+
+
+<script type="text/javascript">
+    var _j72id_query = "@Model.j72id";
+
+    $(document).ready(function () {
+        
+        _adjust_divheight_small_display("divContainerGridQueryMenu");
+
+        if (_j72id_query != "0")
+        {
+            $("#linquery" + _j72id_query).addClass("active");
+        }
+        
+       
+        if (window !== top) {   //voláno uvnitř iframe
+            //nic
+        }
+    })
+
+    
+    function lnf(j72id) {
+        var s = location.pathname;
+        var prefix = "@Model.Prefix";
+        
+        _window_open("/TheQueryDesigner/Index?j72id=" + j72id + "&prefix=" + prefix + "&pathname=" + s, 2);        
+    }
+
+    function lnfsaveas(j72id){
+        var s = location.pathname;
+        var prefix = "@Model.Prefix";
+
+        _window_open("/TheQueryDesigner/Index?j72id=" + j72id + "&prefix=" + prefix + "&saveas=true&pathname=" + s, 2);
+    }
+
+    
+
+    function local_get_querybuilder_key(prefix, rez) {
+        var k = "";
+        var url = location.href;
+        if (url.toLowerCase().indexOf("slaveview") > 0) {
+            k = "slaveview-query-j72id-" + prefix + "-" + _thegrid.master_entity.substring(0, 3) + "-" + rez;
+        }
+        if (url.toLowerCase().indexOf("masterview") > 0 || url.toLowerCase().indexOf("recpage") > 0) {
+            k = "masterview-query-j72id-" + prefix + "-" + rez;
+        }
+        if (url.toLowerCase().indexOf("flatview") > 0 || url.toLowerCase().indexOf("mobileview") > 0) {
+            k = "flatview-query-j72id-" + prefix + "-" + rez;
+        }
+        return k;
+    }
+
+    function local_runquery(j72id)
+    {        
+        var url = location.href;
+        var prefix = "@Model.Prefix";
+        var rez = "@Model.Rez";
+        var k = $("#TheGridQueryParamKey").val();
+       
+
+        if (k == "") {
+            location.replace(url);
+            return;
+        }
+
+
+        $.post(_ep("/Common/SetUserParam"), { key: k, value: j72id }, function (data) {
+
+            location.replace(url);
+
+
+
+        });
+    }
+
+
+    function localtrmouseover(pid) {
+        $(".cmd0").css("visibility", "hidden");
+        $(".cmd" + pid).css("visibility", "visible");
+
+    }
+    function localtablemouseout() {
+        $(".cmd0").css("visibility", "hidden");
+    }
+</script>

@@ -1,0 +1,37 @@
+﻿@model UI.Models.Record.c24Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Barva dne");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    Model.PageSymbol = "palette";
+}
+
+@addTagHelper *, UI
+
+
+
+
+<div class="modal_record_container">
+
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název"):</label>
+        <div class="col-sm-7 col-md-6">
+            <input class="form-control" asp-for="Rec.c24Name" />
+        </div>
+      
+    </div>
+
+    
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Barva"):</label>
+        <div class="col-sm-4 col-md-3">
+            @Html.EditorFor(m => m.Rec.c24Color, "~/Views/Shared/_ColorCombo.cshtml")
+
+            
+        </div>
+    </div>
+
+
+</div>

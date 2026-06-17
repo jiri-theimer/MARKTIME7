@@ -1,0 +1,62 @@
+﻿@model BaseViewModel
+
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+
+    var pokus = (BL.Code.ViesSubjectResult) ViewBag.pokus;
+}
+
+<h2>Ověření DIČ (VIES)</h2>
+
+<form method="get">
+    <input type="text" name="dic" placeholder="CZ12345678" value="@Context.Request.Query["dic"]" />
+    <button type="submit">Ověřit</button>
+</form>
+
+@if (ViewBag.Error != null)
+{
+    <div style="color:red">@ViewBag.Error</div>
+}
+
+@if (pokus != null)
+{
+    <h3>Výsledek</h3>
+    <ul>
+        <li><strong>DIČ:</strong> @pokus.CountryCode@pokus.VatNumber</li>
+        <li><strong>Platné:</strong> @(pokus.IsValid ? "Ano" : "Ne")</li>
+        <li><strong>Název:</strong> @pokus.Name</li>
+        <li><strong>Adresa:</strong> @pokus.Address</li>
+        <li><strong>Datum dotazu:</strong> @pokus.RequestDate</li>
+    </ul>
+}
+
+
+
+<div class="my-2">
+    <!-- Záložky -->
+    <ul class="nav nav-tabs nav-sm" id="p90text1Tab">
+        <li class="nav-item">
+            <a class="nav-link active" data-bs-toggle="tab" href="#p90text1-text">Text zálohy</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-bs-toggle="tab" href="#p90text1-html">Html</a>
+        </li>
+    </ul>
+
+    <!-- Obsah záložek -->
+    <div class="tab-content">
+        <div class="tab-pane fade show active" id="p90text1-text">
+            <div>
+                <textarea class="form-control my-1"></textarea>
+            </div>
+        </div>
+        <div class="tab-pane fade" id="p90text1-html">
+            <h1>pokus</h1>
+        </div>
+
+            
+    </div>
+        
+</div>

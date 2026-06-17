@@ -1,0 +1,148 @@
+﻿
+
+namespace BL
+{
+    public interface Ip78UpominkaSdruzenaBL
+    {
+        public BO.p78UpominkaSdruzena Load(int pid);
+        public IEnumerable<BO.p78UpominkaSdruzena> GetList(BO.myQueryP78 mq);
+        public int Save(BO.p78UpominkaSdruzena rec, List<int> p84ids);
+
+    }
+    class p78UpominkaSdruzenaBL : BaseBL, Ip78UpominkaSdruzenaBL
+    {
+        public p78UpominkaSdruzenaBL(BL.Factory mother) : base(mother)
+        {
+
+        }
+
+
+        private string GetSQL1(string strAppend = null, bool istestcloud = false)
+        {
+            sb("SELECT a.*,p28x.p28Name,j02owner.j02Name as Owner,j27.j27Code,");
+            sb(_db.GetSQL1_Ocas("p78"));
+            sb(" FROM p78UpominkaSdruzena a INNER JOIN p28Contact p28x ON a.p28ID=p28x.p28ID LEFT OUTER JOIN j02User j02owner ON a.j02ID_Owner=j02owner.j02ID LEFT OUTER JOIN j27Currency j27 ON a.j27ID=j27.j27ID");
+           
+            if (istestcloud)
+            {
+                sb(" INNER JOIN p29ContactType p29x ON p28x.p29ID=p29x.p29ID");
+                sb(this.AppendCloudQuery(strAppend, "p29x.x01ID"));
+            }
+            else
+            {                
+                sb(strAppend);
+            }
+            
+            return sbret();
+        }
+        public BO.p78UpominkaSdruzena Load(int pid)
+        {
+            return _db.Load<BO.p78UpominkaSdruzena>(GetSQL1(" WHERE a.p78ID=@pid", _mother.CurrentUser.IsHostingModeTotalCloud), new { pid = pid });
+        }
+
+        public IEnumerable<BO.p78UpominkaSdruzena> GetList(BO.myQueryP78 mq)
+        {
+            DL.FinalSqlCommand fq = DL.basQuery.GetFinalSql(GetSQL1(null, _mother.CurrentUser.IsHostingModeTotalCloud), mq, _mother.CurrentUser);
+            return _db.GetList<BO.p78UpominkaSdruzena>(fq.FinalSql, fq.Parameters);
+        }
+
+        
+
+
+        public int Save(BO.p78UpominkaSdruzena rec,List<int> p84ids)
+        {
+            if (!ValidateBeforeSave(rec,p84ids))
+            {
+                return 0;
+            }
+            var p = new DL.Params4Dapper();
+            p.AddInt("pid", rec.pid);
+            p.AddInt("p28ID", rec.p28ID, true);
+            if (rec.j02ID_Owner == 0) rec.j02ID_Owner = _mother.CurrentUser.pid;
+            p.AddInt("j02ID_Owner", rec.j02ID_Owner, true);
+            p.AddString("p78Name", rec.p78Name);
+            p.AddString("p78Code", rec.p78Code);
+            p.AddString("p78TextA", rec.p78TextA);
+            p.AddString("p78TextB", rec.p78TextB);
+            p.AddDateTime("p78Date", rec.p78Date);
+            if (rec.p78VariableSymbol == null)
+            {
+                rec.p78VariableSymbol = rec.p78Code;
+            }
+            p.AddString("p78VariableSymbol", rec.p78VariableSymbol);
+
+            p.AddString("p78Client", rec.p78Client);
+            p.AddString("p78Client_RegID", rec.p78Client_RegID);
+            p.AddString("p78Client_VatID", rec.p78Client_VatID);
+            p.AddString("p78ClientAddress1_Street", rec.p78ClientAddress1_Street);
+            p.AddString("p78ClientAddress1_City", rec.p78ClientAddress1_City);
+            p.AddString("p78ClientAddress1_ZIP", rec.p78ClientAddress1_ZIP);
+            p.AddString("p78ClientAddress1_Country", rec.p78ClientAddress1_Country);
+            p.AddString("p78ClientAddress1_Before", rec.p78ClientAddress1_Before);
+            
+            p.AddString("p78Client_ICDPH_SK", rec.p78Client_ICDPH_SK);
+
+            if (p84ids != null)
+            {
+                var mq = new BO.myQueryP84() { pids = p84ids };
+                var p91ids = _mother.p84UpominkaBL.GetList(mq).Select(p => p.p91ID).Distinct();
+                var lis = _mother.p91InvoiceBL.GetList(new BO.myQueryP91() { pids = p91ids.ToList() });
+                rec.j27ID = lis.First().j27ID;
+                rec.p78Amount_Debt = lis.Sum(p => p.p91Amount_Debt);
+            }
+            
+
+            p.AddInt("j27ID", rec.j27ID, true);
+            
+            p.AddDouble("p78Amount_Debt", rec.p78Amount_Debt);
+            p.AddDouble("p78Amount_Debt_KratKurz", rec.p78Amount_Debt_KratKurz);
+
+            var intPID= _db.SaveRecord("p78UpominkaSdruzena", p, rec);
+            if (intPID > 0 && p84ids !=null)                
+            {
+                if (rec.pid > 0)
+                {
+                    _db.RunSql("DELETE FROM p79UpominkaSdruzenaBinding WHERE p78ID=@pid", new { pid = intPID });
+                }
+                if (p84ids.Count > 0)
+                {
+                    _db.RunSql("INSERT INTO p79UpominkaSdruzenaBinding(p78ID,p84ID) SELECT @pid,p84ID FROM p84Upominka WHERE p84ID IN (" + string.Join(",", p84ids) + ")", new { pid = intPID });
+                }
+            }
+
+            return intPID;
+        }
+        private bool ValidateBeforeSave(BO.p78UpominkaSdruzena rec, List<int> p84ids)
+        {
+            if (rec.p28ID == 0)
+            {
+                this.AddMessage("Chybí vyplnit [Dlužník]."); return false;
+            }
+            
+            if (p84ids !=null)
+            {
+                if (p84ids.Count() == 0)
+                {
+                    this.AddMessage("Musíte zaškrtnout alespoň jednu fakturu (dílčí upomínku)."); return false;
+                }
+                var mq = new BO.myQueryP84() { pids = p84ids };
+                var lis = _mother.p84UpominkaBL.GetList(mq);
+                if (lis.GroupBy(p => p.j27ID).Count() > 1)
+                {
+                    this.AddMessage("Zaškrtlé faktury (dílčí upomínky) musí být ve stejné měně."); return false;
+                }
+            }
+            if (string.IsNullOrEmpty(rec.p78Name))
+            {
+                this.AddMessage("Chybí vyplnit [Název]."); return false;
+            }
+            if (string.IsNullOrEmpty(rec.p78Code))
+            {
+                this.AddMessage("Chybí vyplnit [Kód]."); return false;
+            }
+            return true;
+        }
+
+        
+    }
+}

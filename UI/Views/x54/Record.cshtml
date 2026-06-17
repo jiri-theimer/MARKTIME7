@@ -1,0 +1,110 @@
+﻿@model UI.Models.Record.x54Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Skupina widgetů");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    Model.PageSymbol = "settings";
+}
+
+@addTagHelper *, UI
+
+<div class="modal_record_container">
+
+    <div class="row">
+        <label class="col-sm-1 col-md-1 col-form-label">@_f.tra("Název"):</label>
+        <div class="col-sm-6 col-md-5">
+            <input class="form-control record_name" asp-for="Rec.x54Name" />
+        </div>
+        <label class="col-auto col-form-label">@_f.tra("Pořadí v nabídce skupin"):</label>
+        <div class="col-sm-1 col-md-1">
+            <mynumber asp-for="Rec.x54Ordinary" decimal-digits="0"></mynumber>
+        </div>
+        <label class="col-auto col-form-label">@_f.tra("Kód"):</label>
+        <div class="col-sm-1 col-md-1">
+            <input class="form-control" asp-for="Rec.x54Code" />
+        </div>
+    </div>
+    <div class="row my-2">
+        <div class="col-sm-6 col-md-6">
+            <input type="checkbox" asp-for="@Model.Rec.x54IsParamToday" />
+            <label class="col-form-label" for="Rec_x54IsParamToday">@_f.tra("Globální parametr: Datum DNES")</label>
+        </div>
+        <div class="col-sm-6 col-md-6">
+            <input type="checkbox" asp-for="@Model.Rec.x54IsParamP28ID" />
+            <label class="col-form-label" for="Rec_x54IsParamP28ID">@_f.tra("Globální parametr: KLIENT")</label>
+        </div>
+    </div>
+    
+    <div class="row my-2">
+        <div class="col-sm-6 col-md-6">
+            <input type="checkbox" asp-for="@Model.Rec.x54IsAllowSkins" />
+            <label class="col-form-label" for="Rec_x54IsAllowSkins">Možnost si vybírat plochu #0 - #9</label>
+        </div>
+        <div class="col-sm-6 col-md-6">
+            <input type="checkbox" asp-for="@Model.Rec.x54IsAllowAutoRefresh" />
+            <label class="col-form-label" for="Rec_x54IsAllowAutoRefresh">Možnost si nastavovat auto-refresh interval</label>
+        </div>
+        
+    </div>
+
+
+    <div class="card">
+        <div class="card-header">
+            @_f.tra("Widgety ve skupině")
+            <button type="button" class="btn btn-outline-primary btn-sm" onclick="_postback('add_row')">@_f.tra("Přidat")</button>
+        </div>
+        <div class="card-body">
+            <table class="table table-hover" >
+               
+                @for (int i = 0; i < Model.lisX57.Count; i++)
+                {
+                    <tr style="@(Model.lisX57[i].CssTempDisplay)">
+                        <td style="width:250px;">
+                            <input type="checkbox" asp-for="lisX57[i].x57IsDefault" />
+                            <label for="lisX57_@(i)__x57IsDefault">Předvyplněno na ploše</label>
+
+                        </td>
+                        <td>
+                            <input type="hidden" asp-for="lisX57[i].IsTempDeleted" value="@Model.lisX57[i].IsTempDeleted" />
+                            <input type="hidden" asp-for="lisX57[i].TempGuid" value="@Model.lisX57[i].TempGuid" />
+
+                            <mycombo entity="x55Widget" asp-for="lisX57[i].x55ID" selectedtext="@Model.lisX57[i].ComboX55" view-flag="2"></mycombo>
+                        </td>
+                        
+                        <td style="width:70px;" title="Pořadí">
+                            <input type="number" step="1" min="-100" max="100" style="width:50px;" asp-for="lisX57[i].x57Ordinary" />
+                        </td>
+
+
+                        <td style="width:40px;">
+                            <button type="button" class="btn btn-danger" title="@_f.tra("Odstranit řádek")" onclick="handle_delete_row('@(Model.lisX57[i].TempGuid)')">x</button>
+                        </td>
+
+                    </tr>
+                }
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+    });
+
+
+
+
+    function handle_delete_row(guid) {
+        _postback("delete_row", "guid=" + guid);
+       
+
+    }
+
+    
+
+</script>

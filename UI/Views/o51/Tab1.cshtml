@@ -1,0 +1,83 @@
+﻿@model UI.Models.Tab1.o51Tab1
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+    if (Model.Rec == null) return;
+
+
+
+}
+
+@addTagHelper *, UI
+
+
+
+@Html.Raw("<div class='info_record_container'>")
+
+<div class="card recpagebox400">
+    <div class="card-body">
+        <table class="table table-hover">
+            <tr>
+                <td colspan="2" class="@(Model.Rec.isclosed ? "tdarchiv": "tdval")">
+                    <myicon symbol="local_offer"></myicon>
+                    @_f.tra("Profil štítku")
+                </td>
+            </tr>
+            <tr>
+                <td class="tdlab">
+                    @_f.tra("Název"):
+                </td>
+                <td>
+                    <myval value="@Model.Rec.o51Name"></myval>
+                </td>
+            </tr>
+            <tr>
+                <td class="tdlab">
+                    @_f.tra("Skupina"):
+                </td>
+                <td>
+                    <myval value="@Model.Rec.o53Name"></myval>
+                </td>
+            </tr>
+            @if (Model.Rec.o51BackColor != null)
+            {
+                <tr>
+                    <td class="tdlab">
+                        @_f.tra("Barva pozadí"):
+                    </td>
+                    <td style="min-width:100px;background-color:@(Model.Rec.o51BackColor);">
+                        
+                    </td>
+                </tr>
+
+               
+
+            }
+            @if (Model.Rec.o51ForeColor != null)
+            {
+                <tr>
+                    <td class="tdlab">
+                        @_f.tra("Barva písma"):
+                    </td>
+                    <td style="min-width:100px;background-color:@(Model.Rec.o51ForeColor);">
+                        
+                    </td>
+                </tr>
+
+            }
+        </table>
+
+    </div>
+</div>
+
+
+
+
+
+
+<div style="clear:both;"></div>
+
+
+@Html.Raw("</div>")

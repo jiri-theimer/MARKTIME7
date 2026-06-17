@@ -1,0 +1,162 @@
+﻿@model UI.Models.BaseViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutMobile.cshtml";
+
+
+    Model.PageTitle = "Rozhraní pro mobilní zařízení";
+
+
+    var _useragent = Context.Request.Headers["User-Agent"];
+    var uaParser = UAParser.Parser.GetDefault();
+    var _client_info = uaParser.Parse(_useragent);
+
+}
+
+<script src="/lib/qrcode/qrcode.min.js"></script>
+
+@addTagHelper *,UI
+
+<div style="max-width:350px;text-align:center;">
+    <h2>@(Model.PageTitle)</h2>
+
+
+    <div style="margin-top:20px;text-align:center;">
+        <div id="qrcode1" style="margin-left:20%;"></div>
+        <i>@_f.tra("Url pro mobilní zařízení"):</i>
+        <br />
+        <i id="url1"></i>
+        <button type="button" class="btn btn-sm btn-light" title="Zkopírovat" onclick="copy2clipboard()">
+            <myicon symbol="content_copy"></myicon>
+        </button>
+    </div>
+
+    <hr />
+
+    <label>@_f.tra("Detekce mobilních zařízení"):</label>
+    <select id="cbxJ02ModalWindowsFlag" class="form-select" onchange="saveprofile(this)">
+        <option value="1">@_f.tra("Nechat rozhodnutí na systému")</option>
+        <option value="2">@_f.tra("Nechat rozhodnutí na systému + okna na celou obrazovku")</option>
+        <option value="3">@_f.tra("Vždy mobilní rozhraní")</option>
+        <option value="4">@_f.tra("Vždy desktop rozhraní")</option>
+    </select>
+   
+   
+    <hr />
+
+    <div class="nonmobile" style="margin-top:20px;text-align:center;">
+        <img src="/images/devices.png" />
+        <div>
+            <small class="text-info">
+                Jedna aplikace pro všechna zařízení!
+            </small>
+        </div>
+    </div>
+    
+
+    
+    <table class="table table-hover" style="text-align:left;width:250px;margin-left:75px;">
+        <tr>
+            <td>
+                Device:
+            </td>
+            <td>
+                <span id="infoMobile"></span> @_client_info.Device.ToString()
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                OS:
+            </td>
+            <td>
+                @_client_info.OS.Family @_client_info.OS.Major
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Browser:
+            </td>
+            <td>
+                @_client_info.UA.Family @_client_info.UA.Major
+            </td>
+        </tr>
+
+        <tr>
+            <td>
+                Avail resolution:
+            </td>
+            <td>
+                <span id="infoAvailResolution"></span>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                Auto detected UI:
+            </td>
+            <td>
+                <span id="device_type_js"></span>
+            </td>
+        </tr>
+
+    </table>
+    
+    <span style="text-align:center;">@_useragent</span>
+
+</div>
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        var currentflag = "@_f.CurrentUser.j02ModalWindowsFlag";
+        if (currentflag == "KeepMobileUI") {
+            $("#cbxJ02ModalWindowsFlag").val("3");
+        }
+        if (currentflag == "KeepDesktopUI") {
+            $("#cbxJ02ModalWindowsFlag").val("4");
+        }
+        if (currentflag == "FullScreen") {
+            $("#cbxJ02ModalWindowsFlag").val("2");
+        }
+
+        $("#device_type_js").text(_device.type);
+
+
+        _mainmenu_highlight_current("cmdHome");
+        $("#cmdmobile").addClass("active");
+
+        var qrcode = new QRCode("qrcode1", {
+            text: location.href,
+            width: 128,
+            height: 128,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
+
+        
+        $("#infoAvailResolution").text(_device.availWidth + " x " + _device.availHeight);
+
+        $("#url1").text(location.href);
+
+    });
+
+    function copy2clipboard() {
+        var copyText = document.getElementById("url1");
+        var s = $(copyText).text();
+        navigator.clipboard.writeText(s);
+        _notify_message("Zkopírováno: " + s, "info");
+    }
+
+    function saveprofile(cbx) {
+        
+        $.post(_ep("/Home/SaveCurrentUserModalWindowsFlag"), { flag: cbx.value }, function (data) {
+            location.replace(location.href);
+
+
+        });
+    }
+
+</script>

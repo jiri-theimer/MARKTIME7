@@ -1,0 +1,111 @@
+﻿@model UI.Models.BaseViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+
+
+    Model.PageSymbol = "p56";
+    Model.PageTitle = _f.tra("Nový úkol");
+
+    var _lisP57 = _f.p57TaskTypeBL.GetList(new BO.myQuery("p57"));
+    var _lisP55 = _f.p56TaskBL.GetList_TodoList();
+    var _lisP60 = _f.p60TaskTemplateBL.GetList(new BO.myQuery("p60")).Where(p => p.p60IsPublic || p.j02ID_Owner == _f.CurrentUser.pid);
+    
+
+}
+
+@addTagHelper *, UI
+
+<div class="bg-light" style="padding:10px;">
+
+
+    <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
+
+
+
+</div>
+
+<p></p>
+@if(_lisP60 != null && _lisP60.Count()>0)
+{
+    @foreach (var c in _lisP60)
+    {
+
+        <input type="radio" id="p60_@c.pid" name="volba" value="@c.pid" onchange="goon(this,'p60')">
+        <label for="p60_@c.pid"><myicon prefix="p56"></myicon>@c.p60Name</label>
+        <br />
+    }
+}
+else
+{
+    @foreach (var c in _lisP57)
+    {
+
+        <input type="radio" id="p57_@c.pid" name="volba" value="@c.pid" onchange="goon(this,'p57')">
+        <label for="p57_@c.pid"><myicon prefix="p56"></myicon>@c.p57Name</label>
+        <br />
+    }
+}
+
+<hr />
+
+<input type="radio" id="opgP55" name="volba" value="p55" onchange="goon(this,'todolist')">
+<label for="opgP55"><span class="material-icons-outlined-btn">control_point_duplicate</span>Todo-list</label>
+@if (_lisP55.Count() > 0)
+{
+    <hr />
+    <strong>Zkopírovat z uloženého Todo-listu:</strong>
+}
+@foreach(var c in _lisP55)
+{
+    <br />
+    <input type="radio" id="opgP55_@c.pid" name="volba" value="p55_@c.pid" onchange="goon(this,'p55')">
+    <label for="opgP55_@c.pid">@c.p55Name</label>
+}
+
+<hr />
+
+<input type="radio" id="opgP58" name="volba" value="p58" onchange="goon(this,'p58')">
+<label for="opgP58"><span class="material-icons-outlined-btn">published_with_changes</span>@_f.tra("Opakovaný úkol")</label>
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+
+
+    })
+
+
+    function goon(chk,prefix) {
+        
+        var val=chk.value;
+        var url = "";
+
+        if (prefix == "p57") {
+            url = "/p56/Record?pid=0&p57id=" + val;
+        }
+        if (prefix == "p60") {
+            url = "/p56/Record?pid=0&p60id=" + val;
+        }
+        if (prefix == "todolist") {
+            url = "/p56/TodoList";
+        }
+        if (prefix == "p55") {
+            url = "/p56/TodoList?p55id="+val.replace("p55_","");
+        }
+        if (prefix == "p58") {
+            url = "/p58/Record";
+        }
+
+       
+        _redirect(url);
+
+
+    }
+
+
+</script>

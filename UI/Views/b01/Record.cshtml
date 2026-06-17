@@ -1,0 +1,52 @@
+﻿@model UI.Models.Record.b01Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Workflow šablona");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    Model.PageSymbol = "schema";
+}
+
+@addTagHelper *, UI
+
+<div class="modal_record_container">
+
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název"):</label>
+        <div class="col-sm-7 col-md-6">
+            <input class="form-control" asp-for="Rec.b01Name" />
+        </div>
+
+    </div>
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Entita"):</label>
+        <div class="col-sm-7 col-md-6">
+            <select asp-for="Rec.b01Entity" class="form-select">
+                <option value="p56">@_f.tra("Úkol")</option>
+                <option value="p41">@_f.tra("Projekt")</option>
+                <option value="p28">@_f.tra("Kontakt")</option>
+                <option value="p91">@_f.tra("Vyúčtování")</option>
+                <option value="o23">@_f.tra("Dokument")</option>
+                <option value="p90">@_f.tra("Záloha")</option>               
+                <option value="j02">@_f.tra("Uživatel")</option>
+                <option value="x01">@_f.tra("Systém")</option>
+            </select>
+        </div>
+
+    </div>
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Jak posouvat workflow stav"):</label>
+        <div class="col-sm-7 col-md-6">
+            <select asp-for="Rec.b01PrincipleFlag" class="form-select">
+                <option value="Step">@_f.tra("Přes krokový mechanismus")</option>
+                <option value="StatusOnly">@_f.tra("Ručně bez krokového mechanismu")</option>                
+
+            </select>
+
+        </div>
+    </div>
+
+
+</div>

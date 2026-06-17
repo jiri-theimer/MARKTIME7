@@ -1,0 +1,46 @@
+﻿@model UI.Models.Notepad.PreviewViewModel
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+
+    Model.PageTitle = Model.PageTitle;
+
+}
+
+@addTagHelper *, UI
+
+<link href="/lib/froala-editor/css/froala_style.min.css" rel="stylesheet" type="text/css" />
+
+
+<div style="max-width:1300px;overflow:auto;">
+    <div style="text-align:center;">
+        <button type="button" class="btn btn-light" onclick="local_tryclose()">Zavřít</button>
+    </div>
+    
+
+@if (Model.x04ID > 0)
+{
+    @Html.Raw(Model.NotepadContent)
+}
+else
+{
+    @Html.Raw(BO.Code.Bas.Text2Html(Model.NotepadContent))
+}
+
+
+</div>
+
+<script type="text/javascript">
+    function local_tryclose() {
+        try {
+            window.parent._window_close();
+        }
+        catch (err) {
+            window.close();
+        }
+    }
+
+    
+</script>

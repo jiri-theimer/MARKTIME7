@@ -1,0 +1,59 @@
+﻿@model UI.Models.p91oper.j27ViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = _f.tra("Převést vyúčtování na jinou měnu");
+
+}
+
+@addTagHelper *, UI
+
+<div class="bg-light" style="padding:10px;">
+    <button type="button" id="cmdOK" class="btn btn-success" onclick="_submit()">@_f.tra("Uložit změny")</button>
+
+    <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+
+
+
+</div>
+
+<form id="form1" asp-controller="p91oper" asp-action="j27" method="POST">
+    <div class="modal_record_container">
+
+        <div class="alert alert-primary">
+            @(Model.RecP91.p92Name+": "+Model.RecP91.p91Code)
+            <hr />
+            @(Model.RecP91.p91Client)
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                @_f.tra("Vyberte cílovou měnu vyúčtování")
+            </div>
+            <div class="card-body">
+                <myradiolist asp-for="@Model.SelectedJ27ID" datasource="@Model.lisJ27" textfield="j27Code" valuefield="pid"></myradiolist>
+            </div>
+        </div>
+
+    </div>
+
+
+    <input type="hidden" asp-for="@Model.p91ID" />
+</form>
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+      
+
+
+
+    })
+
+
+    
+
+</script>

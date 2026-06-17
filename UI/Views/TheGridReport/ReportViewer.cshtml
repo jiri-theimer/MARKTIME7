@@ -1,0 +1,183 @@
+﻿@model TheGridReportViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = null;
+}
+@addTagHelper *, UI
+
+
+<!DOCTYPE html>
+
+<html lang="cs">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GRID-REPORT</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link href="~/lib/datepicker/bootstrap-datepicker.min.css" rel="stylesheet" type="text/css" />
+    <link href="~/lib/qtip/jquery.qtip.css" rel="stylesheet" type="text/css" />
+
+    <link rel="stylesheet" href="~/css/@_f.CurrentUser.getFontSizeCss()" />
+    <link rel="stylesheet" href="~/css/site.css" />
+
+    <link href="~/lib/telerik-reporting/styles/kendo-default-ocean-blue.css" rel="stylesheet" type="text/css" />
+
+    <script type="text/javascript">
+        var _relpath = "@(Url.Content("~/favicon.ico").Replace("favicon.ico",""))";   //relativní cesta: detekce kvůli případnému IIS virtuálnímu adresáři
+    </script>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="~/lib/datepicker/bootstrap-datepicker.min.js"></script>
+    <script src="~/lib/datepicker/bootstrap-datepicker.cs.min.js"></script>
+    <script src="~/lib/qtip/jquery.qtip.min.js"></script>
+
+    @switch (_f.CurrentUser.j02LangIndex)
+    {
+        case 1:
+            <script src="~/lib/telerik-reporting/js/telerikReportViewer.stringResources-19.2.25.1001.js"></script>
+            break;
+
+        default:
+            <script src="~/lib/telerik-reporting/js/telerikReportViewer.stringResources-19.2.25.1001-cs.js"></script>
+
+            break;
+    }
+
+
+
+
+
+
+
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/mycombo.js" asp-append-version="true"></script>
+
+    <script src="~/js/contextmenu.js" asp-append-version="true"></script>
+    <script src="~/js/mycontrols.js" asp-append-version="true"></script>
+
+    <script src="/apix/reports/resources/js/telerikReportViewer"></script>
+    <style>
+        #reportViewer1 {
+            position: absolute;
+            left: 1px;
+            right: 1px;
+            top: 3px;
+            bottom: 1px;
+            overflow: hidden;
+            font-family: Verdana, Arial;
+        }
+    </style>
+
+</head>
+
+<body>
+
+
+    <script type="text/javascript">
+        @if(Model.Javascript_CallOnLoad != null)
+    {
+        @Html.Raw(Model.Javascript_CallOnLoad);
+
+
+    }
+    </script>
+
+
+    <form id="form1" asp-controller="TheGridReport" asp-action="ReportViewer" method="POST">
+        <input type="hidden" asp-for="@Model.guid" />
+        <input type="hidden" asp-for="@Model.TrdxRepDestFileName" />
+        
+
+        
+
+
+
+
+       
+
+    </form>
+
+
+    <div id="reportViewer1">
+        @if (Model.TrdxRepDestFileName != null)
+        {
+
+            @:loading...
+
+        }
+
+    </div>
+
+    <script type="text/javascript">
+
+
+    $(document).ready(function ()
+    {
+        var d1;
+        var d2;
+
+        
+
+
+    @if(Model.TrdxRepDestFileName != null)
+       {
+           <text>
+
+        $("#reportViewer1")
+            .telerik_ReportViewer(
+                {
+                serviceUrl: "/apix/reports",
+                    reportSource: {
+                        report: "@(Model.TrdxRepDestFileName+"###"+_f.CurrentUser.j02Login+"###0###"+Model.TrdxRepDestFileName)"
+                    },
+                viewMode: telerikReportViewer.ViewModes.INTERACTIVE,
+                scaleMode: telerikReportViewer.ScaleModes.SPECIFIC,
+                scale: 1.0,
+                    enableAccessibility: false,                    
+                sendEmail: { enabled: false }
+                }
+            );
+
+            </text>
+       }
+
+
+
+
+
+        @if (_f.CurrentUser.Messages4Notify != null) {
+            @foreach (var c in _f.CurrentUser.Messages4Notify) {  // <----  placed on the same line, WORKING !!!
+
+            @:_notify_message("@c.Value","@c.Key");
+
+             }
+        }
+
+
+
+
+
+
+
+
+    });
+
+        
+
+       
+        function reload() {
+            form1.action = _ep("/TheGridReport/ReportViewer?oper=postback");
+            form1.submit();
+        }
+
+
+
+    </script>
+
+
+</body>
+</html>
+
+

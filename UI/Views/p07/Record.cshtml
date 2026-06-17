@@ -1,0 +1,56 @@
+﻿@model UI.Models.Record.p07Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Úroveň projektu");    
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    Model.PageSymbol = "settings";
+}
+
+@addTagHelper *, UI
+
+<div class="modal_record_container">
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Index úrovně"):</label>
+        <div class="col-sm-2 col-md-2">
+            <select asp-for="Rec.p07Level" class="form-select">
+                <option value="1">1 (@_f.tra("nejvyšší stromová úroveň"))</option>
+                <option value="2">2</option>
+                <option value="3">3 (@_f.tra("nejnižší stromová úroveň"))</option>
+
+            </select>
+
+
+        </div>
+
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název (jednotné číslo)"):</label>
+        <div class="col-sm-11 col-md-10">
+            <input class="form-control" asp-for="Rec.p07Name" />
+        </div>
+
+    </div>
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název pro množné číslo"):</label>
+        <div class="col-sm-11 col-md-10">
+            <input class="form-control" asp-for="Rec.p07NamePlural" />
+        </div>
+
+    </div>
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Koho čeho (skloňování)"):</label>
+        <div class="col-sm-11 col-md-10">
+            <input class="form-control" asp-for="Rec.p07NameInflection" />
+        </div>
+
+    </div>
+
+</div>
+
+
+
+
+

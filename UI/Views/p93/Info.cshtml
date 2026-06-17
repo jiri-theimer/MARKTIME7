@@ -1,0 +1,106 @@
+﻿@model UI.Models.Tab1.BaseTab1ViewModel
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+
+
+
+    BO.p93InvoiceHeader _rec = _f.p93InvoiceHeaderBL.Load(Model.pid);
+
+    IEnumerable<BO.p88InvoiceHeader_BankAccount> _lisP88 = _f.p93InvoiceHeaderBL.GetList_p88(_rec.pid);
+
+
+}
+
+@addTagHelper *, UI
+
+
+
+@Html.Raw("<div class='info_record_container'>")
+
+<table style="width:90%;">
+    <tr>
+        <td>
+            <h4>Vystavovatel faktury</h4>
+        </td>
+        <td>
+            @if (_f.CurrentUser.IsAdmin)
+            {
+                <a href="javascript:_edit('p93',@Model.pid)">@_f.tra("Administrace")</a>
+            }
+        </td>
+    </tr>
+</table>
+
+
+
+
+
+<table class="table table-sm table-hover">
+    <tr>
+        <td>
+            Společnost:
+        </td>
+        <td style="font-weight:bold;">
+            @(_rec.p93Company)
+
+        </td>
+    </tr>
+    <tr>
+        <td>
+            IČ:
+        </td>
+        <td style="font-weight:bold;">
+            @(_rec.p93RegID)
+
+        </td>
+    </tr>
+
+    <tr>
+        <td>
+            DIČ:
+        </td>
+        <td>
+            @(_rec.p93VatID)
+        </td>
+    </tr>
+
+    <tr>
+        <td>
+            Adresa:
+        </td>
+        <td>
+            @($"{_rec.p93Street}, {_rec.p93City}, {_rec.p93Zip}")
+           
+        </td>
+    </tr>
+
+
+</table>
+
+
+<strong>Bankovní účty:</strong>
+
+<table class="table table-sm table-hover">
+    @foreach (var c in _lisP88)
+    {
+        <tr>
+            <td style="width:40px;">
+                @(_f.FBL.LoadCurrencyByID(c.j27ID).j27Code)
+            </td>
+            <td>
+                @($"{_f.p86BankAccountBL.Load(c.p86ID).p86Account}/{_f.p86BankAccountBL.Load(c.p86ID).p86Code}")
+            </td>
+        </tr>
+    }
+</table>
+
+
+
+
+
+
+@Html.Raw("</div>")
+

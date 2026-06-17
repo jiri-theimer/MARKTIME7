@@ -1,0 +1,68 @@
+﻿.column {
+    float: left;
+}
+
+div.portlet {
+    margin: 0 1em 1em 0;
+    padding: 0.3em;
+}
+
+div.portlet-header {
+    padding: 0.2em 0.3em;
+    margin-bottom: 0.5em;
+    position: relative;
+    cursor: move;
+}
+
+.portlet-toggle {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    margin-top: -8px;
+}
+
+div.portlet-content {
+    padding: 0.4em;
+    max-height: 400px;
+    overflow: auto;
+}
+
+    div.portlet-content a {
+        color: #007BFF;
+    }
+
+.portlet-placeholder {
+    border: 1px dotted black;
+    margin: 0 1em 1em 0;
+    height: 50px;
+}
+
+#container_subform {
+    margin: 0px;
+    border: dotted 1px #F5F5F5;
+}
+
+#container_index {
+    margin-top: 15px;
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-bottom: 0px;
+    border: dotted 1px #F5F5F5;
+}
+
+#header_subform {
+    margin-top: 0px;
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-bottom:10px;
+    border-bottom: solid 1px #F5F5F5;
+}
+
+#header_index {
+    margin-top: 10px;
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-bottom: 0px;
+    border-bottom: solid 1px silver;
+}
+

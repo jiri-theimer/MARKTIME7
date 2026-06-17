@@ -1,0 +1,10 @@
+﻿@model byte
+@inject BL.Factory _f
+
+<select asp-for="@Model" class="form-select">
+    
+    <option value="0">@_f.tra("Povoleno")</option>
+    <option value="1">@_f.tra("Povoleno a předem zapnuto")</option>
+    <option value="2">@_f.tra("Zakázáno")</option>
+    <option value="3">@_f.tra("Zapnuto bez možnosti vypnout")</option>
+</select>

@@ -1,0 +1,106 @@
+﻿@model UI.Models.Tab1.BaseTab1ViewModel
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+
+
+
+    BO.p42ProjectType _rec = _f.p42ProjectTypeBL.Load(Model.pid);
+    BO.p61ActivityCluster _recP61 = null;
+    if (_rec.p61ID > 0)
+    {
+        _recP61 = _f.p61ActivityClusterBL.Load(_rec.p61ID);
+    }
+
+
+}
+
+@addTagHelper *, UI
+
+
+
+@Html.Raw("<div class='info_record_container'>")
+
+
+<table style="width:90%;">
+    <tr>
+        <td>
+            <h4>Typ projektu</h4>
+        </td>
+        <td>
+            @if (_f.CurrentUser.IsAdmin)
+            {
+                <a href="javascript:_edit('p42',@Model.pid)">@_f.tra("Administrace")</a>
+            }
+        </td>
+    </tr>
+</table>
+
+
+
+
+
+<table class="table table-sm table-hover">
+    <tr>
+        <td>
+            Název:
+        </td>
+        <td style="font-weight:bold;">
+            @(_rec.p42Name)
+
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Číselná řada:
+        </td>
+        <td>
+            @(_rec.x38Name)
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Workflow šablona:
+        </td>
+        <td>
+            @(_rec.b01Name)
+        </td>
+    </tr>
+    @if (_recP61 != null)
+    {
+        <tr>
+            <td>
+                Klastr aktivit:
+            </td>
+            <td>
+                @(_recP61.p61Name)
+            </td>
+        </tr>
+    }
+
+
+</table>
+
+
+
+
+
+
+
+
+@Html.Raw("</div>")
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+    });
+
+
+
+</script>

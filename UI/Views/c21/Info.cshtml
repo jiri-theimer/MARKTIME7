@@ -1,0 +1,103 @@
+﻿@model UI.Models.Tab1.BaseTab1ViewModel
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+
+
+
+    BO.c21FondCalendar _rec = _f.c21FondCalendarBL.Load(Model.pid);
+
+
+
+}
+
+@addTagHelper *, UI
+
+
+
+@Html.Raw("<div class='info_record_container'>")
+
+<table style="width:90%;">
+    <tr>
+        <td>
+            <h4>@(_rec.c21Name)</h4>
+        </td>
+        <td>
+            @if (_f.CurrentUser.IsAdmin)
+            {
+                <a href="javascript:_edit('c21',@Model.pid)">@_f.tra("Administrace")</a>
+            }
+        </td>
+    </tr>
+</table>
+
+<table class="table table-sm table-hover">
+    <tr>
+        <td>
+            Po
+        </td>
+        <td>
+            @BO.Code.Bas.Number2String(_rec.c21Day1_Hours)
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Út
+        </td>
+        <td>
+            @BO.Code.Bas.Number2String(_rec.c21Day2_Hours)
+        </td>
+    </tr>
+    <tr>
+        <td>
+            St
+        </td>
+        <td>
+            @BO.Code.Bas.Number2String(_rec.c21Day3_Hours)
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Čt
+        </td>
+        <td>
+            @BO.Code.Bas.Number2String(_rec.c21Day4_Hours)
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Pá
+        </td>
+        <td>
+            @BO.Code.Bas.Number2String(_rec.c21Day5_Hours)
+        </td>
+    </tr>
+    <tr>
+        <td>
+            So
+        </td>
+        <td>
+            @BO.Code.Bas.Number2String(_rec.c21Day6_Hours)
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Ne
+        </td>
+        <td>
+            @BO.Code.Bas.Number2String(_rec.c21Day7_Hours)
+        </td>
+    </tr>
+</table>
+
+
+
+
+
+
+
+
+@Html.Raw("</div>")
+

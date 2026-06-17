@@ -1,0 +1,33 @@
+﻿@model ProjectTreeQueryViewModel
+@inject BL.Factory _f
+
+@{
+
+
+
+
+}
+
+
+<div class="dropdown" style="margin-left:8px;">
+    @if (Model.Value > 0)
+    {
+        <button type="button" id="cmdprojecttreequery" class="btn dropdown-toggle bog" style="background-color:red;color:white;" role="button" data-bs-toggle="dropdown" aria-expanded="false" tabindex="-1">
+            <span class="material-icons-outlined-nosize">filter_alt</span>
+            <kbd class="le@(Model.Value)">L@(Model.Value)</kbd>
+            <span id="ProjectTreeQueryName">@_f.getP07Level(Model.Value,false)</span>
+        </button>
+    }
+    else
+    {
+        <button type="button" id="cmdprojecttreequery" class="btn dropdown-toggle bog" role="button" data-bs-toggle="dropdown" aria-expanded="false" tabindex="-1">
+            <span class="material-icons-outlined-nosize">filter_alt</span>
+            <span id="ProjectTreeQueryName">@_f.tra("Strom")</span>
+        </button>
+    }
+
+
+    <div id="cmdprojecttreequery_menu" class="dropdown-menu">
+        loading...
+    </div>
+</div>

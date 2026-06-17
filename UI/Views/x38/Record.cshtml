@@ -1,0 +1,145 @@
+﻿@model UI.Models.Record.x38Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Číselná řada");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    Model.PageSymbol = "settings";
+}
+
+@addTagHelper *, UI
+
+<div class="modal_record_container">
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název"):</label>
+        <div class="col-sm-9 col-md-8">
+            <input class="form-control record_name" asp-for="Rec.x38Name" />
+        </div>
+
+    </div>
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Entita"):</label>
+        <div class="col-sm-11 col-md-10">
+            <select asp-for="Rec.x38Entity" class="form-select">
+                <option value="p41">@_f.tra("Projekt")</option>
+                <option value="p28">@_f.tra("Kontakt")</option>
+                <option value="p91">@_f.tra("Vyúčtování (faktura)")</option>
+                <option value="p90">@_f.tra("Záloha")</option>
+                <option value="p82">@_f.tra("Doklad přijaté platby zálohy")</option>
+                <option value="o23">@_f.tra("Dokument")</option>
+                <option value="p56">@_f.tra("Úkol")</option>
+            </select>
+        </div>
+
+    </div>
+    <div class="my-2">
+        <input type="checkbox" asp-for="Rec.x38IsUseDbPID" onchange="postback('postback')" />
+        <label class="col-form-label" for="Rec_x38IsUseDbPID">@_f.tra("Číslovat podle primárního klíče záznamu v databázi")</label>
+    </div>
+
+    @if(!Model.Rec.x38IsUseDbPID)
+    {
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Rozsah nul pořadového čísla"):</label>
+            <div class="col-sm-1 col-md-1">
+                <mynumber asp-for="Rec.x38Scale" decimal-digits="0"></mynumber>
+            </div>
+        </div>
+
+
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Konstanta před pořadovým číslem"):</label>
+            <div class="col-sm-7 col-md-6">
+                <input class="form-control" asp-for="Rec.x38ConstantBeforeValue" />
+            </div>
+            <div class="col-auto">
+                <i>[YYYY] - aktuální rok, [MM] - aktuální měsíc</i>
+            </div>
+        </div>
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Konstanta za pořadovým číslem"):</label>
+            <div class="col-sm-7 col-md-6">
+                <input class="form-control" asp-for="Rec.x38ConstantAfterValue" />
+            </div>
+            <div class="col-auto">
+                <i>[YYYY] - aktuální rok, [MM] - aktuální měsíc</i>
+            </div>
+        </div>
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Vlastní funkce číselné řadky"):</label>
+            <div class="col-sm-11 col-md-10">
+                <input class="form-control" asp-for="Rec.x38SqlMaskSyntax" />
+            </div>
+        </div>
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Pořadové číslo musí začínat od hodnoty"):</label>
+            <div class="col-sm-1 col-md-1">
+                <mynumber asp-for="Rec.x38ExplicitIncrementStart" decimal-digits="0"></mynumber>
+            </div>
+        </div>
+    }
+    
+    
+    
+
+    
+    <div class="card">
+        <div class="card-header">
+            @_f.tra("Kdo může upravovat vygenerovaný kód v záznamu?")
+        </div>
+        <div class="card-body">
+
+            <input type="radio" id="x38EditModeFlag1" asp-for="@Model.Rec.x38EditModeFlag" value="NotEditable">
+            <label for="x38EditModeFlag1">@_f.tra("Kód záznamu nelze upravovat")</label>
+            <br />
+            <input type="radio" id="x38EditModeFlag2" asp-for="@Model.Rec.x38EditModeFlag" value="RecordOwnerOnly">
+            <label for="x38EditModeFlag2">@_f.tra("Kód může upravovat vlastník záznamu")</label>
+            <br />
+            <input type="radio" id="x38EditModeFlag3" asp-for="@Model.Rec.x38EditModeFlag" value="AdminOnly">
+            <label for="x38EditModeFlag3">@_f.tra("Kód může upravovat pouze administrátor")</label>
+
+        </div>
+    </div>
+
+
+
+</div>
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        document.addEventListener("form1_beforesave", function (e) {    //událost před uložením formuláře
+            e.detail.cancel = false;
+            enablefields();
+
+        });
+
+
+
+        $("#Rec_x38Entity").on("change", function () {
+            postback("postback");
+        });
+
+      
+
+    });
+
+
+
+    function enablefields()
+    {
+      
+        $("#Rec_x38Entity").prop("disabled", false);
+    }
+
+
+    function postback(oper) {
+        enablefields();
+        form1.action = _ep("x38/Record?oper=" + oper);
+        form1.submit();
+    }
+
+</script>

@@ -1,0 +1,241 @@
+﻿@model LoginViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Přihlášení");
+    Layout = "~/Views/Shared/_LayoutAnonym.cshtml";
+
+    var _returnurl = @Context.Request.Query["returnurl"];
+
+    var _culture = System.Globalization.CultureInfo.CurrentUICulture.Name;
+}
+
+@addTagHelper *, UI
+@section header_content
+{
+
+    
+   
+
+
+
+}
+
+
+
+
+
+<div class="container" style="max-width:800px;">
+
+    <form id="form1" asp-action="UserLogin" method="post" onsubmit="return dosubmit();">
+
+        <h4>@_f.tra("Přihlášení")</h4>
+
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <div class="row mb-2">
+            <label asp-for="@Model.Login" class="col-sm-3 col-form-label">@_f.tra("Přihlašovací jméno (login)"):</label>
+            <div class="col-sm-9">
+                <input asp-for="@Model.Login" class="form-control" autocomplete="username" />
+                <span asp-validation-for="@Model.Login" class="text-danger"></span>
+            </div>
+
+
+        </div>
+        <div class="row mb-2">
+            <label asp-for="@Model.Password" class="col-sm-3 col-form-label">@_f.tra("Heslo"):</label>
+            <div class="col-sm-9">
+                <input type="password" asp-for="@Model.Password" autocomplete="current-password" class="form-control" />
+                <span asp-validation-for="@Model.Password" class="text-danger"></span>
+            </div>
+
+        </div>
+        <div class="row mb-2">
+            <label asp-for="@Model.CookieExpiresInHours" class="col-sm-3 col-form-label">@_f.tra("Trvalé přihlášení"):</label>
+            <div class="col-sm-9">
+                <select asp-for="@Model.CookieExpiresInHours" class="form-select">
+                    <option value="168">@_f.tra("7 dní (168 hodin)")</option>
+                    <option value="48">@_f.tra("48 hodin")</option>
+                    <option value="24">@_f.tra("24 hodin")</option>
+                    <option value="12">@_f.tra("12 hodin")</option>
+                    <option value="1">@_f.tra("1 hodina")</option>
+
+                    
+
+                </select>
+            </div>
+
+        </div>
+
+        <div class="row mb-2">
+            <div class="col-sm-3">
+            </div>
+
+            <div class="col-auto">
+                <input type="submit" value="@_f.tra("Přihlásit se")" class="btn btn-default btn-primary" asp-route-returnurl="@_returnurl" />
+            </div>
+            <div class="col-auto" style="margin-left:auto;">
+                <a href="/Password/Index" class="btn btn-light">@_f.tra("Zapomenuté heslo")</a>
+            </div>
+        </div>
+        @if (_f.App.AllowGoogleLogin)
+        {
+            <div class="row mb-2">
+                <div class="col-sm-9 offset-sm-3">
+                    <hr class="my-3" />
+                    <a href="/Login/GoogleLogin?returnurl=@_returnurl"
+                       class="btn btn-outline-secondary d-inline-flex align-items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="18" height="18">
+                            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+                            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+                            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+                            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+                            <path fill="none" d="M0 0h48v48H0z" />
+                        </svg>
+                        @_f.tra("Přihlásit se přes Google")
+                    </a>
+                </div>
+            </div>
+
+        }
+
+            
+
+        
+        
+        
+        @if (_f.App.HostingMode == BL.Singleton.HostingModeEnum.TotalCloud)
+        {
+            <div style="margin-top:10px;">
+
+                <a href="/CreateLicenseFree">@(_f.tra("Zaregistrovat novou databázi"))</a>
+
+            </div>
+        }
+
+        <div class="nonmobile">
+            <img src="/images/devices.png" />
+            <div>
+                <small class="text-info">
+                    @_f.tra("Jedna aplikace pro všechna zařízení!")
+                </small>
+            </div>
+        </div>
+
+
+        
+
+        <input type="hidden" asp-for="Browser_AvailWidth" />
+        <input type="hidden" asp-for="Browser_AvailHeight" />
+        <input type="hidden" asp-for="Browser_InnerWidth" />
+        <input type="hidden" asp-for="Browser_InnerHeight" />
+        <input type="hidden" asp-for="Browser_UserAgent" />
+        <input type="hidden" asp-for="Browser_DeviceType" />
+        <input type="hidden" asp-for="Browser_Host" />
+
+
+        
+
+
+    </form>
+
+
+
+
+    <form id="form2" asp-controller="Login" asp-action="SaveLang" method="post" class="d-inline">
+        <div class="d-flex gap-3">
+
+            <div class="form-check">
+                <input class="form-check-input"
+                       type="radio"
+                       name="culture"
+                       value="cs-CZ"
+                       id="lang-cs"
+                       onchange="this.form.submit()"
+                @( _culture == "cs-CZ" ? "checked" : null )>
+                <label class="form-check-label" for="lang-cs">
+                    <img src="/images/small_czechrepublic.gif" width="18" class="me-1" />
+                    Čeština
+                </label>
+            </div>
+
+            <div class="form-check">
+                <input class="form-check-input"
+                       type="radio"
+                       name="culture"
+                       value="en-US"
+                       id="lang-en"
+                       onchange="this.form.submit()"
+                @( _culture == "en-US" ? "checked" : null )>
+                <label class="form-check-label" for="lang-en">
+                    <img src="/images/small_uk.gif" width="18" class="me-1" />
+                    English
+                </label>
+            </div>
+
+            <div class="form-check">
+                <input class="form-check-input"
+                       type="radio"
+                       name="culture"
+                       value="sk-SK"
+                       id="lang-sk"
+                       onchange="this.form.submit()"
+                @( _culture == "sk-SK" ? "checked" : null )>
+                <label class="form-check-label" for="lang-sk">
+                    <img src="/images/small_slovakia.gif" width="18" class="me-1" />
+                    Slovenčina
+                </label>
+            </div>
+
+        </div>
+    </form>
+
+</div>
+
+
+
+@if (Model.Message != null)
+{
+    <div class="alert alert-danger" role="alert">
+        <h4>@Html.Raw(Model.Message)</h4>
+    </div>
+}
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+        $("#Browser_UserAgent").val(navigator.userAgent);
+        $("#Browser_AvailWidth").val(screen.availWidth);
+        $("#Browser_AvailHeight").val(screen.availHeight);
+        $("#Browser_InnerWidth").val(window.innerWidth);
+        $("#Browser_InnerHeight").val(window.innerHeight);
+        $("#Browser_Host").val(location.host);
+
+        var devicetype = "Desktop";
+        if (screen.availHeight > screen.availWidth || screen.width < 800 || screen.height < 600) {   //mobilní zařízení výšku vyšší než šířku
+            devicetype = "Phone";
+        }
+        $("#Browser_DeviceType").val(devicetype);
+
+
+
+
+
+    });
+
+    
+   
+
+    
+
+    function dosubmit()
+    {
+
+        const selectedCulture = document.querySelector('input[name="culture"]:checked')?.value;
+
+        form1.action = "/Login/UserLogin?culture="+selectedCulture;
+        return true;
+    }
+</script>

@@ -1,0 +1,137 @@
+﻿@model UI.Models.Tab1.p51Tab1
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+    if (Model.Rec == null) return;
+
+
+
+}
+
+@addTagHelper *, UI
+
+
+
+@Html.Raw("<div class='info_record_container'>")
+
+<div class="card recpagebox400">
+    <div class="card-body">
+        <table class="table table-hover">
+            <tr>
+
+                <td colspan="2" class="@(Model.Rec.isclosed ? "tdarchiv": "tdval")">
+                    <myicon symbol="price_change"></myicon>
+                    @Model.Rec.TypeAlias
+                </td>
+            <tr>
+                <td class="tdlab">
+                        @_f.tra("Název"):
+                </td>
+                <td>
+                    <myval value="@Model.Rec.p51Name"></myval>
+                </td>
+            </tr>
+            <tr>
+                <td class="tdlab">
+                        @_f.tra("Měna"):
+                </td>
+                <td>
+                    <myval value="@Model.Rec.j27Code"></myval>
+                </td>
+            </tr>
+            <tr>
+                <td class="tdlab">
+                        @_f.tra("Výchozí sazba"):
+                </td>
+                <td class="tdcastka">
+                    <myval datatype="num" value="@Model.Rec.p51DefaultRateT" valueafter="@Model.Rec.j27Code"></myval>
+                </td>
+            </tr>
+        </table>
+
+        <div class="my-2">
+            <button type="button" class="btn bog" onclick="_window_open('/p51/Recalc?p51id=@(Model.pid)')">
+            <myicon symbol="sync"></myicon>
+                @if (Model.Rec.p51TypeFlag == BO.p51TypeFlagENUM.CostRates || Model.Rec.p51TypeFlag == BO.p51TypeFlagENUM.OverheadRates)
+                {
+                    @_f.tra("Zpětný přepočet nákladových sazeb (hodiny)")
+                }
+                else
+                {
+                    @_f.tra("Zpětný přepočet fakturačních sazeb u vykázaných úkonů (hodiny,kusovník)")
+                }
+
+                
+            }
+            </button>
+        </div>
+        
+
+        @if (Model.Rec.p51IsFPR)
+        {
+            <mark>@_f.tra("Vzorový ceník pro výpočet efektivních sazeb z paušálních odměn")</mark>
+            <div class="my-2">
+                <button type="button" class="btn bog" onclick="_window_open('/p51/Recalc?p51id=@(Model.pid)&flag=fpr')">
+                    <myicon symbol="sync"></myicon>
+                    @_f.tra("Zpětný přepočet efektivních sazeb")
+                </button>
+            </div>
+        }
+
+    </div>
+</div>
+
+
+@if (Model.lisP52 != null && Model.lisP52.Count() > 0)
+{
+    <div class="card recpageboxauto">
+        <div class="card-body">
+            <div class="card-title recpagetitle bgp51">
+                @_f.tra("Výjimky z výchozí sazby")
+            </div>
+            <table class="table table-hover">
+                <tr>
+                    <th>@_f.tra("Pozice")</th>
+                    <th>@_f.tra("Uživatel/Jednotlivec")</th>
+                    <th>@_f.tra("Sešit")</th>
+                    <th>@_f.tra("Aktivita")</th>
+                    <th>@_f.tra("Sazba")</th>
+                </tr>
+                @foreach (var c in Model.lisP52)
+                {
+                    <tr>
+                        <td>
+                            @c.j07Name
+                        </td>
+                        <td>
+                            @c.Person
+                        </td>
+                        <td>
+                            @(c.p52IsPlusAllTimeSheets ? "" : c.p34Name)
+                        </td>
+                        <td>
+                            @c.p32Name
+                        </td>
+                        <td style="text-align:right;">
+                            @BO.Code.Bas.Number2String(c.p52Rate)
+                            @Model.Rec.j27Code
+                        </td>
+                    </tr>
+
+
+                }
+            </table>
+
+
+        </div>
+    </div>
+}
+
+
+
+<div style="clear:both;"></div>
+
+
+@Html.Raw("</div>")

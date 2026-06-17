@@ -1,0 +1,64 @@
+﻿@model UI.Models.Tab1.j02Tab1
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+    if (Model.Rec == null) return;
+    if (Model.ff1 != null) Model.ff1.caller = "info";
+
+    string _Teams = Model.GetTeams();
+
+    InfoButtonsViewModel _buttons = new InfoButtonsViewModel() { prefix = Model.prefix, pid = Model.pid};
+    //_buttons.disp = new BO.BaseRecDisposition() { ReadAccess = true, OwnerAccess = _f.CurrentUser.IsAdmin };
+}
+
+@addTagHelper *, UI
+
+
+
+@Html.Raw("<div class='info_record_container'>")
+
+
+<div>
+    @Html.EditorFor(m => _buttons, "~/Views/Shared/_InfoButtons.cshtml")
+</div>
+
+<div style="clear:both;"></div>
+
+<div class="card recpageboxauto">
+    <div class="card-body">
+        @await Html.PartialAsync("~/Views/Shared/_j02RecHeaderBox.cshtml",Model.Rec)
+
+        @await Html.PartialAsync("~/Views/Shared/_FreeFieldsRO.cshtml",Model.ff1)
+
+        @Html.EditorFor(m => m.Rec, "~/Views/Shared/_TimeStamp.cshtml")
+    </div>
+</div>
+
+
+<div class="card recpageboxauto">
+    <div class="card-body">
+        @await Html.PartialAsync("~/Views/Shared/_j02RecUserBox.cshtml",Model.Rec)
+
+
+    </div>
+</div>
+
+
+
+
+
+
+@Html.EditorFor(m => m, "~/Views/Shared/_TagsTab1.cshtml")
+
+
+
+
+@Html.EditorFor(m => m, "~/Views/Shared/_lisO27Tab1.cshtml")
+
+
+
+@Html.Raw("</div>")
+
+<div style="clear:both;"></div>

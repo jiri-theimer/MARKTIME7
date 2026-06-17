@@ -1,0 +1,88 @@
+﻿@model UI.Models.Record.j79Record
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    if (Model.Rec == null) return;
+    Model.PageTitle = _f.tra("Součty");
+    Model.PageSymbol = "functions";
+}
+@addTagHelper *, UI
+
+
+
+
+<div class="modal_record_container">
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název šablony"):</label>
+        <div class="col-sm-10 col-md-9">
+            <input class="form-control" asp-for="Rec.j79Name" />
+
+        </div>        
+        <div class="col-sm-1 col-md-1">
+            <mynumber asp-for="Rec.j79Ordinary" class="record_ordinary" decimal-digits="0"></mynumber>
+        </div>
+
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Vlastník záznamu"):</label>
+        <div class="col-sm-11 col-md-10">
+            <mycombo entity="j02User" asp-for="Rec.j02ID" selectedtext="@Model.ComboPerson" filter-flag="1"></mycombo>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+        <myicon symbol="share"></myicon>
+            @_f.tra("Nasdílet statistiku pro ostatní uživatele")
+
+            <mytooltip text="Ostatní uživatelé uvidí statistiku podle svých oprávnění!<hr>Systém u statistiky hlídá, zda daný uživatel má/nemá přístup k billing informacím (sazby, honoráře) a zda má/nemá přístup k datům ostatních uživatelů."></mytooltip>
+
+        </div>
+        <div class="card-body">
+            <input type="checkbox" asp-for="Rec.j79IsPublic" onchange="_postback()" />
+            <label class="col-form-label" for="Rec_j79IsPublic">@_f.tra("Šablona přístupná pro všechny uživatele")</label>
+            <p></p>
+            @if (!Model.Rec.j79IsPublic)
+            {
+                <mycombochecklist asp-for="j04IDs" entity="j04UserRole" selectedtext="@Model.j04Names" placeholder="@_f.tra("Vybrat aplikační role")..."></mycombochecklist>
+
+            }
+            
+
+        </div>
+    </div>
+
+   
+
+  
+   
+
+
+
+
+
+</div>
+
+
+
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        
+
+
+    });
+
+
+    
+
+
+</script>
+
+
+

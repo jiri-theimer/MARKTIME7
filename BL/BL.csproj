@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ClosedXML" Version="0.101.0" />
+    <PackageReference Include="Dapper" Version="2.1.28" />
+    <PackageReference Include="Google.Apis.Oauth2.v2" Version="1.57.0.1869" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.53" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0" />
+    <PackageReference Include="Rebex.Imap" Version="6.0.8372" />
+    <PackageReference Include="Rebex.Mail" Version="6.0.8372" />
+    <PackageReference Include="Rebex.Smtp" Version="6.0.8372" />
+    <PackageReference Include="Serilog.Extensions.Logging.File" Version="3.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BO\BO.csproj" />
+    <ProjectReference Include="..\DL\DL.csproj" />
+  </ItemGroup>
+
+</Project>

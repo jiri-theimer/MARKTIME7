@@ -1,0 +1,183 @@
+﻿@model UI.Models.RecPageViewModel
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutMobile.cshtml";
+
+    Model.PageTitle = Model.MenuCode;
+
+
+}
+
+@section header_content {
+
+    <style>
+        .active {
+            background-color: var(--oznaceno) !important;
+            color: var(--popredi) !important;
+        }
+    </style>
+
+}
+
+
+@addTagHelper *, UI
+@Html.Raw("<div style='background-color:#F5F5F5'>")
+
+<div class="input-group" style="padding-top:8px;">
+    <ul class="nav nav-tabs">
+        <li class="onetab">
+            <a class="nav-link active" id="linkMainTab" href="javascript:reload()">
+                @Model.TabName
+            </a>
+
+        </li>
+    </ul>
+
+    
+   
+    <div>
+        <a class="btn descreet_link_over_grid" id="linkGo2Grid" href="/TheGrid/MobileView?prefix=@(Model.prefix)&go2pid=@(Model.pid)" title="Přejít do Tabulky"><span class="material-icons-outlined-btn">grid_view</span></a>
+
+    </div>
+    
+    @if (_f.CurrentUser.j04IsModule_p31 && (Model.prefix == "p28" || Model.prefix == "p41" || Model.prefix == "le5" || Model.prefix == "le4" || Model.prefix == "p56"))
+    {
+        <div>
+            <a class="btn descreet_link_over_grid" href="javascript:_window_open('/p31/Record?pid=0&newrec_prefix=@(Model.prefix)&newrec_pid=@(Model.pid)')"><span class="material-icons-outlined-btn menu_new_record">more_time</span></a>
+        </div>
+    }
+
+    
+
+
+
+</div>
+
+
+
+@Html.Raw("</div>")
+
+
+
+
+<div id="layout_sidebar_contextmenu" style="margin-top:7px;margin-bottom:7px;">
+    @if (Model.pid > 0)
+    {
+        <a id="layout_sidebar_contextmenu_link" class="cm h4 mx-0 py-2" style="width:100%;" title="@Model.MenuCode" onclick="_cm(event, '@Model.prefix',@Model.pid);">☰@(BO.Code.Bas.OM2(Model.MenuCode,38)) </a>
+        <h4 id="layout_sidebar_contextmenu_onlytext"></h4>
+    }
+
+</div>
+
+
+<div style="clear:both;"></div>
+
+
+<nav class="nav" id="navtabs">
+    @foreach (var tab in Model.NavTabs)
+    {
+        <a class="@tab.CssClass" href="@tab.Url" style="border:solid 1px #F5F5F5 ;border-radius:5px;" target="fra_subgrid" onclick="tabclick(this)" id="tab@(tab.Entity)">
+            @Html.Raw(tab.Name)
+            @if (tab.Badge != null)
+            {
+                @Html.Raw(tab.Badge)
+            }
+        </a>
+
+
+    }
+</nav>
+
+
+
+<div class="tabs_container bg@(Model.prefix)">
+    <ul class="nav nav-tabs">
+        <li style="padding-top:6px;display:none;">
+            <a id="cmdRCM" class="cm" onclick="rcm_from_tabs(event)" title="MENU"><span class="material-icons-outlined">menu</span></a>
+        </li>
+
+
+    </ul>
+</div>
+
+<div id="divTabContent">
+    <iframe id="fra_subgrid" name="fra_subgrid" src="@Model.DefaultNavTabUrl" frameborder="0" scrolling="yes" style="width:100%;" onload="$('#divTabContent').css('background','none');"></iframe>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+    var _prefix = "@Model.prefix";
+    var _entity = "@Model.entity";
+    var _pid = "@Model.pid";
+
+    var _currentloadingtabs = false;
+
+    $(document).ready(function () {
+
+        var offset = $("#divTabContent").offset();
+        var h_vertical = _device.innerHeight - offset.top;
+        h_vertical = parseInt(h_vertical);
+
+
+
+        $("#divTabContent").css("height", h_vertical + "px");
+
+       
+
+
+
+        if (_pid == "0") {
+            $(".tabovergrid").css("visibility", "hidden");
+            $("#divPageCommands").css("visibility", "hidden");
+        }
+
+
+
+    });
+
+
+    function tabclick(tab) {    //uložit aktuální záložku do profilu uživatele
+        $("#navtabs .nav-link").removeClass("active");
+        $(tab).addClass("active");
+        $("#cmdDropdown").html($(tab).html());
+
+        $.post("/Common/SetUserParam", { key: "masterview-tab-" + _prefix, value: tab.id.replace("tab", "") }, function (data) {
+
+
+        });
+    }
+
+
+    function reload() {
+        _redirect("/Record/RecPageMobile?prefix=" + _prefix + "&pid=" + _pid);
+    }
+
+   
+
+
+
+
+
+    function rcm_from_tabs(e) {
+
+        e.target.setAttribute("menu_je_inicializovano", null);  //vyčistit paměť o inicializaci menu v rámci tohoto tlačítka
+
+        _cm(e, _prefix, _pid, "grid");
+    }
+
+
+
+
+
+
+
+
+</script>
+
+
+

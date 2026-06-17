@@ -1,0 +1,771 @@
+﻿Klient projektu;Projekt;Aktivita;Příjmení+Jméno;Hodiny;Bez DPH
+;Interní;Dovolená;Dolanská Tereza;8,00;0,00
+;Interní;Dovolená;Hlaváčková Adéla;8,00;0,00
+;Interní;Dovolená;Krňanská Kateřina;8,00;0,00
+;Interní;Dovolená;Kunešová Nikola;24,00;0,00
+;Interní;Dovolená;Pham Thi Ngoc Anh;8,00;0,00
+;Interní;Dovolená;Pichová Barbora;8,00;0,00
+;Interní;Dovolená;Purmová Eva;40,00;0,00
+;Interní;Dovolená;Sajverová Iva;12,00;0,00
+;Interní;Dovolená;Tůmová Nikola;8,00;0,00
+;Interní;Interní;Bošková Tereza;5,08;0,00
+;Interní;Interní;Dolanská Tereza;34,17;0,00
+;Interní;Interní;Harnol Radoslav;168,00;0,00
+;Interní;Interní;Hlaváčková Adéla;25,67;0,00
+;Interní;Interní;Kamenská Nikola;11,75;0,00
+;Interní;Interní;Kulich Iveta;42,00;0,00
+;Interní;Interní;Pham Thi Ngoc Anh;5,42;0,00
+;Interní;Interní;Pichová Barbora;145,00;0,00
+;Interní;Interní;Purmová Eva;3,00;0,00
+;Interní;Interní;Sajverová Iva;65,92;0,00
+;Interní;Interní;Stračiaková Simona;20,50;0,00
+;Interní;Interní;Tomik Evgenia;169,75;0,00
+;Interní;Interní;Tomšovská Klára;9,92;0,00
+;Interní;Interní;Tůmová Nikola;43,33;0,00
+;Interní;Interní;Úradníková Simona;7,17;0,00
+;Interní;Interní;Willingerová Nikola;5,58;0,00
+;Interní;Lékař;Kamenská Viktória;8,00;0,00
+;Interní;Lékař;Obersteinová Adéla;5,00;0,00
+;Interní;Lékař;Sajverová Iva;2,50;0,00
+;Interní;Nemoc;Kollárová Martina;8,00;0,00
+;Interní;Oběd;Bošková Tereza;10,50;0,00
+;Interní;Oběd;Dolanská Tereza;9,50;0,00
+;Interní;Oběd;Harnol Radoslav;10,50;0,00
+;Interní;Oběd;Hlaváčková Adéla;12,75;0,00
+;Interní;Oběd;Kamenská Nikola;10,50;0,00
+;Interní;Oběd;Krňanská Kateřina;0,50;0,00
+;Interní;Oběd;Kulich Iveta;1,00;0,00
+;Interní;Oběd;Kunešová Nikola;8,50;0,00
+;Interní;Oběd;Obersteinová Adéla;10,50;0,00
+;Interní;Oběd;Očenášová Romana Janka;1,00;0,00
+;Interní;Oběd;Pham Thi Ngoc Anh;9,50;0,00
+;Interní;Oběd;Pichová Barbora;10,00;0,00
+;Interní;Oběd;Polívková Adéla;1,50;0,00
+;Interní;Oběd;Purmová Eva;8,00;0,00
+;Interní;Oběd;Sajverová Iva;9,00;0,00
+;Interní;Oběd;Stračiaková Simona;2,00;0,00
+;Interní;Oběd;Tomik Evgenia;10,00;0,00
+;Interní;Oběd;Tůmová Nikola;10,00;0,00
+;Interní;Oběd;Úradníková Simona;9,00;0,00
+;Interní;Oběd;Veverková Ela;9,00;0,00
+;Interní;Oběd;Willingerová Nikola;10,50;0,00
+;Interní;Přestávka ;Kamenská Viktória;9,00;0,00
+;Interní;Přestávka ;Kovářová Adéla;4,00;0,00
+;Interní;Přestávka ;Krňanská Kateřina;8,00;0,00
+;Interní;Přestávka ;Kulich Iveta;15,75;0,00
+;Interní;Přestávka ;Pham Thi Ngoc Anh;2,00;0,00
+;Interní;Přestávka ;Sajverová Iva;4,00;0,00
+;Interní;Přestávka ;Úradníková Simona;0,50;0,00
+;Interní;Sick day;Pham Thi Ngoc Anh;8,00;0,00
+;Nepřítomnosti;Dovolená;Krňanská Kateřina;20,00;0,00
+;Nepřítomnosti;Dovolená;Úradníková Simona;8,00;0,00
+;Nepřítomnosti;Dovolená;Veverková Ela;12,00;0,00
+;Nepřítomnosti;Lékař;Kamenská Nikola;3,50;0,00
+;Nepřítomnosti;Lékař;Kunešová Nikola;3,00;0,00
+;Nepřítomnosti;Lékař;Pichová Barbora;1,50;0,00
+;Nepřítomnosti;Lékař;Úradníková Simona;4,00;0,00
+;Nepřítomnosti;Lékař;Willingerová Nikola;5,67;0,00
+;Nepřítomnosti;Sick day;Dolanská Tereza;8,00;0,00
+;Nepřítomnosti;Sick day;Kollárová Martina;4,00;0,00
+;Nepřítomnosti;Sick day;Kunešová Nikola;4,00;0,00
+;Nepřítomnosti;Sick day;Úradníková Simona;8,00;0,00
+1. DISTRIBUTION s.r.o.;Velké mzdy;Mzdová administrativa;Kovářová Adéla;17,00;0,00
+1. DISTRIBUTION s.r.o.;Velké mzdy;Mzdová administrativa;Krňanská Kateřina;3,58;0,00
+1. DISTRIBUTION s.r.o.;Velké mzdy;Mzdová administrativa;Purmová Eva;1,00;0,00
+1. DISTRIBUTION s.r.o.;Velké mzdy;Nástupy;Krňanská Kateřina;0,00;250,00
+1. DISTRIBUTION s.r.o.;Velké mzdy;Výstupy;Krňanská Kateřina;0,00;3 500,00
+1. DISTRIBUTION s.r.o.;Velké mzdy;Zpracování mezd;Krňanská Kateřina;0,00;12 500,00
+100 Towers Holding a.s.;100 Towers Holding a.s.;Audit;Sajverová Iva;1,25;0,00
+ACPM Consulting s.r.o.;Účetnictví;Počet dokladů 0-50;Bošková Tereza;0,00;8 000,00
+ACPM Consulting s.r.o.;Účetnictví;Sleva;Harnol Robot;0,00;-1 600,00
+ACPM Consulting s.r.o.;Účetnictví;Správní poplatek DIS+;Harnol Robot;0,00;200,00
+ACPM Consulting s.r.o.;Účetnictví;Účetní závěrka;Bošková Tereza;3,58;0,00
+ACPM Consulting s.r.o.;Účetnictví;Účetní závěrka;Pham Thi Ngoc Anh;0,50;0,00
+ACPM Consulting s.r.o.;Účetnictví;Vedení účetnictví;Bošková Tereza;1,58;0,00
+ACPM Consulting s.r.o.;Účetnictví;Vedení účetnictví;Pham Thi Ngoc Anh;0,50;0,00
+ACPM Consulting s.r.o.;Účetnictví;Vícepráce účetnictví;Pham Thi Ngoc Anh;0,50;600,00
+ACPM Consulting s.r.o.;Účetnictví;Zpracování DPH;Bošková Tereza;1,58;0,00
+ACPM Consulting s.r.o.;Účetnictví;Zpracování DPH;Sajverová Iva;0,08;0,00
+agentura KOFEIN s.r.o.;Malé mzdy + účetnictví;Mzdová administrativa;Hlaváčková Adéla;3,83;0,00
+agentura KOFEIN s.r.o.;Malé mzdy + účetnictví;Počet dokladů 301-350;Tůmová Nikola;0,00;28 000,00
+agentura KOFEIN s.r.o.;Malé mzdy + účetnictví;Roční mzdová závěrka;Hlaváčková Adéla;0,50;0,00
+agentura KOFEIN s.r.o.;Malé mzdy + účetnictví;Účetní závěrka;Tůmová Nikola;5,67;0,00
+agentura KOFEIN s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Sajverová Iva;1,00;0,00
+agentura KOFEIN s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Tůmová Nikola;7,08;0,00
+agentura KOFEIN s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Willingerová Nikola;4,25;0,00
+agentura KOFEIN s.r.o.;Malé mzdy + účetnictví;Zpracování DPH;Sajverová Iva;0,50;0,00
+agentura KOFEIN s.r.o.;Malé mzdy + účetnictví;Zpracování DPH;Tůmová Nikola;3,00;0,00
+agentura KOFEIN s.r.o.;Malé mzdy + účetnictví;Zpracování mezd;Hlaváčková Adéla;0,75;0,00
+agentura KOFEIN s.r.o.;Malé mzdy + účetnictví;Zpracování mezd;Hlaváčková Adéla;0,00;3 000,00
+AKCENTA CZ a.s.;Malé mzdy;Mzdová administrativa;Hlaváčková Adéla;5,00;0,00
+AKCENTA CZ a.s.;Malé mzdy;Opakovaná odměna;Harnol Robot;0,00;1 000,00
+AKCENTA CZ a.s.;Malé mzdy;Roční mzdová závěrka;Hlaváčková Adéla;5,00;0,00
+AKCENTA CZ a.s.;Malé mzdy;Roční mzdová závěrka;Pichová Barbora;2,00;0,00
+AKCENTA CZ a.s.;Malé mzdy;Vícepráce mzdy;Hlaváčková Adéla;1,50;1 800,00
+AKCENTA CZ a.s.;Malé mzdy;Zpracování mezd;Hlaváčková Adéla;5,75;0,00
+AKCENTA CZ a.s.;Malé mzdy;Zpracování mezd;Hlaváčková Adéla;0,00;44 550,00
+ALMA KFT s.r.o.;Účetnictví;Počet dokladů 0-50;Bošková Tereza;0,00;7 000,00
+ALMA KFT s.r.o.;Účetnictví;Sleva;Harnol Robot;0,00;-1 400,00
+ALMA KFT s.r.o.;Účetnictví;Účetní závěrka;Bošková Tereza;5,42;0,00
+ALMA KFT s.r.o.;Účetnictví;Účetní závěrka;Pham Thi Ngoc Anh;0,50;0,00
+ALMA KFT s.r.o.;Účetnictví;Vedení účetnictví;Bošková Tereza;1,83;0,00
+ALMA KFT s.r.o.;Účetnictví;Vedení účetnictví;Pham Thi Ngoc Anh;0,50;0,00
+ALMA KFT s.r.o.;Účetnictví;Vícepráce účetnictví;Pham Thi Ngoc Anh;0,25;250,00
+ALMA KFT s.r.o.;Účetnictví;Zpracování DPH;Bošková Tereza;1,58;0,00
+ALMA KFT s.r.o.;Účetnictví;Zpracování DPH;Sajverová Iva;0,17;0,00
+Alshaya Czech s.r.o.;Malé mzdy;Mzdová administrativa;Tomšovská Klára;5,58;0,00
+Alshaya Czech s.r.o.;Malé mzdy;Nástupy;Tomšovská Klára;0,00;600,00
+Alshaya Czech s.r.o.;Malé mzdy;Nástupy;Tomšovská Klára;0,08;0,00
+Alshaya Czech s.r.o.;Malé mzdy;Roční mzdová závěrka;Tomšovská Klára;1,25;0,00
+Alshaya Czech s.r.o.;Malé mzdy;Vícepráce mzdy;Tomšovská Klára;4,50;6 750,00
+Alshaya Czech s.r.o.;Malé mzdy;Výstupy;Tomšovská Klára;0,00;1 200,00
+Alshaya Czech s.r.o.;Malé mzdy;Výstupy;Tomšovská Klára;0,08;0,00
+Alshaya Czech s.r.o.;Malé mzdy;Zpracování mezd;Tomšovská Klára;8,00;0,00
+Alshaya Czech s.r.o.;Malé mzdy;Zpracování mezd;Tomšovská Klára;0,00;18 300,00
+AP Auto Partner CZ s.r.o.;Malé mzdy + účetnictví;Mzdová administrativa;Tomšovská Klára;3,08;0,00
+AP Auto Partner CZ s.r.o.;Malé mzdy + účetnictví;Roční mzdová závěrka;Tomšovská Klára;0,67;0,00
+AP Auto Partner CZ s.r.o.;Malé mzdy + účetnictví;Účetní závěrka;Pham Thi Ngoc Anh;5,92;5 916,67
+AP Auto Partner CZ s.r.o.;Malé mzdy + účetnictví;Účetní závěrka;Willingerová Nikola;3,00;3 000,00
+AP Auto Partner CZ s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Pham Thi Ngoc Anh;28,42;28 416,67
+AP Auto Partner CZ s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Tůmová Nikola;0,25;250,00
+AP Auto Partner CZ s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Willingerová Nikola;17,17;17 166,67
+AP Auto Partner CZ s.r.o.;Malé mzdy + účetnictví;Vícepráce mzdy;Tomšovská Klára;2,25;2 250,00
+AP Auto Partner CZ s.r.o.;Malé mzdy + účetnictví;Vícepráce účetnictví;Pham Thi Ngoc Anh;3,00;3 000,00
+AP Auto Partner CZ s.r.o.;Malé mzdy + účetnictví;Vícepráce účetnictví;Sajverová Iva;1,00;1 000,00
+AP Auto Partner CZ s.r.o.;Malé mzdy + účetnictví;Zpracování DPH;Pham Thi Ngoc Anh;2,67;2 666,67
+AP Auto Partner CZ s.r.o.;Malé mzdy + účetnictví;Zpracování DPH;Sajverová Iva;0,75;750,00
+AP Auto Partner CZ s.r.o.;Malé mzdy + účetnictví;Zpracování mezd;Tomšovská Klára;0,00;7 200,00
+AP Auto Partner CZ s.r.o.;Malé mzdy + účetnictví;Zpracování mezd;Tomšovská Klára;1,50;0,00
+Arcwide Czech Republic, s.r.o.;Účetnictví;Počet dokladů 101-150;Tůmová Nikola;0,00;22 000,00
+Arcwide Czech Republic, s.r.o.;Účetnictví;Účetní závěrka;Pham Thi Ngoc Anh;8,42;0,00
+Arcwide Czech Republic, s.r.o.;Účetnictví;Účetní závěrka;Tůmová Nikola;15,17;0,00
+Arcwide Czech Republic, s.r.o.;Účetnictví;Vedení účetnictví;Pham Thi Ngoc Anh;4,83;0,00
+Arcwide Czech Republic, s.r.o.;Účetnictví;Vedení účetnictví;Tůmová Nikola;11,83;0,00
+Arcwide Czech Republic, s.r.o.;Účetnictví;Vícepráce účetnictví;Pham Thi Ngoc Anh;0,58;0,00
+Arcwide Czech Republic, s.r.o.;Účetnictví;Zpracování DPH;Pham Thi Ngoc Anh;0,67;0,00
+Arcwide Czech Republic, s.r.o.;Účetnictví;Zpracování DPH;Tůmová Nikola;0,92;0,00
+Auto Partner Česká republika s.r.o.;Malé mzdy + účetnictví;Daňové poradenství;Zahradník Jaroslav;5,50;11 000,00
+Auto Partner Česká republika s.r.o.;Malé mzdy + účetnictví;Paušál pro zpracování mezd do 7 zaměstnanců;Harnol Robot;0,00;3 000,00
+Auto Partner Česká republika s.r.o.;Malé mzdy + účetnictví;Počet dokladů 0-50;Willingerová Nikola;0,00;10 000,00
+Auto Partner Česká republika s.r.o.;Malé mzdy + účetnictví;Roční mzdová závěrka;Tomšovská Klára;0,25;0,00
+Auto Partner Česká republika s.r.o.;Malé mzdy + účetnictví;Účetní závěrka;Tůmová Nikola;3,67;0,00
+Auto Partner Česká republika s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Pham Thi Ngoc Anh;2,25;0,00
+Auto Partner Česká republika s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Willingerová Nikola;0,17;0,00
+Auto Partner Česká republika s.r.o.;Malé mzdy + účetnictví;Vícepráce účetnictví;Pham Thi Ngoc Anh;0,25;375,00
+Auto Partner Česká republika s.r.o.;Malé mzdy + účetnictví;Vícepráce účetnictví;Sajverová Iva;0,50;750,00
+Auto Partner Česká republika s.r.o.;Malé mzdy + účetnictví;Zpracování DPH;Pham Thi Ngoc Anh;0,58;0,00
+Auto Partner Česká republika s.r.o.;Malé mzdy + účetnictví;Zpracování DPH;Sajverová Iva;0,25;0,00
+Auto Partner Česká republika s.r.o.;Malé mzdy + účetnictví;Zpracování mezd;Tomšovská Klára;0,25;0,00
+Auto Partner Česká republika s.r.o.;Malé mzdy + účetnictví;Zpracování mezd;Tomšovská Klára;0,00;400,00
+AUTORECAR s.r.o.;Malé mzdy + účetnictví;Mzdová administrativa;Tomšovská Klára;1,75;0,00
+AUTORECAR s.r.o.;Malé mzdy + účetnictví;Počet dokladů 451-500;Bošková Tereza;0,00;25 000,00
+AUTORECAR s.r.o.;Malé mzdy + účetnictví;Roční mzdová závěrka;Tomšovská Klára;0,25;0,00
+AUTORECAR s.r.o.;Malé mzdy + účetnictví;Účetní importy;Bošková Tereza;0,00;9 000,00
+AUTORECAR s.r.o.;Malé mzdy + účetnictví;Účetní závěrka;Bošková Tereza;6,50;0,00
+AUTORECAR s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Bošková Tereza;21,75;0,00
+AUTORECAR s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Pham Thi Ngoc Anh;3,00;0,00
+AUTORECAR s.r.o.;Malé mzdy + účetnictví;Vícepráce účetnictví;Bošková Tereza;1,25;937,50
+AUTORECAR s.r.o.;Malé mzdy + účetnictví;Vícepráce účetnictví;Pham Thi Ngoc Anh;2,00;1 500,00
+AUTORECAR s.r.o.;Malé mzdy + účetnictví;Vícepráce účetnictví;Tůmová Nikola;0,50;375,00
+AUTORECAR s.r.o.;Malé mzdy + účetnictví;Výstupy;Tomšovská Klára;0,50;0,00
+AUTORECAR s.r.o.;Malé mzdy + účetnictví;Zpracování DPH;Pham Thi Ngoc Anh;1,92;0,00
+AUTORECAR s.r.o.;Malé mzdy + účetnictví;Zpracování mezd;Tomšovská Klára;1,25;0,00
+AUTORECAR s.r.o.;Malé mzdy + účetnictví;Zpracování mezd;Tomšovská Klára;0,00;4 000,00
+BearingPoint s.r.o.;Účetnictví;Počet dokladů 301-350;Tůmová Nikola;0,00;34 000,00
+BearingPoint s.r.o.;Účetnictví;Podklady pro DPH;Harnol Robot;0,00;6 000,00
+BearingPoint s.r.o.;Účetnictví;Účetní závěrka;Bošková Tereza;4,00;0,00
+BearingPoint s.r.o.;Účetnictví;Účetní závěrka;Pham Thi Ngoc Anh;14,67;0,00
+BearingPoint s.r.o.;Účetnictví;Účetní závěrka;Tůmová Nikola;4,58;0,00
+BearingPoint s.r.o.;Účetnictví;Vedení účetnictví;Pham Thi Ngoc Anh;7,75;0,00
+BearingPoint s.r.o.;Účetnictví;Vedení účetnictví;Tůmová Nikola;20,00;0,00
+BearingPoint s.r.o.;Účetnictví;Vícepráce účetnictví;Pham Thi Ngoc Anh;2,83;5 666,67
+BearingPoint s.r.o.;Účetnictví;Zpracování DPH;Pham Thi Ngoc Anh;1,50;0,00
+BearingPoint s.r.o.;Účetnictví;Zpracování DPH;Tůmová Nikola;1,67;0,00
+Benetton Group S.R.L. Czech branch - odštěpný závod;Malé mzdy;Mzdová administrativa;Hlaváčková Adéla;15,00;0,00
+Benetton Group S.R.L. Czech branch - odštěpný závod;Malé mzdy;Mzdová administrativa;Pichová Barbora;4,50;0,00
+Benetton Group S.R.L. Czech branch - odštěpný závod;Malé mzdy;Online docházka a plánování směn;Harnol Robot;0,00;2 500,00
+Benetton Group S.R.L. Czech branch - odštěpný závod;Malé mzdy;Roční mzdová závěrka;Hlaváčková Adéla;1,25;0,00
+Benetton Group S.R.L. Czech branch - odštěpný závod;Malé mzdy;Vícepráce mzdy;Hlaváčková Adéla;7,25;8 700,00
+Benetton Group S.R.L. Czech branch - odštěpný závod;Malé mzdy;Zpracování mezd;Hlaváčková Adéla;3,00;0,00
+Benetton Group S.R.L. Czech branch - odštěpný závod;Malé mzdy;Zpracování mezd;Hlaváčková Adéla;0,00;19 800,00
+Bertus Czech Republic s.r.o.;Malé mzdy + účetnictví;Daňové poradenství;Pham Thi Ngoc Anh;0,25;500,00
+Bertus Czech Republic s.r.o.;Malé mzdy + účetnictví;Intrastat;Tůmová Nikola;0,33;666,67
+Bertus Czech Republic s.r.o.;Malé mzdy + účetnictví;Paušál pro zpracování mezd ;Harnol Robot;0,00;3 000,00
+Bertus Czech Republic s.r.o.;Malé mzdy + účetnictví;Roční mzdová závěrka;Tomšovská Klára;0,75;0,00
+Bertus Czech Republic s.r.o.;Malé mzdy + účetnictví;Roční mzdová závěrka;Tomšovská Klára;0,00;600,00
+Bertus Czech Republic s.r.o.;Malé mzdy + účetnictví;Správní poplatek DIS+;Harnol Robot;0,00;200,00
+Bertus Czech Republic s.r.o.;Malé mzdy + účetnictví;Vícepráce mzdy;Tůmová Nikola;0,25;500,00
+Bertus Czech Republic s.r.o.;Malé mzdy + účetnictví;Zpracování DPH;Sajverová Iva;0,50;1 000,00
+Bertus Czech Republic s.r.o.;Malé mzdy + účetnictví;Zpracování DPH;Tůmová Nikola;2,00;4 000,00
+Bertus Czech Republic s.r.o.;Malé mzdy + účetnictví;Zpracování mezd;Tomšovská Klára;0,00;600,00
+Bertus Czech Republic s.r.o.;Malé mzdy + účetnictví;Zpracování mezd;Tomšovská Klára;0,75;0,00
+CARET EUROPE OÜ;Účetnictví;Vedení účetnictví;Bošková Tereza;0,08;0,00
+CARET EUROPE OÜ;Účetnictví;Vedení účetnictví;Pham Thi Ngoc Anh;0,17;0,00
+CARET EUROPE OÜ;Účetnictví;Zpracování DPH;Harnol Robot;0,00;5 000,00
+CUP COMPANY CZECH s.r.o.;Účetnictví;Počet dokladů 0-50;Dolanská Tereza;0,00;10 000,00
+CUP COMPANY CZECH s.r.o.;Účetnictví;Účetní závěrka;Dolanská Tereza;5,83;0,00
+CUP COMPANY CZECH s.r.o.;Účetnictví;Vedení účetnictví;Dolanská Tereza;8,83;0,00
+CUP COMPANY CZECH s.r.o.;Účetnictví;Zpracování DPH;Dolanská Tereza;1,25;0,00
+CUP COMPANY CZECH s.r.o.;Účetnictví;Zpracování DPH;Sajverová Iva;0,50;0,00
+D - Mobility Czech Republic s.r.o.;Audit;Audit;Sajverová Iva;2,00;0,00
+D - Mobility Czech Republic s.r.o.;Audit;Mzdová administrativa;Krňanská Kateřina;2,00;0,00
+D - Mobility Worldwide a.s.;Audit;Audit;Sajverová Iva;1,50;0,00
+DATACENTRUM systems & consulting, a.s.;odborné konzultace a poradenství v oblasti slovenské pracovněprávní, daňové a odvodové legislativy, zejména ve vztahu k vývoji, implementaci a testování mzdového systému Objednatele;DATACENTRUM - Odborné konzultace;Harnolová Veronika;1,75;2 800,00
+DATACENTRUM systems & consulting, a.s.;odborné konzultace a poradenství v oblasti slovenské pracovněprávní, daňové a odvodové legislativy, zejména ve vztahu k vývoji, implementaci a testování mzdového systému Objednatele;DATACENTRUM - Odborné konzultace;Kulich Iveta;10,00;16 000,00
+DB Cargo Czechia s.r.o.;Malé mzdy;Mzdová administrativa;Hlaváčková Adéla;7,00;0,00
+DB Cargo Czechia s.r.o.;Malé mzdy;Roční mzdová závěrka;Hlaváčková Adéla;0,75;0,00
+DB Cargo Czechia s.r.o.;Malé mzdy;Roční mzdová závěrka;Pichová Barbora;2,00;0,00
+DB Cargo Czechia s.r.o.;Malé mzdy;Roční mzdová závěrka;Tomšovská Klára;0,75;0,00
+DB Cargo Czechia s.r.o.;Malé mzdy;Vícepráce mzdy;Hlaváčková Adéla;0,25;375,00
+DB Cargo Czechia s.r.o.;Malé mzdy;Vícepráce mzdy;Tomšovská Klára;0,25;375,00
+DB Cargo Czechia s.r.o.;Malé mzdy;Zpracování DPFO;Tomšovská Klára;1,00;0,00
+DB Cargo Czechia s.r.o.;Malé mzdy;Zpracování mezd;Hlaváčková Adéla;9,75;0,00
+DB Cargo Czechia s.r.o.;Malé mzdy;Zpracování mezd;Hlaváčková Adéla;0,00;27 500,00
+D-EDGE, odštěpný závod;Malé mzdy;Mzdová administrativa;Tomšovská Klára;0,42;0,00
+D-EDGE, odštěpný závod;Malé mzdy;Zpracování mezd;Tomšovská Klára;1,00;0,00
+D-EDGE, odštěpný závod;Malé mzdy;Zpracování mezd;Tomšovská Klára;0,00;2 700,00
+Delafaille;Účetnictví;Opakovaná odměna;Harnol Robot;0,00;12 000,00
+Delafaille;Účetnictví;Počet dokladů 0-50;Dolanská Tereza;0,00;0,00
+Delafaille;Účetnictví;Vedení účetnictví;Dolanská Tereza;1,08;0,00
+Delafaille;Účetnictví;Zpracování DPH;Pham Thi Ngoc Anh;1,50;0,00
+Delafaille;Účetnictví;Zpracování DPH;Sajverová Iva;0,75;0,00
+Diego Victor Van Den Braver;DPFO;Opakovaná odměna;Harnol Robot;0,00;3 000,00
+Diego Victor Van Den Braver;DPFO;Zpracování DPH;Dolanská Tereza;0,50;0,00
+Diego Victor Van Den Braver;DPFO;Zpracování DPH;Sajverová Iva;0,25;0,00
+Djemel Klára JUDr.;DPFO;Daňové poradenství;Tomšovská Klára;1,50;3 000,00
+Dominik Łukasz Ślusarczyk;DPFO;Zpracování DPFO;Hlaváčková Adéla;0,50;0,00
+Dominik Łukasz Ślusarczyk;DPFO;Zpracování DPH;Dolanská Tereza;0,75;0,00
+Dominik Łukasz Ślusarczyk;DPFO;Zpracování DPH;Harnol Robot;0,00;3 000,00
+Dominik Łukasz Ślusarczyk;DPFO;Zpracování DPH;Sajverová Iva;0,25;0,00
+DPB Rail Infra Service Czech Republic s.r.o.;Malé mzdy;Mzdová administrativa;Tomšovská Klára;0,50;0,00
+DPB Rail Infra Service Czech Republic s.r.o.;Malé mzdy;Paušál pro zpracování mezd ;Harnol Robot;0,00;2 500,00
+DPB Rail Infra Service Czech Republic s.r.o.;Malé mzdy;Roční mzdová závěrka;Tomšovská Klára;0,75;0,00
+DPB Rail Infra Service Czech Republic s.r.o.;Malé mzdy;Roční závěrka mezd;Harnol Robot;0,00;2 500,00
+DPB Rail Infra Service Czech Republic s.r.o.;Malé mzdy;Výstupy;Tomšovská Klára;0,50;0,00
+DPB Rail Infra Service Czech Republic s.r.o.;Malé mzdy;Výstupy;Tomšovská Klára;0,00;1 000,00
+DPB Rail Infra Service Czech Republic s.r.o.;Malé mzdy;Zpracování mezd;Tomšovská Klára;0,00;0,00
+DPB Rail Infra Service Czech Republic s.r.o.;Malé mzdy;Zpracování mezd;Tomšovská Klára;0,50;0,00
+Dvořák Michal;DPFO;Daňové poradenství;Hlaváčková Adéla;2,50;3 750,00
+ERSTE FLEET s.r.o.;Účetnictví;Počet dokladů 0-50;Bošková Tereza;0,00;7 000,00
+ERSTE FLEET s.r.o.;Účetnictví;Sleva;Harnol Robot;0,00;-1 400,00
+ERSTE FLEET s.r.o.;Účetnictví;Účetní závěrka;Bošková Tereza;3,75;0,00
+ERSTE FLEET s.r.o.;Účetnictví;Účetní závěrka;Pham Thi Ngoc Anh;0,50;0,00
+ERSTE FLEET s.r.o.;Účetnictví;Vedení účetnictví;Bošková Tereza;1,58;0,00
+ERSTE FLEET s.r.o.;Účetnictví;Vedení účetnictví;Pham Thi Ngoc Anh;0,67;0,00
+ERSTE FLEET s.r.o.;Účetnictví;Vícepráce účetnictví;Pham Thi Ngoc Anh;0,25;250,00
+ERSTE FLEET s.r.o.;Účetnictví;Zpracování DPH;Bošková Tereza;1,50;0,00
+ERSTE FLEET s.r.o.;Účetnictví;Zpracování DPH;Sajverová Iva;0,17;0,00
+FitnessAction, s.r.o.;Malé mzdy + účetnictví;Paušál pro zpracování mezd do 3 zaměstnanců;Harnol Robot;0,00;1 500,00
+FitnessAction, s.r.o.;Malé mzdy + účetnictví;Počet dokladů 51-100;Dolanská Tereza;0,00;13 000,00
+FitnessAction, s.r.o.;Malé mzdy + účetnictví;Účetní závěrka;Willingerová Nikola;1,17;0,00
+FitnessAction, s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Dolanská Tereza;11,83;0,00
+FitnessAction, s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Sajverová Iva;1,00;0,00
+FitnessAction, s.r.o.;Malé mzdy + účetnictví;Vícepráce účetnictví;Dolanská Tereza;1,00;1 500,00
+FitnessAction, s.r.o.;Malé mzdy + účetnictví;Zpracování DPH;Dolanská Tereza;1,00;0,00
+FitnessAction, s.r.o.;Malé mzdy + účetnictví;Zpracování mezd;Hlaváčková Adéla;0,25;0,00
+FitnessAction, s.r.o.;Malé mzdy + účetnictví;Zpracování mezd;Hlaváčková Adéla;0,00;300,00
+Fixago consulting, s.r.o.;Účetnictví;Počet dokladů 0-50;Tůmová Nikola;0,00;7 000,00
+Fixago consulting, s.r.o.;Účetnictví;Vedení účetnictví;Sajverová Iva;0,25;0,00
+Fixago consulting, s.r.o.;Účetnictví;Vedení účetnictví;Tůmová Nikola;1,75;0,00
+Fixago consulting, s.r.o.;Účetnictví;Vícepráce účetnictví;Tůmová Nikola;0,25;375,00
+Fixago consulting, s.r.o.;Účetnictví;Zpracování DPH;Tůmová Nikola;0,58;0,00
+FM WORLD DISTRIBUTION KOMANDITOVNA;Účetnictví;Zpracování DPH;Harnol Robot;0,00;6 000,00
+FM WORLD DISTRIBUTION KOMANDITOVNA;Účetnictví;Zpracování DPH;Sajverová Iva;0,25;0,00
+FM WORLD DISTRIBUTION KOMANDITOVNA;Účetnictví;Zpracování DPH;Tůmová Nikola;0,92;0,00
+FORTIS FLEET s.r.o.;Účetnictví;Počet dokladů 0-50;Bošková Tereza;0,00;7 000,00
+FORTIS FLEET s.r.o.;Účetnictví;Sleva;Harnol Robot;0,00;-1 400,00
+FORTIS FLEET s.r.o.;Účetnictví;Účetní závěrka;Bošková Tereza;2,17;0,00
+FORTIS FLEET s.r.o.;Účetnictví;Účetní závěrka;Pham Thi Ngoc Anh;0,50;0,00
+FORTIS FLEET s.r.o.;Účetnictví;Vedení účetnictví;Bošková Tereza;1,67;0,00
+FORTIS FLEET s.r.o.;Účetnictví;Vedení účetnictví;Pham Thi Ngoc Anh;0,50;0,00
+FORTIS FLEET s.r.o.;Účetnictví;Vícepráce účetnictví;Pham Thi Ngoc Anh;0,25;250,00
+FORTIS FLEET s.r.o.;Účetnictví;Zpracování DPH;Bošková Tereza;0,50;0,00
+FORTIS FLEET s.r.o.;Účetnictví;Zpracování DPH;Pham Thi Ngoc Anh;0,25;0,00
+FORTIS FLEET s.r.o.;Účetnictví;Zpracování DPH;Sajverová Iva;0,17;0,00
+GELAR, advokátní kancelář s.r.o.;Malé mzdy + účetnictví;Počet dokladů 51-100;Bošková Tereza;0,00;10 000,00
+GELAR, advokátní kancelář s.r.o.;Malé mzdy + účetnictví;Účetní závěrka;Bošková Tereza;5,08;0,00
+GELAR, advokátní kancelář s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Bošková Tereza;8,58;0,00
+GELAR, advokátní kancelář s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Pham Thi Ngoc Anh;2,08;0,00
+GELAR, advokátní kancelář s.r.o.;Malé mzdy + účetnictví;Zpracování DPH;Bošková Tereza;1,67;0,00
+GELAR, advokátní kancelář s.r.o.;Malé mzdy + účetnictví;Zpracování DPH;Pham Thi Ngoc Anh;0,08;0,00
+GELAR, advokátní kancelář s.r.o.;Malé mzdy + účetnictví;Zpracování mezd;Hlaváčková Adéla;0,25;0,00
+GELAR, advokátní kancelář s.r.o.;Malé mzdy + účetnictví;Zpracování mezd;Hlaváčková Adéla;0,00;600,00
+GENERAL LEASE & RENTAL s.r.o.;Účetnictví;Počet dokladů 0-50;Bošková Tereza;0,00;7 000,00
+GENERAL LEASE & RENTAL s.r.o.;Účetnictví;Sleva;Harnol Robot;0,00;-1 400,00
+GENERAL LEASE & RENTAL s.r.o.;Účetnictví;Správní poplatek DIS+;Harnol Robot;0,00;200,00
+GENERAL LEASE & RENTAL s.r.o.;Účetnictví;Účetní závěrka;Bošková Tereza;5,58;0,00
+GENERAL LEASE & RENTAL s.r.o.;Účetnictví;Účetní závěrka;Pham Thi Ngoc Anh;0,50;0,00
+GENERAL LEASE & RENTAL s.r.o.;Účetnictví;Vedení účetnictví;Bošková Tereza;1,75;0,00
+GENERAL LEASE & RENTAL s.r.o.;Účetnictví;Vedení účetnictví;Pham Thi Ngoc Anh;0,58;0,00
+GENERAL LEASE & RENTAL s.r.o.;Účetnictví;Vícepráce účetnictví;Pham Thi Ngoc Anh;0,50;500,00
+GENERAL LEASE & RENTAL s.r.o.;Účetnictví;Zpracování DPH;Bošková Tereza;1,50;0,00
+GENERAL LEASE & RENTAL s.r.o.;Účetnictví;Zpracování DPH;Pham Thi Ngoc Anh;0,25;0,00
+GENERAL LEASE & RENTAL s.r.o.;Účetnictví;Zpracování DPH;Sajverová Iva;0,17;0,00
+Gniłka-Somerlik Maria Dorota;DPFO;DATACENTRUM - Odborné konzultace;Tomšovská Klára;0,17;0,00
+Hardmedia s.r.o.;Malé mzdy + účetnictví;Mzdová administrativa;Hlaváčková Adéla;0,08;0,00
+Hardmedia s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Tůmová Nikola;0,33;0,00
+Hardmedia s.r.o.;Malé mzdy + účetnictví;Zpracování mezd;Hlaváčková Adéla;0,25;0,00
+Hardmedia s.r.o.;Malé mzdy + účetnictví;Zpracování mezd;Hlaváčková Adéla;0,00;0,00
+Harnol & Partners, s.r.o.;Účetnictví;Mzdová administrativa;Hlaváčková Adéla;7,75;0,00
+Harnol & Partners, s.r.o.;Účetnictví;Opakovaná odměna;Harnol Robot;0,00;94 950,00
+Harnol & Partners, s.r.o.;Účetnictví;Roční mzdová závěrka;Hlaváčková Adéla;2,50;0,00
+Harnol & Partners, s.r.o.;Účetnictví;Účetní závěrka;Pham Thi Ngoc Anh;4,67;0,00
+Harnol & Partners, s.r.o.;Účetnictví;Účetní závěrka;Sajverová Iva;1,00;0,00
+Harnol & Partners, s.r.o.;Účetnictví;Účetní závěrka;Willingerová Nikola;9,00;0,00
+Harnol & Partners, s.r.o.;Účetnictví;Vedení účetnictví;Pham Thi Ngoc Anh;13,00;0,00
+Harnol & Partners, s.r.o.;Účetnictví;Vedení účetnictví;Sajverová Iva;16,67;0,00
+Harnol & Partners, s.r.o.;Účetnictví;Vedení účetnictví;Willingerová Nikola;6,33;0,00
+Harnol & Partners, s.r.o.;Účetnictví;Vícepráce účetnictví;Dolanská Tereza;0,50;0,00
+Harnol & Partners, s.r.o.;Účetnictví;Zpracování DPH;Pham Thi Ngoc Anh;1,58;0,00
+Harnol & Partners, s.r.o.;Účetnictví;Zpracování mezd;Hlaváčková Adéla;2,75;0,00
+Harnol Holding s.r.o.;Účetnictví;Účetní závěrka;Pham Thi Ngoc Anh;1,50;0,00
+Harnol Holding s.r.o.;Účetnictví;Účetní závěrka;Sajverová Iva;0,50;0,00
+Harnol Holding s.r.o.;Účetnictví;Vedení účetnictví;Pham Thi Ngoc Anh;0,75;0,00
+Harnol Holding s.r.o.;Účetnictví;Vedení účetnictví;Willingerová Nikola;0,08;0,00
+Harnol Holding s.r.o.;Účetnictví;Zpracování DPPO;Sajverová Iva;0,50;0,00
+Harnol Solutions, s.r.o.;Účetnictví;Licence LUNARA CZ dodatky;Tomik Evgenia;0,00;0,00
+Harnol Solutions, s.r.o.;Účetnictví;Licence LUNARA CZ nástupy;Tomik Evgenia;0,00;0,00
+Harnol Solutions, s.r.o.;Účetnictví;Licence LUNARA SK nástupy;Tomik Evgenia;0,00;0,00
+Harnol Solutions, s.r.o.;Účetnictví;Účetní závěrka;Pham Thi Ngoc Anh;1,50;0,00
+Harnol Solutions, s.r.o.;Účetnictví;Účetní závěrka;Sajverová Iva;0,50;0,00
+Harnol Solutions, s.r.o.;Účetnictví;Účetní závěrka;Willingerová Nikola;1,17;0,00
+Harnol Solutions, s.r.o.;Účetnictví;Vedení účetnictví;Pham Thi Ngoc Anh;0,58;0,00
+Harnol Solutions, s.r.o.;Účetnictví;Vedení účetnictví;Willingerová Nikola;0,08;0,00
+Harnol Solutions, s.r.o.;Účetnictví;Zpracování DPH;Pham Thi Ngoc Anh;0,50;0,00
+Helikopter Air Transport Gesellschaft m.b.H., odštěpný závod;Účetnictví;Počet dokladů 0-50;Willingerová Nikola;0,00;10 000,00
+Helikopter Air Transport Gesellschaft m.b.H., odštěpný závod;Účetnictví;Účetní závěrka;Sajverová Iva;0,00;0,00
+Helikopter Air Transport Gesellschaft m.b.H., odštěpný závod;Účetnictví;Účetní závěrka;Sajverová Iva;1,25;0,00
+Helikopter Air Transport Gesellschaft m.b.H., odštěpný závod;Účetnictví;Účetní závěrka;Willingerová Nikola;0,67;0,00
+Helikopter Air Transport Gesellschaft m.b.H., odštěpný závod;Účetnictví;Vedení účetnictví;Sajverová Iva;1,58;0,00
+Helikopter Air Transport Gesellschaft m.b.H., odštěpný závod;Účetnictví;Vedení účetnictví;Willingerová Nikola;0,42;0,00
+Helikopter Air Transport Gesellschaft m.b.H., odštěpný závod;Účetnictví;Zpracování DPH;Sajverová Iva;0,25;0,00
+Heringway s.r.o.;Účetnictví;Počet dokladů 0-50;Tůmová Nikola;0,00;3 000,00
+Heringway s.r.o.;Účetnictví;Účetní závěrka;Tůmová Nikola;1,75;0,00
+Heringway s.r.o.;Účetnictví;Vedení účetnictví;Tůmová Nikola;1,50;0,00
+Heringway s.r.o.;Účetnictví;Vícepráce účetnictví;Tůmová Nikola;0,25;375,00
+Heringway s.r.o.;Účetnictví;Zpracování DPH;Tůmová Nikola;0,58;0,00
+Holub Michael, Dr. Med.;DPFO;Daňové poradenství;Pham Thi Ngoc Anh;1,25;2 500,00
+Holub Michael, Dr. Med.;DPFO;Správní poplatek DIS+;Harnol Robot;0,00;200,00
+Horáková Wanda, Mgr.;DPFO;Zpracování DPH;Pham Thi Ngoc Anh;0,42;0,00
+Horáková Wanda, Mgr.;DPFO;Zpracování DPH;Sajverová Iva;0,25;0,00
+Huber s.r.o.;Malé mzdy + účetnictví;Mzdová administrativa;Hlaváčková Adéla;1,25;0,00
+Huber s.r.o.;Malé mzdy + účetnictví;Počet dokladů 51-100;Willingerová Nikola;0,00;13 000,00
+Huber s.r.o.;Malé mzdy + účetnictví;Účetní závěrka;Bošková Tereza;6,92;0,00
+Huber s.r.o.;Malé mzdy + účetnictví;Účetní závěrka;Willingerová Nikola;2,92;0,00
+Huber s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Bošková Tereza;2,92;0,00
+Huber s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Pham Thi Ngoc Anh;6,83;0,00
+Huber s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Sajverová Iva;0,50;0,00
+Huber s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Willingerová Nikola;1,25;0,00
+Huber s.r.o.;Malé mzdy + účetnictví;Vícepráce účetnictví;Pham Thi Ngoc Anh;0,50;750,00
+Huber s.r.o.;Malé mzdy + účetnictví;Zpracování DPH;Dolanská Tereza;1,50;0,00
+Huber s.r.o.;Malé mzdy + účetnictví;Zpracování DPH;Pham Thi Ngoc Anh;0,58;0,00
+Huber s.r.o.;Malé mzdy + účetnictví;Zpracování DPH;Sajverová Iva;0,50;0,00
+Huber s.r.o.;Malé mzdy + účetnictví;Zpracování mezd;Hlaváčková Adéla;0,25;0,00
+Huber s.r.o.;Malé mzdy + účetnictví;Zpracování mezd;Hlaváčková Adéla;0,00;750,00
+Huvalca s.r.o.;Malé mzdy + účetnictví;Mzdová administrativa;Hlaváčková Adéla;0,50;0,00
+Huvalca s.r.o.;Malé mzdy + účetnictví;Počet dokladů 0-50;Willingerová Nikola;0,00;10 000,00
+Huvalca s.r.o.;Malé mzdy + účetnictví;Sleva;Harnol Robot;0,00;-5 000,00
+Huvalca s.r.o.;Malé mzdy + účetnictví;Účetní závěrka;Bošková Tereza;2,83;0,00
+Huvalca s.r.o.;Malé mzdy + účetnictví;Účetní závěrka;Willingerová Nikola;1,17;0,00
+Huvalca s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Bošková Tereza;1,42;0,00
+Huvalca s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Pham Thi Ngoc Anh;1,00;0,00
+Huvalca s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Willingerová Nikola;0,17;0,00
+Huvalca s.r.o.;Malé mzdy + účetnictví;Vícepráce účetnictví;Pham Thi Ngoc Anh;1,00;1 500,00
+Huvalca s.r.o.;Malé mzdy + účetnictví;Zpracování DPH;Pham Thi Ngoc Anh;0,42;0,00
+Huvalca s.r.o.;Malé mzdy + účetnictví;Zpracování DPH;Sajverová Iva;0,25;0,00
+Huvalca s.r.o.;Malé mzdy + účetnictví;Zpracování mezd;Hlaváčková Adéla;0,25;0,00
+Huvalca s.r.o.;Malé mzdy + účetnictví;Zpracování mezd;Hlaváčková Adéla;0,00;500,00
+Ing. Radoslav Harnol;DPFO;Zpracování DPH;Pham Thi Ngoc Anh;0,42;0,00
+Inventoro s.r.o.;Malé mzdy;Mzdová administrativa;Hlaváčková Adéla;0,17;0,00
+Inventoro s.r.o.;Malé mzdy;Paušál pro zpracování mezd do 3 zaměstnanců;Harnol Robot;0,00;3 000,00
+Inventoro s.r.o.;Malé mzdy;Zpracování DPH;Sajverová Iva;0,50;1 000,00
+Inventoro s.r.o.;Malé mzdy;Zpracování DPH;Tůmová Nikola;2,33;4 666,67
+Inventoro s.r.o.;Malé mzdy;Zpracování mezd;Harnol Robot;0,00;900,00
+Inventoro s.r.o.;Malé mzdy;Zpracování mezd;Hlaváčková Adéla;0,00;900,00
+Inventoro s.r.o.;Malé mzdy;Zpracování mezd;Hlaváčková Adéla;0,50;0,00
+IPG Photonics (Czech Republic) s.r.o.;Malé mzdy;Mzdová administrativa;Tomšovská Klára;0,50;0,00
+IPG Photonics (Czech Republic) s.r.o.;Malé mzdy;Paušál pro zpracování mezd 1 zaměstnance;Harnol Robot;0,00;3 000,00
+IPG Photonics (Czech Republic) s.r.o.;Malé mzdy;Roční mzdová závěrka;Tomšovská Klára;0,50;0,00
+IPG Photonics (Czech Republic) s.r.o.;Malé mzdy;Vícepráce mzdy;Tomšovská Klára;1,00;1 500,00
+Jarošová Kateřina, Mgr., advokát;DPFO;Vedení účetnictví ;Harnol Robot;0,00;2 000,00
+Jarošová Kateřina, Mgr., advokát;DPFO;Vedení účetnictví;Tůmová Nikola;0,08;0,00
+JJ legal s.r.o., advokátní kancelář;Malé mzdy + účetnictví;Počet dokladů 0-50;Tůmová Nikola;0,00;7 000,00
+JJ legal s.r.o., advokátní kancelář;Malé mzdy + účetnictví;Vedení účetnictví;Tůmová Nikola;1,33;0,00
+JJ legal s.r.o., advokátní kancelář;Malé mzdy + účetnictví;Zpracování DPH;Sajverová Iva;0,25;0,00
+JJ legal s.r.o., advokátní kancelář;Malé mzdy + účetnictví;Zpracování DPH;Tůmová Nikola;0,75;0,00
+JJ legal s.r.o., advokátní kancelář;Malé mzdy + účetnictví;Zpracování mezd;Hlaváčková Adéla;0,00;300,00
+JJ legal s.r.o., advokátní kancelář;Malé mzdy + účetnictví;Zpracování mezd;Hlaváčková Adéla;0,25;0,00
+Kamp Laura Ann;DPFO;Zpracování DPH;Dolanská Tereza;1,00;0,00
+Kamp Laura Ann;DPFO;Zpracování DPH;Harnol Robot;0,00;1 500,00
+Kamp Laura Ann;DPFO;Zpracování DPH;Sajverová Iva;0,25;0,00
+KNAUF Praha, spol. s r. o.;Daňové poradenství;Daňové poradenství;Sajverová Iva;5,50;11 500,00
+Kruták & Partners, advokátní kancelář s.r.o.;Malé mzdy + účetnictví;Mzdová administrativa;Tomšovská Klára;0,92;0,00
+Kruták & Partners, advokátní kancelář s.r.o.;Malé mzdy + účetnictví;Počet dokladů 301-350;Willingerová Nikola;0,00;28 000,00
+Kruták & Partners, advokátní kancelář s.r.o.;Malé mzdy + účetnictví;Roční mzdová závěrka;Tomšovská Klára;0,25;0,00
+Kruták & Partners, advokátní kancelář s.r.o.;Malé mzdy + účetnictví;Účetní závěrka;Willingerová Nikola;7,42;0,00
+Kruták & Partners, advokátní kancelář s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Mikešová Eva;8,33;0,00
+Kruták & Partners, advokátní kancelář s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Willingerová Nikola;9,50;0,00
+Kruták & Partners, advokátní kancelář s.r.o.;Malé mzdy + účetnictví;Zpracování DPH;Mikešová Eva;2,00;0,00
+Kruták & Partners, advokátní kancelář s.r.o.;Malé mzdy + účetnictví;Zpracování mezd;Tomšovská Klára;0,00;2 700,00
+Kruták & Partners, advokátní kancelář s.r.o.;Malé mzdy + účetnictví;Zpracování mezd;Tomšovská Klára;0,50;0,00
+Kuchařová Jana;Daňové poradenství;Daňové poradenství;Sajverová Iva;1,50;3 000,00
+Kulíšek Libor Bc.;DPFO;Zpracování DPFO;Tomšovská Klára;1,00;1 500,00
+Lab Connect s.r.o.;Účetnictví;Počet dokladů 0-50;Tůmová Nikola;0,00;7 000,00
+Lab Connect s.r.o.;Účetnictví;Vedení účetnictví;Tůmová Nikola;0,92;0,00
+Lab Connect s.r.o.;Účetnictví;Zpracování DPH;Sajverová Iva;0,25;0,00
+Lab Connect s.r.o.;Účetnictví;Zpracování DPH;Tůmová Nikola;0,67;0,00
+Lanidea, s.r.o.;Daňové poradenství;Daňové poradenství;Němcová Hana;0,25;625,00
+Logio s.r.o.;Malé mzdy + účetnictví;Cestovní příkazy (hod);Tomšovská Klára;1,50;0,00
+Logio s.r.o.;Malé mzdy + účetnictví;Mzdová administrativa;Hlaváčková Adéla;9,00;0,00
+Logio s.r.o.;Malé mzdy + účetnictví;Mzdová administrativa;Tomšovská Klára;0,25;0,00
+Logio s.r.o.;Malé mzdy + účetnictví;Roční mzdová závěrka;Hlaváčková Adéla;4,25;0,00
+Logio s.r.o.;Malé mzdy + účetnictví;Roční mzdová závěrka;Pichová Barbora;4,00;0,00
+Logio s.r.o.;Malé mzdy + účetnictví;Technická podpora Helios;Harnol Robot;0,00;3 619,94
+Logio s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Mikešová Eva;20,33;18 300,00
+Logio s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Pham Thi Ngoc Anh;1,00;900,00
+Logio s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Sajverová Iva;0,50;450,00
+Logio s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Willingerová Nikola;41,25;37 125,00
+Logio s.r.o.;Malé mzdy + účetnictví;Vícepráce mzdy;Hlaváčková Adéla;5,00;4 500,00
+Logio s.r.o.;Malé mzdy + účetnictví;Vícepráce účetnictví;Mikešová Eva;2,50;2 250,00
+Logio s.r.o.;Malé mzdy + účetnictví;Zpracování DPH;Mikešová Eva;2,75;2 475,00
+Logio s.r.o.;Malé mzdy + účetnictví;Zpracování mezd;Hlaváčková Adéla;0,00;36 250,00
+Logio s.r.o.;Malé mzdy + účetnictví;Zpracování mezd;Hlaváčková Adéla;6,25;0,00
+LPP Czech Republic, s.r.o.;Velké mzdy;E-podepisování přes SMS;Harnol Robot;0,00;1 518,30
+LPP Czech Republic, s.r.o.;Velké mzdy;Mzdová administrativa;Kunešová Nikola;138,00;0,00
+LPP Czech Republic, s.r.o.;Velké mzdy;Mzdová administrativa;Polívková Adéla;14,50;0,00
+LPP Czech Republic, s.r.o.;Velké mzdy;Mzdová administrativa;Purmová Eva;118,67;0,00
+LPP Czech Republic, s.r.o.;Velké mzdy;Mzdová administrativa;Veverková Ela;154,00;0,00
+LPP Czech Republic, s.r.o.;Velké mzdy;Nástupy;Purmová Eva;0,00;30 800,00
+LPP Czech Republic, s.r.o.;Velké mzdy;Poštovné;Purmová Eva;0,00;320,00
+LPP Czech Republic, s.r.o.;Velké mzdy;Vícepráce mzdy;Kunešová Nikola;4,00;4 800,00
+LPP Czech Republic, s.r.o.;Velké mzdy;Vícepráce mzdy;Purmová Eva;7,50;9 000,00
+LPP Czech Republic, s.r.o.;Velké mzdy;Vícepráce mzdy;Veverková Ela;2,00;2 400,00
+LPP Czech Republic, s.r.o.;Velké mzdy;Výstupy;Purmová Eva;0,00;30 000,00
+LPP Czech Republic, s.r.o.;Velké mzdy;Zpracování mezd;Purmová Eva;0,00;442 600,00
+LPP Slovakia, s.r.o.;SK mzdy;Mzdová administrativa;Kamenská Nikola;158,00;0,00
+LPP Slovakia, s.r.o.;SK mzdy;Mzdová administrativa;Kamenská Viktória;163,00;0,00
+LPP Slovakia, s.r.o.;SK mzdy;Mzdová administrativa;Kulich Iveta;102,50;0,00
+LPP Slovakia, s.r.o.;SK mzdy;Mzdová administrativa;Očenášová Romana Janka;28,50;0,00
+LPP Slovakia, s.r.o.;SK mzdy;Mzdová administrativa;Úradníková Simona;91,50;0,00
+LPP Slovakia, s.r.o.;SK mzdy;Nástupy;Kamenská Nikola;0,00;29 200,00
+LPP Slovakia, s.r.o.;SK mzdy;Vícepráce mzdy;Kulich Iveta;6,00;7 200,00
+LPP Slovakia, s.r.o.;SK mzdy;Výstupy;Kamenská Nikola;0,00;24 200,00
+LPP Slovakia, s.r.o.;SK mzdy;Zpracování mezd;Kamenská Nikola;0,00;429 800,00
+Marek Procházka advokátní kancelář s.r.o.;Účetnictví;Počet dokladů 0-50;Bošková Tereza;0,00;0,00
+Marek Procházka advokátní kancelář s.r.o.;Účetnictví;Účetní závěrka;Bošková Tereza;4,33;8 666,67
+Marek Procházka advokátní kancelář s.r.o.;Účetnictví;Vedení účetnictví;Bošková Tereza;7,67;15 333,33
+Marek Procházka advokátní kancelář s.r.o.;Účetnictví;Vedení účetnictví;Pham Thi Ngoc Anh;0,08;166,67
+Marek Procházka advokátní kancelář s.r.o.;Účetnictví;Vícepráce mzdy;Bošková Tereza;0,25;500,00
+Marek Procházka advokátní kancelář s.r.o.;Účetnictví;Vícepráce účetnictví;Pham Thi Ngoc Anh;0,25;500,00
+Marek Procházka advokátní kancelář s.r.o.;Účetnictví;Zpracování DPH;Bošková Tereza;1,00;2 000,00
+Marek Procházka advokátní kancelář s.r.o.;Účetnictví;Zpracování DPH;Pham Thi Ngoc Anh;0,17;333,33
+Medyo s.r.o.;Účetnictví;Počet dokladů 101-150;Tůmová Nikola;0,00;0,00
+Medyo s.r.o.;Účetnictví;Účetní závěrka;Tůmová Nikola;3,67;4 400,00
+Medyo s.r.o.;Účetnictví;Vedení účetnictví;Tůmová Nikola;4,58;5 500,00
+Medyo s.r.o.;Účetnictví;Vícepráce účetnictví;Sajverová Iva;1,50;3 000,00
+Medyo s.r.o.;Účetnictví;Vícepráce účetnictví;Tůmová Nikola;3,58;4 300,00
+Medyo s.r.o.;Účetnictví;Zpracování DPH;Sajverová Iva;0,25;300,00
+Medyo s.r.o.;Účetnictví;Zpracování DPH;Tůmová Nikola;1,50;1 800,00
+Modivo Czech, s.r.o.;Velké mzdy;Mzdová administrativa;Bartů Kateřina;5,50;0,00
+Modivo Czech, s.r.o.;Velké mzdy;Mzdová administrativa;Kollárová Martina;69,25;0,00
+Modivo Czech, s.r.o.;Velké mzdy;Mzdová administrativa;Kovářová Adéla;58,00;0,00
+Modivo Czech, s.r.o.;Velké mzdy;Mzdová administrativa;Krňanská Kateřina;137,83;0,00
+Modivo Czech, s.r.o.;Velké mzdy;Mzdová administrativa;Obersteinová Adéla;165,50;0,00
+Modivo Czech, s.r.o.;Velké mzdy;Mzdová administrativa;Polívková Adéla;11,50;0,00
+Modivo Czech, s.r.o.;Velké mzdy;Mzdová administrativa;Purmová Eva;1,00;0,00
+Modivo Czech, s.r.o.;Velké mzdy;Nástupy;Krňanská Kateřina;0,00;11 550,00
+Modivo Czech, s.r.o.;Velké mzdy;Nástupy Half Price;Krňanská Kateřina;0,00;6 475,00
+Modivo Czech, s.r.o.;Velké mzdy;Nástupy WorldBox;Krňanská Kateřina;0,00;4 550,00
+Modivo Czech, s.r.o.;Velké mzdy;Vícepráce mzdy;Kovářová Adéla;2,00;1 700,00
+Modivo Czech, s.r.o.;Velké mzdy;Vícepráce mzdy;Krňanská Kateřina;6,00;5 100,00
+Modivo Czech, s.r.o.;Velké mzdy;Výstupy;Krňanská Kateřina;0,00;28 175,00
+Modivo Czech, s.r.o.;Velké mzdy;Výstupy Half Price;Krňanská Kateřina;0,00;11 200,00
+Modivo Czech, s.r.o.;Velké mzdy;Výstupy WorldBox;Krňanská Kateřina;0,00;3 850,00
+Modivo Czech, s.r.o.;Velké mzdy;Zpracování mezd;Krňanská Kateřina;0,00;181 125,00
+Modivo Czech, s.r.o.;Velké mzdy;Zpracování mezd Half Price;Krňanská Kateřina;0,00;62 650,00
+Modivo Czech, s.r.o.;Velké mzdy;Zpracování mezd WorldBox;Krňanská Kateřina;0,00;20 825,00
+Modivo.cz s.r.o.;Velké mzdy;Mzdová administrativa;Kollárová Martina;2,75;0,00
+Modivo.cz s.r.o.;Velké mzdy;Mzdová administrativa;Krňanská Kateřina;5,08;0,00
+Modivo.cz s.r.o.;Velké mzdy;Nástupy;Krňanská Kateřina;0,00;160,00
+Modivo.cz s.r.o.;Velké mzdy;Opakovaná odměna;Harnol Robot;0,00;1 500,00
+Modivo.cz s.r.o.;Velké mzdy;Zpracování mezd;Krňanská Kateřina;0,00;5 280,00
+Mole Agency s.r.o.;Účetnictví;Počet dokladů 51-100;Willingerová Nikola;0,00;13 000,00
+Mole Agency s.r.o.;Účetnictví;Účetní závěrka;Pham Thi Ngoc Anh;1,00;0,00
+Mole Agency s.r.o.;Účetnictví;Účetní závěrka;Sajverová Iva;0,75;0,00
+Mole Agency s.r.o.;Účetnictví;Vedení účetnictví;Pham Thi Ngoc Anh;0,33;0,00
+Mole Agency s.r.o.;Účetnictví;Vedení účetnictví;Willingerová Nikola;0,08;0,00
+Mole Agency s.r.o.;Účetnictví;Vícepráce účetnictví;Pham Thi Ngoc Anh;5,50;8 250,00
+Mole Agency s.r.o.;Účetnictví;Zpracování DPH;Pham Thi Ngoc Anh;0,67;0,00
+MultiSport Benefit, s.r.o.;Daňové poradenství;Daňové poradenství;Němcová Hana;1,50;3 750,00
+Mužík a syn s.r.o.;Účetnictví;Počet dokladů 251-300;Willingerová Nikola;0,00;25 000,00
+Mužík a syn s.r.o.;Účetnictví;Účetní závěrka;Willingerová Nikola;8,08;0,00
+Mužík a syn s.r.o.;Účetnictví;Vedení účetnictví;Bošková Tereza;2,00;0,00
+Mužík a syn s.r.o.;Účetnictví;Vedení účetnictví;Pham Thi Ngoc Anh;4,50;0,00
+Mužík a syn s.r.o.;Účetnictví;Vedení účetnictví;Willingerová Nikola;12,17;0,00
+Mužík a syn s.r.o.;Účetnictví;Vícepráce účetnictví;Pham Thi Ngoc Anh;1,50;2 250,00
+Mužík a syn s.r.o.;Účetnictví;Zpracování DPH;Pham Thi Ngoc Anh;2,08;0,00
+Mužík a syn s.r.o.;Účetnictví;Zpracování DPH;Sajverová Iva;0,50;0,00
+Mužík reality s.r.o.;Účetnictví;Účetní závěrka;Pham Thi Ngoc Anh;0,58;583,33
+Mužík reality s.r.o.;Účetnictví;Účetní závěrka;Willingerová Nikola;0,75;750,00
+Mužík reality s.r.o.;Účetnictví;Vedení účetnictví;Pham Thi Ngoc Anh;0,58;583,33
+Mužík reality s.r.o.;Účetnictví;Vedení účetnictví;Willingerová Nikola;0,33;333,33
+Mužík reality s.r.o.;Účetnictví;Vícepráce účetnictví;Pham Thi Ngoc Anh;0,33;400,00
+NEWSTON Automated Solutions GmbH;Malé mzdy;Mzdová administrativa;Tomšovská Klára;0,50;0,00
+NEWSTON Automated Solutions GmbH;Malé mzdy;Paušál pro zpracování mezd NEWSTON;Harnol Robot;0,00;108,00
+NEWSTON Automated Solutions GmbH;Malé mzdy;Roční mzdová závěrka;Tomšovská Klára;0,50;0,00
+NEWSTON Automated Solutions GmbH;Malé mzdy;Zpracování mezd;Tomšovská Klára;0,00;0,00
+NEWSTON Automated Solutions GmbH;Malé mzdy;Zpracování mezd;Tomšovská Klára;0,50;0,00
+Novotný David, DiS.;DPFO;Zpracování DPFO;Hlaváčková Adéla;0,75;0,00
+Novotný David, DiS.;DPFO;Zpracování DPH;Dolanská Tereza;0,50;0,00
+Ortho Hering s.r.o.;Malé mzdy + účetnictví;Mzdová administrativa;Tomšovská Klára;0,50;0,00
+Ortho Hering s.r.o.;Malé mzdy + účetnictví;Paušál pro zpracování mezd do 7 zaměstnanců;Harnol Robot;0,00;3 000,00
+Ortho Hering s.r.o.;Malé mzdy + účetnictví;Počet dokladů 101-150;Tůmová Nikola;0,00;15 000,00
+Ortho Hering s.r.o.;Malé mzdy + účetnictví;Roční mzdová závěrka;Tomšovská Klára;0,75;0,00
+Ortho Hering s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Tůmová Nikola;8,58;0,00
+Ortho Hering s.r.o.;Malé mzdy + účetnictví;Vícepráce účetnictví;Tůmová Nikola;0,58;875,00
+Ortho Hering s.r.o.;Malé mzdy + účetnictví;Zpracování mezd;Tomšovská Klára;0,50;0,00
+Ostrapack, s.r.o.;Účetnictví;DPPO;Sajverová Iva;0,00;0,00
+Ostrapack, s.r.o.;Účetnictví;DPPO 2400+ dokladů;Sajverová Iva;0,00;0,00
+Ostrapack, s.r.o.;Účetnictví;Počet dokladů 101-150;Dolanská Tereza;0,00;16 000,00
+Ostrapack, s.r.o.;Účetnictví;Správní poplatek DIS+;Harnol Robot;0,00;200,00
+Ostrapack, s.r.o.;Účetnictví;Účetní závěrka;Dolanská Tereza;33,25;0,00
+Ostrapack, s.r.o.;Účetnictví;Účetní závěrka;Sajverová Iva;17,50;0,00
+Ostrapack, s.r.o.;Účetnictví;Účetní závěrka;Sajverová Iva;0,00;0,00
+Ostrapack, s.r.o.;Účetnictví;Účetní závěrka 2400+ dokladů;Sajverová Iva;0,00;0,00
+Ostrapack, s.r.o.;Účetnictví;Vedení účetnictví;Dolanská Tereza;15,25;0,00
+Ostrapack, s.r.o.;Účetnictví;Vedení účetnictví;Pham Thi Ngoc Anh;0,67;0,00
+Ostrapack, s.r.o.;Účetnictví;Vícepráce účetnictví;Dolanská Tereza;6,08;9 125,00
+Ostrapack, s.r.o.;Účetnictví;Vícepráce účetnictví;Pham Thi Ngoc Anh;0,25;375,00
+Ostrapack, s.r.o.;Účetnictví;Vícepráce účetnictví;Sajverová Iva;6,50;9 750,00
+Ostrapack, s.r.o.;Účetnictví;Zpracování DPH;Dolanská Tereza;1,75;0,00
+Ostrapack, s.r.o.;Účetnictví;Zpracování DPH;Sajverová Iva;0,50;0,00
+Ostrapack, s.r.o.;Účetnictví;Zpracování DPPO;Sajverová Iva;0,50;0,00
+Patero s.r.o.;Malé mzdy + účetnictví;Daňové poradenství;Sajverová Iva;1,50;3 000,00
+Patero s.r.o.;Malé mzdy + účetnictví;Mzdová administrativa;Hlaváčková Adéla;0,08;83,33
+Patero s.r.o.;Malé mzdy + účetnictví;Paušál pro zpracování mezd 1 zaměstnance;Harnol Robot;0,00;3 000,00
+Patero s.r.o.;Malé mzdy + účetnictví;Počet dokladů 0-50;Willingerová Nikola;0,00;0,00
+Patero s.r.o.;Malé mzdy + účetnictví;Účetní závěrka;Willingerová Nikola;2,50;2 500,00
+Patero s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Pham Thi Ngoc Anh;1,08;1 083,33
+Patero s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Willingerová Nikola;0,75;750,00
+Patero s.r.o.;Malé mzdy + účetnictví;Vícepráce účetnictví;Pham Thi Ngoc Anh;0,50;500,00
+Patero s.r.o.;Malé mzdy + účetnictví;Zpracování mezd;Hlaváčková Adéla;0,25;250,00
+Patero s.r.o.;Malé mzdy + účetnictví;Zpracování mezd;Hlaváčková Adéla;0,00;300,00
+Patero Services, s.r.o.;Účetnictví;Účetní závěrka;Willingerová Nikola;0,75;750,00
+Patero Services, s.r.o.;Účetnictví;Vedení účetnictví;Pham Thi Ngoc Anh;0,75;750,00
+Patero Services, s.r.o.;Účetnictví;Vedení účetnictví;Willingerová Nikola;0,08;83,33
+Patero Services, s.r.o.;Účetnictví;Vícepráce účetnictví;Pham Thi Ngoc Anh;0,50;500,00
+Patero Services, s.r.o.;Účetnictví;Zpracování DPH;Harnol Radoslav;0,25;250,00
+Patero Services, s.r.o.;Účetnictví;Zpracování DPH;Pham Thi Ngoc Anh;0,42;416,67
+Pávková Hana, MUDr.;Malé mzdy;Roční mzdová závěrka;Tomšovská Klára;0,50;0,00
+PONOVO 2021 s.r.o.;Malé mzdy + účetnictví;Daňové poradenství;Sajverová Iva;1,25;2 500,00
+PONOVO 2021 s.r.o.;Malé mzdy + účetnictví;Paušál pro zpracování mezd do 3 zaměstnanců;Harnol Robot;0,00;1 500,00
+PONOVO 2021 s.r.o.;Malé mzdy + účetnictví;Počet dokladů 0-50;Dolanská Tereza;0,00;10 000,00
+PONOVO 2021 s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Dolanská Tereza;14,58;0,00
+PONOVO 2021 s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Sajverová Iva;2,17;0,00
+PONOVO 2021 s.r.o.;Malé mzdy + účetnictví;Vícepráce účetnictví;Dolanská Tereza;3,25;4 875,00
+PONOVO 2021 s.r.o.;Malé mzdy + účetnictví;Zpracování DPH;Dolanská Tereza;1,00;0,00
+PONOVO 2021 s.r.o.;Malé mzdy + účetnictví;Zpracování mezd;Hlaváčková Adéla;0,25;0,00
+PONOVO 2021 s.r.o.;Malé mzdy + účetnictví;Zpracování mezd;Hlaváčková Adéla;0,00;300,00
+Procházka Marek;DPFO;Počet dokladů 0-50;Bošková Tereza;0,00;0,00
+Procházka Marek;DPFO;Vedení účetnictví;Bošková Tereza;0,17;333,33
+Procházka Marek;DPFO;Vícepráce mzdy;Bošková Tereza;0,25;500,00
+Procházka Marek;DPFO;Zpracování DPH;Bošková Tereza;1,50;3 000,00
+Procházka Marek;DPFO;Zpracování DPH;Pham Thi Ngoc Anh;0,08;166,67
+PROXY - AUDIT, s.r.o.;Malé mzdy;Mzdová administrativa;Hlaváčková Adéla;2,00;0,00
+PROXY - AUDIT, s.r.o.;Malé mzdy;Roční mzdová závěrka;Hlaváčková Adéla;1,50;0,00
+PROXY - AUDIT, s.r.o.;Malé mzdy;Zpracování mezd;Hlaváčková Adéla;0,00;5 400,00
+PROXY - AUDIT, s.r.o.;Malé mzdy;Zpracování mezd;Hlaváčková Adéla;1,25;0,00
+PROXY, a.s.;Malé mzdy;Mzdová administrativa;Hlaváčková Adéla;5,00;0,00
+PROXY, a.s.;Malé mzdy;Roční mzdová závěrka;Hlaváčková Adéla;1,00;0,00
+PROXY, a.s.;Malé mzdy;Zpracování mezd;Hlaváčková Adéla;0,00;15 900,00
+PROXY, a.s.;Malé mzdy;Zpracování mezd;Hlaváčková Adéla;3,00;0,00
+Radek Jaša;DPFO;Opakovaná odměna;Harnol Robot;0,00;6 000,00
+Radek Jaša;DPFO;Zpracování DPH;Tůmová Nikola;0,42;0,00
+RMC-ENGEX coaching s.r.o.;Účetnictví;Počet dokladů 0-50;Bošková Tereza;0,00;8 000,00
+RMC-ENGEX coaching s.r.o.;Účetnictví;Sleva;Harnol Robot;0,00;-1 600,00
+RMC-ENGEX coaching s.r.o.;Účetnictví;Správní poplatek DIS+;Harnol Robot;0,00;200,00
+RMC-ENGEX coaching s.r.o.;Účetnictví;Účetní závěrka;Bošková Tereza;4,17;0,00
+RMC-ENGEX coaching s.r.o.;Účetnictví;Účetní závěrka;Pham Thi Ngoc Anh;0,50;0,00
+RMC-ENGEX coaching s.r.o.;Účetnictví;Vedení účetnictví;Bošková Tereza;1,50;0,00
+RMC-ENGEX coaching s.r.o.;Účetnictví;Vedení účetnictví;Pham Thi Ngoc Anh;0,58;0,00
+RMC-ENGEX coaching s.r.o.;Účetnictví;Vícepráce účetnictví;Pham Thi Ngoc Anh;0,50;600,00
+RMC-ENGEX coaching s.r.o.;Účetnictví;Zpracování DPH;Bošková Tereza;0,50;0,00
+RMC-ENGEX coaching s.r.o.;Účetnictví;Zpracování DPH;Sajverová Iva;0,17;0,00
+RVM Systems CZ s.r.o.;Účetnictví;Počet dokladů 0-50;Tůmová Nikola;0,00;0,00
+RVM Systems CZ s.r.o.;Účetnictví;Vedení účetnictví;Tůmová Nikola;1,83;2 200,00
+RVM Systems CZ s.r.o.;Účetnictví;Zpracování DPH;Harnol Radoslav;0,25;300,00
+RVM Systems CZ s.r.o.;Účetnictví;Zpracování DPH;Tůmová Nikola;0,58;700,00
+Saint James s.r.o.;Účetnictví;Počet dokladů 0-50;Dolanská Tereza;0,00;0,00
+Saint James s.r.o.;Účetnictví;Účetní závěrka;Dolanská Tereza;7,00;8 400,00
+Saint James s.r.o.;Účetnictví;Účetní závěrka;Harnol Robot;5,50;6 600,00
+Saint James s.r.o.;Účetnictví;Účetní závěrka;Sajverová Iva;1,75;2 100,00
+Saint James s.r.o.;Účetnictví;Vedení účetnictví;Dolanská Tereza;0,92;1 100,00
+Saint James s.r.o.;Účetnictví;Vedení účetnictví;Harnol Robot;2,75;3 300,00
+Saint James s.r.o.;Účetnictví;Zpracování DPH;Dolanská Tereza;0,50;0,00
+Saint James s.r.o.;Účetnictví;Zpracování DPH;Sajverová Iva;0,08;0,00
+Saint James s.r.o.;Účetnictví;Zpracování DPPO;Harnol Robot;1,00;0,00
+Saint James s.r.o.;Účetnictví;Zpracování DPPO;Sajverová Iva;0,50;0,00
+Savicki 1976 s.r.o.;Malé mzdy + účetnictví;Mzdová administrativa;Tomšovská Klára;0,75;0,00
+Savicki 1976 s.r.o.;Malé mzdy + účetnictví;Paušál pro zpracování mezd do 5 zaměstnanců;Harnol Robot;0,00;3 000,00
+Savicki 1976 s.r.o.;Malé mzdy + účetnictví;Počet dokladů 0-50;Dolanská Tereza;0,00;0,00
+Savicki 1976 s.r.o.;Malé mzdy + účetnictví;Roční mzdová závěrka;Tomšovská Klára;0,75;0,00
+Savicki 1976 s.r.o.;Malé mzdy + účetnictví;Účetní závěrka;Dolanská Tereza;3,75;0,00
+Savicki 1976 s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Dolanská Tereza;1,58;0,00
+Savicki 1976 s.r.o.;Malé mzdy + účetnictví;Vícepráce účetnictví;Dolanská Tereza;0,75;1 125,00
+Savicki 1976 s.r.o.;Malé mzdy + účetnictví;Zpracování DPH;Dolanská Tereza;0,75;0,00
+Savicki 1976 s.r.o.;Malé mzdy + účetnictví;Zpracování DPH;Sajverová Iva;0,25;0,00
+Savicki 1976 s.r.o.;Malé mzdy + účetnictví;Zpracování mezd;Tomšovská Klára;1,25;0,00
+Savicki 1976 s.r.o.;Malé mzdy + účetnictví;Zpracování mezd;Tomšovská Klára;0,00;0,00
+Sociologický ústav AV ČR, v. v. i.;Malé mzdy;Zpracování mezd;Úradníková Simona;1,00;0,00
+Sociologický ústav AV ČR, v. v. i.;Malé mzdy;Zpracování mezd;Úradníková Simona;0,00;3 000,00
+Soukromý svěřenský fond Čáp;Účetnictví;Daňové poradenství;Sajverová Iva;0,25;500,00
+Soukromý svěřenský fond Čáp;Účetnictví;Daňové poradenství;Zahradník Jaroslav;4,00;8 000,00
+Soukromý svěřenský fond Čáp;Účetnictví;Správní poplatek DIS+;Harnol Robot;0,00;200,00
+Soukromý svěřenský fond Čáp;Účetnictví;Účetní závěrka;Willingerová Nikola;2,00;0,00
+Soukromý svěřenský fond Čáp;Účetnictví;Vedení účetnictví;Willingerová Nikola;0,75;0,00
+Soukromý svěřenský fond Čáp;Účetnictví;Vícepráce účetnictví;Pham Thi Ngoc Anh;0,25;300,00
+Soukromý svěřenský fond JB;Účetnictví;Daňové poradenství;Sajverová Iva;1,00;2 000,00
+Soukromý svěřenský fond JB;Účetnictví;Správní poplatek DIS+;Harnol Robot;0,00;200,00
+Soukromý svěřenský fond JB;Účetnictví;Účetní závěrka;Willingerová Nikola;1,33;0,00
+Soukromý svěřenský fond JB;Účetnictví;Vedení účetnictví;Sajverová Iva;3,50;0,00
+Soukromý svěřenský fond JB;Účetnictví;Vedení účetnictví;Willingerová Nikola;0,33;0,00
+Soukromý svěřenský fond JB;Účetnictví;Vícepráce účetnictví;Pham Thi Ngoc Anh;0,25;300,00
+Sports Group Denmark;Malé mzdy;Mzdová administrativa;Tomšovská Klára;0,25;0,00
+Sports Group Denmark;Malé mzdy;Paušál pro zpracování mezd ;Harnol Robot;0,00;120,00
+Sports Group Denmark;Malé mzdy;Roční mzdová závěrka;Tomšovská Klára;0,25;0,00
+Sports Group Denmark;Malé mzdy;Zpracování mezd;Tomšovská Klára;0,00;0,00
+Sports Group Denmark;Malé mzdy;Zpracování mezd;Tomšovská Klára;0,50;0,00
+Sportsdirect.com Czech Republic s.r.o.;Velké mzdy;Mzdová administrativa;Bartů Kateřina;42,50;0,00
+Sportsdirect.com Czech Republic s.r.o.;Velké mzdy;Mzdová administrativa;Hlaváčková Adéla;0,08;0,00
+Sportsdirect.com Czech Republic s.r.o.;Velké mzdy;Mzdová administrativa;Polívková Adéla;21,00;0,00
+Sportsdirect.com Czech Republic s.r.o.;Velké mzdy;Nástupy;Bartů Kateřina;0,00;2 750,00
+Sportsdirect.com Czech Republic s.r.o.;Velké mzdy;Odeslané platby do banky;Bartů Kateřina;0,00;320,00
+Sportsdirect.com Czech Republic s.r.o.;Velké mzdy;Výstupy;Bartů Kateřina;0,00;11 250,00
+Sportsdirect.com Czech Republic s.r.o.;Velké mzdy;Zpracování mezd;Bartů Kateřina;0,50;0,00
+Sportsdirect.com Czech Republic s.r.o.;Velké mzdy;Zpracování mezd;Bartů Kateřina;0,00;38 000,00
+Sportsdirect.com Slovakia s. r. o.;SK mzdy;Cestovní příkazy (hod);Úradníková Simona;0,08;100,00
+Sportsdirect.com Slovakia s. r. o.;SK mzdy;Mzdová administrativa;Hlaváčková Adéla;0,08;0,00
+Sportsdirect.com Slovakia s. r. o.;SK mzdy;Mzdová administrativa;Kulich Iveta;7,50;0,00
+Sportsdirect.com Slovakia s. r. o.;SK mzdy;Mzdová administrativa;Očenášová Romana Janka;3,50;0,00
+Sportsdirect.com Slovakia s. r. o.;SK mzdy;Mzdová administrativa;Úradníková Simona;47,92;0,00
+Sportsdirect.com Slovakia s. r. o.;SK mzdy;Nástupy;Úradníková Simona;0,00;2 000,00
+Sportsdirect.com Slovakia s. r. o.;SK mzdy;Poštovné;Úradníková Simona;0,00;636,00
+Sportsdirect.com Slovakia s. r. o.;SK mzdy;Vícepráce mzdy;Harnol Robot;2,00;2 400,00
+Sportsdirect.com Slovakia s. r. o.;SK mzdy;Výstupy;Úradníková Simona;0,00;1 500,00
+Sportsdirect.com Slovakia s. r. o.;SK mzdy;Výstupy;Úradníková Simona;0,08;0,00
+Sportsdirect.com Slovakia s. r. o.;SK mzdy;Zpracování mezd;Úradníková Simona;0,00;28 000,00
+Sportsdirect.com Slovakia s. r. o.;SK mzdy;Zpracování mezd;Úradníková Simona;0,08;0,00
+STAVTRANS, spol. s r.o.;Malé mzdy;Mzdová administrativa;Hlaváčková Adéla;1,58;0,00
+STAVTRANS, spol. s r.o.;Malé mzdy;Zpracování mezd;Hlaváčková Adéla;1,50;0,00
+STAVTRANS, spol. s r.o.;Malé mzdy;Zpracování mezd;Hlaváčková Adéla;0,00;13 500,00
+Stephen John Edwards;DPFO;Zpracování DPFO;Hlaváčková Adéla;0,50;0,00
+STK Divišov s.r.o.;Malé mzdy + účetnictví;Daňové poradenství;Hlaváčková Adéla;1,00;1 500,00
+STK Divišov s.r.o.;Malé mzdy + účetnictví;Mzdová administrativa;Tomšovská Klára;2,75;0,00
+STK Divišov s.r.o.;Malé mzdy + účetnictví;Počet dokladů 751-800;Bošková Tereza;0,00;37 000,00
+STK Divišov s.r.o.;Malé mzdy + účetnictví;Roční mzdová závěrka;Hlaváčková Adéla;0,25;0,00
+STK Divišov s.r.o.;Malé mzdy + účetnictví;Roční mzdová závěrka;Tomšovská Klára;1,42;0,00
+STK Divišov s.r.o.;Malé mzdy + účetnictví;Účetní importy;Bošková Tereza;0,00;11 000,00
+STK Divišov s.r.o.;Malé mzdy + účetnictví;Účetní závěrka;Bošková Tereza;10,92;0,00
+STK Divišov s.r.o.;Malé mzdy + účetnictví;Účetní závěrka;Sajverová Iva;3,25;0,00
+STK Divišov s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Bošková Tereza;23,83;0,00
+STK Divišov s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Pham Thi Ngoc Anh;11,17;0,00
+STK Divišov s.r.o.;Malé mzdy + účetnictví;Vícepráce mzdy;Tomšovská Klára;0,25;187,50
+STK Divišov s.r.o.;Malé mzdy + účetnictví;Vícepráce účetnictví;Bošková Tereza;1,33;1 000,00
+STK Divišov s.r.o.;Malé mzdy + účetnictví;Vícepráce účetnictví;Pham Thi Ngoc Anh;2,50;1 875,00
+STK Divišov s.r.o.;Malé mzdy + účetnictví;Vícepráce účetnictví;Tůmová Nikola;0,50;375,00
+STK Divišov s.r.o.;Malé mzdy + účetnictví;Výstupy;Tomšovská Klára;0,17;0,00
+STK Divišov s.r.o.;Malé mzdy + účetnictví;Zpracování DPH;Pham Thi Ngoc Anh;2,08;0,00
+STK Divišov s.r.o.;Malé mzdy + účetnictví;Zpracování DPH;Sajverová Iva;0,50;0,00
+STK Divišov s.r.o.;Malé mzdy + účetnictví;Zpracování mezd;Tomšovská Klára;2,00;0,00
+STK Divišov s.r.o.;Malé mzdy + účetnictví;Zpracování mezd;Tomšovská Klára;0,00;9 250,00
+Stříteský Martin, MUDr., CSc.;DPFO;Počet dokladů 0-50;Tůmová Nikola;0,00;0,00
+Stříteský Martin, MUDr., CSc.;DPFO;Vedení účetnictví;Tůmová Nikola;0,08;166,67
+Stříteský Martin, MUDr., CSc.;DPFO;Zpracování DPH;Tůmová Nikola;0,50;1 000,00
+Škripecký Marián;DPFO;Daňové poradenství;Hlaváčková Adéla;1,00;2 000,00
+ŠMP Carolina  základní škola s.r.o.;Malé mzdy + účetnictví;Mzdová administrativa;Hlaváčková Adéla;1,00;1 000,00
+ŠMP Carolina  základní škola s.r.o.;Malé mzdy + účetnictví;Počet dokladů 0-50;Dolanská Tereza;0,00;0,00
+ŠMP Carolina  základní škola s.r.o.;Malé mzdy + účetnictví;Roční mzdová závěrka;Hlaváčková Adéla;0,25;250,00
+ŠMP Carolina  základní škola s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Dolanská Tereza;3,33;3 333,33
+ŠMP Carolina  základní škola s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Mikešová Eva;3,58;3 583,33
+ŠMP Carolina  základní škola s.r.o.;Malé mzdy + účetnictví;Vícepráce mzdy;Hlaváčková Adéla;0,75;900,00
+ŠMP Carolina  základní škola s.r.o.;Malé mzdy + účetnictví;Vícepráce účetnictví;Dolanská Tereza;0,75;750,00
+ŠMP Carolina  základní škola s.r.o.;Malé mzdy + účetnictví;Zpracování mezd;Hlaváčková Adéla;1,00;1 000,00
+ŠMP Carolina  základní škola s.r.o.;Malé mzdy + účetnictví;Zpracování mezd;Hlaváčková Adéla;0,00;4 550,00
+ŠMP Mánesova - gymnázium, ZŠ a MŠ s.r.o.;Malé mzdy + účetnictví;Mzdová administrativa;Hlaváčková Adéla;6,25;6 250,00
+ŠMP Mánesova - gymnázium, ZŠ a MŠ s.r.o.;Malé mzdy + účetnictví;Počet dokladů 751-800;Dolanská Tereza;0,00;0,00
+ŠMP Mánesova - gymnázium, ZŠ a MŠ s.r.o.;Malé mzdy + účetnictví;Roční mzdová závěrka;Hlaváčková Adéla;0,75;750,00
+ŠMP Mánesova - gymnázium, ZŠ a MŠ s.r.o.;Malé mzdy + účetnictví;Roční mzdová závěrka;Pichová Barbora;1,00;1 000,00
+ŠMP Mánesova - gymnázium, ZŠ a MŠ s.r.o.;Malé mzdy + účetnictví;Účetní závěrka;Dolanská Tereza;1,67;1 666,67
+ŠMP Mánesova - gymnázium, ZŠ a MŠ s.r.o.;Malé mzdy + účetnictví;Účetní závěrka;Sajverová Iva;1,00;1 000,00
+ŠMP Mánesova - gymnázium, ZŠ a MŠ s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Dolanská Tereza;9,83;9 833,33
+ŠMP Mánesova - gymnázium, ZŠ a MŠ s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Mikešová Eva;9,75;9 750,00
+ŠMP Mánesova - gymnázium, ZŠ a MŠ s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Sajverová Iva;3,50;3 500,00
+ŠMP Mánesova - gymnázium, ZŠ a MŠ s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Tůmová Nikola;0,25;250,00
+ŠMP Mánesova - gymnázium, ZŠ a MŠ s.r.o.;Malé mzdy + účetnictví;Vícepráce mzdy;Hlaváčková Adéla;3,25;3 900,00
+ŠMP Mánesova - gymnázium, ZŠ a MŠ s.r.o.;Malé mzdy + účetnictví;Vícepráce účetnictví;Dolanská Tereza;1,00;1 000,00
+ŠMP Mánesova - gymnázium, ZŠ a MŠ s.r.o.;Malé mzdy + účetnictví;Vícepráce účetnictví;Mikešová Eva;23,42;23 416,67
+ŠMP Mánesova - gymnázium, ZŠ a MŠ s.r.o.;Malé mzdy + účetnictví;Vícepráce účetnictví;Sajverová Iva;1,00;1 000,00
+ŠMP Mánesova - gymnázium, ZŠ a MŠ s.r.o.;Malé mzdy + účetnictví;Zpracování mezd;Hlaváčková Adéla;6,50;6 500,00
+ŠMP Mánesova - gymnázium, ZŠ a MŠ s.r.o.;Malé mzdy + účetnictví;Zpracování mezd;Hlaváčková Adéla;0,00;36 400,00
+Štrunc Petr;DPFO;Daňové poradenství;Harnolová Veronika;0,50;1 000,00
+Takko Fashion s.r.o.;Velké mzdy;Cestovní příkazy (hod);Stračiaková Simona;0,08;0,00
+Takko Fashion s.r.o.;Velké mzdy;Cestovní příkazy (ks);Stračiaková Simona;0,00;4 230,00
+Takko Fashion s.r.o.;Velké mzdy;Mzdová administrativa;Bartů Kateřina;76,50;0,00
+Takko Fashion s.r.o.;Velké mzdy;Mzdová administrativa;Hlaváčková Adéla;0,17;0,00
+Takko Fashion s.r.o.;Velké mzdy;Mzdová administrativa;Kovářová Adéla;3,00;0,00
+Takko Fashion s.r.o.;Velké mzdy;Mzdová administrativa;Polívková Adéla;1,50;0,00
+Takko Fashion s.r.o.;Velké mzdy;Mzdová administrativa;Stračiaková Simona;3,00;0,00
+Takko Fashion s.r.o.;Velké mzdy;Nástupy;Bartů Kateřina;0,00;2 250,00
+Takko Fashion s.r.o.;Velké mzdy;Online docházka a portál zaměstnance;Bartů Kateřina;0,00;17 490,00
+Takko Fashion s.r.o.;Velké mzdy;Opakovaná odměna;Harnol Robot;0,00;1 300,00
+Takko Fashion s.r.o.;Velké mzdy;Roční mzdová závěrka;Stračiaková Simona;2,00;0,00
+Takko Fashion s.r.o.;Velké mzdy;Vícepráce mzdy;Bartů Kateřina;0,50;600,00
+Takko Fashion s.r.o.;Velké mzdy;Výstupy;Bartů Kateřina;0,00;5 000,00
+Takko Fashion s.r.o.;Velké mzdy;Zpracování mezd;Bartů Kateřina;0,50;0,00
+Takko Fashion s.r.o.;Velké mzdy;Zpracování mezd;Bartů Kateřina;0,00;147 000,00
+Takko Fashion s.r.o.;Velké mzdy;Zpracování mezd;Stračiaková Simona;20,75;0,00
+Telespazio Czech Republic odštěpný závod;Malé mzdy;Mzdová administrativa;Tomšovská Klára;2,50;0,00
+Telespazio Czech Republic odštěpný závod;Malé mzdy;Paušál pro zpracování mezd ;Harnol Robot;0,00;5 000,00
+Telespazio Czech Republic odštěpný závod;Malé mzdy;Roční mzdová závěrka;Tomšovská Klára;1,50;0,00
+Telespazio Czech Republic odštěpný závod;Malé mzdy;Vícepráce mzdy;Tomšovská Klára;1,00;1 200,00
+Telespazio Czech Republic odštěpný závod;Malé mzdy;Výstupy;Tomšovská Klára;0,50;0,00
+Telespazio Czech Republic odštěpný závod;Malé mzdy;Výstupy;Tomšovská Klára;0,00;500,00
+Telespazio Czech Republic odštěpný závod;Malé mzdy;Zpracování mezd;Tomšovská Klára;0,00;3 500,00
+Telespazio Czech Republic odštěpný závod;Malé mzdy;Zpracování mezd;Tomšovská Klára;2,00;0,00
+TRANS FACTORING s.r.o.;Malé mzdy + účetnictví;Mzdová administrativa;Hlaváčková Adéla;0,50;0,00
+TRANS FACTORING s.r.o.;Malé mzdy + účetnictví;Paušál pro zpracování mezd do 3 zaměstnanců;Harnol Robot;0,00;3 000,00
+TRANS FACTORING s.r.o.;Malé mzdy + účetnictví;Počet dokladů 751-800;Willingerová Nikola;0,00;0,00
+TRANS FACTORING s.r.o.;Malé mzdy + účetnictví;Roční mzdová závěrka;Hlaváčková Adéla;0,25;0,00
+TRANS FACTORING s.r.o.;Malé mzdy + účetnictví;Účetní závěrka;Mikešová Eva;0,75;0,00
+TRANS FACTORING s.r.o.;Malé mzdy + účetnictví;Účetní závěrka;Pham Thi Ngoc Anh;0,25;0,00
+TRANS FACTORING s.r.o.;Malé mzdy + účetnictví;Účetní závěrka;Willingerová Nikola;7,92;0,00
+TRANS FACTORING s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Mikešová Eva;14,00;0,00
+TRANS FACTORING s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Pham Thi Ngoc Anh;0,08;0,00
+TRANS FACTORING s.r.o.;Malé mzdy + účetnictví;Vedení účetnictví;Willingerová Nikola;15,75;0,00
+TRANS FACTORING s.r.o.;Malé mzdy + účetnictví;Vícepráce účetnictví;Mikešová Eva;2,92;4 375,00
+TRANS FACTORING s.r.o.;Malé mzdy + účetnictví;Zpracování DPH;Mikešová Eva;1,75;0,00
+TRANS FACTORING s.r.o.;Malé mzdy + účetnictví;Zpracování mezd;Hlaváčková Adéla;0,00;600,00
+TRANS FACTORING s.r.o.;Malé mzdy + účetnictví;Zpracování mezd;Hlaváčková Adéla;0,50;0,00
+Vislana s.r.o.;Účetnictví;Počet dokladů 0-50;Bošková Tereza;0,00;7 000,00
+Vislana s.r.o.;Účetnictví;Sleva;Harnol Robot;0,00;-1 400,00
+Vislana s.r.o.;Účetnictví;Účetní závěrka;Bošková Tereza;3,67;0,00
+Vislana s.r.o.;Účetnictví;Účetní závěrka;Pham Thi Ngoc Anh;0,50;0,00
+Vislana s.r.o.;Účetnictví;Vedení účetnictví;Bošková Tereza;2,00;0,00
+Vislana s.r.o.;Účetnictví;Vedení účetnictví;Pham Thi Ngoc Anh;0,50;0,00
+Vislana s.r.o.;Účetnictví;Vícepráce účetnictví;Pham Thi Ngoc Anh;0,33;333,33
+Vislana s.r.o.;Účetnictví;Zpracování DPH;Bošková Tereza;0,50;0,00
+Vislana s.r.o.;Účetnictví;Zpracování DPH;Sajverová Iva;0,17;0,00
+Vojtěch Majer;DPFO;Daňové poradenství;Hlaváčková Adéla;0,50;1 000,00
+Všeobecná úverová banka a.s., pobočka Praha;Malé mzdy;Mzdová administrativa;Hlaváčková Adéla;3,25;0,00
+Všeobecná úverová banka a.s., pobočka Praha;Malé mzdy;Mzdová administrativa;Tomšovská Klára;0,75;0,00
+Všeobecná úverová banka a.s., pobočka Praha;Malé mzdy;Roční mzdová závěrka;Hlaváčková Adéla;3,00;0,00
+Všeobecná úverová banka a.s., pobočka Praha;Malé mzdy;Vícepráce mzdy;Hlaváčková Adéla;0,75;1 275,00
+ZM ART s.r.o.;Účetnictví;Počet dokladů 0-50;Willingerová Nikola;0,00;7 000,00
+ZM ART s.r.o.;Účetnictví;Účetní závěrka;Pham Thi Ngoc Anh;1,00;0,00
+ZM ART s.r.o.;Účetnictví;Účetní závěrka;Willingerová Nikola;0,92;0,00
+ZM ART s.r.o.;Účetnictví;Vedení účetnictví;Pham Thi Ngoc Anh;1,00;0,00
+ZM ART s.r.o.;Účetnictví;Vedení účetnictví;Willingerová Nikola;0,08;0,00
+ZM ART s.r.o.;Účetnictví;Vícepráce účetnictví;Pham Thi Ngoc Anh;5,75;5 750,00
+ZM ART s.r.o.;Účetnictví;Zpracování DPH;Pham Thi Ngoc Anh;0,33;0,00
+ZM ART s.r.o.;Účetnictví;Zpracování DPH;Sajverová Iva;0,08;0,00
+∑;;;;4 156,58;2 987 293,91

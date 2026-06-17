@@ -1,0 +1,99 @@
+﻿@model UI.Models.Record.o51Record
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    if (Model.Rec == null) return;
+    Model.PageTitle = _f.tra("Položka štítku");
+    
+}
+
+@addTagHelper *, UI
+
+
+
+<div class="modal_record_container">
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název položky"):</label>
+        <div class="col-sm-6 col-md-5">
+            <input class="form-control record_name" asp-for="Rec.o51Name" />
+        </div>
+        <label class="col-sm-2 col-md-2 col-form-label">#@_f.tra("Index pořadí"):</label>
+        <div class="col-sm-1 col-md-1">
+            <mynumber asp-for="Rec.o51Ordinary" decimal-digits="0"></mynumber>
+        </div>
+    </div>
+
+    
+
+    <div class="row" style="margin-top:10px;">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Skupina štítku"):</label>
+        <div class="col-sm-11 col-md-10">
+            <mycombo entity="o53TagGroup" asp-for="Rec.o53ID" selectedtext="@Model.Combo_o53Name" view-flag="2"></mycombo>
+        </div>
+    </div>
+
+    
+    
+
+    <div class="my-2">
+        <input asp-for="@Model.Rec.o51IsColor" />
+        <label for="Rec_o51IsColor">@_f.tra("Položka má vlastní barvu?")</label>
+    </div>
+
+    <table id="tabColor">
+        <tr>
+            <td>
+                Barva písma:
+            </td>
+            <td>
+                <input type="color" asp-for="Rec.o51ForeColor" />
+            </td>
+            <td>
+                Barva pozadí:
+            </td>
+            <td>
+                <input type="color" asp-for="Rec.o51BackColor" />
+            </td>
+
+        </tr>
+    </table>
+
+
+
+
+
+</div>
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        handle_barva();
+
+
+        $("#Rec_o51IsColor").on("click", function () {
+            handle_barva();
+        });
+
+    });
+
+
+
+
+    function handle_barva() {
+        if ($("#Rec_o51IsColor").prop("checked") == true) {
+            $("#tabColor").css("display", "block");
+
+
+        } else {
+            $("#tabColor").css("display", "none");
+
+        }
+    }
+
+</script>
+
+
+

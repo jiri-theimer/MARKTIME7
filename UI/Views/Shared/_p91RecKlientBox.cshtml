@@ -1,0 +1,134 @@
+﻿@model BO.p91Invoice
+
+@inject BL.Factory _f
+
+@{
+
+
+    if (Model == null)
+    {
+        return;
+    }
+
+    var _isShowOstatniFaktury = _f.CBL.LoadUserParamBool("p91RecKlientBox-show-p91list", false);
+    var _lisP91 = _f.p91InvoiceBL.GetList(new BO.myQueryP91() { p28id = Model.p28ID }).Where(p => p.pid != Model.pid);
+
+    
+}
+
+@addTagHelper *, UI
+
+<table class="table table-hover">
+
+    <tr>
+        <td class="tdval" colspan="2">
+            <myval value="@Model.p91Client" hoverprefix="p28" hoverpid="@Model.p28ID" datatype="@(_f.CurrentUser.j04IsModule_p28 ? "link": "string")" linktarget="_top" linkurl="@(_f.CurrentUser.j04IsModule_p28 ? $"/Record/RecPage?prefix=p28&pid={Model.p28ID}":"")"></myval>
+        </td>
+
+    </tr>
+    <tr>
+        <td colspan="2">
+            <small>@(BO.Code.Bas.OM2(Model.PrimaryAddress,40))</small>
+            
+        </td>
+
+    </tr>
+    <tr>
+        <td>
+            @_f.tra("IČO"):
+        </td>
+
+        <td class="rowvalhover tdval">
+            @Model.p91Client_RegID
+
+            @if (Model.p28CountryCode == "SK")
+            {
+                <a class="valhover_tooltip" href="javascript:_rejstrik_obchodny_register('hidICO')">obchodný register</a>
+            }
+            else
+            {
+                <a class="valhover_tooltip" href="javascript: _rejstrik_justice('hidICO')">justice</a>
+                <a class="valhover_tooltip" href="javascript: _rejstrik_aresinfo('hidICO')">ares</a>
+                <a class="valhover_tooltip" href="javascript: _rejstrik_insolvence('hidICO')">insolvence</a>
+            }
+
+            <input type="hidden" id="hidICO" value="@Model.p91Client_RegID" />
+        </td>
+    </tr>
+    <tr>
+        <td>
+            DIČ:
+        </td>
+        <td class="tdval">
+            @Model.p91Client_VatID
+        </td>
+    </tr>
+    @if (Model.p91Client_ICDPH_SK != null)
+    {
+        <tr>
+            <td>
+                IČ DPH:
+            </td>
+            <td class="tdval">
+                @Model.p91Client_ICDPH_SK
+            </td>
+        </tr>
+
+    }
+
+
+
+</table>
+
+@if (_lisP91.Count() > 0)
+{
+    <div>
+        @_f.tra("Ostatní faktury")
+        <span class="badge-def">@(_lisP91.Count())</span>
+
+        @if (_isShowOstatniFaktury)
+        {
+            <input type="checkbox" id="chkOstatniFaktury" checked onchange="chkOstatniFaktury_Change(this)" />
+        }
+        else
+        {
+            <input type="checkbox" id="chkOstatniFaktury" onchange="chkOstatniFaktury_Change(this)" />
+        }
+        <label for="chkOstatniFaktury">@_f.tra("Detailní seznam")</label>
+
+    </div>
+    
+    @if (_isShowOstatniFaktury)
+    {
+        <table class="table table-sm" style="max-width:240px;">
+
+            @foreach (var c in _lisP91)
+            {
+                <tr>
+                    <td style="width:20px;@(c.p91Amount_Debt>0 ? "background-color:red" : "")">
+                        &nbsp
+                    </td>
+                    <td title="Splatnost: @c.p91DateMaturity.ToString("dd.MM.yyyy ddd")">
+                        <a href="/Record/Recpage?prefix=p91&pid=@c.pid" target="_top">
+                            @c.p91Code
+                        </a>
+
+                    </td>
+                    <td class="tddatum">
+                        @c.p91DateSupply.ToString("dd.MM.yyyy")
+                    </td>
+                    <td class="tdnum tdcastka">
+                        @BO.Code.Bas.Number2String(c.p91Amount_TotalDue)
+
+                    </td>
+                    <td style="width:30px">
+                        @c.j27Code
+                    </td>
+
+                </tr>
+            }
+        </table>
+    }
+    
+
+}

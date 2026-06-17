@@ -1,0 +1,29 @@
+﻿@model UI.Models.Tab1.p78Tab1
+@inject BL.Factory _f
+
+@{
+
+    BO.p83UpominkaType _recP83 = _f.p83UpominkaTypeBL.LoadTypSdruzeneUpominky(Model.Rec.pid);
+
+    int _x31id = 0;
+    int _j61id = 0;
+    if (_recP83 != null)
+    {
+        _x31id = _recP83.x31ID_Sdruzena;
+        _j61id = _recP83.j61ID_Sdruzena;
+    }
+
+}
+
+
+
+
+
+
+<button type="button" class="btn btn-sm bog" onclick="_window_open('/ReportsClient/ReportContext?pid=@(Model.Rec.pid)&prefix=p78&x31id=@(_x31id)')"><span class="material-icons-outlined-btn">print</span> @_f.tra("Tisková sestava")</button>
+
+
+
+
+
+<button type="button" class="btn btn-sm btn-light" title="E-mail" onclick="_window_open('/Mail/SendMail?record_entity=p78&record_pid=@(Model.pid)&j61id=@(_j61id)')"><span class="material-icons-outlined-btn">alternate_email</span></button>

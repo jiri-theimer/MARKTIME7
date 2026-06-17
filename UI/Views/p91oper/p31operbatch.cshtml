@@ -1,0 +1,99 @@
+﻿@model UI.Models.p91oper.p31operbatchViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    switch (Model.BaseOper)
+    {
+        case "remove":
+            Model.PageTitle = _f.tra("Vyjmout úkony z vyúčtování");
+            break;
+        case "p70-6":
+        case "p70-2":
+        case "p70-3":
+            Model.PageTitle = _f.tra("Hromadně změnit úkony ve vyúčtování");
+            break;
+    }
+
+    Model.PageTitle += ": " + Model.RecP91.p92Name + " / " + Model.RecP91.p91Code + " (" + Model.RecP91.p91Client + ")";
+    Model.PageSymbol = "sync_alt";
+}
+
+@addTagHelper *, UI
+
+<div class="bg-light" style="padding:10px;">
+    <button type="button" id="cmdOK" class="btn btn-success" onclick="_submit()">@_f.tra("Uložit změny")</button>
+
+    <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+
+</div>
+
+<form id="form1" asp-controller="p91oper" asp-action="p31operbatch" method="POST">
+    <div class="modal_record_container">
+
+        @if (Model.BaseOper == "remove")
+        {
+            <div class="card">
+                <div class="card-header">
+                    @_f.tra("Co se má stát s položkami?")
+                    (@(Model.lisP31.Count()))
+                </div>
+                <div class="card-body">
+                    <input type="radio" asp-for="@Model.SelectedOper" id="opg1" value="1" />
+                    <label for="opg1">@_f.tra("Přesunout do schválených")</label>
+                    <br />
+                    <input type="radio" asp-for="@Model.SelectedOper" id="opg2" value="2" />
+                    <label for="opg2">@_f.tra("Přesunout do rozpracovaných")</label>
+                    <div style="display:none;">
+                        <br />
+                        <input type="radio" asp-for="@Model.SelectedOper" id="opg3" value="3" />
+                        <label for="opg3">@_f.tra("Přesunout do rozpracovaných a do archivu")</label>
+                    </div>
+                </div>
+            </div>
+        }
+        @if (Model.BaseOper.Substring(0, 3) == "p70")
+        {
+            <div class="card">
+                <div class="card-header">
+                    @_f.tra("Cílový stav aktivit")
+                    (@(Model.lisP31.Count()))
+                </div>
+                <div class="card-body">
+                    <input type="radio" asp-for="@Model.SelectedOper" id="opg6" value="6" />
+                    <label for="opg6">@_f.tra("Zahrnout do paušálu")</label>
+                    <br />
+                    <input type="radio" asp-for="@Model.SelectedOper" id="opg2" value="2" />
+                    <label for="opg2">@_f.tra("Viditelný odpis")</label>
+                    <br />
+                    <input type="radio" asp-for="@Model.SelectedOper" id="opg3" value="3" />
+                    <label for="opg3">@_f.tra("Skrytý odpis")</label>
+
+                </div>
+            </div>
+        }
+    </div>
+
+    <input type="hidden" asp-for="@Model.BaseOper" />
+    <input type="hidden" asp-for="@Model.p91ID" />
+    <input type="hidden" asp-for="@Model.p31ids" />
+</form>
+
+<vc:the-grid input="@Model.gridinput"></vc:the-grid>
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+
+
+
+    })
+
+
+
+
+</script>
+

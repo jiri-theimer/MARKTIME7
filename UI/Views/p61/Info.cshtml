@@ -1,0 +1,100 @@
+﻿@model UI.Models.Tab1.BaseTab1ViewModel
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+    if (Model.pid == 0) return;
+
+    var _rec = _f.p61ActivityClusterBL.Load(Model.pid);
+
+    var _lisP32 = _f.p32ActivityBL.GetList(new BO.myQueryP32() { p61id = Model.pid }).OrderBy(p=>p.p34Name).ThenBy(p=>p.p32Name);
+
+    
+}
+
+@addTagHelper *, UI
+
+
+
+@Html.Raw("<div class='info_record_container'>")
+
+<table style="width:90%;">
+    <tr>
+        <td>
+            <h4>Klastr aktivit</h4>
+        </td>
+        <td>
+            @if (_f.CurrentUser.IsAdmin)
+            {
+                <a href="javascript:_edit('p61',@Model.pid)">@_f.tra("Administrace")</a>
+            }
+        </td>
+    </tr>
+</table>
+
+
+
+
+<table class="table table-hover">
+    <tr>
+        <th>@_f.tra("Sešit")</th>
+        <th>@_f.tra("Aktivita")</th>
+        
+        <th>@_f.tra("Fakturační oddíl")</th>
+
+        <th>@_f.tra("Odvětví")</th>
+
+    </tr>
+    @foreach (var c in _lisP32)
+    {
+        <tr>
+            <td>
+                @c.p34Name
+            </td>
+            <td>
+                @if (!c.p32IsBillable)
+                {
+                    <span style="color:red;">
+                        @c.p32Name
+                    </span>
+                }
+                else
+                {
+                    <span style="color:green;">
+                        @c.p32Name
+                    </span>
+                }
+            </td>
+            
+            <td>
+                @c.p95Name
+            </td>
+
+            <td>
+            @c.p38Name
+            </td>
+
+        </tr>
+
+
+    }
+</table>
+
+
+@Html.Raw("</div>")
+
+<div style="clear:both;"></div>
+
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+
+
+    });
+
+
+
+</script>

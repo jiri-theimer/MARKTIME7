@@ -1,0 +1,298 @@
+﻿@inject BL.Factory _f
+
+@{
+    Layout = null;
+
+    var _culture = System.Globalization.CultureInfo.CurrentUICulture.Name;
+
+    var cmenu = new UI.Menu.TheMenuSupport(_f);
+    var _myfileboxulr = cmenu.GetMainmenuEntityUrl("o27");
+
+}
+
+@addTagHelper *, UI
+
+<style type="text/css">
+    #divMenuContainerMe .nav-link {
+        color: black;
+    }
+
+        #divMenuContainerMe .nav-link:hover {
+            background-color: var(--oznaceno);
+            color: var(--popredi) !important;
+        }
+
+    .nav-link {
+        padding: 5px;
+    }
+
+
+    
+</style>
+
+
+<div id="divMenuContainerMe" style="border-top:solid 1px silver;">
+
+    <div style="padding:10px;">
+       
+
+        @if (_f.CurrentUser.TestPermission(BO.PermValEnum.GR_MyProfile))
+        {
+            
+            <div class="input-group">
+                <div>
+                    <a id="linkMyProfile" class="nav-link" href="/Home/MyProfile">
+                        <myicon symbol="person"></myicon>
+                        @_f.tra("Můj profil")
+                    </a>
+                </div>
+                <div style="padding:6px;margin-left:150px">
+                    <a href="javascript:save_fontsize(1)" class="btn btn-light @(_f.CurrentUser.j02FontSizeFlag == 1 ? "active" : null)" style="font-size:80%;" title="@(_f.tra("Malé písmo"))">A</a>
+
+                </div>
+                <div style="padding:6px;">
+                    <a href="javascript:save_fontsize(2)" class="btn btn-light @(_f.CurrentUser.j02FontSizeFlag == 2 ? "active" : null)" style="font-weight:bold;" title="@(_f.tra("Výchozí velikost písma"))">A</a>
+                </div>
+                <div style="padding:6px;">
+                    <a href="javascript:save_fontsize(3)" class="btn btn-light @(_f.CurrentUser.j02FontSizeFlag == 3 ? "active" : null)" style="font-size:150%;font-weight:bold" title="@(_f.tra("Velké písmo"))">A</a>
+                </div>
+            </div>
+
+           
+            <form asp-controller="Culture" asp-action="SaveLang" method="post" class="d-inline">
+                <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+
+                <div class="d-flex gap-3">
+
+                    <div class="form-check">
+                        <input class="form-check-input"
+                               type="radio"
+                               name="culture"
+                               value="cs-CZ"
+                               id="lang-cs"
+                               onchange="this.form.submit()"
+                               @( _culture == "cs-CZ" ? "checked" : null )>
+                        <label class="form-check-label" for="lang-cs">
+                            <img src="/images/small_czechrepublic.gif" width="18" class="me-1" />
+                            Čeština
+                        </label>
+                    </div>
+
+                    <div class="form-check">
+                        <input class="form-check-input"
+                               type="radio"
+                               name="culture"
+                               value="en-US"
+                               id="lang-en"
+                               onchange="this.form.submit()"
+                               @( _culture == "en-US" ? "checked" : null )>
+                        <label class="form-check-label" for="lang-en">
+                            <img src="/images/small_uk.gif" width="18" class="me-1" />
+                            English
+                        </label>
+                    </div>
+
+                    <div class="form-check">
+                        <input class="form-check-input"
+                               type="radio"
+                               name="culture"
+                               value="sk-SK"
+                               id="lang-sk"
+                               onchange="this.form.submit()"
+                               @( _culture == "sk-SK" ? "checked" : null )>
+                        <label class="form-check-label" for="lang-sk">
+                            <img src="/images/small_slovakia.gif" width="18" class="me-1" />
+                            Slovenčina
+                        </label>
+                    </div>
+
+                </div>
+            </form>
+
+
+            
+            <hr />
+
+            @if (_f.CurrentUser.TestPermission(BO.PermValEnum.GR_x31_Personal))
+            {
+                <a id="linkPersonalReport" class="nav-link" href="javascript:report()">
+                    <myicon symbol="print"></myicon>
+                    @_f.tra("Osobní tisková sestava")
+                </a>
+                <p></p>
+            }
+
+            @if (_f.CurrentUser.j02LiveChatTimestamp == null)
+            {
+                <a id="linkSmartSupp" class="nav-link" href="javascript:_livechat(true)">
+                    <myicon symbol="headset_mic"></myicon>
+                    Zapnout live chat s MARKTIME podporou
+                </a>
+            }
+            else
+            {
+                <a id="linkSmartSupp" class="nav-link" href="javascript:_livechat(false)">
+                    <myicon symbol="headset_off"></myicon>
+                    Vypnout live chat s podporou
+                </a>
+            }
+
+
+            <p></p>
+
+            <a class="nav-link" href="javascript:_window_open('/Mail/SendMail',3)">
+                <myicon symbol="email"></myicon>
+                @_f.tra("Odeslat zprávu")
+            </a>
+            <p></p>
+
+            <a class="nav-link" href="/TheGrid/FlatView?prefix=x40">
+                <myicon symbol="email"></myicon>
+                @_f.tra("Můj OUTBOX")
+            </a>
+            @if (_f.CurrentUser.j04IsModule_o27)
+            {
+                <a class="nav-link" href="@(_myfileboxulr)">
+                    <myicon symbol="attachment"></myicon>
+                    @_f.tra("Můj FILEBOX")
+                </a>
+            }
+            <a class="nav-link" href="javascript:_window_open('/icalgen/Index',2)">
+                <myicon symbol="calendar_add_on"></myicon>
+                @_f.tra("Integrace s Google/Outlook kalendářem")
+            </a>
+            <a class="nav-link" href="javascript:_bells()">
+                <myicon symbol="notifications_active"></myicon>
+                @if (_f.CurrentUser.BellsCount > 0)
+                {
+
+                    <small style="color:orange;">@(_f.CurrentUser.BellsCount)</small>
+                }
+
+                @_f.tra("Upozornění")
+            </a>
+
+            <p></p>
+
+            
+
+            <p></p>
+        }
+
+        <p></p>
+        <hr />
+        <div>
+
+            <a class="nav-link" id="linkPWD" href="/Home/ChangePassword">
+                <myicon symbol="password"></myicon>
+                @_f.tra("Změnit přístupové heslo")
+            </a>
+
+        </div>
+
+
+        <p></p>
+        <hr />
+        <div class="row">
+
+            <div class="col-auto">
+
+                
+
+                
+                <a id="linkNews" class="nav-link nav-news-link" href="javascript:_news()" title="Novinky | Blog">
+                        <span class="nav-news-text">@_f.tra("novinky")</span>
+                        <span class="nav-news-dot" aria-hidden="true"></span>
+                    </a>
+                
+
+            </div>
+            <div class="col-auto">
+
+                <a id="linkAbout" class="nav-link" href="/Home/About">
+                    <myicon symbol="info"></myicon>
+                    @_f.tra("O aplikaci")
+                </a>
+            </div>
+
+        </div>
+
+        <p></p>
+        <hr />
+        <div>
+            <a style="letter-spacing: 5px;color:red;" class="nav-link" href="/Home/Logout">
+                <myicon symbol="logout"></myicon>
+                @_f.tra("Odhlásit se")
+            </a>
+        </div>
+    </div>
+
+
+
+
+
+
+
+
+
+</div>
+
+
+
+<script type="text/javascript">
+    _adjust_divheight_small_display("divMenuContainerMe");
+
+
+    var _j02id_local = "@_f.CurrentUser.pid";
+
+    $("#linkLang@(_f.CurrentUser.j02LangIndex)").addClass("active");
+
+    var url = window.location.pathname;
+    if (url.indexOf("ChangePassword") > 0) {
+        $("#linkChangePassword").addClass("active");
+    }
+    if (url.indexOf("MyProfile") > 0) {
+        $("#linkMyProfile").addClass("active");
+
+    }
+    if (url.indexOf("OpenAI") > 0) {
+        $("#linkChatGPT").addClass("active");
+    }
+
+    if (url.indexOf("About") > 0) {
+        $("#linkAbout").addClass("active");
+    }
+
+    if (url.indexOf("Widgets") > 0) {
+        $("#linkWidgets").addClass("active");
+    }
+    if (url.indexOf("ChangePassword") > 0) {
+        $("#linkPWD").addClass("active");
+    }
+
+    if (location.href.indexOf("FlatView?prefix=x40") > 0) {
+        $("#linkMyOutbox").addClass("active");
+    }
+
+    //var matka = document.getElementById("divMenuContainerMe").parentElement;
+    //var offset = $(matka).offset();
+
+    //var new_left = _device.availWidth - ($(matka).width() + offset.left) - 22;
+
+    //$(matka).css("left", new_left);
+    //$(matka).css("position", "absolute");
+
+    
+
+    function report() {
+        _window_open("/ReportsClient/ReportContext?pid=" + _j02id_local + "&prefix=j02");
+    }
+
+
+    function save_fontsize(fontsize) {
+        $.post("/Home/SaveCurrentUserFontSize", { fontsize: fontsize }, function (data) {
+            location.replace(window.location.href);
+        });
+
+    }
+</script>

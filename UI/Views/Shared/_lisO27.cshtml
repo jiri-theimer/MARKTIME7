@@ -1,0 +1,46 @@
+﻿@model UI.Models.Tab1.BaseTab1ViewModel
+
+@inject BL.Factory _f
+
+@{
+
+    var _lisO27 = _f.o27AttachmentBL.GetList(new BO.myQueryO27() { entity = Model.prefix, recpid = Model.pid });
+
+    if (_lisO27.Count() == 0) return;
+}
+
+<span class="material-icons-outlined">attachment</span>
+<table class="table table-hover">
+    @foreach (var c in _lisO27)
+    {
+        <tr>
+            <td>
+                @if (c.o27WwwRootFolder != null)
+                {
+                    <a target="_blank" href="@("/_users/"+_f.Lic.x01Guid+"/"+c.o27WwwRootFolder.Replace("\\","/")+"/"+c.o27ArchiveFileName)">@c.o27OriginalFileName</a>
+                }
+                else
+                {
+                    <a target="_blank" href="/FileUpload/FileDownloadInline?guid=@c.o27Guid">@c.o27OriginalFileName</a>
+                }
+
+
+            </td>
+            <td style="text-align:right;">
+                @(BO.Code.Bas.FormatFileSize(c.o27FileSize))
+            </td>
+            <td>
+
+                @if (c.o27Name != null)
+                {
+                    <var style="background-color:lightyellow;">@c.o27Name</var>
+                }
+            </td>
+            <td>
+                <small>
+                    @(BO.Code.Time.GetTimestamp(c.DateInsert))
+                </small>
+            </td>
+        </tr>
+    }
+</table>

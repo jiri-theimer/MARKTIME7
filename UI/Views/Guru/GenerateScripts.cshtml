@@ -1,0 +1,80 @@
+﻿@model BaseViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = "Generovat aktualizační SQL skripty";
+
+    Layout = "~/Views/Shared/_LayoutAnonym.cshtml";
+
+
+}
+
+<h4>Vítej Guru!</h4>
+
+
+<button type="button" class="btn btn-primary" onclick="sp_script()">Vygenerovat [sql_sp_funct_views.sql]</button>
+<p></p><p></p>
+<button type="button" class="btn btn-primary" onclick="sys_script()">Vygenerovat SYS skripty [Tables.json]/[Indexes.json]/[Columns.json] z databáze [a7MARKTIME_EMPTY]</button>
+<p></p><p></p>
+<button type="button" class="btn btn-primary" onclick="db_script('x31Report')">Vygenerovat [x31Report.json] + zkopírovat TRDX soubory</button>
+<p></p><p></p>
+<button type="button" class="btn btn-primary" onclick="db_script('Common')">Vygenerovat skripty pro billing číselníky (p34/p32/c24/p35/p53/c26/p38...)</button>
+<p></p><p></p>
+<button type="button" class="btn btn-primary" onclick="db_script('x55Widget')">Vygenerovat [x55Widget.json]</button>
+<p></p><p></p>
+<button type="button" class="btn btn-primary" onclick="db_script('Workflow')">Vygenerovat [Workflow]</button>
+<p></p><p></p>
+<button type="button" class="btn btn-primary" onclick="db_script('Stitky')">Vygenerovat [Štítky]</button>
+<p></p><p></p>
+<button type="button" class="btn btn-primary" onclick="db_script('b20Hlidac')">Vygenerovat [b20Hlidac.json]</button>
+<p></p><p></p>
+<button type="button" class="btn btn-primary" onclick="db_script('x90Migration')">Vygenerovat [x90Migration.json]</button>
+<p></p><p></p>
+<button type="button" class="btn btn-primary" onclick="db_script('x01License')">Vygenerovat [x01License]</button>
+<p></p><p></p>
+<button type="button" class="btn btn-primary" onclick="db_script('j02User')">Vygenerovat [j02User]</button>
+<button type="button" class="btn btn-primary" onclick="db_script('x51HelpCore')">Vygenerovat [x51HelpCore.json] + zkopírovat help obrázky</button>
+<p></p><p></p>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+
+
+    });
+
+    function postback() {
+
+        form1.action = "/Guru/CreateLicense?oper=postback";
+        form1.submit();
+    }
+
+    function sp_script()
+    {
+        $.post("/Guru/GenerateCreateUpdateScript", {}, function (data){
+
+            alert(data.message);
+            
+        });
+    }
+    function sys_script() {
+        $.post("/Guru/GenerateSysScript", {}, function (data) {
+
+            alert(data.message);
+
+        });
+    }
+    function db_script(tabname) {
+        
+        $.post("/Guru/GenerateScript_" + tabname, {}, function (data) {
+
+            alert(data.message);
+
+        });
+    }
+
+    
+</script>
+

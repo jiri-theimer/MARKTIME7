@@ -1,0 +1,78 @@
+﻿@model NewsDetailViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = Model.Rec.x52Name;
+    Layout = "~/Views/Shared/_LayoutNewsAnonym.cshtml";
+
+    var _returnurl = @Context.Request.Query["returnurl"];
+
+   
+}
+
+@addTagHelper *, UI
+@section header_content
+{
+    <link href="/lib/froala-editor/css/froala_style.min.css" rel="stylesheet" type="text/css" />
+
+    <style type="text/css">
+        #divAnonymHeader {
+            display: none;
+        }
+
+        .newsheader {
+            width: 100%;
+            color: #0b4b92;
+            padding-left: 13px;
+            padding-top: 15px;
+            margin-top: 50px;
+            padding-bottom: 6px;
+        }
+    </style>
+
+
+}
+
+
+
+
+
+<div class="container" style="max-width:1000px;">
+   
+
+
+    <h1 class="newsheader">
+        @Model.Rec.x52Name
+    </h1>
+
+    <h6>
+        <span style="color:gray;">@(BO.Code.Bas.ObjectDate2String(Model.Rec.x52Date))</span>
+    </h6>
+
+    <p>
+        @Html.Raw(BO.Code.Bas.Text2Html(Model.Rec.x52Editorial))
+    </p>
+
+    @if (Model.Rec.x52Html != null)
+    {
+        @Html.Raw(Model.Rec.x52Html)
+    }
+
+</div>
+
+
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+
+
+    });
+
+
+</script>
+

@@ -1,0 +1,205 @@
+﻿@model UI.Models.Record.p24Record
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    if (Model.Rec == null) return;
+    Model.PageTitle = _f.tra("Skupina kontaktů");
+    Model.PageSymbol = "contacts";
+
+    
+}
+@addTagHelper *, UI
+
+<input type="hidden" id="hidP28IDs" asp-for="p28IDs" value="@Model.p28IDs" />
+
+
+<div class="modal_record_container">
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název"):</label>
+        <div class="col-sm-7 col-md-6">
+            <input class="form-control record_name" asp-for="Rec.p24Name" />
+        </div>
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Skupinový e-mail"):</label>
+        <div class="col-sm-3 col-md-2">
+            <input class="form-control" asp-for="Rec.p24Email" />
+        </div>
+    </div>
+
+
+
+    <div class="card" style="margin-top:10px;">
+        <div class="card-header">
+            @_f.tra("Přidat do skupiny")
+            <mytooltip text="Přidat kontakty do skupiny můžete i přes funkci [Vybrané záznamy] -> [Hromadné úpravy] nad tabulkou kontaktů."></mytooltip>
+        </div>
+        <div class="card-body">
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Přidat kontakt"):</label>
+                <div class="col-sm-11 col-md-10">
+                    <mycombo entity="p28Contact" asp-for="SelectedP28ID" selectedtext="@Model.SelectedContact" filter-flag="1" placeholder="@_f.tra("Vybrat kontakt")..." event_after_changevalue="handle_p28id_append"></mycombo>
+                </div>
+
+            </div>
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Přidat kontakty podle typu"):</label>
+                <div class="col-sm-11 col-md-10">
+                    <mycombo entity="p29ContactType" asp-for="SelectedP29ID" selectedtext="@Model.SelectedP29Name" placeholder="@_f.tra("Vybrat typ kontaktu")..." event_after_changevalue="handle_p29id_append"></mycombo>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="card" style="margin-top:10px;">
+        <div class="card-header">
+            @_f.tra("Integrace")
+            <mytooltip text="V administrace si nastavíte napojení na systémy pro odesílání newsletterů, automatizvaný e-mailing/sms.<hr>Nabízí se integrace s Ecomail, SmartEmailing, možná i další."></mytooltip>
+        </div>
+        <div class="card-body">
+
+            <div class="my-2">
+                <table cellpadding="6">
+                    <tr>
+                        <td>
+                            @_f.tra("Zvolit integraci"):
+                        </td>
+                        <td>
+                            <select asp-for="SelectedX07ID" class="form-select" onchange="_postback('refresh')">
+                                <option value="0"></option>
+                                @foreach (var c in Model.lisX07)
+                                {
+                                    <option value="@(c.pid)">@c.x07Name</option>
+                                }
+                            </select>
+                        </td>
+                        
+                        @if (Model.lisMailListIntegrace != null)
+                        {
+                            <td>
+                                Cílový mail seznam:
+                            </td>
+                        }
+                        
+                        <td>
+                            @if (Model.lisMailListIntegrace != null)
+                            {
+                                <select asp-for="SelectedMailListID" class="form-select">
+                                    @foreach (var c in Model.lisMailListIntegrace)
+                                    {
+                                        <option value="@(c.Key)">@c.Value</option>
+                                    }
+                                </select>
+                            }
+                            else
+                            {
+                                <input type="hidden" asp-for="SelectedMailListID" />
+                            }
+                        </td>
+                        @if (Model.RecX07 !=null && (Model.lisMailListIntegrace==null || Model.lisMailListIntegrace.Count()==0))
+                        {
+                            <td>
+                                <button type="button" class="btn btn-sm bog" onclick="_postback('maillist')">Načíst mail seznamy</button>
+                            </td>
+                        }
+                        else
+                        {
+                            
+                            <td>
+                                <button type="button" class="btn btn-sm btn-primary" onclick="_postback('odeslat-kontakty')">Odeslat kontakty do cílového seznamu</button>
+                                
+                            </td>
+                            <td>
+                                <input type="checkbox" asp-for="IsMailList_IncludeP30" />
+                                <label class="col-form-label" for="IsMailList_IncludeP30">Zahrnout e-mail adresy kontaktních osob</label>
+
+                            </td>
+                        }
+
+                       
+                        
+                    </tr>
+                </table>
+
+                @if (Model.MailList_Count_OKs > 0 || Model.MailList_Count_Errs > 0)
+                {
+                    <div class="alert alert-primary" role="alert">
+                        <code>@DateTime.Now</code>
+                        <br />
+                        Plnění mail seznamu dokončeno.
+                        <hr />
+                        <span>Počet vložených/aktualizovaných e-mail adres</span> <span class="badge text-bg-primary">@Model.MailList_Count_OKs</span>
+                        @if (Model.MailList_Count_Errs > 0)
+                        {
+                            <hr />
+                            <span>Počet chybných záznamů</span>
+                            <span class="badge text-bg-danger">@Model.MailList_Count_Errs</span>
+                        }
+
+                    </div>
+                }
+
+
+            </div>
+
+        </div>
+    </div>
+
+
+
+</div>
+
+<div class="mt-2">
+    <button type="button" class="btn btn-danger" onclick="handle_remove_selected()">@_f.tra("Odstranit vybrané")</button>
+</div>
+<vc:my-grid input="@Model.gridinput"></vc:my-grid>
+
+<div id="divP28" style="margin-top:20px;margin-bottom:20px;"></div>
+<button type="button" id="cmdClear" class="btn btn-warning btn-sm" style="display:none;" onclick="clear_all()">@_f.tra("Vyčistit vše")</button>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+    });
+
+    function handle_p28id_append(p28id) {
+        if (p28id == "") {
+            _notify_message("Musíte vybrat kontakt.");
+            return;
+        }
+        _postback("add", "prefix=p28&pids=" + p28id);
+
+
+
+    }
+
+
+    function handle_p29id_append(p29id) {
+        if (p29id == "") {
+            _notify_message("Musíte vybrat pozici.");
+            return;
+        }
+        _postback("add", "prefix=p29&pids=" + p29id);
+
+    }
+
+
+
+    function handle_remove_selected() {
+        var pids = $("#tg_selected_pids").val();
+        if (pids === "") {
+            _notify_message("@_f.tra("Musíte zaškrtnout minimálně jeden záznam.")");
+            return;
+        }
+        _toolbar_warn2save_changes();
+        _postback("remove", "prefix=p28&pids=" + pids);
+
+
+    }
+
+</script>
+
+

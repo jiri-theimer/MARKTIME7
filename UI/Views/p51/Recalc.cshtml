@@ -1,0 +1,126 @@
+﻿@model UI.Models.p51RecalcViewModel
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = _f.tra("Zpětný přepočet sazeb");
+    Model.PageSymbol = "sync";
+
+}
+
+@addTagHelper *, UI
+
+
+<div class="bg-light" style="padding:10px;">
+
+    <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
+
+
+</div>
+
+<div class="card">
+    <div class="card-header">
+        @Model.Rec.p51Name
+    </div>
+    <div class="card-body">
+        @if (Model.flag == "fpr")
+        {
+            <h4>Přepočet efektivních hodinových sazeb z vyúčtovaných paušálních odměn</h4>
+        }
+        else
+        {
+            @if (Model.Rec.p51TypeFlag == BO.p51TypeFlagENUM.CostRates)
+            {
+                <h4>Nákladové hodinové sazby</h4>
+            }
+            @if (Model.Rec.p51TypeFlag == BO.p51TypeFlagENUM.OverheadRates)
+            {
+                <h4>Režijní nákladové hodinové sazby</h4>
+            }
+            @if (Model.Rec.p51TypeFlag == BO.p51TypeFlagENUM.RootBillingRates || Model.Rec.p51TypeFlag == BO.p51TypeFlagENUM.BillingRates)
+            {
+                <h4>Fakturační hodinové a kusovníkové sazby</h4>
+            }
+        }
+       
+    </div>
+</div>
+
+<form id="form1" asp-controller="p51" asp-action="Recalc" method="POST">
+    <input type="hidden" asp-for="p51id" />
+    <input type="hidden" asp-for="flag" />
+    <input type="hidden" asp-for="isafter_p51record" />
+    <input type="hidden" asp-for="pocetRozpracovanychUkonu" />
+
+    <p></p>
+    <div class="card-body">
+        <table>
+            <tr>
+                <td>
+                    @_f.tra("Datum od"):
+                </td>
+                <td>
+                    <mydate asp-for="@Model.d1"></mydate>
+                </td>
+                <td>
+                    @_f.tra("Datum do"):
+                </td>
+                <td>
+                    <mydate asp-for="@Model.d2"></mydate>
+                </td>
+                @if (Model.Rec.p51TypeFlag == BO.p51TypeFlagENUM.CostRates)
+                {
+                    <td>
+                        <select asp-for="CostRatesRecalcFlag" class="form-select">
+                            <option value="bez_ohledu_na_cenik">@_f.tra("Všechny hodiny ve vybraném období")</option>
+                            <option value="drzet_cenik">@_f.tra("Zahrnout pouze hodiny svázané s vybraným ceníkem")</option>                            
+                        </select>
+                    </td>
+                }
+                <td>
+                    <button type="button" class="btn btn-sm bog" onclick="tryrecalc()">@_f.tra("Spustit přepočet")</button>
+                </td>
+            </tr>
+
+        </table>
+    </div>
+</form>
+
+
+@if (Model.isafter_p51record)
+{
+    <div class="alert alert-primary" role="alert" style="margin-top:4px;">
+        <p>V databázi existují rozpracované úkony s vazbou na tento ceník.</p>
+        <p>
+            Počet rozpracovaných úkonů s vazbou na tento ceník <span class="badge-def">@(Model.pocetRozpracovanychUkonu)</span>.
+        </p>
+        <p>
+            Zde je prostor pro zpětný přepočet hodinových (a kusovníkových) sazeb v rozpracovaných úkonech.
+        </p>
+    </div>
+}
+<div class="alert alert-primary" role="alert" style="margin-top:4px;">
+    <h4 class="alert-heading">@_f.tra("Logika systému")</h4>
+    @_f.tra("Pokud v ceníku upravíte sazby, systém nebude automaticky přepočítávat hodinové sazby u již vykázaných rozpracovaných hodin (a kusovníků)!")
+    
+    <p>Přepočet sazby úkonu se spustí i po pře-uložení záznamu časového/kusovníkového úkonu.</p>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+
+    });
+
+
+
+
+    function tryrecalc() {
+        if (confirm("Opravdu spustit přepočet sazeb?")) {
+            _postback("recalc");
+        }
+    }
+</script>

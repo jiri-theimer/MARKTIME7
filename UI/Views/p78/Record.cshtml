@@ -1,0 +1,240 @@
+﻿@model UI.Models.Record.p78Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Hromadná upomínka");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    Model.PageSymbol = "gavel";
+}
+
+@addTagHelper *, UI
+
+
+
+<div class="modal_record_container">
+    <div class="row my-2">
+        <label for="cmdComboRec_p28ID" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Dlužník"):</label>
+        <div class="col-sm-11 col-md-10">
+            <mycombo entity="p28Contact" asp-for="Rec.p28ID" selectedtext="@Model.ComboP28Name" filter-flag="1" event_after_changevalue="p28id_change"></mycombo>
+        </div>
+
+    </div>
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název"):</label>
+        <div class="col-sm-9 col-md-8">
+            <input class="form-control" asp-for="Rec.p78Name" />
+        </div>
+        <div class="col-sm-2 col-md-2">
+            <input class="form-control" placeholder="Kód upomínky" asp-for="Rec.p78Code" />
+        </div>
+    </div>
+
+  
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Datum upomínky"):</label>
+        <div class="col-sm-3 col-md-2">
+            <mydate asp-for="Rec.p78Date"></mydate>
+        </div>
+        <div class="col-sm-4 col-md-4">
+        </div>
+        <label class="col-sm-1 col-md-2 col-form-label text-end">@_f.tra("Variabilní symbol"):</label>
+        <div class="col-sm-3 col-md-2">
+            <input class="form-control" asp-for="Rec.p78VariableSymbol" />
+        </div>
+    </div>
+    
+    
+
+    <div class="card">
+        <div class="card-header">
+            @_f.tra("Seznam upomínaných faktur")
+           
+            @if (Model.Rec.p78Amount_Debt != 0)
+            {
+                <div>
+                    
+                    <myval value="@Model.Rec.p78Amount_Debt" datatype="num" valueafter="@Model.ComboJ27Code"></myval>
+                    
+                    <input type="hidden" asp-for="Rec.p78Amount_Debt" />
+                    <input type="hidden" asp-for="ComboJ27Code" />
+                </div>
+                
+                
+            }
+
+        </div>
+        <div class="card-body" id="divP84">
+            <mycheckboxlist asp-for="@Model.SelectedP84IDs" datasource="@Model.lisAllP84" valuefield="pid" textfield="p91CodeWithDebt"></mycheckboxlist>
+        </div>
+    </div>
+
+
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Hlavní text"):</label>
+        <div class="col-sm-11 col-md-10">
+            <textarea class="form-control" asp-for="Rec.p78TextA"></textarea>
+        </div>
+
+    </div>
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Technický text"):</label>
+        <div class="col-sm-11 col-md-10">
+            <textarea class="form-control" asp-for="Rec.p78TextB"></textarea>
+        </div>
+
+    </div>
+
+    
+
+    <div class="card my-2">
+        <div class="card-header">
+            @_f.tra("Profil dlužníka")
+        </div>
+        <div class="card-body">
+            <button id="cmdLoadClient" type="button" class="btn btn-sm bog">@_f.tra("Načíst profil dlužníka")</button>
+            <div class="row">
+                <label for="Rec_p91Client" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název"):</label>
+                <div class="col-sm-11 col-md-10">
+                    <input class="form-control" asp-for="Rec.p78Client" />
+                </div>
+            </div>
+
+            <div class="row my-1">
+                <label for="Rec_p91Client_RegID" class="col-sm-1 col-md-2 col-form-label">@_f.tra("IČO/DIČ"):</label>
+                <div class="col-sm-3 col-md-2">
+                    <input class="form-control" asp-for="Rec.p78Client_RegID" placeholder="@_f.tra("IČO")" />
+                </div>
+                <div class="col-sm-3 col-md-2">
+                    <input class="form-control" asp-for="Rec.p78Client_VatID" placeholder="@_f.tra("DIČ")" />
+                </div>
+                <div class="col-sm-3 col-md-2">
+                    <input class="form-control" asp-for="Rec.p78Client_ICDPH_SK" placeholder="IČ DPH (Slovensko)" />
+                </div>
+            </div>
+            <div class="row my-1">
+                <label for="Rec_p91ClientAddress1_Street" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Ulice"):</label>
+                <div class="col-sm-11 col-md-10">
+                    <textarea asp-for="Rec.p78ClientAddress1_Street" class="form-control"></textarea>
+                </div>
+            </div>
+            <div class="row my-1">
+                <label for="Rec_p91ClientAddress1_City" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Město"):</label>
+                <div class="col-sm-11 col-md-10">
+                    <input class="form-control" asp-for="Rec.p78ClientAddress1_City" />
+                </div>
+
+            </div>
+            <div class="row my-1">
+                <label for="Rec_p91ClientAddress1_ZIP" class="col-sm-1 col-md-2 col-form-label">@_f.tra("PSČ"):</label>
+                <div class="col-sm-4 col-md-4">
+                    <input class="form-control" asp-for="Rec.p78ClientAddress1_ZIP" />
+                </div>
+                <div class="col-sm-7 col-md-6">
+                    <input class="form-control" placeholder="@_f.tra("Stát")" asp-for="Rec.p78ClientAddress1_Country" />
+                </div>
+            </div>
+            <div class="row my-1">
+                <label for="Rec_p91ClientAddress1_Before" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Doplnění adresy"):</label>
+                <div class="col-sm-11 col-md-10">
+                    <input class="form-control" asp-for="Rec.p78ClientAddress1_Before" />
+                </div>
+
+            </div>
+            
+        </div>
+
+        
+
+        
+    </div>
+
+    @Html.EditorFor(m => m.reminder, "~/Views/Shared/_Reminder.cshtml")
+
+    <div class="row my-2" style="display:none;">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Vlastník záznamu"):</label>
+        <div class="col-sm-4 col-md-4">
+            <mycombo entity="j02User" asp-for="Rec.j02ID_Owner" selectedtext="@Model.ComboOwner" view-flag="1"></mycombo>
+        </div>
+    </div>
+
+</div>
+
+
+
+<script>
+
+    
+
+    $(document).ready(function () {
+
+     
+        
+
+        $("#cmdLoadClient").click(function () {
+
+            var p28id = $("#Rec_p28ID").val();
+            if (p28id == "" || p28id == "0") {
+                _notify_message("Chybí vybrat [Dlužník].");
+                return;
+            }
+            $.post("/p91/LoadClientProfile", { p28id: p28id }, function (data) {
+
+                if (data.p28IsCompany) {
+                    $("#Rec_p78Client").val(data.p28CompanyName);  //kvůli vyloučení zkráceného jména klienta je třeba používat company
+                }
+                else
+                {
+                    if (data.p28TitleBeforeName == null) {
+                        data.p28TitleBeforeName = ""
+                    }
+                    $("#Rec_p78Client").val((data.p28TitleBeforeName+" "+data.p28FirstName + " " + data.p28LastName).trim());  //kvůli vyloučení zkráceného jména klienta je třeba používat company
+                }
+                
+
+                $("#Rec_p78Client_RegID").val(data.p28RegID);
+                $("#Rec_p78Client_VatID").val(data.p28VatID);
+                $("#Rec_p78Client_ICDPH_SK").val(data.p28ICDPH_SK);
+
+                $("#Rec_p78ClientAddress1_Street").val(data.p28Street1);
+                $("#Rec_p78ClientAddress1_City").val(data.p28City1);
+                $("#Rec_p78ClientAddress1_ZIP").val(data.p28PostCode1);
+                $("#Rec_p78ClientAddress1_Before").val(data.p28BeforeAddress1);
+                $("#Rec_p78ClientAddress1_Country").val(data.p28Country1);
+            });
+
+
+
+
+
+        });
+
+
+        @if (Model.PostbackOper == "p28id" && Model.rec_pid == 0 && Model.Rec.p28ID > 0)
+        {
+                      <text>
+                          document.getElementById("cmdLoadClient").click();
+                                                      
+                      </text>
+        }
+    });
+
+
+    function p28id_change(p28id) {
+        _postback("p28id");
+
+    }
+    function hardrefresh(pid, flag) {
+        if (flag != undefined) {
+            if (flag.includes("recordcode")) {
+                $("#Rec_p91Code").val(flag.split("|")[1]);
+            }
+
+        }
+
+
+        _postback();
+    }
+</script>

@@ -1,0 +1,417 @@
+﻿@model UI.Models.p31invoice.GatewayViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = _f.tra("Vyúčtování");
+    Model.PageSymbol = "p91";
+
+}
+
+@addTagHelper *, UI
+
+
+<form id="form1" asp-controller="p31invoice" asp-action="Index" method="POST" style="width:90%;">
+    <div class="bg-light input-group m-0" style="padding-bottom:10px;">
+        <button type="button" id="cmdSave" class="btn btn-success m-1" onclick="_postback('save')">@_f.tra("Vygenerovat vyúčtování")</button>
+
+        <button class="btn btn-secondary dropdown-toggle m-1" type="button" id="cmdMore" style="margin-left:20px;">@_f.tra("Přidat do jiného vyúčtování")</button>
+
+        <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-sm btn-light"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
+
+        
+        <select class="form-select" style="max-width:300px;margin-left:20px;" asp-for="ShowAfterFinish">
+            <option value="recpage">@_f.tra("Další krok: Přesměrovat na stránku vyúčtování")</option>
+            <option value="grid">@_f.tra("Další krok: Přesměrovat do tabulky vyúčtování")</option>
+            <option value="continue">@_f.tra("Další krok: Závěrečná rekapitulace vyúčtování")</option>
+            <option value="closeandrefresh">@_f.tra("Další krok: Bez přesměrování, zavřít okno")</option>
+        </select>
+    </div>
+
+    <div id="divMore" style="background-color:aliceblue;display:none;">
+        <div class="card">
+            <div class="card-header">
+                @_f.tra("Přidat schválené úkony do již existujícícho vyúčtování")
+            </div>
+            <div class="card-body">
+
+                <mycombo entity="p91Invoice" asp-for="@Model.SelectedInvoiceP91ID" selectedtext="@Model.SelectedInvoiceText" placeholder="@_f.tra("Vyberte cílové vyúčtování")" filter-flag="1"></mycombo>
+                <button type="button" class="btn btn-success" id="cmdAppend2Invoice" onclick="_postback('append2invoice')">@_f.tra("Potvrdit")</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal_record_container">
+        <div class="row">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Datum plnění"):</label>
+            <div class="col-sm-1 col-md-2">
+                <mydate asp-for="@Model.p91DateSupply"></mydate>
+            </div>
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Začátek účtovaného období"):</label>
+            <div class="col-sm-1 col-md-2">
+                <mydate asp-for="@Model.p91Datep31_From"></mydate>
+            </div>
+        </div>
+
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Datum vystavení"):</label>
+            <div class="col-sm-1 col-md-2">
+                <mydate asp-for="@Model.p91Date"></mydate>
+            </div>
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Konec účtovaného období"):</label>
+            <div class="col-sm-1 col-md-2">
+                <mydate asp-for="@Model.p91Datep31_Until"></mydate>
+            </div>
+        </div>
+
+        <div class="my-2">
+            <input type="checkbox" asp-for="IsRememberDates" />
+            <label for="IsRememberDates">@_f.tra("Zapamatovat si datumy pro další vystavovanou fakturu")</label>
+        </div>
+
+
+        @if (Model.lisP31.Count() > 1 && Model.lisP31.GroupBy(p => p.p41ID).Count() > 1)
+        {
+            <div class="card">
+                <div class="card-header">
+                    @_f.tra("Rozdělit na více vyúčtování (faktur)")?
+
+                    <input type="checkbox" asp-for="IsRememberDohromady" />
+                    <label for="IsRememberDohromady">@_f.tra("Zapamatovat si volbu")</label>
+                </div>
+                <div class="card-body">
+                    <input type="radio" id="chkScale1" asp-for="@Model.BillingScale" value="1" onchange="_postback('scale')" />
+                    <label for="chkScale1">@_f.tra("Vše dohromady v jednom vyúčtování")</label>
+                    <br />
+                    <input type="radio" id="chkScale2" asp-for="@Model.BillingScale" value="2" onchange="_postback('scale')" />
+                    <label for="chkScale2">@_f.tra("Vyúčtování za každého klienta projektu")</label>
+                    <br />
+                    <input type="radio" id="chkScale3" asp-for="@Model.BillingScale" value="3" onchange="_postback('scale')" />
+                    <label for="chkScale3">@_f.tra("Vyúčtování za každý projekt")</label>
+                </div>
+
+            </div>
+        }
+
+
+        <div class="card">
+            <div class="card-header">
+                @_f.tra("Generovat DRAFT nebo oficiální doklady")?
+                <input type="checkbox" asp-for="IsRememberIsDraft" />
+                <label for="IsRememberIsDraft">@_f.tra("Zapamatovat si volbu")</label>
+            </div>
+            <div class="card-body">
+                <input type="radio" id="chkDraftTrue" asp-for="IsDraft" value="True" />
+                <label for="chkDraftTrue">@_f.tra("Generovat DRAFT číslo")</label>
+                <br />
+                <input type="radio" id="chkDraftFalse" asp-for="IsDraft" value="False" />
+                <label for="chkDraftFalse">@_f.tra("Generovat oficiální číslo")</label>
+            </div>
+
+        </div>
+    </div>
+
+    @if (Model.BillingScale == 1)
+    {
+        <table>
+            <tr>
+                <th style="width:300px">
+                    @_f.tra("Klient")
+                </th>
+                <th style="width:120px;">
+                    @_f.tra("Splatnost")
+                </th>
+                <th style="width:100px;">
+                    @_f.tra("Bez DPH")
+                </th>
+                <th style="min-width:200px;">
+                    @_f.tra("Typ faktury")
+                </th>
+                <th style="min-width:300px;">
+                    @_f.tra("Text faktury")
+                </th>
+                <th style="min-width:150px;">
+                    @_f.tra("Technický text")
+                </th>
+                <th></th>
+            </tr>
+            @for (int i = 0; i < Model.lisP91_Scale1.Count(); i++)
+            {
+                <tr style="vertical-align:top;">
+                    <td>
+                        <mycombo entity="p28Contact" asp-for="lisP91_Scale1[i].p28ID_Invoice" selectedtext="@Model.lisP91_Scale1[i].p28Name_Invoice" filter-flag="1" search-result-width="600"></mycombo>
+
+                        @if (Model.lisP91_Scale1[i].p28ID != Model.lisP91_Scale1[i].p28ID_Invoice)
+                        {
+                            <div>
+                                <i>
+                                    @Model.lisP91_Scale1[i].p28Name
+
+                                </i>
+
+                            </div>
+                        }
+
+
+                        <input type="hidden" asp-for="@Model.lisP91_Scale1[i].p28Name" />
+                        <input type="hidden" asp-for="@Model.lisP91_Scale1[i].p28Name_Invoice" />
+                        <input type="hidden" asp-for="@Model.lisP91_Scale1[i].p28ID" />
+
+                        <input type="hidden" asp-for="@Model.lisP91_Scale1[i].TempGUID" />
+
+                    </td>
+                    <td>
+                        <mydate asp-for="@Model.lisP91_Scale1[i].DateMaturity"></mydate>
+                    </td>
+                    <td style="text-align:right;">
+                        @Model.lisP91_Scale1[i].WithoutVat
+                        <input type="hidden" asp-for="@Model.lisP91_Scale1[i].WithoutVat" />
+
+                    </td>
+                    <td>
+                        <mycombo entity="p92InvoiceType" asp-for="@Model.lisP91_Scale1[i].p92ID" selectedtext="@Model.lisP91_Scale1[i].p92Name" search-result-width="600"></mycombo>
+                    </td>
+                    <td>
+                        <textarea asp-for="@Model.lisP91_Scale1[i].InvoiceText1" style="width:300px;"></textarea>
+                    </td>
+                    <td>
+                        <textarea asp-for="@Model.lisP91_Scale1[i].InvoiceText2" style="width:150px;"></textarea>
+                    </td>
+                    <td>
+                        @if (Model.lisFakturacniPoznamky != null && Model.lisFakturacniPoznamky.Where(p => (p.b05RecordEntity == "p28" && p.b05RecordPid == Model.lisP91_Scale1[i].p28ID) || (p.b05RecordEntity == "p41" && p.b05RecordPid == Model.lisP91_Scale1[i].p41ID)).Count() > 0)
+                        {
+                            <button type="button" class="btn btn-light" onclick="memos(this,event,@(Model.lisP91_Scale1[i].p28ID),@(Model.lisP91_Scale1[i].p41ID))" title="@_f.tra("Fakturační poznámky")">
+                                <span class="material-icons-outlined-btn" style="color:limegreen;">speaker_notes</span>
+                            </button>
+
+                        }
+                    </td>
+                </tr>
+
+            }
+        </table>
+    }
+    @if (Model.BillingScale == 2)
+    {
+        <table>
+            <tr>
+                <th style="width:300px;">
+                    @_f.tra("Klient")
+                </th>
+                <th style="width:120px;">
+                    @_f.tra("Splatnost")
+                </th>
+                <th style="width:100px;">
+                    @_f.tra("Bez DPH")
+                </th>
+                <th style="min-width:220px;">
+                    @_f.tra("Typ faktury")
+                </th>
+                <th style="min-width:300px;">
+                    @_f.tra("Text faktury")
+                </th>
+                <th style="min-width:150px;">
+                    @_f.tra("Technický text")
+                </th>
+                <th></th>
+            </tr>
+            @for (int i = 0; i < Model.lisP91_Scale2.Count(); i++)
+            {
+                <tr style="vertical-align:top;">
+                    <td>
+                        <mycombo entity="p28Contact" asp-for="lisP91_Scale2[i].p28ID_Invoice" selectedtext="@Model.lisP91_Scale2[i].p28Name_Invoice" filter-flag="1" search-result-width="600"></mycombo>
+
+
+                        @if (Model.lisP91_Scale2[i].p28ID != Model.lisP91_Scale2[i].p28ID_Invoice)
+                        {
+                            <div>
+                                <i>
+                                    @Model.lisP91_Scale2[i].p28Name
+
+                                </i>
+                            </div>
+                        }
+                        <input type="hidden" asp-for="@Model.lisP91_Scale2[i].p28Name" />
+                        <input type="hidden" asp-for="@Model.lisP91_Scale2[i].p28Name_Invoice" />
+                        <input type="hidden" asp-for="@Model.lisP91_Scale2[i].p28ID" />
+
+
+                        <input type="hidden" asp-for="@Model.lisP91_Scale2[i].TempGUID" />
+                    </td>
+                    <td>
+                        <mydate asp-for="@Model.lisP91_Scale2[i].DateMaturity"></mydate>
+                    </td>
+                    <td style="text-align:right;">
+                        @Model.lisP91_Scale2[i].WithoutVat
+                        <input type="hidden" asp-for="@Model.lisP91_Scale2[i].WithoutVat" />
+
+                    </td>
+                    <td>
+                        <mycombo entity="p92InvoiceType" asp-for="@Model.lisP91_Scale2[i].p92ID" selectedtext="@Model.lisP91_Scale2[i].p92Name" search-result-width="600"></mycombo>
+                    </td>
+                    <td>
+                        <textarea asp-for="@Model.lisP91_Scale2[i].InvoiceText1" style="width:300px;"></textarea>
+                    </td>
+                    <td>
+                        <textarea asp-for="@Model.lisP91_Scale2[i].InvoiceText2" style="width:150px;"></textarea>
+                    </td>
+                    <td>
+                        @if (Model.lisFakturacniPoznamky != null && Model.lisFakturacniPoznamky.Where(p => (p.b05RecordEntity == "p28" && p.b05RecordPid == Model.lisP91_Scale2[i].p28ID) || (p.b05RecordEntity == "p41" && p.b05RecordPid == Model.lisP91_Scale2[i].p41ID)).Count() > 0)
+                        {
+                            <button type="button" class="btn btn-light" onclick="memos(this,event,@(Model.lisP91_Scale2[i].p28ID),@(Model.lisP91_Scale2[i].p41ID))" title="@_f.tra("Fakturační poznámka")">
+                                <span class="material-icons-outlined-btn" style="color:limegreen;">speaker_notes</span>
+                            </button>
+                        }
+                    </td>
+                </tr>
+
+            }
+        </table>
+    }
+    @if (Model.BillingScale == 3)
+    {
+        <table>
+            <tr>
+                <th style="width:300px;">
+                    @_f.tra("Klient")
+                </th>
+                <th>
+                    @_f.tra("Projekt")
+                </th>
+                <th style="width:120px;">
+                    @_f.tra("Splatnost")
+                </th>
+                <th style="width:100px;">
+                    @_f.tra("Bez DPH")
+                </th>
+                <th style="min-width:200px;">
+                    @_f.tra("Typ faktury")
+                </th>
+                <th style="min-width:300px;">
+                    @_f.tra("Text faktury")
+                </th>
+                <th style="min-width:150px;">
+                    @_f.tra("Technický text")
+                </th>
+                <th></th>
+            </tr>
+            @for (int i = 0; i < Model.lisP91_Scale3.Count(); i++)
+            {
+                <tr style="vertical-align:top;">
+                    <td>
+                        <mycombo entity="p28Contact" asp-for="lisP91_Scale3[i].p28ID_Invoice" selectedtext="@Model.lisP91_Scale3[i].p28Name_Invoice" filter-flag="1" search-result-width="600"></mycombo>
+
+                        @if (Model.lisP91_Scale3[i].p28ID != Model.lisP91_Scale3[i].p28ID_Invoice)
+                        {
+                            <div>
+                                <i>
+                                    @Model.lisP91_Scale3[i].p28Name_Invoice
+                                </i>
+                            </div>
+                        }
+                        <input type="hidden" asp-for="@Model.lisP91_Scale3[i].TempGUID" />
+                        <input type="hidden" asp-for="@Model.lisP91_Scale3[i].p28Name" />
+                        <input type="hidden" asp-for="@Model.lisP91_Scale3[i].p28Name_Invoice" />
+                        <input type="hidden" asp-for="@Model.lisP91_Scale3[i].p28ID" />
+
+
+                    </td>
+                    <td>
+                        @Model.lisP91_Scale3[i].p41Name
+                        <input type="hidden" asp-for="@Model.lisP91_Scale3[i].p41Name" />
+                        <input type="hidden" asp-for="@Model.lisP91_Scale3[i].p41ID" />
+                    </td>
+                    <td>
+                        <mydate asp-for="@Model.lisP91_Scale3[i].DateMaturity"></mydate>
+                    </td>
+                    <td style="text-align:right;">
+                        @Model.lisP91_Scale3[i].WithoutVat
+                        <input type="hidden" asp-for="@Model.lisP91_Scale3[i].WithoutVat" />
+
+                    </td>
+                    <td>
+                        <mycombo entity="p92InvoiceType" asp-for="@Model.lisP91_Scale3[i].p92ID" selectedtext="@Model.lisP91_Scale3[i].p92Name" search-result-width="600"></mycombo>
+                    </td>
+                    <td>
+                        <textarea asp-for="@Model.lisP91_Scale3[i].InvoiceText1" style="width:300px;"></textarea>
+
+                    </td>
+                    <td>
+                        <textarea asp-for="@Model.lisP91_Scale3[i].InvoiceText2" style="width:150px;"></textarea>
+
+                    </td>
+                    <td>
+                        @if (Model.lisFakturacniPoznamky != null && Model.lisFakturacniPoznamky.Where(p => (p.b05RecordEntity == "p28" && p.b05RecordPid == Model.lisP91_Scale3[i].p28ID) || (p.b05RecordEntity == "p41" && p.b05RecordPid == Model.lisP91_Scale3[i].p41ID)).Count() > 0)
+                        {
+
+                            <button tabindex="-1" type="button" class="btn btn-light" onclick="memos(this,event,@(Model.lisP91_Scale3[i].p28ID),@(Model.lisP91_Scale3[i].p41ID))" title="@_f.tra("Fakturační poznámky")">
+                                <span class="material-icons-outlined-btn" style="color:limegreen;">speaker_notes</span>
+                            </button>
+
+
+                        }
+                    </td>
+                </tr>
+
+            }
+        </table>
+    }
+
+    
+    
+    <div class="my-2">
+        <input type="checkbox" asp-for="IsRememberMaturity" />
+        <label for="IsRememberMaturity">@_f.tra("Zapamatovat si datum splatnosti pro další vystavovanou fakturu")</label>
+    </div>
+    <div class="my-2">
+        <input type="checkbox" asp-for="IsRememberInvoiceText" />
+        <label for="IsRememberInvoiceText">@_f.tra("Zapamatovat si text faktury pro další vystavovanou fakturu")</label>
+    </div>
+    <div class="my-2">
+        <input type="checkbox" asp-for="IsRememberP92ID" />
+        <label for="IsRememberP92ID">@_f.tra("Zapamatovat si typ faktury pro další vystavovanou fakturu")</label>
+    </div>
+
+    <hr />
+   
+
+    <input type="hidden" asp-for="tempguid" />
+</form>
+
+
+
+<script type="text/javascript">
+    var _guid = "@Model.tempguid";
+
+    $(document).ready(function () {
+
+
+        _resize_textareas();
+
+
+
+
+
+
+        $("#cmdMore").click(function () {
+            $("#divMore").toggle();
+        });
+
+
+
+    });
+
+
+
+    function hardrefresh(pid, flag) {
+
+        _postback();
+    }
+
+    function memos(cmd, e, p28id, p41id) {
+
+
+        _zoom(e, null, null, 900, "Fakturační poznámky", "/p31approve/Memos?p28id=" + p28id + "&p41id=" + p41id, true);
+    }
+
+</script>

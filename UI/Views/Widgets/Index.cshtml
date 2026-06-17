@@ -1,0 +1,783 @@
+﻿@model UI.Models.Widgets.WidgetsViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = (Model.RecX54 != null ? Model.RecX54.x54Name : "Dashboard");
+    Layout = _f.CurrentUser.GetLayoutPerDisplay();
+    bool _IsGrid = false;
+}
+@addTagHelper *, UI
+
+@section header_content {
+
+    @if (Model.PageAutoRefreshPerSeconds > 0)
+    {
+        <meta http-equiv="refresh" content="@Model.PageAutoRefreshPerSeconds">
+    }
+
+    <link rel="stylesheet" href="/lib/jquery-ui/jquery-ui.min_sortable.css" />
+    @if (Model.IsDataTables)
+    {
+        <link rel="stylesheet" href="/lib/datatables/css/jquery.dataTables.min.css" />
+
+    }
+
+
+    <link rel="stylesheet" href="~/css/widgets.css" />
+    <link rel="stylesheet" href="~/css/htmltable.css" />
+}
+
+
+
+
+<script src="/lib/jquery-ui/jquery-ui.min_sortable.js"></script>
+@if (Model.IsDataTables)
+{
+    <script src="/lib/datatables/js/jquery.dataTables.min.js"></script>
+
+    @if (Model.IsExportButtons || Model.IsPdfButtons)
+    {
+        <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.6.5/js/dataTables.buttons.min.js"></script>
+        <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.6.5/js/buttons.html5.min.js"></script>
+        <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/buttons/1.6.5/js/buttons.print.min.js"></script>
+        <script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    }
+    @if (Model.IsPdfButtons)
+    {
+        <script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
+        <script type="text/javascript" language="javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
+    }
+
+
+}
+@if (Model.IsCharts)
+{
+    <script src="https://www.gstatic.com/charts/loader.js"></script>
+}
+
+<div id="@(BO.Code.Bas.IIFS(Model.IsSubform, "header_subform", "header_index"))" class="input-group bg-light">
+    @if (!Model.IsSubform)
+    {
+
+
+        <div>
+            <ul class="nav nav-tabs">
+                <li class="onetab">
+                    <a class="nav-link active" href="javascript:reload()" title="@_f.tra("Občerstvit")">
+                        @Model.lisJ02.First(p => p.pid == Model.j02id_me).FullNameAsc
+
+                        @if (Model.Skin != "index")
+                        {
+                            <span>, </span>
+                            <span>@_f.tra("plocha"):</span>
+                            <strong>#@(Model.Skin.Substring(0, 1) + " " + Model.Skin.ToUpper().Substring(1, Model.Skin.Length - 1))</strong>
+                        }
+                    </a>
+                </li>
+            </ul>
+
+
+        </div>
+    }
+
+    <div style="margin-left:10px;" title="Widget skupina">
+        <mydropdown datasource="lisX54" asp-for="SelectedX54ID" textfield="x54Name" isfirstemptyrow="false" valuefield="pid" event_after_changevalue="x54id_onchange"></mydropdown>
+    </div>
+
+    @if (Model.RecX54.x54IsParamToday)
+    {
+        <div style="margin-left:10px;">
+            <label class="col-form-label">@(_f.tra("Datum DNES")):</label>
+        </div>
+        <div style="width:120px;">
+
+            <mydate asp-for="@Model.d0"></mydate>
+        </div>
+    }
+
+
+
+    @if (Model.RecX54.x54IsParamP28ID)
+    {
+        <div style="margin-left:10px;width:250px;" title="Klient">
+            @if (Model.lisP28 != null)
+            {
+                <mydropdown datasource="lisP28" asp-for="SelectedP28ID" textfield="p28Name" isfirstemptyrow="true" firstemptyrowvalue="0" firstemptyrowtext="--Vyberte klienta--" valuefield="pid" event_after_changevalue="p28id_dropdown_onchange"></mydropdown>
+            }
+            else
+            {
+                <mycombo entity="p28Contact" placeholder="@_f.tra("Klient")" asp-for="SelectedP28ID" selectedtext="SelectedP28Name" filter-flag="1" search-result-width="700" event_after_changevalue="p28id_reload"></mycombo>
+            }
+        </div>
+    }
+
+
+    <div style="margin-left:10px;">
+
+        <button class="btn dropdown-toggle bog" role="button" id="cmdInsertWidget" data-bs-toggle="dropdown" aria-expanded="false">
+            @_f.tra("Vložit widget na plochu")
+        </button>
+
+
+        <ul id="rp1_menu" class="dropdown-menu" style="list-style:none;columns:2;width:700px;" aria-labelledby="cmdInsertWidget">
+
+            @foreach (var c in Model.lisAllWidgets)
+            {
+                @if (c.Rezerva != null)
+                {
+                    <li style="text-align:center;background-color:lightblue;">
+                        <strong>@(c.Rezerva)</strong>
+                    </li>
+                }
+                <li class="nav-item p-2">
+                    @if (c.x55ChartType != null)
+                    {
+                        <span class="material-icons-outlined-btn" style="color:blue;">bar_chart</span>
+                    }
+                    else
+                    {
+                        <span class="material-icons-outlined-btn" style="color:gray;">view_list</span>
+                    }
+
+                    @if (Model.lisUserWidgets.Where(p => p.pid == c.pid).Count() > 0)
+                    {
+                        <span style="color:silver;">@c.x55Name</span>
+                    }
+                    else
+                    {
+                        <a href="javascript:handle_insert_snippet(@c.pid)">@c.x55Name</a>
+                    }
+
+
+                </li>
+
+
+            }
+
+
+
+        </ul>
+
+    </div>
+
+    <div>
+        <button type="button" id="cmdRefresh" class="btn btn-primary" style="display:none;margin-left:10px;" onclick="reload()">@_f.tra("Občerstvit")</button>
+    </div>
+
+
+    <myshowmore></myshowmore>
+
+    <div class="showmore">
+        <mydropdown asp-for="j02id_me" textfield="FullnameDesc" valuefield="pid" datasource="@Model.lisJ02" event_after_changevalue="j02id_change"></mydropdown>
+    </div>
+
+
+
+
+
+    <div style="margin-left:auto;margin-right:10px;" class="nav-item dropdown nonmobile">
+        <a id="cmdMore" class="btn bog" tabindex="-1" role="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvas_more">☰ @_f.tra("Více")</a>
+
+
+
+    </div>
+
+
+</div>
+
+
+
+
+<div id="@(Model.IsSubform ? "container_subform" : "container_index")" class="row">
+    <div class="column @Model.BoxColCss" id="col1">
+        @foreach (var c in Model.DockStructure.Col1)
+        {
+
+            <div id="box_@(c.pid)" class="portlet">
+                <div class="portlet-header" @Html.Raw(c.CssHeaderDiv)>
+                    <span class="material-icons-outlined-btn">@(c.HeaderImage)</span>
+
+                    <span class="ml-1" id="box_header_@(c.pid)">@(c.x55Name)</span>
+
+                    <a class="btn btn-sm btn-light py-0 px-1 float-end" title="@_f.tra("Zavřít")" href="javascript:handle_after_close_snippet(@c.pid)">x</a>
+                    @if (c.x55Help != null)
+                    {
+                        <a class="float-end btn btn-sm btn-light py-0 px-1 mx-3" title="@_f.tra("Nápověda")" href="javascript:widget_help(@c.pid)">?</a>
+                    }
+                    <a class="float-end btn btn-sm btn-light py-0 px-1 mx-3" title="@_f.tra("Občerstvit obsah widgetu")" href="javascript:load_widget_content(@c.pid)">⟲</a>
+
+
+                    <a class="float-end btn btn-sm btn-light py-0 px-1 mx-3" title="Zkopírovat do schránky" href="javascript:_copy_element_to_clipboard('@c.x55Code')"><span class='material-icons-outlined-nosize'>content_copy</span></a>
+                    <a class="float-end btn btn-sm btn-light py-0 px-1 mx-3" title="Odeslat e-mail" href="javascript:_html2mail('box_content_@(c.pid)','@c.x55Name','send_message_template_htmltable.html')">&commat;</a>
+
+
+                </div>
+                <div id="box_content_@(c.pid)" class="portlet-content" @Html.Raw(c.CssContentDiv)>
+
+                    @Html.Raw(c.x55Content)
+
+                </div>
+            </div>
+
+
+        }
+    </div>
+    @if (Model.ColumnsPerPage > 1)
+    {
+        <div class="column @Model.BoxColCss" id="col2">
+            @foreach (var c in Model.DockStructure.Col2)
+            {
+                <div id="box_@(c.pid)" class="portlet">
+                    <div class="portlet-header" @Html.Raw(c.CssHeaderDiv)>
+                        <span class="material-icons-outlined-btn">@(c.HeaderImage)</span>
+                        <span class="ml-1">@(c.x55Name)</span>
+
+                        <a class="float-end btn btn-sm btn-light py-0 px-1" title="@_f.tra("Zavřít")" href="javascript:handle_after_close_snippet(@c.pid)">x</a>
+                        @if (c.x55Help != null)
+                        {
+                            <a class="float-end btn btn-sm btn-light py-0 px-1 mx-3" title="@_f.tra("Widget nápověda")" href="javascript:widget_help(@c.pid)">?</a>
+                        }
+                        <a class="float-end btn btn-sm btn-light py-0 px-1 mx-3" title="@_f.tra("Obnovit obsah widgetu")" href="javascript:load_widget_content(@c.pid)">⟲</a>
+
+                        <a class="float-end btn btn-sm btn-light py-0 px-1 mx-3" title="Zkopírovat do schránky" href="javascript:_copy_element_to_clipboard('@c.x55Code')"><span class='material-icons-outlined-nosize'>content_copy</span></a>
+                        <a class="float-end btn btn-sm btn-light py-0 px-1 mx-3" title="Odeslat e-mail" href="javascript:_html2mail('box_content_@(c.pid)','@c.x55Name','send_message_template_htmltable.html')">&commat;</a>
+                    </div>
+                    <div id="box_content_@(c.pid)" class="portlet-content" @Html.Raw(c.CssContentDiv)>
+                        @Html.Raw(c.x55Content)
+                    </div>
+                </div>
+
+
+            }
+        </div>
+    }
+    @if (Model.ColumnsPerPage > 2)
+    {
+        <div class="column @Model.BoxColCss" id="col3">
+            @foreach (var c in Model.DockStructure.Col3)
+            {
+                <div id="box_@(c.pid)" class="portlet">
+                    <div class="portlet-header" @Html.Raw(c.CssHeaderDiv)>
+                        <span class="material-icons-outlined-btn">@(c.HeaderImage)</span>
+                        <span class="ml-1">@(c.x55Name)</span>
+
+                        <a class="float-end btn btn-sm btn-light py-0 px-1" title="@_f.tra("Zavřít")" href="javascript:handle_after_close_snippet(@c.pid)">x</a>
+                        @if (c.x55Help != null)
+                        {
+                            <a class="float-end btn btn-sm btn-light py-0 px-1 mx-3" title="@_f.tra("Widget nápověda")" href="javascript:widget_help(@c.pid)">?</a>
+                        }
+                        <a class="float-end btn btn-sm btn-light py-0 px-1 mx-3" title="@_f.tra("Obnovit obsah widgetu")" href="javascript:load_widget_content(@c.pid)">⟲</a>
+
+                        <a class="float-end btn btn-sm btn-light py-0 px-1 mx-3" title="Zkopírovat do schránky" href="javascript:_copy_element_to_clipboard('@c.x55Code')"><span class='material-icons-outlined-nosize'>content_copy</span></a>
+
+                        <a class="float-end btn btn-sm btn-light py-0 px-1 mx-3" title="Odeslat e-mail" href="javascript:_html2mail('box_content_@(c.pid)','@c.x55Name','send_message_template_htmltable.html')">&commat;</a>
+                    </div>
+                    <div id="box_content_@(c.pid)" class="portlet-content" @Html.Raw(c.CssContentDiv)>
+                        @Html.Raw(c.x55Content)
+                    </div>
+                </div>
+
+
+            }
+        </div>
+    }
+</div>
+
+
+<!-- Nabídka Více -->
+<div class="offcanvas offcanvas-end" tabindex="-1" data-bs-scroll="true" data-bs-backdrop="true" data-bs-keyboard="true" id="offcanvas_more">
+
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title">
+            <a href="javascript:reload()" title="Občerstvit">
+                <myicon symbol="refresh"></myicon>
+            </a>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+
+    <div class="offcanvas-body p-0 m-0" id="offcanvas_more_body">
+
+
+
+        <div class="card m-3">
+            <div class="card-header">
+                @_f.tra("Počet sloupců na ploše")
+            </div>
+            <div class="card-body">
+                <input type="radio" id="opgCols1" asp-for="ColumnsPerPage" value="1" onchange="handle_pocet_sloupcu(this)" />
+                <label for="opgCols1">1 @_f.tra("sloupec")</label>
+                <br />
+                <input type="radio" id="opgCols2" asp-for="ColumnsPerPage" value="2" onchange="handle_pocet_sloupcu(this)" />
+                <label for="opgCols2">2 @_f.tra("sloupce")</label>
+                <br />
+                <input type="radio" id="opgCols3" asp-for="ColumnsPerPage" value="3" onchange="handle_pocet_sloupcu(this)" />
+                <label for="opgCols3">3 @_f.tra("sloupce")</label>
+            </div>
+        </div>
+        @if (Model.RecX54.x54IsAllowSkins)
+        {
+            <div class="card m-3">
+                <div class="card-header">
+                    @_f.tra("Pracovat na ploše")
+                </div>
+                <div class="card-body">
+                    <input type="radio" id="skin0" asp-for="Skin" value="index" onchange="handle_change_skin(this)" />
+                    <label for="skin0">#0 @_f.tra("Výchozí plocha")</label>
+                    <br />
+                    <input type="radio" id="skin1" asp-for="Skin" value="1huascaran" onchange="handle_change_skin(this)" />
+                    <label for="skin1">#1 Huascarán</label>
+                    <br />
+                    <input type="radio" id="skin2" asp-for="Skin" value="2sajama" onchange="handle_change_skin(this)" />
+                    <label for="skin2">#2 Sajama</label>
+                    <br />
+                    <input type="radio" id="skin3" asp-for="Skin" value="3chimborazo" onchange="handle_change_skin(this)" />
+                    <label for="skin3">#3 Chimborazo</label>
+                    <br />
+                    <input type="radio" id="skin4" asp-for="Skin" value="4denali" onchange="handle_change_skin(this)" />
+                    <label for="skin4">#4 Denali</label>
+                    <br />
+                    <input type="radio" id="skin5" asp-for="Skin" value="5aconcagua" onchange="handle_change_skin(this)" />
+                    <label for="skin5">#5 Aconcagua</label>
+                    <br />
+                    <input type="radio" id="skin6" asp-for="Skin" value="6tajumulco" onchange="handle_change_skin(this)" />
+                    <label for="skin6">#6 Tajumulco</label>
+                    <br />
+                    <input type="radio" id="skin7" asp-for="Skin" value="7roraima" onchange="handle_change_skin(this)" />
+                    <label for="skin7">#7 Roraima</label>
+                    <br />
+                    <input type="radio" id="skin8" asp-for="Skin" value="8mogoton" onchange="handle_change_skin(this)" />
+                    <label for="skin8">#8 Mogotón</label>
+                    <br />
+                    <input type="radio" id="skin9" asp-for="Skin" value="9liamuiga" onchange="handle_change_skin(this)" />
+                    <label for="skin9">#9 Liamuiga</label>
+                    <br />
+                </div>
+            </div>
+        }
+
+        @if (Model.RecX54.x54IsAllowAutoRefresh)
+        {
+            <div class="card m-3">
+                <div class="card-header">
+                    @_f.tra("Automaticky obnovovat plochu")
+                </div>
+                <div class="card-body">
+                    <input type="radio" id="opgRefresh0" asp-for="PageAutoRefreshPerSeconds" value="0" onchange="handle_autorefresh(this)" />
+                    <label for="opgRefresh0">@_f.tra("Bez auto-obnovování")</label>
+                    <br />
+                    <input type="radio" id="opgRefresh30" asp-for="PageAutoRefreshPerSeconds" value="30" onchange="handle_autorefresh(this)" />
+                    <label for="opgRefresh30">@_f.tra("Po 30ti sekundách")</label>
+                    <br />
+                    <input type="radio" id="opgRefresh60" asp-for="PageAutoRefreshPerSeconds" value="60" onchange="handle_autorefresh(this)" />
+                    <label for="opgRefresh60">@_f.tra("Po 60ti sekundách")</label>
+                    <br />
+                    <input type="radio" id="opgRefresh300" asp-for="PageAutoRefreshPerSeconds" value="300" onchange="handle_autorefresh(this)" />
+                    <label for="opgRefresh300">3 @_f.tra("Po 5ti minutách")</label>
+                    <br />
+                    <input type="radio" id="opgRefresh600" asp-for="PageAutoRefreshPerSeconds" value="600" onchange="handle_autorefresh(this)" />
+                    <label for="opgRefresh600">@_f.tra("Po 10ti minutách")</label>
+                </div>
+            </div>
+        }
+
+
+        <div class="card m-3">
+            <div class="card-header">
+                @_f.tra("Nastavit vzhled tabulek")
+            </div>
+            <div class="card-body">
+                @Html.EditorFor(m => _IsGrid, "~/Views/Shared/_TableLayoutDeisgner.cshtml")
+            </div>
+            <button type="button" class="btn btn-sm bog" onclick="clear_to_factory_confirm()">@_f.tra("Nahodit do výchozího továrního nastavení")</button>
+        </div>
+
+        @if (_f.CurrentUser.IsAdmin)
+        {
+            <div class="card">
+                <div class="card-header">
+                    <span class="material-icons-outlined-btn">settings</span>
+                    Admin
+                </div>
+                <div class="card-body">
+                    <button id="cmdX54Admin" type="button" class="btn btn-sm bog" onclick="_window_open('/x54/Record?pid=@Model.SelectedX54ID')">@_f.tra("Skupina widgetů") <strong>@Model.RecX54.x54Name</strong></button>
+                    <p></p>
+                    @if (!_f.CurrentUser.IsHostingModeTotalCloud)
+                    {
+                        <button type="button" id="cmdGlobalColumns" onclick="set_as_global()" class="btn btn-sm bog">@_f.tra("Nastavit jako výchozí globální obsah")</button>
+                        <p></p>
+                    }
+
+
+                    <button type="button" id="cmdUpdateAllUsers" onclick="update2allusers()" class="btn btn-sm bog">@_f.tra("Přepsat obsah všem uživatelům")</button>
+
+                </div>
+            </div>
+
+        }
+
+
+    </div>
+</div>
+
+
+@if (Model.lisUserWidgets.Count == 0)
+{
+    <div>
+        <img src="~/images/pandulak/16452374_s.jpg" />
+        <i>@_f.tra("Jsem tak prázdný...")</i>
+    </div>
+}
+
+<script type="text/javascript">
+    var _x54id = "@Model.SelectedX54ID";
+    var _p28id = "@Model.SelectedP28ID";
+    var _j02idme = "@Model.j02id_me";
+    var _j02idsys = "@_f.CurrentUser.pid";
+    var _count = "@(Model.lisUserWidgets.Count)";
+    var _skin = "@Model.Skin";
+    var _ColumnsPerPage = "@Model.ColumnsPerPage";
+
+    $(document).ready(function () {
+
+
+        if (document.getElementById("cmddashboard")) {
+            $("#cmddashboard").addClass("active");
+        }
+
+
+        $(".column").sortable({
+            connectWith: ".column",
+            handle: ".portlet-header",
+            cancel: ".portlet-toggle",
+            placeholder: "portlet-placeholder ui-corner-all",
+            stop: function (event, ui) {
+                save_dock_state();
+            }
+        });
+
+        $(".portlet")
+            .addClass("ui-widget ui-widget-content ui-helper-clearfix ui-corner-all")
+            .find(".portlet-header")
+            .addClass("ui-widget-header ui-corner-all");
+
+
+        $(".portlet-toggle").on("click", function () {
+            var icon = $(this);
+            icon.toggleClass("ui-icon-minusthick ui-icon-plusthick");
+            icon.closest(".portlet").find(".portlet-content").toggle();
+        });
+
+
+        if (_device.type == "Phone") {
+            $("#ColumnsPerPage").css("display", "none");
+            $("#rp1_menu").css("columns", "1");
+            $("#rp1_menu").css("width", _device.availWidth);
+        }
+
+        if (_j02idsys != _j02idme || _count=="0")
+        {
+            $(".showmore").toggle();
+        }
+
+
+    @foreach (var c in Model.lisUserWidgets)
+    {
+            <text>
+                    load_widget_content(@c.pid, @Model.ColumnsPerPage);
+            </text>
+    }
+
+            });
+
+
+
+    function save_dock_state() {
+
+        var s = $("#col1").sortable("serialize", { key: "sort" });
+    @if (Model.ColumnsPerPage > 1)
+    {
+            <text>
+                    s = s + "|" + $("#col2").sortable("serialize", { key: "sort" });
+            </text>
+    }
+    @if (Model.ColumnsPerPage > 2)
+    {
+            <text>
+                    s = s + "|" + $("#col3").sortable("serialize", { key: "sort" });
+            </text>
+    }
+
+
+            $.post("/Widgets/SaveWidgetState", { s: s, skin: _skin, x54id: _x54id }, function (data) {
+                _notify_message("Změna rozložení plochy uložena.", "info");
+
+
+
+            });
+
+
+    }
+
+    $("#d0helper").change(function () {
+        //$("#cmdRefresh").css("display", "block");
+        reload();
+    });
+
+    function j02id_change(j02id) {
+        reload();
+    }
+
+    function x54id_onchange(cbx) {
+        _notify_message("Loading...","info");
+
+        $.post("/Widgets/ChangeX54ID", { x54id:cbx.value }, function (data) {
+            _x54id = cbx.value;
+            reload();
+
+        });
+    }
+
+
+
+    function p28id_dropdown_onchange(cbx) {
+        p28id_reload(cbx.value);
+    }
+
+    function p28id_reload(p28id) {
+        _notify_message("Loading...", "info");
+
+        $.post("/Widgets/ChangeP28ID", { p28id: p28id }, function (data) {
+            _p28id = p28id;
+            reload();
+
+        });
+    }
+
+    function reload() {
+        var url = "/Widgets/Index?skin=" + _skin+"&x54id="+_x54id;
+
+        if (document.getElementById("d0helper")){
+            var d = $("#d0helper").val();
+            url = url + "&d=" + d;
+        }
+
+
+        var x = document.getElementById("j02id_me").length;
+        if (x > 1) {
+            url = url + "&j02id=" + $("#j02id_me").val();
+        }
+        _redirect(url);
+    }
+
+    function handle_after_close_snippet(x55id) {
+        _notify_message("Loading...", "info");
+        $.post("/Widgets/RemoveWidget", { x55id: x55id, skin: _skin,x54id: _x54id }, function (data) {
+            reload();
+
+
+        });
+    }
+
+    function handle_insert_snippet(x55id) {
+        $.post("/Widgets/InsertWidget", { x55id: x55id, skin: _skin, x54id: _x54id }, function (data) {
+            reload();
+
+
+        });
+    }
+    function handle_pocet_sloupcu(cbx) {
+
+        $.post("/Widgets/SavePocetSloupcu", { x: cbx.value, skin: _skin, x54id: _x54id }, function (data) {
+            reload();
+
+
+        });
+    }
+    function handle_autorefresh(cbx) {
+        $.post("/Widgets/SavePageAutoRefresh", { x: cbx.value, skin: _skin, x54id: _x54id }, function (data) {
+            reload();
+
+        });
+    }
+    function handle_change_skin(cbx) {
+        $.post("/Widgets/ChangeSkin", { skin: cbx.value, x54id: _x54id }, function (data) {
+            location.replace("/Widgets/Index?skin=" + cbx.value+"&x54id="+_x54id);
+        });
+    }
+
+    function widget_help(x55id) {
+        _window_open("/x55/Help?pid=" + x55id);
+    }
+
+    function load_widget_content(x55id) {
+        var h = $("#box_content_" + x55id).height();
+        $("#box_content_" + x55id).html("<div style='height:" + h + "px;'><strong>Loading...</strong></div>");
+
+        var d = "";
+        if (document.getElementById("d0helper")){
+            d = $("#d0helper").val();
+        }
+
+
+
+        $.post("/Widgets/GetWidgetHtmlContent", { x55id: x55id, columnsperpage: @Model.ColumnsPerPage, d: d, j02id: _j02idme,p28id: _p28id }, function (data) {
+
+            $("#box_content_" + x55id).html(data.x55Content);
+            $("#box_header_" + x55id).html(data.x55Name);
+            if (data.x55Content.indexOf("iframe") > 0) {
+                $("#box_content_" + x55id).height(360);
+            }
+
+
+            if (data.isUseDatatables) {
+                //splněna podmínka pro práci s pluginem Datatables
+                if (data.x55DataTablesButtons == 3) {
+                    datatables_init_buttons_export_print_pdf(data.x55Code, "cs_CZ");
+                }
+                if (data.x55DataTablesButtons == 2) {
+                    datatables_init_buttons_export_print(data.x55Code, "cs_CZ");
+                }
+                if (data.x55DataTablesButtons < 2) {
+                    datatables_init_nobuttons(data.x55Code, "cs_CZ");
+                }
+            }
+
+
+
+        });
+    }
+    function clear_to_factory_confirm() {
+        var s = "@_f.tra("Dojde k přepsání plochy tovární sadou widgetů.")";
+        s += "⚡OK?";
+        if (confirm(s)) {
+            $.post("/Widgets/Clear2FactoryState", { skin: _skin,x54id: _x54id }, function (data) {
+                reload();
+
+
+            });
+        }
+
+    }
+    function clear_to_factory_silent() {
+        $.post("/Widgets/Clear2FactoryState", { skin: _skin,x54id: _x54id }, function (data) {
+            reload();
+
+
+        });
+
+    }
+
+    function datatables_init_nobuttons(tableid, lang) {
+        $("#" + tableid).DataTable({
+            stateSave: true,
+            language: {
+                url: "/lib/datatables/localisation/" + lang + ".json"
+
+            },
+            dom: "Blfrtip",
+            paging: true
+
+        });
+    }
+    function datatables_init_buttons_export_print(tableid, lang) {
+        $("#" + tableid).DataTable({
+            stateSave: true,
+            language: {
+                url: "/lib/datatables/localisation/" + lang + ".json"
+
+            },
+            dom: "Blfrtip",
+            buttons: [
+
+                {
+                    extend: "excelHtml5",
+                    footer: true,
+                    text: "XLS"
+                },
+                { extend: "csvHtml5", footer: true },
+                { extend: "copyHtml5", footer: true },
+                {
+                    extend: "print",
+                    text: "Tisk",
+                    footer: true,
+                    autoPrint: true
+                }
+            ],
+            paging: true
+
+        });
+    }
+
+
+    function datatables_init_buttons_export_print_pdf(tableid, lang) {
+        $("#" + tableid).DataTable({
+            stateSave: true,
+            language: {
+                url: "/lib/datatables/localisation/" + lang + ".json"
+
+            },
+            dom: "Blfrtip",
+            buttons: [
+
+                {
+                    extend: 'pdfHtml5',
+                    footer: true,
+                    orientation: 'portrait',
+                    pageSize: 'A4',
+                    text: 'PDF (na výšku)'
+                },
+                {
+                    extend: "pdfHtml5",
+                    footer: true,
+                    orientation: "landscape",
+                    pageSize: 'A4',
+                    text: "PDF (na šířku)"
+                },
+
+                {
+                    extend: "excelHtml5",
+                    footer: true,
+                    text: "XLS"
+                },
+                { extend: "csvHtml5", footer: true },
+                { extend: "copyHtml5", footer: true },
+                {
+                    extend: "print",
+                    text: "Tisk",
+                    footer: true,
+                    autoPrint: true
+                }
+            ],
+            paging: true
+
+        });
+
+
+    }
+
+    function set_as_global() {
+        var s = "@_f.tra("Tato plocha bude výchozí pro všechny uživatele?")";
+        s += "⚡OK?";
+        if (confirm(s)) {
+            $.post("/Widgets/SetAsDefaultGlobalBoxes", { skin: _skin,x54id: _x54id }, function (data) {
+                reload();
+
+
+            });
+        }
+    }
+    function update2allusers() {
+        var s = "@_f.tra("Dojde k přepsání plochy všech uživatelů.")";
+        s += "⚡OK?";
+        if (confirm(s)) {
+            $.post("/Widgets/UpdateBoxes2AllUsers", { skin: _skin, x54id: _x54id }, function (data) {
+                reload();
+
+
+            });
+        }
+    }
+
+
+</script>

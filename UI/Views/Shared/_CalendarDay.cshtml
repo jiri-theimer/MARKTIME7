@@ -1,0 +1,388 @@
+﻿@model UI.Models.p31view.calendarViewModel
+@inject BL.Factory _f
+
+@{
+    string strClass = null;
+    string strHodiny = null;
+
+
+    if (DateTime.Now.Hour < Model.h0) Model.h0 = DateTime.Now.Hour;
+    if (DateTime.Now.Hour > Model.h1) Model.h1 = DateTime.Now.Hour;
+
+
+    double _dblHodiny = 0;
+    string _strStyleHodiny = "color:blue;";
+    if (Model.lisP31.Count() > 0)
+    {
+        _dblHodiny = Model.lisP31.Sum(p => p.p31Hours_Orig);
+        if (!Model.lisP31.Any(p => !p.p32IsBillable))
+        {
+            _strStyleHodiny = "color:green;";
+        }
+        else
+        {
+            if (!Model.lisP31.Any(p => p.p32IsBillable))
+            {
+                _strStyleHodiny = "color:red;";
+            }
+        }
+    }
+
+
+    IEnumerable<BO.p31Worksheet> qryP31 = Model.lisP31.Where(p => p.p31DateTimeFrom_Orig != null);  //úkony s přesným časem
+    IEnumerable<BO.p31Worksheet> qryP31NoTime = Model.lisP31.Where(p => p.p31DateTimeFrom_Orig == null);  //úkony bez přesného času
+
+    if (qryP31.Any(p => Convert.ToDateTime(p.p31DateTimeFrom_Orig).Hour < Model.h0))
+    {
+        Model.h0 = qryP31.Min(p => Convert.ToDateTime(p.p31DateTimeFrom_Orig).Hour);
+    }
+    if (qryP31.Any(p => Convert.ToDateTime(p.p31DateTimeUntil_Orig).Hour > Model.h1 + 1))
+    {
+        Model.h1 = qryP31.Max(p => Convert.ToDateTime(p.p31DateTimeUntil_Orig).Hour);
+    }
+    var hours_slots = new List<string>();
+    var hhmm_slots = new List<string>();
+    var blocks = new List<string>();
+    var time_slots = new List<DateTime>();
+
+    for (int h = Model.h0; h <= Model.h1; h++)
+    {
+        hours_slots.Add(BO.Code.Bas.RightString("0" + h.ToString(), 2) + ":00");
+        for (int m = 5; m <= 60; m += 5)
+        {
+            blocks.Add(Model.GetMinuteGapPixels().ToString() + "px");
+            string sss = BO.Code.Bas.RightString("0" + h.ToString(), 2) + ":" + BO.Code.Bas.RightString("0" + (m - 5).ToString(), 2);
+            hhmm_slots.Add(sss);
+            DateTime dx = Model.d0.AddHours(Convert.ToDouble(h)).AddMinutes(Convert.ToDouble(m)).AddMilliseconds(-100);
+            time_slots.Add(dx);
+        }
+    }
+    hhmm_slots.Add((Model.h1 + 1).ToString() + ":00");
+
+                    <div class="input-group" style="border-bottom:solid 1px black;margin-bottom:2px;">
+                        <div style="margin-left:55px;">
+                            <a class="stat_link" style="font-weight:bold;@(_strStyleHodiny)" onclick="zoom_alldays(this)">
+                                @(BO.Code.Time.FormatNumeric(_dblHodiny, Model.ShowHHMM))
+                            </a>
+                        </div>
+                        <div style="margin-left:30px;">
+                            <span class="badge bg-info">
+                                @(BO.Code.Bas.ObjectDate2String(Model.d1))
+                            </span>
+                        </div>
+                        <div style="margin-left:30px;">
+                            <label for="DayView_MinutesGap">@_f.tra("Časové intervaly (minuty)"):</label>
+                            <select asp-for="@Model.DayView_MinutesGap" onchange="change_minutesgap(this)">
+                                <option value="5">5</option>
+                                <option value="10">10</option>
+                                <option value="15">15</option>
+                                <option value="20">20</option>
+                                <option value="30">30</option>
+                                <option value="60">60</option>
+
+                            </select>
+                        </div>
+                        <div style="margin-left:20px;">
+                            <select asp-for="@Model.h0" onchange="change_h0(this)" title="@_f.tra("Od")">
+                                <option value="6">06:00</option>
+                                <option value="7">07:00</option>
+                                <option value="8">08:00</option>
+                                <option value="9">09:00</option>
+                                <option value="10">10:00</option>
+                                <option value="12">12.00</option>
+                            </select>
+                        </div>
+                        <div style="width:20px;text-align:center;">
+                            -
+                        </div>
+                        <div>
+                            <select asp-for="@Model.h1" onchange="change_h1(this)" title="@_f.tra("Do")">
+                                <option value="15">16:00</option>
+                                <option value="16">17:00</option>
+                                <option value="18">19:00</option>
+                                <option value="19">20:00</option>
+                                <option value="20">21:00</option>
+                                <option value="22">23:00</option>
+                                <option value="23">24:00</option>
+                            </select>
+                        </div>
+                        <div style="margin-left:10px;">
+                            <strong id="selectable_log"></strong>
+                        </div>
+                    </div>
+
+
+    @if (qryP31NoTime.Count() > 0)
+    {
+    @Html.Raw("<div style='max-height:110px;overflow:auto;'>")
+    @foreach (var recP31 in qryP31NoTime)
+        {
+            strClass = "p31_rec_link_agenda";
+    @Html.Raw("<div>")
+
+
+            switch (recP31.p33ID)
+            {
+                case BO.p33IdENUM.Kusovnik:
+                    strHodiny = recP31.p31Value_Orig.ToString();
+                    strClass += " kusovnik";
+                    break;
+                case BO.p33IdENUM.Cas:
+                    if (recP31.p33ID == BO.p33IdENUM.Cas)
+                    {
+                        if (Model.ShowHHMM)
+                        {
+                            strHodiny = recP31.p31HHMM_Orig;
+                        }
+                        else
+                        {
+                            strHodiny = BO.Code.Bas.Num2StringNull(recP31.p31Hours_Orig);
+                        }
+                    }
+                    break;
+
+                default:
+                    strHodiny = recP31.j27Code_Billing_Orig;
+                    if (recP31.p34IncomeStatementFlag == BO.p34IncomeStatementFlagENUM.Prijem)
+                    {
+                        strClass += " vydaj";
+                    }
+                    else
+                    {
+                        strClass += " odmena";
+                    }
+                    break;
+            }
+
+    @Html.Raw($"<a class='cm' onclick='reccm(event,{recP31.pid})'>&#9776;</a>")
+
+    @Html.Raw($"<a class='{strClass}' onclick='p31_rec({recP31.pid})'>")
+
+
+            strHodiny = "<span class='bunka_hodiny'>" + strHodiny + "</span>";
+    @Html.Raw(strHodiny + UI.Code.TheGridRowSymbol.p31_symbol(recP31))
+
+    @Html.Raw(BO.Code.Bas.OM2(recP31.p41Name, 15))
+            if (recP31.p28ID_Client > 0)
+            {
+    @Html.Raw(" (" + BO.Code.Bas.OM2(recP31.ClientName, 15) + ")")
+            }
+    @Html.Raw("</a>")
+
+
+    @Html.Raw($"<span class='mt_scheduler-p31text'>{BO.Code.Bas.OM2(recP31.p31Text, 100)}</span>")
+
+
+    @Html.Raw("</div>")
+
+
+        }
+    @Html.Raw("</div>")
+    @Html.Raw("<hr style='color:black;margin:0px;'>")
+
+    }
+
+    @Html.Raw($"<div id='grid_day_container' class='grid-day-container' style='grid-template-rows:{string.Join(" ", blocks)};'>")
+
+
+    int y = 5; int x = 0;
+    for (int h = Model.h0; h <= Model.h1; h++)
+    {
+        string ss = BO.Code.Bas.RightString("0" + h.ToString(), 2) + ":00";
+    @Html.Raw($"<div class='hour_slot' style='grid-row:{(x + 1)}/span 12;'>{ss}</div>")
+
+
+        for (int m = 5; m <= 60; m += 5)
+        {
+            if (y == Model.DayView_MinutesGap || m == 5)
+            {
+                ss = hhmm_slots[x];
+                if (hhmm_slots.Count() > x + Model.DayView_MinutesGap / 5)
+                {
+                    ss += " - " + hhmm_slots[x + Model.DayView_MinutesGap / 5];
+                }
+
+    @Html.Raw($"<button type='button' class='minute_slot' style='grid-row:{(x + 1)}/span {Model.DayView_MinutesGap / 5};' title='{ss}' slot='{hhmm_slots[x]}' slot_interval='{ss}'></button>")
+
+
+                y = 0;
+            }
+
+            y += 5;
+            x += 1;
+        }
+    }
+
+    foreach (var c in qryP31)
+    {
+        x = 0;
+        int intStartIndex = -1; int intEndIndex = time_slots.Count() - 1;
+
+        foreach (DateTime d in time_slots)
+        {
+            if (d >= Convert.ToDateTime(c.p31DateTimeFrom_Orig) && intStartIndex == -1)
+            {
+                intStartIndex = x;
+            }
+
+            if (DateTime.Compare(d.AddMilliseconds(101), Convert.ToDateTime(c.p31DateTimeUntil_Orig)) > 0 && intStartIndex > -1)
+            {
+                intEndIndex = x;
+                break;
+            }
+
+            x += 1;
+        }
+        if (intStartIndex > -1)
+        {
+            string strRCM = $"<a class='cm' onclick='reccm(event,{c.pid})'>&#9776;</a>";
+            int intSpanRows = intEndIndex - intStartIndex + 1;
+
+            string strLink = c.TimeFrom + "-" + c.TimeUntil;
+            if (c.p32IsBillable)
+            {
+                strLink += "<span style='color:green;margin-left:6px;'>" + BO.Code.Time.FormatNumeric(c.p31Hours_Orig, Model.ShowHHMM) + "h. </span>";
+            }
+            else
+            {
+                strLink += "<span style='color:red;margin-left:6px;'>" + BO.Code.Time.FormatNumeric(c.p31Hours_Orig, Model.ShowHHMM) + "h. </span>";
+            }
+
+            strLink += UI.Code.TheGridRowSymbol.p31_symbol(c);
+
+            string strProject = BO.Code.Bas.OM2(c.p41Name, 15);
+            if (c.p28ID_Client > 0)
+            {
+                strProject += " (" + BO.Code.Bas.OM2(c.ClientName, 15) + ")";
+            }
+            string strText = c.p31Text != null ? BO.Code.Bas.OM2(c.p31Text, 300) : c.p32Name;
+
+
+    @Html.Raw($"<div class='data_slot' style='grid-row:{(intStartIndex + 1)}/span {intSpanRows};'>{strRCM}<a class='exactdayp31reclink' onclick='p31_rec({c.pid})'>{strLink} {strProject}</a><i style='padding-left:20px;'>{strText}</i></div>")
+
+        }
+    }
+
+    if (qryP31.Count() == 0)
+    {
+        string s0 = _f.tra("Na časové ose označte myší interval od-do nebo klikněte na buňku.");
+    @Html.Raw($"<div class='nodata_slot' style='grid-row:1/span 10;'><span class='material-icons-outlined' style='color:blue;'>info</span>{s0}</div>")
+
+    }
+
+
+    @Html.Raw("</div>")
+
+}
+
+
+<script src="~/lib/dragselect/ds.min.js"></script>
+
+<script type="text/javascript">
+    var _strDatum = "@(BO.Code.Bas.ObjectDate2String(Model.d0, "dd.MM.yyyy"))";
+    $(document).ready(function () {
+        var showleftpanel = "@Model.ShowLeftPanel";
+        var dispcss = $("#divLeftPanel").css("display");
+
+        var w500 = 700;
+        if (showleftpanel == "False" || dispcss == "none") {
+            w500 = 1000;
+        }        
+        
+        if (w500 > _device.innerWidth) {
+            w500 = _device.innerWidth - 100;
+        }
+
+        var aw = w500;
+
+        
+
+        if (_device.type == "Phone") {
+            aw = _device.innerWidth - 100;
+            $("#grid_day_container").width(_device.innerWidth - 40);
+            $("#grid_day_container").css("border-right", "solid 1px silver");
+            $("#grid_day_container").css("border-top", "solid 1px silver");
+            $("#grid_day_container .data_slot_mobile").css("width", (aw - 50) + "px");
+        }
+        //if (aw > w500) aw = w500;
+
+
+        //aw = 1000;
+
+        $("#grid_day_container .data_slot").css("width", aw + "px");
+
+        $("#grid_day_container .nodata_slot").css("width", aw + "px");
+
+        
+        var ds = new DragSelect({
+            draggability: false,
+            immediateDrag: false,
+            selectables: document.getElementsByClassName("minute_slot"),
+            area: document.getElementById("grid_day_container"),
+            selectedClass: "bunka_selected",
+            multiSelectMode: false
+        });
+
+
+
+        ds.subscribe("callback", (callback_object) => {
+            if (callback_object.items) {
+                var e = event;
+                var sels = callback_object.items;
+
+                if (e.target.className == "data_slot_mobile") {     //mobilní zařízení - uživatel kliknul na datový slot
+                    p31_record_open($(e.target).attr("pid"));
+                    return;
+                }
+                if (e.target.parentNode.className == "data_slot_mobile") {     //mobilní zařízení - uživatel kliknul na datový slot
+                    p31_record_open($(e.target.parentNode).attr("pid"));
+                    return;
+                }
+
+                if (sels.length == 0) return;
+
+                var arr = [];
+                $(sels).each(function () { arr.push($(this).attr("slot_interval")); });
+                arr.sort();
+                var ts = arr[0].split(" - ");
+                var t1 = ts[0];
+                ts = arr[arr.length - 1].split(" - ");
+                var t2 = "";
+                if (ts.length >= 1) t2 = ts[1];
+                p31c(_strDatum, t1, t2);
+
+
+
+
+            }
+        })
+
+
+        ds.subscribe("dragmove", (dragmove_object) => {
+            if (dragmove_object) {
+                var e = event;
+                var sels = dragmove_object.items;
+
+                $("#selectable_log").css("display", "block");
+                var sels = ds.getSelection();
+                if (sels.length == 0) return;
+                var arr = [];
+                $(sels).each(function () { arr.push($(this).attr("slot_interval")); });
+                arr.sort();
+                var ts = arr[0].split(" - ");
+                var t1 = ts[0];
+                ts = arr[arr.length - 1].split(" - ");
+                if (ts.length <= 1) return;
+                var t2 = ts[1];
+                $("#selectable_log").text(t1 + " - " + t2);
+
+            }
+        })
+
+
+    });
+
+
+
+
+</script>

@@ -1,0 +1,115 @@
+﻿@model UI.Models.changelogViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = "CHANGE-LOG";
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageSymbol = "timeline";
+    Model.lisData = _f.p91InvoiceBL.GetList(new BO.myQueryP91() { explicit_orderby = "a.RowID", pids = new List<int>() { Model.pid } }, true);
+
+
+
+    Model.AddField("p91Code", "Číslo faktury");
+    Model.AddField("p91IsDraft", "Draft");
+    Model.AddField("p92Name", "Typ faktury");
+
+    Model.AddField("p91Date", "Datum vystavení");
+
+    Model.AddField("p91DateSupply", "Datum plnění");
+    Model.AddField("p91DateMaturity", "Datum splatnosti");
+    Model.AddField("p91DateBilled", "Datum poslední úhrady");
+    Model.AddField("p91DateExchange", "Datum měnového kurzu");
+
+    Model.AddField("p91ExchangeRate", "Měnový kurz");
+    Model.AddField("p91Datep31_From", "Úkony od");
+    Model.AddField("p91Datep31_Until", "Úkony do");
+
+    Model.AddField("p91Amount_TotalDue", "Celková částka");
+    Model.AddField("j27Code", "Měna");
+    Model.AddField("p91RoundFitAmount", "Částka zaokrouhlení");
+
+    Model.AddField("p91Amount_WithoutVat", "Bez dph");
+    Model.AddField("p91Amount_Vat", "Částka dph");
+    Model.AddField("p91Amount_WithVat", "Včetně dph");
+    Model.AddField("p91Amount_Debt", "Dluh");
+
+    Model.AddField("p91ProformaBilledAmount", "Částka zálohy");
+    Model.AddField("p91Amount_WithoutVat_None", "Cástka v nulové sazbě dph");
+
+    Model.AddField("p91VatRate_Low", "Snížená sazba dph");
+    Model.AddField("p91Amount_WithVat_Low", "Včetně dph snížená sazba");
+    Model.AddField("p91Amount_WithoutVat_Low", "Bez dph snížená sazba");
+
+    Model.AddField("p91VatRate_Standard", "Standardní sazba dph");
+    Model.AddField("p91Amount_WithVat_Standard", "Včetně dph standardní sazba");
+    Model.AddField("p91Amount_WithoutVat_Standard", "Bez dph standardní sazba");
+
+    
+    Model.AddField("b02Name", "Workflow stav");
+    
+
+    Model.AddField("Owner", "Vlastník záznamu");
+    Model.AddField("x38ID", "Číselná řada");
+    Model.AddField("b01ID", "Workflow šablona");
+    Model.AddField("p28ParentID", "Nadřízený kontakt");
+
+    
+
+    Model.AddField("p91Text1", "Text faktury");
+    Model.AddField("p91Text2", "Technický text faktury");
+
+    Model.AddField("p91Client", "Klient");
+    Model.AddField("p91Client_RegID", "IČ klienta");
+    Model.AddField("p91Client_VatID", "DIČ klienta");
+    Model.AddField("p91Client_ICDPH_SK", "IČ DPH klienta (SK)");
+    
+    Model.AddField("p91ClientAddress1_Street", "Klient - Ulice");
+    Model.AddField("p91ClientAddress1_City", "Klient - Město");
+    Model.AddField("p91ClientAddress1_ZIP", "Klient - PSČ");
+    Model.AddField("p91ClientAddress1_Country", "Klient - Země");
+
+
+    Model.AddField("p91Supplier", "Dodavatel");
+    Model.AddField("p91Supplier_RegID", "IČ dodavatele");
+    Model.AddField("p91Supplier_VatID", "DIČ dodavatele");
+    Model.AddField("p91Supplier_ICDPH_SK", "IČ DPH dodavatele");
+    Model.AddField("p91Supplier_Registration", "Dodavatel - OR");
+
+    Model.AddField("p91Supplier_Street", "Dodavatel - Ulice");    
+    Model.AddField("p91Supplier_City", "Dodavatel - Město");
+    Model.AddField("p91Supplier_ZIP", "Dodavatel - PSČ");
+    Model.AddField("p91Supplier_Country", "Dodavatel - Země");
+
+    Model.AddField("p91LockFlag", "Zámek");
+    
+
+    
+
+    Model.AddField("p63ID", "Strukturace cenového rozpisu faktury");
+
+    Model.AddField("ValidFrom", "Platnost od");
+    Model.AddField("ValidUntil", "Platnost do");
+
+}
+
+
+@section header_content{
+
+
+    <link rel="stylesheet" href="/css/htmltable.css" />
+
+
+}
+
+@addTagHelper *, UI
+
+
+<div class="bg-light" style="padding:10px;">
+
+    <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
+
+
+</div>
+
+@Html.EditorFor(m => Model,"~/Views/Shared/_ChangeLogTable.cshtml")
+

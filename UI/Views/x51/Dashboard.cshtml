@@ -1,0 +1,62 @@
+﻿@model UI.Models.x51HelpPageViewModel
+@inject BL.Factory _f
+
+
+@{
+   
+
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageSymbol = "help";
+
+
+
+
+}
+
+@addTagHelper *, UI
+
+
+
+
+
+
+@if(Model.Rec != null)
+{
+    <div>
+        <a href="javascript: window.parent._window_open('/x51/Index?pid=@Model.Rec.pid')">@_f.tra("Nápověda")</a>
+    </div>
+}
+
+
+
+
+
+@if (Model.Rec != null)
+{
+    @Html.Raw(Model.Rec.x51Html)
+}
+
+
+
+
+
+
+
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+      
+
+
+    })
+
+
+    
+
+    function hardrefresh(pid, flag) {
+        location.replace(location.href);
+    }
+</script>
+

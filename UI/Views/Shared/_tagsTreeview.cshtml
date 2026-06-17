@@ -1,0 +1,30 @@
+﻿@model UI.Models.Tab1.BaseTab1ViewModel
+
+@inject BL.Factory _f
+
+@{
+
+
+    var _tg = _f.o51TagBL.GetTagging(Model.prefix, Model.pid);
+    if (_tg.Tags.Count()==0)
+    {
+        return;
+    }
+   
+}
+
+
+<ul class="mytreeview">
+    <li>
+        <a class="mytreeview-toggle-kontejner" onclick="_treeview_toggle(this,'tab1-tags-toggle')">
+            <span class="material-icons-outlined-btn mytreeview-toggle-sipka">@(UI.Code.basKendoTreeViewSupport.Get_Arrow_LastState(_f, "tab1-tags-toggle"))</span>
+            <span class="material-icons-outlined-btn">sell</span>
+            <span>@_f.tra("Štítky") (@(_tg.Tags.Count()))</span>
+
+        </a>
+
+        <ul style="display:@(UI.Code.basKendoTreeViewSupport.Get_UL_LastState(_f,"tab1-tags-toggle"))">
+            @Html.Raw(_tg.TagHtml)
+        </ul>
+    </li>
+</ul>

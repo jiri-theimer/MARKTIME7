@@ -1,0 +1,116 @@
+﻿@model UI.Models.p56oper.p56CloneBatchViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = _f.tra("Kopírovat vybrané úkoly");
+
+
+}
+
+@addTagHelper *, UI
+
+
+<div class="bg-light" style="padding:10px;">
+    <button id="cmdSave" class="btn btn-success" onclick="_submit()">@_f.tra("Uložit změny")</button>
+    <button id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+</div>
+
+
+
+
+
+
+<form id="form1" asp-controller="p56CloneBatch" asp-action="Index" method="POST">
+    <div style="max-width:800px;">
+        @Html.EditorFor(m => m.ProjectCombo, "~/Views/Shared/_ProjectCombo.cshtml")
+    </div>
+
+    <div>
+
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>@_f.tra("Název")</th>
+                    <th>@_f.tra("Projekt")</th>
+                    <th>
+
+                    </th>
+                    <th>@_f.tra("Zahájení")</th>
+                    <th>@_f.tra("Termín")</th>
+
+
+                    <th>@_f.tra("Plán hodin")</th>
+                </tr>
+            </thead>
+            @for (int i = 0; i < Model.lisDest.Count; i++)
+            {
+                <tr>
+                    <td style="width:130px;">
+                        <input type="hidden" asp-for="lisDest[i].pid" />
+                        <input type="hidden" asp-for="lisDest[i].p56Notepad" />
+
+                        <input type="checkbox" asp-for="lisDest[i].Importovat" />
+                        <label class="col-form-label" for="lisDest_@(i)__Importovat">@_f.tra("Kopírovat")</label>
+                    </td>
+
+                    <td>
+                        <input type="text" class="form-control" asp-for="lisDest[i].p56Name" />
+                    </td>
+                    <td>
+                        <span>@Model.lisDest[i].Project</span>
+                    </td>
+                    <td>
+                        <span>@Model.lisDest[i].p56Notepad</span>
+                    </td>
+                    <td style="width:120px;">
+                        <mydate asp-for="lisDest[i].p56PlanFrom"></mydate>
+                    </td>
+                    <td style="width:120px;">
+                        <mydate asp-for="lisDest[i].p56PlanUntil"></mydate>
+                    </td>
+
+                    <td style="width:80px;">
+                        <input type="text" class="form-control" asp-for="lisDest[i].p56Plan_Hours" />
+                    </td>
+
+                </tr>
+            }
+        </table>
+
+
+
+
+    </div>
+
+</form>
+
+<div class="alert alert-info nonmobile nontablet" role="alert" style="width:500px;left:20px;top:20px;">
+    Ve výchozím stavu se úkoly naklonují se stávajícím projektem.
+    <hr />
+    Pokud vyberete jiný (cílový) projekt, budou mít úkoly vazbu na cílový projekt.
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+
+
+
+    })
+
+    function p41id_change(p41id) {
+        _postback("p41id");
+
+    }
+    function levelindex_change() {
+        _postback("levelindex");
+    }
+
+</script>
+
+
+

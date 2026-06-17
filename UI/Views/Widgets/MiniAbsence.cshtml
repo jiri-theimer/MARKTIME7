@@ -1,0 +1,191 @@
+﻿@model UI.Models.Widgets.MiniAbsenceViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+
+
+}
+
+@addTagHelper *, UI
+
+<link href="~/lib/autocomplete/jquery.autocomplete.css" rel="stylesheet" type="text/css" />
+
+<script src="~/lib/autocomplete/jquery.autocomplete.min.js"></script>
+
+<form id="form1" asp-controller="Widgets" asp-action="MiniAbsence" method="POST">
+    <table>
+
+        <tr>
+
+            <td>
+                <mydate asp-for="d0"></mydate>
+                
+            </td>
+
+            <td>
+                <label for="Prichod">@_f.tra("Přichod"):</label>
+            </td>
+            <td style="width:70px;">
+                <input type="text" asp-for="Prichod" class="form-control" onfocus="abs_focus()" onblur="abs_blur()" />
+            </td>
+
+            <td>
+                <label for="Odchod">@_f.tra("Odchod"):</label>
+            </td>
+            <td style="width:70px;">
+                <input type="text" asp-for="Odchod" class="form-control" onfocus="abs_focus()" onblur="abs_blur()" />
+            </td>
+            <td>
+                <button type="button" class="btn btn-sm btn-outline-success" onclick="abs_save()">@_f.tra("Uložit příchod a odchod")</button>
+            </td>
+
+
+        </tr>
+    </table>
+
+    <div id="divFUT" style="padding:8px;">
+        
+        @foreach (var c in Model.lisP32FUT)
+        {
+            
+            <a class="btn btn-sm bog" href="javascript:futc(@(c.pid))">
+                @if (c.p32AbsenceBreakFlag != BO.p32AbsenceBreakFlagENUM._None)
+                {
+                    <span style="background-color:@(c.p32Color)" class="material-icons-outlined">pause</span>
+                }
+                else
+                {
+                    <span style="background-color:@(c.p32Color)" class="material-icons-outlined">work_off</span>
+                }
+                @(c.p32Name)
+                @if (c.p32Value_Default > 0)
+                {
+                    <span style="color:red;margin-left:2px;">@(c.p32Value_Default)</span>
+                }
+            </a>
+            
+        }
+
+    </div>
+
+    <table class="table table-hover table-sm">
+        @foreach(var c in Model.lisP31)
+        {
+            <tr ondblclick="_edit('p31',@c.pid)">
+                <td style="width:20px;">
+                    <a class="cm" onclick="_cm(event,'p31',@c.pid)">☰</a>
+                </td>
+               
+                <td>
+                    @c.ClientName
+                </td>
+                <td>
+                    @c.p41Name
+                </td>
+                <td>
+                    @c.p32Name
+                </td>
+                <td class="tdnum">
+                    @BO.Code.Bas.GN(c.p31Hours_Orig)
+                </td>
+                <td>
+                    @c.p31Text
+                </td>
+            </tr>
+        }
+    </table>
+</form>
+
+
+<script type="text/javascript">
+    var _j02id = "@Model.j02ID";
+    var _current_abs_focused = false;
+    
+    $(document).ready(function () {
+
+        $("#d0helper").change(function () {
+
+            reload();
+        });
+
+        
+
+       
+        abs_init_intervals("Prichod", "06:00|06:30|07:00|07:30|08:00|08:30|09:00|09:30|10:00|10:30|11:00|11:30|12:00|12:30|13:00|13:30|14:00|14:30|15:00|15:30|16:00|16:30|17:00|17:30|18:00");
+        abs_init_intervals("Odchod", "12:00|12:30|13:00|13:30|14:00|14:30|15:00|15:30|16:00|16:30|17:00|17:30|18:00|18:30|19:00|19:30|20:00|20:30|21:00|21:30|22:00|22:30|23:00|23:30");
+
+        
+
+
+    });
+
+    function reload() {
+        var d = $("#d0helper").val();
+
+        var url = "/Widgets/MiniAbsence?d0=" + d;
+
+        location.href = url;
+    }
+
+
+    function abs_focus() {
+        _current_abs_focused = true;
+    }
+    function abs_blur() {
+        _current_abs_focused = false;
+    }
+
+
+
+
+
+
+    function abs_init_intervals(controlid, intervals) {
+        var arr = intervals.split("|");
+        $("#" + controlid).autocomplete({
+            source: [arr],
+            limit: 40,
+            visibleLimit: 40,
+            openOnFocus: true,
+            highlight: false,
+            autoselect: true
+        });
+
+        $("#" + controlid).prop("filled", true);
+
+        $("#" + controlid).on("focus", function (e, data) {
+            $(this).select();
+        });
+    }
+
+
+    
+
+    function abs_save() {
+        var d = $("#d0helper").val();
+
+        $.post(_ep("/p31calendar/SaveAbsRecord"), { d: d, prichod: $("#Prichod").val(), odchod: $("#Odchod").val(), j02id: _j02id }, function (data) {
+            if (data.message != null) {
+                alert(data.message);
+            } else {
+                reload();
+            }
+        });
+    }
+
+
+    function futc(p32id) {
+        var d = $("#d0helper").val();
+
+        $.post(_ep("/p31calendar/SaveFutRecord"), { d: d, p32id: p32id, j02id: _j02id }, function (data) {
+            if (data.message != null) {
+                alert(data.message);
+            } else {
+                reload();
+            }
+
+        });
+
+    }
+</script>

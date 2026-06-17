@@ -1,0 +1,79 @@
+﻿@model UI.Models.p31oper.p31RateViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = _f.tra("Simulace sazby");
+
+}
+
+@addTagHelper *, UI
+
+<div class="bg-light" style="padding:10px;">
+    
+    <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
+
+</div>
+
+<div class="info_record_container">
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Datum"):</label>
+        <div class="col-sm-3 col-md-2">
+            <myval datatype="date" value="@Model.d"></myval>
+        </div>
+
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Jméno"):</label>
+        <div class="col-sm-9 col-md-8">
+            <myval value="@_f.j02UserBL.Load(Model.j02ID).FullNameAsc"></myval>
+        </div>
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Projekt"):</label>
+        <div class="col-sm-9 col-md-8">
+            <myval value="@Model.RecP41.FullName"></myval>
+        </div>
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Aktivita"):</label>
+        <div class="col-sm-9 col-md-8">
+            <myval value="@_f.p32ActivityBL.Load(Model.p32ID).p32Name"></myval>
+        </div>
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Fakturační sazba"):</label>
+        <div class="col-sm-3 col-md-2">
+            <myval datatype="num" value="@Model.BillRate" valueafter="@Model.j27Code_BillingRate" addcssclass="fa"></myval>
+        </div>
+        
+
+    </div>
+    @if (Model.p51ID_BillingRate > 0)
+    {
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Fakturační ceník"):</label>
+            <div class="col-sm-4 col-md-4">
+                <myval value="@_f.p51PriceListBL.Load(Model.p51ID_BillingRate).p51Name"></myval>
+            </div>
+        </div>
+    }
+    <hr />
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Nákladová sazba"):</label>
+        <div class="col-sm-3 col-md-2">
+            <myval datatype="num" value="@Model.CostRate" valueafter="@Model.j27Code_CostRate" addcssclass="nefa"></myval>
+        </div>
+    </div>
+
+    
+    @if (Model.p51ID_CostRate > 0)
+    {
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Nákladový ceník"):</label>
+            <div class="col-sm-4 col-md-4">
+                <myval value="@_f.p51PriceListBL.Load(Model.p51ID_CostRate).p51Name"></myval>
+            </div>
+        </div>
+    }
+</div>

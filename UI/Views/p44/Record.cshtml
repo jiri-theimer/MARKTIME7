@@ -1,0 +1,105 @@
+﻿@model UI.Models.Record.p44Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Projektová šablona");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    Model.PageSymbol = "copy_all";
+}
+
+@addTagHelper *, UI
+
+<div class="modal_record_container">
+
+     <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název šablony"):</label>
+        <div class="col-sm-6 col-md-5">
+            <input class="form-control record_name" asp-for="Rec.p44Name" />
+        </div>
+        <label class="col-sm-2 col-md-2 col-form-label">#@_f.tra("Pořadí v nabídce"):</label>
+        <div class="col-sm-1 col-md-1">
+            <mynumber asp-for="Rec.p44Ordinary" class="record_ordinary" decimal-digits="0"></mynumber>
+        </div>
+    </div>
+
+    <div class="row my-2" style="display:none;">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Fixace šablony"):</label>
+        <div class="col-sm-6 col-md-5">
+            <select asp-for="@Model.Rec.p44FixingFlag" class="form-select">
+                <option value="_None">@_f.tra("Bez fixace")</option>
+                <option value="FixAll">@_f.tra("Zafixovat projekt i nastavení")</option>
+                <option value="FixProject">@_f.tra("Zafixovat vzorový projekt, nastavení lze měnit")</option>
+                <option value="FixSetting">@_f.tra("Zafixovat nastavení, vzorový projekt lze měnit")</option>
+            </select>
+        </div>
+
+
+    </div>
+
+    <div class="card" style="margin-top:10px;">
+       <div class="card-header">
+           @_f.tra("Vzorový projekt")
+       </div>
+       <div class="card-body">
+            @Html.EditorFor(m => m.ProjectCombo, "~/Views/Shared/_ProjectCombo.cshtml")
+       </div>
+   </div>
+
+    
+
+    
+
+   <div class="card" style="margin-top:10px;">
+       <div class="card-header">
+           @_f.tra("Kopírovat (předvyplňovat) ze vzorového projektu")
+       </div>
+       <div class="card-body">
+            <div style="padding:10px;">
+                <input type="checkbox" asp-for="@Model.Rec.p44IsRoles" />
+                <label class="col-form-label" for="Rec_p44IsRoles">@_f.tra("Obsazení projektových rolí")</label>
+            </div>
+            <div style="padding:10px;">
+                <input type="checkbox" asp-for="@Model.Rec.p44IsBilling" />
+                <label class="col-form-label" for="Rec_p44IsBilling">@_f.tra("Fakturační nastavení")</label>
+            </div>
+            <div style="padding:10px;">
+                <input type="checkbox" asp-for="@Model.Rec.p44IsClient" />
+                <label class="col-form-label" for="Rec_p44IsClient">@_f.tra("Klient projektu")</label>
+            </div>
+            <div style="padding:10px;">
+                <input type="checkbox" asp-for="@Model.Rec.p44IsJ18ID" />
+                <label class="col-form-label" for="Rec_p44IsJ18ID">@_f.tra("Středisko projektu")</label>
+            </div>
+            <div style="padding:10px;">
+                <input type="checkbox" asp-for="@Model.Rec.p44IsP40" />
+                <label class="col-form-label" for="Rec_p44IsP40">@_f.tra("Předpisy opakovaných/paušálních odměn")</label>
+            </div>
+            <div style="padding:10px;">
+                <input type="checkbox" asp-for="@Model.Rec.p44IsP56" />
+                <label class="col-form-label" for="Rec_p44IsP56">@_f.tra("Úkoly")</label>
+            </div>
+            <div style="padding:10px;">
+                <input type="checkbox" asp-for="@Model.Rec.p44IsO22" />
+                <label class="col-form-label" for="Rec_p44IsO22">@_f.tra("Termín/Lhůty")</label>
+            </div>
+            <div style="padding:10px;">
+                <input type="checkbox" asp-for="@Model.Rec.p44IsO24" />
+                <label class="col-form-label" for="Rec_p44IsO24">@_f.tra("Nastavená upozornění")</label>
+            </div>
+            <div style="padding:10px;display:none;">
+                <input type="checkbox" asp-for="@Model.Rec.p44IsTags" />
+                <label class="col-form-label" for="Rec_p44IsTags">@_f.tra("Štítky")</label>
+            </div>
+            <div style="padding:10px;">
+                <input type="checkbox" asp-for="@Model.Rec.p44IsB20" />
+                <label class="col-form-label" for="Rec_p44IsB20">@_f.tra("Projektoví hlídači")</label>
+            </div>
+       </div>
+   </div>
+
+    
+    
+
+    
+
+</div>

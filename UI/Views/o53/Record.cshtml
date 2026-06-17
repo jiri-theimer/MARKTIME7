@@ -1,0 +1,83 @@
+﻿@model UI.Models.Record.o53Record
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    if (Model.Rec == null) return;
+    Model.PageTitle = _f.tra("Štítek");
+   
+}
+
+@addTagHelper *, UI
+
+
+
+
+<div class="modal_record_container">
+
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název"):</label>
+        <div class="col-sm-6 col-md-5">
+            <input class="form-control record_name" asp-for="Rec.o53Name" />
+        </div>
+        <label class="col-sm-2 col-md-2 col-form-label">#@_f.tra("Index pořadí"):</label>
+        <div class="col-sm-1 col-md-1">
+            <mynumber asp-for="Rec.o53Ordinary" decimal-digits="0"></mynumber>
+        </div>
+    </div>
+
+    <div class="my-2">
+        <input asp-for="@Model.Rec.o53IsMultiSelect" />
+        <label for="Rec_o53IsMultiSelect">@_f.tra("U štítkování záznamu možnost zaškrtávat více položek (checkbox-list)")</label>
+    </div>
+
+    
+    <div class="card">
+        <div class="card-header">
+            @_f.tra("Vazba štítku na entity")
+        </div>
+        <div class="card-body">
+        
+            @foreach(var c in Model.ApplicableEntities)
+            {
+                <input type="checkbox" id="chk@(c.Prefix)" value="@c.Prefix" @BO.Code.Bas.IIFS(Model.Rec.o53Entities !=null && Model.Rec.o53Entities.Contains(c.Prefix),"checked",null) name="CheckedEntities" onchange="handle_check(this)" />
+                <label for="chk@(c.Prefix)">@c.AliasPlural</label>
+                <br />
+            }
+            
+
+        </div>
+    </div>
+
+
+
+    <input type="hidden" asp-for="@Model.Rec.o53Entities" />
+
+</div>
+
+
+
+<script type="text/javascript">
+
+
+    function handle_check(chk)
+    {
+        var s="";
+        var checkedBoxes = document.querySelectorAll('input[name=CheckedEntities]:checked');
+        for (var i = 0; i < checkedBoxes.length;i++)
+        {
+            if (s==""){
+                s = checkedBoxes[i].value;
+            }else
+            {
+                s = s + "," + checkedBoxes[i].value;
+            }
+            
+        }
+       
+        $("#Rec_o53Entities").val(s);
+    }
+</script>
+
+
+

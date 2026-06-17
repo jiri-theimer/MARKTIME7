@@ -1,0 +1,76 @@
+﻿@model UI.Models.Record.o23PageBoxViewModel
+@inject BL.Factory _f
+@{
+    if (Model == null)
+    {
+        return;
+    }
+
+
+    var _tab1 = new UI.Models.Tab1.BaseTab1ViewModel() { prefix = "o23", pid = Model.rec_pid };
+
+    
+
+    BO.TaggingHelper _tg = null;
+    if (Model.RecA58.a58ContentFlag == BO.a58ContentFlagEnum.RecTags)
+    {
+        _tg = _f.o51TagBL.GetTagging("o23", Model.rec_pid);
+    }
+
+
+
+}
+
+@addTagHelper *, UI
+
+
+
+
+
+@if (Model.RecA58.a58HtmlText != null)
+{
+    @Html.Raw(Model.MergeStaticHtmlText(_f,Model.RecA58.a58HtmlText,Model.rec_pid))
+}
+
+@if (Model.RecA58.a58ContentFlag == BO.a58ContentFlagEnum.o23Vazby)
+{
+    @await Html.PartialAsync("~/Views/Shared/_o23Vazby.cshtml",_f.o23DocBL.GetList_o19(Model.rec_pid))
+}
+
+@if (Model.RecA58.a58ContentFlag == BO.a58ContentFlagEnum.RecHeaderBox)
+{
+
+    @await Html.PartialAsync("~/Views/Shared/_o23RecHeaderBox.cshtml",Model.Rec)
+    
+    @Html.EditorFor(m => m.Rec, "~/Views/Shared/_TimeStamp.cshtml")
+}
+
+@if (Model.RecA58.a58ContentFlag == BO.a58ContentFlagEnum.RolesAssigned)
+{
+    @await Html.PartialAsync("~/Views/Shared/_RoleAssignRO.cshtml",_tab1)
+}
+
+@if (Model.RecA58.a58ContentFlag == BO.a58ContentFlagEnum.RecTags)
+{
+    @Html.Raw(_tg.TagHtml)
+
+}
+
+@if (Model.RecA58.a58ContentFlag == BO.a58ContentFlagEnum.o27List)
+{
+    @await Html.PartialAsync("~/Views/Shared/_lisO27.cshtml",_tab1)
+
+}
+
+@if (Model.RecA58.a58ContentFlag == BO.a58ContentFlagEnum.RecNotepad)
+{
+    @if (Model.Rec.x04ID > 0)
+    {
+        @Html.Raw(Model.Rec.o23Notepad)
+    }
+    else
+    {
+        @Html.Raw(BO.Code.Bas.Text2Html(Model.Rec.o23Notepad))
+    }
+
+}

@@ -1,0 +1,74 @@
+﻿@model UI.Models.Admin.m62SettingsViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Import měnových kurzů");
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+}
+
+@addTagHelper *, UI
+
+
+<div class="bg-light" style="padding:5px;border-bottom:solid 1px silver;border-top:solid 1px silver;">
+    
+    <button id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+
+
+
+</div>
+
+<form id="form1" asp-controller="m62" asp-action="Settings" method="POST">
+    <div class="modal_record_container">
+
+        <div class="card">
+            <div class="card-header">
+                @_f.tra("Měny, jejichž kurz se má automaticky importovat z ČNB")
+
+                <button id="cmdSave" class="btn btn-success ml-2" onclick="_postback('settings')">@_f.tra("Uložit nastavení")</button>
+            </div>
+            <div class="card-body">
+                
+                
+                <mycheckboxlist asp-for="@Model.SelectedJ27IDs" datasource="@Model.lisAllJ27" valuefield="j27ID" textfield="j27Code"></mycheckboxlist>
+            </div>
+        </div>
+
+        <div class="card my-2">
+            <div class="card-header">
+                @_f.tra("Naimportovat kurz pro vybranou měnu a den")
+
+                <button type="button" id="cmdImport" class="btn btn-primary ml-2" onclick="_postback('import')">@_f.tra("Spustit")</button>
+            </div>
+            <div class="card-body">
+                <div class="row my-2">
+                    <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Měna"):</label>
+                    <div class="col-sm-4 col-md-3">
+                        <mycombo entity="j27Currency" asp-for="@Model.SelectedJ27ID" selectedtext="@Model.SelectedJ27Code" view-flag="1"></mycombo>
+                    </div>
+
+                </div>
+                <div class="row my-2">
+                    <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Datum"):</label>
+                    <div class="col-sm-4 col-md-3">
+                        <mydate asp-for="@Model.SelectedDate" include-time="false"></mydate>
+                    </div>
+
+                </div>
+                
+            </div>
+        </div>
+
+
+
+
+    </div>
+</form>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+    })
+
+    
+</script>

@@ -1,0 +1,52 @@
+﻿@model UI.Models.Record.o15Record
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    if (Model.Rec == null) return;
+    Model.PageTitle = _f.tra("AutoComplete položka");
+    Model.PageSymbol = "settings";
+}
+@addTagHelper *, UI
+
+<div class="modal_record_container">
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Typ položky"):</label>
+        <div class="col-sm-4 col-md-4">
+            <select asp-for="Rec.o15Flag" class="form-select">
+                <option value="TitulPred">@_f.tra("Titul před jménem")</option>
+                <option value="TitulZa">@_f.tra("Titul za jménem")</option>
+                <option value="Pozice">@_f.tra("Pozice kontaktní osoby")</option>
+                <option value="Stat">@_f.tra("Stát")</option>
+                <option value="UrlAdresa">@_f.tra("Url adresa")</option>
+
+            </select>
+
+
+        </div>
+
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Hodnota"):</label>
+        <div class="col-sm-11 col-md-10">
+            <input class="form-control" asp-for="Rec.o15Value" />
+            <span asp-validation-for="Rec.o15Value" class="text-danger"></span>
+        </div>
+
+    </div>
+    <hr />
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Index pořadí"):</label>
+        <div class="col-sm-1 col-md-1">
+            <mynumber asp-for="Rec.o15Ordinary" decimal-digits="0"></mynumber>
+        </div>
+
+    </div>
+
+
+
+</div>
+
+
+

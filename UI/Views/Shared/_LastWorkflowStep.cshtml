@@ -1,0 +1,100 @@
+﻿@model UI.Models.Tab1.BaseTab1ViewModel
+@inject BL.Factory _f
+
+@{
+
+
+    if (Model == null) return;
+
+    var _lisB05 = _f.WorkflowBL.GetList_b05(Model.prefix, Model.pid, 0, 0,0);
+    if (_lisB05.Count() <= 1) return;
+
+    BO.b05Workflow_History _recB05 = _lisB05.First();
+
+    
+}
+
+<div class="card recpageboxauto">
+        <div class="card-body">
+        <table class="table table-hover">
+            <tr>
+                <td class="tdlab">
+                    @_f.tra("Workflow krok"):
+                </td>
+                <td class="tdval">
+                    @(_recB05.b06Name)
+
+                </td>
+
+            </tr>
+            <tr>
+                <td class="tdlab">
+                    @_f.tra("Kdy"):
+                </td>
+                <td class="tdval">
+                    @(BO.Code.Bas.ObjectDateTime2String(_recB05.DateInsert)) (-@(BO.Code.Time.DurationFormatted(Convert.ToDateTime(_recB05.DateInsert), DateTime.Now, true)))
+                </td>
+
+            </tr>
+            <tr>
+                <td class="tdlab">
+                    @_f.tra("Kdo"):
+                </td>
+                <td class="tdval">
+                    @if (_recB05.j02ID_Sys > 0)
+                    {
+                        <span style="color:silver;">@_recB05.Person</span>
+                    }
+                    else
+                    {
+                        <span style="color:orange;">@_recB05.UserInsert</span>
+                    }
+
+                </td>
+
+            </tr>
+            
+            @if (_recB05.b02ID_From !=_recB05.b02ID_To)
+            {
+                <tr>
+                    <td class="tdlab">
+                        @_f.tra("Změna stavu"):
+                    </td>
+                    <td class="tdval">
+                        @Html.Raw(_recB05.StatusMoveHtmlRed)
+
+                    </td>
+
+                </tr>
+            }
+            
+            <tr>
+                <td colspan="2">
+                    @if (_recB05.j95Longitude > 0 && _recB05.j95Latitude > 0)
+                    {
+                        <a target="_blank" style="margin-left:6px;" href="@(_recB05.getMapUrlClassic())">Mapa</a>
+                        <img src="@(_recB05.WeatherIconUrl)" />
+                        <i style="margin-left:10px;">@(_recB05.j95Description)</i>
+                        <span style="margin-left:10px;">
+                            @(BO.Code.Bas.Number2String(_recB05.j95Temp))
+                            ℃
+
+                        </span>
+                        <span style="margin-left:10px;">
+                            @_f.tra("vítr"):
+                            @(BO.Code.Bas.Number2String(_recB05.j95WindSpeed))
+                            <span>m/s</span>
+                        </span>
+                        @if (_recB05.j95Location != null)
+                        {
+                            <span style="margin-left:10px;">@(_recB05.j95Location)</span>
+                        }
+                    }
+                </td>
+            </tr>
+
+        </table>
+
+        </div>
+    </div>
+

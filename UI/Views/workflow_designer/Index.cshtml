@@ -1,0 +1,219 @@
+﻿@model UI.Models.wrk.WorkflowDesignerViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    if (Model == null)
+    {
+        return;
+    }
+    if (Model.RecB01 != null)
+    {
+        Model.PageTitle = Model.RecB01.b01Name;
+    }
+    Model.PageSymbol = "schema";
+
+}
+
+@addTagHelper *, UI
+
+
+
+
+
+
+@Html.Raw("<div id='header_index' class='input-group' style='margin-top:0px;padding-top:8px;padding-bottom:8px;background-color:#F5F5F5;'>")
+
+<div>
+    <span class="material-icons-outlined-btn">schema</span>
+</div>
+
+@if (Model.lisB01.Count() > 0)
+{
+    <div style="margin-left:4px;">
+        <div class="input-group">
+            <mydropdown asp-for="@Model.SelectedB01ID" datasource="@Model.lisB01" textfield="b01Name" valuefield="pid" event_after_changevalue="changetemplate"></mydropdown>
+            @if (Model.RecB01 != null)
+            {
+                <button type="button" class="btn bog" onclick="b01_edit(@Model.SelectedB01ID)" title="Hlavička workflow šablony">...</button>
+            }
+
+
+        </div>
+    </div>
+}
+
+
+<div class="col-auto flow-end" style="margin-left:auto;">
+    <button type="button" class="btn btn-sm bog" onclick="b01_new()">@_f.tra("Nová workflow šablona")</button>
+</div>
+
+@Html.Raw("</div>")
+
+
+<table class="table table-hover">
+    <tr>
+        <th style="width:20px;"></th>
+        <th>
+            Workflow stavy
+            @if (Model.RecB01 != null)
+            {
+                <button type="button" class="btn btn-sm bog" onclick="b02_new()">@_f.tra("Nový stav")</button>
+            }
+
+        </th>
+        @if (Model.RecB01.b01PrincipleFlag == BO.b01PrincipleFlagEnum.Step)
+        {
+            <th style="width:90px;">
+
+            </th>
+            <th>
+                Workflow kroky (přechody)
+            </th>
+        }
+        
+
+        <th style="width:20px;"></th>
+    </tr>
+    @if (Model.lisB02 != null)
+    {
+        @foreach (var c in Model.lisB02)
+        {
+            <tr>
+                <td style="width:20px;background-color:@(c.b02Color);">
+                    &nbsp;
+                </td>
+
+                <td style="@(c.isclosed ? "text-decoration: line-through;min-width:150px;": "min-width:150px;")">
+                    <a href="javascript:b02_edit(@(c.pid))">@c.b02Name</a>
+                    @if (c.b02RecordFlag == BO.b02RecordFlagEnum.ZaznamOtevreny)
+                    {
+                        <myicon color="lime" symbol="done"></myicon>
+                    }
+                    @if (c.b02RecordFlag == BO.b02RecordFlagEnum.ZaznamVArchivu)
+                    {
+                        <myicon color="black" symbol="close"></myicon>
+                    }
+                    @if (c.b02AutoRunFlag == BO.b02AutoRunFlagEnum.Startovaci)
+                    {
+                        <myicon color="lime" symbol="flag"></myicon>
+                    }
+                    @if (c.b02AutoRunFlag == BO.b02AutoRunFlagEnum.Technicky)
+                    {
+                        <myicon color="black" symbol="podcasts"></myicon>
+                    }
+                </td>
+                @if (Model.RecB01.b01PrincipleFlag == BO.b01PrincipleFlagEnum.Step)
+                {
+                    <td style="width:90px;">
+                        <button type="button" class="btn btn-sm bog" onclick="b06_new(@(c.pid))">@_f.tra("Nový krok")</button>
+                    </td>
+                    <td>
+                        @foreach (var recB06 in Model.lisB06.Where(p => p.b02ID == c.pid))
+                        {
+                            <a href="javascript:b06_edit(@(recB06.pid))" style="@(recB06.isclosed ? "text-decoration: line-through": "")">@recB06.NameWithTargetStatus</a>
+
+                            if (recB06.b06NomineeFlag == BO.b06NomineeFlagENum.RucniPovinna || recB06.b06NomineeFlag == BO.b06NomineeFlagENum.RucniNepovinna)
+                            {
+                                <myicon color="green" symbol="person_add"></myicon>
+                            }
+                            if (recB06.b06NomineeFlag == BO.b06NomineeFlagENum.Pevna)
+                            {
+                                <myicon color="red" symbol="person_add"></myicon>
+                            }
+                            if (recB06.b06AutoRunFlag == BO.b06AutoRunFlagEnum.NeUzivatelskyKrok)
+                            {
+                                <myicon color="gray" symbol="smart_toy"></myicon>
+                            }
+                            if (recB06.b06AutoRunFlag == BO.b06AutoRunFlagEnum.AutomatickySpustenySeStavem)
+                            {
+                                <myicon color="gray" symbol="start"></myicon>
+                            }
+                            if (Model.lisAllB11.Any(p => p.b06ID == recB06.pid))
+                            {
+                                <myicon symbol="notifications" color="orange"></myicon>
+                            }
+                            if (recB06.p60ID>0)
+                            {
+                                <myicon color="blue" symbol="task"></myicon>
+                            }
+                            <p></p>
+                        }
+                    </td>
+                }
+               
+
+                <td style="width:20px;">
+                    #@(c.b02Ordinary)
+                </td>
+            </tr>
+        }
+    }
+
+
+
+
+</table>
+
+
+
+<script type="text/javascript">
+    var _b01id = "@Model.SelectedB01ID";
+    var _strankaprefix = "@(Model.RecB01 != null ? Model.RecB01.b01Entity : "")";
+
+
+
+    $(document).ready(function () {
+
+
+        _mainmenu_highlight_current("cmdadmin");
+
+
+    });
+
+
+
+    function changetemplate(cbx) {
+        $.post("/Common/SetUserParam", { key: "workflow_designer-b01id", value: cbx.value }, function (data) {
+
+            location.replace("/workflow_designer/Index?b01id=" + cbx.value);
+
+        });
+
+
+    }
+
+
+
+    function reload() {
+        var url = "/workflow_designer/Index?b01id=" + _b01id;
+
+        location.replace(url);
+    }
+
+
+    function b01_new() {
+        _window_open("/b01/Record", 3);
+    }
+    function b01_edit(b01id) {
+        _window_open("/b01/Record?pid=" + b01id, 3);
+    }
+
+    function b02_edit(b02id) {
+        _window_open("/b02/Record?pid=" + b02id, 3);
+    }
+
+    function b02_new() {
+        _window_open("/b02/Record?b01id=" + _b01id, 3);
+    }
+
+    function b06_new(b02id) {
+        _window_open("/b06/Record?b02id=" + b02id, 3);
+    }
+    function b06_edit(b06id) {
+        _window_open("/b06/Record?pid=" + b06id, 3);
+    }
+
+
+
+</script>

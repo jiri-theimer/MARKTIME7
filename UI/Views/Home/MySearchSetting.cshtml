@@ -1,0 +1,137 @@
+﻿@model BaseViewModel
+@inject BL.Factory _f
+
+@{
+    bool _isMobile = _f.CurrentUser.IsMobileDisplay();
+    if (_isMobile)
+    {
+        Layout = "~/Views/Shared/_LayoutSubformMobile.cshtml";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+    }
+
+    var _j02MySearchBitStream = _f.j02UserBL.Load(_f.CurrentUser.pid).j02MySearchBitStream;
+    if (_j02MySearchBitStream == 0)
+    {
+        _j02MySearchBitStream = 60;
+    }
+
+    
+}
+
+@addTagHelper *,UI
+
+<div style="padding:10px;">
+    <strong>@_f.tra("Oblast hledání"):</strong>
+
+    @if (_f.CurrentUser.j04IsModule_p41)
+    {
+        <div>
+            <input type="checkbox" id="chkMySearchP41" value="4" @(BO.Code.Bas.bit_compare_or(_j02MySearchBitStream, 4) ? "checked" : "") />
+            <label for="chkMySearchP41">@_f.tra("PROJEKTY")</label>
+        </div>
+    }
+
+    @if (_f.CurrentUser.j04IsModule_p28)
+    {
+        <div>
+            <input type="checkbox" id="chkMySearchP28" value="8" @(BO.Code.Bas.bit_compare_or(_j02MySearchBitStream, 8) ? "checked" : "") />
+            <label for="chkMySearchP28">@_f.tra("KONTAKTY")</label>
+        </div>
+    }
+    @if (_f.CurrentUser.j04IsModule_p91)
+    {
+        <div>
+            <input type="checkbox" id="chkMySearchP91" value="16" @(BO.Code.Bas.bit_compare_or(_j02MySearchBitStream, 16) ? "checked" : "") />
+            <label for="chkMySearchP91">@_f.tra("VYÚČTOVÁNÍ")</label>
+        </div>
+    }
+    @if (_f.CurrentUser.j04IsModule_p90)
+    {
+        <div>
+            <input type="checkbox" id="chkMySearchP90" value="32" @(BO.Code.Bas.bit_compare_or(_j02MySearchBitStream, 32) ? "checked" : "") />
+            <label for="chkMySearchP90">@_f.tra("ZÁLOHY")</label>
+        </div>
+    }
+
+    @if (_f.CurrentUser.j04IsModule_p56)
+    {
+        <div>
+            <input type="checkbox" id="chkMySearchP56" value="64" @(BO.Code.Bas.bit_compare_or(_j02MySearchBitStream, 64) ? "checked" : "") />
+            <label for="chkMySearchP56">@_f.tra("ÚKOLY")</label>
+        </div>
+    }
+    @if (_f.CurrentUser.j04IsModule_o23)
+    {
+        <div>
+            <input type="checkbox" id="chkMySearchO23" value="128" @(BO.Code.Bas.bit_compare_or(_j02MySearchBitStream, 128) ? "checked" : "") />
+            <label for="chkMySearchO23">@_f.tra("DOKUMENTY")</label>
+        </div>
+    }
+
+    <div style="margin-top:20px;">
+        <input type="checkbox" id="chkMySearchArchive" value="2" @(BO.Code.Bas.bit_compare_or(_j02MySearchBitStream, 2) ? "checked" : "") />
+        <label for="chkMySearchArchive">@_f.tra("Prohledávat i záznamy v archivu")</label>
+    </div>
+    <hr />
+    <button type="button" class="btn btn-sm bog" onclick="local_save()">@_f.tra("Uložit nastavení")</button>
+</div>
+
+
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+        
+        
+
+    });
+
+    function local_save()
+    {
+        var val = 0;
+
+        if ($("#chkMySearchP41").prop("checked")) {
+            val = val + 4;
+        }
+        if ($("#chkMySearchP28").prop("checked")) {
+            val = val + 8;
+        }
+        if ($("#chkMySearchP91").prop("checked")) {
+            val = val + 16;
+        }
+        if ($("#chkMySearchP90").prop("checked")) {
+            val = val + 32;
+        }
+        if ($("#chkMySearchP56").prop("checked")) {
+            val = val + 64;
+        }
+        if ($("#chkMySearchO23").prop("checked")) {
+            val = val + 128;
+        }
+        if ($("#chkMySearchArchive").prop("checked")) {
+            val = val + 2;
+        }
+
+        if (val <= 2) {
+            _notify_message("Nastavení je nedostatečné");
+            return;
+        }
+
+        $.post("/Home/SaveMySearchSetting", { intMySearchBitStream: val}, function (data) {
+
+            _notify_message("Nastavení uloženo", "info");
+
+            
+        });
+    }
+
+
+
+
+
+
+</script>

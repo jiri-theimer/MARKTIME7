@@ -1,0 +1,232 @@
+﻿@model HelpViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Uživatelská příručka");
+    if (Model.Header != null)
+    {
+        Model.PageTitle = $"{Model.Header} ({Model.PageTitle})";
+    }
+    Layout = "~/Views/Shared/_LayoutHelp.cshtml";
+
+    var _returnurl = @Context.Request.Query["returnurl"];
+
+}
+
+@addTagHelper *, UI
+
+
+<div class="container-fluid">
+
+    <!-- SEARCH + BUTTON -->
+    <div class="row py-3 border-bottom align-items-center">
+        <div class="col-auto d-lg-none">
+            <!-- tlačítko jen na mobilu -->
+            <button class="btn btn-outline-primary" data-bs-toggle="offcanvas" data-bs-target="#navCanvas">
+                ☰
+            </button>
+        </div>
+        <div class="col">
+            <input type="text" class="form-control form-control-lg" placeholder="Hledat v příručce...">
+        </div>
+    </div>
+
+    <div class="row">
+
+        <!-- SIDEBAR (DESKTOP ONLY) -->
+        <div id="container_desktop" class="col-lg-3 d-none d-lg-block sidebar-desktop p-3">
+            <!-- navigační strom -->
+            <div id="tree1" class="treeds p-3">
+                @await Html.PartialAsync("~/Views/Shared/_TreeDsRenderHelper.cshtml", Model.treeNodes)
+            </div>
+        </div>
+
+        <!-- CONTENT -->
+        <div class="col-12 col-lg-9 p-4">
+            <!-- obsah kapitoly -->
+            @if(Model.SelectedHtml != null)
+            {
+                @Html.Raw(Model.SelectedHtml)
+            }
+            
+            
+        </div>
+
+    </div>
+
+</div>
+
+<!-- OFFCANVAS (MOBILE ONLY) -->
+<div class="offcanvas offcanvas-start w-100 d-lg-none" tabindex="-1" id="navCanvas">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title">Navigace</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+
+    <div id="container_mobile" class="offcanvas-body">
+        <!-- navigační strom -->
+        <div id="tree2" class="treeds p-3">
+            @await Html.PartialAsync("~/Views/Shared/_TreeDsRenderHelper.cshtml", Model.treeNodes)
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+    let _inicializace=true;
+    let _selectedid="@Model.SelectedId";
+
+    $(document).ready(function () {
+
+
+              
+
+
+              tree_init("tree1");
+              tree_init("tree2");
+
+              if (_selectedid !="0")
+              {
+                  selectTreeLeafById(_selectedid,"tree1");
+                  selectTreeLeafById(_selectedid,"tree2");
+              }
+              
+
+
+          });
+
+
+
+
+    
+
+    function selectTreeLeafById(leafId,treeid)
+    {
+        const tree = document.getElementById(treeid);
+        if (!tree) return;
+
+        // najdi <a> s daným data-id
+        let leaf = tree.querySelector(`a[data-id="${leafId}"]`);
+
+        if (!leaf)
+        {
+            leaf=tree.querySelector(`summary[data-id="${leafId}"]`);
+        }
+        
+        if (!leaf) return;
+
+        
+
+        // rozbal všechny nadřazené <details>
+        let parent = leaf.parentElement;
+        while (parent) {
+            if (parent.tagName === "DETAILS") {
+                parent.open = true;
+            }
+            parent = parent.parentElement;
+        }
+
+        // zruš active u všech leafů
+        tree.querySelectorAll("a.nav-link").forEach(a =>
+            a.classList.remove("active")
+        );
+
+        
+
+        // označ aktuální
+        leaf.classList.add("active");
+
+        // scroll na položku
+        leaf.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+        });
+    }
+
+
+    function tree_init(treeid)
+           {
+                const treeDetails = document.querySelectorAll("#"+treeid+" details");
+                let internalChange = false;
+
+                // najde nejbližší nadřazený <details>
+               function getParentDetail(el)
+               {
+                 let p = el.parentElement;
+                 while (p) {
+                   if (p.tagName === "DETAILS") return p;
+                   p = p.parentElement;
+                 }
+                 return null;
+               }
+
+
+                treeDetails.forEach(d => {
+
+                 d.addEventListener("toggle", () => {
+
+                   if (internalChange) return;
+
+                   if (_inicializace) {
+                       _inicializace = false;
+                       return;
+                   }
+
+                   // accordion: zavři ostatní foldery
+                   if (d.open)
+                   {
+
+                       internalChange = true;
+
+                       // najdu společného rodiče → tím určíme sourozence
+                       const parent = getParentDetail(d);
+
+                       // SOUROZENCI = všechny <details> se stejným rodičem
+                       const siblings = parent
+                           ? Array.from(parent.querySelectorAll(':scope > details'))
+                           : Array.from(document.querySelectorAll("#"+treeid+" > details"));
+
+                       // zavři pouze přímé SOUROZENCE (a jen je)
+                       siblings.forEach(other => {
+                           if (other !== d) other.open = false;
+                       });
+
+                       internalChange = false;
+
+                       //otevření větve
+                       
+
+                   }
+                   else
+                   {
+                           //zavření větve
+                   }
+
+
+
+
+                   if (_inicializace)
+                   {
+                       _inicializace=false;
+                       return;
+                   }
+
+
+                 });
+               });
+
+
+           }
+</script>

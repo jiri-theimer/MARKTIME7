@@ -1,0 +1,75 @@
+﻿@model UI.Models.Tab1.BaseTab1ViewModel
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+
+
+
+    BO.p83UpominkaType _rec = _f.p83UpominkaTypeBL.Load(Model.pid);
+    
+
+
+}
+
+@addTagHelper *, UI
+
+
+
+@Html.Raw("<div class='info_record_container'>")
+
+
+<table style="width:90%;">
+    <tr>
+        <td>
+            <h4>Typ upomínky</h4>
+        </td>
+        <td>
+            @if (_f.CurrentUser.IsAdmin)
+            {
+                <a href="javascript:_edit('p83',@Model.pid)">@_f.tra("Administrace")</a>
+            }
+        </td>
+    </tr>
+</table>
+
+
+
+
+
+<table class="table table-sm table-hover">
+    <tr>
+        <td>
+            Název:
+        </td>
+        <td style="font-weight:bold;">
+            @(_rec.p83Name)
+
+        </td>
+    </tr>
+   
+
+</table>
+
+
+
+
+
+
+
+
+@Html.Raw("</div>")
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+    });
+
+
+
+</script>

@@ -1,0 +1,106 @@
+﻿@model UI.Models.Tab1.p56Tab1
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+    if (Model.Rec == null) return;
+    if (Model.ff1 != null) Model.ff1.caller = "info";
+
+    var _disp = _f.p56TaskBL.InhaleRecDisposition(Model.Rec.pid, Model.Rec);
+    InfoButtonsViewModel _buttons = new InfoButtonsViewModel() { prefix = Model.prefix, pid = Model.pid, disp = _disp };
+
+    var mq = new BO.myQueryP31() { p56id = Model.pid };
+    if (!_f.CurrentUser.TestPermission(BO.PermValEnum.GR_P31_Reader))
+    {
+        mq.tabquery = "time";
+    }
+    var _lisP31 = _f.p31WorksheetBL.GetList(mq);
+}
+
+@addTagHelper *, UI
+
+
+
+@Html.Raw("<div class='info_record_container'>")
+
+<div class="input-group my-2">
+    <div>
+        @Html.EditorFor(m => _buttons, "~/Views/Shared/_InfoButtons.cshtml")
+        @if(Model.Rec.p41ID>0 && _f.CurrentUser.j04IsModule_p31 && !Model.Rec.isclosed)
+        {
+            <a class="btn" href="javascript:_window_open('/p31/Record?pid=0&newrec_prefix=p56&newrec_pid=@(Model.pid)',3)" title="@_f.tra("Vykázat aktivitu")"><span class="material-icons-outlined-btn">more_time</span></a>
+        }
+    </div>
+    
+
+
+</div>
+
+
+<div class="card recpageboxauto">
+    <div class="card-body">
+        @Html.EditorFor(m => m.Rec, "~/Views/Shared/_p56RecHeaderBox.cshtml")
+
+        @Html.EditorFor(m => m.ff1, "~/Views/Shared/_FreeFieldsRO.cshtml")
+
+
+    </div>
+</div>
+
+
+@Html.EditorFor(m => m, "~/Views/Shared/_TagsTab1.cshtml")
+
+@Html.EditorFor(m => m, "~/Views/Shared/_lisO27Tab1.cshtml")
+
+@if (_lisP31.Count() > 0)
+{
+    <var>Vykázané úkony v úkolu:</var>
+    <table class="table table-sm table-hover">
+        @foreach(var c in _lisP31)
+        {
+            <tr>
+                <td>
+                    @(BO.Code.Bas.ObjectDate2String(c.p31Date,"dd.MM.yyyy"))
+                </td>
+                <td>
+                    @c.Person
+                </td>
+                <td>
+                    @c.p32Name
+                </td>
+                <td class="numcell">
+                    @(BO.Code.Bas.Number2String(c.p31Hours_Orig))
+                </td>
+                <td>
+                    <i>
+                        @(Html.Raw(BO.Code.Bas.Html2Text(c.p31Text)))
+                    </i>
+                </td>
+            </tr>
+        }
+        <tr>
+            <th></th>
+            <th></th>
+            <th></th>
+            <th class="numcell">
+                @(BO.Code.Bas.Number2String(_lisP31.Sum(p=>p.p31Hours_Orig)))
+            </th>
+            <th></th>
+        </tr>
+    </table>
+}
+else
+{
+    <var>Úkol bez vykázaných úkonů.</var>
+}
+
+
+
+
+
+
+
+@Html.Raw("</div>")
+
+<div style="clear:both;"></div>

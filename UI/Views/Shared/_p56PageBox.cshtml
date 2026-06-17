@@ -1,0 +1,67 @@
+﻿@model UI.Models.Record.p56PageBoxViewModel
+@inject BL.Factory _f
+@{
+    if (Model == null)
+    {
+        return;
+    }
+
+
+    var _tab1 = new UI.Models.Tab1.p56Tab1() { prefix = "p56", pid = Model.rec_pid, Rec = Model.Rec };
+
+
+    BO.TaggingHelper _tg = null;
+    if (Model.RecA58.a58ContentFlag == BO.a58ContentFlagEnum.RecTags)
+    {
+        _tg = _f.o51TagBL.GetTagging("p56", Model.rec_pid);
+    }
+
+
+
+
+
+}
+
+@addTagHelper *, UI
+
+
+@if (Model.RecA58.a58HtmlText != null)
+{
+    @Html.Raw(Model.MergeStaticHtmlText(_f,Model.RecA58.a58HtmlText,Model.rec_pid))
+}
+
+@if (Model.RecA58.a58ContentFlag == BO.a58ContentFlagEnum.RecHeaderBox)
+{
+    @await Html.PartialAsync("~/Views/Shared/_p56RecHeaderBox.cshtml",Model.Rec)
+    
+}
+
+@if (Model.RecA58.a58ContentFlag == BO.a58ContentFlagEnum.RolesAssigned)
+{
+    @await Html.PartialAsync("~/Views/Shared/_RoleAssignRO.cshtml",_tab1)
+}
+
+@if (Model.RecA58.a58ContentFlag == BO.a58ContentFlagEnum.RecTags)
+{
+    @Html.Raw(_tg.TagHtml)
+
+}
+
+@if (Model.RecA58.a58ContentFlag == BO.a58ContentFlagEnum.o27List)
+{
+    @await Html.PartialAsync("~/Views/Shared/_lisO27.cshtml",_tab1)
+
+}
+
+@if (Model.RecA58.a58ContentFlag == BO.a58ContentFlagEnum.RecNotepad)
+{
+    @if (Model.Rec.x04ID > 0)
+    {
+        @Html.Raw(Model.Rec.p56Notepad)
+    }
+    else
+    {
+        @Html.Raw(BO.Code.Bas.Text2Html(Model.Rec.p56Notepad))
+    }
+
+}

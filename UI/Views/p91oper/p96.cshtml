@@ -1,0 +1,108 @@
+﻿@model UI.Models.p91oper.p96ViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = "PDF archiv vyúčtování";
+    Model.PageSymbol = "folder_open";
+
+}
+
+@addTagHelper *, UI
+
+<div class="bg-light" style="padding:10px;">
+
+    <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+
+
+
+</div>
+
+<form id="form1" asp-controller="p91oper" asp-action="p96" method="POST">
+    <div class="modal_record_container">
+
+        <div style="padding:10px;">
+
+            <span class="badge-light">
+                @Model.RecP91.p92Name
+            </span>
+            <strong>@Model.RecP91.p91Code</strong>
+        </div>
+
+
+
+        <table class="table table-hover">
+            @foreach (var c in Model.lisP96)
+            {
+                <tr>
+                    <td>
+                        @c.x31Name
+                        <div>
+                            @c.p96Code
+                        </div>
+
+
+                    </td>
+                    <td>
+                        <a target="_blank" href="/FileUpload/FileDownloadImprint?guid=@(c.p96Guid)">
+                            @_f.tra("PDF náhled")
+                        </a>
+                    </td>
+
+                    <td>
+                        @(c.UserInsert)
+                        <div>
+                            @(BO.Code.Bas.ObjectDateTime2String(c.DateUpdate))
+                        </div>
+                    </td>
+                    <td>
+                        @(c.p96Supplier)
+                        <div>@(c.p96Supplier_RegID)</div>
+                    </td>
+
+                    <td>
+                        @(c.p96Client)
+                        <div>
+                            @(c.p96Client_RegID)
+                        </div>
+                    </td>
+
+                </tr>
+            }
+        </table>
+
+
+
+
+    </div>
+
+
+    <input type="hidden" asp-for="@Model.p91ID" />
+</form>
+
+<div class="alert alert-primary" role="alert" style="margin-top:4px;">
+    
+    Do PDF archivu se uloží záznam po PDF operaci s reportem vyúčtováním:
+    <ul>
+        <li>Kliknutí na tlačítko [Odeslat poštou].</li>
+        <li>Kliknutí na tlačítko [PDF MERGE].</li>
+    </ul>
+    <p>
+        S PDF dokumentem se uloží i aktuální název+IČO vystavovatele faktury a název+IČO klienta vyúčtování.
+    </p>
+    
+</div>
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+
+
+    })
+
+
+
+</script>

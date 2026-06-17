@@ -1,0 +1,378 @@
+﻿@model UI.Models.capacity.ProjectResourcesViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = _f.tra("Personální zdroje pro plánování") + ": " + Model.RecP41.FullName;
+
+    Model.PageSymbol = "online_prediction";
+
+
+}
+
+@addTagHelper *, UI
+
+<div>
+    <ul class="nav nav-tabs">
+        <li class="onetab">
+            <a class="nav-link" href="/r01/ProjectPlan?p41id=@Model.p41ID">@_f.tra("Kapacitní plán projektu")</a>
+        </li>
+        <li class="onetab">
+            <a class="nav-link active" href="/r01/ProjectResources?p41id=@Model.p41ID">@_f.tra("Personální zdroje pro plánování")</a>
+        </li>
+        <li class="onetab">
+            <a class="nav-link" href="/r01/Move?p41id=@Model.p41ID">@_f.tra("Posunout plán období")</a>
+        </li>
+        <li style="margin-left:40px;">
+            <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
+        </li>
+        <li style="margin-left:20px;">
+            @Html.DisplayFor(m => m.RecP41, "~/Views/Shared/_ProjectPlanPeriod.cshtml")
+        </li>
+    </ul>
+</div>
+
+<div class="bg-light input-group">
+    <div style="margin:10px;">
+        <button type="button" id="cmdSave" class="btn btn-success" onclick="_submit()"><span class="material-icons-outlined-btn">done</span>@_f.tra("Uložit změny")</button>
+    </div>
+
+    
+
+</div>
+
+
+
+
+<form id="form1" asp-controller="r01" asp-action="ProjectResources" method="POST">
+    <input type="hidden" asp-for="SelectedX67ID" />
+    <input type="hidden" asp-for="SelectedJ11ID" />
+    <input type="hidden" asp-for="CapacityStream" />
+
+    <div style="width:95%;padding:10px;">
+
+
+        <div class="input-group">
+            <div>
+                <button type="button" class="btn bog" onclick="handle_add_row()">@_f.tra("Přidat uživatele (personální zdroj)")</button>
+            </div>
+
+
+
+
+            <div style="margin-left:10px;">
+                <div class="dropdown">
+                    <button class="btn bog dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        @_f.tra("Vložit uživatele s projektovou rolí")
+                    </button>
+                    <ul class="dropdown-menu">
+                        @foreach (var c in Model.lisProjectRoles)
+                        {
+                            <li><a class="dropdown-item" href="javascript:assign_by_role(@c.pid)">@c.x67Name</a></li>
+                        }
+
+
+                    </ul>
+                </div>
+            </div>
+
+            <div style="margin-left:10px;">
+                <div class="dropdown">
+                    <button class="btn bog dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        @_f.tra("Vložit uživatele z týmu")
+                    </button>
+                    <ul class="dropdown-menu">
+                        @foreach (var c in Model.lisJ11)
+                        {
+                            <li><a class="dropdown-item" href="javascript:assign_by_team(@c.pid)">@c.j11Name</a></li>
+                        }
+
+
+                    </ul>
+                </div>
+            </div>
+
+            @if (Model.lisR04.Count() > 0)
+            {
+                <div style="margin-left:10px;">
+                    <button type="button" class="btn btn-outline-danger" onclick="handle_clear_rows()">@_f.tra("Vyčistit")</button>
+                </div>
+            }
+
+
+            <div style="margin-left:40px;">
+                @if (Model.IsUseFaNefa)
+                {
+                    <select id="stream2" onchange="handle_stream()" class="form-select" style="background-color:red;color:white;">
+                        @if (Model.FaZastropovan)
+                        {
+                            <option value="2" selected>Plán Fa hodin zde zastropovat</option>
+                            <option value="0">Plán Fa hodin nemá strop</option>
+                        }
+                        else
+                        {
+                            <option value="2">Plán Fa hodin zde zastropovat</option>
+                            <option value="0" selected>Plán Fa hodin nemá strop</option>
+                        }
+                    </select>
+
+
+                    <select id="stream4" onchange="handle_stream()" style="margin-left:20px;">
+                        @if (Model.NeFaZastropovan)
+                        {
+                            <option value="4" selected>Plán Nefa hodin zde zastropovat</option>
+                            <option value="0">Plán Nefa hodin nemá strop</option>
+                        }
+                        else
+                        {
+                            <option value="4">Plán NeFa hodin zde zastropovat</option>
+                            <option value="0" selected>Plán NeFa hodin nemá strop</option>
+                        }
+                    </select>
+                }
+                else
+                {
+                    <select id="stream2" onchange="handle_stream()" class="form-select" style="background-color:red;color:white;">
+                        @if (Model.FaZastropovan)
+                        {
+                            <option value="2" selected>Plán hodin v projektu zastropovat</option>
+                            <option value="0">Plán hodin v projektu nemá strop</option>
+                        }
+                        else
+                        {
+                            <option value="2">Plán hodin v projektu zastropovat</option>
+                            <option value="0" selected>Plán hodin v projektu nemá strop</option>
+                        }
+                    </select>
+                }
+
+            </div>
+            <div style="margin-left:10px;">
+                <button type="button" class="btn bog" onclick="_postback('refresh')">@_f.tra("Občerstvit")</button>
+            </div>
+        </div>
+
+
+
+
+        <table class="table table-hover" style="table-layout: fixed;min-width:800px;">
+
+            <tr style="background-color:aliceblue;">
+                <th style="width:300px;">
+                    @_f.tra("Personální zdroj")
+                </th>
+                <th style="width:100px;">
+                    Naplánováno
+                </th>
+                @if (Model.IsUseFaNefa)
+                {
+                    <th style="width:80px;" title="Plán/Limit fakturovatelných hodin">
+                        Fa
+                    </th>
+                    <th style="width:80px;" title="Plán/Limit nefakturovatelných hodin">
+                        Nefa
+                    </th>
+                }
+                else
+                {
+                    <th style="width:130px;">
+                        @if (Model.FaZastropovan)
+                        {
+                            <span>Strop plánu hodin</span>
+                        }
+
+
+                    </th>
+                }
+
+                @if (Model.FaZastropovan)
+                {
+                    <th style="width:100px;color:blueviolet">Zbývá</th>
+                }
+
+
+                <th style="width:220px;">
+
+                </th>
+                <th></th>
+                <th style="width:20px;">
+
+                </th>
+            </tr>
+            @for (int i = 0; i < Model.lisR04.Count; i++)
+            {
+                <tr style="@(Model.lisR04[i].CssTempDisplay)">
+                    <td>
+                        @if (Model.lisR04[i].pid == 0)
+                        {
+                            <mycombo entity="j02User" asp-for="lisR04[i].j02ID" selectedtext="lisR04[i].FullName" view-flag="1" event_after_changevalue="j02id_change"></mycombo>
+                        }
+                        else
+                        {
+                            <input type="hidden" asp-for="lisR04[i].j02ID" />
+                            <input type="hidden" asp-for="lisR04[i].FullName" />
+                            <span>@(Model.lisR04[i].FullName)</span>
+                        }
+
+
+                    </td>
+                    <td class="numcell">
+                        @BO.Code.Bas.Num2StringNull(Model.lisR01.Where(p=>p.j02ID==Model.lisR04[i].j02ID).Sum(p=>p.r01HoursTotal))
+                    </td>
+                    <td>
+                        @if (Model.FaZastropovan)
+                        {
+                            <mynumber asp-for="@Model.lisR04[i].r04HoursFa" decimal-digits="0" cssstyle="color:red"></mynumber>
+                        }
+                        else
+                        {
+                            <input type="hidden" asp-for="@Model.lisR04[i].r04HoursFa" />
+                            <span class="material-icons-outlined-nosize">functions</span>
+                        }
+
+                    </td>
+
+                    @if (Model.IsUseFaNefa)
+                    {
+
+                        <td>
+                            @if (Model.NeFaZastropovan)
+                            {
+                                <mynumber asp-for="@Model.lisR04[i].r04HoursNeFa" decimal-digits="0" cssstyle="color:red"></mynumber>
+                            }
+                            else
+                            {
+                                <input type="hidden" asp-for="@Model.lisR04[i].r04HoursNeFa" />
+                                <span class="material-icons-outlined-nosize">functions</span>
+                            }
+
+                        </td>                        
+                    }
+
+                    @if (Model.FaZastropovan)
+                    {
+                        <td class="numcell" style="color:blueviolet">
+                            @(BO.Code.Bas.Num2StringNull(Math.Round(Model.lisR04[i].r04HoursFa,0) - Model.lisR01.Where(p => p.j02ID == Model.lisR04[i].j02ID).Sum(p => p.r01HoursTotal)))
+                        </td>
+                    }
+
+                    <td>
+                        <select asp-for="@Model.lisR04[i].r04WorksheetFlag" class="form-select">
+                            <option value="Free">Vykazovat bez omezení</option>
+                            <option value="ForbiddenAll">Zákaz vykazovat hodiny přes limit</option>
+                            <option value="ForbiddenFa">Zákaz vykazovat Fa hodiny přes limit</option>
+                        </select>
+                    </td>
+
+                    <td>
+                        <input class="form-control" asp-for="@Model.lisR04[i].r04Text" placeholder="@_f.tra("Poznámka")" />
+                        <input type="hidden" asp-for="lisR04[i].IsTempDeleted" value="@Model.lisR04[i].IsTempDeleted" />
+                        <input type="hidden" asp-for="lisR04[i].TempGuid" value="@Model.lisR04[i].TempGuid" />
+                        <input type="hidden" asp-for="lisR04[i].pid" />
+
+                    </td>
+                    <td>
+                        <button type="button" tabindex="-1" class="btn btn-danger" title="@_f.tra("Odstranit řádek")" onclick="handle_delete_row('@(Model.lisR04[i].TempGuid)')">x</button>
+                    </td>
+
+
+
+                </tr>
+            }
+            <tr style="background-color:#F5F5F5;">
+                <th>
+                </th>
+                <th class="numcell">
+                    @BO.Code.Bas.Num2StringNull(Model.lisR01.Sum(p=>p.r01HoursFa))
+                </th>
+                <th style="color:red;">
+                    @if (Model.FaZastropovan)
+                    {
+                        @BO.Code.Bas.Num2StringNull(Model.lisR04.Where(p=>!p.IsTempDeleted).Sum(p=>p.r04HoursFa))
+                    }
+                    
+                </th>
+                @if (Model.FaZastropovan)
+                {
+                    <th class="numcell" style="color:blueviolet">
+                        @BO.Code.Bas.Num2StringNull(Model.lisR04.Where(p=>!p.IsTempDeleted).Sum(p=>p.r04HoursFa)-Model.lisR01.Sum(p=>p.r01HoursFa))
+
+                    </th>
+                }
+                <th>
+                </th>
+                <th>
+                </th>
+                <th>
+                </th>
+            </tr>
+        </table>
+
+
+
+    </div>
+
+
+    <input type="hidden" asp-for="@Model.p41ID" />
+
+
+</form>
+
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+
+
+
+
+
+
+
+    });
+
+
+
+
+
+
+    function handle_delete_row(guid) {
+        _postback("delete_row", "guid=" + guid);
+
+
+    }
+    function handle_add_row() {
+        _postback("add_row");
+
+    }
+
+    function handle_clear_rows() {
+        _postback("clear_rows");
+
+    }
+
+    function assign_by_role(x67id) {
+        $("#SelectedX67ID").val(x67id);
+        _postback("x67id");
+    }
+    function assign_by_team(j11id) {
+        $("#SelectedJ11ID").val(j11id);
+        _postback("j11id");
+    }
+
+    function handle_stream() {
+        var x = 0;
+        if (document.getElementById("stream2")) {
+            x += parseInt($("#stream2").val());
+        }
+        if (document.getElementById("stream4")) {
+            x += parseInt($("#stream4").val());
+        }
+
+
+        $("#CapacityStream").val(x);
+        _postback("stream");
+
+    }
+</script>

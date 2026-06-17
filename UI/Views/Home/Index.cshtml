@@ -1,0 +1,45 @@
+﻿@model BaseViewModel
+@inject BL.Factory _f
+@{
+    Model.PageTitle = "Home";
+
+    BO.j02User _recJ02 = _f.j02UserBL.Load(_f.CurrentUser.pid);
+    BO.x54WidgetGroup _widgetsAcademy = _f.x54WidgetGroupBL.LoadByCode("academy");
+
+}
+
+@addTagHelper *, UI
+
+
+
+<h1>Vítejte v MARKTIME!</h1>
+
+
+@Html.EditorFor(m => _recJ02, "~/Views/Shared/_j02MyProfile.cshtml")
+
+@if (_f.CurrentUser.TestPermission(BO.PermValEnum.GR_MyProfile))
+{
+    <a style="margin-left:10px;" href="/Home/MyProfile">
+        <myicon symbol="person"></myicon>
+        @_f.tra("Upravit můj profil")
+    </a>
+}
+
+@if (_f.CurrentUser.j04IsModule_Widgets && _widgetsAcademy != null)
+{
+    <a style="margin-left:40px;" href="/Widgets/Index?x54id=@(_widgetsAcademy.pid)">
+        <myicon symbol="school"></myicon>
+        MARKTIME Akademie
+    </a>
+}
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#kdojsem").css("display", "block");
+
+        _mainmenu_highlight_current("cmdHome");
+
+
+    });
+
+</script>

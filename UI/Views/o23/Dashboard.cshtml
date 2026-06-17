@@ -1,0 +1,63 @@
+﻿@model UI.Models.Tab1.o23Tab1
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+    if (Model.Rec == null) return;
+    Model.Rec.Rezerva = "Dashboard";
+    var _lisO19 = _f.o23DocBL.GetList_o19(Model.Rec.pid);
+
+
+    var _disp = _f.o23DocBL.InhaleRecDisposition(Model.Rec.pid, Model.Rec);
+    
+}
+
+@addTagHelper *, UI
+
+@Html.Raw("<div class='info_record_container'>")
+
+@if (_disp.OwnerAccess)
+{
+    <a class="btn btn-light" href="javascript:_edit('o23',@Model.pid)" title="@_f.tra("Upravit kartu záznamu")"><span class="material-icons-outlined-btn">edit_note</span></a>
+}
+
+
+<div class="card recpagebox400">
+    <div class="card-body">
+        @Html.EditorFor(m => m.Rec, "~/Views/Shared/_o23RecHeaderBox.cshtml")
+
+
+
+    </div>
+</div>
+
+
+@if (_lisO19.Count() > 0)
+{
+    <div class="card recpagebox400">
+        <div class="card-body">
+
+            @await Html.PartialAsync("~/Views/Shared/_o23Vazby.cshtml", _lisO19)
+
+        </div>
+    </div>
+}
+
+
+@Html.EditorFor(m => m, "~/Views/Shared/_TagsTab1.cshtml")
+
+@Html.EditorFor(m => m, "~/Views/Shared/_lisO27Tab1.cshtml")
+
+@if (Model.Rec.o23Notepad != null && !Model.Rec.o23IsEncrypted)
+{
+    <div style="clear:both;"></div>
+    @Html.Raw("<div>")
+    @Html.Raw(Model.Rec.o23Notepad)
+    @Html.Raw("</div>")
+
+}
+
+
+
+@Html.Raw("</div>")

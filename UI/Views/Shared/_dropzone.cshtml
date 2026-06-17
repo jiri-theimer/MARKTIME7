@@ -1,0 +1,526 @@
+﻿@model UI.Models.DropzoneViewModel
+@inject BL.Factory _f
+
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    if (Model.TempGuid == null)
+    {
+        Model.TempGuid = BO.Code.Bas.GetGuid();
+    }
+    var _lisP85 = _f.p85TempboxBL.GetList(Model.TempGuid);
+    var _fileboxUrl = new UI.Menu.TheMenuSupport(_f).GetMainmenuEntityUrl("o27");
+
+
+    IEnumerable<BO.o27Attachment> _lisO27 = null;
+    if (Model.RecPrefix != null && Model.RecPid > 0)
+    {
+        _lisO27 = _f.o27AttachmentBL.GetList(new BO.myQueryO27() { entity = Model.RecPrefix, recpid = Model.RecPid });
+    }
+}
+
+@Html.Raw("<div id='dropzone-container'>")
+@if (Model.IsInIframe)
+{
+    @Html.Raw("<div class='row m-0 p-0'><div class='col-auto'>")
+}
+
+
+
+<form asp-controller="Dropzone"
+      asp-action="UploadFiles"
+      method="post"
+      enctype="multipart/form-data"
+      class="dropzone"
+      id="myDropzone">
+
+    <input type="hidden" id="tempguid" name="tempguid" value="@Model.TempGuid" />
+    <input type="hidden" id="dropzone_uids" name="dropzone_uids" />
+    <input type="hidden" id="dropzone_names" name="dropzone_names" />
+    <input type="hidden" id="isautosave" name="isautosave" value="@Model.IsAutoSave.ToString()" />
+    <input type="hidden" id="recprefix" name="recprefix" value="@Model.RecPrefix" />
+    <input type="hidden" id="recpid" name="recpid" value="@Model.RecPid" />
+
+    <div id="divNeedToSave" style="display:none;">
+        <button type="button" class="btn btn-success" onclick="save_to_filebox()" style="cursor:pointer !important">@_f.tra("Uložit do FILEBOX")</button>
+    </div>
+
+    <div id="divDropzoneMessage" class="dz-message rounded-3 text-center bg-light" style="margin:0;">
+
+        <div class="d-flex align-items-center justify-content-center gap-1 flex-wrap">
+
+            <span class="badge bg-light text-dark border px-3 py-1">
+                <span class="material-icons-outlined align-middle me-1">attachment</span>
+                FILEBOX
+            </span>
+            @if (!Model.IsInIframe)
+            {
+                <div class="text-muted">
+                    <div class="fw-semibold">
+                        Přetáhněte soubory nebo e-maily sem
+                    </div>
+                    <small>
+                        nebo <span class="text-primary fw-semibold">klikněte pro výběr</span>
+                    </small>
+                </div>
+            }
+            
+
+        </div>
+        
+    </div>
+
+    
+</form>
+
+
+
+@if (Model.IsInIframe)
+{
+    @Html.Raw("</div><div class='col-auto'>")
+    
+}
+
+
+
+
+@if (_lisP85 != null && _lisP85.Count() > 0)
+{
+    <div style="margin:6px">
+        <table class="table table-hover table-sm">
+            @foreach (var c in _lisP85)
+            {
+                <tr>
+                    <td>
+                        <a target="_blank" href="/Dropzone/DownloadTempFile?tempfilename=@(c.p85FreeText03)&tempguid=@(Model.TempGuid)">
+                            @c.p85FreeText01
+                        </a>
+                    </td>
+                    <td>
+                        @(BO.Code.Bas.FormatFileSize((long)c.p85FreeNumber01))
+                    </td>
+                    <td>
+                        @c.p85FreeText02
+                    </td>
+                </tr>
+            }
+        </table>
+    </div>
+}
+
+@if (_lisO27 != null && _lisO27.Count() > 0)
+{
+    @if (Model.IsInIframe)
+    {
+        <script>
+            if (window.parent.document.getElementById("fraUpload"))
+            {
+                window.parent.document.getElementById("fraUpload").style.height = "200px";
+            }
+        </script>
+    }
+    <div style="margin:6px;">
+        <table class="table table-sm table-hover">
+            @foreach (var c in _lisO27)
+            {
+                <tr>
+                    @if (!Model.IsInIframe)
+                    {
+                        <td style="width:20px;">
+                            <a class="cm" onclick="_cm(event,'o27',@(c.pid))" title="MENU">&#9776;</a>
+                        </td>
+                    }
+                    
+                    <td>
+
+
+
+                        @if (c.IsMail)
+                        {
+                            <a href="javascript:_edit('o27',@c.pid)">@(c.o27MailSubject != null ? c.o27MailSubject : c.o27OriginalFileName)</a>
+
+                            <br />
+                            <span class="material-icons-outlined-nosize">alternate_email</span>
+                            @if (c.o27MailSenderName != null)
+                            {
+                                <span class="badge-light" title="@c.o27MailSenderAddress">@c.o27MailSenderName</span>
+                            }
+                            else
+                            {
+                                <span class="badge-light">@c.o27MailSenderAddress</span>
+                            }
+                            @if (c.o27MailToName != null)
+                            {
+                                <span class="badge-lightblue" title="@c.o27MailToAddress">@c.o27MailToName</span>
+                            }
+                            else
+                            {
+                                <span class="badge-lightblue">@c.o27MailToAddress</span>
+                            }
+                            @if (c.o27MailDateMessage != null)
+                            {
+                                <span class="badge text-bg-light">@(BO.Code.Time.GetTimestamp(c.o27MailDateMessage))</span>
+                            }
+                            @if (c.o27MailAttachmentsCount > 0)
+                            {
+                                var atts = BO.Code.Bas.ConvertString2List(c.o27MailAttachments, ",");
+                                foreach (var att in atts)
+                                {
+                                    var po = BO.Code.Bas.OM2(att.Split(".").First(), 15);
+                                    var pred = att.Substring(att.Length - 3, 3);
+                                    <a target="_blank" class="att" href="/FileUpload/FileDownloadMsgAttachment?guid=@(c.o27Guid)&origfilename=@(att)">@($"{pred}: {po}")</a>
+
+
+
+                                }
+                            }
+                        }
+                        else
+                        {
+                            @if (c.o27WwwRootFolder != null)
+                            {
+                                <a target="_blank" href="@("/_users/" + _f.Lic.x01Guid + "/" + c.o27WwwRootFolder.Replace("\\", "/") + "/" + c.o27ArchiveFileName)">@c.o27OriginalFileName</a>
+                            }
+                            else
+                            {
+                                <a target="_blank" href="/FileUpload/FileDownloadInline?guid=@c.o27Guid">@c.o27OriginalFileName</a>
+                            }
+                        }
+
+                    </td>
+                    <td style="text-align:right;">
+                        @(BO.Code.Bas.FormatFileSize(c.o27FileSize))
+                    </td>
+                    <td>
+                        @if (c.o27CallerFlag == BO.o27CallerFlagENUM.Notepad)
+                        {
+                            <code>Notepad</code>
+                            @if (c.o27WwwRootFolder != null)
+                            {
+                                <var>image</var>
+                            }
+                        }
+                        @if (c.o27Name != null)
+                        {
+                            <var style="background-color:lightyellow;">@c.o27Name</var>
+                        }
+
+                    </td>
+                    <td style="width:20px" class="edit-cell">
+                        @if (!c.IsMail && c.UserInsert == _f.CurrentUser.j02Login)
+                        {
+                            <a class="btn btn-sm btn-light edit-link" href="javascript:_edit('o27',@(c.pid))">edit</a>
+                        }
+
+                    </td>
+                    <td>
+                        <small>
+                            @(BO.Code.Time.GetTimestamp(c.DateInsert))
+                        </small>
+                    </td>
+
+                </tr>
+            }
+        </table>
+    </div>
+
+}
+
+@if (Model.IsInIframe)
+{
+    @if (Model.RecPid > 0 && Model.RecPrefix !=null)
+    {
+        <a class="btn btn-sm btn-light" id="linkDropzoneFronta" title="Zatřidit přílohy bez vazby." href="javascript:fronta_bez_vazby()">@_f.tra("FILEBOX fronta")</a>
+    }
+    
+    @Html.Raw("</div></div>")
+}
+else
+{
+    @if (Model.RecPid > 0 && Model.RecPrefix != null)
+    {
+        <div style="padding-bottom:20px;">
+            <a class="btn btn-sm btn-light" id="linkDropzoneFronta" title="Zatřidit přílohy bez vazby." href="javascript:fronta_bez_vazby()">@_f.tra("FILEBOX fronta")</a>
+        </div>
+    }
+    
+    
+}
+
+
+@Html.Raw("</div>")
+
+<script>
+    const isinframe="@(Model.IsInIframe)";
+
+    if (isinframe=="True")
+    {
+        $("#divDropzoneMessage").attr("title","Přetáhněte soubory nebo e-maily nebo klikněte pro výběr");
+        
+    }
+
+         // Dropzone v6 – explicitní inicializace
+    const formEl = document.getElementById("myDropzone");
+
+    // url si vezmeme z <form action="..."> (ASP.NET ho vyplní)
+    const uploadUrl = formEl.getAttribute("action") || "/Dropzone/UploadFiles";
+
+    const previewTemplate = `
+    <div class="dz-preview dz-file-preview">
+
+      <div class="dz-file-row">
+
+        <div class="dz-thumb">
+          <img data-dz-thumbnail />
+        </div>
+
+        <div class="dz-meta">
+          <div class="dz-name" data-dz-name></div>
+          <div class="dz-size" data-dz-size></div>
+
+          <div class="dz-progress">
+            <span class="dz-upload" data-dz-uploadprogress></span>
+          </div>
+        </div>
+
+        <div class="dz-actions">
+          <button data-dz-remove>✕</button>
+        </div>
+
+      </div>
+
+    </div>
+    `;
+
+    const dz = new Dropzone(formEl, {
+      url: uploadUrl,
+      previewTemplate: previewTemplate,
+      paramName: "files",          // musí odpovídat názvu v controlleru
+      maxFilesize: 20,             // MB
+      acceptedFiles: ".msg,.eml,.pdf,image/*,.xls,.xlsx,.docx,.doc,.txt,.zip,.rar,.7z,.ppt,.pptx,.csv,.mp3,.mp4,.avi,.html,.htm,.odt,.ods,.rtf,.ics",
+      uploadMultiple: true,
+      parallelUploads: 3,
+      thumbnailWidth: 100,
+      thumbnailHeight: 100,
+
+
+      init: function () {
+        const dz = this;
+
+        dz.on("success", async function (file, response) {
+
+
+          if ((file.name || "").toLowerCase().endsWith(".msg")) {
+            try {
+              const msg = await parseMsgFileToClass(file);
+              // tady už máš instanci MsgEmail
+              // console.log(msg);
+              dz.emit("thumbnail", file, "/images/files/msg80.png");
+              
+            } catch (e) {
+              console.error(e);
+              alert("Nelze přečíst MSG: " + (e?.message || e));
+            }
+          }
+
+          if (window.parent.document.getElementById("fraUpload"))
+          {
+              window.parent.document.getElementById("fraUpload").style.height="200px";
+          }
+          
+
+        });
+
+        dz.on("error", function (file, errorMessage) {
+          alert("Chyba: " + errorMessage);
+          dz.emit("thumbnail", file, "/images/files/error80.png");
+        });
+
+        dz.on("queuecomplete", function () {
+
+          
+          refreshstate_dropbox();
+
+          var isrefresh="@Model.IsAutoSave";
+          if (isrefresh=="True")
+          {
+                    if (document.getElementById("form1"))
+                    {
+                        _postback();
+                    }else
+                    {
+                        location.replace(location.href);
+                    }
+          }
+
+
+        });
+
+        dz.on("sendingmultiple", function (files, xhr, formData) {
+
+            files.forEach(function(file) {
+
+                formData.append("dropzone_uids",file.upload.uuid);
+                formData.append("dropzone_names",file.name);
+            });
+
+        });
+
+        dz.on("removedfile", function(file) {
+            const tempguid="@Model.TempGuid";
+
+
+            $.post("/Dropzone/DeleteTempFile", { filename: encodeURIComponent(file.name), fileuid: file.upload.uuid, tempguid: tempguid }, function (data) {
+
+                refreshstate_dropbox();
+
+            });
+
+
+
+
+
+        });
+
+
+            dz.on("addedfile", function(file) {
+
+
+
+                dz.emit("thumbnail", file, "/images/files/upload80.png");
+
+                if (file.type === "application/pdf") {
+                    dz.emit("thumbnail", file, "/images/files/pdf80.png");
+                }
+
+                if (file.type.includes("word")) {
+                    dz.emit("thumbnail", file, "/images/files/word80.png");
+                }
+                if (file.type.includes("spreadsheet")) {
+
+                    dz.emit("thumbnail", file, "/images/files/excel80.png");
+                }
+
+                if (file.type === "application/zip") {
+                    dz.emit("thumbnail", file, "/images/files/zip80.png");
+                }
+
+                if (file.type === "msg") {
+                    dz.emit("thumbnail", file, "/images/files/msg80.png");
+                }
+
+                if (file.type === "eml") {
+                    dz.emit("thumbnail", file, "/images/files/eml80.png");
+                }
+            });
+      }
+    });
+
+
+
+
+
+
+    class MsgEmail {
+
+       constructor({ subject, to, from, name }) {
+         this.subject = subject || "";
+         this.to = Array.isArray(to) ? to : [];
+         this.from = from || null;
+         this.name = name || null;
+       }
+     }
+
+
+
+     function parseMsgFileToClass(file) {
+       return new Promise((resolve, reject) => {
+         if (!file) return reject(new Error("No file provided"));
+         const fileName = file.name || "";
+         if (!fileName.toLowerCase().endsWith(".msg")) {
+           return reject(new Error("Incorrect file type (expected .msg)"));
+         }
+
+         const reader = new FileReader();
+
+         reader.onload = (evt) => {
+           try {
+             const buffer = evt.target.result;
+             const msgReader = new MSGReader(buffer);
+             const fileData = msgReader.getFileData();
+
+             if (!fileData || fileData.error) {
+               return reject(new Error("Failed to parse MSG file"));
+             }
+
+             const subject = fileData.subject || "";
+
+
+             // TO: recipients array => email stringy (pokud tam email není, fallback na name)
+             const to = (fileData.recipients || [])
+               .map((r) => r?.email || r?.name)
+               .filter(Boolean);
+
+             const from = fileData.senderEmail || null;
+             const name = fileData.senderName || null;
+
+
+
+
+             resolve(new MsgEmail({ subject, to, from, name }));
+           } catch (e) {
+             reject(e);
+           }
+         };
+
+         reader.onerror = () => reject(new Error("FileReader error"));
+         reader.readAsArrayBuffer(file);
+       });
+     }
+
+     function refreshstate_dropbox()
+     {
+                if (isinframe=="True")
+                {
+                    return;
+                }
+                if (dz.files.length>0)
+                {
+                    $("#divNeedToSave").css("display","block");
+                }else{
+                    $("#divNeedToSave").css("display","none");
+                }
+     }
+
+     
+
+     function save_to_filebox()
+     {
+         const tempguid="@Model.TempGuid";
+
+
+            $.post("/Dropzone/SaveToFilebox", { tempguid: tempguid,recprefix: "@Model.RecPrefix",recpid: @Model.RecPid }, function (data) {
+
+
+                dz.removeAllFiles();
+                refreshstate_dropbox();
+                var link="<strong><a target='_top' href='@(_fileboxUrl)'>FILEBOX</a></strong>";
+                
+
+                    if (document.getElementById("form1"))
+                    {
+                        _postback();
+                    }else
+                    {
+                        location.replace(location.href);
+                    }
+
+            });
+     }
+     function fronta_bez_vazby()
+     {
+         _window_open("/o27/Fronta?prefix=@(Model.RecPrefix)&pid=@(Model.RecPid)");
+     }
+
+</script>

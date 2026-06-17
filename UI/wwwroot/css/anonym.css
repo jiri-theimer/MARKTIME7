@@ -1,0 +1,25 @@
+﻿
+
+#divAnonymHeader {
+    
+    margin-bottom: 30px;
+    
+}
+
+#imgAnonymHeader {
+    display: block;
+    
+    margin-left: auto;
+    margin-right: auto;
+    padding-top: 30px;
+    padding-bottom: 30px;
+}
+
+
+@media only screen and (max-width: 700px) {
+
+    #imgAnonymHeader {
+        
+        width:60%;
+    }
+}

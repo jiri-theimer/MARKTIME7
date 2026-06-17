@@ -1,0 +1,89 @@
+﻿@model StopPageViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = "Stop";
+    if (_f.CurrentUser == null || _f.CurrentUser.j04ID == 0 || _f.Lic == null)
+    {
+        //anonymní stránka
+        Layout = "~/Views/Shared/_LayoutAnonym.cshtml";
+    }
+    else
+    {
+        if (Model.IsModal)
+        {
+            Layout = "~/Views/Shared/_LayoutModal.cshtml";
+        }
+        else
+        {
+            if (Model.IsSubform)
+            {
+                Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+            }
+            else
+            {
+                Layout = "~/Views/Shared/_Layout.cshtml";
+            }
+
+        }
+    }
+
+
+}
+
+<div class="card" style="max-width:900px;margin:auto;">
+    <div class="card-header">
+        <i class="material-icons-outlined" style="color:red;">block</i>
+        @_f.tra("Stop")
+    </div>
+    <div class="card-body">
+        <h4>
+            @Html.Raw(@Model.Message)
+
+        </h4>
+        @if (Model.ShowUrl != null)
+        {
+            <h6>
+                @if (Model.MessageToUrl == null)
+                {
+                    <a href="@Model.ShowUrl" target="_top">@_f.tra("Odkaz")</a>
+                }
+                else
+                {
+                    <a href="@Model.ShowUrl" target="_top">@Html.Raw(Model.MessageToUrl)</a>
+                }
+            </h6>
+            
+
+        }
+        <hr />
+
+
+        <p>@_f.tra("Jméno"): <strong>@_f.CurrentUser.FullNameAsc</strong></p>
+        <p>@_f.tra("Login"): <strong>@_f.CurrentUser.j02Login</strong></p>
+        <p>@_f.tra("Aplikační role"): <strong>@_f.CurrentUser.j04Name</strong></p>
+        <p>E-mail: <strong>@_f.CurrentUser.j02Email</strong></p>
+        <p>@_f.tra("Jazyk"): <strong>@_f.CurrentUser.LangName</strong></p>
+    </div>
+</div>
+
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+    @if (Model.IsModal)
+    {
+        <text>
+                                if ($(window).width() > 1300) {
+                parent.window._window_toggle();
+            }
+
+        </text>
+    }
+
+
+                });
+</script>
+

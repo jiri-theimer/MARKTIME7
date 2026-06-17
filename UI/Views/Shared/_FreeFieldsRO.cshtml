@@ -1,0 +1,57 @@
+﻿@model FreeFieldsViewModel
+
+@{
+    if (Model == null || Model.inputs == null)
+    {
+        return;
+    }
+  
+}
+
+@addTagHelper *, UI
+
+<table class="table table-hover">
+    @foreach (BO.FreeFieldInput c in Model.inputs.Where(p => p.StringInput != null || p.NumInput != 0 || p.DateInput != null || p.CheckInput))
+    {
+        <tr>
+            <td class="tdlab">
+                @(c.x28Name + ":")
+            </td>
+            <td>
+                @switch (c.TypeName)
+                {
+                    @case "integer":
+                        <myval datatype="num" value="@c.NumInput"></myval>
+                        break;
+
+                    @case "decimal":
+                        <myval datatype="num" value="@c.NumInput"></myval>
+                        break;
+
+                    @case "date":
+                        <myval datatype="date" value="@c.DateInput"></myval>
+                        break;
+
+                    @case "datetime":
+                        <myval datatype="datetime" value="@c.DateInput"></myval>
+                        break;
+
+                    @case "boolean":
+                    @case "bool":
+                        <myval datatype="boolean" value="@c.CheckInput"></myval>
+                        
+
+                        break;
+
+                    @default:
+                        <myval value="@c.StringInput"></myval>
+                        break;
+                }
+
+            </td>
+        </tr>
+
+    }
+</table>
+
+

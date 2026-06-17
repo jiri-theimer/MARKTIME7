@@ -1,0 +1,524 @@
+﻿
+
+#container_grid {
+    overflow-y: hidden;
+    overflow-x:auto;
+    width: 99.99%;
+    
+    border-right: solid 1px #CCCCCC;
+    
+    -webkit-overflow-scrolling: touch !important;
+}
+
+table.tabgrid_auto {
+    border-collapse: collapse;
+    table-layout: fixed;
+    width: 100%;
+    min-width: 1200px;
+    border: solid 1px #CCCCCC;
+}
+
+
+table.tabgrid_fixed {
+    border-collapse: collapse;
+    table-layout: fixed;
+    border: solid 1px #CCCCCC;
+    
+}
+
+table.tabgrid_manual {
+    border-collapse: collapse;
+    table-layout: fixed;
+    border: solid 1px #CCCCCC;
+}
+
+#tabgrid1 tr {
+    line-height: 1rem;
+}
+
+
+    #tabgrid1 tr.lh12 {
+        line-height: 1.2rem;
+    }
+
+    #tabgrid1 tr.lh15 {
+        line-height: 1.5rem;
+    }
+
+    #tabgrid1 tr.lh20 {
+        line-height: 2rem;
+    }
+
+    #tabgrid1 tr.stripped {
+        background-color: #F5F5F5;
+    }
+
+.tabgrid_fixed td {
+    padding: 3px;
+    border: solid 1px #CCCCCC;
+    vertical-align: top;
+}
+
+
+#tabgrid1 tr.highlight {
+    background-color: #87CEFA;
+}
+
+
+#tabgrid1 tr:hover {
+    background-color: #F5F5F5;
+}
+
+
+
+
+#container_vScroll {
+    overflow-y: auto;
+    overflow-x: hidden;
+    height:10px;    /*výška na úvod před načtením dat do gridu*/
+    
+}
+
+
+
+#filter_container {
+    border: solid 1px #CCCCCC;
+}
+
+
+
+.tabgrid_auto td {
+    padding: 3px;
+    border: solid 1px #CCCCCC;
+    vertical-align: top;
+}
+
+
+
+
+
+
+.tabgrid_manual td {
+    padding: 3px;
+    border: solid 1px #CCCCCC;
+    vertical-align: top;
+}
+
+
+td.td_nowrap {
+    padding: 3px;
+    border: solid 1px #CCCCCC;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+
+/* well, it's less than 100% in the end, but this still works for me */
+.resizer {
+    position: absolute;
+    top: 0;
+    right: -8px;
+    bottom: 0;
+    left: auto;
+    width: 16px;
+    cursor: col-resize;
+}
+
+.tabgrid_auto th {
+    background-color: #F5F5F5;
+    border-left: solid 1px #CCCCCC;
+    padding: 3px;
+    height: 27px;
+}
+
+    .tabgrid_auto th div {
+        font-weight: normal;
+    }
+
+.tabgrid_fixed th {
+    background-color: #F5F5F5;
+    border-left: solid 1px #CCCCCC;
+    font-weight: normal;
+    padding: 3px;
+    height: 27px;
+}
+
+
+    .tabgrid_fixed th div {
+        font-weight: normal;
+    }
+
+.tabgrid_manual th {
+    font-weight: normal;
+    border-left: dashed 1px gray;
+    padding: 3px;
+    height: 27px;
+    font-weight: bold;
+}
+
+    .tabgrid_manual th div {
+        font-weight: normal;
+    }
+
+
+
+#tr_header_query th {
+    padding: 3px;
+    background-color: #E5E5E5;
+    font-weight: normal;
+    border-left: solid 1px #CCCCCC;
+}
+
+#tabgrid1_tr_totals th {
+    padding: 3px;
+    background-color: #E5E5E5;
+    font-weight: normal;
+    border-left: solid 1px #CCCCCC;
+}
+
+#tabgrid1_tr_pager th {
+    height: 25px;
+    line-height: 25px;
+    background-color: #F5F5F5;
+    font-weight: normal;
+    border-left: solid 1px #CCCCCC;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+
+
+
+
+#tr_header_query input.query_textbox {
+    height: 23px;
+}
+
+#tr_header_query .query_combo {
+    height: 23px;
+    padding: 0px;
+}
+
+#tr_header_query button {
+    float: right;
+    font-size: 14px;
+}
+
+#tabgrid1_pagenum {
+    width: 26px;
+    height: 23px;
+}
+
+#tabgrid1 tr.selrow > td {
+    background-color: var(--oznaceno);
+    color: var(--popredi);
+}
+
+th.th0 {
+    text-align: center;
+}
+
+td.td0 {
+    width: 20px;
+    text-align: center;
+    padding: 0px;    
+    
+    vertical-align: middle;
+}
+
+#tabgrid1_tbody td.td1 {
+    text-align: center;
+    width: 20px;
+}
+
+
+#tabgrid1_tbody td.td2 {
+    text-align: center;
+}
+
+
+
+
+
+
+#tabgrid1 td.tdn {
+    text-align: right;
+}
+
+
+#tabgrid2 th.tdn {
+    text-align: right;
+}
+
+#tabgrid1 td.tdn_lastcol {
+    text-align: right;
+    padding-right: 18px !important;
+}
+
+#tabgrid2 th.tdn_lastcol {
+    text-align: right;
+    padding-right: 18px !important;
+}
+
+
+
+
+#tabgrid1 tr.trbin td {
+    text-decoration: line-through;
+}
+
+
+#tabgrid1 tr.trexp {
+    color: #A52A2A; /*záznam peněžního výdaje*/    
+}
+
+#tabgrid1 tr.trfee {
+    color: #0000FF; /*záznam paušální odměny*/
+}
+
+#tabgrid1 tr.trpc {
+    color: #9400D3; /*záznam kusovníku*/
+}
+
+#tabgrid1 td.nefa { /*úkon s nefakturovatelnou aktivitou*/
+    border-right: solid 3px red;
+}
+
+
+#tabgrid1 td.nusa { /*fakturovatelný úkon s nulovou výchozí sazbou*/
+    border-right: solid 3px #149414;
+}
+
+#tabgrid1 td.nusa6 { /*fakturovatelný úkon s nulovou výchozí sazbou*/
+    border-right: solid 3px pink;
+}
+
+#tabgrid1 td.nusa99 { /*fakturovatelný úkon s nulovou výchozí sazbou*/
+    border-right: dashed 3px red;
+}
+
+
+
+
+
+
+
+#tabgrid1 a.grid_context_menu {
+    cursor: pointer;
+}
+
+a.grid_context_menu:hover {
+    background-color: #25a0da;
+}
+
+
+#tg_div_loading {
+    position: absolute;
+    width: 250px;
+    left: 100px;
+    top: 300px;
+    z-index: 100;
+    background-color: #F5F5F5;
+    color: silver;
+    border: solid 1px #F5F5F5;
+    padding: 10px;
+}
+
+#tg_div_loading_image {
+    background-image: url("../Images/loading.gif");
+}
+
+
+
+#tr_header_headline th.sortcolumn {
+    cursor: pointer;
+    font-weight: normal;
+}
+
+th.canresize {
+    resize: horizontal;
+    overflow: auto;
+}
+
+
+#tg_div_filter {
+    position: absolute;
+    z-index: 1000;
+}
+
+#tr_header_query .qryalias {
+    color: white;
+    background-color: red;
+    white-space:nowrap;
+    border-radius:5px;
+    text-align:center;
+    
+}
+
+#tg_div_setting {
+    position: absolute;
+    z-index: 1000;
+    min-height: 100px;
+    padding: 20px;
+    border-radius: 6px;
+}
+
+#tg_div_selecting {
+    position: absolute;
+    z-index: 1000;
+    min-height: 100px;
+    padding: 20px;
+    border-radius: 6px;
+}
+
+#tg_div_print {
+    position: absolute;
+    z-index: 1000;
+    min-height: 100px;
+    padding: 20px;
+    border-radius: 6px;
+}
+
+a.link_in_grid { /*v TD buňce je link na cokoliv - kvůli odlišení od kliku na TR*/
+    font-size: 90%;
+    color: deepskyblue;
+}
+
+#span_virtual_count {
+    background-color: #808080;
+    border-radius: 3px;
+    color: white;
+    font-weight: bold;
+    text-align: center;
+    min-width: 40px;
+}
+
+
+
+
+
+button.tgp {
+    padding-bottom: 2px;
+    padding-top: 2px;
+    border-left: solid 1px silver;
+}
+
+
+
+#divPagerContainer {
+    background-color: #E5E5E5;
+    padding-bottom: 0px;
+    padding-left: 10px;
+    width: 100%;
+    min-height: 28px;
+    display: inline-block;
+    white-space: nowrap;
+}
+
+.link-in-grid {
+    color: green;
+    text-decoration: underline;
+}
+
+#gridmessage {
+    padding: 2px 3px 2px 3px;
+    border-radius: 3px;
+    background-color: red;
+    font-style: italic;
+    color: white;
+    font-size:80%;
+}
+
+#gridname {
+    padding: 2px 3px 2px 3px;
+    margin-right: 2px;
+    border-radius: 3px;
+    background-color: orange;
+    font-style: italic;
+    font-size:80%;
+    
+}
+
+#container_vScroll {
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+
+a.isnp {
+    background-color: orange;
+    border: solid 1px silver;
+    border-radius: 5px;
+    text-decoration: none;
+}
+
+a.isnp:hover{
+    background-color:darkkhaki;
+   
+    
+}
+
+button.query_button{
+    position:absolute;
+    top:0px;
+    left:0px;
+}
+
+button.group_button {
+    position: absolute;
+    top: 20px;
+    left: 0px;
+    display:none;
+}
+
+#tabgrid1 tr.trgroup {
+    background-color: #F5F5DC;
+}
+td.group_content {
+    background-color: #d8ecf3;
+}
+tr.group_row_active td {
+    color: red;
+    font-weight: bold;
+    background-color: #F5F5DC;
+}
+tr.group_row_active a {
+    color: red;
+    font-weight: bold;
+    background-color: #d8ecf3;
+}
+.groupscount {
+    background-color: #E7FBE7;
+    color: black;    
+    border: solid 1px silver;
+    border-radius:4px;
+    padding-left: 1px;
+    padding-right: 1px;
+}
+a.groupvallink {
+    cursor: pointer;
+    color: black;
+}
+
+
+#tabgrid1 tr.trbg1 {
+    background-color: YellowGreen; /*barevný zázname*/
+}
+
+#tabgrid1 tr.trbg2 {
+    background-color: yellow; /*barevný zázname*/
+}
+
+#tabgrid1 tr.trbg3 {
+    background-color: violet; /*barevný zázname*/
+}
+
+#tabgrid1 tr.trbg4 {
+    background-color: deepskyblue; /*barevný zázname*/
+}
+
+#tabgrid1 tr.trbg5 {
+    background-color: silver; /*barevný zázname*/
+    
+}

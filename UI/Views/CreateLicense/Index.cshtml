@@ -1,0 +1,540 @@
+﻿@model UI.Models.Guru.CreateLicenseViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = "Založení nové licence";
+
+    Layout = "~/Views/Shared/_LayoutAnonym.cshtml";
+
+
+}
+
+<script src="~/js/rejstriky.js" asp-append-version="true"></script>
+
+<div style="margin:auto;max-width:900px;">
+
+    @if (Model.Message != null)
+    {
+        <div class="alert alert-danger" role="alert">
+            <h4>@Html.Raw(Model.Message)</h4>
+        </div>
+    }
+    @if(Model.guru != null)
+    {
+        <div>
+            <a href="/Guru/CreateDb">Založit <mark>CLOUD</mark> nebo <mark>LOCAL</mark> sql databázi</a>
+        </div>
+    }
+   
+
+    <form id="form1" asp-controller="CreateLicense" asp-action="Index" method="post">
+        <input type="hidden" asp-for="guru" />
+        <input type="hidden" asp-for="Rec.x01LangIndex" />
+        <h4>Založit novou licenci</h4>
+
+        <div class="row">
+            <label class="col-sm-1 col-md-2 col-form-label">Fyzický název databáze:</label>
+            <div class="col-sm-5 col-md-4">
+                <input class="form-control" asp-for="DestDbName" />
+            </div>
+
+        </div>
+
+        <div class="row">
+            <label class="col-sm-1 col-md-2 col-form-label">Název licence:</label>
+            <div class="col-sm-5 col-md-4">
+                <input class="form-control" placeholder="x01Name" asp-for="Rec.x01Name" />
+            </div>
+
+        </div>
+        <div class="row mt-2">
+            <label class="col-sm-1 col-md-2 col-form-label">Doména:</label>
+            <div class="col-sm-5 col-md-4">
+                <input class="form-control" placeholder="x01LoginDomain: nasefirma.cz" asp-for="Rec.x01LoginDomain" />
+
+            </div>
+            <div class="col-auto">
+                <i>Formát uživatelských účtů v licenci: login+@(Html.Raw("@"))+doména</i>
+            </div>
+        </div>        
+
+        <div class="row mt-2">
+            <label class="col-sm-1 col-md-2 col-form-label">Název aplikace:</label>
+            <div class="col-sm-5 col-md-4">
+                <input class="form-control" placeholder="x01AppName" asp-for="Rec.x01AppName" />
+
+            </div>
+            <div class="col-auto">
+                <i>V hlavním menu vlevo nahoře link [HOME] s tímto názvem.</i>
+            </div>
+        </div>
+        <div class="row mt-2">
+            <label class="col-sm-1 col-md-2 col-form-label">Aplikační url:</label>
+            <div class="col-sm-5 col-md-4">
+                <input class="form-control" placeholder="x01AppHost" asp-for="Rec.x01AppHost" />
+
+            </div>
+            <div class="col-auto">
+                <i>Oficiální aplikační URL.</i>
+            </div>
+        </div>
+        
+
+        
+
+
+
+        <div class="row mt-4">
+            <label class="col-sm-1 col-md-2 col-form-label">ISO kód země:</label>
+            <div class="col-sm-5 col-md-4">
+                <select class="form-select" asp-for="Rec.x01CountryCode">
+                    <option value="CZ">CZ</option>
+                    <option value="SK">SK</option>
+                    <option value="AT">AT</option>
+                    <option value="DE">DE</option>
+                    <option value="PL">PL</option>
+                    <option value="GB">GB</option>
+                    <option value="CH">CH</option>
+                    <option value="US">US</option>
+
+                </select>
+            </div>
+
+        </div>
+
+        <div class="row mt-2">
+            <label class="col-sm-1 col-md-2 col-form-label">Domácí měna:</label>
+            <div class="col-sm-5 col-md-4">
+                <select class="form-select" asp-for="Rec.j27ID">
+                    <option value="2">CZK</option>
+                    <option value="3">EUR</option>
+                    <option value="58">USD</option>
+                    <option value="59">GBP</option>
+                    <option value="56">CHF</option>
+                    <option value="50">PLN</option>
+
+                </select>
+            </div>
+
+        </div>
+
+
+        <div class="row mt-4">
+            <label class="col-sm-1 col-md-2 col-form-label">Kontaktní e-mail:</label>
+            <div class="col-sm-5 col-md-4">
+                <input class="form-control" asp-for="Rec.x01ContactEmail" />
+            </div>
+
+        </div>
+        <div class="row mt-2">
+            <label class="col-sm-1 col-md-2 col-form-label">Kontakt licence:</label>
+            <div class="col-sm-5 col-md-4">
+                <input class="form-control" asp-for="Rec.x01ContactName" />
+            </div>
+            <div class="col-auto">
+                <i>Jméno firmy, fyzické osoby apod.</i>
+            </div>
+        </div>
+
+        <div class="row mt-2">
+            <label class="col-sm-1 col-md-2 col-form-label">Zaokrouhlovat čas:</label>
+            <div class="col-sm-5 col-md-4">
+                <input class="form-control" type="number" value="5" asp-for="Rec.x01Round2Minutes" />
+            </div>
+            <div class="col-auto">
+                Na kolik minut systém bude zaokrouhlovat vykázané hodiny pracovníků.
+            </div>
+        </div>
+
+        <div class="row mt-2">
+            <label class="col-sm-1 col-md-2 col-form-label">Limit uživatelů:</label>
+            <div class="col-sm-5 col-md-4">
+                <input class="form-control" type="number" value="99" asp-for="Rec.x01LimitUsers" />
+            </div>
+
+        </div>
+
+       
+
+        <div class="card mt-4">
+            <div class="card-header">
+                První uživatel (admin oprávnění)
+            </div>
+            <div class="card-body">
+                <div class="row mt-2">
+                    <label class="col-sm-1 col-md-2 col-form-label">Login:</label>
+                    <div class="col-sm-5 col-md-4">
+                        <input class="form-control" placeholder="josef.svejk@nasefirma.cz" asp-for="UserName" />
+
+                    </div>
+                    <div class="col-auto">
+                        <i>Formát uživatelských účtů v licenci: login+@(Html.Raw("@"))+doména. Nemusí se jednat o platnou e-mail adresu!</i>
+
+                    </div>
+                    <div class="row mt-2">
+                        <label class="col-sm-1 col-md-2 col-form-label">Heslo:</label>
+                        <div class="col-sm-5 col-md-4">
+                            <input class="form-control" asp-for="UserPassword" />
+
+                        </div>
+                        
+                    </div>
+                    <div class="row mt-2">
+                        <label class="col-sm-1 col-md-2 col-form-label">Jméno:</label>
+                        <div class="col-sm-5 col-md-4">
+                            <input class="form-control" asp-for="FirstName" />
+
+                        </div>
+
+                    </div>
+                    <div class="row mt-2">
+                        <label class="col-sm-1 col-md-2 col-form-label">Příjmení:</label>
+                        <div class="col-sm-5 col-md-4">
+                            <input class="form-control" asp-for="LastName" />
+
+                        </div>
+
+                    </div>
+                    <div class="row mt-2">
+                        <label class="col-sm-1 col-md-2 col-form-label">E-mail:</label>
+                        <div class="col-sm-5 col-md-4">
+                            <input class="form-control" asp-for="Email" />
+
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+
+        <div class="card mt-4">
+            <div class="card-header">
+                Hlavička vystavovatele faktur a interní kontakt organizace
+                
+                <span id="loadingp93"></span>
+            </div>
+            <div class="card-body">
+                <table style="min-width:700px;">
+                    <tr>
+                        <td>
+                            Název firmy:
+                        </td>
+                        <td>
+                            <input class="form-control" asp-for="p93Company" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            IČ:
+                        </td>
+                        <td>
+                            <div class="input-group">
+                                <div style="width:200px;">
+                                    <input class="form-control" asp-for="p93RegID" />
+                                </div>
+                                <div>
+                                    <button type="button" onclick="load_rejstrik('ico')">@_f.tra("Načíst z rejstříku podle IČ")</button>
+                                    <button type="button" onclick="_rejstrik_justice('p93RegID')">Justice</button>
+                                </div>
+                                
+                            </div>
+                            
+                        </td>
+                       
+                    </tr>
+                    <tr>
+                        <td>
+                            DIČ:
+                        </td>
+                        <td>
+                            <input class="form-control" asp-for="p93VatID" style="width:200px;" />
+                        </td>
+
+                    </tr>
+                    <tr>
+                        <td>
+                            IČ-DPH:
+                        </td>
+                        <td>
+                            <input class="form-control" asp-for="p93ICDPH_SK" style="width:200px;" />
+                        </td>
+
+                    </tr>
+                    <tr>
+                        <td>
+                            Ulice:
+                        </td>
+                        <td>
+                            <input class="form-control" asp-for="p93Street" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Obec:
+                        </td>
+                        <td>
+                            <input class="form-control" asp-for="p93City" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            PSČ:
+                        </td>
+                        <td>
+                            <input class="form-control" asp-for="p93Zip" />
+                        </td>
+                    </tr>
+                    
+                    <tr>
+                        <td>
+                            Registrace v OR:
+                        </td>
+                        <td>
+                            <input class="form-control" asp-for="p93Registration" />
+                        </td>
+                    </tr>
+                </table>
+               
+
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header">
+                <input type="checkbox" asp-for="IsZakladatKlientaPlusProjekty" />
+                <label for="IsZakladatKlientaPlusProjekty">Zakládat prvního klienta a jeho projekty</label>
+
+                
+                <span id="loadingp28"></span>
+            </div>
+            <div class="card-body">
+                <table style="min-width:700px;">
+                    <tr>
+                        <td>
+                            Název firmy:
+                        </td>
+                        <td>
+                            <input class="form-control" asp-for="p28CompanyName" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            IČ:
+                        </td>
+                        <td>
+                            <div class="input-group">
+                                <div style="width:200px;">
+                                    <input class="form-control" asp-for="p28RegID" />
+                                </div>
+                                <div>
+                                    <button type="button" onclick="load_rejstrik_klient('ico')">@_f.tra("Načíst z rejstříku podle IČ")</button>
+                                    <button type="button" onclick="_rejstrik_justice('p28RegID')">Justice</button>
+                                </div>
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+                    <tr>
+                        <td>
+                            DIČ:
+                        </td>
+                        <td>
+                            <input class="form-control" asp-for="p28VatID" style="width:200px;" />
+                        </td>
+
+                    </tr>
+                    <tr>
+                        <td>
+                            IČ-DPH:
+                        </td>
+                        <td>
+                            <input class="form-control" asp-for="p28ICDPH_SK" style="width:200px;" />
+                        </td>
+
+                    </tr>
+                    <tr>
+                        <td>
+                            Ulice:
+                        </td>
+                        <td>
+                            <input class="form-control" asp-for="p28Street1" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Obec:
+                        </td>
+                        <td>
+                            <input class="form-control" asp-for="p28City1" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            PSČ:
+                        </td>
+                        <td>
+                            <input class="form-control" asp-for="p28PostCode1" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <hr />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Projekt #1:
+                        </td>
+                        <td>
+                            <input class="form-control" asp-for="Project1" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            Projekt #2:
+                        </td>
+                        <td>
+                            <input class="form-control" asp-for="Project2" />
+                        </td>
+                    </tr>
+                </table>
+                
+
+            </div>
+        </div>
+
+        <div class="row mt-2">
+            <label class="col-sm-1 col-md-2 col-form-label">Výchozí aplikační jazyk:</label>
+            <div class="col-sm-10 col-md-9">
+                <input type="radio" value="0" id="chkLang0" checked name="langindex" onchange="changelang(this)" />
+                <label for="chkLang0">
+                    Česky<img src="/images/czechrepublic.gif" alt="" />
+                </label>
+
+                <input type="radio" value="1" id="chkLang1" name="langindex" onchange="changelang(this)" style="margin-left:30px;" />
+                <label for="chkLang1">
+                    English<img src="/images/uk.gif" alt="" />
+                </label>
+
+                <input type="radio" value="4" id="chkLang4" name="langindex" onchange="changelang(this)" style="margin-left:30px;" />
+                <label for="chkLang4">
+                    Slovenčina<img src="/images/slovakia.gif" alt="" />
+                </label>
+            </div>
+
+        </div>
+
+
+        
+        <div class="row" style="margin-top:10px;">
+            <div class="col-auto">
+                <input type="submit" value="Uložit změny a pokračovat" class="btn btn-default btn-success" />
+            </div>
+            <div class="col-auto">
+                <a href="/Guru/Import" class="btn btn-secondary">Importovat data do licence</a>
+            </div>
+
+            
+        </div>
+
+        <hr />
+        <button type="button" onclick="Handle_Import_Tabulky()">Opakovat Handle_Import_Tabulky</button>
+    </form>
+
+
+
+
+</div>
+
+
+
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+
+
+    });
+
+    function Handle_Import_Tabulky() {
+
+        form1.action = "/CreateLicense/Index?oper=Handle_Import_Tabulky";
+        form1.submit();
+    }
+
+    function postback()
+    {
+
+        form1.action = "/CreateLicense/Index?oper=postback";
+        form1.submit();
+    }
+
+    function changelang(opg)
+    {
+        $("#Rec_x01LangIndex").val(opg.value);
+    }
+
+
+    function load_rejstrik(pole) {
+        var hodnota = $("#p93RegID").val();
+        if (pole == "dic") {
+            hodnota = $("#p93VatID").val();
+        }
+        var country = $("#Rec_x01CountryCode").val();
+        if (hodnota == "") {
+            _notify_message("Musíte zadat IČO nebo DIČ.");
+            return;
+        }
+
+        $("#loadingp93").text("Loading...");
+
+        $.post("/Guru/LoadRejstrikSubjekt", { strPole: pole, strHodnota: hodnota, strCountryCode: country }, function (data) {
+            var subjekt = data;
+            $("#p93Company").val(subjekt.name);
+            $("#p93City").val(subjekt.city);
+            $("#p93Zip").val(subjekt.zipcode);
+            $("#p93Street").val(subjekt.street);
+            if (pole == "ico") {
+                $("#p93VatID").val(subjekt.dic);
+            }
+            if (pole == "dic") {
+                $("#p93RegID").val(subjekt.ico);
+            }
+
+            $("#loadingp93").text("");
+
+        });
+    }
+
+    function load_rejstrik_klient() {
+        var hodnota = $("#p28RegID").val();
+       
+        var country = $("#Rec_x01CountryCode").val();
+        if (hodnota == "") {
+            _notify_message("Musíte zadat IČO.");
+            return;
+        }
+
+        $("#loadingp28").text("Loading...");
+
+        $.post("/Guru/LoadRejstrikSubjekt", { strPole: "ico", strHodnota: hodnota, strCountryCode: country }, function (data) {
+            var subjekt = data;
+            $("#p28CompanyName").val(subjekt.name);
+            $("#p28City1").val(subjekt.city);
+            $("#p28PostCode1").val(subjekt.zipcode);
+            $("#p28Street1").val(subjekt.street);
+            $("#p28VatID").val(subjekt.dic);
+
+            $("#loadingp28").text("");
+
+        });
+    }
+</script>

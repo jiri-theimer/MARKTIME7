@@ -1,0 +1,94 @@
+﻿@model UI.Models.Tab1.BaseTab1ViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+
+    bool _bolRychlaStatistika = false;
+    if (BO.Code.Entity.GetPrefixDb(Model.prefix) == "p41" || Model.prefix == "j02" || Model.prefix == "p28" || Model.prefix == "p56")
+    {
+        _bolRychlaStatistika = _f.CBL.LoadUserParamBool($"{Model.prefix}-quickstat-immediately", false);
+    }
+    
+
+}
+
+@addTagHelper *, UI
+
+<h4>Nastavení boxů na stránce záznamu (@BO.Code.Entity.GetAlias(Model.prefix))</h4>
+
+<div class="bg-light" style="padding:10px;">
+    <button id="cmdSave" class="btn btn-success">@_f.tra("Uložit změny")</button>
+    <button id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+</div>
+
+
+
+<form id="form1" asp-controller="j02" asp-action="Tab1Setting" method="POST">
+    <input type="hidden" asp-for="@Model.prefix" />
+
+    <div class="card">
+        <div class="card-header">
+            @_f.tra("Zapnuté boxy na stránce záznamu")
+        </div>
+        <div class="card-body">
+
+            <mycheckboxlist asp-for="@Model.SelectedBoxes" datasource="@Model.lisAllBoxes" valuefield="Key" textfield="Value"></mycheckboxlist>
+
+            @if (BO.Code.Entity.GetPrefixDb(Model.prefix) == "p41" || Model.prefix == "j02" || Model.prefix == "p28" || Model.prefix == "p56")
+            {
+                <div class="my-2">
+                    @if (_bolRychlaStatistika)
+                    {
+                        <input type="checkbox" checked id="chkRychlaStatistika" />
+                    }
+                    else
+                    {
+                        <input type="checkbox" id="chkRychlaStatistika" />
+                    }
+
+                    <label for="chkRychlaStatistika">@_f.tra("Rychlá statistika")</label>
+                </div>
+            }
+        </div>
+    </div>
+    
+
+
+</form>
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+        $("#cmdSave").click(function () {
+            $(this).text("Processing...");
+            $(this).attr("disabled", true);
+
+            if (document.getElementById("chkRychlaStatistika")) {
+                var b = $("#chkRychlaStatistika").prop("checked");
+                form1.action = "/j02/Tab1Setting?quickstat=" + b;
+            }
+            else {
+                form1.action = "/j02/Tab1Setting";
+            }
+            
+            form1.submit();
+
+        });
+
+
+
+    });
+
+
+    function change_p34id(p34id) {
+        _postback();
+    }
+
+
+
+
+</script>

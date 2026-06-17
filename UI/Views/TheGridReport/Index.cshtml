@@ -1,0 +1,260 @@
+﻿@model TheGridReportViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = "GRID-REPORT";
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+
+
+
+
+}
+
+@addTagHelper *, UI
+
+<style type="text/css">
+    
+    .resizer {
+        position: absolute;
+        top: 0;
+        right: -8px;
+        bottom: 0;
+        left: auto;
+        width: 16px;
+        cursor: col-resize;
+    }
+
+    #tabResizer {
+        background-color: white;
+        font-size: 80%;
+    }
+
+        #tabResizer th {
+            text-align: center;
+            font-weight: normal;
+            background-color: #F5F5F5;
+            border-right: dashed 1px gray;
+            color: gray;
+            height: 40px;
+        }
+</style>
+
+
+
+<div class="bg-light" style="padding:10px;">
+
+    <button id="cmdSendByMail" type="button" class="btn btn-light" onclick="send_by_mail()">
+        <span class="material-icons-outlined-btn">email</span>
+        @_f.tra("Odeslat poštou")
+    </button>
+
+
+
+    <a class="btn descreet_link_over_grid" href="javascript:postback('reload')" title="Občerstvit"><span class="material-icons-outlined-btn">refresh</span></a>
+
+    <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
+
+
+    <myhelpbutton></myhelpbutton>
+</div>
+
+<form id="form1" asp-controller="TheGridReport" asp-action="Index" method="POST" style="max-width:90%;">
+    <input type="hidden" asp-for="j72id" />
+    <input type="hidden" asp-for="master_prefix" />
+    <input type="hidden" asp-for="master_pid" />
+    <input type="hidden" asp-for="pids" />
+    <input type="hidden" asp-for="guid" />
+    <input type="hidden" asp-for="p31guid" />
+    <input type="hidden" asp-for="ResizedField" />
+    <input type="hidden" asp-for="ResizedWidth" />
+    <input type="hidden" asp-for="TrdxRepDestFileName" />
+    
+
+    <div class="row">
+        <div class="col-auto" style="width:1px;"></div>
+        <div class="col-auto card p-0 m-0">
+            <div class="card-header py-0">
+                @_f.tra("Souhrny/Odstránkování/Nadpis")
+            </div>
+            <div class="card-body py-0">
+                <select asp-for="GroupByColumn" onchange="postback('groupby')" style="width:100%;">
+                    <option value="">--@_f.tra("Souhrny podle sloupce")--</option>
+                    @foreach (var fld in Model.GridColumns.Where(p => !p.IsShowTotals && !p.IsNotUseP31TOTALS))
+                    {
+                        <option value="@fld.UniqueName">@fld.Header</option>
+                    }
+                </select>
+                <br />
+                @if (!Model.IsShowGroupsOnly)
+                {
+                    <select asp-for="PageBreakColumn" onchange="postback('pageby')" style="width:100%;">
+                        <option value="">--@_f.tra("Odstránkovat podle sloupce")--</option>
+                        @foreach (var fld in Model.GridColumns.Where(p => !p.IsShowTotals && !p.IsNotUseP31TOTALS))
+                        {
+                            <option value="@fld.UniqueName">@fld.Header</option>
+                        }
+                    </select>
+                    <br />
+                }
+
+                <input type="text" class="form-control" asp-for="Header" placeholder="@_f.tra("Nadpis sestavy")" />
+            </div>
+
+        </div>
+        <div class="col-auto" style="width:1px;"></div>
+        <div class="col-auto card p-0 m-0">
+            <div class="card-header py-0">
+                @_f.tra("Nastavení stránky")
+            </div>
+            <div class="card-body py-0">
+                <input id="opgNaVysku" asp-for="@Model.PageOrientation" type="radio" value="1" onchange="postback('orientation')" /><label for="opgNaVysku">@_f.tra("A4 na výšku")</label>
+                <input id="opgNaSirku" asp-for="@Model.PageOrientation" type="radio" value="2" onchange="postback('orientation')" /><label for="opgNaSirku">@_f.tra("A4 na šířku")</label>
+                <select asp-for="@Model.ZoomPercentage" onchange="postback('zoom')" title="% poměr šířky sloupců sestavy oproti GRID sloupcům">
+                    <option value="100">100%</option>
+                    <option value="90">90%</option>
+                    <option value="80">80%</option>
+                    <option value="70">70%</option>
+                    <option value="60">60%</option>
+                    <option value="50">50%</option>
+                </select>
+                <select asp-for="@Model.MaxTopRecs" onchange="postback('toprecs')" title="Maximální počet řádků sestavy">
+                    <option value="500">500</option>
+                    <option value="1000">1000</option>
+                    <option value="2000">2000</option>
+                    <option value="5000">5000</option>
+
+                </select>
+                <br />
+                <span>@_f.tra("Okraje (v milimetrech)"):</span>
+                <br />
+                <input asp-for="@Model.MarginLeft" title="Vlevo" placeholder="vlevo" type="number" style="width:60px;" />
+                <input asp-for="@Model.MarginRight" title="Vpravo" placeholder="vpravo" type="number" style="width:60px;" />
+                <input asp-for="@Model.MarginTop" title="Nahoře" placeholder="nahoře" type="number" style="width:60px;" />
+                <input asp-for="@Model.MarginBottom" title="Dole" placeholder="dole" type="number" style="width:60px;" />
+            </div>
+        </div>
+
+        <div class="col-auto">
+            @if (Model.GroupByColumn != null && Model.PageBreakColumn==null)
+            {
+                <input type="checkbox" asp-for="@Model.IsShowGroupsOnly" onchange="postback('refresh')" />
+                <label for="IsShowGroupsOnly">@_f.tra("Zobrazovat pouze řádky souhrnů a součtové sloupce")</label>
+                <br />
+            }
+            <input type="checkbox" asp-for="@Model.IsEnableResizer" onchange="postback('IsEnableResizer')" />
+            <label for="IsEnableResizer">@_f.tra("Možnost nastavovat šířky sloupců")</label>
+        </div>
+       
+    </div>
+    @if(Model.IsEnableResizer)
+    {
+        <div id="divResizer" class="input-group" style="background-color: white;margin-top:6px;">
+            <div style="text-align: center; background-color: orange;" title="Myší si můžete nastavit šířky sloupců">
+                <span id="spanResizer" style="font-size: 150%;">
+                    ⇿
+                </span>
+            </div>
+            <div>
+                <div>
+                    <table id="tabResizer">
+                        <tr id="tr_columns">
+                            @foreach (var c in Model.GridColumns)
+                            {
+                                <th id="@c.UniqueName" title="@(c.Rezerva)px" style="width:@(c.Rezerva)px;">
+                                    @c.Header
+                                </th>
+                            }
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div style="margin-left: 2px;">
+                <button id="cmdResetWidths" type="button" style="cursor: pointer; font-size: 80%; height: 100%; padding-bottom: 0px;" onclick="reset_resizer()" title="Nahodí šířky sloupců do výchozího (továrního) stavu">
+                    Resetovat<br />
+                    šířky
+                </button>
+            </div>
+        </div>
+    }
+    
+</form>
+
+<iframe id="fra1" scrolling="no" src="/Home/About"></iframe>
+
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+       
+        var frah = _device.innerHeight - $("#fra1").offset().top - 20;
+        var fraw = _device.innerWidth - $("#fra1").offset().left - 40;
+
+        $("#fra1").height(frah);
+        $("#fra1").width(fraw);
+
+        InitResizer();
+
+
+
+        showrep();
+
+    });
+
+
+    function postback(oper) {
+        _postback(oper);
+
+    }
+
+    function showrep() {
+        var guid = "@Model.guid";
+        $("#fra1").attr("src", "/TheGridReport/ReportViewer?guid=" + guid);
+
+
+    }
+
+    function reset_resizer(){
+        postback("reset");
+    }
+
+    function InitResizer() {
+        $("#tr_columns").find("th")
+            .css({
+                position: "relative"
+            })
+            .prepend("<div class='resizer'></div>")
+            .resizable({
+                resizeHeight: false,
+                handleSelector: "",
+                onDragStart: function (e, $el, opt) {
+                    // only drag resizer
+                    if (!$(e.target).hasClass("resizer"))
+                        return false;
+                    return true;
+                },
+                onDragEnd: function (e, $el, opt) {
+                    var id = $el.attr("id");
+                    var w = $el.width();
+
+                    $("#ResizedField").val(id);
+                    $("#ResizedWidth").val(w);
+
+                    postback("resize");
+                    //alert(w+", id: "+id);
+                    //run_postback("e", "a");
+
+                }
+            });
+    }
+
+    function send_by_mail()
+    {
+        _window_open("/Mail/SendMail?trdxfile=@(Model.TrdxRepDestFileName)&mailsubject=@(Model.Header)", 1);
+    }
+
+    function hardrefresh(pid)
+    {
+
+    }
+</script>

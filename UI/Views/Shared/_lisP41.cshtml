@@ -1,0 +1,46 @@
+﻿@model IEnumerable<BO.p41Project>
+@inject BL.Factory _f
+
+@{
+
+
+    if (Model == null || Model.Count() == 0)
+    {
+        return;
+    }
+
+    bool _bolRowHover = UI.Code.basUI.DetectIfCanRowHover(_f, Context, _f.CurrentUser.j04IsModule_p41);
+
+    bool _bolShowP42Name = true;
+    if (Model.Count()==1 || Model.GroupBy(p=>p.p42ID).First().Count()>1)
+    {
+        _bolShowP42Name = false;
+    }
+    if (_bolShowP42Name && !Model.Any(p=>p.p41Name.ToLower() != p.p42Name.ToLower()))
+    {
+        _bolShowP42Name = false;
+    }
+
+}
+
+<span class="material-icons-outlined" style="color:gray;">work_outline</span>
+<small>
+    
+    @_f.tra("Otevřené projekty") <span class="badge-def">@(Model.Count())</span>
+</small>
+
+  
+    @foreach (var c in Model)
+    {
+        <br />
+        @if (_f.CurrentUser.j04IsModule_p41)
+        {
+
+        <a href="/Record/RecPage?prefix=le@(c.p07Level)&pid=@(c.pid)" target="_top">@(BO.Code.Bas.OM2(c.PrefferedName, 25))</a>
+        }
+        else
+        {
+            <small>@(BO.Code.Bas.OM2(c.PrefferedName,25))</small>
+        }
+    }
+

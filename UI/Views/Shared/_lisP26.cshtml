@@ -1,0 +1,57 @@
+﻿@model IEnumerable<BO.p26ProjectContact>
+
+@inject BL.Factory _f
+
+@{
+
+
+    if (Model == null || Model.Count() == 0)
+    {
+        return;
+    }
+    bool _bolRowHover = UI.Code.basUI.DetectIfCanRowHover(_f, Context,true);
+
+
+}
+
+@addTagHelper *, UI
+
+<table class="table table-hover">
+    @foreach (var c in Model)
+    {
+        <tr>
+            <td class="tdlab">
+                
+                @if (c.p27ID > 0)
+                {                    
+                    @(c.p27Name)                    
+                }
+                @if (c.p26Name != null)
+                {
+                    @if (c.p27ID > 0)
+                    {
+                        <br />
+                    }
+
+                    <code>                        
+                        @(c.p26Name)
+                    </code>
+                }
+            </td>
+            
+            <td>
+                @if (_bolRowHover)
+                {
+                    <myval value="@c.p28Name" hoverprefix="p28" hoverpid="@c.p28ID"></myval>
+                }
+                else
+                {
+                    <myval value="@c.p28Name"></myval>
+                }
+
+            </td>
+
+        </tr>
+    }
+
+</table>

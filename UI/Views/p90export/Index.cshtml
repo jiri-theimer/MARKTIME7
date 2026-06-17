@@ -1,0 +1,79 @@
+﻿@model UI.Models.p90oper.exportViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = _f.tra("Export záloh");
+    Model.PageSymbol = "cloud_upload";
+}
+
+@addTagHelper *, UI
+
+<div class="bg-light" style="padding:10px;">
+    <button type="button" id="cmdOK" class="btn btn-success" onclick="_submit()">@_f.tra("Opakovat")</button>
+
+    <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+
+
+
+</div>
+
+
+<form id="form1" asp-controller="p90export" asp-action="Index" method="POST">
+    <input type="hidden" asp-for="@Model.p90ids" />
+    <input type="hidden" asp-for="@Model.tempsubfolder" />
+
+    <div class="card">
+        <div class="card-header">
+            @_f.tra("Cílový formát")
+        </div>
+        <div class="card-body">
+           
+            <input type="radio" id="chkPohoda" checked asp-for="destformat" value="pohoda" onchange="_postback('destformat')" />
+            <label for="chkPohoda">POHODA</label>
+
+        </div>
+    </div>
+    <div style="padding:10px;">
+        <input type="checkbox" id="chkIsZip" asp-for="iszip" onchange="_postback('iszip')" />
+        <label for="chkIsZip">@_f.tra("Zazipovat")</label>
+    </div>
+
+    @if (Model.FileNames != null)
+    {
+        <div class="card">
+            <div class="card-header">@_f.tra("Výsledek")</div>
+            <div class="card-body">
+                @for (int i = 0; i < Model.FileNames.Count(); i++)
+                {
+                    @if (Model.iszip)
+                    {
+                        <a href="/FileUpload/FileDownloadTempFileNDB?tempfilename=@(Model.FileNames[i])">@(Model.FileNames[i])</a>
+                    }
+                    else
+                    {
+                        <a href="/FileUpload/FileDownloadTempFileNDB?tempfilename=@(Model.FileNames[i])&subfolder=@(Model.tempsubfolder)">@(Model.FileNames[i])</a>
+                    }
+
+                    <p></p>
+                }
+
+            </div>
+        </div>
+
+    }
+
+</form>
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+    })
+
+
+
+
+</script>

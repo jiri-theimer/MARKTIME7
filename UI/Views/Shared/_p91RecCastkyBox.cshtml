@@ -1,0 +1,170 @@
+﻿@model BO.p91Invoice
+
+@inject BL.Factory _f
+
+@{
+
+
+    if (Model == null)
+    {
+        return;
+    }
+
+
+    IEnumerable<BO.p99Invoice_Proforma> _lisP99 = _f.p91InvoiceBL.GetList_p99(0, Model.pid, 0);
+}
+
+@addTagHelper *, UI
+
+<table class="table table-sm table-hover">    
+    <tr>
+        <td class="tdlab">
+            @_f.tra("Datum vystavení"):
+        </td>
+        <td class="tdval tddatum">
+            @BO.Code.Bas.ObjectDate2String(Model.p91Date)
+        </td>
+    </tr>
+    <tr>
+        <td class="tdlab">
+            @_f.tra("Datum plnění"):
+        </td>
+        <td class="tdval tddatum">
+            @BO.Code.Bas.ObjectDate2String(Model.p91DateSupply)
+        </td>
+    </tr>
+    <tr>
+        <td class="tdlab">
+            @_f.tra("Datum splatnosti"):
+        </td>
+        <td class="tdval tddatum">
+            @BO.Code.Bas.ObjectDate2String(Model.p91DateMaturity)
+        </td>
+    </tr>
+
+    @if (Model.p91DateExchange != null)
+    {
+        <tr>
+            <td class="tdlab">
+                @_f.tra("Měnový kurz"):
+            </td>
+            <td class="tdval tddatum">
+                @BO.Code.Bas.ObjectDate2String(Model.p91DateExchange)
+                <div>
+                    <a href="javascript: recpage_exupdate(@Model.pid)">@_f.tra("Aktualizovat")</a>
+                </div>
+                
+            </td>
+        </tr>
+
+
+    }
+    <tr>
+        <td class="tdlab">
+            @_f.tra("Částka bez DPH"):
+        </td>
+        <td class="tdval tdcastka">
+            
+            <myval datatype="num" value="@Model.p91Amount_WithoutVat" valueafter="@Model.j27Code"></myval>
+        </td>
+    </tr>
+    <tr>
+        <td class="tdlab">
+            @_f.tra("Částka DPH"):
+        </td>
+        <td class="tdval tdcastka">            
+            <myval datatype="num" value="@Model.p91Amount_Vat" valueafter="@Model.j27Code"></myval>
+        </td>
+    </tr>
+    <tr>
+        <td class="tdlab">
+            @_f.tra("Částka vč.DPH"):
+        </td>
+        <td class="tdval tdcastka">            
+            <myval datatype="num" value="@Model.p91Amount_WithVat" valueafter="@Model.j27Code"></myval>
+        </td>
+    </tr>
+    @if (Model.p91RoundFitAmount != 0)
+    {
+        <tr>
+            <td class="tdlab">
+                <small>@_f.tra("Haléřové zaokrouhlení"):</small>
+            </td>
+            <td class="tdval tdcastka">                
+                <myval datatype="num" value="@Model.p91RoundFitAmount" valueafter="@Model.j27Code"></myval>
+            </td>
+        </tr>
+    }
+
+    @if (!Model.p91IsDraft && Model.p92TypeFlag == BO.p92TypeFlagENUM.ClientInvoice)
+    {
+        <tr>
+            <td class="tdlab" style="color:red;">
+                @if (Math.Abs(Model.p91Amount_Debt) > 0.01 && _f.CurrentUser.j04IsModule_p91)
+                {
+                    <a href="javascript:recpage_p94(@(Model.pid))">@_f.tra("Zapsat úhradu")</a>
+                }
+                @(_f.tra("Dluh"))
+            </td>
+            <td class="tdcastka">
+                @if (Math.Abs(Model.p91Amount_Debt) > 0.01)
+                {
+                    <myval datatype="num" value="@Model.p91Amount_Debt" valueafter="@Model.j27Code"></myval>
+
+                }
+                else
+                {
+                    @if (_f.CurrentUser.j04IsModule_p91)
+                    {
+                        <a class="badge bg-success p-2" href="javascript:recpage_p94(@(Model.pid))">@_f.tra("Uhrazeno")</a>
+                    }
+                    else
+                    {
+                        <span class="badge-def">@_f.tra("Uhrazeno")</span>
+                    }
+                    
+                }
+                
+            </td>
+        </tr>
+
+
+
+    }
+
+</table>
+
+@if (_lisP99.Count() > 0)
+{
+    <table class="table table-sm table-hover" style="max-width:200px;">
+        <tr>
+            <td colspan="5" class="tdval">
+                <a href="javascript:_window_open('/p91oper/proforma?p91id=@(Model.pid)')">
+                    @_f.tra("Spárované úhrady záloh")
+                </a>
+            </td>
+        </tr>
+        @foreach (var c in _lisP99)
+        {
+            <tr style="border-bottom-color:white;">
+                <td>
+                    @c.p90Code
+                </td>
+                <td>
+                    @c.p82Code
+                </td>
+
+                <td class="tdnum">
+                    @BO.Code.Bas.Number2String(c.p99Amount)
+                </td>
+                <td class="tdnum">
+                    @BO.Code.Bas.Number2String(c.p99Amount_WithoutVat)
+                </td>
+                <td>
+                    <a class="btn bog" href="javascript:_window_open('/ReportsClient/ReportContext?x31id=@(c.x31ID_Payment)&prefix=p82&pid=@(c.p82ID)')"><span class="material-icons-outlined-nosize">print</span></a>
+                </td>
+            </tr>
+
+        }
+    </table>
+}

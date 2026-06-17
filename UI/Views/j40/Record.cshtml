@@ -1,0 +1,200 @@
+﻿@model UI.Models.Record.j40Record
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    if (Model.Rec == null) return;
+    Model.PageTitle = _f.tra("Poštovní účet");
+    Model.PageSymbol = "email";
+}
+@addTagHelper *, UI
+
+
+
+
+<div class="modal_record_container">
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Typ účtu"):</label>
+        <div class="col-sm-8 col-md-7">
+            <select asp-for="Rec.j40UsageFlag" class="form-select" onchange="_postback()">
+                <option value="1">@_f.tra("Privátní SMTP účet pro odesílání zpráv") (OUTBOX)</option>                
+                <option value="2">@_f.tra("Sdílený SMTP účet pro odesílání zpráv") (OUTBOX)</option>
+                <option value="3">@_f.tra("Privání IMAP účet pro došlou poštu") (INBOX)</option>
+                <option value="4">@_f.tra("Sdílený IMAP účet pro došlou poštu") (INBOX)</option>
+            </select>
+        </div>
+        <label class="col-sm-1 col-md-1 col-form-label">@_f.tra("Pořadí"):</label>
+
+        <div class="col-sm-2 col-md-2">
+            <mynumber asp-for="@Model.Rec.j40Ordinary" decimal-digits="0"></mynumber>
+        </div>
+    </div>
+
+   @if(Model.Rec.j40UsageFlag==BO.MailUsageFlag.SmtpGlobal || Model.Rec.j40UsageFlag==BO.MailUsageFlag.SmtpPrivate)
+   {
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Smtp server"):</label>
+            <div class="col-sm-8 col-md-7">
+                <input class="form-control" asp-for="Rec.j40SmtpHost" />
+
+            </div>
+            <label class="col-sm-1 col-md-1 col-form-label">@_f.tra("Port"):</label>
+            <div class="col-sm-2 col-md-2">
+                <mynumber asp-for="@Model.Rec.j40SmtpPort" decimal-digits="0"></mynumber>
+            </div>
+        </div>
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("E-mail odesílatele"):</label>
+            <div class="col-sm-11 col-md-10">
+                <input class="form-control" asp-for="Rec.j40SmtpEmail" />
+
+            </div>
+        </div>
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Jméno odesílatele"):</label>
+            <div class="col-sm-11 col-md-10">
+                <input class="form-control" asp-for="Rec.j40SmtpName" />
+
+            </div>
+        </div>
+        
+
+        <div class="my-2">
+            <input asp-for="@Model.Rec.j40SmtpUsePersonalReply" />
+            <label for="Rec_j40SmtpUsePersonalReply">@_f.tra("Jako REPLY uvádět adresu a jméno z osobního profilu uživatele")</label>
+        </div>
+
+        <div class="my-2">
+            <input asp-for="@Model.Rec.j40SmtpUseDefaultCredentials" />
+            <label for="Rec_j40SmtpUseDefaultCredentials">@_f.tra("Smtp účet nevyžaduje autentifikaci")</label>
+        </div>
+        <div id="credentials">
+            <div class="row" style="margin-top:10px;">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Smtp login"):</label>
+                <div class="col-sm-11 col-md-10">
+                    <input class="form-control" asp-for="Rec.j40SmtpLogin" autocomplete="off" />
+
+                </div>
+            </div>
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Smtp heslo"):</label>
+                <div class="col-sm-11 col-md-10">
+                    <input class="form-control" type="text" asp-for="Rec.j40SmtpPassword" autocomplete="off" placeholder="@_f.tra("Heslo zadávejte pouze pokud ho měníte nebo pro nový účet.")" />
+
+                </div>
+            </div>
+        </div>
+        <div class="my-2">
+            <input asp-for="@Model.Rec.j40SmtpEnableSsl" />
+            <label for="Rec_j40SmtpEnableSsl">@_f.tra("Podpora TLS/SSL")</label>
+        </div>
+   }
+
+   @if(Model.Rec.j40UsageFlag==BO.MailUsageFlag.ImapPrivate || Model.Rec.j40UsageFlag==BO.MailUsageFlag.ImapGlobal)
+   {
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("IMAP server"):</label>
+            <div class="col-sm-8 col-md-7">
+                <input class="form-control" asp-for="Rec.j40ImapHost" />
+
+            </div>
+            <label class="col-sm-1 col-md-1 col-form-label">@_f.tra("Port"):</label>
+            <div class="col-sm-2 col-md-2">
+                <mynumber asp-for="@Model.Rec.j40ImapPort" decimal-digits="0"></mynumber>
+            </div>
+        </div>
+    
+
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("IMAP login"):</label>
+            <div class="col-sm-11 col-md-10">
+                <input class="form-control" asp-for="Rec.j40ImapLogin" autocomplete="off" />
+
+            </div>
+        </div>
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("IMAP heslo"):</label>
+            <div class="col-sm-11 col-md-10">
+                <input class="form-control" type="text" asp-for="Rec.j40ImapPassword" autocomplete="off" placeholder="@_f.tra("Heslo zadávejte pouze pokud ho měníte nebo pro nový účet.")" />
+
+            </div>
+        </div>
+
+        <div class="my-2">
+            <input asp-for="@Model.Rec.j40ImapEnableSsl" />
+            <label for="Rec_j40ImapEnableSsl">@_f.tra("Podpora SSL")</label>
+        </div>
+   }
+
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">SSL Mode:</label>
+
+        <div class="col-sm-5 col-md-4">
+            <select asp-for="Rec.j40SslModeFlag" class="form-select">
+                <option value="0"></option>
+                <option value="1">SSL Implicit</option>
+                <option value="2">SSL Explicit</option>
+
+            </select>
+        </div>
+    </div>
+   
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název/Popis"):</label>
+        <div class="col-sm-11 col-md-10">
+            <input class="form-control" asp-for="Rec.j40Name" />
+
+        </div>
+       
+    </div>
+    
+    <div class="row" style="margin-top:100px;">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Vlastník účtu"):</label>
+        <div class="col-sm-11 col-md-10">
+            <mycombo entity="j02User" asp-for="Rec.j02ID" selectedtext="@Model.ComboPerson" filter-flag="1"></mycombo>
+        </div>
+    </div>
+
+
+
+
+
+
+</div>
+
+
+
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        handle_ucet_state();
+
+
+    });
+
+
+    $("#Rec_j40SmtpUseDefaultCredentials").on("click", function () {
+        handle_ucet_state();
+    });
+
+
+    function handle_ucet_state() {
+
+        if ($("#Rec_j40SmtpUseDefaultCredentials").prop("checked") == true) {
+            $("#credentials").css("display", "none");
+
+        } else {
+            $("#credentials").css("display", "block");
+        }
+    }
+
+    
+
+</script>
+
+
+

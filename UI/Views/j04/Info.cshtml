@@ -1,0 +1,108 @@
+﻿@model UI.Models.Tab1.BaseTab1ViewModel
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+
+
+
+    BO.j04UserRole _rec = _f.j04UserRoleBL.Load(Model.pid);
+
+
+    var _lis = _f.j04UserRoleBL.GetList_BoundX53(_rec.pid);
+
+}
+
+@addTagHelper *, UI
+
+
+
+@Html.Raw("<div class='info_record_container'>")
+
+<table style="width:90%;">
+    <tr>
+        <td>
+            <h4>@(_rec.j04Name)</h4>
+        </td>
+        <td>
+            @if (_f.CurrentUser.IsAdmin)
+            {
+                <a href="javascript:_edit('j04',@Model.pid)">@_f.tra("Administrace")</a>
+            }
+        </td>
+    </tr>
+</table>
+
+<div>
+    @if (_rec.j04IsModule_Widgets)
+    {
+        <span class="badge-def">DASHBOARD</span>
+    }
+    @if (_rec.j04IsModule_p31)
+    {
+        <span class="badge-def">ÚKONY</span>
+    }
+    @if (_rec.j04IsModule_p11)
+    {
+        <span class="badge-def">DOCHÁZKA</span>
+    }
+    @if (_rec.j04IsModule_p41)
+    {
+        <span class="badge-def">PROJEKTY</span>
+    }
+    @if (_rec.j04IsModule_p56)
+    {
+        <span class="badge-def">ÚKOLY</span>
+    }
+    
+    @if (_rec.j04IsModule_p28)
+    {
+        <span class="badge-def">KONTAKTY</span>
+    }
+    @if (_rec.j04IsModule_p91)
+    {
+        <span class="badge-def">VYÚČTOVÁNÍ</span>
+    }
+    @if (_rec.j04IsModule_o23)
+    {
+        <span class="badge-def">DOKUMENTY</span>
+    }
+    @if (_rec.j04IsModule_j02)
+    {
+        <span class="badge-def">UŽIVATELÉ</span>
+    }
+    @if (_rec.j04IsModule_p90)
+    {
+        <span class="badge-def">ZÁLOHY</span>
+    }
+    @if (_rec.j04IsModule_x31)
+    {
+        <span class="badge-def">PEVNÉ TISKOVÉ SESTAVY</span>
+    }
+</div>
+
+<strong>@_f.tra("Výčet oprávnění role"):</strong>
+<table class="table table-sm table-hover">
+    @foreach (var c in _lis)
+    {
+        <tr>
+            <td>
+                @c.Group
+            </td>
+            <td>
+                @c.Name
+            </td>
+        </tr>
+    }
+</table>
+
+
+
+
+
+
+
+
+@Html.Raw("</div>")
+

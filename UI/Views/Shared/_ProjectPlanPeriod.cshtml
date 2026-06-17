@@ -1,0 +1,34 @@
+﻿@model BO.p41Project
+@inject BL.Factory _f
+
+@{
+
+
+    if (Model == null)
+    {
+        return;
+    }
+
+    
+    
+
+    
+}
+
+@if (Model.p41PlanFrom == null || Model.p41PlanUntil == null)
+{
+    <code>Projekt nemá vyplněno datum plánovaného zahájení a dokončení. Plánování kapacit je povolen do libovolného období.</code>
+}
+else
+{
+    <span title="Plánované zahájení projektu" style="color:green;">@(BO.Code.Bas.ObjectDate2String(Model.p41PlanFrom))</span>
+    <span style="margin-left:2px;margin-right:2px;">-</span>
+    <span title="Plánované dokončení projektu" style="color:red;">@(BO.Code.Bas.ObjectDate2String(Model.p41PlanUntil))</span>
+    <span>
+        (
+        @(BO.Code.Time.DurationFormatted(Convert.ToDateTime(Model.p41PlanFrom),Convert.ToDateTime(Model.p41PlanUntil),true))
+        )
+    </span>
+
+   
+}

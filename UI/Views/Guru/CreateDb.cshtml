@@ -1,0 +1,107 @@
+﻿@model BaseViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = "Založit sql databázi";
+
+    Layout = "~/Views/Shared/_LayoutAnonym.cshtml";
+
+
+}
+
+<h4>Založit čistou databázi a v ní vygenerovat tabulky a sql objekty</h4>
+
+
+<button type="button" class="btn btn-primary" onclick="run()">Založit databázi</button>
+
+<input type="text" placeholder="Název databáze" id="txtDbName" />
+<i>U <mark>CLOUD</mark> databáze musí název začínat prefixem "a7".</i>
+<br />
+<label>Předat master-connectstring:</label>
+
+<input type="text" id="txtConString" style="width:600px;" placeholder="master connect-string | pokud není vyplněn, zakládá se db na cloud-serveru" />
+
+<span id="loading1"></span>
+
+<hr />
+<table>
+    <tr>
+        <td>
+            DEVELOPER master-db-connstring:
+        </td>
+        <td>
+            <input type="text" value="server=LAPTOP-4H8SPDMA\\SQLEXPRESS;database=master;uid=sa;pwd=a;" />
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Zdroj db-create:
+        </td>
+        <td>
+            <code>LOCAL\\ROOT-UPLOAD\\_distribution\\sys\\create_db.sql</code>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Zdroj sysobjects:
+        </td>
+        <td>
+            <code>LOCAL\\ROOT-UPLOAD\\_distribution\\sys\\sql_sp_funct_views.sql</code>
+        </td>
+    </tr>
+</table>
+
+
+<button type="button" class="btn btn-danger" onclick="kill()">Fyzicky odstranit databázi</button>
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+
+
+    });
+
+   
+
+    function run() {
+        var s = $("#txtDbName").val();
+        if (s == "")
+        {
+            alert("Chybí název databáze.");
+            return;
+        }
+        var ss = $("#txtConString").val();
+
+        $("#loading1").text("Čekej...");
+        $.post("/Guru/CreateSqlDb", {dbname:s,connstring: ss }, function (data) {
+            $("#loading1").text("");
+            alert(data.message);
+
+        });
+    }
+    
+    function kill() {
+        var s = $("#txtDbName").val();
+        if (s == "") {
+            alert("Chybí název databáze.");
+            return;
+        }
+        if (!confirm("Opravdu odstranit databázi?"))
+        {
+            return;
+        }
+        var ss = $("#txtConString").val();
+
+        $("#loading1").text("Čekej...");
+        $.post("/Guru/KillDb", { dbname: s, connstring: ss }, function (data) {
+            $("#loading1").text("");
+            alert(data.message);
+
+        });
+    }
+
+</script>
+

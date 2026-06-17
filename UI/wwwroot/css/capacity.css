@@ -1,0 +1,111 @@
+﻿div.inplan {
+    background-color: green;
+    width: 100%;
+    height: 6px;
+}
+
+.osa {
+    border-left: solid 1px gray;
+}
+
+    .osa:last-of-type {
+        border-right: solid 1px red;
+    }
+
+    .osa:hover {
+        background-color: lightgray !important;
+    }
+
+.selcell1 {
+    background-color: lightskyblue !important;
+}
+
+
+
+.cellnum {
+    text-align: right;
+    padding-right: 5px;
+}
+
+.can-select {
+    font-weight: normal;
+    cursor: grab;
+    cursor: -moz-grab;
+    cursor: -webkit-grab;
+}
+
+#timeline1 div {
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10+ and Edge */
+    user-select: none; /* Standard syntax */
+}
+
+.grid-container-header {
+    display: grid;
+    grid-gap: 1px;
+    padding-left: 10px;
+    padding-right: 10px;
+    background-color: transparent;
+    border-top: solid 1px silver;
+    width: max-content;
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10+ and Edge */
+    user-select: none; /* Standard syntax */
+}
+
+    .grid-container-header > div {
+        padding-top: 10px;
+        padding-bottom: 2px;
+        text-align: center;
+    }
+
+
+.grid-container {
+    display: grid;
+    padding-left: 10px;
+    padding-right: 10px;
+    grid-gap: 1px;
+    border-bottom: solid 1px silver;
+    width: max-content;
+}
+
+    .grid-container > div {
+        text-align: left;
+    }
+
+.onebox {    
+    border: solid 1px gray !important;
+    min-height: 25px;
+    cursor: pointer;
+}
+
+
+.grid-selectable {
+    display: grid;
+    padding-left: 10px;
+    padding-right: 10px;
+    grid-gap: 1px;
+    width: max-content;
+}
+
+    .grid-selectable > div {
+        text-align: left;
+        padding-left: 5px;
+    }
+
+
+a.link-month{
+    text-decoration:none;
+    color:black;
+}
+    a.link-month:hover {
+        text-decoration: underline;
+        color:blue;
+    }
+
+div.obdobi
+{
+    background-color:brown;
+    height:6px;
+    margin-bottom:3px;
+}

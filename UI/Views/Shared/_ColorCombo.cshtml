@@ -1,0 +1,34 @@
+﻿@model string
+@inject BL.Factory _f
+
+
+
+<select asp-for="@Model" class="form-select" style="background-color:@(Model);" onchange="_postback()">
+    <option value="" style="background-color: #FFFFFF;">Bez barvy</option>
+    <option value="#C0C0C0" style="background-color: #C0C0C0;">Silver</option>
+    <option value="#d3d3d3" style="background-color: #d3d3d3;">LightGray</option>
+    <option value="#000000" style="background-color: #000000;">Black</option>
+    <option value="#FF0000" style="background-color: #FF0000;">Red</option>
+    <option value="#DDA0DD" style="background-color: #DDA0DD;">Plum</option>
+    <option value="#FFC0CB" style="background-color: #FFC0CB;">Pink</option>
+    <option value="#FFFF00" style="background-color: #FFFF00;">Yellow</option>
+    <option value="#BAB86C" style="background-color: #BAB86C;">Olive</option>
+    <option value="#00FF00" style="background-color: #00FF00;">Green</option>
+    <option value="#228b22" style="background-color: #228b22;">ForestGreen</option>
+    <option value="#3CB371" style="background-color: #3CB371;">SeaGreen</option>
+    <option value="#00FFFF" style="background-color: #00FFFF;">Aqua</option>
+    <option value="#B0C4DE" style="background-color: #B0C4DE;">SteelBlue</option>
+    <option value="#0000FF" style="background-color: #0000FF;">Blue</option>
+    <option value="#F08080" style="background-color: #F08080;">LightCoral</option>
+    <option value="#FF00FF" style="background-color: #FF00FF;">Magenta</option>
+    <option value="#800080" style="background-color: #800080;">Purple</option>    
+    <option value="#FFA500" style="background-color: #FFA500;">Orange</option>
+    <option value="#CD853F" style="background-color: #CD853F;">Peru</option>
+    <option value="#F0F8FF" style="background-color: #F0F8FF;">AliceBlue</option>
+    <option value="#FF7F50" style="background-color: #FF7F50;">Coral</option>
+    <option value="#F0E68C" style="background-color: #F0E68C;">Khaki</option>
+    <option value="#FFD700" style="background-color: #FFD700;">Gold</option>
+    <option value="#DEB887" style="background-color: #DEB887;">BurlyWood</option>
+    <option value="#1E90FF" style="background-color: #1E90FF;">DodgerBlue</option>
+    <option value="#F5F5F5" style="background-color: #F5F5F5;">WhiteSmoke</option>
+</select>

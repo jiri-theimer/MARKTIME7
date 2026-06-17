@@ -1,0 +1,141 @@
+﻿@model UI.Models.p91oper.exportViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = _f.tra("Export faktur");
+    Model.PageSymbol = "cloud_upload";
+    
+}
+
+@addTagHelper *, UI
+
+<div class="bg-light" style="padding:10px;">
+    @if (Model.destformat == "pohoda" || Model.destformat == "isdoc")
+    {
+        <button type="button" id="cmdOK" class="btn btn-success" onclick="_submit()">@_f.tra("Opakovat")</button>
+    }
+    
+
+    <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+
+
+
+</div>
+
+
+<form id="form1" asp-controller="p91export" asp-action="Index" method="POST">
+    <input type="hidden" asp-for="@Model.p91ids" />
+    <input type="hidden" asp-for="@Model.tempsubfolder" />
+
+    <div class="card">
+        <div class="card-header">
+            @_f.tra("Cílový formát")
+        </div>
+        <div class="card-body">
+            <input type="radio" id="chkIsdoc" asp-for="destformat" value="isdoc" onchange="_postback('destformat')" />
+            <label for="chkIsdoc">ISDOC</label>
+            <br />
+            <br />
+           
+            <input type="radio" id="chkPohoda" asp-for="destformat" value="pohoda" onchange="_postback('destformat')" />
+            <label for="chkPohoda">POHODA</label>
+
+            @if (_f.App.Implementation == "Schaffer")
+            {
+                <br />
+                <br />
+                <input type="radio" id="chkSchaffer" asp-for="destformat" value="schaffer" onchange="_postback('destformat')" />
+                <label for="chkSchaffer">HELIOS (Schaffer)</label>
+            }
+
+        </div>
+    </div>
+    @if(Model.destformat=="pohoda" || Model.destformat == "isdoc")
+    {
+        <div style="padding:10px;">
+            <input type="checkbox" id="chkIsZip" asp-for="iszip" onchange="_postback('iszip')" />
+            <label for="chkIsZip">@_f.tra("Zazipovat")</label>
+        </div>
+        <div style="padding:10px;">
+            <input type="checkbox" id="chkIsJoinTexts" asp-for="isjointexts" onchange="_postback('isjointexts')" />
+            <label for="chkIsJoinTexts">@_f.tra("Sloučit text faktury a technický text")</label>
+        </div>
+
+        @if (Model.FileNames != null)
+        {
+            <div class="card">
+                <div class="card-header">@_f.tra("Výsledek")</div>
+                <div class="card-body" style="background-color:aliceblue;font-weight:bold;">
+                    @for (int i = 0; i < Model.FileNames.Count(); i++)
+                    {
+                        @if (Model.iszip)
+                        {
+                            <a href="/FileUpload/FileDownloadTempFileNDB?tempfilename=@(Model.FileNames[i])">@(Model.FileNames[i])</a>
+                        }
+                        else
+                        {
+                            <a href="/FileUpload/FileDownloadTempFileNDB?tempfilename=@(Model.FileNames[i])&subfolder=@(Model.tempsubfolder)">@(Model.FileNames[i])</a>
+                        }
+
+                        <p></p>
+                    }
+
+                </div>
+            </div>
+
+        }
+    }
+
+    @if (Model.destformat == "schaffer")
+    {
+        <button type="button" onclick="_postback('schaffer-run')">Odeslat faktury do HELIOSu (PDF)</button>
+    }
+
+    
+</form>
+
+
+<div class="card" style="margin-top:20px;">
+    <div class="card-header">
+        @_f.tra("Vybrané faktury")
+    </div>
+    <div class="card-body">
+        <table class="table table-sm table-hover">
+            <caption>@_f.tra("Vybrané faktury")</caption>
+            @foreach (var c in Model.lisP91)
+            {
+                <tr>
+                    <td>
+                        @c.p91Code
+                    </td>
+                    <td>
+                        @(BO.Code.Bas.ObjectDate2String(c.p91DateSupply))
+                    </td>
+                    <td>
+                        @c.p91Client
+                    </td>
+                    <td style="text-align:right;">
+                        @(BO.Code.Bas.Number2String(c.p91Amount_WithoutVat))
+                    </td>
+                    <td>
+                        @c.j27Code
+                    </td>
+                </tr>
+            }
+        </table>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+    })
+
+
+
+
+</script>

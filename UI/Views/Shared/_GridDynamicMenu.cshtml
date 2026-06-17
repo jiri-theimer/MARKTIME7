@@ -1,0 +1,203 @@
+﻿@model UI.Models.DynamicMenuViewModel
+@inject BL.Factory _f
+
+
+@{
+    //pouze masterprefix approve_aio má vlastní šablony přehledy
+
+    IEnumerable<BO.j72TheGridTemplate> _lisJ72 = _f.j72TheGridTemplateBL.GetList(BO.Code.Entity.GetEntity(Model.Prefix), _f.CurrentUser.pid, (Model.MasterPrefix == "recpage" || Model.MasterPrefix == "approve_aio" || Model.MasterPrefix == "fpview_aio" ? Model.MasterPrefix : null));
+    _lisJ72 = _lisJ72.Where(p => p.j72SystemFlag != BO.j72SystemFlagEnum.QueryOnly);
+    if (!string.IsNullOrEmpty(Model.Rez))
+    {
+        _lisJ72 = _lisJ72.Where(p => p.j72Rez == Model.Rez);
+    }
+    
+
+    if (Model.Prefix == "o23")
+    {
+        if (!string.IsNullOrEmpty(Model.Rez))
+        {
+            _lisJ72 = _lisJ72.Where(p => p.j72Rez == Model.Rez);
+        }
+        else
+        {
+            _lisJ72 = _lisJ72.Where(p => p.j72Rez == null);
+        }
+    }
+
+    
+
+   
+
+    var cmenu = new UI.Menu.TheMenuSupport(_f);
+    string _strDefaultGridUrl = cmenu.getGridUrl(Model.Prefix); //grid url, pokud uživatel zrovna nestojí v TheGrid rozhraní
+    string _strDefaultGridUserParam = "flatview-j72id-" + Model.Prefix;
+    if (_strDefaultGridUrl.Contains("MasterView"))
+    {
+        _strDefaultGridUserParam = "masterview-j72id-" + Model.Prefix;
+    }
+
+
+}
+
+@addTagHelper *, UI
+
+
+
+<table cellpadding="4" cellspacing="4" onmouseout="localtablemouseout()">
+    @foreach (var c in _lisJ72)
+    {
+
+        <tr class="tr@(c.pid)" onmouseover="localtrmouseover(@(c.pid))" title="@(c.GetName().Length>30 ? c.GetName() : null) * Počet sloupců: @(c.j72Columns.Split(",").Count())">
+            <td style="width:20px;">
+                @if (c.j72SystemFlag == BO.j72SystemFlagEnum.User)
+                {
+                    <span style="color:orange;" class="material-icons-outlined-btn">grid_view</span>
+                }
+                else
+                {
+                    <span style="color:gray;" class="material-icons-outlined-btn">grid_view</span>
+                }
+
+
+            </td>
+
+            <td>
+                <a style="color:gray;" id="linkgrid@(c.pid)" href="javascript:run_grid_by_selector(@(c.pid),@c.j72Rez)">
+                    @(c.GetName())
+                    
+                </a>
+
+                <button class="btn btn-sm py-0 bog cmd0 cmd@(c.pid)" style="visibility:hidden;margin-left:3px;" type="button" onclick="ogd(@(c.pid))">
+                    @_f.tra("Upravit")
+                </button>
+                <button class="btn btn-sm py-0 bog cmd0 cmd@(c.pid)" style="visibility:hidden;" type="button" onclick="sas(@(c.pid))">
+                    @_f.tra("Kopírovat")
+                </button>
+            </td>
+
+        </tr>
+    }
+
+  
+</table>
+
+
+
+
+
+
+<script type="text/javascript">
+    
+    var j72id_current = 0;
+
+    if (typeof _thegrid !== "undefined") {
+        j72id_current = _thegrid.j72id;
+        if (document.getElementById("linkgrid" + j72id_current)) {
+            $("#linkgrid" + j72id_current).addClass("active");
+        }
+
+    }
+    
+   
+
+
+    if (window !== top) {
+        $(".td_done").css("visibility", "hidden");
+    }
+
+    function ogd(j72id) {
+        var s = location.pathname;
+        _window_open("/TheGridDesigner/Index?j72id=" + j72id + "&pathname=" + s, 2);
+    }
+    function sas(j72id) {
+        var s = location.pathname;
+        _window_open("/TheGridDesigner/Index?saveas=true&j72id=" + j72id + "&pathname=" + s, 2);
+    }
+
+   
+
+    function run_grid_by_selector(j72id, rez) {
+        if (rez == undefined) {
+            rez = "";
+        }
+        var prefix = "@Model.Prefix";
+
+        var k = "";
+        var url = location.href;
+
+        if (url.toLowerCase().indexOf("slaveview") > 0) {
+            k = "slaveview-j72id-" + prefix + "-" + _thegrid.master_entity.substring(0, 3) + "-" + rez;
+
+        }
+        if (url.toLowerCase().indexOf("masterview") > 0) {
+            k = "masterview-j72id-" + prefix + "-" + rez;
+        }
+        if (url.toLowerCase().indexOf("flatview") > 0 || url.toLowerCase().indexOf("mobileview") > 0) {
+            k = "flatview-j72id-" + prefix + "-" + rez;
+        }
+
+        if (url.toLowerCase().indexOf("recpage") > 0) {
+            k = "recpage-j72id-" + prefix + "-" + rez;
+        }
+
+        if (url.toLowerCase().indexOf("approveview") > 0) {
+            k = "approveview-j72id-" + prefix + "-" + rez;
+        }
+
+        if (url.toLowerCase().indexOf("admin/page") > 0) {           
+            k = "Admin/" + prefix + "-j72id";       //stránka administrace číselníků       
+
+        }
+
+        if (k != "" && url.indexOf(prefix) < 0) {
+            url = "@(_strDefaultGridUrl)";
+        }
+
+        if (k == "")  //aktuálně se uživatel nenachází v TheGrid přehledu
+        {
+            url = "@(_strDefaultGridUrl)";
+            k = "@(_strDefaultGridUserParam)";
+        }
+
+
+        if (j72id_current == j72id) {
+            if (window !== top) {
+                location.replace(url);  //voláno uvnitř iframe
+            } else {
+                _redirect(url);
+            }
+            return;
+        }
+
+        $.post(_ep("/Common/SetUserParam"), { key: k, value: j72id }, function (data) {
+
+            location.replace(location.href);
+            return;
+
+            if (window !== top) {
+                location.replace(url);  //voláno uvnitř iframe
+            } else {
+                _redirect(url);
+            }
+
+
+        });
+
+    }
+
+
+    function localtrmouseover(pid) {
+        $(".cmd0").css("visibility", "hidden");
+        $(".cmd" + pid).css("visibility", "visible");
+
+    }
+    function localtablemouseout() {
+        $(".cmd0").css("visibility", "hidden");
+    }
+
+    
+
+    
+
+</script>

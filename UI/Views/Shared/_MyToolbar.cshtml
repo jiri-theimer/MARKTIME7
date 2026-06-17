@@ -1,0 +1,282 @@
+﻿@model UI.Models.MyToolbarViewModel
+@inject BL.Factory _f
+@{
+    if (Model == null)
+    {
+        return;
+    }
+    Model.RefreshState();
+
+    string _strTemplateRecordJsonFileName = null;
+    if (Context.Request.Query["generate_rec_template"]=="true")
+    {
+        //na vstupu je žádost o vygenerování šablony záznamu
+        var json = BO.Code.basJson.SerializeObject(Model.BaseRecord);
+        _strTemplateRecordJsonFileName = $"template-record-{Model.RecordEntity}-{Model.RecordPID}.json";
+        BO.Code.File.WriteText2File($"{_f.TempFolder}\\{_strTemplateRecordJsonFileName}", json);
+
+    }
+}
+
+
+
+
+
+<div class="input-group" id="navbarNavDropdown">
+
+    <div class="nav-item m-2">
+        <button type="submit" id="cmdSaveMyToolbar" action="@Model.ControllorName" class="btn btn-success" title="Klávesová zkratka: Alt+Q"><span class="material-icons-outlined-btn" style="color:lime;">save</span>@_f.tra("Uložit změny")</button>
+
+    </div>
+    @if (Model.IsApply)
+    {
+        <div class="m-2">
+            <button type="button" id="cmdApply" action="@Model.ControllorName" asp-route-applyonly="true" class="btn btn-success">@_f.tra("Uložit a zůstat")</button>
+
+        </div>
+    }
+    @if (Model.IsDelete)
+    {
+        <div class="m-2">
+            <button type="button" class="btn btn-danger ml-2" tabindex="-1" onclick="toolbar_try_delete()"><span class="material-icons-outlined-btn" style="color:black;">delete_forever</span>@_f.tra("Odstranit")</button>
+
+        </div>
+    }
+    @if (Model.IsRefresh)
+    {
+        <div class="m-2">
+            <a asp-action="@Model.ControllorName" tabindex="-1" onclick="before_clicked(event)" class="btn btn-light" title="@_f.tra("Občerstvit")" asp-route-pid="@Model.RecordPID"><span class="material-icons-outlined-btn">refresh</span></a>
+
+        </div>
+    }
+    @if (Model.IsClone)
+    {
+        <div class="m-2">
+            <a asp-action="@Model.ControllorName" tabindex="-1" onclick="before_clicked(event)" class="btn btn-light" asp-route-pid="@Model.RecordPID" asp-route-isclone="true"><span class="material-icons-outlined-btn">content_copy</span>@_f.tra("Kopírovat")</a>
+        </div>
+    }
+    @if (Model.IsToArchive)
+    {
+        <div class="m-2">
+            <button type="button" onclick="toolbar_handle_archive(1)" tabindex="-1" class="btn btn-light"><span class="material-icons-outlined-btn" style="color:red;">delete</span>@_f.tra("Přesunout do archivu")</button>
+        </div>
+    }
+    @if (Model.IsFromArchive)
+    {
+        <div class="m-2">
+            <button type="button" onclick="toolbar_handle_archive(2)" tabindex="-1" class="btn btn-warning"><span class="material-icons-outlined-btn" style="color:black;">restore_from_trash</span>@_f.tra("Obnovit z archivu")</button>
+        </div>
+    }
+
+    <div id="toolbarRezerva" class="m-2">
+    </div>
+
+    @if (Model.IsClose)
+    {
+        <div class="m-2">
+            <button type="button" onclick="_window_close()" tabindex="-1" class="btn btn-light" title="Klávesová zkratka: ESC"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
+        </div>
+    }
+    <div class="m-2 nonmobile" title="@_f.tra("Nápověda")" style="display:none;">
+        <button type="button" onclick="_helppage()" tabindex="-1" class="btn btn-light" style="margin-left:20px;"><span class="material-icons-outlined-btn">help_outline</span></button>
+    </div>
+    <div class="m-2">
+        <span id="toolbar_message" class="text-info" style="float:right;">
+            @if (Model.Message != null)
+            {
+                @_f.tra(Model.Message)
+            }
+        </span>
+
+        <span id="toolbar_changeinfo" class="text-danger" style="float:right;"></span>
+    </div>
+
+   
+   
+</div>
+
+
+@if (_strTemplateRecordJsonFileName != null)
+{
+    
+    <script>       
+        
+        window.onload = function () {
+            window.location.href = "/FileUpload/FileDownloadTempFileNDB?tempfilename=@(_strTemplateRecordJsonFileName)";
+        };
+
+    </script>
+    
+    
+}
+
+
+<input type="hidden" id="hidRecordPID" asp-for="RecordPID" />
+<input type="hidden" id="hidRecordIsClosed" asp-for="RecordIsClosed" />
+<input type="hidden" id="hidRecordEntity" asp-for="RecordEntity" />
+<input type="hidden" id="hidAllowArchive" asp-for="AllowArchive" />
+<input type="hidden" id="hidAllowClone" asp-for="AllowClone" />
+<input type="hidden" id="hidExplicitD1" asp-for="ExplicitValidFrom" />
+<input type="hidden" id="hidExplicitD2" asp-for="ExplicitValidUntil" />
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("input, textarea").change(function () {
+
+            _toolbar_warn2save_changes("@_f.tra("Změny potvrďte tlačítkem [Uložit změny].")");
+
+        });
+
+        if (_device.type=="Phone")
+        {            
+            $(".m-2").addClass("m-1");
+            $(".m-2").removeClass("m-2");
+        }
+        
+
+        $("#cmdSaveMyToolbar").click(function () {
+            var form = document.getElementById("form1");
+            if (!form.checkValidity()) {
+                form.reportValidity(); // zobrazí hlášky pro required, pattern atd.
+                return;
+            }
+
+
+            document.dispatchEvent(event_form1_beforesave);
+
+            if (event_form1_beforesave.detail.cancel == true) {
+                _notify_message("@_f.tra("Uložení formuláře zrušeno.")", "info");
+                return;
+            }
+
+            
+
+
+            $(this).text("Processing...");
+            $(this).attr("disabled", true);
+            if (document.getElementById("form1")) {
+                form1.submit();
+            } else {
+                document.forms[0].submit();
+            }
+
+
+        });
+
+    })
+
+
+    function toolbar_try_delete() {
+        var strEntity = "@(Model.RecordEntity)";
+        var intPID = @(Model.RecordPID);
+        if (strEntity == "p91") {
+            _redirect("/p91oper/p91delete?p91id=" + intPID);
+            return;
+        }
+        if (confirm("@_f.tra("Opravdu chcete nenávratně odstranit tento záznam?")")) {
+
+            var url = '@Url.Action("DeleteRecord", "Common")';
+
+            $.post(url, { entity: strEntity, pid: intPID }, function (data) {
+
+                if (data == "1") {
+                    _reload_layout_and_close();
+
+                } else {
+                    alert(data);
+                }
+
+            });
+        }
+
+    }
+
+    function toolbar_handle_archive(flag) {
+        //$("#hidArchiveFlag").val(flag);
+        var d = new Date();
+        if (flag == 1) {
+            $("#hidExplicitD2").val(_format_date(d, true)); //přesunout záznam do archivu
+            $("#toolbar_message").text("@_f.tra("Po uložení dojde k přesunutí záznamu do archivu.")");
+        }
+        if (flag == 2) {
+            $("#hidExplicitD2").val("01.01.3000 00:00"); //obnovit záznam z archivu
+            $("#toolbar_message").text("@_f.tra("Po uložení dojde k obnovení záznamu z archivu.")");
+        }
+
+    }
+    function before_clicked(e) {
+        if ($("#toolbar_changeinfo").text() != "") {
+            if (!confirm("@_f.tra("Chcete pokračovat bez uložení změn?")")) {
+                e.preventDefault();
+            }
+        }
+    }
+    function toolbar_handle_validity(e) {
+        var url = "/Record/RecordValidity?strD1=" + $("#hidExplicitD1").val() + "&strD2=" + $("#hidExplicitD2").val();
+        _zoom(e, "", "", "250", "@_f.tra("Časová platnost záznamu")", url);
+    }
+
+
+
+    function toolbar_save_rectemplate(e) {
+        
+        var url=window.location.href;
+        if (url.indexOf("generate_rec_template")==-1)
+        {
+            url=url+"&generate_rec_template=true";
+        }
+        
+        location.replace(url);
+
+        
+
+    }
+
+    function toolbar_load_rectemplate(e)
+    {
+        const input = document.getElementById("fileInputJson");
+        input.click(); // otevře dialog pro načtení json souboru
+
+
+        input.addEventListener("change", async () => {
+            const file = input.files[0];
+            if (!file) return;
+
+           
+            const formData = new FormData();
+            formData.append("jsonFile", file);
+
+            try
+            {
+                const response = await fetch("/Record/UploadJsonFile", {method: "POST",body: formData});
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                var guid=data.filename;
+
+                var url=_removeUrlParam("generate_rec_template_jsonfile",window.location.href);
+                url=url+"&generate_rec_template_jsonfile="+guid;
+               
+                
+                location.replace(url);
+        
+        
+        
+                
+
+            
+            }
+            catch (err)
+            {
+            alert("Chyba při uploadu:"+err);
+            }
+        });
+
+    }
+
+</script>

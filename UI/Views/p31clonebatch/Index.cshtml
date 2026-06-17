@@ -1,0 +1,110 @@
+﻿@model UI.Models.p31oper.p31CloneBatchViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = _f.tra("Kopírovat vybrané úkony");
+
+
+}
+
+@addTagHelper *, UI
+
+
+<div class="bg-light" style="padding:10px;">
+    <button id="cmdSave" class="btn btn-success" onclick="_submit()">@_f.tra("Uložit změny")</button>
+    <button id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+</div>
+
+
+
+
+
+
+<form id="form1" asp-controller="p31clonebatch" asp-action="Index" method="POST">
+   <div style="max-width:800px;">
+        @Html.EditorFor(m => m.ProjectCombo, "~/Views/Shared/_ProjectCombo.cshtml")
+   </div>
+
+    <div>
+
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>@_f.tra("Datum")</th>
+                    <th>@_f.tra("Projekt")</th>
+                    <th>@_f.tra("Jméno")</th>
+                    <th>@_f.tra("Aktivita")</th>
+                    <th></th>
+                    <th>@_f.tra("Text")</th>
+                </tr>
+            </thead>
+            @for (int i = 0; i < Model.lisDest.Count; i++)
+            {
+                <tr style="background-color:@(Model.lisDest[i].p31ID_Saved>0 ? "lime": "");">
+                    <td style="width:120px;">
+                        <mydate asp-for="@Model.lisDest[i].p31Date"></mydate>
+                        <input type="hidden" asp-for="@Model.lisDest[i].p31ID" />
+                        <input type="hidden" asp-for="@Model.lisDest[i].p31ID_Saved" value="@Model.lisDest[i].p31ID_Saved" />
+                        <input type="hidden" asp-for="@Model.lisDest[i].p41ID" value="@Model.lisDest[i].p41ID" />
+                    </td>
+                    <td style="color:blue;">
+                        @Model.lisDest[i].Project
+                        <input type="hidden" asp-for="@Model.lisDest[i].Project" value="@Model.lisDest[i].Project" />
+                    </td>
+                    <td>
+                        @Model.lisDest[i].Person
+                        <input type="hidden" asp-for="@Model.lisDest[i].Person" />
+                    </td>
+                    <td>
+                        @Model.lisDest[i].p32Name
+                        <input type="hidden" asp-for="@Model.lisDest[i].p32Name" />
+                    </td>
+                    <td style="width:100px;">
+                        <myhours asp-for="@Model.lisDest[i].DestHours" showsettingbutton="false" hoursentryformat="@(_f.CurrentUser.j02DefaultHoursFormat)" hoursentryflag="@(_f.CurrentUser.j02HesBitStream)"></myhours>
+                        
+                    </td>
+
+
+                    <td>
+                        <textarea class="form-control" asp-for="@Model.lisDest[i].DestText"></textarea>
+                    </td>
+                </tr>
+            }
+        </table>
+
+
+
+
+    </div>
+
+</form>
+
+<div class="alert alert-info nonmobile nontablet" role="alert" style="width:500px;left:20px;top:20px;">
+    Ve výchozím stavu se zvolené úkony naklonují se stávajícím projektem.
+    <hr />
+    Pokud vyberete jiný (cílový) projekt, budou mít naklonované úkony vazbu na cílový projekt.
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+
+
+
+    })
+
+    function p41id_change(p41id) {
+        _postback("p41id");
+
+    }
+    function levelindex_change() {
+        _postback("levelindex");
+    }
+
+</script>
+
+
+

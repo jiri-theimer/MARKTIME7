@@ -1,0 +1,200 @@
+﻿@model UI.Models.PellEditorViewModel
+@inject BL.Factory _f
+@{
+    if (Model == null)
+    {
+        return;
+    }
+    
+}
+
+@addTagHelper *, UI
+
+
+
+
+
+<div id="pells_editor1" class="pell"></div>
+
+
+<input type="hidden" id="pells_editor1_output" asp-for="HtmlValue" />
+
+
+<!-- Modal -->
+<div class="modal fade" id="myModalPellEditorPreview" role="dialog">
+    <div class="modal-dialog">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" data-dismiss="modal" onclick="$('#myModalPellEditorPreview').modal('hide')">&times;</button>
+                <h4 class="modal-title">Náhled</h4>
+            </div>
+            <div class="modal-body" id="divContentBodyPreview">
+                
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="myModalPellEditorMarkup" role="dialog">
+    <div class="modal-dialog">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" data-dismiss="modal" class="btn bog" onclick="$('#myModalPellEditorMarkup').modal('hide')">&times;</button>
+                <button type="button" onclick="prepsat_markup()" class="btn bog">Přepsat obsah v editoru!</button>
+                <h4 class="modal-title">HTML</h4>
+            </div>
+            <div class="modal-body">
+                <textarea id="txtContentBodyMarkup" style="width:100%;"></textarea>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    const editor = pell.init({
+      element: document.getElementById('pells_editor1'),
+      onChange: html => {
+        document.getElementById('pells_editor1_output').value = html;
+      },
+      defaultParagraphSeparator: 'p',
+      styleWithCSS: true,
+      actions: [
+        'bold',
+        'italic',
+        'underline',
+        'heading1',
+        'heading2',
+        'paragraph',
+        'olist',
+        'ulist',
+        'link',        
+        {
+        name: 'preview',
+        icon: '🔍',
+        title: 'Náhled',
+        result: () => {
+            const ss=document.getElementById("pells_editor1_output").value;
+            document.getElementById("divContentBodyPreview").innerHTML=ss;            
+            $("#myModalPellEditorPreview").modal("show");
+            
+
+            }
+        },   
+        {
+        name: 'html2text',
+        icon: '!txt',
+        title: 'Převést na čistý text',
+        result: () => {
+            const plaintext=prevest_html_na_text(document.getElementById("pells_editor1_output").value); 
+            const newhtml = plaintext.replace(/\r?\n|\r/g, "<br>");
+            
+            editor.content.innerHTML=newhtml;
+            document.getElementById("divContentBodyPreview").innerHTML = newhtml;
+            document.getElementById("pells_editor1_output").value=newhtml;
+            
+            
+
+            }
+        },       
+        {
+        name: 'clear',
+        icon: '!clear',
+        title: 'Vyčistit editor',
+        result: () => {
+            editor.content.innerHTML = '';
+            document.getElementById("divContentBodyPreview").innerHTML = "";
+            document.getElementById("pells_editor1_output").value="";
+            }
+        },
+        {
+        name: 'markup',
+        icon: '[html]',
+        title: 'HTML markup',
+        result: () => {
+            document.getElementById('txtContentBodyMarkup').value = document.getElementById("pells_editor1_output").value;
+            $("#txtContentBodyMarkup").css("height","400px");
+            $("#myModalPellEditorMarkup").modal("show");
+            }
+        }
+      ],
+      classes: {
+        actionbar: 'pell-actionbar',
+        button: 'pell-button',
+        content: 'pell-content'
+      }
+    });
+
+
+    editor.content.innerHTML = document.getElementById("pells_editor1_output").value;
+
+
+
+    function prepsat_markup()
+    {
+        const ss=$("#txtContentBodyMarkup").val();
+        document.getElementById("pells_editor1_output").value=ss;
+        editor.content.innerHTML = document.getElementById("pells_editor1_output").value;
+
+        $('#myModalPellEditorMarkup').modal('hide');
+
+    }
+
+    function prevest_html_na_text(html) {
+      if (!html) return "";
+
+      // 1️⃣ Nahrazení HTML tagů, které mají význam pro strukturu textu
+      html = html
+        // --- Odstavce a bloky ---
+        .replace(/<\s*br\s*\/?>/gi, "\n")
+        .replace(/<\/\s*p\s*>/gi, "\n\n")
+        .replace(/<\s*p[^>]*>/gi, "")
+        .replace(/<\/\s*div\s*>/gi, "\n")
+        .replace(/<\s*div[^>]*>/gi, "")
+        .replace(/<\/\s*section\s*>/gi, "\n")
+        .replace(/<\s*section[^>]*>/gi, "")        
+        .replace(/<\s*h[1-6][^>]*>/gi, "\n")
+        .replace(/<\/\s*h[1-6]\s*>/gi, "\n\n")        
+        .replace(/<\s*ul[^>]*>/gi, "\n")
+        .replace(/<\/\s*ul\s*>/gi, "\n")
+        .replace(/<\s*ol[^>]*>/gi, "\n")
+        .replace(/<\/\s*ol\s*>/gi, "\n")
+        .replace(/<\s*li[^>]*>/gi, "• ")
+        .replace(/<\/\s*li\s*>/gi, "\n")        
+        .replace(/<\/\s*tr\s*>/gi, "\n")
+        .replace(/<\/\s*td\s*>/gi, " ")
+        .replace(/<\s*td[^>]*>/gi, "")
+        .replace(/<\s*tr[^>]*>/gi, "")        
+        .replace(/<\s*hr\s*\/?>/gi, "\n———\n")        
+        .replace(/<[^>]+>/g, "");
+
+
+        // 2️⃣ Vytvoření DOM elementu (kvůli dekódování HTML entit)
+      const div = document.createElement("div");
+      div.innerHTML = html;
+      let text = div.textContent || div.innerText || "";
+
+      // 3️⃣ Úklid — odstraníme přebytečné mezery a zalomení
+      text = text
+        .replace(/\u00A0/g, " ")      // &nbsp;
+        .replace(/[ \t]+/g, " ")      // vícenásobné mezery
+        .replace(/\n{3,}/g, "\n\n")   // víc než 2 nové řádky → 2
+        .trim();
+
+      return text;
+
+      
+    }
+
+
+   
+    
+</script>
+
+

@@ -1,0 +1,96 @@
+﻿
+
+table.htmltable {
+    border-collapse: collapse;
+    table-layout: fixed;
+    
+}
+
+
+
+.htmltable td {
+    padding: 5px;
+    vertical-align: top;
+    width: auto;
+    border-bottom: solid 1px #CCCCCC;
+    
+}
+
+
+
+.htmltable th {
+    text-align: center;
+    padding: 6px;
+    color: navy;
+    font-weight: bold;
+    border-bottom: solid 1px #CCCCCC;
+}
+
+.htmltable tr {
+    line-height: 1rem;
+}
+
+.mrizka th {
+    border: solid 1px #CCCCCC;
+}
+
+.mrizka td {
+    border: solid 1px #CCCCCC;
+}
+
+
+
+
+
+.htmltable tfoot {
+    background-color: #DCDCDC;
+}
+
+
+.htmltable tr:hover {
+    background-color: #F5F5F5;
+}
+
+.htmltable tr.lh12 {
+    line-height: 1.2rem;
+}
+
+.htmltable tr.lh15 {
+    line-height: 1.5rem;
+}
+
+.htmltable tr.lh20 {
+    line-height: 2rem;
+}
+
+.htmltable tr.stripped {
+    background-color: #F5F5F5;
+}
+
+.htmltable td.cislo {
+    text-align: right;
+    padding-right: 10px;
+}
+
+.htmltable th.cislo {
+    text-align: right;
+    padding-right: 10px;
+}
+
+.htmltable td.schvaleno {
+    background-color: #F0FFF0;
+}
+
+.htmltable td.odpis {
+    background-color: red;
+    color:white;
+}
+.htmltable td.pausal {
+    background-color: pink;
+}
+.htmltable td.pozdeji {
+    background-color: gold;
+}
+
+
+

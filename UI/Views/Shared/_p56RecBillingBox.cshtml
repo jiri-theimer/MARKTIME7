@@ -1,0 +1,311 @@
+﻿@model BO.p56Task
+
+@inject BL.Factory _f
+
+@{
+
+
+    if (Model == null)
+    {
+        return;
+    }
+
+
+    BO.p31BudgetCompare _bcomp = null;
+    double _fakturovatVyka = 0;
+    double _ziskPlan = 0;
+    double _ziskVyka = 0;
+    double _nakladyPlan = 0;
+    double _nakladyVyka = 0;
+    int _intScenarVydaje = 2;
+    int _intScenarHodiny = 1;
+
+    if (Model.p56Plan_Expenses != 0 || Model.p56Plan_Revenue != 0)
+    {
+        _intScenarVydaje = _f.CBL.LoadUserParamInt("rozpocet-scenar-vydaje", 2);
+        _intScenarHodiny = _f.CBL.LoadUserParamInt("rozpocet-scenar-hodiny", 1);
+        BO.Model.TimesheetCostRateEnum _NakladovaSazbaScenar = (BO.Model.TimesheetCostRateEnum)_f.CBL.LoadUserParamInt("vysledovka-nakladovasazba-scenar", 5);
+        double _dblSimulacniSazba = BO.Code.Bas.InDouble(_f.CBL.LoadUserParam("vysledovka-NakladovaSazbaCislo", (_f.Lic.j27ID == 2 ? "500" : "25")));
+        double _dblProcentoZFakSazby = BO.Code.Bas.InDouble(_f.CBL.LoadUserParam("vysledovka-NakladovaSazbaProcento"));
+
+        _bcomp = _f.p31WorksheetBL.LoadBudgetCompare("p56", Model.pid, _NakladovaSazbaScenar, _dblSimulacniSazba, _dblProcentoZFakSazby);
+        
+        _nakladyPlan = Model.p56Plan_Expenses + Model.p56Plan_Internal_Fee;
+
+
+        if (_intScenarHodiny == 1)
+        {
+            _fakturovatVyka = _bcomp.Odmeny + _bcomp.Honorar;   //fakturovat fa hodiny+odměny
+        }
+        if (_intScenarHodiny == 2)
+        {
+            _fakturovatVyka = _bcomp.Odmeny;            //fakturovat pouze odměny
+        }
+        if (_intScenarVydaje == 1)
+        {
+            _nakladyVyka = _bcomp.Vydaje + _bcomp.Honorar_Naklad;
+        }
+        if (_intScenarVydaje == 2)
+        {
+            _nakladyVyka = _bcomp.VydajeNefa + _bcomp.Honorar_Naklad;
+            _fakturovatVyka += _bcomp.VydajeFa;
+        }
+        _ziskVyka = _fakturovatVyka - _nakladyVyka;
+        _ziskPlan = Model.p56Plan_Revenue - _nakladyPlan;
+
+
+    }
+
+}
+
+@addTagHelper *, UI
+
+@if (_bcomp != null)
+{
+    <table class="table table-sm table-hover" style="min-width:400px;">
+        <tr>
+            <td>
+
+                <div class="dropdown">
+                    <a class="btn dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        @_f.tra("Rozpočet úkolu")
+                        <myicon symbol="target"></myicon>
+                    </a>
+
+                    <div class="dropdown-menu" style="padding:10px;background-color:aliceblue;">
+
+                        <select id="cbxScenarVydaje" onchange="rozpocet_change_scenar(this,'rozpocet-scenar-vydaje')">
+                            <option value="1">Všechny peněžní výdaje jsou náklady</option>
+                            <option value="2">Fa peněžní výdaje pře-fakturovat</option>
+                        </select>
+                        <p></p>
+                        <select id="cbxScenarHodiny" onchange="rozpocet_change_scenar(this,'rozpocet-scenar-hodiny')">
+                            <option value="1">Fa hodiny fakturovat, Nefa hodiny odepsat</option>
+                            <option value="2">Všechny hodiny odepsat</option>
+                        </select>
+                    </div>
+                </div>
+            </td>
+            <td class="numcell" title="Rozpočet/Limitní hodnoty">
+                @_f.tra("Plán")
+            </td>
+            <td class="numcell" title="Realita = vykázané hodiny/výdaje/odměny">
+                @_f.tra("Realita")
+            </td>
+            <td style="text-align:center;" colspan="2" title="Zbývá dočerpat z rozpočtu nebo přečerpáno.">
+                @_f.tra("Rozdíl")
+
+
+            </td>
+
+        </tr>
+        @if (Model.p56Plan_Hours != 0)
+        {
+            <tr>
+                <td>@_f.tra("Hodiny"):</td>
+                <td class="numcell">
+                    @BO.Code.Bas.Num2StringNull(Model.p56Plan_Hours)
+                </td>
+                <td class="numcell">
+                    @BO.Code.Bas.Num2StringNull(_bcomp.Hodiny)
+                    @if (_bcomp.Honorar != 0 && _intScenarHodiny == 1)
+                    {
+                        <br />
+                        <span title="Fakturační honorář z vykázaných hodin" style="color:green">@BO.Code.Bas.Num2StringNull(_bcomp.Honorar)</span>
+                    }
+                </td>
+                <td class="numcell" style="color:@(_bcomp.Hodiny - Model.p56Plan_Hours>0 ? "brown": "darkviolet")">
+                    @if (Model.p56Plan_Hours>0 && _bcomp.Hodiny != 0)
+                    {
+                        @BO.Code.Bas.Num2StringNull(_bcomp.Hodiny - Model.p56Plan_Hours)
+                    }
+                    
+                </td>
+                <td class="numcell" style="color:@(_bcomp.Hodiny - Model.p56Plan_Hours>0 ? "brown": "darkviolet")">
+                    @if (Model.p56Plan_Hours > 0 && _bcomp.Hodiny != 0)
+                    {
+                        @BO.Code.Bas.Num2StringNull(100 * _bcomp.Hodiny / Model.p56Plan_Hours)
+                        <span>%</span>
+            
+                    }
+                    
+                </td>
+            </tr>
+        }
+        
+        
+        @if (Model.p56Plan_Internal_Fee != 0 || _bcomp.Hodiny > 0)
+        {
+                        
+            <tr>
+                <td>
+                    @_f.tra("Nákladový honorář"):
+                </td>
+                <td class="numcell">
+                    @BO.Code.Bas.Num2StringNull(Model.p56Plan_Internal_Fee)
+                </td>
+                <td class="numcell">
+                    @BO.Code.Bas.Num2StringNull(_bcomp.Honorar_Naklad)
+                </td>
+                <td class="numcell" style="color:@(_bcomp.Honorar_Naklad - Model.p56Plan_Internal_Fee>0 ? "brown": "darkviolet")">
+                    @if (Model.p56Plan_Internal_Fee > 0 && _bcomp.Honorar_Naklad>0)
+                    {
+                        @BO.Code.Bas.Num2StringNull(_bcomp.Honorar_Naklad - Model.p56Plan_Internal_Fee)
+                    }
+
+                </td>
+                <td class="numcell" style="color:@(_bcomp.Honorar_Naklad - Model.p56Plan_Internal_Fee>0 ? "brown": "darkviolet")">
+                    @if (Model.p56Plan_Internal_Fee > 0 && _bcomp.Honorar_Naklad>0)
+                    {
+                        @BO.Code.Bas.Num2StringNull(100 * _bcomp.Honorar_Naklad / Model.p56Plan_Internal_Fee)
+                        <span>%</span>
+                    }
+
+                </td>
+            </tr>
+
+
+        }
+        @if (Model.p56Plan_Expenses != 0 || _bcomp.Vydaje != 0)
+        {
+            <tr>
+                <td>@_f.tra("Peněžní výdaje"):</td>
+                <td class="numcell">
+                    @BO.Code.Bas.Num2StringNull(Model.p56Plan_Expenses)
+                </td>
+                <td class="numcell" title="Vykázané Fa i Nefa peněžní výdaje">
+                    @BO.Code.Bas.Num2StringNull(_bcomp.Vydaje)
+                </td>
+                <td class="numcell" style="color:@(_bcomp.Vydaje - Model.p56Plan_Expenses>0 ? "brown": "darkviolet")">
+                    @if (Model.p56Plan_Expenses > 0 && _bcomp.Vydaje !=0)
+                    {
+                        @BO.Code.Bas.Num2StringNull(_bcomp.Vydaje - Model.p56Plan_Expenses)
+                    }
+
+                </td>
+                <td class="numcell" style="color:@(_bcomp.Vydaje - Model.p56Plan_Expenses>0 ? "brown": "darkviolet")">
+                    @if (Model.p56Plan_Expenses > 0 && _bcomp.Vydaje !=0)
+                    {
+                        @BO.Code.Bas.Num2StringNull(100 * _bcomp.Vydaje / Model.p56Plan_Expenses)
+                        <span>%</span>
+                    }
+
+                </td>
+            </tr>
+        }
+        @if (_bcomp.Odmeny != 0)
+        {
+            <tr>
+                <td>@_f.tra("Pevné odměny"):</td>
+                <td class="numcell">
+                </td>
+                <td class="numcell" style="color:green;">
+                    @BO.Code.Bas.Num2StringNull(_bcomp.Odmeny)
+                </td>
+                <td class="numcell">
+                </td>
+                <td class="numcell">
+                </td>
+            </tr>
+        }
+
+        <tr style="background-color:palegreen;">
+            <td>@_f.tra("Fakturovat"):</td>
+            <td class="numcell">
+                @BO.Code.Bas.Num2StringNull(Model.p56Plan_Revenue)
+            </td>
+            <td class="numcell">
+                @BO.Code.Bas.Num2StringNull(_fakturovatVyka)
+            </td>
+            <td class="numcell" style="color:@(_fakturovatVyka - Model.p56Plan_Revenue>0 ? "brown": "darkviolet")">
+                @if (Model.p56Plan_Revenue > 0 && _fakturovatVyka !=0)
+                {
+                    @BO.Code.Bas.Num2StringNull(_fakturovatVyka - Model.p56Plan_Revenue)
+                }
+
+            </td>
+            <td class="numcell" style="color:@(_fakturovatVyka - Model.p56Plan_Revenue>0 ? "brown": "darkviolet")">
+                @if (Model.p56Plan_Revenue > 0 && _fakturovatVyka !=0)
+                {
+                    @BO.Code.Bas.Num2StringNull(100 * _fakturovatVyka / Model.p56Plan_Revenue)
+                    <span>%</span>
+                }
+
+            </td>
+        </tr>
+
+        <tr style="background-color:#FFCCCB;">
+            <td>@_f.tra("Náklady celkem"):</td>
+            <td class="numcell">
+                @BO.Code.Bas.Num2StringNull(_nakladyPlan)
+            </td>
+            <td class="numcell">
+                @BO.Code.Bas.Num2StringNull(_nakladyVyka)
+            </td>
+            <td class="numcell" style="color:@(_nakladyVyka - _nakladyPlan>0 ? "brown": "darkviolet")">
+                @if (_nakladyPlan > 0 && _nakladyVyka !=0)
+                {
+                    @BO.Code.Bas.Num2StringNull(_nakladyVyka - _nakladyPlan)
+                }
+
+            </td>
+            <td class="numcell" style="color:@(_nakladyVyka - _nakladyPlan>0 ? "brown": "darkviolet")">
+                @if (_nakladyPlan > 0 && _nakladyVyka !=0)
+                {
+                    @BO.Code.Bas.Num2StringNull(100 * _nakladyVyka / _nakladyPlan)
+                    <span>%</span>
+                }
+
+            </td>
+        </tr>
+
+        <tr>
+            <td>
+                @_f.tra("Zisk/Ztráta"):
+            </td>
+            <td class="numcell" style="color:@(_ziskPlan>0 ? "green": "brown")">
+                <strong>
+                    @BO.Code.Bas.Num2StringNull(_ziskPlan)
+                </strong>
+
+            </td>
+            <td class="numcell" style="color:@(_ziskVyka>0 ? "green": "brown")">
+                <strong>
+                    @BO.Code.Bas.Num2StringNull(_ziskVyka)
+                </strong>
+
+
+            </td>
+            <td class="numcell">
+                @if(_ziskVyka != 0)
+                {
+                    @if (_ziskVyka > 0)
+                    {
+                        <myicon symbol="sentiment_satisfied"></myicon>
+                    }
+                    else
+                    {
+                        <myicon color="red" symbol="sentiment_worried"></myicon>
+                    }
+                }                
+            </td>
+            <td class="numcell">
+            </td>
+        </tr>
+
+    </table>
+
+    <script type="text/javascript">
+        $("#cbxScenarVydaje").val("@(_intScenarVydaje)");
+        $("#cbxScenarHodiny").val("@(_intScenarHodiny)");
+
+        function rozpocet_change_scenar(cbx, key) {
+            $.post(_ep("/Common/SetUserParam"), { key: key, value: cbx.value }, function (data) {
+                location.replace(location.href);
+
+            });
+        }
+
+    </script>
+
+}

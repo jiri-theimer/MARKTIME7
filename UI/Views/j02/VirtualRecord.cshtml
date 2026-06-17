@@ -1,0 +1,101 @@
+﻿@model UI.Models.j02VirtualUserVIewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Virtuální uživatel");
+    Model.PageSymbol = "domino_mask";
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+}
+
+@addTagHelper *, UI
+
+
+<div class="bg-light input-group" style="padding:5px;border-bottom:solid 1px silver;border-top:solid 1px silver;">
+
+    @if (Model.pid == 0)
+    {
+        <button type="button" id="cmdCreate" class="btn btn-success" onclick="_submit()">@_f.tra("Založit virtuální uživatelský účet")</button>
+
+    }
+    else
+    {
+        <div style="margin-left:10px;">
+            <button type="button" class="btn btn-danger ml-2" tabindex="-1" onclick="try_delete()"><span class="material-icons-outlined-btn" style="color:black;">delete_forever</span>@_f.tra("Odstranit")</button>
+
+        </div>
+        <div style="margin-left:10px;">
+            @if (!Model.Rec.isclosed)
+            {
+                <button type="button" onclick="try_archive()" tabindex="-1" class="btn btn-light"><span class="material-icons-outlined-btn" style="color:red;">delete</span>@_f.tra("Přesunout do archivu")</button>
+            }
+            else
+            {
+                <button type="button" onclick="try_restore()" tabindex="-1" class="btn btn-warning"><span class="material-icons-outlined-btn" style="color:black;">restore_from_trash</span>@_f.tra("Obnovit z archivu")</button>
+            }
+        </div>
+    }
+    <div style="margin-left:10px;">
+        <button id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+    </div>
+    
+
+
+
+</div>
+
+<form id="form1" asp-controller="j02" asp-action="VirtualRecord" method="POST">
+    <input type="hidden" asp-for="pid" />
+    <input type="hidden" asp-for="j02VirtualParentID" />
+
+    <div class="modal_record_container">
+
+        @if(Model.Rec !=null && Model.Rec.pid > 0)
+        {
+            <div class="card recpagebox400">
+                <div class="card-header">
+                    @_f.tra("Virtuální uživatel")
+                </div>
+                <div class="card-body">
+                    @await Html.PartialAsync("~/Views/Shared/_j02RecHeaderBox.cshtml", Model.Rec)
+
+                    
+                </div>
+            </div>
+        }
+        <div class="card recpagebox400">
+            <div class="card-header">
+                @_f.tra("Vzorový uživatel")
+            </div>
+            <div class="card-body">
+                @await Html.PartialAsync("~/Views/Shared/_j02RecHeaderBox.cshtml", Model.RecParent)                
+
+                @Html.EditorFor(m => m.RecParent, "~/Views/Shared/_TimeStamp.cshtml")
+            </div>
+        </div>
+
+
+
+
+    </div>
+</form>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+    })
+
+    function try_delete()
+    {
+        if (confirm("@_f.tra("Opravdu chcete nenávratně odstranit tento záznam?")"))
+        {            
+            _postback("delete");
+        }
+    }
+    function try_archive() {
+        _postback("archive");
+    }
+    function try_restore() {
+        _postback("restore");
+    }
+</script>

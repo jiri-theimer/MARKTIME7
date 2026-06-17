@@ -1,0 +1,263 @@
+﻿@model UI.Models.Record.x55Record
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    if (Model.Rec == null) return;
+    Model.PageTitle = "Widget";
+    Model.PageSymbol = "settings";
+}
+@addTagHelper *, UI
+
+@section header_content
+{
+
+    <link href="~/lib/froala-editor/css/froala_editor.pkgd.min.css" rel="stylesheet" type="text/css" />
+}
+
+<script type="text/javascript" src="/lib/froala-editor/js/froala_editor.pkgd.min.js"></script>
+
+
+<div class="tabs_container_record">
+    <!-- Tab panes -->
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab1" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab1">@_f.tra("Vlastnosti")</a>
+        </li>
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab5" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab5">@_f.tra("Notepad")</a>
+        </li>
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab2" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab2">@_f.tra("Tabulka")</a>
+        </li>
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab3" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab3">@_f.tra("Graf")</a>
+        </li>
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab6" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab6">@_f.tra("Pevné reporty")</a>
+        </li>
+
+    </ul>
+</div>
+
+<div class="modal_record_container" id="divForm">
+    <div class="tab-content">
+        <div class="tab-pane" id="tab1" role="tabpanel">
+            <div class="row">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název"):</label>
+                <div class="col-sm-6 col-md-5">
+                        <input class="form-control record_name" asp-for="Rec.x55Name" />
+
+                </div>
+                <label class="col-sm-1 col-md-1 col-form-label">@_f.tra("Index pořadí"):</label>
+                <div class="col-sm-1 col-md-1">
+                    <mynumber asp-for="Rec.x55Ordinal" decimal-digits="0"></mynumber>
+                </div>
+
+            </div>
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Kód"):</label>
+                <div class="col-sm-5 col-md-4">
+                    <input class="form-control record_code" asp-for="Rec.x55Code" />
+
+                </div>
+
+            </div>
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Ikona"):</label>
+                <div class="col-sm-5 col-md-4">
+                    <input class="form-control" asp-for="Rec.x55Image" />
+
+                </div>
+            </div>
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Kategorie"):</label>
+                <div class="col-sm-1 col-md-2">
+                    <input class="form-control" asp-for="Rec.x55Category" />
+                </div>
+            </div>
+            <div class="row my-2" style="display:none;">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Max výška"):</label>
+                <div class="col-sm-1 col-md-2">
+                    <mynumber asp-for="Rec.x55BoxMaxHeight" decimal-digits="0"></mynumber>
+                </div>
+            </div>
+           
+         
+            <div class="my-2">
+                <textarea asp-for="Rec.x55Description" class="form-control" placeholder="@_f.tra("Poznámka")"></textarea>
+
+            </div>
+
+            <table>
+                <tr>
+                    <td style="width:100px;">
+                        <label>@_f.tra("Header pozadí"):</label>
+                    </td>
+                    <td>
+                        <input type="color" asp-for="Rec.x55HeaderBackColor" />
+                    </td>
+                    <td>
+                        <button type="button" style="border:none;" onclick="$('#Rec_x55HeaderBackColor').val(null)">&times;</button>
+                    </td>
+                    <td style="padding-left:50px;">
+                        <label>@_f.tra("Header písmo"):</label>
+                    </td>
+                    <td>
+                        <input type="color" asp-for="Rec.x55HeaderForeColor" />
+                    </td>
+                    <td>
+                        <button type="button" style="border:none;" onclick="$('#Rec_x55HeaderForeColor').val(null)">&times;</button>
+                    </td>
+                    <td style="padding-left:50px;">
+                        <label>@_f.tra("Barva pozadí widgetu"):</label>
+                    </td>
+                    <td>
+                        <input type="color" asp-for="Rec.x55BoxBackColor" />
+                    </td>
+                    <td>
+                        <button type="button" style="border:none;" onclick="$('#Rec_x55BoxBackColor').val(null)">&times;</button>
+                    </td>
+                    <td>
+                        <i>@_f.tra("Černá = žádná barva!")</i>
+                    </td>
+                </tr>
+            </table>
+
+
+        </div>
+        <div class="tab-pane" id="tab5" role="tabpanel">
+            @Html.EditorFor(m => m.Notepad, "~/Views/Shared/_Notepad.cshtml")
+
+        </div>
+        <div class="tab-pane" id="tab2" role="tabpanel">
+            <div class="row">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Nadpisy sloupců"):</label>
+                <div class="col-sm-11 col-md-10">
+                    <input class="form-control" asp-for="Rec.x55TableColHeaders" />
+
+                </div>
+            </div>
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Typy sloupců"):</label>
+                <div class="col-sm-11 col-md-10">
+                    <input class="form-control" asp-for="Rec.x55TableColTypes" />
+
+                </div>
+            </div>
+            <div class="row">
+                <label class="col-sm-1 col-md-2 col-form-label">Totals:</label>
+                <div class="col-sm-11 col-md-10">
+                    <input class="form-control" asp-for="Rec.x55TableColTotals" />
+
+                </div>
+            </div>
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Kdy zapnout [DataTables]"):</label>
+                <div class="col-sm-4 col-md-3">
+                    <select asp-for="@Model.Rec.x55DataTablesLimit" class="form-select">
+                        <option value="0">@_f.tra("Počet záznamů")</option>
+                        <option value="1">1</option>
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                        <option value="200">200</option>
+                        <option value="999">999</option>
+                    </select>
+
+                </div>
+            </div>
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Tlačítka k [DataTables]"):</label>
+                <div class="col-sm-4 col-md-4">
+                    <select asp-for="@Model.Rec.x55DataTablesButtons" class="form-select">
+                        <option value="None">@_f.tra("[DataTables] bez tlačítek")</option>
+                        <option value="ExportPrint">XLS/CSV/COPY + @_f.tra("Tisk")</option>
+                        <option value="ExportPrintPdf">XLS/CSV/COPY + @_f.tra("Tisk") + PDF</option>
+                    </select>
+                </div>
+            </div>
+            <div class="my-2">
+                <textarea asp-for="Rec.x55TableSql" class="form-control" placeholder="@_f.tra("Zdrojový sql")"></textarea>
+
+            </div>
+        </div>
+        <div class="tab-pane" id="tab3" role="tabpanel">
+            <div class="row">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Názvy veličin"):</label>
+                <div class="col-sm-11 col-md-10">
+                    <input class="form-control" asp-for="Rec.x55ChartHeaders" />
+
+                </div>
+            </div>
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Typ grafu"):</label>
+                <div class="col-sm-2 col-md-2">
+                    <select asp-for="@Model.Rec.x55ChartType" class="form-select">
+                        <option value=""></option>
+                        <option value="Bar">Bar</option>
+                        <option value="StackedBar">Stacked Bar</option>
+                        <option value="Column">Column</option>
+                        <option value="StackedColumn">Stacked Column</option>
+                        <option value="Pie">Pie</option>
+                        <option value="Donut">Donut</option>
+                        <option value="Line">Line</option>
+                        <option value="Area">Area</option>
+                        <option value="Bubble">Bubble</option>
+                    </select>
+
+                </div>
+                
+        
+    
+            </div>
+            <div class="row">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Barvy veličin"):</label>
+                <div class="col-sm-11 col-md-10">
+                    <input class="form-control" asp-for="Rec.x55ChartColors" />
+
+                </div>
+            </div>
+            <div class="my-2">
+                <textarea asp-for="Rec.x55ChartSql" class="form-control" placeholder="@_f.tra("Zdrojový sql")"></textarea>
+
+            </div>
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">Explicit chart height:</label>
+                <div class="col-sm-1 col-md-2">
+                    <mynumber asp-for="Rec.x55ChartHeight" decimal-digits="0"></mynumber>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane" id="tab6" role="tabpanel">
+            <textarea asp-for="Rec.x55ReportCodes" class="form-control" placeholder="@_f.tra("Kódy vybraných reportů")"></textarea>
+        </div>
+      
+    </div>
+
+
+
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        var ofs = $("#divForm").offset();
+        var hh = window.innerHeight - ofs.top - 120;
+
+       
+
+
+
+
+    });
+
+
+
+
+
+
+</script>

@@ -1,0 +1,127 @@
+﻿@model UI.Models.Record.p15Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Pojmenovaná lokalita");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+}
+
+@addTagHelper *, UI
+
+@if (Model.Notepad.SelectedX04ID > 0)
+{
+    @section header_content{
+    <link href="~/lib/froala-editor/css/froala_editor.pkgd.min.css" rel="stylesheet" type="text/css" />
+    }
+}
+
+<div>
+    <div class="row p-0 m-0">
+        <div class="col-6" style="max-width:800px;">
+            <div class="row">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název"):</label>
+                <div class="col-sm-11 col-md-10">
+                    <input class="form-control" asp-for="Rec.p15Name" />
+                </div>
+
+            </div>
+                        
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Ulice"):</label>
+                <div class="col-sm-11 col-md-10">
+                    <input class="form-control" asp-for="Rec.p15Street" />
+                </div>
+
+            </div>
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Město"):</label>
+                <div class="col-sm-11 col-md-10">
+                    <input class="form-control" asp-for="Rec.p15City" />
+                </div>
+
+            </div>
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("PSČ"):</label>
+                <div class="col-sm-3 col-md-2">
+                    <input class="form-control" asp-for="Rec.p15PostCode" />
+                </div>
+
+            </div>
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Stát"):</label>
+                <div class="col-sm-11 col-md-10">
+                    <input class="form-control" asp-for="Rec.p15Country" />
+                </div>
+
+            </div>
+
+            <div class="my-2">
+                <button type="button" class="btn btn-primary" onclick="_postback('geo')">@_f.tra("Načíst souřadnice z adresy")</button>
+            </div>
+
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Souřadnice") X:</label>
+                <div class="col-sm-3 col-md-3">
+                    <input class="form-control" asp-for="@Model.Longitude" value="@Model.Longitude" />
+
+                </div>
+                <label class="col-sm-1 col-md-1 col-form-label">Y:</label>
+                <div class="col-sm-3 col-md-3">
+                    <input class="form-control" asp-for="@Model.Latitude" value="@Model.Latitude" />
+
+                </div>
+            </div>
+
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Vlastník záznamu"):</label>
+                <div class="col-sm-11 col-md-10">
+                    <mycombo entity="j02User" asp-for="Rec.j02ID_Owner" selectedtext="@Model.ComboOwner" view-flag="2"></mycombo>
+                </div>
+            </div>
+        </div>
+        <div class="col-6">
+            <iframe id="mapa" style="border:none;width:100%;height:500px;display:none;"></iframe>
+        </div>
+    </div>
+
+
+
+
+
+    @if (Model.Notepad != null)
+    {
+        @Html.EditorFor(m => m.Notepad, "~/Views/Shared/_Notepad.cshtml")
+    }
+
+</div>
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        myautocomplete_init_manual("Rec_p15Country", "@string.Join("|",Model.lisAutocomplete.Where(p=>p.o15Flag==BO.AutoCompleteFlag.Stat).Select(p=>p.o15Value))");
+
+        if ($("#Longitude").val() != "" && $("#Latitude").val() != "") {
+            showMap();
+        }
+
+        
+    });
+
+
+    
+
+
+    
+
+    function showMap() {
+        $("#mapa").css("display", "block");
+        var x = $("#Longitude").val().replace(",", ".");
+        var y = $("#Latitude").val().replace(",", ".");        
+        document.getElementById("mapa").src = "https://frame.mapy.cz/turisticka?source=coor&id=" + x + "%2C" + y + "&ds=1&x=" + x + "&y=" + y + "&z=17";
+
+
+        
+    }
+
+</script>

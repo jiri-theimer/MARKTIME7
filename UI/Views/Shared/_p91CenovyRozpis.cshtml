@@ -1,0 +1,77 @@
+﻿@model int
+@inject BL.Factory _f
+
+@{
+
+
+    if (Model == 0)
+    {
+        return;
+    }
+
+    IEnumerable<BO.p91_CenovyRozpis> _lisCenovyRozpis = _f.p91InvoiceBL.GetList_CenovyRozpis(Model, true, true, _f.CurrentUser.j02LangIndex);
+
+}
+
+
+<table class="table table-sm table-bordered table-hover" style="max-width:600px;float:left;">
+    <thead style="background-color: #F5F5F5;">
+        <tr>
+            <th>@_f.tra("Cenový rozpis faktury")</th>
+            <th>@_f.tra("Bez DPH")</th>
+            <th style="width:50px;">@_f.tra("DPH%")</th>
+            <th>@_f.tra("Částka DPH")</th>
+            <th>@_f.tra("Včetně DPH")</th>
+            <th style="width:40px;"></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var c in _lisCenovyRozpis)
+        {
+            <tr>
+                <td>
+                    @c.Oddil
+                </td>
+                <td style="text-align:right;">
+                    @(BO.Code.Bas.Number2String(c.BezDPH))
+                </td>
+                <td style="text-align:right;">
+                    @c.DPHSazba
+                    %
+                </td>
+                <td style="text-align:right;">
+                    @(BO.Code.Bas.Number2String(c.DPH))
+                </td>
+                <td style="text-align:right;">
+                    @(BO.Code.Bas.Number2String(c.VcDPH))
+                </td>
+                <td>
+                    @c.j27Code
+                </td>
+            </tr>
+        }
+    </tbody>
+    @if (_lisCenovyRozpis.Count() > 0)
+    {
+        <tfoot style="background-color: #E5E5E5;">
+            <tr>
+                <td></td>
+                <td style="text-align:right;">
+                    @(BO.Code.Bas.Number2String(_lisCenovyRozpis.Sum(p => p.BezDPH)))
+                </td>
+                <td></td>
+                <td style="text-align:right;">
+                    @(BO.Code.Bas.Number2String(_lisCenovyRozpis.Sum(p => p.DPH)))
+                </td>
+                <td style="text-align:right;">
+                    @(BO.Code.Bas.Number2String(_lisCenovyRozpis.Sum(p => p.VcDPH)))
+                </td>
+                <td>
+                    @_lisCenovyRozpis.First().j27Code
+                </td>
+            </tr>
+        </tfoot>
+    }
+    
+
+</table>

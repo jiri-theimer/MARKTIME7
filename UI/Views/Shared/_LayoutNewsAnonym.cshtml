@@ -1,0 +1,124 @@
+﻿@model UI.Models.BaseViewModel
+@inject BL.Singleton.RunningApp _app
+
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="utf-8" />    
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    @if (_app.AllowGoogleLogin)
+    {
+        <meta name="google-signin-client_id" content="811901017740-0aajbhv1j9lsc9kussh19k9rojt93iq0.apps.googleusercontent.com">
+    }    
+
+    <title>@Model.PageTitle | MARKTIME</title>
+
+    <meta name="description" content="Jsme výrobci software MARKTIME pro advokáty, účetní, daňové poradce, auditory, projektanty. Neustále software vylepšujeme a přinášíme uživatelům nové funkce">
+    <meta name="keywords" content="software, pro, řízení, fakturaci, vykazování, plánování projektu, spisu, advokát, daňový poradce, účetní, kancelář, architekt">
+    <meta name="generator" content="MARKTIME">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    
+    <meta property="og:url" content="https://www.marktime.cz/">
+    <meta property="og:title" content="Jsme výrobci software MARKTIME pro advokáty, účetní, daňové poradce, auditory, konzultanty. Neustále software vylepšujeme a přinášíme uživatelům nové funkce">
+    <meta property="og:type" content="article">
+    <meta property="og:description" content="Software pro advokáty, účetní, daňové poradce, projektanty, verze zdarma">
+    <meta property="og:site_name" content="MARKTIME">
+
+    
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="~/css/contextmenu.css" />
+    <link rel="stylesheet" href="~/css/anonym.css" />
+
+    <link href="~/css/news-public.css" rel="stylesheet" type="text/css" />
+    
+
+    <link rel="stylesheet" href="~/css/fontsize2.css" />
+
+    
+
+
+    @if (IsSectionDefined("header_content"))
+    {
+        @RenderSection("header_content")
+    }
+
+
+    
+</head>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+
+<body>
+
+    
+    <script type="text/javascript">
+        var _relpath = "@(Url.Content("~/favicon.ico").Replace("favicon.ico",""))";   //relativní cesta: detekce kvůli případnému IIS virtuálnímu adresáři
+    </script>
+    <header id="headerxx" class="header fixed-top" style="background-color:white;">
+    <div class="container-fluid container-xl d-flex align-items-center justify-content-between">
+        <a href="https://marktime.cz/cz/uvod" class="logo d-flex align-items-center">
+            <img src="/images/news-logo.png" />
+
+        </a>
+        
+        
+        <nav id="navbar" class="navbar">
+
+
+            <ul>
+                <li><a class="nav-link scrollto" href="https://marktime.cz/cz/uvod">Home</a></li>
+
+                <li><a class="nav-link scrollto" href="https://marktime.cz/cz/uvod#values">Řešení</a></li>
+                <li><a class="nav-link" href="https://marktime.cz/cz/akademie">Akademie</a></li>
+
+                <li><a class="nav-link scrollto" href="https://marktime.cz/cz/uvod#cenik">Ceník</a></li>
+                <li><a class="nav-link active" href="https://marktime.cz/cz/novinky">Novinky</a></li>
+
+                <li><a class="nav-link scrollto" href="https://marktime.cz/cz/uvod#contact">Kontakt</a></li>
+                <li><a class="getstarted" href="https://app.marktime.net">Přihlásit se</a></li>
+
+            </ul>
+            <i class="bi bi-list mobile-nav-toggle"></i>
+        </nav>
+        
+    </div>
+    </header>
+
+    <section class="d-flex align-items-center" style="padding-bottom:0px;margin-top:10px;">
+        <div class="container" data-aos="fade-up">
+
+            <header class="section-header">
+                
+                <p>Novinky | Blog</p>
+
+
+            </header>
+
+
+        </div>
+
+    </section><!-- End Hero -->
+
+    
+
+    <div class="container container-fluid">
+        <main role="main">
+           
+            
+
+            @RenderBody()
+        </main>
+
+    </div>
+    
+    
+
+
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

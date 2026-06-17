@@ -1,0 +1,53 @@
+﻿@model UI.Models.Record.p63Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Režijní přirážky k fakturaci");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    Model.PageSymbol = "settings";
+}
+
+@addTagHelper *, UI
+
+<div class="modal_record_container">
+
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název pravidla"):</label>
+        <div class="col-sm-11 col-md-10">
+            <input class="form-control" asp-for="Rec.p63Name" />
+        </div>
+
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Aktivita úkonu přirážky"):</label>
+        <div class="col-sm-11 col-md-10">
+            <mycombo entity="p32Activity" asp-for="Rec.p32ID" selectedtext="@Model.ComboP32" filter-flag="1" myqueryinline="ismoneyinput|bool|1"></mycombo>
+        </div>
+
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Procento přirážky"):</label>
+        <div class="col-sm-4 col-md-3">
+            <mynumber asp-for="Rec.p63PercentRate" decimal-digits="2"></mynumber>
+        </div>
+        <div class="col-auto">            
+            @_f.tra("Záporné číslo = sleva")
+        </div>
+    </div>
+
+
+    <div class="my-2">
+        <input type="checkbox" asp-for="Rec.p63IsIncludeTime" />
+        <label class="col-form-label" for="Rec_p63IsIncludeTime">@_f.tra("Do výpočtu přirážky zahrnout honoráře fakturovaných časových úkonů")</label>
+    </div>
+    <div class="my-2">
+        <input type="checkbox" asp-for="Rec.p63IsIncludeFees" />
+        <label class="col-form-label" for="Rec_p63IsIncludeFees">@_f.tra("Do výpočtu přirážky zahrnout pevné (paušální) odměny")</label>
+    </div>
+    <div class="my-2">
+        <input type="checkbox" asp-for="Rec.p63IsIncludeExpense" />
+        <label class="col-form-label" for="Rec_p63IsIncludeExpense">@_f.tra("Do výpočtu přirážky zahrnout peněžní výdaje")</label>
+    </div>
+
+
+</div>

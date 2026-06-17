@@ -1,0 +1,74 @@
+﻿@model UI.Models.Tab1.p55Tab1
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+    if (Model.pid == 0) return;
+
+    IEnumerable<BO.p56Task> _lis = _f.p56TaskBL.GetList(new BO.myQueryP56() {IsRecordValid=null, p55id = Model.pid }).OrderBy(p => p.p56Ordinary);
+    if (_lis.Count() == 0) return;
+
+    BO.p56Task _recFirst = _lis.First();
+
+}
+
+@addTagHelper *, UI
+
+
+
+@Html.Raw("<div class='info_record_container'>")
+
+<h5>@Model.Rec.p55Name</h5>
+
+
+
+
+
+
+<table class="table table-hover">
+    @foreach (var c in _lis)
+    {
+        <tr>
+            <td>
+                @c.p56Name
+            </td>
+            <td>
+                @c.b02Name
+                @(Html.Raw(UI.Code.basUI.HtmlColorStrip(c.b02Color)))
+            </td>
+            <td>
+                @BO.Code.Bas.ObjectDateTime2String(c.p56PlanUntil)
+            </td>
+            <td>
+                @c.ProjectWithClient
+                @if(@c.p41Code !=null)
+                {
+                    <code>@c.p41Code</code>
+                }
+                
+            </td>
+        </tr>
+    }
+
+</table>
+
+
+@Html.Raw("</div>")
+
+<div style="clear:both;"></div>
+
+
+<script type="text/javascript">
+   
+    $(document).ready(function () {
+
+
+
+    });
+
+   
+
+    
+
+</script>

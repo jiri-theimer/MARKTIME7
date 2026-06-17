@@ -1,0 +1,113 @@
+﻿@model NewsViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = "Novinky | Blog";
+    Layout = "~/Views/Shared/_LayoutNewsAnonym.cshtml";
+
+    var _returnurl = @Context.Request.Query["returnurl"];
+
+    int _x = 0;
+}
+
+@addTagHelper *, UI
+@section header_content
+{
+    <link href="/lib/froala-editor/css/froala_style.min.css" rel="stylesheet" type="text/css" />
+
+    
+
+    <style type="text/css">
+
+
+        .newsheader {
+            width: 100%;
+            color: #0b4b92;
+            padding-left: 13px;
+            padding-top: 15px;
+            margin-top: 50px;
+            padding-bottom: 6px;
+        }
+    </style>
+
+
+}
+
+
+
+
+
+
+
+   
+
+
+    @foreach (var c in Model.lisX52)
+    {
+        @if (c.x52Html != null && c.x52Editorial != null)
+        {
+            <a href="/News/Detail?pid=@c.pid" style="text-decoration:none;">
+                <h1 class="newsheader">
+                    <span class="material-icons-outlined-btn nonmobile" style="color:blue;">@(c.x52Symbol == null ? "sunny" : c.x52Symbol)</span>
+                    @(c.x52Name)
+                </h1>
+            </a>
+        }
+        else
+        {
+            <h1 class="newsheader">
+                <span class="material-icons-outlined-btn nonmobile" style="color:blue;">@(c.x52Symbol == null ? "sunny" : c.x52Symbol)</span>
+                @(c.x52Name)
+            </h1>
+        }
+
+
+
+        <p><span style="color:gray;">@(BO.Code.Bas.ObjectDate2String(c.x52Date))</span></p>
+
+        @Html.Raw("<div>")
+
+
+        @if (c.x52Editorial == null)
+        {
+            @Html.Raw(c.x52Html)
+        }
+        else
+        {
+            @Html.Raw(BO.Code.Bas.Text2Html(c.x52Editorial))
+
+            @if (c.x52Html != null)
+            {
+                <h4 style="margin:10px;"><a href="/News/Detail?pid=@c.pid">Detail</a></h4>
+            }
+        }
+
+
+        @Html.Raw("</div>")
+        _x += 1;
+
+
+
+        @Html.Raw("<hr>")
+    }
+
+
+
+
+
+
+
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+
+
+    });
+
+
+</script>

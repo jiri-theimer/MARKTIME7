@@ -1,0 +1,407 @@
+﻿@model UI.Models.Record.DynamicPageViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    Model.PageTitle = "Stránka záznamu";
+    if (Model.RecA55 != null)
+    {
+        Model.PageTitle = Model.RecA55.a55Name;
+    }
+    if (Model.RecA59 != null)
+    {
+        Model.PageTitle += "/" + Model.RecA59.a59Name;
+    }
+
+    string _gridUrl = new UI.Menu.TheMenuSupport(_f).getGridUrl(Model.rec_prefix) + $"&go2pid={Model.rec_pid}";
+    bool _isFullMenu = false;
+    _isFullMenu = (Model.rec_prefix == "o23" && _f.CurrentUser.j04IsModule_o23) || (Model.rec_prefix == "p28" && _f.CurrentUser.j04IsModule_p28) || (Model.rec_prefix == "p41" && _f.CurrentUser.j04IsModule_p41) || (Model.rec_prefix == "p91" && _f.CurrentUser.j04IsModule_p91) || (Model.rec_prefix == "j02" && _f.CurrentUser.j04IsModule_j02);
+
+    UI.Models.Record.o23PageBoxViewModel _o23 = null;
+    UI.Models.Record.p28PageBoxViewModel _p28 = null;
+    UI.Models.Record.p41PageBoxViewModel _p41 = null;
+    UI.Models.Record.p91PageBoxViewModel _p91 = null;
+    UI.Models.Record.j02PageBoxViewModel _j02 = null;
+    UI.Models.Record.p56PageBoxViewModel _p56 = null;
+    switch (Model.rec_prefix)
+    {
+        case "o23":
+            _o23 = new UI.Models.Record.o23PageBoxViewModel() { rec_pid = Model.rec_pid, Rec = _f.o23DocBL.Load(Model.rec_pid) };
+            if (_o23.Rec == null)
+            {
+                _f.CurrentUser.AddMessage("Záznam nebyl nalezen."); return;
+            }
+            _o23.lisO16 = _f.o18DocTypeBL.GetList_o16(_o23.Rec.o18ID);
+            _o23.lisO19 = _f.o23DocBL.GetList_o19(Model.rec_pid);
+
+            break;
+        case "p28":
+            _p28 = new UI.Models.Record.p28PageBoxViewModel() { rec_pid = Model.rec_pid, Rec = _f.p28ContactBL.Load(Model.rec_pid) };
+            if (_p28.Rec == null)
+            {
+                _f.CurrentUser.AddMessage("Záznam nebyl nalezen."); return;
+            }
+            break;
+        case "le5":
+        case "le4":
+        case "le3":
+        case "le2":
+        case "le1":
+            _p41 = new UI.Models.Record.p41PageBoxViewModel() { rec_pid = Model.rec_pid, Rec = _f.p41ProjectBL.Load(Model.rec_pid) };
+            if (_p41.Rec == null)
+            {
+                _f.CurrentUser.AddMessage("Záznam nebyl nalezen."); return;
+            }
+            break;
+        case "p91":
+            _p91 = new UI.Models.Record.p91PageBoxViewModel() { rec_pid = Model.rec_pid, Rec = _f.p91InvoiceBL.Load(Model.rec_pid) };
+            if (_p91.Rec == null)
+            {
+                _f.CurrentUser.AddMessage("Záznam nebyl nalezen."); return;
+            }
+            break;
+        case "j02":
+            _j02 = new UI.Models.Record.j02PageBoxViewModel() { rec_pid = Model.rec_pid, Rec = _f.j02UserBL.Load(Model.rec_pid) };
+            if (_j02.Rec == null)
+            {
+                _f.CurrentUser.AddMessage("Záznam nebyl nalezen."); return;
+            }
+            break;
+        case "p56":
+            _p56 = new UI.Models.Record.p56PageBoxViewModel() { rec_pid = Model.rec_pid, Rec = _f.p56TaskBL.Load(Model.rec_pid) };
+            if (_p56.Rec == null)
+            {
+                _f.CurrentUser.AddMessage("Záznam nebyl nalezen."); return;
+            }
+            break;
+    }
+
+
+}
+
+@addTagHelper *, UI
+
+@section header_content
+    {
+    <link rel="stylesheet" href="~/css/dynamicrecpage.css" />
+
+
+    @if (Model.RecA55.a55CssFile != null)
+    {
+        <link href="~/css/user/@(Model.RecA55.a55CssFile)" rel="stylesheet">
+    }
+
+}
+
+    <script src="~/js/rejstriky.js" asp-append-version="true"></script>
+
+    <div id="header_index" class="input-group" style="margin-top:0px;padding-top:5px;padding-bottom:5px;background-color:#F5F5F5;">
+    @if (_isFullMenu)
+    {
+        <div title="MENU" style="margin-left:4px;">
+
+            <a id="cmdRCM" class="cm" onclick="rcm_from_tabs(event)"><span class="material-icons-outlined-btn">menu</span></a>
+        </div>
+    }
+
+    <div style="margin-left:40px;">
+        <a class="btn descreet_link_over_grid" href="javascript:reload()" title="Občerstvit"><span class="material-icons-outlined-btn">refresh</span></a>
+
+    </div>
+
+    @if (_isFullMenu)
+    {
+        <div style="margin-left:10px;">
+            <a class="btn descreet_link_over_grid" href="@(_gridUrl)" title="Přejít do Přehledu"><span class="material-icons-outlined-btn">grid_on</span></a>
+        </div>
+
+        <div style="width:200px;margin-left:15px;">
+            <mycombo entity="@Model.rec_prefix" asp-for="@Model.SearchedPid" search-result-width="800" selectedtext="@Model.SearchedText" filter-flag="1" placeholder="@_f.tra("Najít")..." event_after_changevalue="on_search"></mycombo>
+        </div>
+    }
+
+
+
+    @if (_f.CurrentUser.j04IsModule_p31 && (Model.rec_prefix == "p28" || Model.rec_prefix == "p41" || Model.rec_prefix == "le5" || Model.rec_prefix == "le4"))
+    {
+        <div style="margin-left:20px;">
+            <a class="btn descreet_link_over_grid" href="javascript:p31_create()" title="@_f.tra("Vykázat aktivitu")"><span class="material-icons-outlined-btn">more_time</span></a>
+        </div>
+    }
+</div>
+
+
+@if (Model.RecA59.a59CssClassContainer != null)
+{
+    @Html.Raw($"<div class='{Model.RecA59.a59CssClassContainer}'>")
+}
+
+
+@if (Model.RecA59.a59StructureFlag == BO.a59StructureFlagENUM.Boxes)
+{
+    <div>
+
+        <div id="container_index" class="row" style="padding:0px;margin:0px;">
+            <div class="column @Model.BoxColCss" id="col1">
+                @foreach (var c in Model.DockStructure.Col1)
+                {
+
+                    <div id="box_@(c.pid)" class="@Model.portlet_cssclass">
+                        @{
+                            switch (Model.rec_prefix)
+                            {
+                                case "o23":
+                                    _o23.RecA58 = c; break;
+                                case "p28":
+                                    _p28.RecA58 = c; break;
+                                case "p41":
+                                    _p41.RecA58 = c; break;
+                                case "j02":
+                                    _j02.RecA58 = c; break;
+                                case "p91":
+                                    _p91.RecA58 = c; break;
+                                case "p56":
+                                    _p56.RecA58 = c; break;
+                            }
+                        }
+                        @switch (Model.rec_prefix)
+                        {
+                            case "o23":
+                                @await Html.PartialAsync("~/Views/Shared/_o23PageBox.cshtml",_o23)
+                                break;
+                            case "p28":
+                                @await Html.PartialAsync("~/Views/Shared/_p28PageBox.cshtml",_p28)
+                                break;
+                            case "p41":
+                                @await Html.PartialAsync("~/Views/Shared/_p41PageBox.cshtml",_p41)
+                                break;
+                            case "p91":
+                                @await Html.PartialAsync("~/Views/Shared/_p91PageBox.cshtml",_p91)
+                                break;
+                            case "j02":
+                                @await Html.PartialAsync("~/Views/Shared/_j02PageBox.cshtml",_j02)
+                                break;
+                            case "p56":
+                                @await Html.PartialAsync("~/Views/Shared/_p56PageBox.cshtml",_p56)
+                                break;
+                        }
+                    </div>
+
+
+                }
+            </div>
+
+            @if (Model.ColumnsPerPage > 1)
+            {
+                <div class="column @Model.BoxColCss" id="col2">
+                    @foreach (var c in Model.DockStructure.Col2)
+                    {
+                        <div id="box_@(c.pid)" class="@Model.portlet_cssclass">
+                            @{
+                                switch (Model.rec_prefix)
+                                {
+                                    case "o23":
+                                        _o23.RecA58 = c; break;
+                                    case "p28":
+                                        _p28.RecA58 = c; break;
+                                    case "p41":
+                                        _p41.RecA58 = c; break;
+                                    case "j02":
+                                        _j02.RecA58 = c; break;
+                                    case "p91":
+                                        _p91.RecA58 = c; break;
+                                    case "p56":
+                                        _p56.RecA58 = c; break;
+                                }
+                            }
+                            @switch (Model.rec_prefix)
+                            {
+                                case "o23":
+                                    @await Html.PartialAsync("~/Views/Shared/_o23PageBox.cshtml",_o23)
+                                    break;
+                                case "p28":
+                                    @await Html.PartialAsync("~/Views/Shared/_p28PageBox.cshtml",_p28)
+                                    break;
+                                case "p41":
+                                    @await Html.PartialAsync("~/Views/Shared/_p41PageBox.cshtml",_p41)
+                                    break;
+                                case "p91":
+                                    @await Html.PartialAsync("~/Views/Shared/_p91PageBox.cshtml",_p91)
+                                    break;
+                                case "j02":
+                                    @await Html.PartialAsync("~/Views/Shared/_j02PageBox.cshtml",_j02)
+                                    break;
+                                case "p56":
+                                    @await Html.PartialAsync("~/Views/Shared/_p56PageBox.cshtml",_p56)
+                                    break;
+                            }
+                        </div>
+
+
+                    }
+                </div>
+            }
+
+            @if (Model.ColumnsPerPage > 2)
+            {
+                <div class="column @Model.BoxColCss" id="col3">
+                    @foreach (var c in Model.DockStructure.Col3)
+                    {
+                        <div id="box_@(c.pid)" class="@Model.portlet_cssclass">
+                            @{
+                                switch (Model.rec_prefix)
+                                {
+                                    case "o23":
+                                        _o23.RecA58 = c; break;
+                                    case "p28":
+                                        _p28.RecA58 = c; break;
+                                    case "p41":
+                                        _p41.RecA58 = c; break;
+                                    case "j02":
+                                        _j02.RecA58 = c; break;
+                                    case "p91":
+                                        _p91.RecA58 = c; break;
+                                    case "p56":
+                                        _p56.RecA58 = c; break;
+                                }
+                            }
+                            @switch (Model.rec_prefix)
+                            {
+                                case "o23":
+                                    @await Html.PartialAsync("~/Views/Shared/_o23PageBox.cshtml",_o23)
+                                    break;
+                                case "p28":
+                                    @await Html.PartialAsync("~/Views/Shared/_p28PageBox.cshtml",_p28)
+                                    break;
+                                case "p41":
+                                    @await Html.PartialAsync("~/Views/Shared/_p41PageBox.cshtml",_p41)
+                                    break;
+                                case "p91":
+                                    @await Html.PartialAsync("~/Views/Shared/_p91PageBox.cshtml",_p91)
+                                    break;
+                                case "j02":
+                                    @await Html.PartialAsync("~/Views/Shared/_j02PageBox.cshtml",_j02)
+                                    break;
+                                case "p56":
+                                    @await Html.PartialAsync("~/Views/Shared/_p56PageBox.cshtml",_p56)
+                                    break;
+                            }
+                        </div>
+
+
+                    }
+                </div>
+            }
+
+
+
+        </div>
+
+    </div>
+}
+
+@if (Model.RecA59.a59StructureFlag == BO.a59StructureFlagENUM.CustomHtml)
+{
+    @Html.Raw(Model.RecA59.a59CustomHtmlStructure)
+
+    @foreach (var c in Model.lisAllWidgets)
+    {
+        <div id="source@(c.a58Code)">
+            @{
+                switch (Model.rec_prefix)
+                {
+                    case "o23":
+                        _o23.RecA58 = c; break;
+                    case "p28":
+                        _p28.RecA58 = c; break;
+                    case "p41":
+                        _p41.RecA58 = c; break;
+                    case "j02":
+                        _j02.RecA58 = c; break;
+                    case "p91":
+                        _p91.RecA58 = c; break;
+                        case "p56":
+                        _p56.RecA58 = c; break;
+                }
+            }
+            @switch (Model.rec_prefix)
+            {
+                case "o23":
+                    @await Html.PartialAsync("~/Views/Shared/_o23PageBox.cshtml",_o23)
+                    break;
+                case "p28":
+                    @await Html.PartialAsync("~/Views/Shared/_p28PageBox.cshtml",_p28)
+                    break;
+                case "p41":
+                    @await Html.PartialAsync("~/Views/Shared/_p41PageBox.cshtml",_p41)
+                    break;
+                case "p91":
+                    @await Html.PartialAsync("~/Views/Shared/_p91PageBox.cshtml",_p91)
+                    break;
+                case "j02":
+                    @await Html.PartialAsync("~/Views/Shared/_j02PageBox.cshtml",_j02)
+                    break;
+                case "p56":
+                    @await Html.PartialAsync("~/Views/Shared/_p56PageBox.cshtml",_p56)
+                    break;
+            }
+
+        </div>
+    }
+}
+
+@if (Model.RecA59.a59CssClassContainer != null)
+{
+    @Html.Raw("</div>")
+}
+
+
+
+<script type="text/javascript">
+    var _rec_prefix = "@(Model.rec_prefix)";
+    var _rec_pid = "@(Model.rec_pid)";
+    var _a55id = "@(Model.a55ID)";
+
+    @if (Model.RecA59.a59StructureFlag == BO.a59StructureFlagENUM.CustomHtml)
+    {
+        @foreach (var c in Model.lisAllWidgets)
+        {
+            <text>
+                                                            var divSource = $("#source@(c.a58Code)");
+            var divFinal = $("#final@(c.a58Code)");
+
+            $(divFinal).html(divSource.html());
+            $(divSource).html("");
+            </text>
+        }
+    }
+
+
+        function button_url(url) {
+            _window_open(url);
+        }
+
+
+
+    function reload() {
+        var url = location.href;
+
+        location.replace(url);
+    }
+
+    function p31_create() {
+        _window_open("/p31/Record?pid=0&newrec_prefix=" + _rec_prefix + "&newrec_pid=" + _rec_pid, 3);
+    }
+
+    function on_search(pid) {
+        _redirect("/Record/DynamicPage?prefix=" + _rec_prefix + "&pid=" + pid + "&a55id=" + _a55id);
+    }
+
+    function rcm_from_tabs(e) {
+
+        e.target.setAttribute("menu_je_inicializovano", null);  //vyčistit paměť o inicializaci menu v rámci tohoto tlačítka
+
+        _cm(e, _rec_prefix, _rec_pid, "grid");
+    }
+</script>

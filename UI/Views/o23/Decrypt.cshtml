@@ -1,0 +1,57 @@
+﻿@model UI.Models.o23Decrypt
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+    if (Model.Rec == null) return;
+
+
+}
+
+@addTagHelper *, UI
+
+
+<div>
+    <kbd>Notepad obsah je zašifrován!</kbd>
+
+    <input type="text" id="heslo23" autocomplete="off" onkeyup="noc(this)" placeholder="@_f.tra("Zadejte heslo")" />
+    <button type="button" onclick="reload()">
+        <myicon symbol="lock_open"></myicon>
+    </button>
+</div>
+
+
+
+<script type="text/javascript">
+    var _localpid = "@Model.pid";
+    var _localrez = "@Model.rez";
+    var _localcaller = "@Model.caller";
+
+
+    $(document).ready(function () {
+        if (document.getElementById("heslo23")) {
+            $("#heslo23").keypress(function (event) {
+                if (event.key == "Enter") {
+
+                    reload();
+                }
+            });
+
+            $("#heslo23").focus();
+        }
+
+    });
+
+    function noc(txt) {
+
+        $(txt).css("background-color", "black");
+    }
+
+
+    function reload() {
+
+        var pwd = $("#heslo23").val();
+        location.replace("/o23/Decrypt?pid=" + _localpid + "&rez=" + _localrez + "&caller=" + _localcaller + "&pwd=" + pwd);
+    }
+</script>

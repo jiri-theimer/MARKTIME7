@@ -1,0 +1,62 @@
+﻿@model IEnumerable<BO.b21HlidacBinding>
+
+
+@{
+
+
+    if (Model == null || Model.Count() == 0)
+    {
+        return;
+    }
+
+
+
+}
+
+
+<ul class="mytreeview">
+    <li>
+        <a class="mytreeview-toggle-kontejner" onclick="_treeview_toggle(this)">
+            <span class="material-icons-outlined-btn mytreeview-toggle-sipka">arrow_right</span>
+            <span class="material-icons-outlined-btn">local_police</span>
+            <span>Hlídač (@(Model.Count()))</span>
+
+        </a>
+
+        <ul style="display:none;">
+            @foreach (var c in Model)
+            {
+                <li>
+                    @(c.b20Name)
+                    @if(c.b21Par1 != 0)
+                    {
+                        
+                        <span class="badge-light">
+                            @c.b21Par1
+                        </span>
+                    }
+                    @if (c.b21Par2 != 0)
+                    {
+                        <kbd>
+                            @c.b21Par2
+                        </kbd>
+                    }
+                    @if (c.b21NotifyReceivers != null)
+                    {
+                        <br />
+                        <small style="color:green;">
+                            @c.b21NotifyReceivers
+                        </small>
+                    }
+                    @if (c.b20NotifyReceivers != null)
+                    {
+                        <br />
+                        <small style="color:brown;">
+                            @c.b20NotifyReceivers
+                        </small>
+                    }
+                </li>
+            }
+        </ul>
+    </li>
+</ul>

@@ -1,0 +1,131 @@
+﻿@model UI.Models.HelpdeskViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Helpdesk požadavek");
+    if (Model.p41id > 0)
+    {
+        Model.PageTitle += " (" + _f.CBL.GetObjectAlias("p41", Model.p41id) + ")";
+    }
+    else
+    {
+        if (Model.p28id>0)
+        {
+            Model.PageTitle += " (" + _f.CBL.GetObjectAlias("p28", Model.p28id) + ")";
+        }
+    }
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+
+}
+
+@addTagHelper *, UI
+
+
+
+
+@section header_content
+{
+
+    @if (Model.Notepad.SelectedX04ID > 0)
+    {
+        <link href="~/lib/froala-editor/css/froala_editor.pkgd.min.css" rel="stylesheet" type="text/css" />
+    }
+}
+
+
+<div class="bg-light input-group" style="padding:10px;">
+    <div>
+        <button id="cmdSave" class="btn btn-success" onclick="_submit()">
+            <span class="material-icons-outlined-btn" style="color:lime;">save</span>
+            @_f.tra("Uložit změny")
+        </button>
+
+    </div>
+   
+    
+
+    <div style="margin-left:10px;">
+        <button id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+    </div>
+
+
+</div>
+
+
+@Html.Raw("<div class='modal_record_container'>")
+<form id="form1" asp-controller="Helpdesk" asp-action="Index" method="POST">
+
+    <div style="margin-bottom:20px;margin-top:20px;">
+        <input class="form-control record_name" asp-for="p56Name" placeholder="@_f.tra("Název požadavku")" />
+    </div>
+
+    @if (Model.IsShowP57Combo)
+    {
+        <div class="row my-2">
+            <div class="col-sm-12 col-md-12">
+                <mycombo entity="p57TaskType" placeholder="Typ požadavku" asp-for="p57ID" myqueryinline="p57ishelpdesk|bool|true" selectedtext="@Model.ComboP57" filter-flag="1" event_after_changevalue="change_p57id"></mycombo>
+            </div>
+        </div>
+    }
+    else
+    {
+        <input type="hidden" asp-for="p57ID" value="@Model.p57ID" />
+
+    }
+
+    @if (Model.RecP57 !=null && Model.RecP57.p57ProjectFlag != BO.p57ProjectFlagEnum.ProjectHidden)
+    {
+        <div class="row my-2">
+            <div class="col-sm-12 col-md-12">
+                <mycombo entity="le5" placeholder="Projekt..." search-result-width="900" asp-for="p41id" selectedtext="@Model.SelectedComboProject" filter-flag="1" view-flag="1" myqueryinline="notquery_disponible|bool|1|p28id|int|@(Model.p28id)" event_after_changevalue="_postback()"></mycombo>
+            </div>
+        </div>
+    }
+
+    @if (Model.ff1.VisibleInputsCount > 0)
+    {
+        @Html.EditorFor(m => m.ff1, "~/Views/Shared/_FreeFields.cshtml")
+    }
+
+    @Html.EditorFor(m => m.Notepad, "~/Views/Shared/_Notepad.cshtml")
+
+
+    <input type="hidden" asp-for="p41id" />
+    <input type="hidden" asp-for="p41id" />    
+    <input type="hidden" asp-for="p28id" />
+    <input type="hidden" asp-for="IsShowP57Combo" />
+
+
+</form>
+@Html.Raw("</div>")
+
+
+
+
+
+
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+
+    });
+
+
+    function hardrefresh(pid, flag) {
+
+
+        _postback();
+    }
+
+
+
+
+    function change_p57id(p57id) {
+        _postback("p57id");
+    }
+</script>

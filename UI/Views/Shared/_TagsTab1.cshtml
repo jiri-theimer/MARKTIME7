@@ -1,0 +1,22 @@
+﻿@model UI.Models.Tab1.BaseTab1ViewModel
+
+@inject BL.Factory _f
+
+@{
+
+    
+    var _tg = _f.o51TagBL.GetTagging(Model.prefix, Model.pid);
+
+
+}
+
+@if (_tg.TagHtml != null)
+{
+    <div class="card recpageboxauto">
+        <div class="card-body">
+           
+            @Html.Raw(_tg.TagHtml)
+
+        </div>
+    </div>
+}

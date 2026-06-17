@@ -1,0 +1,86 @@
+﻿@model UI.Models.Tab1.BaseTab1ViewModel
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+
+    
+
+    BO.WorkflowEntityAttribute _tuple = _f.WorkflowBL.LoadEntityAttributes(Model.prefix, Model.pid);
+
+    BO.b02WorkflowStatus _recB02 = _f.b02WorkflowStatusBL.Load(_tuple.b02ID);
+
+
+}
+
+@addTagHelper *, UI
+
+
+
+@Html.Raw("<div class='info_record_container'>")
+
+<h4>Workflow</h4>
+
+@if (_recB02 != null)
+{
+    <table class="table table-sm">
+        <tr>
+            <td>
+                Aktuální stav:
+            </td>
+            <td style="font-weight:bold;">
+            @(_recB02.b02Name)
+            <span>@(Html.Raw(UI.Code.basUI.HtmlColorStrip(_recB02.b02Color)))</span>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            Workflow šablona:
+        </td>
+        <td>
+            @(_recB02.b01Name)
+            
+        </td>
+    </tr>
+        <tr>
+            <td>
+                Záznam:
+            </td>
+            <td>
+                @(_f.CBL.GetObjectAlias(Model.prefix, Model.pid))
+            </td>
+        </tr>
+</table>
+
+}
+
+
+<a href="javascript:wrkdialod()" style="padding:10px;">Posunout workflow/Doplnit</a>
+
+
+@if (_f.CurrentUser.IsAdmin)
+{
+    <a href="/workflow_designer/Index?b01id=@_recB02.b01ID" style="padding:10px;" target="_blank">Návrhář workflow šablony</a>
+}
+
+
+
+
+@Html.Raw("</div>")
+
+
+
+<script type="text/javascript">
+        $(document).ready(function () {
+
+
+
+        });
+
+        function wrkdialod() {
+            var url = "/workflow_dialog/Index?record_prefix=@(Model.prefix)&record_pid=@(Model.pid)";
+            _window_open(url, 3);
+        }
+
+    </script>

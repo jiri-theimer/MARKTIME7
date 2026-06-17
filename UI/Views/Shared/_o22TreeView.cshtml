@@ -1,0 +1,95 @@
+﻿@model IEnumerable<BO.o22Milestone>
+@inject BL.Factory _f
+
+@{
+
+
+    if (Model == null || Model.Count() == 0)
+    {
+        return;
+    }
+
+    bool _bolIsMobile = _f.CurrentUser.IsMobileDisplay();
+    string _strRecPage = "RecPage";
+
+
+    if (_bolIsMobile)
+    {
+        _strRecPage = "RecPageMobile";
+    }
+
+}
+
+
+<ul class="mytreeview">
+    <li>
+        <a class="mytreeview-toggle-kontejner" onclick="_treeview_toggle(this)">
+            <span class="material-icons-outlined-btn mytreeview-toggle-sipka">arrow_right</span>
+            <span class="material-icons-outlined-btn">event</span>
+            <span>@_f.tra("Termíny/Události") (@(Model.Count()))</span>
+
+        </a>
+        
+        <ul style="display:none;">
+            @foreach (var c in Model)
+            {
+                <li>
+                    <a class="treeview-link" target="_top" href="/Record/@(_strRecPage)?prefix=o22&pid=@(c.pid)">@(BO.Code.Bas.OM2(c.o22Name, 25))</a>
+                    <div>
+                        @if (c.o22IsAllDay)
+                        {
+                            @if (c.o22PlanFrom.Value.Day == c.o22PlanUntil.Value.Day)
+                            {
+                            
+                                @BO.Code.Bas.ObjectDate2String(c.o22PlanFrom)
+                                <small class="badge-light">@_f.tra("celý den")</small>
+                            
+                            
+                            }
+                            else
+                            {
+                            
+                                <span>
+                                    @BO.Code.Bas.ObjectDate2String(c.o22PlanFrom)
+                                </span>
+
+                                <span style="margin-left:20px">
+                                    @BO.Code.Bas.ObjectDate2String(c.o22PlanUntil)
+                                </span>
+                            
+                                
+                            
+
+                            }
+        
+                        }
+                        else
+                        {
+                            @if (c.o22PlanFrom != null)
+                            {
+                            
+                                @BO.Code.Bas.ObjectDateTime2String(c.o22PlanFrom)
+                            
+                            }
+
+                            @if (c.o22PlanUntil != null)
+                            {
+                                <span style="color:red;">
+                                    @BO.Code.Bas.ObjectDateTime2String(c.o22PlanUntil)
+                                </span>
+                            }
+                        }
+
+                        @if (c.ForeColor != null)
+                        {
+                            <small class="tecka-vedle">
+                                <small class="dot" style="background-color:@c.ForeColor"></small>
+                            </small>
+                        }
+                    </div>
+                    
+                </li>
+            }
+        </ul>
+    </li>
+</ul>

@@ -1,0 +1,344 @@
+﻿@model UI.Models.batch.BatchUpdateViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = _f.tra("Hromadné úpravy");
+
+
+
+}
+
+@addTagHelper *, UI
+
+
+<div class="bg-light" style="padding:10px;">
+    <button id="cmdSave" class="btn btn-success" onclick="_submit()">@_f.tra("Potvrdit")</button>
+    <button id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+    <myhelpbutton></myhelpbutton>
+</div>
+
+<form id="form1" asp-controller="BatchUpdate" asp-action="Index" method="POST">
+    <input type="hidden" asp-for="pids" />
+    <input type="hidden" asp-for="pids_valid" />
+    <input type="hidden" asp-for="j72id" />
+    <input type="hidden" asp-for="prefix" />
+
+    <div class="card" style="max-width:1000px;">
+        <div class="card-header">
+            Co upravit?
+        </div>
+        <div class="card-body">
+            <input type="radio" asp-for="oper" id="chkValidity" value="validity" onchange="_postback('oper')" />
+            <label for="chkValidity">Časová platnost záznamu</label>
+            <br />
+            @foreach (var element in Model.lisElements.Where(p => p.Field != "validity"))
+            {
+                <input type="radio" asp-for="oper" id="chk@(element.Field)" value="@(element.Field)" onchange="_postback('oper')" />
+                <label for="chk@(element.Field)">@(element.Name)</label>
+                @if (element.IsBreak)
+                {
+                    <br />
+                }
+            }
+
+
+        </div>
+    </div>
+
+
+
+    <div class="my-2" id="divPre">
+        @if (Model.CurElement != null && !Model.CurElement.IsNoClearValue)
+        {
+            <input type="radio" asp-for="IsSetValue" id="chkSetValue" value="True" onchange="_postback('setvalue')" />
+            <label for="chkSetValue">Aktualizovat hodnotu pole</label>
+            @if (!Model.CurElement.IsRequiredValue)
+            {
+                <input type="radio" asp-for="IsSetValue" id="chkClearValue" value="False" onchange="_postback('setvalue')" style="margin-left:20px;" />
+                <label for="chkClearValue">Vyčistit hodnotu pole</label>
+            }
+            
+        }
+        else
+        {
+            <input type="hidden" asp-for="IsSetValue" />
+        }
+
+
+    </div>
+
+
+    <div class="row my-2" style="max-width:1000px;" id="divMain">
+        @if (Model.oper != null)
+        {
+            <label class="col-sm-1 col-md-2 col-form-label"><strong>@_f.tra("Nová hodnota")</strong>:</label>
+        }
+
+        <div class="col-sm-7 col-md-6">
+            @if (Model.oper == "validity")
+            {
+                <select asp-for="DestComboValue" class="form-select">
+                    <option value="1">@_f.tra("Přesunout záznamy do archivu")</option>
+                    <option value="2">@_f.tra("Obnovit záznamy z archivu")</option>
+                </select>
+            }
+            @if (Model.oper == "roles")
+            {
+                <div class="input-group">
+
+                    <div>
+                        <mydropdown asp-for="SelectedX67ID" datasource="@Model.lisX67" valuefield="pid" textfield="x67Name" isfirstemptyrow="false" event_after_changevalue="x67id_onchange"></mydropdown>
+                    </div>
+                    <div>
+                        <select asp-for="IsClearRoleAssign" class="form-select" onchange="_postback('refresh')">
+                            <option value="False">@_f.tra("Přiřadit roli")</option>
+                            <option value="True">@_f.tra("Vyčistit roli")</option>
+                        </select>
+                    </div>
+
+                </div>
+
+                <div style="margin-bottom:20px;margin-top:10px;">
+                    @if (!Model.IsClearRoleAssign)
+                    {
+                        @if (!Model.x69IsAllUsers)
+                        {
+                            <div style="min-width:350px;">
+                                <mycombochecklist asp-for="SelectedJ02IDs" placeholder="@_f.tra("Výběr uživatelů")" selectedtext="@Model.SelectedUsers" entity="j02User"></mycombochecklist>
+                            </div>
+                            <div style="min-width:350px;">
+                                <mycombochecklist asp-for="SelectedJ11IDs" placeholder="@_f.tra("Výběr týmů")" selectedtext="@Model.SelectedTeams" entity="j11Team"></mycombochecklist>
+                            </div>
+                        }
+
+                        <div>
+                            <input type="checkbox" asp-for="x69IsAllUsers" onchange="_postback('refresh')" />
+                            <label class="col-form-label" for="x69IsAllUsers">@_f.tra("Všichni uživatelé")</label>
+                        </div>
+                    }
+                </div>
+
+
+
+            }
+            @if (Model.oper == "j02ID_Owner")
+            {
+                <mycombo entity="j02User" asp-for="DestComboValue" selectedtext="@Model.DestComboText"></mycombo>
+            }
+            @if (Model.oper == "p92ID")
+            {
+                <mycombo entity="p92InvoiceType" asp-for="DestComboValue" selectedtext="@Model.DestComboText"></mycombo>
+            }
+            @if (Model.oper == "p89ID")
+            {
+                <mycombo entity="p89ProformaType" asp-for="DestComboValue" selectedtext="@Model.DestComboText"></mycombo>
+            }
+            @if (Model.oper == "p42ID")
+            {
+                <mycombo entity="p42ProjectType" asp-for="DestComboValue" selectedtext="@Model.DestComboText"></mycombo>
+            }
+            @if (Model.oper == "j18ID")
+            {
+                <mycombo entity="j18CostUnit" asp-for="DestComboValue" selectedtext="@Model.DestComboText"></mycombo>
+            }
+            @if (Model.oper == "p61ID")
+            {
+                <mycombo entity="p61ActivityCluster" asp-for="DestComboValue" selectedtext="@Model.DestComboText"></mycombo>
+            }
+            @if (Model.oper == "p29ID")
+            {
+                <mycombo entity="p29ContactType" asp-for="DestComboValue" selectedtext="@Model.DestComboText"></mycombo>
+            }
+            @if (Model.oper == "p57ID")
+            {
+                <mycombo entity="p57TaskType" asp-for="DestComboValue" selectedtext="@Model.DestComboText"></mycombo>
+            }
+            @if (Model.oper == "o21ID")
+            {
+                <mycombo entity="o21MilestoneType" asp-for="DestComboValue" selectedtext="@Model.DestComboText"></mycombo>
+            }
+            @if (Model.oper == "p80ID")
+            {
+                <mycombo entity="p80InvoiceAmountStructure" asp-for="DestComboValue" selectedtext="@Model.DestComboText"></mycombo>
+            }
+            @if (Model.oper == "p63ID")
+            {
+                <mycombo entity="p63Overhead" asp-for="DestComboValue" selectedtext="@Model.DestComboText"></mycombo>
+            }
+            @if (Model.oper == "p98ID")
+            {
+                <mycombo entity="p98Invoice_Round_Setting_Template" asp-for="DestComboValue" selectedtext="@Model.DestComboText"></mycombo>
+            }
+            @if (Model.oper == "j19ID")
+            {
+                <mycombo entity="j19PaymentType" asp-for="DestComboValue" selectedtext="@Model.DestComboText"></mycombo>
+            }
+            @if (Model.oper == "p24ID")
+            {
+                <mycombo entity="p24ContactGroup" asp-for="DestComboValue" selectedtext="@Model.DestComboText"></mycombo>
+            }
+            @if (Model.oper == "p51ID_Billing")
+            {
+                <mycombo entity="p51PriceList" asp-for="DestComboValue" selectedtext="@Model.DestComboText" myqueryinline="typeflag|int|1|iscustomtailor|bool|false"></mycombo>
+            }
+            @if (Model.oper == "o18ID")
+            {
+                <mycombo entity="o18DocType" asp-for="DestComboValue" selectedtext="@Model.DestComboText"></mycombo>
+            }
+            @if (Model.oper == "j04ID")
+            {
+                <mycombo entity="j04UserRole" asp-for="DestComboValue" selectedtext="@Model.DestComboText"></mycombo>
+            }
+            @if (Model.oper == "c21ID")
+            {
+                <mycombo entity="c21FondCalendar" asp-for="DestComboValue" selectedtext="@Model.DestComboText"></mycombo>
+            }
+            @if (Model.oper == "j07ID")
+            {
+                <mycombo entity="j07PersonPosition" asp-for="DestComboValue" selectedtext="@Model.DestComboText"></mycombo>
+            }
+            @if (Model.oper == "j61ID_Invoice")
+            {
+                <mycombo entity="j61TextTemplate" asp-for="DestComboValue" selectedtext="@Model.DestComboText" myqueryinline="entity|string|p91"></mycombo>
+            }
+            @if (Model.oper == "p41BillingLangIndex" || Model.oper == "p28BillingLangIndex")
+            {
+                <select asp-for="DestComboValue" class="form-select">
+                    <option value="0">
+                        @(_f.Lic.x01CountryCode == "CZ" ? "CS" : _f.Lic.x01CountryCode)
+                    </option>
+                    <option value="1">#1 @_f.Lic.x01BillingLang1</option>
+                    <option value="2">#2 @_f.Lic.x01BillingLang2</option>
+                    <option value="3">#3 @_f.Lic.x01BillingLang3</option>
+                    <option value="4">#4 @_f.Lic.x01BillingLang4</option>
+                </select>
+            }
+            @if (Model.CurElement != null && Model.CurElement.DataType == "memo")
+            {
+                <textarea class="form-control" asp-for="DestTextValue"></textarea>
+            }
+            @if (Model.CurElement != null && Model.CurElement.DataType == "text")
+            {
+                <input type="text" class="form-control" asp-for="DestTextValue" />
+            }
+            @if (Model.CurElement != null && Model.CurElement.DataType == "num")
+            {
+
+                <mynumber asp-for="DestNumValue" decimal-digits="2"></mynumber>
+
+            }
+            @if (Model.CurElement != null && Model.CurElement.DataType == "date")
+            {
+                <mydate asp-for="DestDateValue" include-time="false"></mydate>
+            }
+            @if (Model.CurElement != null && Model.CurElement.DataType == "datetime")
+            {
+                <mydate asp-for="DestDateValue" include-time="true"></mydate>
+
+            }
+            @if (Model.CurElement != null && Model.CurElement.DataType == "bool")
+            {
+                <select asp-for="DestBoolValue" class="form-select">
+                    <option value="True">ANO</option>
+                    <option value="False">NE</option>
+                    
+                </select>
+
+            }
+
+            @if (Model.oper == "p91locks")
+            {
+                <div class="card">
+                    <div class="card-header">
+                        <span class="material-icons-outlined">lock</span>
+                        <span class="material-icons-outlined" style="color:blue;">lock</span>
+                        <span class="material-icons-outlined" style="color:hotpink;">lock</span>
+                        @_f.tra("Zámky nad vyúčtováním")
+                    </div>
+                    <div class="card-body">
+                        <div>
+                            <kbd>A</kbd>
+                            <input type="checkbox" id="chkLockFlag2" asp-for="@Model.Isp91LockFlag2" />
+                            <label for="chkLockFlag2">@_f.tra("Zákaz upravovat cenu vyúčtování") <span class="material-icons-outlined" style="color:black;">lock</span></label>
+                        </div>
+                        <div>
+                            <kbd>B</kbd>
+                            <input type="checkbox" id="chkLockFlag4" asp-for="@Model.Isp91LockFlag4" />
+                            <label for="chkLockFlag4">@_f.tra("Zákaz manipulace s úkony s nulovou cenou (zahrnout do paušálu/odpis)") <span class="material-icons-outlined" style="color:blue;">lock</span></label>
+                        </div>
+                        <div>
+                            <kbd>C</kbd>
+                            <input type="checkbox" id="chkLockFlag8" asp-for="@Model.Isp91LockFlag8" />
+                            <label for="chkLockFlag8">@_f.tra("Zákaz upravovat/odstraňovat kartu vyúčtování (s výjimkou administrátora)") <span class="material-icons-outlined" style="color:hotpink;">lock</span></label>
+                        </div>
+                        <code>Nezaškrtnutý zámek znamená, že bude ve vyúčtování odemknut.</code>
+                    </div>
+                </div>
+            }
+            @if (Model.oper == "rejstrik")
+            {
+                <code>Aktualizovat u kontaktů rejstříkové informace: Adresu sídla, název společnosti a případně DIČ.</code>
+            }
+            @if (Model.oper == "pwd")
+            {
+                <div class="card">
+                    <div class="card-header">Nahodit nové přístupové heslo</div>
+                    <div class="card-body">
+                        <div class="row">
+                            <label class="col-sm-2 col-md-3 col-form-label">@_f.tra("Nové heslo"):</label>
+                            <div class="col-sm-2 col-md-3">
+                                <input class="form-control" autocomplete="off" asp-for="NewPassword" value="@Model.NewPassword" />
+
+                            </div>
+
+                        </div>
+                        <div class="row">
+                            <label class="col-sm-2 col-md-3 col-form-label">@_f.tra("Ověření"):</label>
+                            <div class="col-sm-2 col-md-3">
+                                <input class="form-control" autocomplete="off" asp-for="NewPasswordVerify" value="@Model.NewPasswordVerify" />
+
+                            </div>
+                        </div>
+
+
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</form>
+<p></p>
+
+@await Component.InvokeAsync("myGrid", Model.gridinput)
+
+
+<script type="text/javascript">
+    var _issetvalue = "@Model.IsSetValue";
+    var _oper = "@Model.oper";
+
+    $(document).ready(function () {
+
+
+        _resize_textareas();
+
+        if ((_issetvalue == "False" && _oper != "validity") || _oper == "") {
+            $("#divMain").css("display", "none");
+        }
+
+        if (_oper == "validity" || _oper == "p41BillingLangIndex" || _oper == "") {
+            $("#divPre").css("display", "none");
+        }
+
+    })
+
+
+    function x67id_onchange(cbx) {
+
+        _postback("x67id");
+
+    }
+</script>
+
+
+

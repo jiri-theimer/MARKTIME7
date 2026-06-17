@@ -1,0 +1,79 @@
+﻿@model UI.Models.Record.p57Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Typ úkolu");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    Model.PageSymbol = "settings";
+}
+
+@addTagHelper *, UI
+
+
+<div class="modal_record_container">
+
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název"):</label>
+        <div class="col-sm-7 col-md-6">
+            <input class="form-control" asp-for="Rec.p57Name" />
+        </div>
+        <label class="col-sm-1 col-md-1 col-form-label">@_f.tra("Index pořadí"):</label>
+        <div class="col-sm-1 col-md-1">
+            <mynumber asp-for="Rec.p57Ordinary" decimal-digits="0"></mynumber>
+        </div>
+    </div>
+
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Plán/Rozpočet úkolu"):</label>
+        <div class="col-sm-4 col-md-3">
+            <select asp-for="@Model.Rec.p57PlanScope" class="form-select" onchange="_postback()">
+                <option value="_Default">@_f.tra("Záleží na uživateli")</option>
+                <option value="NenabizetPlan">@_f.tra("Nenabízet Plán/Rozpočet")</option>
+                <option value="NenabizetPlanAniTermin">@_f.tra("Nenabízet Plán/Rozpočet ani Termín dokončení")</option>
+                <option value="PlanHodinJePovinny">@_f.tra("Plán hodin je povinný")</option>
+                <option value="PlanVydajuJePovinny">@_f.tra("Plán peněžních výdajů je povinný")</option>
+                <option value="PlanJePovinny">@_f.tra("Plán hodin i výdajů je povinný")</option>
+            </select>
+
+        </div>
+    </div>
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Vazba na projekt"):</label>
+        <div class="col-sm-4 col-md-3">
+            <select asp-for="@Model.Rec.p57ProjectFlag" class="form-select">
+                <option value="_Default">@_f.tra("Vazba na projekt je volitelná")</option>
+                <option value="ProjectCompulsory">@_f.tra("Vazba na projekt je povinná")</option>
+                <option value="ProjectHidden">@_f.tra("Nenabízet vazbu na projekt")</option>
+            </select>
+
+        </div>
+    
+
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Workflow šablona"):</label>
+        <div class="col-sm-3 col-md-3">
+            <mycombo entity="b01WorkflowTemplate" asp-for="Rec.b01ID" selectedtext="@Model.ComboB01" view-flag="2" myqueryinline="b01entity|string|p56"></mycombo>
+        </div>
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Číselná řada úkolů"):</label>
+        <div class="col-sm-3 col-md-3">
+            <mycombo entity="x38CodeLogic" asp-for="Rec.x38ID" selectedtext="@Model.ComboX38" view-flag="2" myqueryinline="x38entity|string|p56"></mycombo>
+        </div>
+
+    </div>
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">Helpdesk:</label>
+        <div class="col-sm-4 col-md-3">
+            <select asp-for="@Model.Rec.p57HelpdeskFlag" class="form-select">
+                <option value="_Default"></option>
+                <option value="Helpdesk">@_f.tra("Úkol má helpdesk rozhraní")</option>
+               
+            </select>
+
+        </div>
+    </div>
+
+</div>

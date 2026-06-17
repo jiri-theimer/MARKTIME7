@@ -1,0 +1,748 @@
+﻿@model UI.Models.capacity.CapacityTimelineP41ViewModel
+@inject BL.Factory _f
+
+@{
+    IEnumerable<BO.CapacityProjectGroupBy> _qry = null;
+    int _intColPosun = 1;
+
+    Model.SetFactory(_f);
+
+    Model.RefreshState();
+}
+
+
+
+
+
+@addTagHelper *, UI
+
+<script src="~/lib/dragselect/ds.min.js"></script>
+
+
+
+<div id="divmain1" onmouseover="divmain1_onmouseover(this)">
+
+    <input type="hidden" asp-for="j02ID" />
+
+    <input type="hidden" asp-for="d0" value="@Model.d0" />
+    <input type="hidden" asp-for="GroupBy" />
+
+
+
+    <div style="width:100%;padding-top:10px;background-color:#F5F5F5;border-top:solid 1px silver;">
+
+
+        <div class="input-group">
+
+
+
+            <div>
+
+                <ul class="nav nav-tabs" role="tablist">
+                    <li class="nav-item onetab" role="presentation">
+                        <a id="link_tab3" class="nav-link @(Model.GroupBy==BO.CapacityGroupByEnum.Day ? "active": "")" href="javascript:handle_groupby(1)">@_f.tra("Dny")</a>
+                    </li>
+                    <li class="nav-item onetab" role="presentation">
+                        <a id="link_tab1" class="nav-link @(Model.GroupBy==BO.CapacityGroupByEnum.Month ? "active": "")" href="javascript:handle_groupby(3)">@_f.tra("Měsíce")</a>
+                    </li>
+                    <li class="nav-item onetab" role="presentation">
+                        <a id="link_tab2" class="nav-link @(Model.GroupBy==BO.CapacityGroupByEnum.Year ? "active": "")" href="javascript:handle_groupby(4)">@_f.tra("Roky")</a>
+                    </li>
+                </ul>
+
+            </div>
+
+            <div style="margin-left:10px;">
+                <button title="@_f.tra("Předchozí")" type="button" class="btn bog px-2" onclick="month_prev()"><i class="material-icons-outlined-btn">first_page</i></button>
+            </div>
+            <div style="display:@(Model.GroupBy != BO.CapacityGroupByEnum.Year ? "block": "none");">
+                <select asp-for="CurMonth" class="form-select" onchange="handle_timeline_cbx(this,'CurMonth')">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                </select>
+            </div>
+
+
+            <div>
+                <select asp-for="CurYear" class="form-select" onchange="handle_timeline_cbx(this,'CurYear')">
+                    @for (int i = DateTime.Now.Year - 2; i <= DateTime.Now.Year + 5; i++)
+                    {
+                        <option value="@i">@i</option>
+                    }
+
+                </select>
+            </div>
+            <div>
+                <button title="@_f.tra("Další")" type="button" class="btn bog px-2" onclick="month_next()"><i class="material-icons-outlined-btn">last_page</i></button>
+            </div>
+            
+
+            
+            @if (!Model.IsReadOnly)
+            {
+                <div style="margin-left:10px;">
+                    <button type="button" class="btn bog" onclick="create()"><span class="material-icons-outlined-btn">add_circle_outline</span>@_f.tra("Naplánovat do označených buněk")</button>
+                </div>
+                <div style="margin-left:10px;">
+                    <button type="button" class="btn bog" onclick="edit()"><span class="material-icons-outlined-btn">edit</span>@_f.tra("Upravit plán v označených buňkách")</button>
+                </div>
+               
+                
+            }
+
+            <div>
+                <myshowmore></myshowmore>
+            </div>
+           
+            @if (!Model.IsReadOnly)
+            {
+                <div class="showmore" style="margin-left:10px;">
+                    <button type="button" class="btn bog" style="color:red;" onclick="doclear()"><span class="material-icons-outlined-btn" style="color:red;">cleaning_services</span>@_f.tra("Vyčistit označené plány")</button>
+                </div>
+            }
+
+
+            @if (Model.GroupBy == BO.CapacityGroupByEnum.Month)
+            {
+                <div class="showmore" style="margin-left:20px;">
+                    <select asp-for="ViewMonthColsCount" class="form-select" onchange="handle_timeline_cbx(this,'ViewMonthColsCount')" title="@_f.tra("Počet zobrazovaných měsíců")" style="margin-left:2px;background-color:darkorange;">
+                        <option value="2">2</option>
+                        <option value="4">4</option>
+                        <option value="6">6</option>
+                        <option value="8">8</option>
+                        <option value="12">12</option>
+                        <option value="18">18</option>
+                        <option value="24">24</option>
+                    </select>
+                </div>
+            }
+            else
+            {
+                <input type="hidden" asp-for="ViewMonthColsCount" />
+            }
+
+
+
+            @if (Model.GroupBy == BO.CapacityGroupByEnum.Year)
+            {
+                <div class="showmore" style="margin-left:20px;">
+                    <select asp-for="ViewYearColsCount" class="form-select" onchange="handle_timeline_cbx(this,'ViewYearColsCount')" title="@_f.tra("Počet zobrazovaných roků")" style="margin-left:2px;background-color:darkorange;">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+
+                    </select>
+                </div>
+            }
+            else
+            {
+                <input type="hidden" asp-for="ViewYearColsCount" />
+            }
+
+            <div class="showmore" style="margin-left:20px;" title="@_f.tra("Verze plánu")">
+                <mydropdown asp-for="SelectedR02ID" datasource="lisR02" valuefield="pid" textfield="r02Name" event_after_changevalue="r02id_change"></mydropdown>
+            </div>
+        </div>
+
+
+
+    </div>
+
+
+
+
+
+</div>
+
+
+<div id="cara1" style="position:absolute;"></div>
+<div id="cara1_datum" style="position:absolute;z-index:1000;border-radius:5px;color:white;border:solid 1px black;padding:2px;background-color:gray;display:none;"></div>
+
+@if (Model.GroupBy == BO.CapacityGroupByEnum.Month || Model.GroupBy == BO.CapacityGroupByEnum.Year)
+{
+    <div id="osa0" class="grid-container-header" style="grid-template-columns:170px repeat(@(Model.Osax.Count()),@(Model.BoxWidth)px);background-color:#F5F5F5;">
+        <div style="grid-column: 1/span 1;">
+            <span>@(Model.OsaFirstDate.Month)/@(Model.OsaFirstDate.Year)</span>
+            <span style="padding:3px;">-</span>
+            <span>@(Model.OsaLastDate.Month)/@(Model.OsaLastDate.Year)</span>
+
+        </div>
+
+        @foreach (var osa in Model.Osax)
+        {
+            @if (osa.d1.Day == 1)
+            {
+                <div style="grid-column: @(osa.Index+_intColPosun)/span @(DateTime.DaysInMonth(osa.d1.Year,osa.d1.Month));border-left:solid 1px silver;">
+                    <a href="javascript:switch2days(@(osa.d1.Year),@(osa.d1.Month))" class="link-month">
+                        @(osa.d1.Month)/@(osa.d1.Year)
+                    </a>
+                </div>
+            }
+
+
+
+        }
+    </div>
+}
+
+<div id="osa1" onmouseout="osa1_mouseout(this)" class="grid-container-header" style="grid-template-columns:170px repeat(@(Model.Osax.Count()),@(Model.BoxWidth)px);">
+    <div style="grid-column: 1/span 1;background-color:#F5F5F5;">
+        @if (Model.GroupBy == BO.CapacityGroupByEnum.Day)
+        {
+            <span>@(Model.CurMonth)/@(Model.CurYear)</span>
+        }
+        <table style="table-layout:fixed;">
+            <tr>
+                @if (!Model.IsUseFaNefa)                
+                {
+                    <td class="cellnum" style="width:70px;"></td>
+                    @if (Model.FaZastropovan)
+                    {
+                        <td class="cellnum" style="width:70px;">@_f.tra("Plán")</td>
+                        <td class="cellnum" style="width:70px;color:red">@_f.tra("Strop")</td>
+                        <td class="cellnum" style="width:70px;color:blueviolet">@_f.tra("Zbývá")</td>
+                    }
+                    else
+                    {
+
+
+                    }
+
+                }
+
+            </tr>
+        </table>
+    </div>
+
+    @foreach (var osa in Model.Osax)
+    {
+        <div onmouseover="osa_mouseover(this)" class="osa @(osa.d1.DayOfWeek==DayOfWeek.Sunday || osa.d1.DayOfWeek==DayOfWeek.Saturday ? "weekend": "")" style="grid-column: @(osa.Index+_intColPosun)/span 1;" data-title="@(osa.d1.ToString("dd.MM.yyyy ddd"))">
+            @(Html.Raw(osa.Label))
+        </div>
+    }
+
+</div>
+
+
+<div id="timeline1">
+    @foreach (var c in Model.lisCapProject)
+    {
+        
+        <div class="grid-selectable" style="grid-template-columns:170px repeat(@(Model.Osax.Count()),@(Model.BoxWidth)px);">
+            <div style="grid-column: 1/span 1;background-color:#F5F5F5;">
+                <strong>@(c.Project)</strong>
+               
+
+                <table style="table-layout:fixed;">
+                    <tr>
+                        <td style="width:20px;">
+                            <a href="javascript:createx(@c.p41ID)"><span class="material-icons-outlined-btn">add_circle_outline</span></a>
+                        </td>
+                        <td class="cellnum" style="width:70px;">
+                            <a href="javascript:pp(@c.p41ID)">
+                                @(BO.Code.Bas.Number2String(Model.lisData.Where(p => p.p41ID == c.p41ID).Sum(p => p.HoursTotal)))
+                            </a>                            
+                        </td>
+                        <td class="cellnum" style="color:red;width:70px;">
+                            @if (c.r04HoursTotal > 0)
+                            {
+                                @(BO.Code.Bas.Number2String(c.r04HoursTotal))
+                            }                            
+                        </td>
+                        <td class="cellnum" style="color:blueviolet;width:70px;">
+                            @if (c.r04HoursTotal > 0)
+                            {
+                                @(BO.Code.Bas.Number2String(c.r04HoursTotal - Model.lisData.Where(p => p.p41ID == c.p41ID).Sum(p => p.HoursFa)))
+                            }
+                            
+                        </td>
+                    </tr>
+                </table>
+
+
+            </div>
+
+            
+
+            @foreach (var osa in Model.Osax)
+            {
+                @if (Model.GroupBy == BO.CapacityGroupByEnum.Month || Model.GroupBy == BO.CapacityGroupByEnum.Year)
+                {
+                    @if (osa.d1.Day == 1)
+                    {
+                        <div class="can-select" data-p41id="@c.p41ID" data-d="@osa.d1.ToString("dd.MM.yyyy")" style="grid-column: @(osa.Index+_intColPosun)/span @(DateTime.DaysInMonth(osa.d1.Year,osa.d1.Month));">
+
+                            @{
+
+                                _qry = Model.lisData.Where(p => p.p41ID == c.p41ID && p.D1 >= osa.d1 && p.D1 <= osa.d1.AddMonths(1).AddDays(-1));
+
+                            }
+                            @if (_qry.Count() > 0)
+                            {
+                                <span>
+                                    @(BO.Code.Bas.Num2StringNull(_qry.Sum(p => p.HoursTotal)))h
+                                </span>
+
+                            }
+                        </div>
+                        
+                    }
+                }
+                else
+                {
+                    <div class="can-select" data-p41id="@c.p41ID" data-d="@osa.d1.ToString("dd.MM.yyyy")" style="grid-column: @(osa.Index+_intColPosun)/span 1;">
+                        @{
+                            _qry = Model.lisData.Where(p => p.p41ID == c.p41ID && p.D1 == osa.d1);
+                        }
+
+                        @if (_qry.Count() > 0)
+                        {
+                            <span>
+                                @(BO.Code.Bas.Num2StringNull(_qry.Sum(p => p.HoursTotal)))h
+                            </span>
+                        }
+
+                    </div>
+                }
+
+
+
+
+            }
+            @if(c.ObdobiGridSpan>0)
+            {
+                <div style="grid-column:1/span 1;background-color:#F5F5F5 !important;"></div>
+                <div class="obdobi" style="grid-column: @(c.ObdobiGridColumn+_intColPosun)/span @c.ObdobiGridSpan;"></div>
+            }
+          
+
+
+
+        </div>
+
+        
+
+        <div class="grid-container" style="grid-template-columns:170px repeat(@(Model.Osax.Count()),@(Model.BoxWidth)px);">
+            <div style="grid-column: 1/span 1;background-color:#F5F5F5;"></div>
+
+            @foreach (var box in Model.Boxes.Where(p => p.p41ID == c.p41ID))
+            {
+                <div class="onebox" data-h="@(box.HoursTotal.ToString())" data-days="@(box.DaysPlan)" data-p41id="@(box.p41ID)" data-person="@(box.Person)" data-inicialy="@(box.Person_Inicialy)" style="grid-column: @(box.ColStart)/span @(box.ColSpan);background-color:@(box.Color);@(box.d2>Model.OsaLastDate ? "border-right:dotted black 4px !important;": "")@(box.d1<Model.OsaFirstDate ? "border-left:dotted black 4px !important;": "")" title="@box.Title" onclick="r01_edit(@box.r01ID)">
+                </div>
+            }
+
+        </div>
+    }
+
+    <div class="grid-container" style="background-color: #F5F5F5;grid-template-columns:170px repeat(@(Model.Osax.Count()),@(Model.BoxWidth)px);">
+        <div style="grid-column: 1/span 1;background-color:lightgray;font-weight:bolder;">
+            @if (Model.j02ID > 0)
+            {
+                <table style="table-layout:fixed;">
+                    <tr>
+                        <td class="cellnum" style="width:70px;">
+                            @BO.Code.Bas.Number2String(Model.lisData.Sum(p=>p.HoursTotal))
+                        </td>
+                        @if (Model.FaZastropovan)
+                        {
+                            <td class="cellnum" style="width:70px;color:red;">
+                                @BO.Code.Bas.Number2String(Model.lisR04.Sum(p=>p.r04HoursTotal))
+                            </td>
+                            <td class="cellnum" style="width:70px;color:blueviolet;">
+                                @BO.Code.Bas.Number2String(Model.lisR04.Sum(p=>p.r04HoursTotal)-Model.lisData.Sum(p=>p.HoursTotal))
+                            </td>
+                        }
+                    </tr>
+                </table>
+            }
+
+        </div>
+        @if (Model.j02ID > 0)
+        {
+            @foreach (var osa in Model.Osax)
+            {
+                <div style="grid-column: @(osa.Index+_intColPosun)/span 1;">
+                    @if (Model.GroupBy == BO.CapacityGroupByEnum.Day)
+                    {
+                        _qry = Model.lisData.Where(p => p.D1 == osa.d1);
+                        @if (_qry.Count() > 0)
+                        {
+
+                            <span>
+                                @(BO.Code.Bas.Num2StringNull(_qry.Sum(p => p.HoursTotal)))h
+                            </span>
+
+                        }
+                    }
+                    else
+                    {
+                        @if (osa.d1.Day == 1)
+                        {
+                            <div>
+
+                                @{
+
+                                    _qry = Model.lisData.Where(p => p.D1 >= osa.d1 && p.D1 <= osa.d1.AddMonths(1).AddDays(-1));
+
+
+                                }
+                                @if (_qry.Count() > 0)
+                                {
+
+                                    <span>
+                                        @(BO.Code.Bas.Num2StringNull(_qry.Sum(p => p.HoursTotal)))h
+                                    </span>
+
+                                }
+                            </div>
+                        }
+                    }
+
+                </div>
+            }
+        }
+
+    </div>
+</div>
+
+
+<script type="text/javascript">
+    var _arr = [];
+    var _userkeybase = "@Model.UserKeyBase";
+    var _curm = parseInt("@Model.CurMonth");
+    var _cury = parseInt("@Model.CurYear");
+    var _groupby = "@Model.GroupBy";
+    var _r02id = "@Model.SelectedR02ID";
+    var _j02id = "@Model.j02ID";
+    var _isreadonly = "@Model.IsReadOnly";
+
+    $(document).ready(function () {
+
+        if (_isreadonly == "False") {
+            setup_ds("timeline1");
+        }
+
+
+
+        $(".onebox").each(function () {
+
+            if ($(this).width() > 30) {
+                var h = $(this).attr("data-h");
+                var d = $(this).attr("data-days");
+                $(this).html("<small>" + h + "h </small><code>" + d + "d</code>");
+            }
+            if ($(this).width() > 110)
+            {
+                var p = $(this).attr("data-person");
+                $(this).html($(this).html() + " <mark>" + p + "</mark>");
+            }
+            else
+            {
+                var p = $(this).attr("data-inicialy");
+                $(this).html($(this).html() + " <mark>" + p + "</mark>");
+            }
+        });
+
+    });
+
+
+
+
+
+
+
+
+
+
+    function r02id_change(cbx) {
+        handle_timeline_cbx(cbx, "r02ID");
+
+    }
+    function handle_groupby(val) {
+
+        $.post("/Common/SetUserParam", { key: _userkeybase + "-GroupBy", value: val }, function (data) {
+            _redirect(location.href);
+        });
+
+
+    }
+
+    function switch2days(y, m) {
+        var k = [];
+        var v = [];
+        k.push(_userkeybase + "-CurMonth");
+        v.push(m);
+        k.push(_userkeybase + "-CurYear");
+        v.push(y);
+        k.push(_userkeybase + "-GroupBy");
+        v.push("1");
+
+        $.post("/Common/SetUserParams", { keys: k, values: v }, function (data) {
+
+            _redirect(location.href);
+
+        });
+    }
+
+    function handle_timeline_cbx(cbx, userkey) {
+
+        $.post("/Common/SetUserParam", { key: _userkeybase + "-" + userkey, value: cbx.value }, function (data) {
+            _redirect(location.href);
+        });
+
+
+    }
+
+    function month_prev() {
+        if (_groupby == "Year") {
+            _curm = 1;
+            _cury = _cury - 1;
+        } else {
+            if (_curm == 1) {
+                _curm = 12
+                _cury = _cury - 1;
+            }
+            else {
+                _curm = _curm - 1;
+            }
+        }
+
+        $("#CurMonth").val(_curm);
+        $("#CurYear").val(_cury);
+
+        var k = [];
+        var v = [];
+        k.push(_userkeybase + "-CurMonth");
+        v.push(_curm);
+        k.push(_userkeybase + "-CurYear");
+        v.push(_cury);
+
+        $.post("/Common/SetUserParams", { keys: k, values: v }, function (data) {
+            _redirect(location.href);
+
+        });
+
+    }
+    function month_next() {
+        if (_groupby == "Year") {
+            _curm = 1;
+            _cury = _cury + 1;
+        } else {
+            if (_curm == 12) {
+                _curm = 1
+                _cury = _cury + 1;
+            }
+            else {
+                _curm = _curm + 1;
+            }
+        }
+
+        $("#CurMonth").val(_curm);
+        $("#CurYear").val(_cury);
+
+        var k = [];
+        var v = [];
+        k.push(_userkeybase + "-CurMonth");
+        v.push(_curm);
+        k.push(_userkeybase + "-CurYear");
+        v.push(_cury);
+
+        $.post("/Common/SetUserParams", { keys: k, values: v }, function (data) {
+            _redirect(location.href);
+
+        });
+
+
+
+    }
+
+
+
+
+    function setup_ds(area_id) {
+        var ds = new DragSelect({
+            draggability: false,
+            immediateDrag: false,
+            selectables: document.getElementsByClassName("can-select"),
+            area: document.getElementById(area_id),
+            selectedClass: "selcell1",
+            multiSelectMode: false
+        });
+
+        ds.subscribe("callback", (callback_object) => {
+            if (callback_object.items) {
+                //volá se po označení řádek
+
+
+                _arr = [];
+                var rec;
+
+                $(callback_object.items).each(function () {
+                    var pid = $(this).prop("id");
+
+                    rec = {
+                        d: $(this).attr("data-d"),
+                        p41id: $(this).attr("data-p41id")
+                    }
+
+                    _arr.push(rec);
+
+                });
+
+
+
+            }
+        })
+
+
+    }
+
+
+    function pp(p41id)
+    {
+        _window_open("/r01/ProjectPlan?p41id=" + p41id);
+    }
+
+    function createx(p41id)
+    {
+        
+        
+        _window_open("/r01/Create?itemsprefix=p41&items=all&p41id=" + p41id + "&j02id=@(Model.j02ID)&groupby=Month&r02id=" + _r02id, 1);
+
+    }
+
+    function create() {
+        var s = "";
+        for (var i = 0; i < _arr.length; i++) {
+            if (i > 0) {
+                s = s + "|";
+            }
+            s = s + _arr[i].p41id + ";" + _arr[i].d
+        }
+        if (s == "") {
+            _notify_message("Musíte označit buňky v kapacitní timeline.");
+            return;
+        }
+
+        var p41id = _arr[0].p41id;  //první označený projekt
+
+        _window_open("/r01/Create?itemsprefix=p41&p41id="+p41id+"&j02id=@(Model.j02ID)&items=" + s + "&groupby=" + _groupby + "&r02id=" + _r02id, 1);
+
+    }
+    function edit() {
+        var s = "";
+        for (var i = 0; i < _arr.length; i++) {
+            if (i > 0) {
+                s = s + "|";
+            }
+            s = s + _arr[i].p41id + ";" + _arr[i].d
+        }
+        if (s == "") {
+            _notify_message("Musíte označit buňky v kapacitní timeline.");
+            return;
+        }
+
+        _window_open("/r01/Edit?itemsprefix=p41&items=" + s + "&groupby=" + _groupby + "&r02id=" + _r02id + "&j02id=" + _j02id, 1);
+
+    }
+    function r01_edit(r01id) {
+        if (_isreadonly == "True") {
+            _notify_message("Readonly");
+            return;
+        }
+        _window_open("/r01/Edit?r01id=" + r01id + "&r02id=" + _r02id, 1);
+    }
+
+    function doclear() {
+        var s = "";
+        for (var i = 0; i < _arr.length; i++) {
+            if (i > 0) {
+                s = s + "|";
+            }
+            s = s + _arr[i].j02id + ";" + _arr[i].d
+        }
+        if (s == "") {
+            _notify_message("Musíte označit buňky období.");
+            return;
+        }
+
+        _window_open("/r01/Edit?oper=clear&items=" + s + "&groupby=" + _groupby + "&r02id=" + _r02id + "&j02id=" + _j02id, 1);
+
+    }
+
+   
+
+    function hardrefresh(pid, flag) {
+        _postback("refresh");
+    }
+
+    function grid_onscroll() {
+        notify_message("scroll");
+    }
+
+    function osa_mouseover(div) {
+        var c = $("#cara1");
+
+        if (c.css("display") == "none") {
+            $(c).css("display", "block");
+        }
+
+        var pos = $(div).position();
+        var s = $(div).attr("data-title");
+
+        $(c).css("width", $(div).width() + 1);
+        $(c).css("background-color", "lightgray");
+        $(c).css("height", $("#timeline1").height());
+        $(c).css("top", pos.top + $(div).height() + 15);
+        $(c).css("left", pos.left);
+
+        if (_groupby == "Day") {
+            $(div).prop("title", s);
+        }
+        else {
+            $(c).prop("title", s);
+
+            var d = $("#cara1_datum");
+            if (d.css("display") == "none") {
+                $(d).css("display", "block");
+            }
+
+            $(d).html(s);
+
+
+            $(d).css("top", pos.top + 30);
+            $(d).css("left", pos.left - $(div).width() - 1);
+        }
+
+
+    }
+
+    function osa1_mouseout(div) {
+        var d = $("#cara1_datum");
+        if (d.css("display") == "block") {
+            $(d).css("display", "none");
+        }
+
+    }
+
+    function divmain1_onmouseover(div) {
+
+        var d = $("#cara1");
+        if (d.css("display") == "block") {
+            $(d).css("display", "none");
+        }
+    }
+
+
+
+
+</script>

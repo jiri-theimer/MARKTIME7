@@ -1,0 +1,219 @@
+﻿@model UI.Models.wrk.WorkflowDialogViewModel
+@inject BL.Factory _f
+
+
+@{
+    if (Model.b02ID > 0 || Model.b01ID > 0)
+    {
+        Model.PageTitle = "Workflow";
+    }
+    else
+    {
+        Model.PageTitle = "Notepad";
+    }
+
+    if (Model.RecordEntity != "o22" && Model.RecordEntity != "p31" && Model.RecordEntity != "j02")
+    {
+        Model.PageTitle = $"{Model.PageTitle}: {_f.CBL.GetObjectAlias(Model.RecordEntity, Model.RecordPid)}";
+    }
+
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageSymbol = "speaker_notes";
+
+    IEnumerable<BO.b05Workflow_History> _lisB05 = null;
+    if (Model.Caller != "portal")
+    {
+        _lisB05 = _f.WorkflowBL.GetList_b05(Model.RecordEntity, Model.RecordPid, 0, 0, 0);
+    }
+
+}
+
+@addTagHelper *, UI
+
+
+@if (Model.Notepad != null && Model.Notepad.SelectedX04ID > 0)
+{
+    @section header_content {
+    <link href="~/lib/froala-editor/css/froala_editor.pkgd.min.css" rel="stylesheet" type="text/css" />
+    }
+}
+
+
+<div class="bg-light input-group" style="padding:10px;">
+    <div>
+        <button id="cmdSave" class="btn btn-success" onclick="_submit()">
+            <span class="material-icons-outlined-btn" style="color:lime;">save</span>
+            @_f.tra("Uložit a zavřít")
+        </button>
+
+    </div>
+    @if (Model.RecordPid > 0 && Model.RecordEntity != "j02")
+    {
+        <div style="margin-left:10px;">
+            <button id="cmdSaveAndNotify" class="btn btn-info" onclick="_postback('mail')">
+                <span class="material-icons-outlined-btn">alternate_email</span>
+                @_f.tra("Uložit a notifikovat")
+            </button>
+
+
+        </div>
+    }
+
+    <div style="margin-left:20px;">
+        <button id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+    </div>
+    <div style="margin-left:50px;">
+        @if (Model.RecB02 != null)
+        {
+            <label>@_f.tra("Aktuální stav"):</label>
+            @Html.Raw(UI.Code.basUI.HtmlColorStrip(Model.RecB02.b02Color))
+
+            <strong>
+                @Model.RecB02.b02Name
+            </strong>
+
+        }
+    </div>
+
+
+</div>
+
+<div id="divMail" style="display:none;margin:10px;">
+    <button id="cmdSaveAndNotify" class="btn btn-success" onclick="_postback('send')">@_f.tra("Odeslat notifikaci")</button>
+</div>
+
+
+@Html.Raw("<div class='modal_record_container'>")
+
+<form id="form1" asp-controller="workflow_status" asp-action="Index" method="POST">
+
+    <div id="divRadioList">
+        <myradiolist asp-for="SelectedB02ID" datasource="@Model.lisB02" valuefield="pid" textfield="b02Name" event_after_changevalue="b02id_onchange"></myradiolist>
+    </div>
+
+   
+
+
+    @if (Model.Notepad != null)
+    {
+        @Html.EditorFor(m => m.Notepad, "~/Views/Shared/_Notepad.cshtml")
+    }
+
+    <div class="input-group" style="margin-top:2px;">
+        @if (Model.Caller == "portal")
+        {
+            <div style="width:340px;">
+                <input type="text" asp-for="b05Name" placeholder="@_f.tra("Název/Předmět")" class="form-control" />
+            </div>
+        }
+        else
+        {
+            <div>
+                @Html.EditorFor(m => m.reminder, "~/Views/Shared/_Reminder.cshtml")
+            </div>
+            <div style="margin-left:auto;width:340px;">
+                <input type="text" asp-for="b05Name" placeholder="@_f.tra("Název/Předmět")" class="form-control" />
+            </div>
+        }
+
+
+        <div style="margin-left:auto;" title="Datum záznamu">
+            <mydate asp-for="b05Date" include-time="false"></mydate>
+        </div>
+        @if ((Model.SelectedB02ID == 0 && Model.RecordEntity != "j02" && Model.RecordEntity != "p31") || Model.IsTab1)
+        {
+            <div style="margin-left:auto">
+                <input id="chkIsTab1" type="checkbox" asp-for="IsTab1" />
+                <label for="chkIsTab1" style="font-size:80%;">
+                @_f.tra("Připnout na první záložku")
+                <code>@(BO.Code.Entity.GetAlias(Model.RecordEntity))</code>
+                </label>
+            </div>
+        }
+        @if (Model.SelectedB02ID == 0 && (BO.Code.Entity.GetPrefixDb(Model.RecordEntity) == "p41" || Model.RecordEntity == "p28"))
+        {
+            <div style="margin-left:auto">
+                <input id="chkIsBillingMemo" type="checkbox" asp-for="IsBillingMemo" />
+                <label for="chkIsBillingMemo" style="font-size:90%;">
+                    @_f.tra("Fakturační poznámka")
+
+                </label>
+
+            </div>
+        }
+        @if (Model.RecordEntity == "p28" || Model.RecordEntity == "p91" || Model.IsPortalAccess)
+        {
+            <div style="margin-left:auto">
+                <label for="chkIsPortalAccess" style="font-size:80%;">@_f.tra("Publikovatelné na klientském portálu")</label>
+                <input id="chkIsPortalAccess" type="checkbox" asp-for="IsPortalAccess" />
+            </div>
+        }
+
+    </div>
+
+
+
+    <input type="hidden" asp-for="RecordEntity" />
+    <input type="hidden" asp-for="RecordPid" />
+    <input type="hidden" asp-for="b01ID" />
+    <input type="hidden" asp-for="b02ID" />
+    <input type="hidden" asp-for="current_user_lon" />
+    <input type="hidden" asp-for="current_cuser_lat" />
+    <input type="hidden" asp-for="NameIsRequired" />
+    <input type="hidden" asp-for="Caller" />
+</form>
+
+
+
+
+@Html.Raw("</div>")
+
+@if (_lisB05 != null && _lisB05.Count() > 0)
+{
+    <div style="padding:6px;">
+        <button type="button" class="btn btn-sm dropdown-toggle bog" onclick="toggle_history()">
+            @_f.tra("Historie")
+            <span class="badge-def">
+                @(_lisB05.Count())
+            </span>
+
+        </button>
+    </div>
+
+    <div id="history" style="display:none;">
+        @await Html.PartialAsync("~/Views/Shared/_lisB05.cshtml", _lisB05)
+    </div>
+
+}
+
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+   
+
+            $("#cmdMail").click(function () {
+                $("#divMail").toggle();
+            });
+
+
+    })
+
+    function toggle_history() {
+        $("#history").toggle();
+    }
+
+    function b02id_onchange(b02id) {
+        _postback("b02id");
+    }
+
+
+  
+
+
+    function hardrefresh(pid, flag) {
+        location.replace(location.href);
+    }
+</script>

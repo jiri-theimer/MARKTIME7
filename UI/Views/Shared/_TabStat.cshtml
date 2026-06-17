@@ -1,0 +1,251 @@
+﻿@model UI.Models.Tab1.BaseTab1ViewModel
+@inject BL.Factory _f
+@inject BL.Singleton.ThePeriodProvider _cp
+
+
+@{
+    
+    bool _bolQuickStatPreview = false;
+    string _CurrentViewName = ViewContext.RouteData.Values["action"].ToString();
+
+    if (_CurrentViewName == "QuickStat")
+    {
+        _bolQuickStatPreview = true;    //voláno z modálního quickstat okna
+    }
+    else
+    {
+        _bolQuickStatPreview = _f.CBL.LoadUserParamBool($"{Model.prefix}-quickstat-immediately", false);
+    }
+
+    IEnumerable<BO.p31QuickStat> _qrystat = null;
+    string _periodAlias = null;
+    string _statbyprefix = null;
+
+    if (_bolQuickStatPreview)
+    {
+        string strDefStatByPrefix = "j02";
+
+        switch (Model.prefix)
+        {
+            case "j02":
+                strDefStatByPrefix = "p28";
+                break;
+        }
+
+        _statbyprefix = _f.CBL.LoadUserParam($"recpage-{Model.prefix}-statprefix", strDefStatByPrefix);
+
+        int intPeriod = _f.CBL.LoadUserParamInt("tabstat-period-value", 0); DateTime? d1 = null; DateTime? d2 = null;
+        if (intPeriod > 1)
+        {
+            var per = _cp.ByPid(intPeriod);
+            d1 = per.d1;
+            d2 = per.d2;
+            _periodAlias = per.PeriodName;
+            if (per.d1 != null && per.d2 != null)
+            {
+                _periodAlias = $"{per.PeriodName}: {Convert.ToDateTime(per.d1).ToString("dd.MM.yyyy")} - {Convert.ToDateTime(per.d2).ToString("dd.MM.yyyy")}";
+            }
+        }
+        if (intPeriod == 1)
+        {
+            d1 = _f.CBL.LoadUserParamDate("tabstat-period-d1");
+            d2 = _f.CBL.LoadUserParamDate("tabstat-period-d2");
+            _periodAlias = $"{Convert.ToDateTime(d1).ToString("dd.MM.yyyy")} - {Convert.ToDateTime(d2).ToString("dd.MM.yyyy")}";
+        }
+
+        _qrystat = _f.p31WorksheetBL.GetList_QuickStat(_statbyprefix, Model.prefix, Model.pid, d1, d2, null).OrderBy(p => p.groupby_alias);
+    }
+
+
+
+
+
+
+
+}
+
+
+
+
+@if (_bolQuickStatPreview)
+{
+    <div class="input-group">
+        <span class="material-icons-outlined">auto_graph</span>
+        <span>@_f.tra("Rychlá statistika")</span>
+
+        <code>@(_periodAlias)</code>
+
+
+
+
+        <a title="V novém okně" id="linkOpenInNewWindow" style="margin-left:20px;" href="javascript:_window_open('/Record/QuickStat?prefix=@(Model.prefix)&pid=@(Model.pid)',3)">
+            <span class="material-icons-outlined">open_in_new</span>
+        </a>
+    </div>
+
+
+    <table class="htmltable" style="border:solid 1px silver;">
+        <thead>
+            <tr>
+                <th>
+                    <select asp-for="@_statbyprefix" onchange="statbyprefix_change(this)">
+                        @if (Model.prefix != "p41")
+                        {
+                            <option value="p41">@_f.tra("Projekt")</option>
+                        }
+                        @if (Model.prefix == "j02")
+                        {
+                            <option value="p28">@_f.tra("Klient projektu")</option>
+                        }
+                        else
+                        {
+                            <option value="j02">@_f.tra("Uživatel")</option>
+                        }
+                        <option value="p32">@_f.tra("Aktivita")</option>
+                        <option value="p34">@_f.tra("Sešit")</option>
+                        <option value="p95">@_f.tra("Fakturační oddíl")</option>
+                        <option value="p91">@_f.tra("Vyúčtování (Faktura)")</option>
+                        <option value="p31rate_billing_orig">@_f.tra("Výchozí fakturační sazba")</option>
+
+                        <option value="p56">@_f.tra("Úkol")</option>
+                    </select>
+                </th>
+
+                <th colspan="3" style="border-left:solid 1px silver;">
+                    Vykázáno
+                    <span class="material-icons-outlined">history</span>
+                    <span class="material-icons-outlined">hourglass_top</span>
+                </th>
+                <th colspan="2" style="text-align:center;border-left:solid 1px silver;">
+                    Nevyúčtováno
+                    <span class="material-icons-outlined">hourglass_top</span>
+
+                </th>
+                <th colspan="4" style="text-align:center;border-left:solid 1px silver;">
+                    Vyúčtováno
+                    <span class="material-icons-outlined">attach_money</span>
+                </th>
+
+
+                <th title="Počet vykázaných úkonů" style="border-left:solid 1px silver;"></th>
+
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var c in _qrystat)
+            {
+                <tr>
+                    <td>
+                        @c.groupby_alias
+                    </td>
+
+
+
+                    <td class="cislo" style="border-left:solid 1px silver;">
+                        @(BO.Code.Bas.Num2StringNull(c.hvyk))
+                    </td>
+                    <td class="cislo">
+                        @(BO.Code.Bas.Num2StringNull(c.bezdph_vyka))
+                    </td>
+                    <td>
+                        @(c.j27code_orig)
+                    </td>
+
+                    <td class="cislo" style="border-left:solid 1px silver;">
+                        @(BO.Code.Bas.Num2StringNull(c.nevyuct_h))
+                    </td>
+                    <td class="cislo">
+                        @(BO.Code.Bas.Num2StringNull(c.nevyuct_castka))
+                    </td>
+                    <td class="cislo schvaleno" style="border-left:solid 1px silver;">
+                        @(BO.Code.Bas.Num2StringNull(c.hvyf))
+                    </td>
+                    <td class="cislo pausal">
+                        @(BO.Code.Bas.Num2StringNull(c.hvyf6))
+                    </td>
+                    <td class="cislo odpis">
+                        @(BO.Code.Bas.Num2StringNull(c.hvyf23))
+                    </td>
+                    <td class="cislo">
+                        @(BO.Code.Bas.Num2StringNull(c.bezdph_vyfa))
+
+                    </td>
+
+
+                    <td class="cislo" style="border-left:solid 1px silver;">
+                        @(c.pocet)x
+
+                    </td>
+                </tr>
+
+            }
+        </tbody>
+
+        <tfoot>
+            <tr>
+                <th><span class="material-icons-outlined-nosize">functions</span></th>
+
+
+                <th class="cislo" style="border-left:solid 1px silver;">@(BO.Code.Bas.Num2StringNull(_qrystat.Sum(p => p.hvyk)))</th>
+                <th class="cislo">@(BO.Code.Bas.Num2StringNull(_qrystat.Sum(p => p.bezdph_vyka)))</th>
+                <th></th>
+
+                <th class="cislo" style="border-left:solid 1px silver;">@(BO.Code.Bas.Num2StringNull(_qrystat.Sum(p => p.nevyuct_h)))</th>
+                <th class="cislo">@(BO.Code.Bas.Num2StringNull(_qrystat.Sum(p => p.nevyuct_castka)))</th>
+
+                <th class="cislo" style="border-left:solid 1px silver;">@(BO.Code.Bas.Num2StringNull(_qrystat.Sum(p => p.hvyf)))</th>
+                <th class="cislo">@(BO.Code.Bas.Num2StringNull(_qrystat.Sum(p => p.hvyf6)))</th>
+                <th class="cislo">@(BO.Code.Bas.Num2StringNull(_qrystat.Sum(p => p.hvyf23)))</th>
+                <th class="cislo">@(BO.Code.Bas.Num2StringNull(_qrystat.Sum(p => p.bezdph_vyfa)))</th>
+
+
+                <th class="cislo" style="border-left:solid 1px silver;">@_qrystat.Sum(p => p.pocet)x</th>
+            </tr>
+        </tfoot>
+
+    </table>
+
+    <script type="text/javascript">
+
+        if (location.href.indexOf("QuickStat") > 0) {
+            $("#linkOpenInNewWindow").css("display", "none");
+        }
+
+        function statbyprefix_change(cbx) {
+            var prefix = "@Model.prefix";
+            $.post("/Common/SetUserParam", { key: "recpage-" + prefix + "-statprefix", value: cbx.value }, function (data) {
+                location.reload(location.href);
+
+            });
+        }
+
+        function turn_off_immediately() {
+            var prefix = "@Model.prefix";
+
+            $.post("/Common/SetUserParam", { key: prefix + "-quickstat-immediately", value: "0" }, function (data) {
+                location.reload(location.href);
+
+            });
+        }
+
+    </script>
+}
+
+@if (!_bolQuickStatPreview)
+{
+    <script type="text/javascript">
+
+        function turn_on_immediately() {
+            var prefix = "@Model.prefix";
+
+            $.post("/Common/SetUserParam", { key: prefix + "-quickstat-immediately", value: "1" }, function (data) {
+                location.reload(location.href);
+
+            });
+        }
+
+    </script>
+}
+
+
+

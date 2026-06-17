@@ -1,0 +1,141 @@
+﻿@model UI.Models.p31oper.p31splitViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = _f.tra("Rozdělit časový úkon na 2 kusy");
+    Model.PageSymbol = "arrow_split";
+
+}
+
+@addTagHelper *, UI
+
+
+<div class="bg-light row my-2" style="width:99%;">
+
+    <div class="col-auto">
+        <button id="cmdSave" class="btn btn-success" onclick="_submit()">@_f.tra("Uložit změny")</button>
+        <button id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+    </div>
+
+
+</div>
+
+
+
+<div class="tabs_container_record">
+    <!-- Tab panes -->
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab1" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab1">@_f.tra("Rozdělit")</a>
+        </li>
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab2" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab2">@_f.tra("Info")</a>
+        </li>
+
+
+
+    </ul>
+</div>
+<div class="modal_record_container">
+    <form id="form1" asp-controller="p31split" asp-action="Index" method="POST">
+
+        <div class="tab-content">
+
+            <input type="hidden" asp-for="pid" />
+            <input type="hidden" asp-for="ActiveTabIndex" />
+            <input type="hidden" asp-for="approve_guid" />
+
+            <div class="tab-pane tab-pane-fixed" id="tab1" role="tabpanel">
+                <!-- Tab1 -->
+
+                <div class="card" style="margin-top:10px;">
+                    <div class="card-header">
+                        @_f.tra("První (zdrojový) úkon")
+
+                    </div>
+                    <div class="card-body">
+                        <div class="row my-2">
+                            <label class="col-sm-1 col-md-1 col-form-label">@_f.tra("Hodiny"):</label>
+                            <div class="col-sm-2 col-md-2">
+                                <myhours asp-for="Hours1" showsettingbutton="false" hoursentryformat="@(_f.CurrentUser.j02DefaultHoursFormat)" hoursentryflag="@(_f.CurrentUser.j02HesBitStream)"></myhours>
+                            </div>
+                        </div>
+
+                        <div class="form-floating">
+                            <textarea class="form-control" asp-for="Text1"></textarea>
+                            <label for="Text1">@_f.tra("Podrobný popis úkonu")</label>
+                        </div>
+
+                        <div class="form-floating" style="margin-top:10px;">
+                            <textarea class="form-control" asp-for="Text1Internal" style="background-color:#FFF5EE !important;"></textarea>
+                            <label for="Text1">@_f.tra("Interní text")</label>
+                        </div>
+                    </div>
+                </div>
+
+                <p></p>
+                <div class="card">
+                    <div class="card-header">
+                        @_f.tra("Druhý (nový) úkon")
+                    </div>
+                    <div class="card-body">
+                        <div class="row my-2">
+                            <label class="col-sm-1 col-md-1 col-form-label">@_f.tra("Hodiny"):</label>
+                            <div class="col-sm-2 col-md-2">
+                                <myhours asp-for="Hours2" showsettingbutton="false" hoursentryformat="@(_f.CurrentUser.j02DefaultHoursFormat)" hoursentryflag="@(_f.CurrentUser.j02HesBitStream)"></myhours>
+                            </div>
+                        </div>
+                        <div class="form-floating">
+                            <textarea class="form-control" asp-for="Text2"></textarea>
+                            <label for="Text1">@_f.tra("Podrobný popis úkonu")</label>
+                        </div>
+
+                        <div class="form-floating" style="margin-top:10px;">
+                            <textarea class="form-control" asp-for="Text2Internal" style="background-color:#FFF5EE !important;"></textarea>
+                            <label for="Text1">@_f.tra("Interní text")</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="tab-pane tab-pane-fixed" id="tab2" role="tabpanel">
+                <!-- Tab2 -->
+                <iframe src="/p31/Info?pid=@Model.pid" style="width:100%;border:none;height:700px;" frameborder="0"></iframe>
+            </div>
+
+
+
+        </div>
+
+    </form>
+
+</div>
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+        $(".tab-pane").removeClass("active");
+
+        $("#tab@(Model.ActiveTabIndex)").addClass("active");
+        $("#link_tab@(Model.ActiveTabIndex)").attr("class", "nav-link active");
+
+        $('a[data-bs-toggle="tab"]').on("shown.bs.tab", function (e) {
+            // v e.target.id je id kliknutá záložka
+
+            var tabindex = e.target.id.substring(e.target.id.length - 1, e.target.id.length);
+            $("#ActiveTabIndex").val(tabindex);
+            _resize_textareas();
+        })
+
+
+
+    })
+
+
+
+</script>
+

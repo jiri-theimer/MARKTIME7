@@ -1,0 +1,237 @@
+﻿@model UI.Models.Tab1.p78Tab1
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+    if (Model.Rec == null) return;
+
+    bool _bolIsMobile = _f.CurrentUser.IsMobileDisplay();
+    string _strRecPage = "RecPage";
+    if (_bolIsMobile)
+    {
+        _strRecPage = "RecPageMobile";
+    }
+
+
+    int _b05Count = _f.WorkflowBL.GetB05CommentsCount("p78", Model.pid);
+    IEnumerable<BO.b05Workflow_History> _lisB05 = _f.WorkflowBL.GetList_b05("p78", Model.pid, 0, 0, 0).Where(p => BO.Code.Bas.bit_compare_or(p.b05Tab1Flag, 2) == true);
+
+    var _lisP84 = _f.p84UpominkaBL.GetList(new BO.myQueryP84() { p78id = Model.Rec.pid,IsRecordValid=null }).OrderBy(p=>p.p91Code);
+
+    var _lisO24 = _f.o24ReminderBL.GetList("p78", Model.pid);
+
+}
+
+@addTagHelper *, UI
+
+<div class="input-group">
+    <div style="margin-right:40px;">
+        @Html.EditorFor(m => m, "~/Views/Shared/_p78Tab1Buttons.cshtml")
+    </div>
+
+    @Html.EditorFor(m => m.Rec, "~/Views/Shared/_TimeStamp.cshtml")
+</div>
+
+
+
+
+
+@Html.Raw("<div class='info_record_container'>")
+
+@if (Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.recheader))
+{
+
+    <div class="card recpagebox400">
+        <div class="card-body">
+            <table class="table table-hover">
+                <tr>
+                    <td colspan="2" class="@(Model.Rec.isclosed ? "tdarchiv" : "tdval")" onmouseover="_handle_mywrk_mouseover(this)" onmouseout="_handle_mywrk_mouseout(this)">
+                        <myicon symbol="receipt"></myicon>
+                        @Model.Rec.p78Code
+                        <mywrkbutton prefix="p78" pid="@Model.pid" showcopyurl="true" langindex="@_f.CurrentUser.j02LangIndex" showcount="@_b05Count"></mywrkbutton>
+                    </td>
+                </tr>
+               
+                <tr>
+                    <td class="tdlab">
+                        @_f.tra("Klient"):
+                    </td>
+                    <td>
+                        <myval value="@Model.Rec.p78Client" hoverprefix="p28" hoverpid="@Model.Rec.p28ID"></myval>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="tdlab">
+                        @_f.tra("Datum"):
+                    </td>
+                    <td class="tddatum">
+                        <myval datatype="date" value="@Model.Rec.p78Date"></myval>
+                    </td>
+                </tr>
+               
+            </table>
+
+
+
+        
+
+
+        </div>
+
+
+    </div>
+}
+
+@Html.Raw("<div id='divTree1Container' style='float: left;vertical-align: top;border:none;margin-left:4px;margin-top:4px;'>")
+
+@Html.EditorFor(m => _lisO24, "~/Views/Shared/_o24TreeView.cshtml")
+
+
+
+@Html.Raw("</div>")
+
+
+@if (_lisP84.Count()>0)
+{
+    <div class="card recpageboxauto">
+        <div class="card-body">
+            <div class="card-title recpagetitle bgp90">
+                @_f.tra("Seznam upomínaných faktur")
+            </div>
+            <table class="table table-sm table-hover">
+                @foreach (var c in _lisP84)
+                {
+                    <tr style="border-bottom-color:white;@(c.isclosed ? "text-decoration: line-through;":null)">
+                        
+                        
+                        <td title="@c.p83Name">
+                            <myval value="@c.p84Code" linktarget="_top" hoverprefix="p84" hoverpid="@c.pid" datatype="@(_f.CurrentUser.j04IsModule_p91 ? "link" : "string")" linkurl="@(_f.CurrentUser.j04IsModule_p91 ? $"/Record/RecPage?prefix=p84&pid={c.pid}" : "")"></myval>
+                        </td>
+                        <td>
+                            @BO.Code.Bas.ObjectDate2String(c.p84Date)
+                            
+                        </td>
+                        <td>
+                            
+                            <myval value="@c.p91Code" linktarget="_top" hoverprefix="p91" hoverpid="@c.p91ID" datatype="@(_f.CurrentUser.j04IsModule_p91 ? "link" : "string")" linkurl="@(_f.CurrentUser.j04IsModule_p91 ? $"/Record/RecPage?prefix=p91&pid={c.p91ID}" : "")"></myval>
+                        </td>
+
+                        <td>
+                            
+                            <myval value="c.p91Amount_Debt" datatype="num" valueafter="@c.j27Code"></myval>
+                        </td>
+                      
+                        
+                        <td>
+                            @if (c.p84Index == 1)
+                            {
+                                <a class="btn btn-sm btn-light" href="javascript:_window_open('/ReportsClient/ReportContext?x31id=@(c.x31ID_Index1)&prefix=p84&pid=@(c.pid)')"><span class="material-icons-outlined-btn" style="font-size:16px;">print</span></a>
+                            }
+                            @if (c.p84Index == 2)
+                            {
+                                <a class="btn btn-sm btn-light" href="javascript:_window_open('/ReportsClient/ReportContext?x31id=@(c.x31ID_Index2)&prefix=p84&pid=@(c.pid)')"><span class="material-icons-outlined-btn" style="font-size:16px;">print</span></a>
+                            }
+                            @if (c.p84Index == 3)
+                            {
+                                <a class="btn btn-sm btn-light" href="javascript:_window_open('/ReportsClient/ReportContext?x31id=@(c.x31ID_Index2)&prefix=p84&pid=@(c.pid)')"><span class="material-icons-outlined-btn" style="font-size:16px;">print</span></a>
+                            }
+                        </td>
+                    </tr>
+
+                }
+            </table>
+
+        </div>
+    </div>
+}
+
+
+@if (Model.Rec.p78TextA != null || Model.Rec.p78TextB != null)
+{
+    <div class="card recpageboxauto">
+        <div class="card-body">
+            <myicon symbol="format_quote" color="gray"></myicon>
+            <i>
+                @Html.Raw(BO.Code.Bas.Text2Html(Model.Rec.p78TextA))
+            </i>
+
+            @if (Model.Rec.p78TextB != null)
+            {
+                <br />
+                <myicon symbol="format_quote" color="red"></myicon>
+                <i style="color:red;">
+                    @Html.Raw(BO.Code.Bas.Text2Html(Model.Rec.p78TextB))
+                </i>
+            }
+        </div>
+    </div>
+
+}
+
+
+
+
+
+@if (Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.tags))
+{
+    @Html.EditorFor(m => m, "~/Views/Shared/_TagsTab1.cshtml")
+}
+
+
+@if (Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.o27list))
+{
+    @Html.EditorFor(m => m, "~/Views/Shared/_lisO27Tab1.cshtml")
+}
+
+
+@Html.Raw("</div>")
+<div style="clear:both;"></div>
+
+@if (_lisB05.Count() > 0)
+{
+    @await Html.PartialAsync("~/Views/Shared/_lisB05.cshtml", _lisB05)
+}
+
+
+<script type="text/javascript">
+    if (window.parent.window.location.href != undefined) {
+        if (window.parent.window.location.href.indexOf("RecPage") > 0) {
+            $("#cmdRecPage").css("display", "none");
+            $("#cmdCM").css("display", "none");
+        }
+    }
+
+
+    if (document.getElementById("divTree1Container")) {
+
+        $("#p78@(Model.pid)").addClass("active");
+
+        _adjust_divheight_small_display("divTree1Container");
+
+
+        $("#divTree1Container").animate(
+            {
+                scrollTop: $("#p78@(Model.pid)").offset().top - $("#divTree1Container").offset().top,
+            },
+            250
+        );
+
+    }
+
+
+    function p78report(x31id, p78id) {
+        _window_open("/ReportsClient/ReportContext?prefix=p78&pid=" + p78id + "&x31id=" + x31id);
+    }
+
+    function p91report(x31id, p91id) {
+        _window_open("/ReportsClient/ReportContext?prefix=p91&pid=" + p91id + "&x31id=" + x31id);
+    }
+
+
+</script>
+
+
+
+
+

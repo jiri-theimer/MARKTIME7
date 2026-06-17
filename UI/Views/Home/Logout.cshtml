@@ -1,0 +1,18 @@
+﻿@model BaseViewModel
+@inject BL.Factory _f
+
+
+
+@{
+    
+
+    ViewData["Title"] = _f.tra("Odhlášení z aplikace");
+    Layout = "~/Views/Shared/_LayoutAnonym.cshtml";
+}
+
+<div style="margin:auto;max-width:500px;">
+    <h4>@_f.tra("Došlo k odhlášení uživatele")</h4>
+
+    <a asp-action="UserLogin" asp-controller="Login">@_f.tra("Přihlásit se")</a>
+</div>
+

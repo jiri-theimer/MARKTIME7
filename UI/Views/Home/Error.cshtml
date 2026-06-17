@@ -1,0 +1,104 @@
+﻿@model UI.Models.ErrorViewModel
+@inject BL.Factory _f
+
+@{
+    
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@addTagHelper *, UI
+
+
+<div class="modal_record_container">
+    <table style="width:99%;">
+        <tr>
+            <td>
+                <h2>
+                    <myicon symbol="warning" color="red"></myicon>
+                    Chyba | Error
+                    </h2>
+
+                <h5 id="p1">@Model.OrigFullPath</h5>
+            </td>
+            <td class="nonmobile">
+                <img src="/images/logo_transparent.png" />
+            </td>
+        </tr>
+    </table>
+    
+
+    @if (Model.Error != null)
+    {
+
+        <kbd>@(Model.Error.Source)</kbd>
+        <code id="mes">@(Model.Error.Message)</code>
+
+        <div>
+        <button type="button" class="btn bog" id="cmdStack" onclick="showstack()">Zobrazit podrobný popis chyby</button>
+        </div>
+
+        <div id="divStack" style="display:none;">
+            @(Html.Raw(Model.Error.StackTrace))
+        </div>
+        
+        
+    }
+
+
+    <hr />
+
+    <div class="my-2">
+        @(DateTime.Now)
+
+    </div>
+
+    @if (_f != null)
+    {
+        <div class="my-2">
+            @_f.CurrentUser.j02Login
+
+        </div>
+        <div class="my-2">
+            @_f.CurrentUser.FullNameAsc
+
+        </div>
+        
+    }
+
+    <hr />
+    <button type="button" class="btn bog" onclick="senderror()">Odeslat chybu technické podpoře</button>
+</div>
+
+
+    
+
+
+<script type="text/javascript">
+    
+
+
+    if (window !== window.top && document.getElementById("mainmenu1"))
+    {
+        $("#mainmenu1").css("display", "none");
+    }
+
+
+    function showstack() {
+        $("#divStack").css("display", "block");
+        $("#cmdStack").css("display", "none");
+    }
+
+
+    function senderror() {
+        var s1 = $("#divStack").html();
+        var s2 = $("#mes").html();
+        var s3 = $("#p1").html();
+
+        $.post("/Home/SendError", { stack: s1,message:s2,url:s3 }, function (data) {
+            if (data>0)
+            {
+                _window_open("/Mail/SendMail?senderror=" + data,3);
+            }
+        });
+    }
+</script>

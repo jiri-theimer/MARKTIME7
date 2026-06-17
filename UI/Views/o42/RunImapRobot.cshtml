@@ -1,0 +1,41 @@
+﻿@model BaseViewModel
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    Model.PageTitle = "IMAP ROBOT";
+
+
+}
+@addTagHelper *, UI
+
+
+
+
+<div class="modal_record_container">
+    <h4>@Model.PageTitle</h4>
+
+    <h5>Spuštěno.</h5>
+   <h5>@DateTime.Now</h5>
+    
+</div>
+
+
+
+
+
+
+
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        
+
+    });
+
+
+
+</script>

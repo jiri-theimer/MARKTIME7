@@ -1,0 +1,70 @@
+﻿@model UI.Models.Record.j06Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Historie personalistky");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    Model.PageSymbol = "history_edu";
+}
+
+@addTagHelper *, UI
+
+<div class="modal_record_container">
+
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Uživatel"):</label>
+        <div class="col-sm-7 col-md-6">
+            <mycombo entity="j02User" asp-for="Rec.j02ID" selectedtext="@Model.ComboJ02" view-flag="2" search-result-width="700"></mycombo>
+        </div>
+        <div class="col-sm-3 col-md-2">
+            <select asp-for="@Model.Volba" onchange="_postback()" class="form-select">
+                <option value="j07">@_f.tra("Pozice")</option>
+                <option value="c21">@_f.tra("Časový fond")</option>
+            </select>
+        </div>
+    </div>
+   
+
+    @if (Model.Volba == "j07")
+    {
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Pozice"):</label>
+            <div class="col-sm-7 col-md-6">
+                <mycombo entity="j07PersonPosition" asp-for="Rec.j07ID" selectedtext="@Model.ComboJ07"></mycombo>
+            </div>
+
+        </div>
+    }
+    @if (Model.Volba == "c21")
+    {
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Časový fond"):</label>
+            <div class="col-sm-7 col-md-6">
+                <mycombo entity="c21FondCalendar" asp-for="Rec.c21ID" selectedtext="@Model.ComboC21"></mycombo>
+            </div>
+
+        </div>
+    }
+
+
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Platnost od"):</label>
+        <div class="col-sm-4 col-md-3">
+            <mydate asp-for="@Model.d1"></mydate>
+
+        </div>
+
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Platnost do"):</label>
+        <div class="col-sm-4 col-md-3">
+            <mydate asp-for="@Model.d2"></mydate>
+
+        </div>
+
+    </div>
+
+
+
+</div>

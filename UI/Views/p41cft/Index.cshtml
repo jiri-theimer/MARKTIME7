@@ -1,0 +1,271 @@
+﻿@model UI.Models.p41oper.p41cftViewModel
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+
+    Model.PageTitle = "Založit projekt ze šablony";
+
+
+
+
+}
+@addTagHelper *, UI
+
+
+<div class="bg-light" style="padding:10px;">
+    <button type="button" id="cmdSave" class="btn btn-success" onclick="_submit()" style="margin-left:10px;"><span class="material-icons-outlined-btn">done</span>@_f.tra("Založit projekt")</button>
+
+    <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
+
+
+</div>
+
+<form id="form1" asp-controller="p41cft" asp-action="Index" method="POST">
+    <div class="modal_record_container">
+        <input type="hidden" asp-for="p44ID" />
+        <input type="hidden" asp-for="p41ID" />
+        <input type="hidden" asp-for="TempGuid" />
+        
+        
+        <div style="width:100%;background-color:lightblue;margin-top:13px;font-weight:bold;color:navy;">
+            <div style="padding:12px;">
+                @_f.tra("Vzorový projekt"):
+                <strong style="margin-left:10px;color:darkgreen;">
+                    @Model.RecP41.FullName
+                </strong>
+            </div>
+        </div>
+        
+        <div class="row my-2">
+            <label for="p41Name" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název projektu"):</label>
+            <div class="col-sm-8 col-md-7">
+                <input class="form-control record_name" asp-for="p41Name" />
+            </div>
+
+            <div class="col-sm-3 col-md-3">
+                <input class="form-control" asp-for="p41NameShort" placeholder="@_f.tra("Zkrácený (preferovaný) název")" />
+            </div>
+        </div>
+
+        <div class="row my-2">
+            <label for="cmdComboRec_p28ID_Client" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Klient projektu"):</label>
+            <div class="col-sm-7 col-md-7">
+                <mycombo entity="p28Contact" asp-for="p28ID_Client" selectedtext="@Model.Klient" filter-flag="1" search-result-width="700"></mycombo>
+            </div>
+            <label class="col-sm-1 col-md-1" for="j18ID">@_f.tra("Středisko"):</label>
+            <div class="col-sm-3 col-md-2">
+                <mycombo entity="j18Region" asp-for="j18ID" selectedtext="@Model.Stredisko"></mycombo>
+
+            </div>
+        </div>
+
+        <div style="width:100%;background-color:lightblue;margin-top:13px;font-weight:bold;color:navy;">
+            <div style="padding:12px;">
+                @_f.tra("Fakturační nastavení")
+            </div>
+        </div>
+
+
+        <input type="radio" id="Radiop51Flag1" asp-for="p41BillingFlag" value="CenikDedit" onchange="_postback('billing')">
+        <label for="Radiop51Flag1">@_f.tra("Hodinové sazby dědit z klienta projektu nebo z kořenového ceníku")</label>
+        <br />
+        <input type="radio" id="Radiop51Flag2" asp-for="p41BillingFlag" value="CenikPrirazeny" onchange="_postback('billing')">
+        <label for="Radiop51Flag2">@_f.tra("Svázat projekt s jedním z pojmenovaných (sdílených) ceníků")</label>
+        <br />
+        <input type="radio" id="Radiop51Flag3" asp-for="p41BillingFlag" value="CenikIndividualni" onchange="_postback('billing')">
+        <label for="Radiop51Flag3">@_f.tra("Projekt má individuální hodinové sazby na míru")</label>
+      
+        @if (Model.p41BillingFlag == BO.p41BillingFlagEnum.CenikPrirazeny)
+        {
+            <div>
+                @_f.tra("Přiřazený ceník hodinových sazeb")
+                <button type="button" onclick="p51_record_flag2()" class="btn btn-sm bog">@_f.tra("Upravit ceník")</button>
+                <button type="button" onclick="p51_create_flag2()" class="btn btn-sm bog">@_f.tra("Založit ceník")</button>
+            </div>
+            <mycombo entity="p51PriceList" asp-for="@Model.SelectedP51ID_Flag2" placeholder="@_f.tra("Vyberte pojmenovaný ceník")" selectedtext="@Model.SelectedComboP51Name" myqueryinline="typeflag|int|1|iscustomtailor|bool|false"></mycombo>
+
+        }
+        @if (Model.p41BillingFlag == BO.p41BillingFlagEnum.CenikIndividualni)
+        {
+
+            <button type="button" onclick="p51_record_flag3()" class="btn btn-sm bog">@_f.tra("Sazby na míru")</button>
+            <input type="hidden" asp-for="@Model.SelectedP51ID_Flag3" value="@Model.SelectedP51ID_Flag3" />
+        }
+
+        <div class="form-floating my-2">
+            <textarea class="form-control" asp-for="p41InvoiceDefaultText1"></textarea>
+            <label for="p41InvoiceDefaultText1">@_f.tra("Předvyplněný hlavní text faktury")</label>
+        </div>
+
+        <div class="form-floating my-2">
+            <textarea class="form-control" asp-for="p41InvoiceDefaultText2"></textarea>
+            <label for="p41InvoiceDefaultText2">@_f.tra("Předvyplněný technický text faktury")</label>
+        </div>
+
+
+        <div style="width:100%;background-color:lightblue;margin-top:13px;font-weight:bold;color:navy;">
+            <div style="padding:12px;">
+                @_f.tra("Projektové role")
+            </div>
+        </div>
+
+        @Html.EditorFor(m => m.roles, "~/Views/Shared/_RoleAssign.cshtml")
+
+
+
+       
+
+        <div style="width:100%;background-color:lightblue;margin-top:13px;font-weight:bold;color:navy;">
+            <div style="padding:12px;">
+                @_f.tra("Opakované odměny/paušály")
+            </div>
+        </div>
+
+        @if(Model.lisP40 != null && Model.lisP40.Count()>0)
+        {
+            <table class="table table-hover">
+                <tr>
+                    <th style="width:20px;"></th>
+                    <th>Název předpisu</th>
+                    <th>Bez DPH</th>
+                    <th style="width:80px;">Volné hodiny</th>
+                    <th style="width:100px;">Volný honorář</th>
+                    <th>Maska textu úkonu</th>
+                    <th style="width:120px;">Od</th>
+                </tr>
+                @for (int i = 0; i < Model.lisP40.Count(); i++)
+                {
+                    <tr>
+                        <td>
+                            <input type="checkbox" asp-for="@Model.lisP40[i].IsChecked" />
+                        </td>
+                        <td>
+                            <input type="hidden" asp-for="@Model.lisP40[i].pid"/>
+                            <input type="text" class="form-control" asp-for="@Model.lisP40[i].p40Name"/>
+                        </td>
+                        <td>
+                            <mynumber asp-for="@Model.lisP40[i].p40Value" decimal-digits="2"></mynumber>
+                        </td>
+                        <td>
+                            <mynumber asp-for="@Model.lisP40[i].p40FreeHours" decimal-digits="0"></mynumber>
+                        </td>
+                        <td>
+                            <mynumber asp-for="@Model.lisP40[i].p40FreeFee" decimal-digits="2"></mynumber>
+                        </td>
+                        <td>
+                            <input type="text" class="form-control" asp-for="@Model.lisP40[i].p40Text"/>
+                        </td>
+                        <td>
+                            <mydate asp-for="@Model.lisP40[i].p40FirstSupplyDate"></mydate>
+                        </td>
+                    </tr>
+                }
+            </table>
+            
+        }
+
+        <div style="width:100%;background-color:lightblue;margin-top:13px;font-weight:bold;color:navy;">
+            <div style="padding:12px;">
+                @_f.tra("Úkoly")
+            </div>
+        </div>
+
+        @if (Model.lisP56 != null && Model.lisP56.Count() > 0)
+        {
+            <table class="table table-hover">
+                <tr>
+                    <th style="width:20px;"></th>
+                    <th>Úkol</th>
+                    <th style="width:120px;">Termín</th>
+                    <th colspan="2">Řešitel</th>
+                    
+                    
+                </tr>
+                @for (int i = 0; i < Model.lisP56.Count(); i++)
+                {
+                    <tr>
+                        <td>
+                            <input type="checkbox" asp-for="@Model.lisP56[i].IsChecked" />
+                        </td>
+                        <td>
+                            <input type="hidden" asp-for="@Model.lisP56[i].pid" />
+                            <input type="text" class="form-control" asp-for="@Model.lisP56[i].p56Name" />
+                        </td>
+                        <td>
+                            <mydate asp-for="@Model.lisP56[i].p56PlanUntil"></mydate>
+                        </td>
+                        <td>
+                            <mycombochecklist placeholder="Jednotlivci" asp-for="@Model.lisP56[i].Assign_j02IDs" entity="j02User" selectedtext="@Model.lisP56[i].Assign_Persons"></mycombochecklist>
+
+                        </td>
+                        <td>
+                            <mycombochecklist placeholder="Týmy" asp-for="@Model.lisP56[i].Assign_j11IDs" entity="j11Team" selectedtext="@Model.lisP56[i].Assign_j11Names"></mycombochecklist>
+                        </td>
+                        
+                    </tr>
+                }
+            </table>
+
+        }
+
+        <div style="width:100%;background-color:lightblue;margin-top:13px;font-weight:bold;color:navy;">
+            <div style="padding:12px;">
+                @_f.tra("Termíny/Lhůty")
+            </div>
+        </div>
+
+        @if (Model.lisO22 != null && Model.lisO22.Count() > 0)
+        {
+            <table class="table table-hover">
+                <tr>
+                    <th style="width:20px;"></th>
+                    <th>Název</th>
+                    <th style="width:120px;">Od</th>
+                    <th style="width:120px;">Délka</th>
+                    <th style="width:120px;">Do</th>
+
+
+                </tr>
+                @for (int i = 0; i < Model.lisO22.Count(); i++)
+                {
+                    <tr>
+                        <td>
+                            <input type="checkbox" asp-for="@Model.lisO22[i].IsChecked" />
+                        </td>
+                        <td>
+                            <input type="hidden" asp-for="@Model.lisO22[i].pid" />
+                            <input type="text" class="form-control" asp-for="@Model.lisO22[i].o22Name" />
+                        </td>
+                        <td>
+                            <mydate asp-for="@Model.lisO22[i].o22PlanFrom"></mydate>
+                        </td>
+                        <td>
+                            <mynumber asp-for="@Model.lisO22[i].o22DurationCount" decimal-digits="0"></mynumber>
+
+                        </td>
+                        <td>
+                            <mydate asp-for="@Model.lisO22[i].o22PlanUntil"></mydate>
+                        </td>
+
+                    </tr>
+                }
+            </table>
+
+        }
+
+        <div style="width:100%;background-color:lightblue;margin-top:13px;font-weight:bold;color:navy;">
+            <div style="padding:12px;">
+                @_f.tra("Ostatní")
+            </div>
+        </div>
+        @Html.EditorFor(m => m.hlidac, "~/Views/Shared/_hlidac.cshtml")
+
+        @Html.EditorFor(m => m.reminder, "~/Views/Shared/_Reminder.cshtml")
+
+        <mystitky entity="p41Project" asp-for="@Model.TagPids" tagnames="@Model.TagNames" taghtml="@Model.TagHtml" buttontext="@_f.tra("Oštítkovat")"></mystitky>
+
+    </div>
+</form>
+

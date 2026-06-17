@@ -1,0 +1,120 @@
+﻿@model UI.Models.Record.a59Record
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    if (Model.Rec == null) return;
+    Model.PageTitle = _f.tra("Plocha stránky");
+}
+@addTagHelper *, UI
+
+@section header_content
+{
+
+}
+
+
+
+    <input type="hidden" asp-for="@Model.Rec.a55ID" />
+
+
+
+    <div class="modal_record_container">
+
+
+        <div class="row">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název"):</label>
+            <div class="col-sm-7 col-md-6">
+                <input class="form-control" asp-for="Rec.a59Name" />
+
+            </div>
+            <label class="col-auto col-form-label">@_f.tra("Struktura stránky"):</label>
+            <div class="col-sm-3 col-md-2">
+                <select class="form-select" asp-for="@Model.Rec.a59StructureFlag" onchange="_postback()">
+                    <option value="Boxes">Boxes</option>
+                    <option value="CustomHtml">CustomHtml</option>
+                </select>
+
+            </div>
+        </div>
+
+
+    @if (Model.Rec.a59StructureFlag == BO.a59StructureFlagENUM.Boxes)
+    {
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Sloupců na ploše"):</label>
+            <div class="col-sm-2 col-md-1">
+                <select class="form-select" asp-for="@Model.Rec.a59ColumnsPerPage">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                </select>
+
+            </div>
+        </div>
+    }
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Kontejner class-name"):</label>
+        <div class="col-sm-7 col-md-6">
+            <input class="form-control" asp-for="Rec.a59CssClassContainer" />
+
+        </div>
+    </div>
+
+    @if (Model.Rec.a59StructureFlag == BO.a59StructureFlagENUM.CustomHtml)
+    {
+        <div class="my-2">
+            <textarea asp-for="Rec.a59CustomHtmlStructure" class="form-control" placeholder="@_f.tra("Zdrojový HTML kód stránky")" style="max-height:330px;overflow:auto !important;"></textarea>
+        </div>
+    }
+
+
+    <div>
+    </div>
+    <div class="card">
+        <div class="card-header">
+            @_f.tra("Workflow stavy, v kterých zobrazovat plochu stránky")
+        </div>
+        <div class="card-body" style="max-height:230px;overflow:auto;">
+            @if (Model.lisB02 != null)
+            {
+                <mycheckboxlist asp-for="@Model.SelectedB02IDs" textfield="NameWithStatus" valuefield="pid" datasource="@Model.lisB02"></mycheckboxlist>
+            }
+
+        </div>
+    </div>
+
+
+
+
+
+
+
+
+
+
+</div>
+
+
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+    });
+
+
+
+
+
+
+</script>
+
+
+
+

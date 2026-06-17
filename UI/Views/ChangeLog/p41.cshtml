@@ -1,0 +1,85 @@
+﻿@model UI.Models.changelogViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = "CHANGE-LOG";
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageSymbol = "timeline";
+    Model.lisData = _f.p41ProjectBL.GetList(new BO.myQueryP41("le5") { explicit_orderby = "a.RowID", pids = new List<int>() { Model.pid } }, true);
+
+
+
+    Model.AddField("p41Name", "Název");
+    Model.AddField("p41ShortName", "Zkrácený název");
+
+    Model.AddField("p42Name", "Typ projektu");
+    Model.AddField("Client", "Klient projektu");
+
+    Model.AddField("j18Name", "Středisko projektu");
+    Model.AddField("b02Name", "Aktuální stav");
+    Model.AddField("p92Name", "Typ faktury");
+
+    Model.AddField("p51Name_Billing", "Ceník fakturačních sazeb");
+
+    Model.AddField("p41PlanFrom", "Plánovaného zahájení");
+    Model.AddField("p41PlanUntil", "Plánované dokončení");
+
+    Model.AddField("p41Plan_Hours", "Plán hodin");
+    Model.AddField("p41Plan_Hours_Billable", "Plán Fa hodin");
+    Model.AddField("p41Plan_Hours_Nonbillable", "Plán Nefa hodin");
+    Model.AddField("p41Plan_Expenses", "Plán výdajů");
+    Model.AddField("p41Plan_Revenue", "Plán příjmů");
+
+    Model.AddField("p41Plan_Internal_Rate", "Simulační nákladová sazba");
+    Model.AddField("p72ID_BillableHours", "Status korekce pro Fa hodiny");
+    Model.AddField("p72ID_NonBillable", "Status korekce pro Nefa hodiny");
+    Model.AddField("p61ID", "Klastr aktivit");
+
+    Model.AddField("p41BillingFlag", "p41BillingFlag");
+    Model.AddField("Owner", "Vlastník záznamu");
+    Model.AddField("x38ID", "Číselná řada");
+    Model.AddField("b01ID", "Workflow šablona");
+    Model.AddField("p41ParentID", "Nadřízený kontakt");
+
+    Model.AddField("p41Code", "Kód projektu");
+
+    Model.AddField("p41InvoiceDefaultText1", "Text faktury");
+    Model.AddField("p41InvoiceDefaultText2", "Technický text faktury");
+    Model.AddField("p41InvoiceMaturityDays", "Splatnost faktury");
+
+
+    Model.AddField("p41BillingLangIndex", "Fakturační jazyk");
+    Model.AddField("p07Level", "Vertikální úroveň");
+    
+
+
+
+
+    
+    Model.AddField("b02ID", "Workflow stav");
+
+    Model.AddField("ValidFrom", "Platnost od");
+    Model.AddField("ValidUntil", "Platnost do");
+}
+
+
+@section header_content{
+
+
+    <link rel="stylesheet" href="/css/htmltable.css" />
+
+
+}
+
+@addTagHelper *, UI
+
+
+<div class="bg-light" style="padding:10px;">
+
+    <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
+
+
+</div>
+
+@Html.EditorFor(m => Model,"~/Views/Shared/_ChangeLogTable.cshtml")
+

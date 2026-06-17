@@ -1,0 +1,74 @@
+﻿@model FileUploadViewModel
+@inject BL.Factory _f
+
+@if (Model.lisO27 != null && Model.lisO27.Any(p => p.o27CallerFlag != BO.o27CallerFlagENUM.Notepad))
+{
+  
+    <div class="card my-2" style="border-radius:12px;">
+
+        <div class="card-body">
+            <h6 class="card-title">@_f.tra("Uložené přílohy mimo Notepad"):</h6>
+            <table id="tabFiles" class="table table-sm table-hover" style="max-width:1000px;">
+                @foreach (var c in Model.lisO27.Where(p => p.o27CallerFlag != BO.o27CallerFlagENUM.Notepad))
+                {
+                    <tr>
+
+
+                        <td>
+                            <a target="_blank" asp-action="FileDownloadInline" asp-controller="FileUpload" asp-route-guid="@(c.o27Guid)">@(c.o27OriginalFileName)</a>
+                        </td>
+
+                        <td style="text-align:right;padding-right:20px;">
+                            @(BO.Code.Bas.FormatFileSize(c.o27FileSize))
+                        </td>
+                        <td>
+                            @if(c.o27Name==null){
+                                <a style="color:green;" href="javascript:changelabel_saved('@(c.o27Guid)','@(c.o27Name)')">@_f.tra("Popis/název přílohy")</a>
+                            }else{
+                                <a style="color:green;" href="javascript:changelabel_saved('@(c.o27Guid)','@(c.o27Name)')">@c.o27Name</a>
+                            }
+                            
+
+                        </td>
+
+                        <td>
+                            <button type="button" class="btn btn-sm btn-danger" title="@_f.tra("Odstranit řádek")" onclick="handle_delete_upload_row('@(c.o27Guid)')">x</button>
+
+                        </td>
+                        <td>
+                            @BO.Code.Time.GetTimestamp(c.DateInsert)
+                        </td>
+                    </tr>
+                }
+            </table>
+
+        </div>
+
+    </div>
+}
+
+
+<script type="text/javascript">
+    if (window.parent.document.getElementById("fraUpload") && document.getElementById("tabFiles"))
+    {
+        var fra = window.parent.document.getElementById("fraUpload");
+        var tab=document.getElementById("tabFiles");
+        var h=60;
+        if (tab.rows.length >= 1)
+        {
+            h=150;
+        }
+     
+        if (tab.rows.length >= 2) {
+            var h = 150+(tab.rows.length*25);         
+        }
+
+        if (h>500)
+        {
+            h=500;
+        }
+
+        $(fra).height(h);
+    }
+    
+</script>

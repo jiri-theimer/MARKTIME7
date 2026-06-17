@@ -1,0 +1,79 @@
+﻿@model UI.Models.Record.x52Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = "Novinky | Blog";
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    Model.PageSymbol = "help";
+}
+
+@addTagHelper *, UI
+
+
+@section header_content {
+    <link href="~/lib/froala-editor/css/froala_editor.pkgd.min.css" rel="stylesheet" type="text/css" />
+}
+
+<div class="modal_record_container">
+    
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název"):</label>
+        <div class="col-sm-7 col-md-6">
+            <input class="form-control" asp-for="Rec.x52Name" />
+        </div>
+        <label class="col-sm-1 col-md-1 col-form-label">#@_f.tra("Pořadí"):</label>
+        <div class="col-sm-1 col-md-1">
+            <mynumber asp-for="Rec.x52Ordinary" class="record_ordinary" decimal-digits="0"></mynumber>
+        </div>
+    </div>
+    
+    <div class="row my-2">
+
+        <label class="col-sm-1 col-md-2 col-form-label recpagelabel">@(_f.tra("Datum")):</label>
+        <div class="col-sm-2 col-md-2">
+            <mydate asp-for="Rec.x52Date"></mydate>
+
+        </div>
+        <div class="col-sm-4 col-md-4">
+        </div>
+        <label class="col-sm-1 col-md-1 col-form-label">Symbol:</label>
+        
+        <div class="col-sm-2 col-md-2">
+            <input class="form-control" asp-for="Rec.x52Symbol" />
+        </div>
+    </div>
+
+    
+    <div>
+        <textarea class="form-control" placeholder="Úvodní text" asp-for="Rec.x52Editorial"></textarea>
+    </div>
+    <p></p>
+
+    @Html.EditorFor(m => m.Notepad, "~/Views/Shared/_Notepad.cshtml")
+
+
+</div>
+
+@if (Model.rec_pid > 0)
+{
+    <a id="cmdPreview" class="btn btn-light" style="margin-right:10px;" href="/x52/Index?pid=@Model.rec_pid">
+        @_f.tra("Náhled")
+    </a>
+}
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+        if (document.getElementById("cmdPreview")) {
+            document.getElementById("toolbarRezerva").appendChild(document.getElementById("cmdPreview"));
+        }
+
+
+    })
+
+
+
+</script>

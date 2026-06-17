@@ -1,0 +1,35 @@
+﻿@model IEnumerable<BO.b05Workflow_History>
+@inject BL.Factory _f
+
+@{
+
+
+    if (Model == null)
+    {
+        return;
+    }
+
+   
+
+    bool _isOwnerAll = _f.CurrentUser.TestPermission(BO.PermValEnum.GR_b05OwnerAll);
+
+}
+
+@foreach (var c in Model)
+{
+    <div style="overflow:auto;max-height:150px;border-bottom:dotted 1px silver;">
+        <div>
+            @if (c.b05Notepad != null && (c.j02ID_Sys == _f.CurrentUser.pid || _isOwnerAll))
+            {
+                <button type="button" class="btn btn-sm btn-light" onclick="_window_open('/b05/Record?pid=@c.pid')">@_f.tra("Upravit")</button>
+            }
+            <code>
+                @(BO.Code.Bas.ObjectDateTime2String(c.DateInsert)) (-@(BO.Code.Time.DurationFormatted(Convert.ToDateTime(c.DateInsert), DateTime.Now, true)))
+            </code>
+            
+        </div>
+        
+
+        @Html.Raw(c.b05Notepad)
+    </div>
+}

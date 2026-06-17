@@ -1,0 +1,19 @@
+﻿@inject BL.Factory _f
+
+@{
+
+}
+
+
+
+<div class="dropdown" style="margin-left:8px;">
+
+    <button id="cmdgridsel" class="btn dropdown-toggle bog" role="button" data-bs-toggle="dropdown" aria-expanded="false" tabindex="-1">
+        <span class="material-icons-outlined-nosize">check_box</span>
+
+        @_f.tra("Vybrané záznamy")
+    </button>
+    <div id="cmdgridsel_menu" class="dropdown-menu">
+        loading...
+    </div>
+</div>

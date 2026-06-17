@@ -1,0 +1,184 @@
+﻿@model BaseViewModel
+@inject BL.Singleton.RunningApp _app
+
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    @if (_app.AllowGoogleLogin)
+    {
+        <meta name="google-signin-client_id" content="811901017740-0aajbhv1j9lsc9kussh19k9rojt93iq0.apps.googleusercontent.com">
+    }
+
+    <title>@Model.PageTitle | MARKTIME</title>
+
+    <meta name="description" content="MARKTIME akademie: Nápověda">    
+    <meta name="generator" content="MARKTIME">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    
+    <meta property="og:url" content="https://www.marktime.cz/">
+    <meta property="og:title" content="MARKTIME akademie: Nápověda">
+    <meta property="og:type" content="article">
+    <meta property="og:description" content="Software pro advokáty, účetní, daňové poradce, projektanty, verze zdarma">
+    <meta property="og:site_name" content="MARKTIME">
+
+
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    
+    <link rel="stylesheet" href="~/css/anonym.css" />
+
+    <link rel="stylesheet" href="~/css/fontsize2.css" />
+
+    
+
+
+    @if (IsSectionDefined("header_content"))
+    {
+        @RenderSection("header_content")
+    }
+
+
+    <style>
+
+            .sidebar-desktop {
+                height: calc(100vh - 80px);
+                border-right: 1px solid #ddd;
+            }
+
+
+
+            .zoomable {
+                max-width: 1000px;
+                cursor: pointer;
+                transition: transform 0.3s;
+            }
+
+                .zoomable:hover {
+                    transform: scale(1.05);
+                }
+
+            /* overlay */
+            #overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.8);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 9999;
+            }
+
+                #overlay img {
+                    max-width: 90%;
+                    max-height: 90%;
+                    border-radius: 10px;
+                }
+
+
+
+
+
+            
+
+            #tree1 a.nav-link:hover {
+                background-color: skyblue !important;
+                
+    }
+
+    #tree2 a.nav-link:hover {
+                background-color: skyblue !important;
+                
+    }
+
+    .tree-hit-summary {
+        background: #fff3cd;
+    }
+    /* jemná žlutá */
+    .tree-hit-leaf {
+        background: #e7f1ff;
+        border-radius: .25rem;
+    }
+    /* jemná modrá */
+    #tree1 .active{
+        background-color: blue;
+        color: white;
+        border: solid 1px silver !important;
+        border-radius:4px;
+    }
+
+            #tree2 .active {
+                background-color: blue;
+                color: white;
+                border: solid 1px silver !important;
+                border-radius: 4px;
+            }
+    </style>
+
+
+    
+</head>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
+
+<body>
+    
+    <script type="text/javascript">
+            var _relpath = "@(Url.Content("~/favicon.ico").Replace("favicon.ico", ""))";   //relativní cesta: detekce kvůli případnému IIS virtuálnímu adresáři
+    </script>
+    
+        
+        <main role="main">
+            @RenderBody()
+        </main>
+
+    
+
+  
+
+    @RenderSection("Scripts", required: false)
+
+    <script>
+             document.querySelectorAll('.zoomable').forEach(img => {
+                img.addEventListener('click', () => {
+                    const overlay = document.createElement('div');
+                    overlay.id = 'overlay';
+
+                    const zoomedImg = document.createElement('img');
+                    zoomedImg.src = img.src;
+
+                    overlay.appendChild(zoomedImg);
+
+                    // funkce pro zavření
+                    const closeOverlay = () => {
+                        document.removeEventListener('keydown', escHandler);
+                        overlay.remove();
+                    };
+
+                    // ESC handler
+                    const escHandler = (e) => {
+                        if (e.key === 'Escape') {
+                            closeOverlay();
+                        }
+                    };
+
+                    // kliknutí zavře
+                    overlay.addEventListener('click', closeOverlay);
+
+                    // poslouchání ESC
+                    document.addEventListener('keydown', escHandler);
+
+                    document.body.appendChild(overlay);
+                });
+            });
+    </script>
+</body>
+</html>

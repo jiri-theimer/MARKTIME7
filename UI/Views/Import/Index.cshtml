@@ -1,0 +1,220 @@
+﻿@model ImportViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = _f.tra("Import hodin z MS-EXCEL");
+
+    Model.PageSymbol = "approval";
+
+
+}
+
+@addTagHelper *, UI
+
+
+<div class="bg-light" style="padding:10px;">
+    <button id="cmdSave" class="btn btn-success" onclick="_submit()">@_f.tra("Dokončit")</button>
+    <button id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+
+
+
+</div>
+
+<form id="form1" asp-controller="Import" asp-action="Index" method="POST">
+
+    <input type="hidden" asp-for="Guid" />
+    <input type="hidden" asp-for="Prefix" />
+    <input type="hidden" asp-for="Delimiter" />
+    <input type="hidden" asp-for="ClipColsCount" />
+
+    <div id="divImportPars">
+        <div>
+            <input type="checkbox" asp-for="IsFirstColHeaders" onchange="_postback('refresh')" />
+            <label for="IsFirstColHeaders">@_f.tra("První řádek obsahuje názvy sloupců")</label>
+        </div>
+
+
+        <div class="row">
+            <div class="col-auto">
+                <table>
+
+                    @for (int i = 0; i < Model.Cols.Count; i++)
+                    {
+                        <tr>
+                            <td style="width:20px;">
+                                #@(i + 1)
+                            </td>
+                            <td>
+                                @(Model.FirstLine[i])
+                            </td>
+                            <td>
+                                <select asp-for="@(Model.Cols[i])" onchange="_postback('refresh')">
+                                    <option></option>
+                                    <option value="p31Date">@_f.tra("Datum")</option>
+                                    <option value="p31Value_Orig">@_f.tra("Hodiny")</option>
+                                    <option value="p41Code">@_f.tra("Kód projektu")</option>
+                                    <option value="p41Name">@_f.tra("Název projektu")</option>
+                                    <option value="j02Name">@_f.tra("Jméno uživatele")</option>
+                                    <option value="j02Code">@_f.tra("Kód uživatele")</option>
+                                    <option value="p32Name">@_f.tra("Název aktivity")</option>
+                                    <option value="p32Code">@_f.tra("Kód aktivity")</option>
+                                    <option value="p31Text">@_f.tra("Text úkonu")</option>
+                                    <option value="p31TextInternal">@_f.tra("Interní text")</option>
+                                    <option value="p28Name">@_f.tra("Název klienta projektu")</option>
+
+                                    <option value="CasOd">@_f.tra("Čas od")</option>
+                                    <option value="CasDo">@_f.tra("Čas do")</option>
+                                </select>
+                            </td>
+                        </tr>
+
+                    }
+
+
+
+                </table>
+            </div>
+            <div class="col-auto" style="min-width:500px;">
+                <mycombo entity="j02User" asp-for="DefaultJ02ID" selectedtext="@Model.DefaultComboJ02" view-flag="1" placeholder="Předvyplněný uživatel" myqueryinline="allowed_for_p31_entry|bool|1" event_after_changevalue="combo_postback"></mycombo>
+                <p></p>
+                <mycombo entity="p32Activity" asp-for="DefaultP32ID" selectedtext="@Model.DefaultComboP32" view-flag="1" placeholder="Předvyplněná aktivita" myqueryinline="ismoneyinput|bool|0" event_after_changevalue="combo_postback"></mycombo>
+                <p></p>
+                <mycombo entity="le5" asp-for="DefaultP41ID" selectedtext="@Model.DefaultComboP41" filter-flag="1" view-flag="1" placeholder="Předvyplněný projekt" myqueryinline="j02id_query|int|@Model.DefaultJ02ID|p07level|int|5|p33id_for_p31_entry|int|1" event_after_changevalue="combo_postback"></mycombo>
+                <p></p>
+                <input type="text" asp-for="p31ExternalCode" placeholder="Kód importu" class="form-control" />
+            </div>
+        </div>
+    </div>
+
+    <div class="input-group" style="margin-top:10px;">
+        <div>
+            <button type="button" class="btn btn-sm btn-light" onclick="_postback('refresh')">@_f.tra("Občerstvit")</button>
+        </div>
+
+        @if (Model.ClipLines != null)
+        {
+            <div style="margin-left:10px;">
+                <label style="margin-left:20px;">Počet řádků:</label>
+                <span class="badge-light">@Model.ClipLines.Count()</span>
+            </div>
+            <div>
+                <label style="margin-left:20px;">Počet sloupců:</label>
+                <span class="badge-light">@Model.ClipColsCount</span>
+            </div>
+        }
+
+
+        <div style="margin-left:50px;">
+            <button type="button" class="btn btn-sm btn-light" onclick="_postback('clear')">@_f.tra("Vyčistit")</button>
+        </div>
+    </div>
+
+    @if (Model.lisP31 != null)
+    {
+        <table class="table table-sm table-hover">
+            <tr>
+                <th style="width:30px;"></th>
+                <th>Datum</th>
+                <th style="width:50px;">Čas od</th>
+                <th style="width:50px;">Čas do</th>
+                <th>Uživatel</th>
+                <th>Klient projektu</th>
+                <th>Projekt</th>
+
+                <th>Aktivita</th>
+                <th style="width:60px;">Hodiny</th>
+                <th>Text</th>
+                <th>Interní text</th>
+            </tr>
+            @foreach (var c in Model.lisP31)
+            {
+                <tr style="@c.CssStyle">
+                    <td>#@(c.Index)</td>
+                    <td>
+                        @(BO.Code.Bas.ObjectDate2String(c.p31Date))
+                    </td>
+                    <td>
+                        @c.CasOd
+                    </td>
+                    <td>
+                        @c.CasDo
+                    </td>
+                    <td>
+                        @if (c.RecJ02 != null)
+                        {
+                            @c.RecJ02.FullnameDesc
+                        }
+
+                    </td>
+                    @if (c.RecP41 != null)
+                    {
+                        <td>
+                            @c.RecP41.Client
+                        </td>
+                        <td>
+                            @c.RecP41.PrefferedName
+                        </td>
+                    }
+                    else
+                    {
+                        <td></td>
+                        <td></td>
+                    }
+
+
+
+                    <td>
+                        @if (c.RecP32 != null)
+                        {
+                            @c.RecP32.p32Name
+                        }
+
+                    </td>
+                    <td>@c.p31Value_Orig</td>
+                    <td>@c.p31Text</td>
+                    <td>@c.p31TextInternal</td>
+                </tr>
+
+            }
+        </table>
+    }
+
+    <div class="my-2">
+        <textarea asp-for="Clipboard" class="form-control" style="height:300px;overflow:auto;" placeholder="@_f.tra("Sem vložte MS-Excel obsah ze schránky (CTRL+V) nebo nahrajte XLSX soubor.")"></textarea>
+
+    </div>
+    <iframe id="fraUpload" src="/FileUpload/SingleUpload?guid=@(Model.Guid)&javascript_after_upload=window.parent.run_after_upload" height="350" scrolling="yes"></iframe>
+
+
+
+</form>
+
+
+
+
+<script type="text/javascript">
+    var colscount = "@Model.Cols.Count()";
+    $(document).ready(function () {
+
+        if (colscount == "0")
+        {
+            $("#divImportPars").css("display", "none");
+        }
+
+
+
+
+    })
+
+
+    function combo_postback(pid) {
+        _postback("refresh");
+    }
+
+    function run_after_upload(pid, flag) {
+        alert("pid: " + pid + ", flag: " + flag);
+        _postback("upload");
+    }
+</script>
+

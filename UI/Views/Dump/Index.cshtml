@@ -1,0 +1,138 @@
+﻿@model UI.Models.Guru.CreateLicenseViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = "DUMP";
+
+    Layout = "~/Views/Shared/_LayoutAnonym.cshtml";
+
+
+}
+
+@if (Model.Message != null)
+{
+    <div class="alert alert-danger" role="alert">
+        <h4>@Html.Raw(Model.Message)</h4>
+    </div>
+}
+
+<button type="button" onclick="dump(true)">Generovat DUMP Sql</button>
+<button type="button" onclick="del()">Generovat DELETE Sql</button>
+<button type="button" onclick="dump(false)">Generovat DUMP bez Identity</button>
+
+
+<form id="form1" asp-controller="Dump" asp-action="Index" method="post">
+    <input type="hidden" asp-for="guru" />
+    
+    <h4>DUMP vybraných tabulek</h4>
+
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">Fyzický název cílové databáze:</label>
+        <div class="col-sm-5 col-md-4">
+            <input class="form-control" asp-for="DestDbName" />
+        </div>
+
+    </div>
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">Cílové X01ID:</label>
+        <div class="col-sm-1 col-md-1">
+            <input class="form-control" asp-for="DestX01ID" />
+        </div>
+
+    </div>
+
+    <p></p>
+
+    <table cellpadding="10" cellspacing="10">
+        <tr>
+            <td style="min-width:300px;vertical-align:top;">
+                <textarea class="form-control" asp-for="p93Registration" placeholder="Seznam tabulek" style="height:200px;"></textarea>
+            </td>
+            <td style="vertical-align:top;">
+
+                <strong>---Widgets:</strong>
+                <div>x55Widget</div>
+                <div>x54WidgetGroup</div>
+                <div>x57WidgetToGroup</div>
+                <div>x59WidgetToUser</div>
+                <hr />
+                <strong>---Workflow:</strong>
+                <div>b01WorkflowTemplate</div>
+                <div>b02WorkflowStatus</div>
+                <div>b06WorkflowStep</div>
+                <div>b08WorkflowReceiverToStep</div>
+                <div>j61TextTemplate</div>
+                <div>b11WorkflowMessageToStep</div>
+                <hr />
+                
+            </td>
+            <td style="vertical-align:top;">
+                <strong>---Hlídač:</strong>
+                <div>b20Hlidac</div>
+                <hr />
+                <strong>---Autocomplete:</strong>
+                <div>o15AutoComplete</div>
+                <hr />
+                <strong>---Štíky:</strong>
+                <div>o53TagGroup</div>
+                <div>o51Tag</div>
+                <hr />
+                <strong>---Dokumenty:</strong>
+                <div>o17DocMenu</div>
+                <div>o18DocType</div>
+                <div>o20DocTypeEntity</div>
+                <div>o16DocType_FieldSetting</div>
+
+                
+                
+            </td>
+            <td style="vertical-align:top;">
+                <strong>---Nápověda:</strong>
+                <div>x51HelpCore</div>
+            </td>
+        </tr>
+    </table>
+    
+
+
+    @if(Model.p93Company != null)
+    {
+        <p></p>
+
+        <textarea class="form-control" placeholder="Výsledek" style="height:1000px;">@(Model.p93Company)</textarea>
+    }
+    
+    
+</form>
+
+
+
+
+
+
+
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+
+
+    });
+
+    function dump(identity) {
+
+        form1.action = "/Dump/Index?identity="+identity;
+        form1.submit();
+    }
+
+    function del() {
+
+        form1.action = "/Dump/Index?oper=delete";
+        form1.submit();
+    }
+
+</script>

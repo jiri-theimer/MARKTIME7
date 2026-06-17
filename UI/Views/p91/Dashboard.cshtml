@@ -1,0 +1,97 @@
+﻿@model UI.Models.Tab1.p91Tab1
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+    if (Model.Rec == null) return;
+
+
+    
+}
+
+@addTagHelper *, UI
+
+<script src="~/js/rejstriky.js" asp-append-version="true"></script>
+
+
+
+<div class="input-group">
+    <div style="margin-right:40px;">
+        @Html.EditorFor(m => m, "~/Views/Shared/_p91Tab1Buttons.cshtml")
+    </div>
+
+    
+</div>
+
+
+
+@Html.Raw("<div class='info_record_container'>")
+
+    <div class="card recpagebox400">
+        <div class="card-body">
+            @await Html.PartialAsync("~/Views/Shared/_p91RecHeaderBox.cshtml", Model.Rec)
+
+            
+
+            
+        </div>
+    </div>
+    <div class="card recpageboxauto" style="width:290px;">
+        <div class="card-body">
+            @await Html.PartialAsync("~/Views/Shared/_p91RecCastkyBox.cshtml", Model.Rec)
+        </div>
+    </div>
+
+
+    <div class="card recpageboxauto" style="width:290px;">
+        <div class="card-body">
+            @await Html.PartialAsync("~/Views/Shared/_p91RecDatumyBox.cshtml", Model.Rec)
+        </div>
+    </div>
+
+
+
+
+
+
+
+
+<div style="clear:both;"></div>
+
+@await Html.PartialAsync("~/Views/Shared/_p91CenovyRozpis.cshtml", Model.Rec.pid)
+
+
+
+
+
+@Html.Raw("</div>")
+
+<div style="clear:both;"></div>
+
+
+<script type="text/javascript">
+    
+
+    
+
+    function recpage_p94(p91id) {
+        _window_open("/p91oper/p94?p91id=" + p91id);
+    }
+    function recpage_exupdate(p91id) {
+        _window_open("/p91oper/exupdate?p91id=" + p91id);
+    }
+
+   
+    function p91report(x31id, p91id) {
+        _window_open("/ReportsClient/ReportContext?prefix=p91&pid=" + p91id + "&x31id=" + x31id);
+    }
+    function p91sendmail(p91id) {
+        _window_open("/Mail/SendMail?record_entity=p91&record_pid=" + p91id);
+    }
+</script>
+
+
+
+
+

@@ -1,0 +1,108 @@
+﻿@model UI.Models.Record.j11Record
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    if (Model.Rec == null) return;
+    Model.PageTitle = _f.tra("Tým uživatelů");
+    Model.PageSymbol = "groups";
+}
+@addTagHelper *, UI
+
+<input type="hidden" id="hidJ02IDs" asp-for="@Model.j02IDs" value="@Model.j02IDs" />
+
+<div class="modal_record_container">
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název"):</label>
+        <div class="col-sm-11 col-md-10">
+            <input class="form-control record_name" asp-for="Rec.j11Name" />
+        </div>
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Skupinový e-mail"):</label>
+        <div class="col-sm-4 col-md-3">
+            <input class="form-control" asp-for="Rec.j11Email" />
+        </div>
+    </div>
+    
+
+
+    <div class="card" style="margin-top:10px;">
+        <div class="card-header">
+            @_f.tra("Přidat členy týmu")
+        </div>
+        <div class="card-body">
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Přidat uživatele"):</label>
+                <div class="col-sm-11 col-md-10">
+                    <mycombo entity="j02User" asp-for="@Model.SelectedJ02ID" selectedtext="@Model.SelectedPerson" filter-flag="1" placeholder="@_f.tra("Vybrat uživatele")..." event_after_changevalue="handle_j02id_append"></mycombo>
+                </div>
+
+            </div>
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Přidat uživatele s pozicí"):</label>
+                <div class="col-sm-11 col-md-10">
+                    <mycombo entity="j07PersonPosition" asp-for="@Model.SelectedJ07ID" selectedtext="@Model.SelectedPosition" placeholder="@_f.tra("Vybrat pozici")..." event_after_changevalue="handle_j07id_append"></mycombo>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div class="mt-2">
+        <button type="button" class="btn btn-danger" onclick="handle_remove_selected()">@_f.tra("Odstranit vybrané")</button>
+    </div>
+
+    <vc:my-grid input="@Model.gridinput"></vc:my-grid>
+
+
+</div>
+
+<div id="divJ02" style="margin-top:20px;margin-bottom:20px;"></div>
+<button type="button" id="cmdClear" class="btn btn-warning btn-sm" style="display:none;" onclick="clear_all()">@_f.tra("Vyčistit vše")</button>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        
+
+    });
+
+    function handle_j02id_append(j02id) {
+        if (j02id == "") {
+            _notify_message("Musíte vybrat uživatele.");
+            return;
+        }
+        _postback("add","prefix=j02&pids="+j02id);
+        //form1.action = _ep("/j11/Record?prefix=j02&oper=add&pids=" + j02id);
+        
+
+    }
+    
+
+    function handle_j07id_append(j07id) {
+        if (j07id == "") {
+            _notify_message("Musíte vybrat pozici.");
+            return;
+        }
+        _postback("add", "prefix=j07&pids="+j07id);
+        //form1.action = _ep("/j11/Record?prefix=j07&oper=add&pids=" + j07id);
+        
+    }
+
+    
+
+    function handle_remove_selected() {
+        var pids = $("#tg_selected_pids").val();
+        if (pids === "") {
+            _notify_message("@_f.tra("Musíte zaškrtnout minimálně jeden záznam.")");
+            return;
+        }
+        _toolbar_warn2save_changes();
+        _postback("remove","prefix=j02&pids="+pids);
+        //form1.action = _ep("/j11/Record?prefix=j02&oper=remove&pids=" + pids);
+        
+    }
+   
+</script>
+

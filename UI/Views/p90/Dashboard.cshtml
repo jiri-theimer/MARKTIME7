@@ -1,0 +1,264 @@
+﻿@model UI.Models.Tab1.p90Tab1
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+    if (Model.Rec == null) return;
+
+    
+    
+}
+
+@addTagHelper *, UI
+
+<div class="input-group">
+    <div style="margin-right:40px;">
+        @Html.EditorFor(m => m, "~/Views/Shared/_p90Tab1Buttons.cshtml")
+    </div>
+
+    
+</div>
+
+
+
+
+
+@Html.Raw("<div class='info_record_container'>")
+
+
+
+    <div class="card recpagebox400">
+        <div class="card-body">
+            <table class="table table-hover">
+                <tr>
+                    <td colspan="2" class="@(Model.Rec.isclosed ? "tdarchiv": "tdval")">
+                        <myicon symbol="receipt"></myicon>
+                        @Model.Rec.p89Name                        
+                    </td>
+                </tr>
+                <tr>
+                    <td class="tdlab">
+                        @_f.tra("Číslo"):
+                    </td>
+                    <td>
+                        <myval value="@Model.Rec.p90Code"></myval>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="tdlab">
+                        @_f.tra("Typ zálohy"):
+                    </td>
+                    <td>
+                        <myval value="@Model.Rec.p89Name"></myval>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="tdlab">
+                        @_f.tra("Klient"):
+                    </td>
+                    <td>
+                        <myval value="@Model.Rec.p28Name"></myval>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="tdlab">
+                        @_f.tra("Datum"):
+                    </td>
+                    <td class="tddatum">
+                        <myval datatype="date" value="@Model.Rec.p90Date"></myval>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="tdlab">
+                        @_f.tra("Splatnost"):
+                    </td>
+                    <td class="tddatum">
+                        <myval datatype="date" value="@Model.Rec.p90DateMaturity"></myval>
+                    </td>
+                </tr>
+            </table>
+
+
+
+            
+
+            @if (Model.Rec.p90Text1 != null || Model.Rec.p90Text2 != null)
+            {
+                <myicon symbol="format_quote" color="gray"></myicon>
+                <i>
+                    @Html.Raw(BO.Code.Bas.Text2Html(Model.Rec.p90Text1))
+                </i>
+
+                @if (Model.Rec.p90Text2 != null)
+                {
+                    <br />
+                    <myicon symbol="format_quote" color="red"></myicon>
+                    <i style="color:red;">
+                        @Html.Raw(BO.Code.Bas.Text2Html(Model.Rec.p90Text2))
+                    </i>
+                }
+            }
+
+
+        </div>
+
+
+    </div>
+
+
+<div class="card recpageboxauto" style="width:290px;">
+    <div class="card-body">
+        <table class="table table-hover">
+
+            <tr>
+                <td class="tdlab">
+                    @_f.tra("Celkem"):
+                </td>
+                <td class="tdcastka">
+                    <myval datatype="num" value="@Model.Rec.p90Amount" valueafter="@Model.Rec.j27Code"></myval>
+                </td>
+            </tr>
+            @if (Model.Rec.p90VatRate > 0)
+            {
+                <tr>
+                    <td class="tdlab">
+                        @_f.tra("Sazba DPH"):
+                    </td>
+                    <td>
+                        <myval datatype="num" value="@Model.Rec.p90VatRate" valueafter="%"></myval>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="tdlab">
+                        @_f.tra("Bez DPH"):
+                    </td>
+                    <td class="tdcastka">
+                        <myval datatype="num" value="@Model.Rec.p90Amount_WithoutVat" valueafter="@Model.Rec.j27Code"></myval>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="tdlab">
+                        @_f.tra("Částka DPH"):
+                    </td>
+                    <td class="tdcastka">
+                        <myval datatype="num" value="@Model.Rec.p90Amount_Vat" valueafter="@Model.Rec.j27Code"></myval>
+                    </td>
+                </tr>
+            }
+
+            <tr>
+                <td class="tdlab">
+                    @_f.tra("Zbývá uhradit"):
+                </td>
+                <td class="tdcastka">
+                    <myval datatype="num" value="@Model.Rec.p90Amount_Debt" valueafter="@Model.Rec.j27Code"></myval>
+                </td>
+            </tr>
+
+
+            <tr>
+                <td class="tdlab">
+                    @_f.tra("Poslední úhrada"):
+                </td>
+                <td class="tddatum">
+                    <myval datatype="date" value="@Model.Rec.p90DateBilled"></myval>
+                </td>
+            </tr>
+
+        </table>
+
+
+
+
+
+    </div>
+
+
+</div>
+
+
+    <div class="card recpageboxauto">
+        <div class="card-body">
+            <div class="card-title recpagetitle">
+                @_f.tra("Úhrady zálohy")
+            </div>
+            <table class="table table-sm table-hover">
+                @foreach (var c in Model.lisP82)
+                {
+                    <tr style="border-bottom-color:white;">
+                      
+                        <td>
+                            @c.p82Code
+                        </td>
+                        <td>
+                            @BO.Code.Bas.ObjectDate2String(c.p82Date)
+
+                        </td>
+                        <td style="text-align:right;width:120px;">
+                            @BO.Code.Bas.Number2String(c.p82Amount)
+
+                            <span style="margin-left:2px;">@Model.Rec.j27Code</span>
+                        </td>
+                        <td>
+                            <a class="btn btn-sm btn-light" href="javascript:_window_open('/ReportsClient/ReportContext?x31id=@(Model.Rec.x31ID_Payment)&prefix=p82&pid=@(c.pid)')"><span class="material-icons-outlined-btn">print</span></a>
+                        </td>
+
+                    </tr>
+                    <tr>
+                        <td colspan="5">
+                            <i>@(c.p82Text)</i>
+                        </td>
+                    </tr>
+
+                }
+            </table>
+
+        </div>
+    </div>
+
+
+@if(Model.lisP99 !=null && Model.lisP99.Count() > 0)
+{
+    <div class="card recpageboxauto">
+        <div class="card-body">
+            <div class="card-title recpagetitle bgp90">
+                @_f.tra("Spárované úhrady s daňovou fakturou")
+            </div>
+            <table class="table table-sm table-hover">
+                @foreach (var c in Model.lisP99)
+                {
+                    <tr style="border-bottom-color:white;">
+                        <td>
+                            @c.p91Code
+                        </td>
+                        <td>
+                            @c.p82Code
+                        </td>
+
+                        <td class="tdnum">
+                            @BO.Code.Bas.Number2String(c.p99Amount)
+                        </td>
+                        <td class="tdnum">
+                            @BO.Code.Bas.Number2String(c.p99Amount_WithoutVat)
+                        </td>
+                        <td>
+                            <a class="btn btn-sm btn-light" href="javascript:_window_open('/ReportsClient/ReportContext?x31id=@(c.x31ID_Invoice)&prefix=p91&pid=@(c.p91ID)')"><span class="material-icons-outlined-btn" style="font-size:16px;">print</span></a>
+                        </td>
+                    </tr>
+
+                }
+            </table>
+
+        </div>
+    </div>
+}
+
+
+
+
+
+
+
+@Html.Raw("</div>")
+<div style="clear:both;"></div>

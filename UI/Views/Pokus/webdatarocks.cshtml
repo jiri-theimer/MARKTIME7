@@ -1,0 +1,208 @@
+﻿@model UI.Models.BaseViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link href="https://cdn.webdatarocks.com/latest/webdatarocks.min.css" rel="stylesheet" />
+<script src="https://cdn.webdatarocks.com/latest/webdatarocks.toolbar.min.js"></script>
+<script src="https://cdn.webdatarocks.com/latest/webdatarocks.js"></script>
+
+
+<!-- amCharts 4 -->
+<script src="https://www.amcharts.com/lib/4/core.js"></script>
+<script src="https://www.amcharts.com/lib/4/charts.js"></script>
+<script src="https://www.amcharts.com/lib/4/themes/animated.js"></script>
+
+<!-- WebDataRocks connector for amCharts -->
+<script src="https://cdn.webdatarocks.com/latest/webdatarocks.amcharts.js"></script>
+
+
+
+<h1>WebDataRocks – test s CSV</h1>
+
+<div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin: 8px 0 12px;">
+    <label>Pohled:</label>
+    <select id="viewSelect">
+        <option value="people_activity">Lidé × Aktivita (Σ Hodiny)</option>
+        <option value="project_activity">Projekt × Aktivita (Σ Hodiny)</option>
+        <option value="client_project">Klient × Projekt (Σ Bez DPH)</option>
+    </select>
+
+    <button id="applyView" type="button">Použít</button>
+
+    <span style="margin-left:12px; color:#666; font-size:13px;">
+        Zdroj: <code>/temp/mojedata.csv</code>
+    </span>
+</div>
+
+<div id="pivotContainer" style="height:600px"></div>
+
+<div id="amchartsContainer" style="height:600px;"></div>
+
+<script>
+        const CSV_URL = "/pokus/LoadDatasource";
+        const STORAGE_KEY = "wdr_layout";
+
+        am4core.useTheme(am4themes_animated);
+        am4core.options.autoDispose = true;
+
+        let chart = null;
+
+
+        // Předdefinované řezy pro tvoje konkrétní názvy sloupců
+        const VIEWS = {
+          people_activity: {
+            slice: {
+              rows: [{ uniqueName: "Příjmení+Jméno" }],
+              columns: [{ uniqueName: "Aktivita" }],
+              measures: [{ uniqueName: "Hodiny", aggregation: "sum" }]
+            }
+          },
+          project_activity: {
+            slice: {
+              rows: [{ uniqueName: "Projekt" }],
+              columns: [{ uniqueName: "Aktivita" }],
+              measures: [{ uniqueName: "Hodiny", aggregation: "sum" }]
+            }
+          },
+          client_project: {
+            slice: {
+              rows: [{ uniqueName: "Klient projektu" }],
+              columns: [{ uniqueName: "Projekt" }],
+              measures: [{ uniqueName: "Bez DPH", aggregation: "sum" }]
+            }
+          }
+        };
+
+         // pokus o načtení uloženého layoutu
+         let report1 = {
+              dataSource: {
+               filename: CSV_URL,
+               delimiter: ";"
+             },
+             // ✅ Default formát pro VŠECHNY measures
+             formats: [
+               {
+                 name: "",                 // <- default format
+                 decimalSeparator: ",",
+                 thousandsSeparator: " ",
+                 decimalPlaces: 2
+               }
+             ]
+         };
+
+
+         const saved = localStorage.getItem(STORAGE_KEY);
+         if (saved) {
+             report1 = JSON.parse(saved);
+             report1.dataSource = { filename: CSV_URL, delimiter: ";" }; // vždy jistota
+         }
+
+
+        const pivot1 = new WebDataRocks({
+          container: "#pivotContainer",
+          toolbar: true,
+          report: report1,
+          reportcomplete: onReportComplete,
+            global: {
+            localization: "/lib/WebDataRocks/cs.json"
+            }
+        });
+
+
+         pivot1.on("reportchange", function() {
+
+             var data2save=pivot1.getReport();
+             var s=JSON.stringify(data2save);
+
+             localStorage.setItem(STORAGE_KEY, s);
+
+
+
+
+        });
+
+        
+
+
+        function onReportComplete()
+        {
+          pivot1.off("reportcomplete");   // spustit jen jednou
+          createChart();
+        }
+
+
+    function createChart() {
+      // vezmi data přes pivot.getData (ne přes connector)
+      pivot1.getData({}, buildAndDrawStackedBar, buildAndDrawStackedBar);
+    }
+
+    function buildAndDrawStackedBar(rawData) {
+      if (chart) chart.dispose();
+
+      // Očekáváme aspoň 1 řádkovou dimenzi a případně 1 sloupcovou dimenzi
+      // rawData.data: { r0.., c0.., v0.. }  (viz docs)
+      const rows = rawData.data || [];
+      const rKey = "r0"; // první řádková dimenze (kategorie)
+      const cKey = "c0"; // první sloupcová dimenze (stack)
+      const vKey = "v0"; // první measure
+
+      // 1) Převod "cell rows" -> "wide rows" pro stacked bar
+      // category -> { category: 'X', 'Aktivita A': 12, 'Aktivita B': 5, ... }
+      const byCategory = new Map();
+      const seriesNames = new Set();
+
+      for (const it of rows) {
+        const category = it[rKey];
+        if (category == null || category === "") continue;
+
+        const stackName = it[cKey]; // např. Aktivita
+        const val = it[vKey];
+
+        // Pokud nemáš žádné Columns, c0 bude často undefined -> uděláme jednu sérii
+        const seriesKey = (stackName == null || stackName === "") ? "Hodnota" : String(stackName);
+        seriesNames.add(seriesKey);
+
+        if (!byCategory.has(category)) byCategory.set(category, { category: String(category) });
+
+        const obj = byCategory.get(category);
+
+        const num = (typeof val === "number" && !Number.isNaN(val)) ? val : 0;
+        obj[seriesKey] = (obj[seriesKey] ?? 0) + num;
+      }
+
+      const chartData = Array.from(byCategory.values());
+      const seriesList = Array.from(seriesNames);
+
+      // 2) Vykreslení stacked BAR (horizontální)
+      chart = am4core.create("amchartsContainer", am4charts.XYChart);
+      chart.data = chartData;
+
+      const categoryAxis = chart.yAxes.push(new am4charts.CategoryAxis());
+      categoryAxis.dataFields.category = "category";
+      categoryAxis.renderer.inversed = true;
+      categoryAxis.renderer.minGridDistance = 20;
+
+      const valueAxis = chart.xAxes.push(new am4charts.ValueAxis());
+      valueAxis.min = 0;
+
+      for (const sName of seriesList) {
+        const series = chart.series.push(new am4charts.ColumnSeries());
+        series.dataFields.valueX = sName;
+        series.dataFields.categoryY = "category";
+        series.name = sName;
+        series.stacked = true;
+        series.columns.template.tooltipText = "{name}: [bold]{valueX}[/]";
+      }
+
+      chart.legend = new am4charts.Legend();
+      chart.cursor = new am4charts.XYCursor();
+    }
+
+
+       
+    
+
+</script>

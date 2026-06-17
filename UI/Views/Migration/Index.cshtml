@@ -1,0 +1,119 @@
+﻿@model UI.Models.Guru.MigrationViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = "Migrace dat";
+
+    Layout = "~/Views/Shared/_LayoutAnonym.cshtml";
+
+
+}
+
+<div style="margin:auto;max-width:900px;">
+
+    @if (Model.Message != null)
+    {
+        <div class="alert alert-danger" role="alert">
+            <h4>@Html.Raw(Model.Message)</h4>
+        </div>
+    }
+
+    <form id="form1" asp-controller="Migration" asp-action="Index" method="post">
+        
+        <h4>Migrace dat</h4>
+
+        <div class="row">
+            <label class="col-sm-1 col-md-2 col-form-label">Zdrojová databáze:</label>
+            <div class="col-sm-11 col-md-10">
+                <input class="form-control" asp-for="SourceConnectString" />
+            </div>
+
+        </div>
+
+
+        <div class="row">
+            <label class="col-sm-1 col-md-2 col-form-label">Cílová databáze:</label>
+            <div class="col-sm-11 col-md-10">
+                <input class="form-control" asp-for="DestConnectString" />
+            </div>
+
+        </div>
+
+        <div class="row">
+            <label class="col-sm-1 col-md-2 col-form-label">Cílové X01ID:</label>
+            <div class="col-sm-1 col-md-1">
+                <input class="form-control" asp-for="DestX01ID" />
+            </div>
+
+        </div>
+
+
+        <div class="row">
+            <label class="col-sm-1 col-md-2 col-form-label">Doména:</label>
+            <div class="col-sm-4 col-md-5">
+                <input class="form-control" asp-for="x01LoginDomain" />
+            </div>
+
+        </div>
+
+        <div class="row">
+            <label class="col-sm-1 col-md-2 col-form-label">Výchozí heslo:</label>
+            <div class="col-sm-4 col-md-5">
+                <input class="form-control" asp-for="DestPassword" />
+            </div>
+
+        </div>
+
+
+
+        <div class="row" style="margin-top:10px;">
+            <div class="col-auto">
+                <input type="submit" value="Spustit" class="btn btn-default btn-success" />
+            </div>
+           
+        </div>
+
+    </form>
+
+
+    @if(Model.Errors !=null)
+    {
+        <table class="table table-hover table-stripped">
+            @for(int i=0;i<Model.Errors.Count();i++)
+        {
+                <tr>
+                    <td style="width:60px;">
+                        #@(i+1)
+                    </td>
+                    <td>
+                        @(Model.Errors[i])
+                    </td>
+                </tr>
+            }
+        </table>
+    }
+
+</div>
+
+
+
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+
+
+    });
+
+    function postback() {
+
+        form1.action = "/Migration/Index?oper=postback";
+        form1.submit();
+    }
+
+    
+</script>

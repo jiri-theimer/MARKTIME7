@@ -1,0 +1,93 @@
+﻿@model UI.Models.SelectDocTypeViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = _f.tra("Vyberte typ dokumentu");
+    if (Model.prefix !=null && Model.recpid > 0)
+    {
+        Model.PageTitle += ": " + _f.CBL.GetObjectAlias(Model.prefix, Model.recpid);
+    }
+    Model.PageSymbol = "o23";
+}
+
+<style type="text/css">    
+        .list-group-item:hover {
+            background-color: var(--oznaceno);
+            color: var(--popredi) !important;
+        }
+</style>
+
+@addTagHelper *, UI
+
+
+<div class="bg-light" style="padding:10px;">
+    <button type="button" id="cmdOK" class="btn btn-success" style="display:none;">@_f.tra("Pokračovat")</button>
+
+    <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+
+
+
+</div>
+
+
+<div class="list-group">
+@foreach(var c in Model.lisO18)
+{
+        <a class="list-group-item list-group-item-action" href="javascript:after_changed(@c.pid)">@c.o18Name</a>
+}
+</div>
+
+<input type="hidden" asp-for="o17id" />
+<input type="hidden" asp-for="o43id_source" />
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+        $("#cmdOK").click(function () {
+            var prefix = "@Model.prefix";
+            var recpid = "@Model.recpid";
+            var pid = $("#SelectedPid").val();
+            if (pid == "0" || pid == "") {
+                _notify_message("Musíte vybrat položku.");
+                return;
+            }
+            $(this).text("Processing...");
+            $(this).attr("disabled", true);
+
+            var url = _ep("/o23/Record?pid=0&o18id=" + pid);
+            if (prefix != "") {
+                url = url + "&prefix=" + prefix + "&recpid=" + recpid;
+            }
+        
+            _redirect(url);
+
+
+        });
+
+
+
+    })
+
+
+    function after_changed(o18id)
+    {
+        var prefix = "@Model.prefix";
+        var recpid = "@Model.recpid";
+        var o43id = "@Model.o43id_source";
+        
+        var url = _ep("/o23/Record?o18id=" + o18id);
+
+        if (prefix != "") {
+            url = url + "&prefix=" + prefix + "&recpid=" + recpid;
+        }
+        if (o43id != "0") {
+            url = url + "&o43id_source=" + o43id;
+        }
+        
+        _redirect(url);
+    }
+
+</script>

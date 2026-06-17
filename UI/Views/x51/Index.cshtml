@@ -1,0 +1,214 @@
+﻿@model UI.Models.x51HelpPageViewModel
+@inject BL.Factory _f
+
+
+@{
+    Model.PageTitle = _f.tra("Nápověda");
+
+    if (Model.Rec != null)
+    {
+        Model.PageTitle += ": " + Model.Rec.x51Name;
+
+    }
+
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageSymbol = "help";
+
+
+
+
+}
+
+@addTagHelper *, UI
+
+@section header_content {
+    <link rel="stylesheet" href="/kendo/styles/kendo.common.min.css" type="text/css" />
+    <link href="/kendo/styles/kendo.default.min.css" rel="stylesheet" type="text/css" />
+    <link href="/kendo/styles/kendo.default.mobile.min.css" rel="stylesheet" type="text/css" />
+}
+
+
+<link href="/lib/froala-editor/css/froala_style.min.css" rel="stylesheet" type="text/css" />
+
+<script src="/kendo/js/kendo.core.min.js"></script>
+
+<script src="/kendo/js/kendo.data.min.js"></script>
+<script src="/kendo/js/kendo.treeview.min.js"></script>
+
+<style type="text/css">
+    #tree1 img {
+        margin-right: 5px;
+        margin-left: 3px;
+        vertical-align: baseline;
+    }
+
+    #tree1 .active {
+        background-color: orange !important;
+        padding: 1px;
+        border-radius: 3px;
+        color: black !important;
+    }
+
+
+
+    #tree1 .k-state-selected > span {
+        color: white !important;
+    }
+
+    a.replink {
+        border-radius: 4px;
+        border: solid 1px silver;
+        text-decoration: none;
+        padding-left: 5px;
+        padding-right: 5px;
+        padding-top: 1px;
+        padding-bottom: 1px;
+    }
+
+        a.replink:hover {
+            background-color: silver;
+        }
+
+</style>
+
+
+
+<div class="bg-light input-group" style="padding:10px;">
+
+    @if (Model.lisX51.Count() > 0)
+    {
+        <div style="padding:6px;">
+            <button type="button" class="btn btn-sm dropdown-toggle bog" onclick="toggle_rejstrik()">
+                @_f.tra("Rejstřík")
+                <span class="badge-def">
+                    @(Model.lisX51.Count())
+                </span>
+
+            </button>
+        </div>
+
+    }
+
+    @if (_f.CurrentUser.IsAdmin)
+    {
+        @if (Model.Rec != null)
+        {
+            <div style="margin-left:20px;">
+                <a id="cmdEdit" href="/x51/Record?pid=@Model.Rec.pid" class="btn btn-light">@_f.tra("Upravit")</a>
+            </div>
+            <div style="margin-left:20px;">
+                <a id="cmdEdit" href="/x51/Record?parentid=@Model.Rec.pid" class="btn btn-light">@_f.tra("Založit vnořenou nápovědu")</a>
+            </div>
+        }
+        else
+        {
+            <div style="margin-left:20px;">
+                <a id="cmdNew" href="/x51/Record?pid=0&viewurl=@Model.viewurl" class="btn btn-light">@_f.tra("Nová nápověda")</a>
+            </div>
+        }
+
+
+    }
+
+    <div style="margin-left:20px;">
+        <button id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+    </div>
+
+
+
+</div>
+
+<div id="rejstrik" style="display:none;">
+    <kendotree tree-datasource="@Model.treeNodes"></kendotree>
+
+</div>
+
+
+
+
+@if (Model.Rec != null)
+{
+
+    <a class="replink" href="/x51/Index?lastpid=@Model.Rec.pid" style="margin-right:10px;">
+        ROOT
+    </a>
+    @if (Model.Rec.x51ParentID > 0)
+    {
+        <a class="replink" href="/x51/Index?pid=@Model.Rec.x51ParentID">
+            @(Model.lisX51.First(p => p.pid == Model.Rec.x51ParentID).x51Name)
+        </a>
+    }
+
+    <h2>
+
+        <span style="color:steelblue;text-transform: uppercase;">
+            @Html.Raw(Model.Rec.x51TreePath.Replace("->", "<code>-></code>"))
+        </span>
+    </h2>
+
+    <code>
+        @Model.Rec.x51ViewUrl
+    </code>
+
+    @if (Model.Rec.x51TreeNext > Model.Rec.x51TreePrev)
+    {
+        @foreach (var c in Model.lisX51.Where(p => p.x51TreeIndex > Model.Rec.x51TreePrev && p.x51TreeIndex <= Model.Rec.x51TreeNext && p.x51TreeLevel == Model.Rec.x51TreeLevel + 1).OrderBy(p => p.x51Ordinary).ThenBy(p => p.x51Name))
+        {
+            <div style="margin-top:1px;">
+                <a href="/x51/Index?pid=@c.pid">
+                    @c.x51Name
+                </a>
+            </div>
+        }
+    }
+
+
+}
+
+
+@Html.Raw("<div class='modal_record_container'>")
+
+@if (Model.Rec != null)
+{
+    @Html.Raw(Model.Rec.x51Html)
+}
+
+@Html.Raw("</div>")
+
+
+
+
+
+
+<script type="text/javascript">
+
+    $(document).ready(function () {
+
+        $("#tree1").kendoTreeView(
+            {
+                dataSource: dstree1,
+                template: "<a href='/x51/Index?pid=#: item.recordid #' class='#: item.cssclass #'>#: item.text #</a>"
+            }
+        );
+
+
+    })
+
+
+    function toggle_rejstrik() {
+        $("#rejstrik").toggle();
+    }
+
+
+
+    function hardrefresh(pid, flag) {
+        location.replace(location.href);
+    }
+</script>
+
+@if (Model.Rec == null)
+{
+    <script type="text/javascript">
+        toggle_rejstrik();
+    </script>
+}

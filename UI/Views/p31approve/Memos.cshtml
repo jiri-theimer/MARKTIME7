@@ -1,0 +1,92 @@
+﻿@model UI.Models.p31approve.p31approveMother
+@inject BL.Factory _f
+
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+
+
+
+    List<int> p41ids = new List<int>();
+    List<int> p28ids = new List<int>();
+    if (Model.p31guid != null)
+    {
+        p41ids = _f.p31WorksheetBL.GetList(new BO.myQueryP31() { tempguid = Model.p31guid }).Select(p => p.p41ID).Distinct().ToList();
+        p28ids = _f.p31WorksheetBL.GetList(new BO.myQueryP31() { tempguid = Model.p31guid }).Select(p => p.p28ID_Client).Distinct().ToList();
+    }
+    if (ViewBag.p28id != 0)
+    {
+        p28ids.Add(ViewBag.p28id);
+        p41ids = _f.p41ProjectBL.GetList(new BO.myQueryP41("le5") { p28id = (int)ViewBag.p28id }).Select(p => p.pid).Distinct().ToList();
+    }
+    if (ViewBag.p41id != 0)
+    {        
+        var rec = _f.p41ProjectBL.Load((int)ViewBag.p41id);
+        p41ids.Add(rec.pid);
+        p28ids.Add(rec.p28ID_Client);
+
+    }
+
+    IEnumerable<BO.b05Workflow_History> _lisB05 = _f.WorkflowBL.GetList_b05_p41_p28(p41ids, p28ids).Where(p => BO.Code.Bas.bit_compare_or(p.b05Tab1Flag, 4) == true);
+
+    List<string> _poznamky = new List<string>();
+    if (p41ids.Count() > 0)
+    {
+        var lisP41 = _f.p41ProjectBL.GetList(new BO.myQueryP41("p41") { pids = p41ids }).Where(p => p.p41BillingMemo200 != null);
+        foreach (var c in lisP41)
+        {
+            _poznamky.Add(_f.p41ProjectBL.LoadBillingMemo(c.pid));
+        }
+    }
+    if (p28ids.Count() > 0)
+    {
+        var lisP28 = _f.p28ContactBL.GetList(new BO.myQueryP28() { pids = p28ids }).Where(p => p.p28BillingMemo200 != null);
+        foreach (var c in lisP28)
+        {
+            _poznamky.Add(_f.p28ContactBL.LoadBillingMemo(c.pid));
+        }
+    }
+    
+    
+
+
+}
+
+@addTagHelper *, UI
+
+
+
+<div>
+    <span class="material-icons-outlined">speaker_notes</span>
+
+    <button id="cmdClose" onclick="localclose()" class="btn btn-light">@_f.tra("Zavřít")</button>
+
+    
+</div>
+
+@foreach (var poznamka in _poznamky)
+{
+    <div style="background-color:#DFFFE9;padding:3px;margin-bottom:3px;" title="Fakturační poznámka">
+        @Html.Raw(poznamka)
+    </div>
+}
+@await Html.PartialAsync("~/Views/Shared/_lisB05.cshtml", _lisB05)
+
+
+<script type="text/javascript">
+
+    function localclose() {
+        if (window.parent.document.getElementById("zoom_okno")) {
+
+            window.parent.document.getElementById("zoom_okno").style.display = "none";
+
+        }
+
+
+    }
+
+    function hardrefresh(pid, flag) {
+        location.replace(location.href);
+    }
+
+</script>

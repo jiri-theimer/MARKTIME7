@@ -1,0 +1,85 @@
+﻿@model UI.Models.p91oper.vatViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = _f.tra("Převést vyúčtování na jinou DPH sazbu");
+
+}
+
+@addTagHelper *, UI
+
+<div class="bg-light" style="padding:10px;">
+    <button type="button" id="cmdOK" class="btn btn-success">@_f.tra("Spustit")</button>
+
+    <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+
+
+
+</div>
+
+<form id="form1" asp-controller="p91oper" asp-action="vat" method="POST">
+    <div class="modal_record_container">
+        <div class="alert alert-warning">
+            @_f.tra("Převod DPH sazby kompletně u všech položek ve vyúčtování!")
+        </div>
+        <div class="alert alert-primary">
+            @(Model.RecP91.p92Name+": "+Model.RecP91.p91Code)            
+            <hr />
+            @(Model.RecP91.p91Client)
+        </div>
+
+
+        <div class="row">
+            <label class="col-sm-2 col-md-3 col-form-label">@_f.tra("Cílová hladina DPH"):</label>
+            <div class="col-sm-3 col-md-2">
+                <select asp-for="SelectedX15ID" class="form-select" onchange="_postback()">
+                    <option value="Nic"></option>
+                    <option value="BezDPH">@_f.tra("0% (Bez DPH)")</option>
+                    <option value="SnizenaSazba">@_f.tra("Snížená sazba DPH")</option>
+                    <option value="ZakladniSazba">@_f.tra("Základní sazba DPH")</option>
+                    <option value="SpecialniSazba">@_f.tra("Speciální sazba DPH")</option>
+                </select>
+
+            </div>
+        </div>
+        @if (Model.SelectedX15ID != BO.x15IdEnum.BezDPH && Model.SelectedX15ID != BO.x15IdEnum.Nic)
+        {
+            <div class="row my-2">
+                <label class="col-sm-2 col-md-3 col-form-label">@_f.tra("Hodnota sazby (%)"):</label>
+                <div class="col-sm-3 col-md-2">
+                    <mynumber asp-for="VatRate" decimal-digits="0"></mynumber>
+                </div>
+            </div>
+        }
+        
+    </div>
+
+
+    <input type="hidden" asp-for="@Model.p91ID" />
+</form>
+
+<vc:the-grid input="@Model.gridinput"></vc:the-grid>
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+        $("#cmdOK").click(function () {
+
+            $(this).text("Processing...");
+            $(this).attr("disabled", true);
+            form1.submit();
+
+
+        });
+
+
+
+    })
+
+
+
+
+</script>

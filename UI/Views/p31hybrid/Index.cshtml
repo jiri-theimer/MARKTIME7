@@ -1,0 +1,298 @@
+﻿@model UI.Models.p31view.hybridViewModel
+@inject BL.Factory _f
+@{
+
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    Model.PageTitle = _f.tra("Kalendář");
+
+    var _model1 = new UI.Models.p31view.minicalendarViewModel() { mode = "hybrid" };
+    _model1.d0 = Model.d0;
+    _model1.j02ID = Model.j02ID;
+    
+    if (_f.CurrentUser.j02DefaultHoursFormat == "T")
+    {
+        _model1.ShowHHMM = true;
+    }
+
+
+}
+
+@addTagHelper *, UI
+
+<link rel="stylesheet" href="~/css/calendar.css" />
+
+
+<div style="position:relative;">
+    <div class="tabs_container_record">
+
+        <!-- Tab panes -->
+        <ul class="nav nav-tabs" role="tablist">
+            <li style="width:20px;">
+
+            </li>
+            <li style="width:200px;">
+                <mycombo entity="j02User" asp-for="@Model.j02ID" search-result-width="600" placeholder="@_f.tra("Uživatel")" selectedtext="@Model.RecJ02.FullnameDesc" view-flag="1" myqueryinline="allowed_for_p31_read|bool|1" event_after_changevalue="j02id_change"></mycombo>
+            </li>
+            <li style="width:184px;">
+                <a style="margin-left:40px;" title="Zobrazit celý měsíc" href="javascript:allmonth()">@Model.m0<span>/</span>@Model.y0</a>
+            </li>
+
+
+            <li class="nav-item onetab" role="presentation">
+                <a id="link_tab1" class="nav-link" href="javascript:reload(1)">@_f.tra("Měsíc")</a>
+            </li>
+            <li class="nav-item onetab" role="presentation">
+                <a id="link_tab2" class="nav-link" href="javascript:reload(2)">@_f.tra("Měsíční agenda")</a>
+            </li>
+            <li class="nav-item onetab" role="presentation">
+                <a id="link_tab7" class="nav-link active" href="javascript:location.reload(location.href)">@_f.tra("Měsíc")<span>+GRID</span></a>
+            </li>
+            <li class="nav-item onetab" role="presentation">
+                <a id="link_tab3" class="nav-link" href="javascript:reload(3)">@_f.tra("Týden")</a>
+            </li>
+            <li class="nav-item onetab" role="presentation">
+                <a id="link_tab4" class="nav-link" href="javascript:reload(4)">@_f.tra("Týdenní agenda")</a>
+            </li>
+
+            @if (_f.CurrentUser.j04IsModule_p31)
+            {
+                <li class="nav-item onetab" role="presentation">
+                    <a id="link_tab5" class="nav-link" href="javascript:reload(5)">@_f.tra("N-denní agenda")</a>
+                </li>
+                <li class="nav-item onetab" role="presentation">
+                    <a id="link_tab6" class="nav-link" href="javascript:reload(6)">@_f.tra("Přesný den")</a>
+                </li>
+                
+            }
+
+        </ul>
+    </div>
+
+    <div id="divLeftPanel" style="overflow-x:hidden !important;">
+
+        <button id="cmdCalendarPanel2" title="Levý panel" type="button" class="btn btn-sm" onclick="handle_calendarpanel()"><span class='material-icons'>keyboard_double_arrow_left</span></button>
+
+        @Html.EditorFor(m => _model1, "~/Views/Shared/_minicalendar.cshtml")
+
+        <div class="dropdown">
+
+            <button class="btn bog dropdown-toggle" type="button" id="cmdSouctyPodle" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="material-icons-outlined-btn" style="color:blue;">flag</i>
+                @_f.tra("Nabídka podle")
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="cmdSouctyPodle">
+                <li>
+                    <input type="radio" asp-for="@Model.StatTotalsByPrefix" id="opg1" value="none" onchange="reload_totalsby(this)" />
+                    <label for="opg1">@_f.tra("Nezobrazovat")</label>
+                </li>
+                <li>
+                    <input type="radio" asp-for="@Model.StatTotalsByPrefix" id="opgTOPP41" value="topp41" onchange="reload_totalsby(this)" />
+                    <label for="opgTOPP41">@_f.tra("15 naposledy vykazovaných projektů")</label>
+                </li>
+                <li>
+                    <input type="radio" asp-for="@Model.StatTotalsByPrefix" id="opgTOPP28" value="topp28" onchange="reload_totalsby(this)" />
+                    <label for="opgTOPP28">@_f.tra("15 naposledy vykazovaných klientů")</label>
+                </li>
+             
+            </ul>
+        </div>
+
+
+
+        @if (Model.StatTotalsByPrefix == "topp41")
+        {
+            var qryTop10 = _f.p41ProjectBL.GetList_MyTop10(Model.j02ID, 15);
+
+            <table class="table table-sm table-hover">
+                <tr>
+                    <th>@_f.tra("Projekt")</th>
+                    <th>@_f.tra("Naposledy vykázáno")</th>
+                </tr>
+                @foreach (var c in qryTop10)
+                {
+                    <tr>
+                        <td>
+                            <a style="text-decoration:none;" title="@(c.Project.Length>44 ? c.Project : null)" href="javascript:p31bystat('p41',@(c.p41ID))">@(BO.Code.Bas.OM2(c.Project, 44))</a>
+                        </td>
+
+                        <td>
+                            <small>
+                                @(BO.Code.Time.GetTimestamp(c.LastDate))
+                            </small>
+                        </td>
+                    </tr>
+                }
+            </table>
+        }
+        @if (Model.StatTotalsByPrefix == "topp28")
+        {
+            var qryTop10 = _f.p28ContactBL.GetList_MyTop10(Model.j02ID, 15);
+
+            <table class="table table-sm table-hover">
+                <tr>
+                    <th>@_f.tra("Klient")</th>
+                    <th>@_f.tra("Naposledy vykázáno")</th>
+                </tr>
+                @foreach (var c in qryTop10)
+                {
+                    <tr>
+                        <td>
+                            <a style="text-decoration:none;" href="javascript:p31bystat('p28',@(c.p28ID))">@(BO.Code.Bas.OM2(c.Client, 44))</a>
+                        </td>
+
+                        <td>
+                            <small>
+                                @(BO.Code.Time.GetTimestamp(c.LastDate))
+                            </small>
+                        </td>
+                    </tr>
+                }
+            </table>
+        }
+
+
+    </div>
+
+    <div id="divRightPanel">
+
+        <button id="cmdCalendarPanel" class="btn btn-sm" title="Levý panel" type="button" onclick="handle_calendarpanel()"><span class='material-icons'>keyboard_double_arrow_right</span></button>
+
+
+        <iframe id="fra_subgrid" name="fra_subgrid" src="@Model.InitFrameSrc" frameborder="0" scrolling="yes"></iframe>
+
+    </div>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+    var _d0 = "@Model.d0.ToString("dd.MM.yyyy")";
+
+    $(document).ready(function () {
+
+        var offset = $("#divRightPanel").offset();
+
+        var w = $("#divRightPanel").width();
+
+        $("#fra_subgrid").width(w);
+
+
+        var h = _device.innerHeight - offset.top;
+        $("#divRightPanel").height(h);
+
+        
+        $("#cmdp31_calendar").addClass("active");
+        $("#cmdcalendar").addClass("active");
+
+
+        document.getElementsByTagName("BODY")[0].onresize = function () { handle_body_onresize() };
+
+        handle_body_onresize();
+    });
+
+
+
+
+    function allmonth() {
+        $("#fra_subgrid").attr("src", "@Html.Raw(Model.MonthFrameSrc)");
+    }
+
+
+
+
+    function reload(cv)
+    {
+        var d = "@(Model.d0.ToString("dd.MM.yyyy"))";
+        
+        var url = "/p31calendar/Index?d=" + d;
+        if (cv != undefined) {
+            url = url + "&cv=" + cv;
+            $.post(_ep("/Common/SetUserParam"), { key: "p31calendar-cv", value: cv }, function (data) {
+                //uložena změna druhu kalendáře
+            });
+
+        } else {
+            url = url + "&cv=" + _cv;
+        }
+        _redirect(url);
+    }
+
+
+    function j02id_change(j02id) {
+        if (j02id == "" || j02id == "0") {
+            j02id = "@(_f.CurrentUser.j02ID)";
+        }
+
+        $.post(_ep("/Common/SetUserParam"), { key: "p31calendar-j02id", value: j02id }, function (data) {
+            location.reload(location.href);
+
+        });
+
+
+    }
+
+   
+    function p31bystat(prefix, pid) {
+        var j02id = "@Model.j02ID";
+
+        var url = "/p31/Record?j02id=" + j02id + "&newrec_prefix=" + prefix + "&newrec_pid=" + pid + "&d=" + _d0;
+
+        _window_open(url, 3);
+    }
+
+
+    function reload_totalsby(opg) {
+
+        $.post(_ep("/Common/SetUserParam"), { key: "p31hybrid-totalsby", value: opg.value }, function (data) {
+            location.reload(location.href);
+
+        });
+
+
+    }
+
+
+
+    function handle_calendarpanel() {
+        var dispcss = $("#divLeftPanel").css("display");
+        if (dispcss == "none") {
+            $("#divLeftPanel").css("z-index", "110");
+            $("#divLeftPanel").css("background-color", "snow");
+            $("#divLeftPanel").css("display", "block");
+        }
+        else {
+
+            $("#divLeftPanel").css("display", "none");
+        }
+
+    }
+
+    function handle_body_onresize() {
+
+        var w = $("BODY").width();
+
+        var dispcss = $("#divLeftPanel").css("display");
+
+        if (w >= 1100 && dispcss == "none") {
+            $("#divLeftPanel").css("z-index", "110");
+            $("#divLeftPanel").css("background-color", "snow");
+            $("#divLeftPanel").css("display", "block");
+            $("#cmdCalendarPanel2").css("display", "none");
+
+        }
+
+        if (w >= 1100) {
+            $("#cmdCalendarPanel2").css("display", "none");
+        }
+        else {
+            $("#cmdCalendarPanel2").css("display", "block");
+        }
+
+    }
+</script>
+
+
+

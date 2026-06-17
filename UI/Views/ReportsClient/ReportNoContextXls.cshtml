@@ -1,0 +1,165 @@
+﻿@model ReportNoContextViewModel
+
+@inject BL.Factory _f
+
+@{
+    bool _isMobile = _f.CurrentUser.IsMobileDisplay();
+    if (_isMobile)
+    {
+        Layout = "~/Views/Shared/_LayoutSubformMobile.cshtml";
+    }
+    else
+    {
+        Layout = "~/Views/Shared/_LayoutSubform.cshtml";
+    }
+
+
+   
+
+}
+
+@addTagHelper *,UI
+
+
+<form id="form1" asp-controller="x31" asp-action="ReportNoContextXls" method="POST">    
+    <input type="hidden" asp-for="SelectedX31ID" />
+    <input type="hidden" asp-for="IsPeriodFilter" />
+    <input type="hidden" asp-for="IsConfirmNeeded" />
+    <input type="hidden" asp-for="IsConfirmed" value="@Model.IsConfirmed" />
+
+    <input type="hidden" asp-for="ReportExportName" value="@Model.ReportExportName" />
+    <input type="hidden" asp-for="GeneratedOutputFileName" value="@Model.GeneratedOutputFileName" />
+    
+
+    <table>
+        <tr>
+            <td style="width:40px;">
+                <button id="cmdRefresh" type="button" onclick="reload()" class="btn btn-light"><span class="material-icons-outlined-btn">refresh</span></button>
+            </td>
+            @if (Model.IsPeriodFilter)
+            {
+                <td>
+                    @await Component.InvokeAsync("myPeriod", Model.PeriodFilter)
+                </td>
+                
+            }
+            
+            
+            
+        </tr>
+    </table>
+    
+
+    @if (Model.GeneratedOutputFileName != null)
+    {
+        <div style="padding:10px;">
+            <span class="badge-def">@(DateTime.Now.ToString("HH:mm:ss"))</span>
+            <a href="/FileUpload/FileDownloadTempFile?tempfilename=@Model.GeneratedOutputFileName"><strong>@_f.tra("Stáhnout výsledek")</strong></a>
+        </div>
+        <hr />
+
+    }
+
+    @if (Model.IsConfirmNeeded && !Model.IsConfirmed)
+    {
+        <div style="margin-top:50px;margin-left:10px;">
+
+            <button type="button" id="cmdConfirm" class="btn btn-outline-primary" onclick="doconfirm('xlsx')" style="z-index:9999;">
+                <h5>@_f.tra("Vygenerovat Excel výstup podle aktuálního filtru?")</h5>
+            </button>
+
+            <button type="button" id="cmdConfirmCsv" class="btn btn-sm btn-light" onclick="doconfirm('csv')" style="z-index:9999;margin-left:50px;">
+                <h5>@_f.tra("Vygenerovat CSV")</h5>
+            </button>
+            
+            <hr>
+            <i class="nonmobile">@_f.tra("Potvrdíte klávesou ENTER.")</i>
+        </div>
+
+        <script type="text/javascript">
+
+            if (_device.isMobile) {
+            window.parent.closeNav();
+            }
+            else {
+            $("#cmdConfirm").focus();
+            }
+        </script>
+    }
+    else
+    {
+        <div style="padding:10px;">
+            <button type="button" class="btn btn-sm btn-primary" onclick="doconfirm('xlsx')" style="z-index:9999;">
+                <h5>@_f.tra("Generovat Excel")</h5>
+            </button>
+
+            <button type="button" class="btn btn-sm btn-secondary" onclick="doconfirm('csv')" style="z-index:9999;margin-left:50px;">
+                <h5>@_f.tra("Generovat CSV")</h5>
+            </button>
+            <select asp-for="CsvDelimiter">
+                <option value=";">CSV oddělovač: středník</option>
+                <option value="|">CSV oddělovač: Pipe</option>
+            </select>
+            <input type="checkbox" asp-for="CsvUvozovky" />
+            <label class="col-form-label" for="CsvUvozovky">@_f.tra("Textové sloupce oddělovat uvozovkami")</label>
+            
+        </div>
+        
+    }
+
+    
+
+</form>
+
+
+@section Scripts {
+
+    <script type="text/javascript">
+        
+        $(document).ready(function () {
+
+            $("#SelectedJ72ID").mouseover(function (e) {
+                $("#cmdQueryBuilder").css("display", "block");
+
+            });
+
+            $("#cmdQueryBuilder").children().mouseout(function (e) {
+                $("#cmdQueryBuilder").css("display", "none");
+
+            });
+            
+
+        });
+
+
+        function doconfirm(format) {
+            _notify_message("Loading...", "info", 20000);
+           
+            form1.action = _ep("/ReportsClient/ReportNoContextXls?oper=confirm&format="+format);
+            form1.submit();
+        }
+
+        
+        function reload() {
+            _notify_message("Loading...", "info", 20000);
+            form1.action = _ep("/ReportsClient/ReportNoContextXls?oper=postback");
+            form1.submit();
+            
+        }
+
+        function j72id_change(j72id) {
+            reload();
+        }
+
+        function querybuilder() {
+            var s = location.pathname;
+            var j72id = $("#SelectedJ72ID").val();
+
+            window.parent._window_open("/TheQueryDesigner/Index?j72id=" + j72id + "&prefix=p31&pathname=" + s, 3);
+        }
+
+    </script>
+
+}
+
+

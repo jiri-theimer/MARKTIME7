@@ -1,0 +1,145 @@
+﻿@model UI.Models.p91oper.checkaddressViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = "Kontrola adresy v rejstříku";
+    Model.PageSymbol = "in_home_mode";
+}
+
+@addTagHelper *, UI
+
+
+<div class="bg-light" style="padding:10px;">
+
+    <button type="button" id="cmdOK" class="btn btn-success" onclick="_submit()">@_f.tra("Spustit kontrolu")</button>
+
+    <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+
+
+
+</div>
+
+<form id="form1" asp-controller="p91oper" asp-action="checkaddress" method="POST">
+    <input type="hidden" asp-for="input_p28ids" />
+
+
+
+    <div class="modal_record_container">
+        <div class="alert alert-primary">
+            <span>Počet sledovaných klientů <kbd>@(Model.lisP28.Count())</kbd></span>
+
+        </div>
+
+        @if (Model.lisP28.Where(p => p.b02ID == -2).Count() > 0 && Model.lisP28.Where(p => p.UserInsert != null).Count() == 0)
+        {
+            <div class="alert alert-primary">
+
+                @_f.tra("U klientů z výběru jsem nenašel rozdíly v adresách klientů.")
+            </div>
+        }
+        @if (Model.lisP28.Where(p => p.b02ID == -2).Count() > 0 && Model.lisP28.Where(p => p.UserInsert != null).Count() > 0)
+        {
+            <div class="alert alert-warning">
+                @_f.tra("U některých záznamů jsem našel rozdíly v uložené adrese vůči rejstříkům.")
+            </div>
+
+            <table class="table table-hover">
+                <tr>
+                    <th>
+                        Název
+                    </th>
+                    <th>IČO</th>
+                    <th>DIČ</th>
+                    <th></th>
+                    <th>
+                        Ulice
+                    </th>
+                    <th>
+                        Město
+                    </th>
+                    <th>
+                        PSČ
+                    </th>
+                    
+                    
+                </tr>
+                @foreach (var c in Model.lisP28.Where(p=>p.UserInsert !=null))
+                {
+                    <tr>
+                        <td>
+                            @c.p28Name
+                            @if(c.p28CompanyName !=c.p28ShortName && c.p28ShortName != null)
+                            {
+                                <br />
+                                <span style="background-color:#ffc107;padding:2px;border-radius:3px;">
+                                    @c.p28ShortName
+                                </span>
+                            }
+                        </td>
+                        <td>
+                            @c.p28RegID
+                        </td>
+                        <td>
+                            @c.p28VatID
+                        </td>
+                        
+                        <td style="width:70px;">
+                            <a href="javascript: _window_open('/p28/Record?pid=@c.pid')">
+                                Karta:
+                            </a>
+                            
+                            <br />
+                            @if (c.p28CountryCode == "SK")
+                            {
+                                <a target="_blank" href="https://www.orsr.sk/hladaj_ico.asp?ICO=@(c.p28RegID)">
+                                    Rejstřík SK:
+                                </a>
+                            
+                            }
+                            @if (c.p28CountryCode == "CZ")
+                            {
+                                <a target="_blank" href="https://or.justice.cz/ias/ui/rejstrik-$firma?ico=@(c.p28RegID)">
+                                    Justice:
+                                </a>
+
+                            }
+                            
+                        </td>
+                        <td>
+                            @c.p28Street1
+                            <br />
+                            <span style="@(c.p28Street1 !=c.p28Street2 && c.p28Street2 !=null ? "background-color:#ffc107;padding:2px;border-radius:3px;" : null)">
+                                @c.p28Street2
+                            </span>
+                        </td>
+                        <td>
+                            @c.p28City1
+                            <br />
+                            <span style="@(c.p28City1 !=c.p28City2 && c.p28City2 !=null ? "background-color:#ffc107;padding:2px;border-radius:3px;" : null)">
+                                @c.p28City2
+                            </span>
+                        </td>
+                        <td>
+                            @c.p28PostCode1
+                            <br />
+                            <span style="@(c.p28PostCode1 !=c.p28PostCode2 && c.p28PostCode2 !=null ? "background-color:#ffc107;padding:2px;border-radius:3px;" : null)">
+                                @c.p28PostCode2
+                            </span>
+                        </td>
+                      
+                    </tr>
+                }
+            </table>
+        }
+
+
+    </div>
+
+</form>
+
+<script type="text/javascript">
+    function hardrefresh(flag, pid) {
+        //nic
+    }
+</script>

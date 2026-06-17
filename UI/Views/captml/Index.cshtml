@@ -1,0 +1,111 @@
+﻿@model UI.Models.capacity.captmlViewModel
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    Model.PageTitle = _f.tra("Kapacitní plánování");
+
+
+}
+
+@addTagHelper *, UI
+
+@section header_content{
+
+    <link rel="stylesheet" href="~/css/capacity.css" />
+
+}
+
+<div class="input-group" style="margin-top:6px;margin-bottom:1px;">
+    <div>
+        <ul class="nav nav-tabs">
+            <li class="onetab">
+                <a class="nav-link" id="tablinkj02" href="javascript:change_prefix('j02')">@_f.tra("Personální zdroje")</a>
+            </li>
+            <li class="onetab">
+                <a class="nav-link" id="tablinkp41" href="javascript:change_prefix('p41')">@_f.tra("Projekty")</a>
+            </li>
+        </ul>
+    </div>
+
+    @if (Model.prefix == "j02")
+    {
+        <div id="divQueryJ02" style="width: 200px;margin-left:10px;">
+            <mycombochecklist asp-for="@Model.j02IDs" entity="j02User" placeholder="@_f.tra("Uživatelé")" placeholder_icon="filter_alt" selectedtext="@Model.SelectedPersons" event_after_changevalue="handle_can_reload"></mycombochecklist>
+        </div>
+        <div id="divQueryJ07" style="width: 170px;">
+            <mycombochecklist asp-for="@Model.j07IDs" entity="j07PersonPosition" placeholder="@_f.tra("Pozice")" placeholder_icon="filter_alt" selectedtext="@Model.SelectedPositions" event_after_changevalue="handle_can_reload"></mycombochecklist>
+        </div>
+        <div id="divQueryJ11" style="width: 170px;">
+            <mycombochecklist asp-for="@Model.j11IDs" entity="j11Team" placeholder="@_f.tra("Týmy")" placeholder_icon="filter_alt" selectedtext="@Model.SelectedTeams" event_after_changevalue="handle_can_reload"></mycombochecklist>
+        </div>
+        <div style="width:140px;">
+            <button type="button" id="cmdRefresh" class="btn btn-primary" style="display:none;margin-left:10px;" onclick="save_setting_and_reload()">@_f.tra("Uložit a spustit filtr")</button>
+        </div>
+    }
+    
+
+
+
+</div>
+
+
+@if (Model.prefix == "j02")
+{
+    @await Html.PartialAsync("~/Views/Shared/_CapacityTimelineJ02.cshtml",Model.timeline_j02)
+}
+else
+{
+    @await Html.PartialAsync("~/Views/Shared/_CapacityTimelineP41.cshtml",Model.timeline_p41)
+}
+
+
+
+
+<script type="text/javascript">
+    var _localprefix = "@Model.prefix";
+
+    $("#cmdCapTml").addClass("active");
+    $("#tablink" + _localprefix).addClass("active");
+
+    function handle_can_reload(s) {
+        $("#cmdRefresh").css("display", "block");
+    }
+
+    function save_setting_and_reload() {
+        var k = [];
+        var v = [];
+
+        if (_localprefix == "j02")
+        {
+            k.push("captml-j02ids");
+            v.push($("#j02IDs").val());
+            k.push("captml-j07ids");
+            v.push($("#j07IDs").val());
+            k.push("captml-j11ids");
+            v.push($("#j11IDs").val());
+        }
+        
+
+        $.post("/Common/SetUserParams", { keys: k, values: v }, function (data) {
+            location.reload(location.href);
+
+        });
+
+    }
+
+    function change_prefix(prefix)
+    {
+        if(_localprefix == prefix)
+        {
+            _redirect(location.href);
+            return;
+        }
+        $.post("/Common/SetUserParam", { key: "captml-prefix", value: prefix }, function (data) {
+            _redirect(location.href);
+        });
+    }
+
+</script>

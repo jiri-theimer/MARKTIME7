@@ -1,0 +1,124 @@
+﻿@model UI.Models.Record.p61Record
+@inject BL.Factory _f
+
+@{
+
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    if (Model.Rec == null) return;
+    Model.PageTitle = _f.tra("Klastr aktivit");
+    Model.PageSymbol = "settings";
+}
+@addTagHelper *, UI
+
+<input type="hidden" id="hidP32IDs" asp-for="@Model.p32IDs" value="@Model.p32IDs" />
+
+<div class="modal_record_container">
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název"):</label>
+        <div class="col-sm-11 col-md-10">
+            <input class="form-control record_name" asp-for="Rec.p61Name" />
+        </div>
+    </div>
+
+
+
+
+
+
+    <div class="card" style="margin-top:10px;">
+        <div class="card-header">
+            @_f.tra("Přidat aktivity")
+        </div>
+        <div class="card-body">
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Přidat aktivitu"):</label>
+                <div class="col-sm-11 col-md-10">
+                    <mycombo entity="p32Activity" asp-for="@Model.SelectedP32ID" selectedtext="@Model.SelectedP32Name" placeholder="@_f.tra("Vybrat aktivitu")..." event_after_changevalue="handle_p32id_append"></mycombo>
+                </div>
+
+            </div>
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Přidat aktivity ze sešitu"):</label>
+                <div class="col-sm-11 col-md-10">
+                    <mycombo entity="p34ActivityGroup" asp-for="@Model.SelectedP34ID" selectedtext="@Model.SelectedP34Name" placeholder="@_f.tra("Vybrat sešit")..." event_after_changevalue="handle_p34id_append"></mycombo>
+                </div>
+
+            </div>
+            <div class="row my-2">
+                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Přidat aktivity z odvětví"):</label>
+                <div class="col-sm-11 col-md-10">
+                    <mycombo entity="p38ActivityTag" asp-for="@Model.SelectedP38ID" selectedtext="@Model.SelectedP38Name" placeholder="@_f.tra("Vybrat odvětví")..." event_after_changevalue="handle_p38id_append"></mycombo>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div class="my-2">
+        <button type="button" class="btn btn-danger" onclick="handle_remove_selected()">@_f.tra("Odstranit vybrané")</button>
+    </div>
+
+    
+
+
+</div>
+@await Component.InvokeAsync("myGrid",Model.gridinput)
+
+<div id="divP32" style="margin-top:20px;margin-bottom:20px;"></div>
+<button type="button" id="cmdClear" class="btn btn-warning btn-sm" style="display:none;" onclick="clear_all()">@_f.tra("Vyčistit vše")</button>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+    });
+
+    function handle_p32id_append(p32id) {
+        if (p32id == "") {
+            _notify_message("Musíte vybrat aktivitu.");
+            return;
+        }
+        _postback("add","prefix=p32&pids="+p32id);
+        //form1.action = _ep("/p61/Record?prefix=p32&oper=add&pids=" + p32id);
+       
+    }
+
+
+    function handle_p34id_append(p34id) {
+        if (p34id == "") {
+            _notify_message("Musíte vybrat sešit.");
+            return;
+        }
+        _postback("add", "prefix=p34&pids=" + p34id);
+        //form1.action = _ep("/p61/Record?prefix=p34&oper=add&pids=" + p34id);
+        
+    }
+
+    function handle_p38id_append(p38id) {
+        if (p38id == "") {
+            _notify_message("Musíte vybrat odvětví.");
+            return;
+        }
+        _postback("add", "prefix=p38&pids=" + p38id);
+        //form1.action = _ep("/p61/Record?prefix=p38&oper=add&pids=" + p38id);
+        
+    }
+
+
+    function handle_remove_selected() {
+        var pids = $("#tg_selected_pids").val();
+        if (pids === "") {
+            _notify_message("@_f.tra("Musíte zaškrtnout minimálně jeden záznam.")");
+            return;
+        }
+        _toolbar_warn2save_changes();
+
+        _postback("remove", "prefix=p32&pids=" + pids);
+        //form1.action = "/p61/Record?prefix=p32&oper=remove&pids=" + pids;
+        
+
+
+    }
+
+</script>
+

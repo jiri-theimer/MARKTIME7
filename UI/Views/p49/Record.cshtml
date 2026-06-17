@@ -1,0 +1,191 @@
+﻿@model UI.Models.Record.p49Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Finanční plán");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    Model.PageSymbol = "energy_savings_leaf";
+}
+
+@addTagHelper *, UI
+
+@Html.Raw("<div class='modal_record_container'>")
+
+<div class="row my-2">
+    <label class="col-sm-1 col-md-2 col-form-label">
+        
+    </label>
+    <div class="col-sm-1 col-md-2">
+        <select class="form-select" asp-for="Rec.p49StatusFlag">
+            <option value="0">@_f.tra("Plán")</option>
+            <option value="1">@_f.tra("Realizovaný plán")</option>
+        </select>
+    </div>
+</div>
+
+
+@Html.EditorFor(m => m.ProjectCombo, "~/Views/Shared/_ProjectCombo.cshtml")
+
+@if (Model.lisP56 !=null && Model.lisP56.Count()>0)
+{
+    <div class="row my-2">
+        <label for="cmdComboRec_p56ID" class="col-sm-1 col-md-2 col-form-label">
+            @_f.tra("Úkol"):            
+        </label>
+        <div class="col-sm-10 col-md-9">
+            <mycombo entity="p56Task" asp-for="Rec.p56ID" selectedtext="@Model.ComboP56" myqueryinline="p41id|int|@(Model.ProjectCombo.SelectedP41ID)"></mycombo>
+        </div>
+    </div>
+    
+}
+
+<div class="row my-2">
+    <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Sešit"):</label>
+    <div class="col-sm-10 col-md-9">
+        <mycombo entity="p34ActivityGroup" asp-for="Rec.p34ID" selectedtext="@Model.ComboP34" myqueryinline="ismoneyinput|bool|true" event_after_changevalue="p34id_change"></mycombo>
+    </div>
+</div>
+
+<div class="row my-2" id="divP32">
+    <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Aktivita"):</label>
+    <div class="col-sm-10 col-md-9">
+        <mycombo entity="p32Activity" asp-for="Rec.p32ID" selectedtext="@Model.ComboP32" myqueryinline="p34id|int|@Model.Rec.p34ID"></mycombo>
+    </div>
+</div>
+
+
+<div class="row my-2">
+    <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Jméno/Uživatel"):</label>
+    <div class="col-sm-10 col-md-9">
+        <mycombo entity="j02User" asp-for="Rec.j02ID" selectedtext="@Model.ComboJ02" view-flag="1"></mycombo>
+    </div>
+</div>
+
+
+<div class="row my-2">
+    <label class="col-sm-1 col-md-2 col-form-label recpagelabel">@(_f.tra("Datum")):</label>
+    <div class="col-sm-2 col-md-2">
+        <mydate asp-for="@Model.Rec.p49Date" include-time="false"></mydate>
+
+    </div>
+    <div class="col-sm-4 col-md-4">
+        <button type="button" class="btn btn-sm" onclick="dp('m-1')" title="Měsíc dozadu">m-</button>
+        <button type="button" class="btn btn-sm" onclick="dp('m+1')" title="Měsíc dopředu">m+</button>
+        <button type="button" class="btn btn-sm" onclick="dp('y-1')" title="Rok dozadu">y-</button>
+        <button type="button" class="btn btn-sm" onclick="dp('y+1')" title="Rok dopředu">y+</button>
+        
+    </div>
+</div>
+
+
+<div class="row my-2">
+    <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Částka"):</label>
+    <div class="col-sm-2 col-md-2">
+        <mynumber asp-for="Rec.p49Amount" decimal-digits="2"></mynumber>
+
+    </div>
+    <div class="col-sm-2 col-md-2">
+        <mycombo entity="j27Currency" asp-for="Rec.j27ID" selectedtext="@Model.ComboJ27Code"></mycombo>
+    </div>
+</div>
+
+<div class="row my-2">
+    <label class="col-sm-2 col-md-2 col-form-label recpagelabel">@_f.tra("Spočítat jako kusy x počet"):</label>
+    <div class="col-sm-1 col-md-1">
+        <mynumber asp-for="Rec.p49Pieces" placeholder="@_f.tra("Počet")"></mynumber>
+    </div>
+    <div class="col-sm-1 col-md-1 p-0">
+        <mynumber asp-for="Rec.p49PieceAmount" placeholder="@_f.tra("Cena 1 kus")"></mynumber>
+    </div>
+    
+   
+</div>
+
+
+
+
+
+
+
+
+<div class="form-floating my-2">
+    <textarea class="form-control" asp-for="Rec.p49Text"></textarea>
+    <label for="Rec_p49Text">Text</label>
+</div>
+
+
+
+@if(Model.RecP34 !=null && Model.RecP34.p34IncomeStatementFlag == BO.p34IncomeStatementFlagENUM.Vydaj)
+{
+    <hr />
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Dodavatel"):</label>
+        <div class="col-sm-10 col-md-9">
+            <mycombo entity="p28Contact" asp-for="Rec.p28ID_Supplier" selectedtext="@Model.ComboSupplier" view-flag="1"></mycombo>
+        </div>
+    </div>
+
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label recpagelabel">@_f.tra("Skrytá marže") (%):</label>
+        <div class="col-sm-1 col-md-1">
+            <mynumber asp-for="Rec.p49MarginHidden"></mynumber>
+        </div>
+        <label class="col-sm-1 col-md-2 col-form-label recpagelabel">@_f.tra("Přiznaná marže") (%):</label>
+        <div class="col-sm-1 col-md-1">
+            <mynumber asp-for="Rec.p49MarginTransparent"></mynumber>
+        </div>
+    </div>
+}
+
+
+
+@Html.Raw("</div>")
+
+
+
+<script type="text/javascript">
+    var _p34id = "@Model.Rec.p34ID";
+    $(document).ready(function () {
+
+        if (_p34id == "0") {
+            $("#divP32").css("visibility", "hidden");
+        }
+
+
+
+        $("#numRec_p49Pieces").on("input", function () {  //změna počtu kusů
+            handle_recalc_after_pieces();
+        });
+        $("#numRec_p49PieceAmount").on("input", function () {  //změna počtu kusů
+            handle_recalc_after_pieces();
+        });
+
+    })
+
+    function p41id_change(p41id) {
+        _postback();
+    }
+
+    function p34id_change(p34id) {
+        _postback("p34id");
+    }
+
+    function levelindex_change() {
+        _postback();
+    }
+
+
+    function handle_recalc_after_pieces() {
+        var pocet = _string2number($("#numRec_p49Pieces").val());
+        var cenaks = _string2number($("#numRec_p49PieceAmount").val());
+        var celkem = _roundnum(pocet * cenaks, 2);
+
+        mynumber_changevalue("Rec_p49Amount", celkem, 2);
+
+    }
+
+    function dp(posun)
+    {
+        _postback(posun);
+    }
+</script>

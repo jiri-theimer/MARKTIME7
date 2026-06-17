@@ -1,0 +1,73 @@
+﻿@model UI.Models.p41oper.SelectProjectViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+
+    if (Model.source_prefix=="p28"){
+        Model.PageTitle = _f.tra("Vyberte projekt klienta");
+    }else{
+        Model.PageTitle = _f.tra("Vyberte projekt");
+    }
+
+    Model.PageSymbol = "p41";
+
+}
+
+@addTagHelper *, UI
+
+<style type="text/css">
+    .list-group-item:hover {
+        background-color: var(--oznaceno);
+        color: var(--popredi) !important;
+    }
+</style>
+
+<div class="bg-light" style="padding:10px;">
+    
+
+    <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
+
+
+
+</div>
+
+<div class="list-group">
+    @foreach (var c in Model.lisP41)
+    {
+        <a class="list-group-item list-group-item-action" href="javascript:goon(@c.pid)">@c.PrefferedName</a>
+    }
+</div>
+
+
+
+<script type="text/javascript">
+    $(document).ready(function () {
+
+
+
+
+
+    })
+    
+
+    function goon(p41id) {
+        var prefix = "@Model.source_prefix";
+        var recpid = "@Model.source_pid";
+
+        if (p41id == "0" || p41id == "") {
+                _notify_message("Musíte vybrat projekt.");
+                return;
+            }
+          
+
+        var url = _ep("/p31/Record?pid=0&newrec_prefix=p41&newrec_pid=" + p41id);
+
+
+        _redirect(url);
+        
+
+    }
+
+
+</script>

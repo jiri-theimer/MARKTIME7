@@ -1,0 +1,78 @@
+﻿@model UI.Models.Record.p86Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Bankovní účet");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    Model.PageSymbol = "point_of_sale";
+}
+
+@addTagHelper *, UI
+
+<div class="modal_record_container">
+
+    <div class="row">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název účtu"):</label>
+        <div class="col-sm-7 col-md-6">
+            <input class="form-control record_name" asp-for="Rec.p86Name" />
+        </div>
+
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název banky"):</label>
+        <div class="col-sm-7 col-md-6">
+            <input class="form-control" asp-for="Rec.p86BankName" />
+
+        </div>
+
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Číslo účtu"):</label>
+        <div class="col-sm-7 col-md-6">
+            <input class="form-control" asp-for="Rec.p86Account" />
+
+        </div>
+
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Kód banky"):</label>
+        <div class="col-sm-2 col-md-2">
+            <input class="form-control" asp-for="Rec.p86Code" />
+
+        </div>
+
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("SWIFT kód"):</label>
+        <div class="col-sm-7 col-md-6">
+            <input class="form-control" asp-for="Rec.p86SWIFT" />
+
+        </div>
+
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("IBAN kód"):</label>
+        <div class="col-sm-7 col-md-6">
+            <input class="form-control" asp-for="Rec.p86IBAN" />
+
+        </div>
+
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Adresa banky"):</label>
+        <div class="col-sm-7 col-md-6">
+            <textarea asp-for="@Model.Rec.p86BankAddress" class="form-control"></textarea>
+
+        </div>
+
+    </div>
+    <div class="alert alert-primary">
+        <p>
+            @_f.tra("Měna účtu se definuje až v nastavení hlavičky vystavovatele faktury.")
+        </p>
+        <hr />
+        <p>
+            @_f.tra("V hlavičce vystavovatele faktury může být účet přiřazen i k více než jedné měně.")
+        </p>
+    </div>
+</div>
