@@ -63,13 +63,13 @@ namespace UI
                  })
                  .AddGoogle(options =>
                  {
-                     options.ClientId = Configuration.GetSection("Google")["ClientId"];         //problém
+                     options.ClientId = Configuration.GetSection("Google")["ClientId"];         //divné
                      options.ClientSecret = Configuration.GetSection("Google")["ClientSecret"];
                      options.SignInScheme = "ExternalCookie";
                  });
 
 
-
+           
 
             //services.AddAuthentication().AddMicrosoftAccount(microsoftOptions =>
             //{
