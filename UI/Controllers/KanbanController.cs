@@ -11,9 +11,23 @@ namespace UI.Controllers
 
             var v = new p28KanbanViewModel() { go2pid = go2pid };
 
-            v.TheGridQueryButton = new TheGridQueryViewModel() { j72id = Factory.CBL.LoadUserParamInt("kanban-p28-j72id"), paramkey = "kanban-p28-j72id", prefix = "p28" };
+            v.TheGridQueryButton = new TheGridQueryViewModel() { j72id = Factory.CBL.LoadUserParamInt("kanban-p28-j72id"), paramkey = "kanban-p28-j72id", prefix = "p28" };            
+            if (v.TheGridQueryButton.j72id > 0)
+            {
+                v.TheGridQueryButton.j72name = Factory.j72TheGridTemplateBL.LoadName(v.TheGridQueryButton.j72id);
+            }
+            
+
+            v.p31statequery = new p31StateQueryViewModel() { UserParamKey = "kanban-p28-p31statequery" };
+            v.p31statequery.Value = Factory.CBL.LoadUserParamInt(v.p31statequery.UserParamKey);
+
 
             var mq = new BO.myQueryP28();
+            mq.p31statequery = v.p31statequery.Value;
+            if (v.TheGridQueryButton.j72id > 0)
+            {
+                mq.lisJ73 = Factory.j72TheGridTemplateBL.GetList_j73(v.TheGridQueryButton.j72id, "p28", 0);
+            }
 
             v.p29IDs = Factory.CBL.LoadUserParam("kanban-p28-p29ids");
             if (v.p29IDs != null)
@@ -53,9 +67,9 @@ namespace UI.Controllers
                 }
             }
 
-            v.p31statequery = new p31StateQueryViewModel() { UserParamKey = "kanban-p28-p31statequery" };
-            v.p31statequery.Value = Factory.CBL.LoadUserParamInt(v.p31statequery.UserParamKey);
+           
 
+            
 
             return View(v);
         }

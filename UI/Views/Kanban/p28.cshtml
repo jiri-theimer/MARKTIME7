@@ -36,9 +36,12 @@
 
     </div>
 
-    
+    <div class="dog">
+        @Html.EditorFor(m => Model.TheGridQueryButton, "~/Views/Shared/_ButtonGridQuery.cshtml")
 
-    <div class="showmore dog">
+    </div>
+
+    <div class="dog">
         @Html.EditorFor(m => Model.p31statequery, "~/Views/Shared/_p31StateQuery.cshtml")
     </div>
 
@@ -94,6 +97,31 @@
 
 
 <script type="text/javascript">
+
+    $(document).ready(function () {
+
+        
+
+        
+
+        register_menu("cmdgridquerymenu", "cmdgridquerymenu_menu", "/Menu/grid_query?prefix=p28&j72id=@(Model.TheGridQueryButton.j72id)");
+
+        $("#SelectedJ72ID").mouseover(function (e) {
+            $("#cmdQueryBuilder").css("visibility", "visible");
+
+        });
+
+        $("#cmdQueryBuilder").children().mouseout(function (e) {
+            $("#cmdQueryBuilder").css("visibility", "hidden");
+
+        });
+
+
+
+
+    });
+
+
  
     function cm(e, pid)
     {

@@ -9,5 +9,7 @@
         public List<KanbanPolozka> polozky { get; set; }
 
         public int go2pid { get; set; }
+
+        public int j72id_query { get; set; }    //pojmenovaný filtr
     }
 }
