@@ -16,5 +16,7 @@ namespace UI.Models.Kanban
         public int go2pid { get; set; }
 
         public int j72id_query { get; set; }    //pojmenovaný filtr
+
+        
     }
 }

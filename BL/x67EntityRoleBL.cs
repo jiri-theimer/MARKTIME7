@@ -208,7 +208,12 @@ namespace BL
         public IEnumerable<BO.x69EntityRole_Assign> GetList_X69(string record_entity, int record_pid)        //metodu používá shared view: _RoleAssign
         {
             Init_SQL_GetList_X69();
-            sb(" WHERE a.x69RecordPid=@recpid AND a.x69RecordEntity=@entity");
+            sb(" WHERE a.x69RecordEntity=@entity");
+            if (record_pid > 0)
+            {
+                sb(" AND a.x69RecordPid=@recpid");
+            }
+            
             sb(" ORDER BY x67.x67Ordinary,a.x67ID");
 
             return _db.GetList<BO.x69EntityRole_Assign>(sbret(), new { recpid = record_pid, entity = record_entity });

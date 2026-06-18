@@ -13,5 +13,7 @@
         public double hodiny_vykazane { get; set; }
         public string b02Name { get; set; }
         public string b02Color { get; set; }
+
+        public List<string> role { get; set; }
     }
 }

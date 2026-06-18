@@ -57,6 +57,8 @@ namespace UI.Controllers
                 v.TheGridQueryButton.j72name = Factory.j72TheGridTemplateBL.LoadName(v.TheGridQueryButton.j72id);
             }
 
+            var lisX69 = Factory.x67EntityRoleBL.GetList_X69("p28", 0);
+
             var mq = new BO.myQueryP28();
             
             if (v.TheGridQueryButton.j72id > 0)
@@ -123,7 +125,15 @@ namespace UI.Controllers
                 {
                     polozka.sloupec_pid = c.b02ID;
                 }
-                   
+                var qryRole = lisX69.Where(p => p.x69RecordPid == c.pid);
+                if (qryRole.Count()>0)
+                {
+                    polozka.role = new List<string>();
+                    foreach (var role in qryRole)
+                    {
+                        polozka.role.Add($"{role.x67Name}: {role.Person} {role.j11Name}");
+                    }
+                }
                 
                 v.polozky.Add(polozka);
             }
