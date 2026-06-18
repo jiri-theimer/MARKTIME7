@@ -119,6 +119,16 @@
                                     <div class="kanban-card-title-after">@c.nazev_after</div>
                                 }
 
+                                @if (c.role != null && c.role.Any(r => !string.IsNullOrWhiteSpace(r)))
+                                {
+                                    <div class="kanban-card-role">
+                                        @foreach (var r in c.role.Where(r => !string.IsNullOrWhiteSpace(r)))
+                                        {
+                                            <span class="kanban-role">@r</span>
+                                        }
+                                    </div>
+                                }
+
                                 @if (!string.IsNullOrWhiteSpace(c.b02Name))
                                 {
                                     <div class="kanban-card-stav">
@@ -282,6 +292,23 @@
         color: #6c757d;
         margin-top: 2px;
         word-break: break-word;
+    }
+
+    .kanban-card-role {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-top: 6px;
+    }
+
+    .kanban-role {
+        font-size: .7rem;
+        line-height: 1.4;
+        padding: 1px 7px;
+        border-radius: 10px;
+        background: #eef1f4;
+        color: #495057;
+        border: 1px solid #e0e4e8;
     }
 
     .kanban-card-stav {
