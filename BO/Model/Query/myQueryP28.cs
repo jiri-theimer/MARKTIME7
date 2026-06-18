@@ -8,6 +8,7 @@ namespace BO
         public int p29id { get; set; }
         public List<int> p29ids { get; set; }
         public int b02id { get; set; }
+        public int b01id { get; set; }
         public int p51id { get; set; }      
         public int o51id { get; set; }
         public int p24id { get; set; }
@@ -97,6 +98,10 @@ namespace BO
             if (this.b02id > 0)
             {
                 AQ("a.b02ID=@b02id", "b02id", this.b02id);
+            }
+            if (this.b01id > 0)
+            {
+                AQ("a.p29ID IN (select p29ID FROM p29ContactType WHERE b01ID=@b01id)", "b01id", this.b01id);
             }
             if (this.p51id > 0)
             {

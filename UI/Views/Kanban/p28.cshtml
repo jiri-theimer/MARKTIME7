@@ -37,6 +37,15 @@
     </div>
 
     <div class="dog">
+        <select class="form-select" asp-for="viewtype" onchange="viewtype_onchange(this)">
+            @foreach(var c in Model.viewtypes)
+            {
+                <option value="@c.Key">@c.Value</option>
+            }
+        </select>
+    </div>
+
+    <div class="dog">
         @Html.EditorFor(m => Model.TheGridQueryButton, "~/Views/Shared/_ButtonGridQuery.cshtml")
 
     </div>
@@ -176,7 +185,16 @@
    
 
 
-   
+    function viewtype_onchange(cbx)
+    {
+
+     
+      $.post(_ep("/Common/SetUserParam"), { key: "kanban-p28-viewtype", value: cbx.value }, function (data) {
+        reload();
+      });
+
+
+   }
 
 </script>
 

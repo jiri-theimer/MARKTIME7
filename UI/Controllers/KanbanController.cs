@@ -6,28 +6,60 @@ namespace UI.Controllers
 {
     public class KanbanController : BaseController
     {
-        public IActionResult p28(int go2pid)
+        public IActionResult p28(string viewtype,int go2pid)
         {
 
-            var v = new p28KanbanViewModel() { go2pid = go2pid };
+            var v = new p28KanbanViewModel() { go2pid = go2pid,viewtype=viewtype };
 
+            var lisB01 = Factory.b01WorkflowTemplateBL.GetList(new BO.myQuery("b01")).Where(p => p.b01Entity == "p28");
+            v.viewtypes = new List<BO.StringPair>();
+            v.viewtypes.Add(new BO.StringPair() { Key = "p29", Value = "Typ kontaktu" });
+            foreach (var c in lisB01)
+            {
+                v.viewtypes.Add(new BO.StringPair() { Key = $"b01-{c.pid}", Value = c.b01Name });
+            }
+            if (string.IsNullOrEmpty(v.viewtype))
+            {
+                v.viewtype = Factory.CBL.LoadUserParam("kanban-p28-viewtype", "p29");
+            }
             v.TheGridQueryButton = new TheGridQueryViewModel() { j72id = Factory.CBL.LoadUserParamInt("kanban-p28-j72id"), paramkey = "kanban-p28-j72id", prefix = "p28" };            
             if (v.TheGridQueryButton.j72id > 0)
             {
                 v.TheGridQueryButton.j72name = Factory.j72TheGridTemplateBL.LoadName(v.TheGridQueryButton.j72id);
             }
-            
-
-            v.p31statequery = new p31StateQueryViewModel() { UserParamKey = "kanban-p28-p31statequery" };
-            v.p31statequery.Value = Factory.CBL.LoadUserParamInt(v.p31statequery.UserParamKey);
-
 
             var mq = new BO.myQueryP28();
-            mq.p31statequery = v.p31statequery.Value;
+            
             if (v.TheGridQueryButton.j72id > 0)
             {
                 mq.lisJ73 = Factory.j72TheGridTemplateBL.GetList_j73(v.TheGridQueryButton.j72id, "p28", 0);
             }
+
+
+            v.sloupce = new List<KanbanSloupec>();
+            if (v.viewtype == "p29")
+            {
+                var lisP29 = Factory.p29ContactTypeBL.GetList(new BO.myQuery("p29")).OrderBy(p => p.p29Ordinary);
+                foreach (var c in lisP29)
+                {
+                    v.sloupce.Add(new KanbanSloupec() { pid = c.pid, nazev = c.p29Name });
+                }
+            }
+            else
+            {
+                mq.b01id= int.Parse(v.viewtype.Replace("b01-", ""));                
+                var lisB02 = Factory.b02WorkflowStatusBL.GetList(new BO.myQuery("b02")).Where(p => p.b01ID == mq.b01id).OrderBy(p => p.b02Ordinary);
+                foreach(var c in lisB02)
+                {
+                    v.sloupce.Add(new KanbanSloupec() { pid = c.pid, nazev = c.b02Name,barva=c.b02Color});
+                }
+            }
+            
+            v.p31statequery = new p31StateQueryViewModel() { UserParamKey = "kanban-p28-p31statequery" };
+            v.p31statequery.Value = Factory.CBL.LoadUserParamInt(v.p31statequery.UserParamKey);
+            mq.p31statequery = v.p31statequery.Value;
+
+
 
             v.p29IDs = Factory.CBL.LoadUserParam("kanban-p28-p29ids");
             if (v.p29IDs != null)
@@ -43,7 +75,7 @@ namespace UI.Controllers
 
             foreach(var c in lisP28)
             {
-                var polozka = new KanbanPolozka() {prefix="p28",pid=c.pid, nazev = c.p28Name, kod = c.p28Code, b02Name = c.b02Name, b02Color = c.b02Color,sloupec_nazev=c.p29Name };
+                var polozka = new KanbanPolozka() {prefix="p28",pid=c.pid, nazev = c.p28Name, kod = c.p28Code, b02Name = c.b02Name, b02Color = c.b02Color };
                 if (c.p28Street1 !=null || c.p28City1 != null)
                 {
                     polozka.nazev_after = $"{c.p28Street1}, {c.p28City1}";
@@ -52,6 +84,15 @@ namespace UI.Controllers
                         polozka.nazev_after += ", " + c.p28Country1;
                     }
                 }
+                if (v.viewtype == "p29")
+                {
+                    polozka.sloupec_pid = c.p29ID;
+                }
+                else
+                {
+                    polozka.sloupec_pid = c.b02ID;
+                }
+                   
                 
                 v.polozky.Add(polozka);
             }

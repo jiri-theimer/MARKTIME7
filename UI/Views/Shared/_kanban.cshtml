@@ -3,15 +3,15 @@
 
 @*
     Sdílené Kanban view.
-    Vstup: BaseKanbanViewModel.polozky (List<KanbanPolozka>)
+    Vstup:
+      BaseKanbanViewModel.sloupce  (List<KanbanSloupec>) ... sloupce boardu v pořadí listu (pid, nazev, barva)
+      BaseKanbanViewModel.polozky  (List<KanbanPolozka>) ... karty; zařazení do sloupce přes polozka.sloupec_pid == sloupec.pid
 
-    Sloupce se odvozují z polozka.sloupec_nazev,
-    řadí podle polozka.sloupec_poradi (číselně, fallback dle prvního výskytu),
-    barví podle polozka.sloupec_barva (horní pruh sloupce).
+    Položky s neznámým sloupec_pid (mimo Model.sloupce) spadnou do koncového sloupce "(bez zařazení)".
 
     Hostitelská stránka (např. p28.cshtml) může přepsat chování:
-      - kanban_open(prefix, pid)                         ... otevření detailu po kliku na kartu
-      - kanban_on_drop(pid, prefix, fromCol, toCol, el) ... uložení přesunu karty mezi sloupci
+      - kanban_open(prefix, pid)                         ... otevření detailu po kliku na kartu (default edit(pid) v modálu)
+      - kanban_on_drop(pid, prefix, fromCol, toCol, el) ... uložení přesunu karty; fromCol/toCol = pid sloupce
     Pokud nejsou definované, použijí se rozumné defaulty (viz <script> níže).
 *@
 
@@ -40,28 +40,32 @@
 
 @{
     var vsechny = Model.polozky ?? new List<UI.Models.Kanban.KanbanPolozka>();
+    var sloupceModel = Model.sloupce ?? new List<UI.Models.Kanban.KanbanSloupec>();
 
-    // Seskupení do sloupců dle názvu, se zachováním pořadí prvního výskytu jako fallbacku.
-    var sloupce = vsechny
-        .Select((p, idx) => new { p, idx })
-        .GroupBy(x => string.IsNullOrWhiteSpace(x.p.sloupec_nazev) ? "" : x.p.sloupec_nazev.Trim())
-        .Select(g => new
-        {
-            Nazev = g.Key,
-            Barva = g.Select(x => x.p.sloupec_barva).FirstOrDefault(b => !string.IsNullOrWhiteSpace(b)),
-            // pořadí sloupce dle sloupec_poradi; nečíselné/prázdné jdou na konec
-            Poradi = g.Select(x => int.TryParse(x.p.sloupec_poradi, out var n) ? (int?)n : null)
-                       .FirstOrDefault(n => n.HasValue) ?? int.MaxValue,
-            Polozky = g.OrderBy(x => x.idx).Select(x => x.p).ToList()
-        })
-        // pořadí sloupců = sloupec_poradi, poté sloupec_nazev
-        .OrderBy(s => s.Poradi).ThenBy(s => s.Nazev, StringComparer.CurrentCulture)
-        .ToList();
+    // položky zařazené do sloupců podle sloupec_pid
+    var dleSloupce = vsechny.GroupBy(p => p.sloupec_pid).ToDictionary(g => g.Key, g => g.ToList());
+
+    // sloupce v pořadí dle Model.sloupce
+    var sloupce = sloupceModel.Select(s => new
+    {
+        Pid = s.pid,
+        Nazev = s.nazev,
+        Barva = s.barva,
+        Polozky = dleSloupce.TryGetValue(s.pid, out var lp) ? lp : new List<UI.Models.Kanban.KanbanPolozka>()
+    }).ToList();
+
+    // pojistka: položky, jejichž sloupec_pid neodpovídá žádnému sloupci, ať se neztratí
+    var pidySloupcu = new HashSet<int>(sloupceModel.Select(s => s.pid));
+    var bezZarazeni = vsechny.Where(p => !pidySloupcu.Contains(p.sloupec_pid)).ToList();
+    if (bezZarazeni.Any())
+    {
+        sloupce.Add(new { Pid = 0, Nazev = (string)null, Barva = (string)null, Polozky = bezZarazeni });
+    }
 }
 
 <div class="kanban-wrap">
 
-    @if (!vsechny.Any())
+    @if (!sloupce.Any())
     {
         <div class="kanban-empty">
             <span class="material-icons-outlined">view_kanban</span>
@@ -74,11 +78,11 @@
             @foreach (var s in sloupce)
             {
                 var hlavickaText = TextOn(s.Barva);
-                var nazevZobraz = string.IsNullOrEmpty(s.Nazev) ? _f.tra("(bez zařazení)") : s.Nazev;
+                var nazevZobraz = string.IsNullOrWhiteSpace(s.Nazev) ? _f.tra("(bez zařazení)") : s.Nazev;
 
-                <section class="kanban-col" data-col="@s.Nazev">
+                <section class="kanban-col" data-col="@s.Pid">
                     <header class="kanban-col-head"
-                            style="@(s.Barva != null ? $"background:{s.Barva};" : "")@(hlavickaText != null ? $"color:{hlavickaText};" : "")">
+                            style="@(!string.IsNullOrWhiteSpace(s.Barva) ? $"background:{s.Barva};" : "")@(hlavickaText != null ? $"color:{hlavickaText};" : "")">
                         <span class="kanban-col-name" title="@nazevZobraz">@nazevZobraz</span>
                         <span class="kanban-col-count">@s.Polozky.Count</span>
                     </header>
@@ -100,7 +104,7 @@
                                      draggable="true"
                                      data-pid="@c.pid"
                                      data-prefix="@c.prefix"
-                                     data-col="@s.Nazev"
+                                     data-col="@s.Pid"
                                      ondragstart="kanban_dragstart(event)"
                                      ondragend="kanban_dragend(event)"
                                      onclick="kanban_card_click(this, event)">
