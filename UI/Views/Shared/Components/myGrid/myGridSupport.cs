@@ -581,7 +581,7 @@ namespace UI.Views.Shared.Components.myGrid
                         {
                             strRowClass = $"{strRowClass} trbg{dbRow["p28RowColorFlag"]}";   //záznam má nahozenou barvu
                         }
-                        
+                        bolCanbeTecka = true;
                         break;
                     case "p91":
                         if (dbRow["p91RowColorFlag"] != System.DBNull.Value)

@@ -181,7 +181,7 @@ namespace BL.Singleton
             AE("p31Worksheet", "Úkony", "Úkon", "p31Worksheet a INNER JOIN p41Project p41x ON a.p41ID=p41x.p41ID INNER JOIN p32Activity p32x ON a.p32ID=p32x.p32ID INNER JOIN p34ActivityGroup p34x ON p32x.p34ID=p34x.p34ID LEFT OUTER JOIN p91Invoice p91x ON a.p91ID=p91x.p91ID", "a.p31ID DESC");
             AE("o23Doc", "Dokumenty", "Dokument", "o23Doc a INNER JOIN o18DocType o18x ON a.o18ID=o18x.o18ID LEFT OUTER JOIN b02WorkflowStatus b02x ON a.b02ID=b02x.b02ID", "a.o23ID DESC");
 
-            AE("p28Contact", "Kontakty", "Kontakt", "p28Contact a INNER JOIN p29ContactType p29x ON a.p29ID=p29x.p29ID", "a.p28Name");
+            AE("p28Contact", "Kontakty", "Kontakt", "p28Contact a INNER JOIN p29ContactType p29x ON a.p29ID=p29x.p29ID LEFT OUTER JOIN b02WorkflowStatus b02x ON a.b02ID=b02x.b02ID", "a.p28Name");
             AE("p29ContactType", "Typy kontaktu", "Typ kontaktu", "p29ContactType a", "a.p29Ordinary,a.p29Name");
             AE("p24ContactGroup", "Skupiny kontaktů", "Skupina kontaktů", "p24ContactGroup a ", "a.p24Name");
             

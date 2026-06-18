@@ -536,7 +536,7 @@ namespace DL
                         s = $"{s},a.p41BillingFlag,b02x.b02Color,a.p41RowColorFlag,p07x.p07Level";
                         break;
                     case "p28":
-                        s = $"{s},a.p28TreePrev as treeprev,a.p28TreeNext as treenext,a.p28RowColorFlag";
+                        s = $"{s},a.p28TreePrev as treeprev,a.p28TreeNext as treenext,a.p28RowColorFlag,b02x.b02Color";
                         break;
                     //case "o43":
                     //    s = $"{s},a.o43IsFlagged as IsFlagged,a.o43IsDraft as IsDraft,a.o43IsDeleted as IsDeleted,a.o43IsSeen as IsSeen,a.o43AttachmentsCount as AttachmentsCount";

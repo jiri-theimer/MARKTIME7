@@ -41,6 +41,7 @@ namespace UI.Menu
             {
                 c.Name = $"{c.Name} <span class='badge-light'>{BO.Code.Bas.OM2(strAfterName, 20)}</span>";
             }
+            
             _lis.Add(c);
             return c;
         }
@@ -201,12 +202,12 @@ namespace UI.Menu
                     {
                         if (c.pid == b02id)
                         {
-                            var mi = AMI(c.b02Name, null, "check_box", "wrk");
+                            var mi = AMI(c.b02Name, null, "check_box", "wrk",null,null,null,false);
                             mi.Color = c.b02Color;
                         }
                         else
                         {
-                            var mi = AMI(c.b02Name, $"javascript: _window_open('/workflow_dialog/Index?record_prefix={prefix}&record_pid={pid}&run_b02id={c.pid}')", "done", "wrk");
+                            var mi = AMI(c.b02Name, $"javascript: _window_open('/workflow_dialog/Index?record_prefix={prefix}&record_pid={pid}&run_b02id={c.pid}')", "done", "wrk",null,null,null,false);
                             mi.Color = c.b02Color;
                             c.UserInsert = "ok1";
                         }
