@@ -309,6 +309,14 @@
 
                             </li>
                         }
+                        @if (_f.CurrentUser.j04IsModule_p28 && _myMenu.Contains("kanban-p28"))
+                        {
+                            <li title="Kanban kontaktů">
+                                <a id="cmdkanbanp28" class="nav-link" href="/Kanban/p28">                                    
+                                    <span class="material-icons-outlined-btn" style="color:white">view_kanban</span>
+                                </a>
+                            </li>
+                        }
 
                         @if (_f.CurrentUser.j04IsModule_j02 && _myMenu.Contains("j02"))
                         {

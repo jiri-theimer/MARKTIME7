@@ -505,7 +505,7 @@ function _mainmenu_highlight_current(linkID, orlinkID) {
 
     if (document.getElementById(linkID)) {
         $("#" + linkID).addClass("active");  //označit odkaz v hlavním menu
-       
+        
     }
 
     if (orlinkID !== undefined && document.getElementById(orlinkID)) {

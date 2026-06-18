@@ -36,7 +36,7 @@
 
     </div>
 
-    <div class="dog">
+    <div class="dog mx-2">
         <select class="form-select" asp-for="viewtype" onchange="viewtype_onchange(this)">
             @foreach (var c in Model.viewtypes)
             {
@@ -54,11 +54,11 @@
         @Html.EditorFor(m => Model.p31statequery, "~/Views/Shared/_p31StateQuery.cshtml")
     </div>
 
-    <div class="dog">
+    <div class="dog" title="Tabulka kontaktů">
 
         <a id="cmdp28" class="btn descreet_link_over_grid" href="@(new UI.Menu.TheMenuSupport(_f).GetMainmenuEntityUrl("p28"))">
             <span id="TheGridIcon" class="material-icons-outlined-btn">grid_view</span>
-            GRID
+            Tabulka
         </a>
 
     </div>
@@ -116,6 +116,7 @@
      $(document).ready(function () {
 
         
+         _mainmenu_highlight_current("cmdkanbanp28");
 
         
 
@@ -201,6 +202,28 @@
 
 
     }
+
+
+
+    window.kanban_on_drop = function (pid, prefix, fromCol, toCol, el) {
+        
+        $.ajax({
+            url: "/Kanban/Move",
+            type: "POST",
+            data: { pid: pid, prefix: prefix, sloupec_pid: toCol },
+            // pokud používáš antiforgery: headers: { "RequestVerificationToken": _token }
+        })
+        .fail(function () {
+            // uložení selhalo → vrátit kartu do původního sloupce
+            var back = document.querySelector('.kanban-col[data-col="' + fromCol + '"] .kanban-col-body');
+            if (back) {
+                back.appendChild(el);
+                el.setAttribute("data-col", fromCol);
+                kanban_recount();
+            }
+            alert("Přesun se nepodařilo uložit.");
+        });
+    };
 
 </script>
 

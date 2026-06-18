@@ -7,6 +7,34 @@ namespace UI.Controllers
 {
     public class KanbanController : BaseController
     {
+        [HttpPost]
+        public IActionResult Move(int pid, string prefix, int sloupec_pid)
+        {
+            // prefix říká, o jakou entitu jde; sloupec_pid je cílový sloupec
+            var viewtype = Factory.CBL.LoadUserParam("kanban-p28-viewtype", "p29");
+            switch (prefix)
+            {
+                case "p28":
+                    var rec = Factory.p28ContactBL.Load(pid);
+                    if (viewtype == "p29")
+                    {
+                        rec.p29ID = sloupec_pid;
+                        Factory.p28ContactBL.Save(rec, null, null, null, null, null, null);
+                    }
+                    else
+                    {
+                        rec.b02ID = sloupec_pid;
+                        Factory.WorkflowBL.RunWorkflowStatus("p28", pid, sloupec_pid,null,0);
+                    }
+                    
+                    
+                    break;
+                // další agendy (úlohy, projekty…) dle jejich BL
+                default:
+                    return BadRequest();
+            }
+            return Json(new { ok = true });
+        }
         public IActionResult p28(string viewtype,int go2pid)
         {
 
