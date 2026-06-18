@@ -1,0 +1,154 @@
+﻿@model UI.Models.Kanban.p28KanbanViewModel
+@inject BL.Factory _f
+
+@{
+
+   
+    Model.PageTitle = "KANBAN";
+
+    
+}
+
+@addTagHelper *, UI
+
+@section header_content {
+
+    
+
+}
+
+
+
+<div class="input-group" style="margin-top:6px;margin-bottom:1px;">
+    <div class="nonmobile nontablet">
+        <ul class="nav nav-tabs">
+            <li class="onetab">
+
+                <a id="cmdMore" class="nav-link onetab-offcanvas" tabindex="-1" role="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvas_more">
+                    <span class="onetab-caret"></span>
+                    Kanban
+
+                </a>
+
+            </li>
+        </ul>
+
+
+    </div>
+
+    
+
+    <div class="showmore dog">
+        @Html.EditorFor(m => Model.p31statequery, "~/Views/Shared/_p31StateQuery.cshtml")
+    </div>
+
+    
+
+
+
+
+    <div class="showmore dog" id="divQueryJ02" style="margin-left:10px;">
+        <mycombochecklist asp-for="@Model.p29IDs" entity="p29ContactType" placeholder="@_f.tra("Typy kontaktu")" placeholder_icon="filter_alt" selectedtext="@Model.SelectedP29Names" event_after_changevalue="handle_can_reload"></mycombochecklist>
+    </div>
+
+    
+
+
+    <div class="dog">
+        <button type="button" id="cmdRefresh" class="btn btn-primary" style="display:none;margin-left:10px;" onclick="save_setting_and_reload()">@_f.tra("Občerstvit")</button>
+    </div>
+
+
+
+
+
+
+</div>
+
+
+
+@await Html.PartialAsync("~/Views/Shared/_kanban.cshtml", Model)
+
+<!-- Nabídka Více -->
+<div class="offcanvas offcanvas-start" tabindex="-1" data-bs-scroll="true" data-bs-backdrop="true" data-bs-keyboard="true" id="offcanvas_more">
+
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title">
+            <a href="javascript:reload()" title="Občerstvit">
+                <myicon symbol="refresh"></myicon>
+            </a>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+
+    <div class="offcanvas-body p-0 m-0" id="offcanvas_more_body">
+
+        
+
+        <h1>offcanvas menu</h1>
+
+    </div>
+</div>
+
+<a class='cm' onclick='cm(event,pid)'>&#9776;</a>
+
+
+<script type="text/javascript">
+ 
+    function cm(e, pid)
+    {
+            _cm(e, "p28Contact", pid);
+    }
+
+    function edit(pid)
+    {
+        _edit("p28", pid, "Záznam");
+    }
+
+
+
+    function reload() {
+        
+        _redirect(location.href);
+    }
+
+    
+
+    function reload_setting(opg) {
+
+
+        $.post(_ep("/Common/SetUserParam"), { key: "kanban-groupby", value: opg.value }, function (data) {
+            reload();
+
+        });
+    }
+
+    function handle_can_reload(s) {
+        $("#cmdRefresh").css("display", "block");
+    }
+
+    function save_setting_and_reload()
+    {
+        var k = [];
+        var v = [];
+        k.push("kanban-p28-p29IDs");
+        v.push($("#p29IDs").val());
+
+    
+        $.post("/Common/SetUserParams", { keys: k, values: v }, function (data) {
+
+        reload();
+
+        });
+
+
+
+    }
+
+   
+
+
+   
+
+</script>
+

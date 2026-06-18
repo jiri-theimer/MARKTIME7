@@ -1,0 +1,13 @@
+﻿namespace UI.Models.Kanban
+{
+    public class BaseKanbanViewModel:BaseViewModel
+    {
+        public p31StateQueryViewModel p31statequery { get; set; }   //filtrování podle stavu aktivit v horním pruhu
+
+        public TheGridQueryViewModel TheGridQueryButton { get; set; }
+
+        public List<KanbanPolozka> polozky { get; set; }
+
+        public int go2pid { get; set; }
+    }
+}

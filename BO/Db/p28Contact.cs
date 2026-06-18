@@ -82,6 +82,9 @@ namespace BO
         public int x38ID { get; }
         public int b01ID { get; }
         public int p28Cache_p31Count { get; }
+
+        public string b02Name { get; }
+        public string b02Color { get; }
         public string FullNameAsc
         {
             get

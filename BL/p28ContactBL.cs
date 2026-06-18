@@ -50,7 +50,7 @@ namespace BL
                 sb($"SELECT TOP {intRecsTop} a.*");
             }
                        
-            sb(",p29x.p29Name,p29x.p29ScopeFlag,p92.p92Name,b02.b02Name");            
+            sb(",p29x.p29Name,p29x.p29ScopeFlag,p92.p92Name,b02.b02Name,b02.b02Color");            
             sb(",p51billing.p51Name as p51Name_Billing,j02owner.j02Name as Owner");
             sb(",p29x.x38ID,p29x.b01ID");
             if (!ischangelog)

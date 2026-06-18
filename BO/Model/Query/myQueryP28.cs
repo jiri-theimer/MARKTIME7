@@ -6,6 +6,7 @@ namespace BO
     {
         public int j02id_owner { get; set; }
         public int p29id { get; set; }
+        public List<int> p29ids { get; set; }
         public int b02id { get; set; }
         public int p51id { get; set; }      
         public int o51id { get; set; }
@@ -88,6 +89,10 @@ namespace BO
             if (this.p29id > 0)
             {
                 AQ("a.p29ID=@p29id", "p29id", this.p29id);
+            }
+            if (this.p29ids != null && this.p29ids.Count > 0)
+            {
+                AQ($"a.p29ID IN ({string.Join(",", this.p29ids)})", null, null);
             }
             if (this.b02id > 0)
             {
