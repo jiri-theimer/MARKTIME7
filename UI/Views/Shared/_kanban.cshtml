@@ -91,6 +91,9 @@
                         @foreach (var c in s.Polozky)
                         {
                             var maHodiny = c.hodiny_vykazane > 0 || c.hodiny_nevyuctovane > 0;
+                            var hodinyText = c.hodiny_nevyuctovane == c.hodiny_vykazane
+                                ? $"{Hours(c.hodiny_vykazane)}h"
+                                : $"{Hours(c.hodiny_nevyuctovane)}h/{Hours(c.hodiny_vykazane)}h";
                             var jeVybrana = Model.go2pid > 0 && c.pid == Model.go2pid;
 
                             <article class="kanban-card@(jeVybrana ? " kanban-card--selected" : "")"
@@ -106,13 +109,11 @@
                                     <a class="cm" onclick="cm(event,@c.pid)" title="@_f.tra("Menu")">&#9776;</a>
                                 </div>
 
-                                <div class="kanban-card-title">
-                                    @c.nazev
-                                    @if (!string.IsNullOrWhiteSpace(c.nazev_after))
-                                    {
-                                        <span class="kanban-card-title-after">@c.nazev_after</span>
-                                    }
-                                </div>
+                                <div class="kanban-card-title">@c.nazev</div>
+                                @if (!string.IsNullOrWhiteSpace(c.nazev_after))
+                                {
+                                    <div class="kanban-card-title-after">@c.nazev_after</div>
+                                }
 
                                 @if (!string.IsNullOrWhiteSpace(c.b02Name))
                                 {
@@ -124,18 +125,11 @@
                                 @if (maHodiny)
                                 {
                                     <div class="kanban-card-foot">
-                                        @if (c.hodiny_vykazane > 0)
-                                        {
-                                            <span class="kanban-hrs" title="@_f.tra("Vykázané hodiny")">
-                                                <span class="material-icons-outlined">schedule</span>@Hours(c.hodiny_vykazane)
-                                            </span>
-                                        }
-                                        @if (c.hodiny_nevyuctovane > 0)
-                                        {
-                                            <span class="kanban-hrs kanban-hrs--warn" title="@_f.tra("Nevyúčtované hodiny")">
-                                                <span class="material-icons-outlined">paid</span>@Hours(c.hodiny_nevyuctovane)
-                                            </span>
-                                        }
+                                        <a class="kanban-hrs-link"
+                                           onclick="kanban_hours(event, '@c.prefix', @c.pid)"
+                                           title="@_f.tra("Nevyúčtované / vykázané hodiny")">
+                                            @hodinyText
+                                        </a>
                                     </div>
                                 }
                             </article>
@@ -282,7 +276,8 @@
     .kanban-card-title-after {
         font-weight: 400;
         color: #6c757d;
-        margin-left: 4px;
+        margin-top: 2px;
+        word-break: break-word;
     }
 
     .kanban-card-stav {
@@ -304,19 +299,23 @@
         color: #495057;
     }
 
-    .kanban-hrs {
+    .kanban-hrs-link {
         display: inline-flex;
         align-items: center;
-        gap: 3px;
+        gap: 4px;
+        color: #0d6efd;
+        cursor: pointer;
+        text-decoration: none;
+        font-variant-numeric: tabular-nums;
     }
 
-        .kanban-hrs .material-icons-outlined {
-            font-size: 15px;
+        .kanban-hrs-link:hover {
+            text-decoration: underline;
         }
 
-    .kanban-hrs--warn {
-        color: #b54708;
-    }
+        .kanban-hrs-link .material-icons-outlined {
+            font-size: 15px;
+        }
 
     .kanban-empty {
         display: flex;
@@ -359,8 +358,17 @@
 
         window.kanban_card_click = function (el, ev) {
             if (window.__kanban_suppress_click) { window.__kanban_suppress_click = false; return; }
-            if (ev && ev.target && ev.target.closest && ev.target.closest(".cm")) return; // hamburger řeší cm()
+            if (ev && ev.target && ev.target.closest && ev.target.closest(".cm, .kanban-hrs-link")) return; // řeší si vlastní onclick
             window.kanban_open(el.getAttribute("data-prefix"), el.getAttribute("data-pid"));
+        };
+
+        // Odkaz na hodiny → /p31dayline/Zoom?{prefix}id={pid} v modálním okně. Host může přepsat window.kanban_hours.
+        window.kanban_hours = function (ev, prefix, pid) {
+            if (ev) { ev.stopPropagation(); ev.preventDefault(); }
+            var url = "/p31dayline/Zoom?" + prefix + "id=" + pid + "&d1=01.01.2000&d2=31.12.2100";
+            if (typeof _window_open === "function") { _window_open(url, 1); }
+            else if (typeof _redirect === "function") { _redirect(url); }
+            else { location.href = url; }
         };
 
         window.kanban_dragstart = function (ev) {

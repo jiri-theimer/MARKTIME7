@@ -244,11 +244,15 @@ namespace UI.Controllers
                 
             }
 
-            if (v.j02ID==0 || v.SelectedDate1.Year<2000)
+            if ((v.j02ID==0 && v.p28ID==0 && v.p41ID==0) || v.SelectedDate1.Year<2000)
             {
-                return this.StopPage(true, "Na vstupu chybí osoba nebo datum.");
+                return this.StopPage(true, "Na vstupu chybí záznam nebo datum.");
             }
-            v.RecJ02 = Factory.j02UserBL.Load(v.j02ID);
+            if (v.j02ID > 0)
+            {
+                v.RecJ02 = Factory.j02UserBL.Load(v.j02ID);
+            }
+            
 
             string strMyQueryInline = "MyRecordsDisponible|bool|1|j02id|int|" + v.j02ID.ToString()+ "|global_d1|date|" + BO.Code.Bas.ObjectDate2String(v.SelectedDate1,"dd.MM.yyyy") + "|global_d2|date|" + BO.Code.Bas.ObjectDate2String(v.SelectedDate2, "dd.MM.yyyy");
             if (v.p28ID > 0)

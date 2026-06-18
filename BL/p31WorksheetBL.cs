@@ -1,5 +1,7 @@
 ﻿
 
+using BO.Model.p31;
+
 namespace BL
 {
     public enum p31TableEnum
@@ -44,6 +46,7 @@ namespace BL
         public int Recalc(List<int> pids,int ratetype); //1: fakturační sazby, 2: nákladové sazby, 3 režijní sazby, 4 efektivní sazba
         public bool Move_To_Del(string p85guid, int intYear = 0);
         public bool Move_From_Del(string p85guid, int intYear = 0);
+        public IEnumerable<BO.Model.p31.p31HodinyKanban> GetList_HodinyKanban(string prefix);
 
 
     }
@@ -883,6 +886,21 @@ namespace BL
 
             return _db.GetList<BO.p31QuickStat>(fq.FinalSql, fq.Parameters);
 
+        }
+
+        public IEnumerable<BO.Model.p31.p31HodinyKanban> GetList_HodinyKanban(string prefix)
+        {
+            switch (prefix)
+            {
+                case "p28":
+                    sb("select p41.p28ID_Client as pid, sum(a.p31Hours_Orig) as hodiny_vykazane,sum(case when a.p91ID IS NULL then a.p31Hours_Orig end) as hodiny_nevyuctovane");
+                    sb(" from p31Worksheet a INNER JOIN p41Project p41 ON a.p41ID=p41.p41ID INNER JOIN p28Contact p28 ON p41.p28ID_Client=p28.p28ID");
+                    sb(" WHERE GETDATE() between p28.p28ValidFrom AND p28.p28ValidUntil AND GETDATE() between p41.p41ValidFrom AND p41.p41ValidUntil");
+                    sb(" GROUP BY p41.p28ID_Client");
+                    break;
+            }
+
+            return _db.GetList<p31HodinyKanban>(sbret());
         }
         public IEnumerable<BO.p31WorksheetTimelineDay> GetList_TimelineDays(List<int> j02ids, DateTime d1, DateTime d2, int j70id, int p31statequery, int j72id_query)
         {

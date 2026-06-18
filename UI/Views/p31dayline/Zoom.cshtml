@@ -10,14 +10,18 @@
 
 <div class="input-group" style="padding: 3px;background-color: #2D89EF;color:white;">
     <div style="flex:1;">
-        @if (Model.SelectedDate1 == Model.SelectedDate2)
+        @if(Model.RecJ02 != null)
         {
-            @(BO.Code.Bas.ObjectDate2String(Model.SelectedDate1) + ": " + Model.RecJ02.FullNameAsc)
+            @if (Model.SelectedDate1 == Model.SelectedDate2)
+            {
+                @(BO.Code.Bas.ObjectDate2String(Model.SelectedDate1) + ": " + Model.RecJ02.FullNameAsc)
+            }
+            else
+            {
+                @(BO.Code.Bas.ObjectDate2String(Model.SelectedDate1) + " - " + BO.Code.Bas.ObjectDate2String(Model.SelectedDate2) + ": " + Model.RecJ02.FullNameAsc)
+            }
         }
-        else
-        {
-            @(BO.Code.Bas.ObjectDate2String(Model.SelectedDate1) +" - "+ BO.Code.Bas.ObjectDate2String(Model.SelectedDate2) + ": " + Model.RecJ02.FullNameAsc)
-        }
+        
 
     </div>
     <div style="width:30px;text-align:center;">
