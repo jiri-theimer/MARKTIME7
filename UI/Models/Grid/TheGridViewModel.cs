@@ -32,6 +32,7 @@ namespace UI.Models
         public RecordBinQueryViewModel recordbinquery { get; set; } //filtrování podle archivu
         public ProjectTreeQueryViewModel p41treequery { get; set; } //filtrování podle stromové úrovně projektu
         public bool IsCanbeMasterView { get; set; }
+        public bool IsCanbeKanban { get; set; }
         public string dblClickSetting { get; set; }
         public int o43mavazbu { get; set; } //0: bez ohledu na vazbu, 1: zprávy bez vazby, 2: zprávy s vazbou
         

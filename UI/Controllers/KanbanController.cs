@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using DocumentFormat.OpenXml.Presentation;
+using Microsoft.AspNetCore.Mvc;
 using UI.Models;
 using UI.Models.Kanban;
 
@@ -75,7 +76,7 @@ namespace UI.Controllers
 
             foreach(var c in lisP28)
             {
-                var polozka = new KanbanPolozka() {prefix="p28",pid=c.pid, nazev = c.p28Name, kod = c.p28Code, b02Name = c.b02Name, b02Color = c.b02Color };
+                var polozka = new KanbanPolozka() {prefix="p28",pid=c.pid, nazev = c.p28Name, kod = c.p28Code };
                 if (c.p28Street1 !=null || c.p28City1 != null)
                 {
                     polozka.nazev_after = $"{c.p28Street1}, {c.p28City1}";
@@ -87,6 +88,8 @@ namespace UI.Controllers
                 if (v.viewtype == "p29")
                 {
                     polozka.sloupec_pid = c.p29ID;
+                    polozka.b02Name = c.b02Name;
+                    polozka.b02Color = c.b02Color;
                 }
                 else
                 {

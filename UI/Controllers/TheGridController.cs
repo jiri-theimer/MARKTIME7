@@ -475,6 +475,10 @@ namespace UI.Controllers
                 v.IsCanbeMasterView = true;
                 v.dblClickSetting = Factory.CBL.LoadUserParam($"grid-{v.prefix}-dblclick", "edit");
             }
+            if (v.prefix == "p28" || v.prefix == "p41" || v.prefix == "p56")
+            {
+                v.IsCanbeKanban = true;
+            }
            
             if (this.Factory.CurrentUser.j04IsModule_p31 && masterentity !="p91Invoice" && (v.prefix == "p31" || v.prefix == "p41" || v.prefix == "p28" || v.prefix == "o23" || v.prefix=="p56" || v.prefix=="j02"))
             {

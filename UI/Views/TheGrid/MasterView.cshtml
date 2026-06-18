@@ -94,6 +94,12 @@
             <a class="btn descreet_link_over_grid" title="Stránka záznamu" href="javascript:_recpage_from_grid('@(Model.prefix)')"><span class="material-icons-outlined-btn">maps_home_work</span></a>
         </div>
     }
+    @if (Model.IsCanbeKanban)
+    {
+        <div>
+            <a class="btn descreet_link_over_grid" title="Kanban" href="/Kanban/@(Model.prefix)"><span class="material-icons-outlined-btn">view_kanban</span></a>
+        </div>
+    }
     @if (Model.prefix != "p91" && Model.prefix != "p84" && Model.prefix != "o27")
     {
         <div class="nonmobile">
