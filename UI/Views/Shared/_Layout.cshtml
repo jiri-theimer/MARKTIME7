@@ -260,6 +260,14 @@
                                     <a id="cmdp41" class="nav-link" href="@(cmenu.GetMainmenuEntityUrl("p41"))">@_f.tra("PROJEKTY")</a>
                                 </li>
                             }
+                            @if (_myMenu.Contains("kanban-p41"))
+                            {
+                                <li title="Kanban projektů">
+                                    <a id="cmdkanbanp41" class="nav-link" href="/Kanban/p41">
+                                        <span class="material-icons-outlined-btn" style="color:white">view_kanban</span>
+                                    </a>
+                                </li>
+                            }
                             @if (_myMenu.Contains("treepage"))
                             {
                                 <li title="Strom projektů">
