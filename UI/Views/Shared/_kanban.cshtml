@@ -119,12 +119,25 @@
                                     <div class="kanban-card-title-after">@c.nazev_after</div>
                                 }
 
-                                @if (c.role != null && c.role.Any(r => !string.IsNullOrWhiteSpace(r)))
+                                @{
+                                    var roleSkupiny = (c.role ?? new List<BO.StringPair>())
+                                        .Where(r => r != null && (!string.IsNullOrWhiteSpace(r.Key) || !string.IsNullOrWhiteSpace(r.Value)))
+                                        .GroupBy(r => r.Key ?? "")
+                                        .ToList();
+                                }
+                                @if (roleSkupiny.Any())
                                 {
                                     <div class="kanban-card-role">
-                                        @foreach (var r in c.role.Where(r => !string.IsNullOrWhiteSpace(r)))
+                                        @foreach (var g in roleSkupiny)
                                         {
-                                            <span class="kanban-role">@r</span>
+                                            var jmena = string.Join(", ", g.Select(r => r.Value).Where(v => !string.IsNullOrWhiteSpace(v)));
+                                            <span class="kanban-role">
+                                                @if (!string.IsNullOrWhiteSpace(g.Key))
+                                                {
+                                                    <span class="kanban-role-key">@(g.Key):</span>
+                                                }
+                                                @jmena
+                                            </span>
                                         }
                                     </div>
                                 }
@@ -296,7 +309,8 @@
 
     .kanban-card-role {
         display: flex;
-        flex-wrap: wrap;
+        flex-direction: column;
+        align-items: flex-start;
         gap: 4px;
         margin-top: 6px;
     }
@@ -304,11 +318,17 @@
     .kanban-role {
         font-size: .7rem;
         line-height: 1.4;
-        padding: 1px 7px;
+        padding: 1px 8px;
         border-radius: 10px;
         background: #eef1f4;
         color: #495057;
         border: 1px solid #e0e4e8;
+        max-width: 100%;
+        white-space: normal;
+    }
+
+    .kanban-role-key {
+        font-weight: 600;
     }
 
     .kanban-card-stav {

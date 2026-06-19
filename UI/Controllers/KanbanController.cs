@@ -1,4 +1,7 @@
-﻿using DocumentFormat.OpenXml.Presentation;
+﻿using BO;
+using ceTe.DynamicPDF;
+using DocumentFormat.OpenXml.Office2013.PowerPoint.Roaming;
+using DocumentFormat.OpenXml.Presentation;
 using Microsoft.AspNetCore.Mvc;
 using UI.Models;
 using UI.Models.Kanban;
@@ -28,6 +31,12 @@ namespace UI.Controllers
                     }
                     
                     
+                    break;
+                case "p41":                    
+                    Factory.WorkflowBL.RunWorkflowStatus("p41", pid, sloupec_pid, null, 0);
+                    break;
+                case "p56":
+                    Factory.WorkflowBL.RunWorkflowStatus("p56", pid, sloupec_pid, null, 0);
                     break;
                 // další agendy (úlohy, projekty…) dle jejich BL
                 default:
@@ -124,10 +133,10 @@ namespace UI.Controllers
                 var qryRole = lisX69.Where(p => p.x69RecordPid == c.pid);
                 if (qryRole.Count()>0)
                 {
-                    polozka.role = new List<string>();
+                    polozka.role = new List<BO.StringPair>();
                     foreach (var role in qryRole)
                     {
-                        polozka.role.Add($"{role.x67Name}: {role.Person} {role.j11Name}");
+                        polozka.role.Add(new BO.StringPair() { Key = role.x67Name, Value = $"{role.Person} {role.j11Name}" });
                     }
                 }
                 
@@ -212,19 +221,19 @@ namespace UI.Controllers
                 var polozka = new KanbanPolozka() { prefix = "p41", pid = c.pid, nazev = c.p41Name, kod = c.p41Code };
                 polozka.nazev_after = c.Client;
                 polozka.sloupec_pid = c.b02ID;
-                polozka.b02Name = c.b02Name;
-                polozka.b02Color = c.b02Color;
+                //polozka.b02Name = c.b02Name;
+                //polozka.b02Color = c.b02Color;
                 
                 var qryRole = lisX69.Where(p => p.x69RecordPid == c.pid);
                 if (qryRole.Count() > 0)
                 {
-                    polozka.role = new List<string>();
+                    polozka.role = new List<BO.StringPair>();
                     foreach (var role in qryRole)
                     {
-                        polozka.role.Add($"{role.x67Name}: {role.Person} {role.j11Name}");
+                        polozka.role.Add(new BO.StringPair() { Key = role.x67Name, Value = $"{role.Person} {role.j11Name}" });
                     }
                 }
-
+               
                 v.polozky.Add(polozka);
             }
 
@@ -303,19 +312,19 @@ namespace UI.Controllers
 
             foreach (var c in lisP56)
             {
-                var polozka = new KanbanPolozka() { prefix = "p56", pid = c.pid, nazev = c.p56Name, kod = c.p56Code };
+                var polozka = new KanbanPolozka() { prefix = "p56", pid = c.pid, nazev = $"{c.p56Name} ({c.p56Code})", kod = c.p56Code };
                 polozka.nazev_after = c.ProjectWithClient;
                 polozka.sloupec_pid = c.b02ID;
-                polozka.b02Name = c.b02Name;
-                polozka.b02Color = c.b02Color;
+                //polozka.b02Name = c.b02Name;
+                //polozka.b02Color = c.b02Color;
 
                 var qryRole = lisX69.Where(p => p.x69RecordPid == c.pid);
                 if (qryRole.Count() > 0)
                 {
-                    polozka.role = new List<string>();
+                    polozka.role = new List<BO.StringPair>();
                     foreach (var role in qryRole)
                     {
-                        polozka.role.Add($"{role.x67Name}: {role.Person} {role.j11Name}");
+                        polozka.role.Add(new BO.StringPair() { Key = role.x67Name, Value = $"{role.Person} {role.j11Name}" });
                     }
                 }
 

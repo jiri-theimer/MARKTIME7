@@ -1,0 +1,193 @@
+﻿@model UI.Models.Kanban.p56KanbanViewModel
+@inject BL.Factory _f
+
+@{
+
+   
+    Model.PageTitle = "KANBAN";
+
+    
+}
+
+@addTagHelper *, UI
+
+@section header_content {
+
+    
+
+}
+
+
+
+<div class="input-group" style="margin-top:6px;margin-bottom:1px;">
+    <div class="nonmobile nontablet">
+        <ul class="nav nav-tabs">
+            <li class="onetab">
+
+                <a id="cmdMore" class="nav-link onetab-offcanvas" tabindex="-1" role="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvas_more">
+                    <span class="onetab-caret"></span>
+                    Kanban
+
+                </a>
+
+            </li>
+        </ul>
+
+
+    </div>
+
+    <div class="dog mx-2">
+        <select class="form-select" asp-for="viewtype" onchange="viewtype_onchange(this)">
+            @foreach (var c in Model.viewtypes)
+            {
+                <option value="@c.Key">@c.Value</option>
+            }
+        </select>
+    </div>
+
+    <div class="dog">
+        @Html.EditorFor(m => Model.TheGridQueryButton, "~/Views/Shared/_ButtonGridQuery.cshtml")
+
+    </div>
+
+    <div class="dog">
+        @Html.EditorFor(m => Model.p31statequery, "~/Views/Shared/_p31StateQuery.cshtml")
+    </div>
+
+    <div class="dog" title="Tabulka kontaktů">
+
+        <a id="cmdp56" class="btn descreet_link_over_grid" href="@(new UI.Menu.TheMenuSupport(_f).GetMainmenuEntityUrl("p56"))">
+            <span id="TheGridIcon" class="material-icons-outlined-btn">grid_view</span>
+            Tabulka
+        </a>
+
+    </div>
+
+
+
+   
+
+
+  
+
+
+
+
+
+</div>
+
+
+
+@await Html.PartialAsync("~/Views/Shared/_kanban.cshtml", Model)
+
+<!-- Nabídka Více -->
+<div class="offcanvas offcanvas-start" tabindex="-1" data-bs-scroll="true" data-bs-backdrop="true" data-bs-keyboard="true" id="offcanvas_more">
+
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title">
+            <a href="javascript:reload()" title="Občerstvit">
+                <myicon symbol="refresh"></myicon>
+            </a>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+
+    <div class="offcanvas-body p-0 m-0" id="offcanvas_more_body">
+
+        
+
+        Kanban projektů
+
+    </div>
+</div>
+
+
+
+
+<script type="text/javascript">
+
+     $(document).ready(function () {
+
+        
+         _mainmenu_highlight_current("cmdkanbanp56");
+
+        
+
+         register_menu("cmdgridquerymenu", "cmdgridquerymenu_menu", "/Menu/grid_query?prefix=p56&j72id=@(Model.TheGridQueryButton.j72id)");
+
+         $("#SelectedJ72ID").mouseover(function (e) {
+             $("#cmdQueryBuilder").css("visibility", "visible");
+
+         });
+
+         $("#cmdQueryBuilder").children().mouseout(function (e) {
+             $("#cmdQueryBuilder").css("visibility", "hidden");
+
+         });
+
+
+
+
+     });
+
+
+ 
+     function cm(e, pid)
+     {
+             _cm(e, "p56Task", pid);
+     }
+
+     function edit(pid)
+     {
+         _edit("p56", pid, "Záznam");
+     }
+
+
+
+     function reload() {
+
+         _redirect(location.href);
+     }
+
+    
+
+     
+
+    
+
+
+     function viewtype_onchange(cbx)
+     {
+
+     
+       $.post(_ep("/Common/SetUserParam"), { key: "kanban-p56-viewtype", value: cbx.value }, function (data) {
+         reload();
+       });
+
+
+    }
+
+
+
+    window.kanban_on_drop = function (pid, prefix, fromCol, toCol, el) {
+
+        $.ajax({
+            url: "/Kanban/Move",
+            type: "POST",
+            data: { pid: pid, prefix: prefix, sloupec_pid: toCol },
+            // pokud používáš antiforgery: headers: { "RequestVerificationToken": _token }
+        })
+        .fail(function () {
+            // uložení selhalo → vrátit kartu do původního sloupce
+            var back = document.querySelector('.kanban-col[data-col="' + fromCol + '"] .kanban-col-body');
+            if (back) {
+                back.appendChild(el);
+                el.setAttribute("data-col", fromCol);
+                kanban_recount();
+            }
+            alert("Přesun se nepodařilo uložit.");
+        });
+    };
+
+</script>
+
