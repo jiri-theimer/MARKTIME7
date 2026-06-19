@@ -191,7 +191,7 @@ namespace UI.Controllers
 
             var lisX69 = Factory.x67EntityRoleBL.GetList_X69("p41", 0);
 
-            var mq = new BO.myQueryP41("p41");
+            var mq = new BO.myQueryP41("p41") { IsRecordValid = null };
 
             if (v.TheGridQueryButton.j72id > 0)
             {
@@ -285,7 +285,7 @@ namespace UI.Controllers
 
             var lisX69 = Factory.x67EntityRoleBL.GetList_X69("p56", 0);
 
-            var mq = new BO.myQueryP56();
+            var mq = new BO.myQueryP56() { IsRecordValid = null };
 
             if (v.TheGridQueryButton.j72id > 0)
             {
