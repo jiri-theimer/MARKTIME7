@@ -1,4 +1,4 @@
-﻿@model UI.Models.Kanban.p28KanbanViewModel
+﻿@model UI.Models.Kanban.p41KanbanViewModel
 @inject BL.Factory _f
 
 @{
@@ -56,7 +56,7 @@
 
     <div class="dog" title="Tabulka kontaktů">
 
-        <a id="cmdp28" class="btn descreet_link_over_grid" href="@(new UI.Menu.TheMenuSupport(_f).GetMainmenuEntityUrl("p28"))">
+        <a id="cmdp41" class="btn descreet_link_over_grid" href="@(new UI.Menu.TheMenuSupport(_f).GetMainmenuEntityUrl("p41"))">
             <span id="TheGridIcon" class="material-icons-outlined-btn">grid_view</span>
             Tabulka
         </a>
@@ -65,10 +65,10 @@
 
 
 
-    
+   
 
-    
 
+  
 
 
 
@@ -96,7 +96,7 @@
 
         
 
-        Kanban kontaktů
+        Kanban projektů
 
     </div>
 </div>
@@ -109,11 +109,11 @@
      $(document).ready(function () {
 
         
-         _mainmenu_highlight_current("cmdkanbanp28");
+         _mainmenu_highlight_current("cmdkanbanp41");
 
         
 
-         register_menu("cmdgridquerymenu", "cmdgridquerymenu_menu", "/Menu/grid_query?prefix=p28&j72id=@(Model.TheGridQueryButton.j72id)");
+         register_menu("cmdgridquerymenu", "cmdgridquerymenu_menu", "/Menu/grid_query?prefix=p41&j72id=@(Model.TheGridQueryButton.j72id)");
 
          $("#SelectedJ72ID").mouseover(function (e) {
              $("#cmdQueryBuilder").css("visibility", "visible");
@@ -134,12 +134,12 @@
  
      function cm(e, pid)
      {
-             _cm(e, "p28Contact", pid);
+             _cm(e, "p41Project", pid);
      }
 
      function edit(pid)
      {
-         _edit("p28", pid, "Záznam");
+         _edit("p41", pid, "Záznam");
      }
 
 
@@ -151,16 +151,16 @@
 
     
 
-   
+     
 
-   
+    
 
 
      function viewtype_onchange(cbx)
      {
 
      
-       $.post(_ep("/Common/SetUserParam"), { key: "kanban-p28-viewtype", value: cbx.value }, function (data) {
+       $.post(_ep("/Common/SetUserParam"), { key: "kanban-p41-viewtype", value: cbx.value }, function (data) {
          reload();
        });
 
@@ -170,7 +170,7 @@
 
 
     window.kanban_on_drop = function (pid, prefix, fromCol, toCol, el) {
-        
+
         $.ajax({
             url: "/Kanban/Move",
             type: "POST",

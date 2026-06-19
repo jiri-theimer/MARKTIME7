@@ -5,6 +5,7 @@ namespace BO
     public class myQueryP41 : baseQuery
     {
         public int p42id { get; set; }
+        public List<int> p42ids { get; set; }
         public int p51id { get; set; }
         public int p07level { get; set; }
         public int j02id_owner { get; set; }
@@ -12,6 +13,7 @@ namespace BO
         public int p15id { get; set; }
         
         public int b02id { get; set; }
+        public int b01id { get; set; }
         public int j18id { get; set; }
         public int p61id { get; set; }
         public int p91id { get; set; }
@@ -96,7 +98,10 @@ namespace BO
             {
                 AQ("a.p42ID=@p42id", "p42id", this.p42id);
             }
-
+            if (this.p42ids != null && this.p42ids.Count > 0)
+            {
+                AQ($"a.p42ID IN ({string.Join(",", this.p42ids)})", null, null);
+            }
             if (this.p51id > 0)
             {
                 AQ("(a.p51ID_Billing=@p51id OR a.p51ID_Internal=@p51id)", "p51id", this.p51id);
@@ -119,6 +124,10 @@ namespace BO
             if (this.b02id > 0)
             {
                 AQ("a.b02ID=@b02id", "b02id", this.b02id);
+            }
+            if (this.b01id > 0)
+            {
+                AQ("a.p42ID IN (select p42ID FROM p42ProjectType WHERE b01ID=@b01id)", "b01id", this.b01id);
             }
             if (this.p15id > 0)
             {

@@ -898,6 +898,17 @@ namespace BL
                     sb(" WHERE GETDATE() between p28.p28ValidFrom AND p28.p28ValidUntil AND GETDATE() between p41.p41ValidFrom AND p41.p41ValidUntil");
                     sb(" GROUP BY p41.p28ID_Client");
                     break;
+                case "p41":
+                    sb("select a.p41ID as pid, sum(a.p31Hours_Orig) as hodiny_vykazane,sum(case when a.p91ID IS NULL then a.p31Hours_Orig end) as hodiny_nevyuctovane");
+                    sb(" from p31Worksheet a INNER JOIN p41Project p41 ON a.p41ID=p41.p41ID");
+                    sb(" WHERE GETDATE() between p41.p41ValidFrom AND p41.p41ValidUntil");
+                    sb(" GROUP BY a.p41ID");
+                    break;
+                case "p56":
+                    sb("select a.p56ID as pid, sum(a.p31Hours_Orig) as hodiny_vykazane,sum(case when a.p91ID IS NULL then a.p31Hours_Orig end) as hodiny_nevyuctovane");
+                    sb(" from p31Worksheet a INNER JOIN p56Task p56 ON a.p56ID=p56.p56ID");                   
+                    sb(" GROUP BY a.p56ID");
+                    break;
             }
 
             return _db.GetList<p31HodinyKanban>(sbret());

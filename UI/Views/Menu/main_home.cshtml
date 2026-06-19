@@ -283,6 +283,12 @@
                         </a>
                         <button type="button" data-key="treepage" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
 
+                        <a id="linkKanbanP41" class="locallink" href="/Kanban/p41">
+                            <span class="material-icons-outlined-btn">view_kanban</span>
+                            KANBAN
+                        </a>
+                        <button type="button" data-key="kanban-p41" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
+
                         @if (_f.CurrentUser.TestPermission(BO.PermValEnum.GR_p41_Reader))
                         {
                             <a id="linkP44" class="locallink" href="@cmenu.getGridUrl("p44")">
@@ -879,6 +885,10 @@
     if (url.indexOf("Kanban/p28") > 0) {
 
         $("#linkKanbanP28").addClass("active");
+    }
+    if (url.indexOf("Kanban/p41") > 0) {
+
+        $("#linkKanbanP41").addClass("active");
     }
     if (urllower.indexOf("widgets/index") > 0) {
 
