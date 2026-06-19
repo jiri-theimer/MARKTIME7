@@ -352,6 +352,13 @@
 
                 <td style="padding:20px;">
                     <h6>
+                        <a id="linkKanbanP56" class="locallink" href="/Kanban/p56">
+                            <span class="material-icons-outlined-btn">view_kanban</span>
+                            KANBAN
+                        </a>
+                        <button type="button" data-key="kanban-p56" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
+
+
                         @if (_GridUrlP58 != null)
                         {
 
@@ -889,6 +896,10 @@
     if (url.indexOf("Kanban/p41") > 0) {
 
         $("#linkKanbanP41").addClass("active");
+    }
+    if (url.indexOf("Kanban/p56") > 0) {
+
+        $("#linkKanbanP56").addClass("active");
     }
     if (urllower.indexOf("widgets/index") > 0) {
 

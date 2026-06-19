@@ -163,7 +163,7 @@ namespace UI.Controllers
             var lisB01 = Factory.b01WorkflowTemplateBL.GetList(new BO.myQuery("b01")).Where(p => p.b01Entity == "p41");
             if (lisB01.Count() == 0)
             {
-                return this.StopPage(false, "Neexistuje ani jedna workflow šablona projektu.");
+                return this.StopPage(false, "Neexistuje ani jedna workflow šablona.");
             }
             v.viewtypes = new List<BO.StringPair>();            
             foreach (var c in lisB01)
@@ -180,7 +180,7 @@ namespace UI.Controllers
                 v.TheGridQueryButton.j72name = Factory.j72TheGridTemplateBL.LoadName(v.TheGridQueryButton.j72id);
             }
 
-            var lisX69 = Factory.x67EntityRoleBL.GetList_X69("p28", 0);
+            var lisX69 = Factory.x67EntityRoleBL.GetList_X69("p41", 0);
 
             var mq = new BO.myQueryP41("p41");
 
@@ -229,6 +229,100 @@ namespace UI.Controllers
             }
 
             var lisHodiny = Factory.p31WorksheetBL.GetList_HodinyKanban("p41");
+            foreach (var c in v.polozky)
+            {
+                var qry = lisHodiny.FirstOrDefault(p => p.pid == c.pid);
+                if (qry != null)
+                {
+                    c.hodiny_vykazane = qry.hodiny_vykazane;
+                    c.hodiny_nevyuctovane = qry.hodiny_nevyuctovane;
+                }
+            }
+
+
+
+
+
+            return View(v);
+        }
+
+        public IActionResult p56(string viewtype, int go2pid)
+        {
+            if (!Factory.CurrentUser.j04IsModule_p56)
+            {
+                return this.StopPage(false, "Nemáte oprávnění pro tento Modul.");
+            }
+            var v = new p56KanbanViewModel() { go2pid = go2pid, viewtype = viewtype };
+
+            var lisB01 = Factory.b01WorkflowTemplateBL.GetList(new BO.myQuery("b01")).Where(p => p.b01Entity == "p56");
+            if (lisB01.Count() == 0)
+            {
+                return this.StopPage(false, "Neexistuje ani jedna workflow šablona.");
+            }
+            v.viewtypes = new List<BO.StringPair>();
+            foreach (var c in lisB01)
+            {
+                v.viewtypes.Add(new BO.StringPair() { Key = $"b01-{c.pid}", Value = c.b01Name });
+            }
+            if (string.IsNullOrEmpty(v.viewtype))
+            {
+                v.viewtype = Factory.CBL.LoadUserParam("kanban-p56-viewtype", $"b01-{lisB01.First().pid}");
+            }
+            v.TheGridQueryButton = new TheGridQueryViewModel() { j72id = Factory.CBL.LoadUserParamInt("kanban-p56-j72id"), paramkey = "kanban-p56-j72id", prefix = "p56" };
+            if (v.TheGridQueryButton.j72id > 0)
+            {
+                v.TheGridQueryButton.j72name = Factory.j72TheGridTemplateBL.LoadName(v.TheGridQueryButton.j72id);
+            }
+
+            var lisX69 = Factory.x67EntityRoleBL.GetList_X69("p56", 0);
+
+            var mq = new BO.myQueryP56();
+
+            if (v.TheGridQueryButton.j72id > 0)
+            {
+                mq.lisJ73 = Factory.j72TheGridTemplateBL.GetList_j73(v.TheGridQueryButton.j72id, "p56", 0);
+            }
+
+
+            v.sloupce = new List<KanbanSloupec>();
+            mq.b01id = int.Parse(v.viewtype.Replace("b01-", ""));
+            var lisB02 = Factory.b02WorkflowStatusBL.GetList(new BO.myQuery("b02")).Where(p => p.b01ID == mq.b01id).OrderBy(p => p.b02Ordinary);
+            foreach (var c in lisB02)
+            {
+                v.sloupce.Add(new KanbanSloupec() { pid = c.pid, nazev = c.b02Name, barva = c.b02Color });
+            }
+
+            v.p31statequery = new p31StateQueryViewModel() { UserParamKey = "kanban-p56-p31statequery" };
+            v.p31statequery.Value = Factory.CBL.LoadUserParamInt(v.p31statequery.UserParamKey);
+            mq.p31statequery = v.p31statequery.Value;
+
+
+
+            var lisP56 = Factory.p56TaskBL.GetList(mq);
+            v.polozky = new List<KanbanPolozka>();
+
+            foreach (var c in lisP56)
+            {
+                var polozka = new KanbanPolozka() { prefix = "p56", pid = c.pid, nazev = c.p56Name, kod = c.p56Code };
+                polozka.nazev_after = c.ProjectWithClient;
+                polozka.sloupec_pid = c.b02ID;
+                polozka.b02Name = c.b02Name;
+                polozka.b02Color = c.b02Color;
+
+                var qryRole = lisX69.Where(p => p.x69RecordPid == c.pid);
+                if (qryRole.Count() > 0)
+                {
+                    polozka.role = new List<string>();
+                    foreach (var role in qryRole)
+                    {
+                        polozka.role.Add($"{role.x67Name}: {role.Person} {role.j11Name}");
+                    }
+                }
+
+                v.polozky.Add(polozka);
+            }
+
+            var lisHodiny = Factory.p31WorksheetBL.GetList_HodinyKanban("p56");
             foreach (var c in v.polozky)
             {
                 var qry = lisHodiny.FirstOrDefault(p => p.pid == c.pid);

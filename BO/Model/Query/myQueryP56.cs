@@ -5,6 +5,7 @@ namespace BO
     public class myQueryP56 : baseQuery
     {
         public int b02id { get; set; }
+        public int b01id { get; set; }
         public int p57id { get; set; }
         public int p41id { get; set; }
         public int p91id { get; set; }
@@ -64,6 +65,10 @@ namespace BO
             if (this.b02id > 0)
             {
                 AQ("a.b02ID=@b02id)", "b02id", this.b02id);
+            }
+            if (this.b01id > 0)
+            {
+                AQ("a.p57ID IN (select p57ID FROM p57TaskType WHERE b01ID=@b01id)", "b01id", this.b01id);
             }
             if (this.p55id > 0)
             {
