@@ -2,21 +2,23 @@
 @inject BL.Factory _f
 
 @*
-    Sdílené Kanban view.
+    Sdílené Kanban view (jeden soubor).
     Vstup:
       BaseKanbanViewModel.sloupce  (List<KanbanSloupec>) ... sloupce boardu v pořadí listu (pid, nazev, barva)
-      BaseKanbanViewModel.polozky  (List<KanbanPolozka>) ... karty; zařazení do sloupce přes polozka.sloupec_pid == sloupec.pid
+      BaseKanbanViewModel.polozky  (List<KanbanPolozka>) ... karty; zařazení do sloupce přes sloupec_pid == sloupec.pid
+      BaseKanbanViewModel.go2pid   ... > 0 → tahle karta se označí a odscrolluje se na ni
 
+    Stránkování řeší controller (mq.OFFSET_PageNum / mq.OFFSET_PageSize) – view jen vykreslí, co dostane.
     Položky s neznámým sloupec_pid (mimo Model.sloupce) spadnou do koncového sloupce "(bez zařazení)".
 
-    Hostitelská stránka (např. p28.cshtml) může přepsat chování:
-      - kanban_open(prefix, pid)                         ... otevření detailu po kliku na kartu (default edit(pid) v modálu)
+    Hostitelská stránka může přepsat:
+      - kanban_open(prefix, pid)                         ... klik na kartu (default edit(pid) v modálu)
       - kanban_on_drop(pid, prefix, fromCol, toCol, el) ... uložení přesunu karty; fromCol/toCol = pid sloupce
-    Pokud nejsou definované, použijí se rozumné defaulty (viz <script> níže).
+      - kanban_hours(ev, prefix, pid)                    ... odkaz na hodiny
 *@
 
 @functions {
-    // Čitelná barva textu (černá/bílá) na daném pozadí; null = neznámý formát → necháme dědit.
+    // čitelná barva textu (černá/bílá) na daném pozadí; null = neznámý formát → dědit
     static string TextOn(string bg)
     {
         if (string.IsNullOrWhiteSpace(bg)) return null;
@@ -42,24 +44,23 @@
     var vsechny = Model.polozky ?? new List<UI.Models.Kanban.KanbanPolozka>();
     var sloupceModel = Model.sloupce ?? new List<UI.Models.Kanban.KanbanSloupec>();
 
-    // položky zařazené do sloupců podle sloupec_pid
     var dleSloupce = vsechny.GroupBy(p => p.sloupec_pid).ToDictionary(g => g.Key, g => g.ToList());
 
-    // sloupce v pořadí dle Model.sloupce
     var sloupce = sloupceModel.Select(s => new
     {
         Pid = s.pid,
         Nazev = s.nazev,
         Barva = s.barva,
+        Pagenum = s.pagenum,
+        Pagesize = s.pagesize > 0 ? s.pagesize : 200,
         Polozky = dleSloupce.TryGetValue(s.pid, out var lp) ? lp : new List<UI.Models.Kanban.KanbanPolozka>()
     }).ToList();
 
-    // pojistka: položky, jejichž sloupec_pid neodpovídá žádnému sloupci, ať se neztratí
     var pidySloupcu = new HashSet<int>(sloupceModel.Select(s => s.pid));
     var bezZarazeni = vsechny.Where(p => !pidySloupcu.Contains(p.sloupec_pid)).ToList();
     if (bezZarazeni.Any())
     {
-        sloupce.Add(new { Pid = 0, Nazev = (string)null, Barva = (string)null, Polozky = bezZarazeni });
+        sloupce.Add(new { Pid = 0, Nazev = (string)null, Barva = (string)null, Pagenum = 0, Pagesize = 200, Polozky = bezZarazeni });
     }
 }
 
@@ -79,6 +80,20 @@
             {
                 var hlavickaText = TextOn(s.Barva);
                 var nazevZobraz = string.IsNullOrWhiteSpace(s.Nazev) ? _f.tra("(bez zařazení)") : s.Nazev;
+                var pagesize = s.Pagesize;
+                var totalPages = (s.Polozky.Count + pagesize - 1) / pagesize;
+                if (totalPages < 1) totalPages = 1;
+                var aktStranka = Math.Min(Math.Max(0, s.Pagenum), totalPages - 1);
+
+                // pokud je na boardu označená karta (go2pid) a leží v tomto sloupci, ukaž její stránku
+                if (Model.go2pid > 0)
+                {
+                    var gi = s.Polozky.FindIndex(p => p.pid == Model.go2pid);
+                    if (gi >= 0) aktStranka = gi / pagesize;
+                }
+
+                // server vyrenderuje JEN tuto stránku sloupce (lehký DOM)
+                var strankaPolozky = s.Polozky.Skip(aktStranka * pagesize).Take(pagesize).ToList();
 
                 <section class="kanban-col" data-col="@s.Pid">
                     <header class="kanban-col-head"
@@ -92,13 +107,18 @@
                          ondragleave="kanban_dragleave(event)"
                          ondrop="kanban_drop(event)">
 
-                        @foreach (var c in s.Polozky)
+                        @foreach (var c in strankaPolozky)
                         {
                             var maHodiny = c.hodiny_vykazane > 0 || c.hodiny_nevyuctovane > 0;
                             var hodinyText = c.hodiny_nevyuctovane == c.hodiny_vykazane
                                 ? $"{Hours(c.hodiny_vykazane)}h"
                                 : $"{Hours(c.hodiny_nevyuctovane)}h/{Hours(c.hodiny_vykazane)}h";
                             var jeVybrana = Model.go2pid > 0 && c.pid == Model.go2pid;
+
+                            var roleSkupiny = (c.role ?? new List<BO.StringPair>())
+                                .Where(r => r != null && (!string.IsNullOrWhiteSpace(r.Key) || !string.IsNullOrWhiteSpace(r.Value)))
+                                .GroupBy(r => r.Key ?? "")
+                                .ToList();
 
                             <article class="kanban-card@(jeVybrana ? " kanban-card--selected" : "")"
                                      draggable="true"
@@ -119,18 +139,12 @@
                                     <div class="kanban-card-title-after">@c.nazev_after</div>
                                 }
 
-                                @{
-                                    var roleSkupiny = (c.role ?? new List<BO.StringPair>())
-                                        .Where(r => r != null && (!string.IsNullOrWhiteSpace(r.Key) || !string.IsNullOrWhiteSpace(r.Value)))
-                                        .GroupBy(r => r.Key ?? "")
-                                        .ToList();
-                                }
                                 @if (roleSkupiny.Any())
                                 {
                                     <div class="kanban-card-role">
                                         @foreach (var g in roleSkupiny)
                                         {
-                                            var jmena = string.Join(", ", g.Select(r => r.Value).Where(v => !string.IsNullOrWhiteSpace(v)));
+                                            var jmena = string.Join(", ", g.Select(r => r.Value).Where(val => !string.IsNullOrWhiteSpace(val)));
                                             <span class="kanban-role">
                                                 @if (!string.IsNullOrWhiteSpace(g.Key))
                                                 {
@@ -162,13 +176,24 @@
                             </article>
                         }
                     </div>
+
+                    @if (totalPages > 1)
+                    {
+                        <div class="kanban-col-pager">
+                            <button type="button" class="kanban-pg-first" onclick="kanban_goto_page(@s.Pid,0)" @(aktStranka <= 0 ? "disabled" : "") title="@_f.tra("První")">&#171;</button>
+                            <button type="button" class="kanban-pg-prev" onclick="kanban_goto_page(@s.Pid,@(aktStranka - 1))" @(aktStranka <= 0 ? "disabled" : "") title="@_f.tra("Předchozí")">&#8249;</button>
+                            <span class="kanban-pg-info">@(aktStranka + 1) / @totalPages</span>
+                            <button type="button" class="kanban-pg-next" onclick="kanban_goto_page(@s.Pid,@(aktStranka + 1))" @(aktStranka >= totalPages - 1 ? "disabled" : "") title="@_f.tra("Další")">&#8250;</button>
+                            <button type="button" class="kanban-pg-last" onclick="kanban_goto_page(@s.Pid,@(totalPages - 1))" @(aktStranka >= totalPages - 1 ? "disabled" : "") title="@_f.tra("Poslední")">&#187;</button>
+                        </div>
+                    }
                 </section>
             }
         </div>
     }
 </div>
 
-@* ---- Styly (zapouzdřené pod .kanban-wrap, aby nekolidovaly s site.css) ---- *@
+@* ---- Styly (zapouzdřené pod .kanban-wrap) ---- *@
 <style type="text/css">
     .kanban-wrap {
         width: 100%;
@@ -181,7 +206,6 @@
         padding: 10px;
         overflow-x: auto;
         overflow-y: hidden;
-        /* výška: pod horním pruhem; uprav dle potřeby hostitelské stránky */
         height: calc(100vh - 120px);
     }
 
@@ -274,25 +298,19 @@
         margin-bottom: 2px;
     }
 
-    .kanban-card-kod {
-        font-size: .72rem;
-        color: #6c757d;
-        letter-spacing: .02em;
-    }
-
-    .kanban-card-top .cm {
-        margin-left: auto; /* hamburger vpravo i bez kódu */
-        flex: 0 0 auto;
-        cursor: pointer;
-        color: #868e96;
-        line-height: 1;
-        text-decoration: none;
-        padding: 0 2px;
-    }
-
-        .kanban-card-top .cm:hover {
-            color: #495057;
+        .kanban-card-top .cm {
+            margin-left: auto;
+            flex: 0 0 auto;
+            cursor: pointer;
+            color: #868e96;
+            line-height: 1;
+            text-decoration: none;
+            padding: 0 2px;
         }
+
+            .kanban-card-top .cm:hover {
+                color: #495057;
+            }
 
     .kanban-card-title {
         font-weight: 600;
@@ -364,10 +382,6 @@
             text-decoration: underline;
         }
 
-        .kanban-hrs-link .material-icons-outlined {
-            font-size: 15px;
-        }
-
     .kanban-empty {
         display: flex;
         flex-direction: column;
@@ -382,6 +396,47 @@
             opacity: .6;
         }
 
+    .kanban-col-pager {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        padding: 6px 8px;
+        border-top: 1px solid #dee2e6;
+        background: #e9ecef;
+        font-size: .8rem;
+        color: #495057;
+        user-select: none;
+    }
+
+        .kanban-col-pager button {
+            border: 1px solid #ced4da;
+            background: #fff;
+            border-radius: 4px;
+            width: 26px;
+            height: 24px;
+            line-height: 1;
+            font-size: 1rem;
+            cursor: pointer;
+            color: #495057;
+        }
+
+            .kanban-col-pager button:hover:not(:disabled) {
+                background: #f1f3f5;
+            }
+
+            .kanban-col-pager button:disabled {
+                opacity: .4;
+                cursor: default;
+            }
+
+    .kanban-pg-info {
+        min-width: 48px;
+        text-align: center;
+        font-variant-numeric: tabular-nums;
+    }
+
     @@media (max-width: 576px) {
         .kanban-col {
             flex-basis: 84vw;
@@ -390,16 +445,16 @@
     }
 </style>
 
-@* ---- Chování (guard, aby se při vícenásobném includu nepředefinovalo) ---- *@
+@* ---- Chování (guard proti vícenásobnému includu) ---- *@
 <script type="text/javascript">
     if (typeof window.__kanban_inited === "undefined") {
         window.__kanban_inited = true;
-        window.__kanban_drag = null; // { pid, prefix, fromCol, el }
+        window.__kanban_drag = null;
 
-        // Default otevření detailu – host může přepsat: window.kanban_open = function(prefix, pid){...}
+        // klik na kartu → detail. Host může přepsat window.kanban_open.
         if (typeof window.kanban_open !== "function") {
             window.kanban_open = function (prefix, pid) {
-                if (typeof window.edit === "function") { window.edit(pid); return; }   // karta záznamu v modálu
+                if (typeof window.edit === "function") { window.edit(pid); return; }
                 var url = "/" + prefix + "/MasterView?go2pid=" + pid;
                 if (typeof _window_open === "function") { _window_open(url, 1); }
                 else if (typeof _redirect === "function") { _redirect(url); }
@@ -409,11 +464,11 @@
 
         window.kanban_card_click = function (el, ev) {
             if (window.__kanban_suppress_click) { window.__kanban_suppress_click = false; return; }
-            if (ev && ev.target && ev.target.closest && ev.target.closest(".cm, .kanban-hrs-link")) return; // řeší si vlastní onclick
+            if (ev && ev.target && ev.target.closest && ev.target.closest(".cm, .kanban-hrs-link")) return;
             window.kanban_open(el.getAttribute("data-prefix"), el.getAttribute("data-pid"));
         };
 
-        // Odkaz na hodiny → /p31dayline/Zoom?{prefix}id={pid} v modálním okně. Host může přepsat window.kanban_hours.
+        // odkaz na hodiny → /p31dayline/Zoom?{prefix}id={pid} v modálu. Host může přepsat.
         window.kanban_hours = function (ev, prefix, pid) {
             if (ev) { ev.stopPropagation(); ev.preventDefault(); }
             var url = "/p31dayline/Zoom?" + prefix + "id=" + pid + "&d1=01.01.2000&d2=31.12.2100";
@@ -436,7 +491,6 @@
 
         window.kanban_dragend = function (ev) {
             ev.currentTarget.classList.remove("kanban-dragging");
-            // potlačit "klik", který prohlížeč pošle po dokončení tažení
             window.__kanban_suppress_click = true;
             setTimeout(function () { window.__kanban_suppress_click = false; }, 50);
         };
@@ -461,14 +515,12 @@
 
             var col = body.closest(".kanban-col");
             var toCol = col ? col.getAttribute("data-col") : null;
-            if (toCol === d.fromCol) return; // beze změny
+            if (toCol === d.fromCol) return;
 
-            // vizuální přesun
             body.appendChild(d.el);
             d.el.setAttribute("data-col", toCol);
             kanban_recount();
 
-            // persistenci řeší host – pokud hook chybí, jen upozorníme do konzole
             if (typeof window.kanban_on_drop === "function") {
                 window.kanban_on_drop(d.pid, d.prefix, d.fromCol, toCol, d.el);
             } else {
@@ -483,9 +535,19 @@
                 if (c) c.textContent = n;
             });
         };
+
+        // přepnutí stránky sloupce = reload boardu s p{sloupec_pid}={stránka}.
+        // Server vyrenderuje danou stránku (skutečné serverové stránkování).
+        window.kanban_goto_page = function (sloupecPid, page) {
+            if (page < 0) return;
+            var url = new URL(window.location.href);
+            url.searchParams.set("p" + sloupecPid, page);
+            url.searchParams.delete("go2pid"); // při ručním listování nevnucovat stránku s go2pid
+            window.location.href = url.toString();
+        };
     }
 
-    // Scroll na výchozí (označenou) kartu – go2pid > 0. Toto je hlavní funkce: dostat go2pid do viditelné oblasti.
+    // scroll na výchozí (označenou) kartu – go2pid
     (function () {
         function centerWithin(container, el, horizontal) {
             if (!container || !el) return;
@@ -501,19 +563,12 @@
         function scrollToSelected() {
             var sel = document.querySelector(".kanban-card--selected");
             if (!sel) return;
-            var colBody = sel.closest(".kanban-col-body");   // svislý scroll uvnitř sloupce
-            var col     = sel.closest(".kanban-col");
-            var board   = sel.closest(".kanban-board");       // vodorovný scroll boardu
-
-            centerWithin(colBody, sel, false);                // kartu vycentrovat svisle ve sloupci
-            centerWithin(board, col, true);                   // sloupec vycentrovat vodorovně v boardu
+            centerWithin(sel.closest(".kanban-col-body"), sel, false);
+            centerWithin(sel.closest(".kanban-board"), sel.closest(".kanban-col"), true);
         }
 
         function run() {
-            // počkat na dopočítání layoutu (fonty/ikony/výšky sloupců), pak vycentrovat
-            requestAnimationFrame(function () {
-                requestAnimationFrame(scrollToSelected);
-            });
+            requestAnimationFrame(function () { requestAnimationFrame(scrollToSelected); });
         }
 
         if (document.readyState === "loading") {
