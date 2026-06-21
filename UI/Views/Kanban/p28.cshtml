@@ -54,6 +54,12 @@
         @Html.EditorFor(m => Model.p31statequery, "~/Views/Shared/_p31StateQuery.cshtml")
     </div>
 
+    <div id="divBinQuery" class="dog">
+        @Html.EditorFor(m => Model.recordbinquery, "~/Views/Shared/_RecordBinQuery.cshtml")
+    </div>
+
+  
+
     <div class="dog" title="Tabulka kontaktů">
 
         <a id="cmdp28" class="btn descreet_link_over_grid" href="@(new UI.Menu.TheMenuSupport(_f).GetMainmenuEntityUrl("p28"))">

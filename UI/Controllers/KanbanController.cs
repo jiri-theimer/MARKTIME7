@@ -115,6 +115,19 @@ namespace UI.Controllers
             mq.p31statequery = v.p31statequery.Value;
 
 
+            v.recordbinquery = new RecordBinQueryViewModel() { Prefix = "p28" };
+            v.recordbinquery.UserParamKey = "kanban-p28-recordbinquery";
+            v.recordbinquery.Value = Factory.CBL.LoadUserParamInt(v.recordbinquery.UserParamKey, 0);
+            switch (v.recordbinquery.Value)
+            {
+                case 1:
+                    mq.IsRecordValid = true; break;   //pouze otevřené záznamy
+                case 2:
+                    mq.IsRecordValid = false; break;  //pouze záznamy v archivu
+                default:
+                    mq.IsRecordValid = null; break;
+            }
+
             var lisP28 = Factory.p28ContactBL.GetList(mq);
             v.polozky = new List<KanbanPolozka>();
 
@@ -196,7 +209,7 @@ namespace UI.Controllers
 
             var lisX69 = Factory.x67EntityRoleBL.GetList_X69("p41", 0);
 
-            var mq = new BO.myQueryP41("p41") { IsRecordValid = null };
+            var mq = new BO.myQueryP41("p41");
 
             if (v.TheGridQueryButton.j72id > 0)
             {
@@ -216,7 +229,18 @@ namespace UI.Controllers
             v.p31statequery.Value = Factory.CBL.LoadUserParamInt(v.p31statequery.UserParamKey);
             mq.p31statequery = v.p31statequery.Value;
 
-
+            v.recordbinquery = new RecordBinQueryViewModel() { Prefix = "p41" };
+            v.recordbinquery.UserParamKey = "kanban-p41-recordbinquery";
+            v.recordbinquery.Value = Factory.CBL.LoadUserParamInt(v.recordbinquery.UserParamKey, 0);
+            switch (v.recordbinquery.Value)
+            {
+                case 1:
+                    mq.IsRecordValid = true; break;   //pouze otevřené záznamy
+                case 2:
+                    mq.IsRecordValid = false; break;  //pouze záznamy v archivu
+                default:
+                    mq.IsRecordValid = null; break;
+            }
 
             var lisP41 = Factory.p41ProjectBL.GetList(mq);
             v.polozky = new List<KanbanPolozka>();
@@ -284,7 +308,7 @@ namespace UI.Controllers
 
             var lisX69 = Factory.x67EntityRoleBL.GetList_X69("p56", 0);
 
-            var mq = new BO.myQueryP56() { IsRecordValid = null };
+            var mq = new BO.myQueryP56();
 
             if (v.TheGridQueryButton.j72id > 0)
             {
@@ -304,6 +328,18 @@ namespace UI.Controllers
             v.p31statequery.Value = Factory.CBL.LoadUserParamInt(v.p31statequery.UserParamKey);
             mq.p31statequery = v.p31statequery.Value;
 
+            v.recordbinquery = new RecordBinQueryViewModel() { Prefix = "p56" };
+            v.recordbinquery.UserParamKey = "kanban-p56-recordbinquery";
+            v.recordbinquery.Value = Factory.CBL.LoadUserParamInt(v.recordbinquery.UserParamKey, 0);
+            switch (v.recordbinquery.Value)
+            {
+                case 1:
+                    mq.IsRecordValid = true; break;   //pouze otevřené záznamy
+                case 2:
+                    mq.IsRecordValid = false; break;  //pouze záznamy v archivu
+                default:
+                    mq.IsRecordValid = null; break;
+            }
 
             var lisP56 = Factory.p56TaskBL.GetList(mq);
             v.polozky = new List<KanbanPolozka>();

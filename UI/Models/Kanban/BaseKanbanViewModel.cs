@@ -17,6 +17,7 @@ namespace UI.Models.Kanban
 
         public int j72id_query { get; set; }    //pojmenovaný filtr
 
-        
+
+        public RecordBinQueryViewModel recordbinquery { get; set; } //filtrování podle archivu
     }
 }
