@@ -54,8 +54,9 @@ namespace BO
         GR_P31_Vysledovky=41,               //přístup k výsledovkám       
         GR_AllowRates =34,                
 
-        GR_x31_ReadAll =35,                      //Přístup ke všem tiskovým sestavám
+        
         GR_x31_Personal = 36,                  // Přístup k osobním tiskovým sestavám
+        GR_x31_Project=35,                     //přístup k projektovým tiskovým sestavám
         GR_GridColumnDesigner = 37,                   // Návrhář sloupců v gridech
         GR_GridExports = 38,                   // Export grid do XLS/PDF/
 

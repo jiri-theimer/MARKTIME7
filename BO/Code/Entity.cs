@@ -237,6 +237,7 @@ namespace BO.Code
                 lis.Add(new BO.Permission() { Entity = "j04", Value = BO.PermValEnum.GR_MyProfile, Name = "Menu [Můj profil]", Group = "Ostatní" });
                 
                 lis.Add(new BO.Permission() { Entity = "j04", Value = BO.PermValEnum.GR_x31_Personal, Name = "Přístup k osobním tiskovým sestavám", Group = "Ostatní" });
+                lis.Add(new BO.Permission() { Entity = "j04", Value = BO.PermValEnum.GR_x31_Project, Name = "Přístup k projektovým tiskovým sestavám", Group = "Ostatní" });
                 lis.Add(new BO.Permission() { Entity = "j04", Value = BO.PermValEnum.GR_o51_Admin, Name = "Správce štítků", Group = "Ostatní" });
                 lis.Add(new BO.Permission() { Entity = "j04", Value = BO.PermValEnum.GR_GridColumnDesigner, Name = "Tabulka: Návrhář sloupců", Group = "Tabulky" });
                 lis.Add(new BO.Permission() { Entity = "j04", Value = BO.PermValEnum.GR_GridExports, Name = "Tabulka: GRID-REPORT + Export do MS-EXCEL/CSV", Group = "Tabulky" });

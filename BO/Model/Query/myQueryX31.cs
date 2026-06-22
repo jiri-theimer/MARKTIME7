@@ -31,15 +31,12 @@ namespace BO
             if (this.MyRecordsDisponible)
             {
                 
-                if (!this.CurrentUser.IsAdmin)
+                if (!this.CurrentUser.j04IsModule_x31)
                 {
-                    bool b = this.CurrentUser.TestPermission(PermValEnum.GR_x31_ReadAll);                   
-                    if (!b)
-                    {
-                        string strW = "NOT EXISTS(select x69.x69RecordPid FROM x69EntityRole_Assign x69 INNER JOIN x67EntityRole x67 ON x69.x67ID=x67.x67ID AND x67.x67Entity='x31' AND x69.x69RecordPid=a.x31ID)";
-                        strW = $"{strW} OR a.X31ID IN (SELECT x69.x69RecordPid FROM x69EntityRole_Assign x69 INNER JOIN x67EntityRole x67 ON x69.x67ID=x67.x67ID WHERE x67.x67Entity='x31' AND (x69.x69IsAllUsers=1 OR x69.j02ID=@j02id_query OR x69.j11ID IN (SELECT j11ID FROM j12Team_Person WHERE j02ID=@j02id_query)))";
-                        AQ(strW, "j02id_query", this.CurrentUser.pid);
-                    }                    
+
+                    string strW = "NOT EXISTS(select x69.x69RecordPid FROM x69EntityRole_Assign x69 INNER JOIN x67EntityRole x67 ON x69.x67ID=x67.x67ID AND x67.x67Entity='x31' AND x69.x69RecordPid=a.x31ID)";
+                    strW = $"{strW} OR a.X31ID IN (SELECT x69.x69RecordPid FROM x69EntityRole_Assign x69 INNER JOIN x67EntityRole x67 ON x69.x67ID=x67.x67ID WHERE x67.x67Entity='x31' AND (x69.x69IsAllUsers=1 OR x69.j02ID=@j02id_query OR x69.j11ID IN (SELECT j11ID FROM j12Team_Person WHERE j02ID=@j02id_query)))";
+                    AQ(strW, "j02id_query", this.CurrentUser.pid);
                 }
             }
 
