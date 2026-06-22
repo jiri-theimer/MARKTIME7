@@ -943,7 +943,6 @@ namespace BL
                     if (row.p95ID > 0)
                     {
                         line.PredkontaceIS = _mother.o58GlobalParamBL.GetGlobalParamValue("p95AccountingIds", row.p95ID);
-                        line.PredkontaceIS = "hovado";
                         
                         if (line.PredkontaceIS == null)
                         {

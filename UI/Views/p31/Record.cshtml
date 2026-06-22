@@ -159,8 +159,24 @@ else
         {
             <div class="col-sm-1 col-md-2" title="Klastr aktivit">
                 <mark>@Model.p61Name</mark>
+                @if(Model.RecP41 != null && _f.CurrentUser.j04IsModule_x31)
+                {
+                    <button type="button" class="btn btn-sm bog" onclick="report('p41',@(Model.RecP41.pid))"><myicon symbol="print"></myicon></button>
+                }
+                
             </div>
         }
+        else
+        {
+            @if (Model.RecP41 != null && _f.CurrentUser.j04IsModule_x31)
+            {
+                <div class="col-sm-1 col-md-2" title="Tisková sestava projektu">
+                    <button type="button" class="btn btn-sm bog" onclick="report('p41',@(Model.RecP41.pid))"><myicon symbol="print"></myicon></button>
+                </div>
+            }
+            
+        }
+        
     }
 
 </div>
@@ -181,8 +197,8 @@ else
 
 
 
-<div class="row my-2">    
-        
+<div class="row my-2">
+
     @if (Model.RecP32 != null && Model.RecP32.p32HelpText != null)
     {
         <mylabel explicit-for="cmdComboRec_p32ID" class="col-sm-1 col-md-1 col-form-label" text="@_f.tra("Aktivita")" tooltip="@(Model.RecP32.p32HelpText)"></mylabel>
@@ -271,7 +287,18 @@ else
     @if (Model.lisP40 != null && Model.lisP40.Count() > 0)
     {
         <div class="col-sm-4 col-md-4">
-            <mydropdown asp-for="Rec.p40ID_FixPrice" datasource="@Model.lisP40" tabindex="-1" textfield="NamePlusCerpano" valuefield="pid" isfirstemptyrow="true" firstemptyrowvalue="0" firstemptyrowtext="--@_f.tra("Spárovat hodiny s opakovaným paušálem")?--" event_after_changevalue="p40id_onchange"></mydropdown>
+            <div>
+
+                <mydropdown asp-for="Rec.p40ID_FixPrice" datasource="@Model.lisP40" tabindex="-1" textfield="NamePlusCerpano" valuefield="pid" isfirstemptyrow="true" firstemptyrowvalue="0" firstemptyrowtext="--@_f.tra("Spárovat hodiny s opakovaným paušálem")?--" event_after_changevalue="p40id_onchange"></mydropdown>
+
+                
+                
+
+               
+            </div>
+
+            
+
         </div>
     }
 
@@ -282,8 +309,8 @@ else
     if (Model.RecP34.p34ValueOffFlag == 1)
     {
         <div class="row my-2">
-            <mylabel class="col-sm-1 col-md-1 col-form-label" text="@_f.tra("OffBilling hodnota")"></mylabel>            
-            <div class="col-sm-2 col-md-2">                
+            <mylabel class="col-sm-1 col-md-1 col-form-label" text="@_f.tra("OffBilling hodnota")"></mylabel>
+            <div class="col-sm-2 col-md-2">
                 <mynumber asp-for="Rec.Value_OffBilling"></mynumber>
             </div>
         </div>
@@ -476,7 +503,7 @@ else
             <div>
                 <input type="checkbox" asp-for="IsNavicKusovnik" tabindex="-1" onchange="_postback('navic-kusovnik')" />
                 <mylabel explicit-for="IsNavicKusovnik" text="@_f.tra("K hodinám vykázat i kusovníkové úkony")">
-                    
+
                 </mylabel>
             </div>
         }
@@ -594,7 +621,7 @@ else
 
 @Html.Raw("</div>")
 
-@if (_lisFieldBagParams != null && _lisFieldBagParams.Count()>0)
+@if (_lisFieldBagParams != null && _lisFieldBagParams.Count() > 0)
 {
     @await Html.PartialAsync("~/Views/Shared/_FieldBagParams.cshtml", _lisFieldBagParams)
 }
@@ -685,7 +712,7 @@ else
 
     @if (Model.Setting.TimesheetEntryByMinutes)
     {
-                            @:_theukon.timesheet_by_minutes=true;
+                                    @:_theukon.timesheet_by_minutes=true;
     }
 
 

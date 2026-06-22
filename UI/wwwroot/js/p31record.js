@@ -446,3 +446,8 @@ function handle_billingflag()
     billingDiv.style.top = "-22px";
     billingDiv.style.zIndex = "10";
 }
+
+
+function report(prefix,pid) {
+    _window_open("/ReportsClient/ReportContext/?prefix="+prefix+"&pid=" + pid, 3);
+}

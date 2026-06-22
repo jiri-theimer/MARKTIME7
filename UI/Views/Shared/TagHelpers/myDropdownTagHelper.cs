@@ -61,6 +61,8 @@ namespace UI.Views.Shared.TagHelpers
 
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
+            output.TagName = null;
+
             IEnumerable lisDatasource = this.DataSource.Model as IEnumerable;
             if (lisDatasource == null)
             {

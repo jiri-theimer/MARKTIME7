@@ -144,14 +144,30 @@ namespace BL
             p.AddInt("o58ID", rec.o58ID, true);
             p.AddInt("j02ID", rec.j02ID, true);
             p.AddInt("o59RecordPid", rec.o59RecordPid, true);
-
+            
             p.AddString("o59ValueString", rec.o59ValueString);
+            
             p.AddDouble("o59ValueNum", rec.o59ValueNum);
             p.AddDateTime("o59ValueDate", rec.o59ValueDate);
             p.AddBool("o59ValueBoolean", rec.o59ValueBoolean);
             p.AddString("o59Memo", rec.o59Memo);
 
+            rec.o59Value = rec.o59ValueString;
 
+            if ((rec.x24ID == BO.x24IdENUM.tInteger || rec.x24ID==BO.x24IdENUM.tDecimal) && rec.o59ValueNum !=null)
+            {
+                rec.o59Value = rec.o59ValueNum.ToString();
+            }
+            if ((rec.x24ID == BO.x24IdENUM.tDate || rec.x24ID == BO.x24IdENUM.tDateTime) && rec.o59ValueDate != null)
+            {
+                rec.o59Value = rec.o59ValueNum.ToString();
+            }
+            if (rec.x24ID == BO.x24IdENUM.tBoolean)
+            {
+                rec.o59Value = rec.o59ValueBoolean.ToString();
+            }
+
+            p.AddString("o59Value", rec.o59Value);
 
             return _db.SaveRecord("o59GlobalParamBinding", p, rec,false,false);
 
