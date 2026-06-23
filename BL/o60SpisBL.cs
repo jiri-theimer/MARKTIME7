@@ -20,7 +20,7 @@ namespace BL
         private string GetSQL1(string strAppend = null)
         {
             sb("SELECT a.*,p41.p41Name,p41.p41Code,");
-            sb(_db.GetSQL1_Ocas("o60"));
+            sb(_db.GetSQL1_Ocas("o60",false,false,false));
             sb(" FROM o60Spis a INNER JOIN p41Project p41 ON a.p41ID=p41.p41ID");
             sb(strAppend);
             return sbret();
@@ -51,7 +51,7 @@ namespace BL
             p.AddString("o60SoudCode", rec.o60SoudCode);
             p.AddString("o60Prijemce", rec.o60Prijemce);
 
-            return _db.SaveRecord("o60Spis", p, rec);
+            return _db.SaveRecord("o60Spis", p, rec,false,false);
         }
         private bool ValidateBeforeSave(BO.o60Spis rec)
         {
@@ -59,7 +59,14 @@ namespace BL
             {
                 this.AddMessage("Chybí vyplnit [Projekt]."); return false;
             }
-           
+            if (rec.o60SpisCode==null)
+            {
+                this.AddMessage("Chybí vyplnit [Kód spisu]."); return false;
+            }
+            if (rec.o60SoudCode == null)
+            {
+                this.AddMessage("Chybí vyplnit [Kód soudu]."); return false;
+            }
             return true;
         }
 
