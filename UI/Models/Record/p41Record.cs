@@ -51,6 +51,7 @@ namespace UI.Models.Record
         public string SelectedComboOdberatel { get; set; }
 
         public List<p26Repeater> lisP26 { get; set; }
+        public List<o60Repeater> lisO60 { get; set; }
         public BarcodesViewModel barcodes { get; set; }
 
         public List<p56Clone> lisP56Clone { get; set; }
@@ -66,6 +67,27 @@ namespace UI.Models.Record
         public bool IsTempDeleted { get; set; }
         public string TempGuid { get; set; }
         public string ComboP28 { get; set; }
+        public string CssTempDisplay
+        {
+            get
+            {
+                if (this.IsTempDeleted)
+                {
+                    return "display:none;";
+                }
+                else
+                {
+                    return "display:table-row;";
+                }
+            }
+        }
+    }
+
+    public class o60Repeater : BO.o60Spis
+    {
+        public bool IsTempDeleted { get; set; }
+        public string TempGuid { get; set; }
+        
         public string CssTempDisplay
         {
             get

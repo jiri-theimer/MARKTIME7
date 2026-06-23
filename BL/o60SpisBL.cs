@@ -5,7 +5,7 @@ namespace BL
     public interface Io60SpisBL
     {
         public BO.o60Spis Load(int pid);
-        public IEnumerable<BO.o60Spis> GetList(BO.myQuery mq);
+        public IEnumerable<BO.o60Spis> GetList(int p41id);
         public int Save(BO.o60Spis rec);
 
     }
@@ -59,14 +59,7 @@ namespace BL
             {
                 this.AddMessage("Chybí vyplnit [Projekt]."); return false;
             }
-            if (string.IsNullOrEmpty(rec.o60SpisCode))
-            {
-                this.AddMessage("Chybí vyplnit [Spisová značka]."); return false;
-            }
-            if (string.IsNullOrEmpty(rec.o60SoudCode))
-            {
-                this.AddMessage("Chybí vyplnit [Kód soudu]."); return false;
-            }
+           
             return true;
         }
 

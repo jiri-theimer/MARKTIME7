@@ -108,6 +108,7 @@ namespace UI.Controllers
             v.disp = new DispoziceViewModel();
             v.disp.InitItems("p41", Factory);
             v.lisP26 = new List<p26Repeater>();
+            v.lisO60 = new List<o60Repeater>();
 
             if (v.rec_pid > 0)
             {
@@ -176,6 +177,21 @@ namespace UI.Controllers
                             p27ID = c.p27ID
                         });
                     }
+                }
+
+                var lisO60 = Factory.o60SpisBL.GetList(v.rec_pid).ToList();
+                foreach (var c in lisO60)
+                {
+                    v.lisO60.Add(new o60Repeater()
+                    {
+                        TempGuid = BO.Code.Bas.GetGuid(),
+                        pid = c.pid,
+                        o60Name = c.o60Name,
+                        p41ID = c.p41ID,
+                        o60SoudCode = c.o60SoudCode,
+                        o60SpisCode = c.o60SpisCode,
+                        o60Prijemce=c.o60Prijemce
+                    });
                 }
 
                 v.SelectedComboOwner = v.Rec.Owner;
@@ -353,6 +369,10 @@ namespace UI.Controllers
             {
                 v.lisP26 = new List<p26Repeater>();
             }
+            if (v.lisO60 == null)
+            {
+                v.lisO60 = new List<o60Repeater>();
+            }
             if (v.reminder == null)
             {
                 v.reminder = new ReminderViewModel() { is_static_date = true, record_pid = v.rec_pid, record_prefix = "p41" };
@@ -430,6 +450,13 @@ namespace UI.Controllers
                         break;
                     case "delete_p26":
                         v.lisP26.First(p => p.TempGuid == guid).IsTempDeleted = true;
+                        break;
+                    case "add_o60":
+                        var cc = new o60Repeater() { TempGuid = BO.Code.Bas.GetGuid() };
+                        v.lisO60.Add(cc);
+                        break;
+                    case "delete_o60":
+                        v.lisO60.First(p => p.TempGuid == guid).IsTempDeleted = true;
                         break;
                 }
                 return View(v);
@@ -583,6 +610,28 @@ namespace UI.Controllers
                             Factory.p40WorkSheet_RecurrenceBL.Save(recP40,null);
                         }
                     }
+
+                    if (v.lisO60 != null)
+                    {
+                        foreach(var d in v.lisO60)
+                        {
+                            if (d.IsTempDeleted)
+                            {
+                                if (d.pid > 0)
+                                {
+                                    Factory.CBL.DeleteRecord("o60", d.pid);
+                                }                                
+                            }
+                            else
+                            {
+                                d.p41ID = c.pid;
+                                Factory.o60SpisBL.Save(d);
+                            }
+                            
+                        }
+                    }
+
+                   
                     
                     v.SetJavascript_CallOnLoad(c.pid);
                     return View(v);

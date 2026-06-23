@@ -1,0 +1,79 @@
+﻿@model UI.Models.Record.p41Record
+@inject BL.Factory _f
+
+@{
+    if (!Model.disp.IsProjectContacts || Model.lisO60 == null)
+    {
+        return;
+    }
+    
+
+    
+}
+
+
+@addTagHelper *, UI
+
+@if (Model.lisO60.Count() > 0)
+{
+    <div class="card my-2">
+        <div class="card-header">
+            <span style="color:red;font-size:150%;">§§</span>
+            Spisy pro Infosoud
+            <button type="button" class="btn btn-sm btn-outline-secondary" tabindex="-1" onclick="_postback('add_o60')">@_f.tra("Přidat")</button>
+        </div>
+        <div class="card-body p-1">
+            <table class="table table-hover" style="table-layout: fixed;">
+                @for (int i = 0; i < Model.lisO60.Count; i++)
+                {
+                    <tr style="@(Model.lisO60[i].CssTempDisplay)">
+
+                       
+
+                        <td style="width:200px;">
+                            <input type="text" class="form-control" asp-for="lisO60[i].o60Name" placeholder="Název spisu" />                            
+                        </td>
+                        <td style="width:100px;">
+                            <input type="text" class="form-control" asp-for="lisO60[i].o60SpisCode" placeholder="Spisová značka" />
+                        </td>
+                        <td style="width:100px;">
+                            <input type="text" class="form-control" asp-for="lisO60[i].o60SoudCode" placeholder="Kód soudu" />
+                        </td>
+                        <td style="width:170px;">
+                            <input type="hidden" asp-for="@Model.lisO60[i].IsTempDeleted" value="@Model.lisO60[i].IsTempDeleted" />
+                            <input type="hidden" asp-for="@Model.lisO60[i].TempGuid" value="@Model.lisO60[i].TempGuid" />
+                            <input type="hidden" asp-for="@Model.lisO60[i].pid" value="@Model.lisO60[i].pid" />
+
+                            <input class="form-control" asp-for="@Model.lisO60[i].o60Prijemce" placeholder="Příjemce" />
+                        </td>
+
+                        <td style="width:70px;">
+                            <button type="button" class="btn btn-sm btn-danger" title="@_f.tra("Odstranit řádek")" onclick="handle_delete_o60('@(Model.lisO60[i].TempGuid)')">x</button>
+                        </td>
+                    </tr>
+                }
+            </table>
+        </div>
+    </div>
+}
+else
+{
+    <div>
+        <button type="button" class="btn btn-sm btn-light" tabindex="-1" onclick="_postback('add_o60')" style="min-width:150px;text-align:left;margin-top:1px;">
+            <span style="color:red;font-size:150%;">§§</span>
+            Spisy pro Infosoud
+        </button>
+    </div>
+}
+
+
+
+
+<script type="text/javascript">
+
+    function handle_delete_o60(guid) {
+        _postback("delete_o60", "guid=" + guid);
+
+    }
+
+</script>

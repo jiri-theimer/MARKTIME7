@@ -176,6 +176,8 @@ namespace BL
         private IWorkflowBL _workflow;
 
         private Io58GlobalParamBL _o58;
+
+        private Io60SpisBL _o60;
         public Factory(BO.RunningUser ru,Singleton.RunningApp runningapp,Singleton.TheEntitiesProvider ep,Singleton.TheTranslator tt)
         {           
             this.CurrentUser = ru;           
@@ -1257,6 +1259,14 @@ namespace BL
             {
                 if (_o58 == null) _o58 = new o58GlobalParamBL(this);
                 return _o58;
+            }
+        }
+        public Io60SpisBL o60SpisBL
+        {
+            get
+            {
+                if (_o60 == null) _o60 = new o60SpisBL(this);
+                return _o60;
             }
         }
     }
