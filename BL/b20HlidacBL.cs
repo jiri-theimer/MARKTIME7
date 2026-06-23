@@ -1,14 +1,6 @@
-﻿using BO;
+﻿
 using BO.Rejstrik;
-using DocumentFormat.OpenXml.Drawing;
-using DocumentFormat.OpenXml.Vml;
-using Microsoft.Extensions.Primitives;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace BL
 {
