@@ -289,7 +289,7 @@ namespace BL
                         foreach (var c in lisP26.OrderByDescending(p=>p.IsSetAsDeleted))
                         {
                             var recP27 = _mother.p27PctypeBL.Load(c.p27ID);                            
-                            if (c.IsSetAsDeleted)
+                            if (c.IsSetAsDeleted && recP27 !=null)
                             {
                                 if (c.pid > 0)
                                 {

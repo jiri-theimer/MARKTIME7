@@ -157,13 +157,12 @@ else
         <input type="hidden" asp-for="SelectedLevelIndex" value="@Model.SelectedLevelIndex" />
         @if (!_isMobile && Model.p61Name != null)
         {
-            <div class="col-sm-1 col-md-2" title="Klastr aktivit">
-                <mark>@Model.p61Name</mark>
+            <div class="col-sm-1 col-md-2" title="Klastr aktivit">                
                 @if (Model.RecP41 != null && (_f.CurrentUser.j04IsModule_x31 || _f.CurrentUser.TestPermission(BO.PermValEnum.GR_x31_Project)))
                 {
                     <button type="button" class="btn btn-sm bog" onclick="report('p41',@(Model.RecP41.pid))"><myicon symbol="print"></myicon></button>
                 }
-                
+                <mark>@Model.p61Name</mark>
             </div>
         }
         else
