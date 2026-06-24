@@ -849,6 +849,7 @@ namespace BL
             if (recP93.p93Country == null) recP93.p93CountryCode = "Česká republika";
             rec.p93CountryCode = recP93.p93CountryCode; rec.p93Company = recP93.p93Company; rec.p93VatID = recP93.p93VatID; rec.p93RegID = recP93.p93RegID; rec.p93City = recP93.p93City; rec.p93Street = recP93.p93Street; rec.p93Zip = recP93.p93Zip; rec.p93Country = recP93.p93Country;
             rec.p93Referent = recP93.p93Referent; rec.p93Contact = recP93.p93Contact; rec.p93Email = recP93.p93Email;
+            rec.p93ICDPH_SK = recP93.p93ICDPH_SK;
             rec.p28ID = c.p28ID; rec.p28CountryCode = c.p28CountryCode; rec.p41ID_First = c.p41ID_First;
             if (rec.p41ID_First > 0)
             {

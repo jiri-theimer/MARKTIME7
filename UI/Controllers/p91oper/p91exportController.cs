@@ -178,18 +178,26 @@ namespace UI.Controllers
                     case "isdoc":
        
 
-                        var strFileName = $"{BO.Code.File.PrepareFileName(rec.p91Code, true)}.ISDOC";
+                        var strFileName1 = $"{BO.Code.File.PrepareFileName(rec.p91Code, true)}.ISDOC";
                         //var xx=BL.Code.p91Support.GenerateIsdocAsync(rec, httpclient, $"{Factory.TempFolder}\\{v.tempsubfolder}", strFileName).Result;
 
                         //var strISDOC = BL.Code.p91Support.GenerateIsdoc(rec, httpclient, $"{Factory.TempFolder}\\{v.tempsubfolder}", strFileName);
-                        var strISDOC = BL.Code.p91ExportIsdocSupport.GenerateIsdoc(rec, $"{Factory.TempFolder}\\{v.tempsubfolder}", strFileName);
+                        var strISDOC = BL.Code.p91ExportIsdocSupport.GenerateIsdoc(rec, $"{Factory.TempFolder}\\{v.tempsubfolder}", strFileName1);
                         if (strISDOC != null)
                         {
                             
-                            v.FileNames.Add(strFileName);
+                            v.FileNames.Add(strFileName1);
                         }
-                        
                         break;
+                    case "peppol":
+                        var strFileName2 = $"{BO.Code.File.PrepareFileName(rec.p91Code, true)}.xml";
+                        var strXml = BL.Code.p91ExportPeppolSupport.GeneratePeppol(
+                            rec, $"{Factory.TempFolder}\\{v.tempsubfolder}", strFileName2);
+                        if (strXml != null)
+                            v.FileNames.Add(strFileName2);
+                        break;
+
+                        
                     
                 }
             }

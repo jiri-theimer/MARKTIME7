@@ -11,7 +11,7 @@
 @addTagHelper *, UI
 
 <div class="bg-light" style="padding:10px;">
-    @if (Model.destformat == "pohoda" || Model.destformat == "isdoc")
+    @if (Model.destformat == "pohoda" || Model.destformat == "isdoc" || Model.destformat == "peppol")
     {
         <button type="button" id="cmdOK" class="btn btn-success" onclick="_submit()">@_f.tra("Opakovat")</button>
     }
@@ -48,10 +48,14 @@
                 <input type="radio" id="chkSchaffer" asp-for="destformat" value="schaffer" onchange="_postback('destformat')" />
                 <label for="chkSchaffer">HELIOS (Schaffer)</label>
             }
+            <br />
+            <br />
+            <input type="radio" id="chkPeppol" asp-for="destformat" value="peppol" onchange="_postback('destformat')" />
+            <label for="chkPeppol">PEPPOL (SK)</label>
 
         </div>
     </div>
-    @if(Model.destformat=="pohoda" || Model.destformat == "isdoc")
+    @if (Model.destformat == "pohoda" || Model.destformat == "isdoc" || Model.destformat == "peppol")
     {
         <div style="padding:10px;">
             <input type="checkbox" id="chkIsZip" asp-for="iszip" onchange="_postback('iszip')" />
