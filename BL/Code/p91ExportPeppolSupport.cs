@@ -214,7 +214,7 @@ namespace BL.Code
             var party = new XElement(Cac + "Party");
 
             if (vat != null)
-                party.Add(new XElement(Cac + "EndpointID",
+                party.Add(new XElement(Cbc + "EndpointID",
                     new XAttribute("schemeID", scheme), vat));
 
             // IČO
@@ -271,7 +271,7 @@ namespace BL.Code
             var party = new XElement(Cac + "Party");
 
             if (vat != null)
-                party.Add(new XElement(Cac + "EndpointID",
+                party.Add(new XElement(Cbc + "EndpointID",
                     new XAttribute("schemeID", scheme), vat));
 
             if (!string.IsNullOrWhiteSpace(rec.p91Client_RegID))
@@ -555,11 +555,20 @@ namespace BL.Code
 
         private static string Scheme(string vat)
         {
-            // Peppol EAS schémata (ISO 6523): 9922=SK VAT, 0184=CZ VAT (DIČ)
-            if (vat == null) return "9922";
-            if (vat.StartsWith("SK")) return "9922";
-            if (vat.StartsWith("CZ")) return "0184";
-            return "9922";
+            // Peppol EAS schémata (ISO 6523 / číselník Peppol):
+            //   9950 = Slovakia VAT number (IČ DPH)
+            //   9929 = Czech Republic VAT number (DIČ)
+            //   9930 = Germany VAT number
+            //   9944 = Netherlands, 9945 = Poland, 9908 = Austria ...
+            // POZOR: 0184 = dánské CVR, 9922 = Bosna! Nepoužívat pro SK/CZ.
+            if (vat == null) return "9950";              // default SK
+            if (vat.StartsWith("SK")) return "9950";
+            if (vat.StartsWith("CZ")) return "9929";
+            if (vat.StartsWith("DE")) return "9930";
+            if (vat.StartsWith("AT")) return "9914";     // AT VAT
+            if (vat.StartsWith("PL")) return "9945";
+            if (vat.StartsWith("HU")) return "9910";     // HU VAT
+            return "9950";                                // fallback SK
         }
 
         private static string Country(string code)
