@@ -8,6 +8,7 @@ using ceTe.DynamicPDF.IO;
 
 using UI.Views.Shared.Components.myPeriod;
 using ceTe.DynamicPDF.Imaging;
+using SQLitePCL;
 
 namespace UI
 {
@@ -252,7 +253,8 @@ namespace UI
                 //docy.Pages[0].Elements.Add(image);
 
                 // vizuální indikace isdoc obrázku, ale netisknout
-                Button isdocIndicator = new Button("IsdocIndicator", 20, 20, 72,24);
+                
+                Button isdocIndicator = new Button("IsdocIndicator", 20, 5, 72,24);
                 isdocIndicator.Image = ImageData.GetImage($"{f.App.WwwRootFolder}\\images\\isdoc_icon_with_text.png");
                 
                 isdocIndicator.LabelImageLayout = LabelImageLayoutOptions.ImageOnly;
