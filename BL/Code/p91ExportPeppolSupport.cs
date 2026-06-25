@@ -208,14 +208,14 @@ namespace BL.Code
         private static XElement Supplier(InputInvoice rec)
         {
             string vat = NormVat(rec.p93ICDPH_SK_OrVat(), rec.p93CountryCode);
-            string scheme = Scheme(vat);
             string country = Country(rec.p93CountryCode);
+            var (epScheme, epValue) = PeppolEndpoint(vat);
 
             var party = new XElement(Cac + "Party");
 
-            if (vat != null)
+            if (epValue != null)
                 party.Add(new XElement(Cbc + "EndpointID",
-                    new XAttribute("schemeID", scheme), vat));
+                    new XAttribute("schemeID", epScheme), epValue));
 
             // IČO
             if (!string.IsNullOrWhiteSpace(rec.p93RegID))
@@ -265,14 +265,14 @@ namespace BL.Code
                     ? rec.p91Client_ICDPH_SK
                     : rec.p91Client_VatID,
                 rec.p91ClientAddress1_Country);
-            string scheme = Scheme(vat);
             string country = Country(rec.p91ClientAddress1_Country);
+            var (epScheme, epValue) = PeppolEndpoint(vat);
 
             var party = new XElement(Cac + "Party");
 
-            if (vat != null)
+            if (epValue != null)
                 party.Add(new XElement(Cbc + "EndpointID",
-                    new XAttribute("schemeID", scheme), vat));
+                    new XAttribute("schemeID", epScheme), epValue));
 
             if (!string.IsNullOrWhiteSpace(rec.p91Client_RegID))
                 party.Add(new XElement(Cac + "PartyIdentification",
@@ -553,6 +553,29 @@ namespace BL.Code
             return prefix + vat;
         }
 
+        /// <summary>
+        /// Vráti správnu dvojicu (schemeID, hodnota) pre cbc:EndpointID podľa DIČ.
+        ///
+        /// DÔLEŽITÉ – slovenské špecifikum:
+        /// Slovenská Peppol Authority (PASR) nariaďuje pre SK firmy JEDINÉ kanonické
+        /// schéma 0245 s DIČ BEZ prefixu "SK". Forma 9950:SK... NIE je u SK poštárov
+        /// (vrátane ePošťáka) podporovaná.
+        ///   SK:  "SK2122305911"  ->  scheme "0245", hodnota "2122305911"
+        ///   CZ:  "CZ25722034"     ->  scheme "9929", hodnota "CZ25722034"
+        ///   DE:  "DE123456789"    ->  scheme "9930", hodnota "DE123456789"
+        /// </summary>
+        private static (string scheme, string value) PeppolEndpoint(string vat)
+        {
+            if (string.IsNullOrWhiteSpace(vat))
+                return ("0245", null);
+
+            if (vat.StartsWith("SK"))
+                return ("0245", vat.Substring(2)); // DIČ bez "SK"
+
+            // ostatné krajiny: scheme podľa VAT, hodnota vrátane prefixu krajiny
+            return (Scheme(vat), vat);
+        }
+
         private static string Scheme(string vat)
         {
             // Peppol EAS schémata (ISO 6523 / číselník Peppol):
@@ -613,9 +636,8 @@ namespace BL.Code
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  Pomocná extension metoda – p93 nemá v InputInvoice samostatné ICDPH_SK pole,
-//  proto fallback: nejdřív p93ICDPH_SK (pokud doplníte), jinak p93VatID.
-//  Pokud do InputInvoice doplníte property p93ICDPH_SK, upravte tuto metodu.
+//  Pomocná extension metoda – preferuje skutečné IČ DPH dodavatele (p93ICDPH_SK),
+//  fallback na p93VatID jen pokud by IČ DPH chybělo.
 // ─────────────────────────────────────────────────────────────────────────────
 namespace BL.Code
 {
@@ -623,9 +645,10 @@ namespace BL.Code
     {
         public static string p93ICDPH_SK_OrVat(this BO.Integrace.InputInvoice rec)
         {
-            // p93ICDPH_SK ve vašem InputInvoice zatím není jako samostatná property
-            // (je v p93InvoiceHeader). Po doplnění do InputInvoice sem přidejte:
-            //   if (!string.IsNullOrWhiteSpace(rec.p93ICDPH_SK)) return rec.p93ICDPH_SK;
+            // Přednostně skutečné IČ DPH (např. "SK2122305911")
+            if (!string.IsNullOrWhiteSpace(rec.p93ICDPH_SK))
+                return rec.p93ICDPH_SK;
+            // Fallback pro neslovenské dodavatele nebo chybějící IČ DPH
             return rec.p93VatID;
         }
     }
