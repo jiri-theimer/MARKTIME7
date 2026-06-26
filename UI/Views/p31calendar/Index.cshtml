@@ -401,14 +401,16 @@ else
         });
 
         $(".dc").dblclick(function () {
+            
             var j02id = "@Model.j02ID";
             var d = $(this).attr("data-d");
+            
             _window_open("/p31/Record?j02id=" + j02id + "&d=" + d, 3);
         });
 
 
        
-
+  
 
         $("#cmdSaveSetting").click(function () {
 

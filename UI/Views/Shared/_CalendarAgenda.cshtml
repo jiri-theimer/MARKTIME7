@@ -131,11 +131,11 @@
             }
             if (x_ok % 2 == 0)
             {
-                @Html.Raw($"<tr class='agenda_row_suda' data-d='{strDatum}' onmouseover='showcalmenu(event,this,\"{strDatum}\",\"agenda\")'>")                
+                @Html.Raw($"<tr class='agenda_row_suda dc' data-d='{strDatum}' onmouseover='showcalmenu(event,this,\"{strDatum}\",\"agenda\")'>")                
             }
             else
             {
-                @Html.Raw($"<tr class='agenda_row_licha' data-d='{strDatum}' onmouseover='showcalmenu(event,this,\"{strDatum}\",\"agenda\")'>")                
+                @Html.Raw($"<tr class='agenda_row_licha dc' data-d='{strDatum}' onmouseover='showcalmenu(event,this,\"{strDatum}\",\"agenda\")'>")                
             }
 
 
@@ -156,9 +156,9 @@
             }
             @Html.Raw($"<td class='{strClass}' style='border-right:solid 1px #DCDCDC;'>")
             
-            @Html.Raw($"<div class='mt_scheduler-day-link-container'>")
+            @Html.Raw($"<div class='mt_scheduler-day-link-container dc' data-d='{strDatum}'>")
             
-            @Html.Raw($"<a>{strCisloDne}</a>")
+            @Html.Raw($"<a>{strCisloDne}</a>")  
             
             @Html.Raw("</div>")
             
@@ -226,7 +226,7 @@
             @Html.Raw("</td>")
             
 
-            strClass += " dc";
+            
             @Html.Raw($"<td class='{strClass}'>")
 
 
