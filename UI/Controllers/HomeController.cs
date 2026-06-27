@@ -177,6 +177,7 @@ namespace UI.Controllers
 
             v.SearchboxJ02 = Factory.CBL.LoadUserParam("searchbox-j02", Factory.j72TheGridTemplateBL.getDefaultPalleteSearchbox("j02User"));
             v.lisSearchboxJ02 = _colsProvider.ParseTheGridColumns("j02", v.SearchboxJ02, Factory);
+            v.SearchboxGroupbyJ02 = Factory.CBL.LoadUserParam("searchbox-groupby-j02");
 
             v.SearchboxP41 = Factory.CBL.LoadUserParam("searchbox-p41", Factory.j72TheGridTemplateBL.getDefaultPalleteSearchbox("p41Project"));
             v.lisSearchboxP41 = _colsProvider.ParseTheGridColumns("p41", v.SearchboxP41, Factory);
@@ -184,9 +185,11 @@ namespace UI.Controllers
 
             v.SearchboxP28 = Factory.CBL.LoadUserParam("searchbox-p28", Factory.j72TheGridTemplateBL.getDefaultPalleteSearchbox("p28Contact"));
             v.lisSearchboxP28 = _colsProvider.ParseTheGridColumns("p28", v.SearchboxP28, Factory);
+            v.SearchboxGroupbyP28 = Factory.CBL.LoadUserParam("searchbox-groupby-p28");
 
             v.SearchboxP56 = Factory.CBL.LoadUserParam("searchbox-p56", Factory.j72TheGridTemplateBL.getDefaultPalleteSearchbox("p56Task"));
             v.lisSearchboxP56 = _colsProvider.ParseTheGridColumns("p56", v.SearchboxP56, Factory);
+            v.SearchboxGroupbyP56 = Factory.CBL.LoadUserParam("searchbox-groupby-p56");
 
             v.SearchboxP32 = Factory.CBL.LoadUserParam("searchbox-p32", Factory.j72TheGridTemplateBL.getDefaultPalleteSearchbox("p32Activity"));
             v.lisSearchboxP32 = _colsProvider.ParseTheGridColumns("p32", v.SearchboxP32, Factory);
@@ -194,6 +197,7 @@ namespace UI.Controllers
 
             v.SearchboxP91 = Factory.CBL.LoadUserParam("searchbox-p91", Factory.j72TheGridTemplateBL.getDefaultPalleteSearchbox("p91Invoice"));
             v.lisSearchboxP91 = _colsProvider.ParseTheGridColumns("p91", v.SearchboxP91, Factory);
+            v.SearchboxGroupbyP91 = Factory.CBL.LoadUserParam("searchbox-groupby-p91");
 
         }
         [HttpPost]

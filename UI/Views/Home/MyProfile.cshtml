@@ -344,6 +344,10 @@
 
                         }
 
+                        
+
+                    </td>
+                    <td>
                         <select style="margin-left:30px;" asp-for="SearchboxGroupbyJ02" onchange="reload_after_groupby(this,'j02')">
                             <option>--Souhrny podle--</option>
                             @foreach (var col in Model.lisSearchboxJ02)
@@ -355,7 +359,6 @@
                                    
                             }
                         </select>
-
                     </td>
                 </tr>
                 <tr>
@@ -376,6 +379,9 @@
                             </span>
                         }
 
+                        
+                    </td>
+                    <td>
                         <select style="margin-left:30px;" asp-for="SearchboxGroupbyP41" onchange="reload_after_groupby(this,'p41')">
                             <option>--Souhrny podle--</option>
                             @foreach (var col in Model.lisSearchboxP41)
@@ -405,6 +411,9 @@
                             </span>
                         }
 
+                        
+                    </td>
+                    <td>
                         <select style="margin-left:30px;" asp-for="SearchboxGroupbyP28" onchange="reload_after_groupby(this,'p28')">
                             <option>--Souhrny podle--</option>
                             @foreach (var col in Model.lisSearchboxP28)
@@ -434,6 +443,9 @@
                             </span>
                         }
 
+                        
+                    </td>
+                    <td>
                         <select style="margin-left:30px;" asp-for="SearchboxGroupbyP32" onchange="reload_after_groupby(this,'p32')">
                             <option>--Souhrny podle--</option>
                             @foreach (var col in Model.lisSearchboxP32)
@@ -463,6 +475,19 @@
                             </span>
                         }
                     </td>
+                    <td>
+                        <select style="margin-left:30px;" asp-for="SearchboxGroupbyP56" onchange="reload_after_groupby(this,'p56')">
+                            <option>--Souhrny podle--</option>
+                            @foreach (var col in Model.lisSearchboxP56)
+                            {
+                                <option value="@col.UniqueName">
+                                    @col.Header
+                                </option>
+
+                                   
+                            }
+                        </select>
+                    </td>
                 </tr>
                 <tr>
                     <td>
@@ -479,6 +504,19 @@
                                 @col.Header
                             </span>
                         }
+                    </td>
+                    <td>
+                        <select style="margin-left:30px;" asp-for="SearchboxGroupbyP91" onchange="reload_after_groupby(this,'p91')">
+                            <option>--Souhrny podle--</option>
+                            @foreach (var col in Model.lisSearchboxP91)
+                            {
+                                <option value="@col.UniqueName">
+                                    @col.Header
+                                </option>
+
+                                   
+                            }
+                        </select>
                     </td>
                 </tr>
             </table>
