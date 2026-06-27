@@ -95,8 +95,43 @@ namespace UI.Controllers
                 mq.explicit_orderby_rst = $"pid DESC";
             }
 
-            mq.explicit_orderby = "p38Name";
+
+            var strGroupByField = Factory.CBL.LoadUserParam($"searchbox-groupby-{mq.Prefix}");  //nabídka combo položek je vizualizována podle souhrnů
+            //if (strGroupByField != null)
+            //{
+            //    var colGroupBy = _colsProvider.ByUniqueName(strGroupByField);
+                
+            //    if (mq.explicit_orderby == null)
+            //    {
+            //        mq.explicit_orderby = colGroupBy.getFinalSqlSyntax_ORDERBY() ;
+            //    }
+            //    else
+            //    {
+            //        if (!mq.explicit_orderby.Contains(colGroupBy.getFinalSqlSyntax_ORDERBY()))
+            //        {
+            //            mq.explicit_orderby = colGroupBy.getFinalSqlSyntax_ORDERBY() + "," + mq.explicit_orderby;
+            //        }
+                    
+            //    }
+                
+            //}
+
             var dt = Factory.gridBL.GetGridTable(mq);
+            if (strGroupByField != null)
+            {
+                dt.DefaultView.Sort = strGroupByField;
+                DataTable sorted = dt.DefaultView.ToTable();
+                dt.Dispose(); // uvolní původní
+                dt = sorted;
+
+                foreach(var col in cols)
+                {
+                    if (col.UniqueName == strGroupByField)
+                    {
+                        cols.Remove(col);break;
+                    }
+                }
+            }
             var intRows = dt.Rows.Count;
 
             var s = new System.Text.StringBuilder();
@@ -167,14 +202,14 @@ namespace UI.Controllers
             }
             s.Append(string.Format("</tr></thead><tbody id='{0}_tbody'>", tableid));
 
-            var groupByField = Factory.CBL.LoadUserParam($"searchbox-groupby-{mq.Prefix}");
-            s.Append($"<h6>{groupByField}</h6>");
+            
+            
             string strTrClass = "";object lastGroupByVal = null;
             for (int i = 0; i < intRows; i++)
             {
-                if (dt.Rows[i][3] !=System.DBNull.Value && !Equals(lastGroupByVal, dt.Rows[i][3]))
+                if (strGroupByField !=null && dt.Rows[i][strGroupByField] !=System.DBNull.Value && !Equals(lastGroupByVal, dt.Rows[i][strGroupByField]))
                 {
-                    s.Append($"<tr style='background-color:silver;'><td colspan=10>{dt.Rows[i][3]}</td></tr>");
+                    s.Append($"<tr style='background-color:silver;'><td colspan=10>{dt.Rows[i][strGroupByField]}</td></tr>");
                 }
                    
 
@@ -212,8 +247,11 @@ namespace UI.Controllers
 
                 }
                 s.Append("</tr>");
-
-                lastGroupByVal = dt.Rows[i][3];
+                if (strGroupByField != null)
+                {
+                    lastGroupByVal = dt.Rows[i][strGroupByField];
+                }
+                
             }
             s.Append("</tbody></table>");
             s.Append($"<input type=\"hidden\" id=\"columnsinfo{tableid}\" value=\"{strJ72Columns}\"/>");    //předání používaných sloupců, aby se nemuseli znovu zjišťovat na serveru
