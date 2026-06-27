@@ -348,7 +348,7 @@
 
                     </td>
                     <td>
-                        <select style="margin-left:30px;" asp-for="SearchboxGroupbyJ02" onchange="reload_after_groupby(this,'j02')">
+                        <select style="@(Model.SearchboxGroupbyJ02 != null ? "background-color:orange" : null)" asp-for="SearchboxGroupbyJ02" onchange="reload_after_groupby(this,'j02')">
                             <option value="">--Souhrny podle--</option>
                             @foreach (var col in Model.lisSearchboxJ02)
                             {
@@ -382,7 +382,7 @@
                         
                     </td>
                     <td>
-                        <select style="margin-left:30px;" asp-for="SearchboxGroupbyP41" onchange="reload_after_groupby(this,'p41')">
+                        <select style="@(Model.SearchboxGroupbyP41 != null ? "background-color:orange" : null)" asp-for="SearchboxGroupbyP41" onchange="reload_after_groupby(this,'p41')">
                             <option value="">--Souhrny podle--</option>
                             @foreach (var col in Model.lisSearchboxP41)
                             {
@@ -414,7 +414,7 @@
                         
                     </td>
                     <td>
-                        <select style="margin-left:30px;" asp-for="SearchboxGroupbyP28" onchange="reload_after_groupby(this,'p28')">
+                        <select style="@(Model.SearchboxGroupbyP28 != null ? "background-color:orange" : null)" asp-for="SearchboxGroupbyP28" onchange="reload_after_groupby(this,'p28')">
                             <option value="">--Souhrny podle--</option>
                             @foreach (var col in Model.lisSearchboxP28)
                             {
@@ -446,7 +446,7 @@
                         
                     </td>
                     <td>
-                        <select style="margin-left:30px;" asp-for="SearchboxGroupbyP32" onchange="reload_after_groupby(this,'p32')">
+                        <select style="@(Model.SearchboxGroupbyP32 !=null ? "background-color:orange":null)" asp-for="SearchboxGroupbyP32" onchange="reload_after_groupby(this,'p32')">
                             <option value="">--Souhrny podle--</option>
                             @foreach (var col in Model.lisSearchboxP32)
                             {
@@ -476,7 +476,7 @@
                         }
                     </td>
                     <td>
-                        <select style="margin-left:30px;" asp-for="SearchboxGroupbyP56" onchange="reload_after_groupby(this,'p56')">
+                        <select style="@(Model.SearchboxGroupbyP56 != null ? "background-color:orange" : null)" asp-for="SearchboxGroupbyP56" onchange="reload_after_groupby(this,'p56')">
                             <option value="">--Souhrny podle--</option>
                             @foreach (var col in Model.lisSearchboxP56)
                             {
@@ -506,7 +506,7 @@
                         }
                     </td>
                     <td>
-                        <select style="margin-left:30px;" asp-for="SearchboxGroupbyP91" onchange="reload_after_groupby(this,'p91')">
+                        <select style="@(Model.SearchboxGroupbyP91 != null ? "background-color:orange" : null)" asp-for="SearchboxGroupbyP91" onchange="reload_after_groupby(this,'p91')">
                             <option value="">--Souhrny podle--</option>
                             @foreach (var col in Model.lisSearchboxP91)
                             {
