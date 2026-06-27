@@ -224,6 +224,7 @@ namespace UI.Controllers
 
                 }
             }
+            
             Handle_Defaults(v);
             if (v.rec_pid > 0)
             {
@@ -426,6 +427,20 @@ namespace UI.Controllers
                                 if (v.Setting.ActivityFlag == 2)
                                 {
                                     v.Rec.p32ID = recLast.p32ID; v.SelectedComboP32Name = recLast.p32Name;
+                                }
+                                if (v.Rec.p41ID > 0 && v.Rec.p34ID>0)
+                                {
+                                    //zjistit, zda sešit vyhovuje náplni projektu
+                                    var lisP43=Factory.p42ProjectTypeBL.GetList_p43(v.RecP41.p42ID, v.Rec.p34ID);
+                                    if (lisP43.Count() == 0)
+                                    {
+                                        var lisAllowedP34 = Factory.p34ActivityGroupBL.GetList(new BO.myQueryP34() { p41id = v.Rec.p41ID });
+                                        if (lisAllowedP34.Count() > 0)
+                                        {
+                                            v.Rec.p34ID = lisAllowedP34.First().pid; v.SelectedComboP34Name = lisAllowedP34.First().p34Name;
+                                        }
+                                        v.Rec.p32ID = 0; v.SelectedComboP32Name = null;
+                                    }
                                 }
                                 InhaleP34(v, recLast.p31BitStream);
 

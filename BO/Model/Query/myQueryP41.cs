@@ -242,32 +242,55 @@ namespace BO
             bool bolAllHours = this.CurrentUser.TestPermission(PermValEnum.GR_P31_Creator_Hours);
             bool bolAllExpenses = this.CurrentUser.TestPermission(PermValEnum.GR_P31_Creator_Expenses);
             bool bolAllFees = this.CurrentUser.TestPermission(PermValEnum.GR_P31_Creator_Fees);
+            bool bolAllProjects = false;
             if (bolAllHours && bolAllExpenses && bolAllFees)
             {
-                return; //může vykazovat do všech sešitů
+                bolAllProjects=true; //může vykazovat do všech sešitů
             }
-            if (bolAllHours && (p33id_for_p31_entry==1 || p33id_for_p31_entry == 3))
+            else
             {
-                return; //může vykazovat ve všech projektech hodiny a kusovník
-            }
-            if (bolAllExpenses && this.p34incomestatementflag_for_p31_entry==1 && (p33id_for_p31_entry == 2 || p33id_for_p31_entry == 5))
-            {
-                return; //může vykazovat ve všech projektech peněžní výdaje
-            }
-            if (bolAllFees && this.p34incomestatementflag_for_p31_entry == 2 && (p33id_for_p31_entry == 2 || p33id_for_p31_entry == 5))
-            {
-                return; //může vykazovat ve všech projektech pevné odměny
+                if (bolAllHours && (this.p33id_for_p31_entry == 1 || this.p33id_for_p31_entry == 3))
+                {
+                    bolAllProjects = true; //může vykazovat ve všech projektech hodiny a kusovník
+                }
+                if (bolAllExpenses && this.p34incomestatementflag_for_p31_entry == 1 && (p33id_for_p31_entry == 2 || p33id_for_p31_entry == 5))
+                {
+                    bolAllProjects = true; //může vykazovat ve všech projektech peněžní výdaje
+                }
+                if (bolAllFees && this.p34incomestatementflag_for_p31_entry == 2 && (p33id_for_p31_entry == 2 || p33id_for_p31_entry == 5))
+                {
+                    bolAllProjects = true; //může vykazovat ve všech projektech pevné odměny
+                }
             }
             
-            //Oprávnění k projektu vyplývající z projektové role přímo v projektu nebo nepřímo ve středisku projektu nebo v klientovi projektu:
+            if (bolAllProjects && this.p34id_for_p31_entry == 0)
+            {
+                return; //nabídka všech projektů, protože není filtrován sešit
+            }
+
             var sb = new System.Text.StringBuilder();
+            if (this.p34id_for_p31_entry > 0)
+            {
+                //odfiltrovat projekty pouze podle sešitu
+                //sb.Append("EXISTS (SELECT 1 FROM p43ProjectType_Workload WHERE p42ID=a.p42ID AND p34ID=@p34id");
+                AQ("EXISTS (SELECT 1 FROM p43ProjectType_Workload WHERE p34ID=@p34id AND p42ID=a.p42ID)", "p34id", this.p34id_for_p31_entry);
+            }
+
+            if (bolAllProjects)
+            {
+                //oprávnění vykazovat do všech projektů
+                
+                return;
+            }
+
+            //Oprávnění k projektu vyplývající z projektové role přímo v projektu nebo nepřímo ve středisku projektu nebo v klientovi projektu:
+            
             sb.Append("EXISTS (SELECT 1 FROM x69EntityRole_Assign xa inner join x67EntityRole xb ON xa.x67ID=xb.x67ID INNER JOIN o28ProjectRole_Workload xc ON xb.x67ID=xc.x67ID");
             sb.Append(" WHERE xb.x67Entity='p41' AND xc.o28EntryFlag>0");
             if (this.p34id_for_p31_entry > 0)
             {
                 sb.Append(" AND xc.p34ID=@p34id");
-            }
-            
+            }            
 
             sb.Append(" AND (xa.j02ID=@j02id_query OR xa.x69IsAllUsers=1");
 

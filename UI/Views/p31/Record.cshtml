@@ -142,7 +142,7 @@ else
 
 <div class="row my-2">
     <label for="cmdComboRec_p41ID" class="col-sm-1 col-md-1 col-form-label recpagelabel">@(_f.getP07Level(Model.SelectedLevelIndex, true)):</label>
-
+    
     <div class="col-sm-10 col-md-9">
         <mycombo entity="@(Model.ProjectEntity)" search-result-width="900" combo-height="570" asp-for="Rec.p41ID" selectedtext="@Model.SelectedComboProject" filter-flag="1" view-flag="1" myqueryinline="@(Model.MyQueryInline_Project)" event_after_changevalue="p41id_change"></mycombo>
     </div>

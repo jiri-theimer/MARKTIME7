@@ -141,100 +141,9 @@ namespace UI.Controllers
 
         }
 
-        //public IActionResult MyMainMenuLinks(string newurl,string newname,string href)
-        //{
-           
-        //    var v = new MyMainMenuLinksViewModel() { ResultValue = Factory.CurrentUser.j02MyMenuLinks };
-        //    v.lisLinks = new List<MenuItemMyLink>();
-        //    var cmenu = new UI.Menu.TheMenuSupport(Factory);
-
-        //    if (Factory.CurrentUser.j02MyMenuLinks != null)
-        //    {
-        //        v.lisLinks = cmenu.getMyMenuLinks();
-        //    }
-        //    if (!string.IsNullOrEmpty(newurl))
-        //    {
-        //        newurl = HttpUtility.UrlDecode(newurl).Replace("**", "&");
-        //        if (newurl.Contains("p31calendar") || newurl.Contains("p31dayline") || newurl.Contains("widgets"))  //ořezat querystring za otazníkem
-        //        {
-        //            newurl = newurl.Split("?")[0];
-        //        }
-               
-        //        string strID = cmenu.TryEstimateMyLinkID(newurl);
-                
-        //        v.lisLinks.Add(new MenuItemMyLink() {IsJustNew=true, Url = newurl,Name=newname,Ordinary=v.lisLinks.Count()+1,TempGuid=BO.Code.Bas.GetGuid(),ID=strID});
-        //    }
-
-        //    return View(v);
-
-        //}
-        //[HttpPost]
-        //public IActionResult MyMainMenuLinks(MyMainMenuLinksViewModel v, string guid)
-        //{
-        //    if (v.lisLinks == null)
-        //    {
-        //        v.lisLinks = new List<MenuItemMyLink>();
-        //    }
-        //    if (v.IsPostback)
-        //    {
-        //        if (v.PostbackOper == "add")
-        //        {
-        //            var c = new MenuItemMyLink() { TempGuid = BO.Code.Bas.GetGuid(),Ordinary=v.lisLinks.Count()+1 };
-        //            v.lisLinks.Add(c);
-
-        //        }
-        //        if (v.PostbackOper == "delete")
-        //        {
-        //            v.lisLinks.First(p => p.TempGuid == guid).IsTempDeleted = true;
-
-        //        }
-
-        //        return View(v);
-        //    }
-
-        //    if (ModelState.IsValid)
-        //    {
-        //        if (v.lisLinks.Where(p=>p.IsTempDeleted==false && string.IsNullOrEmpty(p.Name)).Count() > 0)
-        //        {
-        //            this.AddMessage("Minimálně v jednom odkazu chybí vyplnit název.");return View(v);
-        //        }
-        //        if (v.lisLinks.Where(p => p.IsTempDeleted == false && string.IsNullOrEmpty(p.Url)).Count() > 0)
-        //        {
-        //            this.AddMessage("Minimálně v jednom odkazu chybí vyplnit Url."); return View(v);
-        //        }
-        //        if (v.lisLinks.Where(p=>p.IsTempDeleted==false).GroupBy(p => p.Url).Any(p=>p.Count()>1))
-        //        {
-        //            this.AddMessage("V seznamu nesmí být odkazy s duplicitní url adresou."); return View(v);
-        //        }
-        //        if (v.lisLinks.Where(p => p.IsTempDeleted == false).GroupBy(p => p.Name.ToLower()).Any(p => p.Count() > 1))
-        //        {
-        //            this.AddMessage("V seznamu nesmí být odkazy s duplicitním názvem."); return View(v);
-        //        }
-        //        var lis = new List<string>();int x = 1;
-        //        foreach (var c in v.lisLinks.Where(p => p.IsTempDeleted == false).OrderBy(p=>p.Ordinary))
-        //        {                    
-        //            lis.Add(c.Name + "|" + c.Url + "|" + c.Target + "|"+c.ID);
-        //            x += 1;
-        //        }
-
-        //        var recJ02 = Factory.j02UserBL.Load(Factory.CurrentUser.pid);
-        //        recJ02.j02MyMenuLinks = String.Join("**", lis);
-        //        if (!string.IsNullOrEmpty(recJ02.j02MyMenuLinks) && recJ02.j02MyMenuLinks.Length > 400)
-        //        {
-        //            this.AddMessage("Nelze uložit tolik odkazů. Uberte."); return View(v);
-        //        }
-                
-        //        Factory.j02UserBL.Save(recJ02, null);
-
-        //        v.SetJavascript_CallOnLoad(0);
-        //        return View(v);
-
-        //    }
+       
 
 
-        //    this.Notify_RecNotSaved();
-        //    return View(v);
-        //}
 
         public IActionResult MyProfile()
         {
@@ -271,6 +180,7 @@ namespace UI.Controllers
 
             v.SearchboxP41 = Factory.CBL.LoadUserParam("searchbox-p41", Factory.j72TheGridTemplateBL.getDefaultPalleteSearchbox("p41Project"));
             v.lisSearchboxP41 = _colsProvider.ParseTheGridColumns("p41", v.SearchboxP41, Factory);
+            v.SearchboxGroupbyP41 = Factory.CBL.LoadUserParam("searchbox-groupby-p41");
 
             v.SearchboxP28 = Factory.CBL.LoadUserParam("searchbox-p28", Factory.j72TheGridTemplateBL.getDefaultPalleteSearchbox("p28Contact"));
             v.lisSearchboxP28 = _colsProvider.ParseTheGridColumns("p28", v.SearchboxP28, Factory);
@@ -280,6 +190,7 @@ namespace UI.Controllers
 
             v.SearchboxP32 = Factory.CBL.LoadUserParam("searchbox-p32", Factory.j72TheGridTemplateBL.getDefaultPalleteSearchbox("p32Activity"));
             v.lisSearchboxP32 = _colsProvider.ParseTheGridColumns("p32", v.SearchboxP32, Factory);
+            v.SearchboxGroupbyP32 = Factory.CBL.LoadUserParam("searchbox-groupby-p32");
 
             v.SearchboxP91 = Factory.CBL.LoadUserParam("searchbox-p91", Factory.j72TheGridTemplateBL.getDefaultPalleteSearchbox("p91Invoice"));
             v.lisSearchboxP91 = _colsProvider.ParseTheGridColumns("p91", v.SearchboxP91, Factory);

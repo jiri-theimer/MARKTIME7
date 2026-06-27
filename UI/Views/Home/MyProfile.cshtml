@@ -59,6 +59,7 @@
                 <input type="hidden" asp-for="SearchboxP56" />
                 <input type="hidden" asp-for="SearchboxP32" />
                 <input type="hidden" asp-for="SearchboxP91" />
+                <input type="hidden" asp-for="ActiveTabIndex" />
 
                 <div class="btn-group">
                     <div>
@@ -73,9 +74,9 @@
 
                         <button class="btn bog" type="button" onclick="_window_open('/p31hes/Index', 3);"><span class="material-icons-outlined-btn menu_new_record">more_time</span> @_f.tra("Moje předvolby pro vykazování a schvalování")</button>
                     </div>
+
                    
                   
-
                     <div style="margin-left:20px;display:none;">
 
                         <button class="btn bog" type="button" onclick="_news()"><span class="material-icons-outlined-btn" style="color:skyblue;">brand_awareness</span> @_f.tra("Novinky | Blog")</button>
@@ -116,7 +117,7 @@
                         </select>
 
                     </div>
-                   
+
                 </div>
 
 
@@ -273,7 +274,7 @@
 
         <div class="tab-pane" id="tab2" role="tabpanel">
             <button type="button" id="cmdAddJ40" class="btn btn-sm bog">@_f.tra("Přidat poštovní účet")</button>
-            
+
             <p></p>
             <table class="table table-hover">
                 @foreach (var c in Model.lisJ40)
@@ -343,6 +344,18 @@
 
                         }
 
+                        <select style="margin-left:30px;" asp-for="SearchboxGroupbyJ02" onchange="reload_after_groupby(this,'j02')">
+                            <option>--Souhrny podle--</option>
+                            @foreach (var col in Model.lisSearchboxJ02)
+                            {
+                                <option value="@col.UniqueName">
+                                    @col.Header
+                                </option>
+
+                                   
+                            }
+                        </select>
+
                     </td>
                 </tr>
                 <tr>
@@ -352,6 +365,8 @@
                             @_f.tra("Projekt")
 
                         </button>
+
+                        
                     </td>
                     <td>
                         @foreach (var col in Model.lisSearchboxP41)
@@ -360,6 +375,18 @@
                                 @col.Header
                             </span>
                         }
+
+                        <select style="margin-left:30px;" asp-for="SearchboxGroupbyP41" onchange="reload_after_groupby(this,'p41')">
+                            <option>--Souhrny podle--</option>
+                            @foreach (var col in Model.lisSearchboxP41)
+                            {
+                                <option value="@col.UniqueName">
+                                    @col.Header
+                                </option>
+
+                                   
+                            }
+                        </select>
                     </td>
                 </tr>
                 <tr>
@@ -377,6 +404,18 @@
                                 @col.Header
                             </span>
                         }
+
+                        <select style="margin-left:30px;" asp-for="SearchboxGroupbyP28" onchange="reload_after_groupby(this,'p28')">
+                            <option>--Souhrny podle--</option>
+                            @foreach (var col in Model.lisSearchboxP28)
+                            {
+                                <option value="@col.UniqueName">
+                                    @col.Header
+                                </option>
+
+                                   
+                            }
+                        </select>
                     </td>
                 </tr>
                 <tr>
@@ -394,6 +433,18 @@
                                 @col.Header
                             </span>
                         }
+
+                        <select style="margin-left:30px;" asp-for="SearchboxGroupbyP32" onchange="reload_after_groupby(this,'p32')">
+                            <option>--Souhrny podle--</option>
+                            @foreach (var col in Model.lisSearchboxP32)
+                            {
+                                <option value="@col.UniqueName">
+                                    @col.Header
+                                </option>
+
+                                   
+                            }
+                        </select>
                     </td>
                 </tr>
                 <tr>
@@ -523,6 +574,8 @@
 
     $(document).ready(function () {
 
+    
+
         
 
     $("#infoAvailResolution").text(_device.availWidth + " x " + _device.availHeight);
@@ -618,6 +671,13 @@
 
     $(document).ready(function () {
 
+
+    $(".tab-pane").removeClass("active");
+
+    $("#tab@(Model.ActiveTabIndex)").addClass("active");
+    $("#link_tab@(Model.ActiveTabIndex)").attr("class", "nav-link active");
+    
+
     $("#infoAvailResolution").text(_device.availWidth + " x " + _device.availHeight);
     $("#infoInnerResolution").text(_device.innerWidth + " x " + _device.innerHeight);
     $("#infoMobile").text(_device.type);
@@ -656,20 +716,43 @@
 
     }
 
-    function reload_after_griddesigner(pid, cols) {
-    $("#Searchbox" + _prefix_grid_designer.toUpperCase()).val(cols);
+    function reload_after_griddesigner(pid, cols)
+    {
+        $("#Searchbox" + _prefix_grid_designer.toUpperCase()).val(cols);
 
-    var key = "searchbox-" + _prefix_grid_designer;
+        var key = "searchbox-" + _prefix_grid_designer;
 
-    $.post("/Common/SetUserParam", { key: key, value: cols }, function (data) {
-    _postback("searchbox");
-    });
+        $.post("/Common/SetUserParam", { key: key, value: cols }, function (data) {
+            _postback("searchbox");
+        });
 
 
 
     }
 
+    function reload_after_groupby(cbx,prefix)
+    {
+       
+        var key = "searchbox-groupby-" + prefix;
+
+        $.post("/Common/SetUserParam", { key: key, value: cbx.value }, function (data) {
+            _postback("searchbox-groupby");
+        });
+
+
+
+    }
+
+
+
+    $('a[data-bs-toggle="tab"]').on("shown.bs.tab", function (e) {
+        // v e.target.id je id kliknutá záložka
+
+        var tabindex = e.target.id.substring(e.target.id.length - 1, e.target.id.length);
+        
+        $("#ActiveTabIndex").val(tabindex);
     
+    })
 </script>
 
 

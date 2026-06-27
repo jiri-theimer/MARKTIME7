@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Primitives;
-using System;
-using System.Collections.Generic;
+﻿
 using System.Data;
 
 
@@ -15,22 +13,22 @@ namespace UI.Controllers
             _colsProvider = cp;
         }
 
-   
 
-        public string GetHtml4TheCombo(string entity, string tableid, string myqueryinline, string pids, string filterflag, string searchstring, string masterprefix, int masterpid,string explicit_columns) //Vrací HTML zdroj tabulky pro MyCombo
-        {            
-            var mq = new BO.InitMyQuery(Factory.CurrentUser).Load(entity,masterprefix,masterpid,myqueryinline);
-            if (mq.j02id_query>0 && mq.j02id_query != mq.CurrentUser.pid)
+
+        public string GetHtml4TheCombo(string entity, string tableid, string myqueryinline, string pids, string filterflag, string searchstring, string masterprefix, int masterpid, string explicit_columns) //Vrací HTML zdroj tabulky pro MyCombo
+        {
+            var mq = new BO.InitMyQuery(Factory.CurrentUser).Load(entity, masterprefix, masterpid, myqueryinline);
+            if (mq.j02id_query > 0 && mq.j02id_query != mq.CurrentUser.pid)
             {
                 mq.CurrentUser = Factory.j02UserBL.LoadRunningUser(mq.j02id_query);
             }
-                        
+
             var ce = Factory.EProvider.ByPrefix(mq.Prefix);
             if (!ce.IsWithoutValidity)
             {
                 mq.IsRecordValid = true;    //v combo nabídce pouze časově platné záznamy
             }
-            
+
             if (!string.IsNullOrEmpty(pids) && pids != "0")
             {
                 mq.SetPids(pids);
@@ -43,45 +41,46 @@ namespace UI.Controllers
                     mq.TopRecordsOnly = Factory.CBL.LoadUserParamInt("searchbox-toprecs", 50); //maximálně prvních 50 záznamů, které vyhovují podmínce
                 }
             }
-            
-            
+
+
             List<BO.TheGridColumn> cols = null; string strJ72Columns = null;
 
-            if (string.IsNullOrEmpty(explicit_columns) && (mq.Prefix=="j02" || mq.PrefixDb == "p41" || mq.Prefix == "p28" || mq.Prefix == "p91" || mq.Prefix=="p32" || mq.Prefix=="p56" || mq.Prefix == "p90" || mq.Prefix == "o23" || mq.Prefix == "p31"))
+            if (string.IsNullOrEmpty(explicit_columns) && (mq.Prefix == "j02" || mq.PrefixDb == "p41" || mq.Prefix == "p28" || mq.Prefix == "p91" || mq.Prefix == "p32" || mq.Prefix == "p56" || mq.Prefix == "p90" || mq.Prefix == "o23" || mq.Prefix == "p31"))
             {
 
-                strJ72Columns=Factory.CBL.LoadUserParam($"searchbox-{mq.Prefix}", Factory.j72TheGridTemplateBL.getDefaultPalleteSearchbox(entity));
-                
+                strJ72Columns = Factory.CBL.LoadUserParam($"searchbox-{mq.Prefix}", Factory.j72TheGridTemplateBL.getDefaultPalleteSearchbox(entity));
+
             }
             else
             {
                 strJ72Columns = explicit_columns;   //kvůli výkonu combo z klienta předává zadání sloupců
             }
-            
-            
-            
+
+
+
             if (strJ72Columns != null)
             {
                 cols = _colsProvider.ParseTheGridColumns(mq.Prefix, strJ72Columns, Factory);    //zjt: původně zde bylo mq.PrefixDb
             }
             else
             {
-                cols = _colsProvider.getDefaultPallete(true, mq,Factory);   //výchozí paleta sloupců
+                cols = _colsProvider.getDefaultPallete(true, mq, Factory);   //výchozí paleta sloupců
             }
-            
+
 
             mq.explicit_columns = cols;
+
 
             mq.explicit_orderby = ce.SqlOrderByCombo;
             if (mq.PrefixDb == "p41")
             {
                 mq.explicit_orderby = cols[0].getFinalSqlSyntax_ORDERBY();
                 mq.explicit_orderby_rst = cols[0].UniqueName;
-                
+
                 if (cols.Count() > 1)
                 {
                     mq.explicit_orderby = $"{mq.explicit_orderby},{cols[1].getFinalSqlSyntax_ORDERBY()}";
-                    mq.explicit_orderby_rst= $"{mq.explicit_orderby_rst},{cols[1].UniqueName}";
+                    mq.explicit_orderby_rst = $"{mq.explicit_orderby_rst},{cols[1].UniqueName}";
                 }
             }
             if (mq.Prefix == "j02" || mq.Prefix == "p28" || mq.Prefix == "p56" || mq.Prefix == "o23")
@@ -96,21 +95,22 @@ namespace UI.Controllers
                 mq.explicit_orderby_rst = $"pid DESC";
             }
 
-
+            mq.explicit_orderby = "p38Name";
             var dt = Factory.gridBL.GetGridTable(mq);
             var intRows = dt.Rows.Count;
 
             var s = new System.Text.StringBuilder();
             
-                if (mq.TopRecordsOnly > 0)
+
+            if (mq.TopRecordsOnly > 0)
             {
                 if (intRows >= mq.TopRecordsOnly)
                 {
-                    s.AppendLine(string.Format("<small style='margin-left:10px;'>{0} {1} {2}. {3}</small>",Factory.tra("Zobrazeno prvních"), intRows,Factory.tra("záznamů"),Factory.tra("Zpřesněte filtrovací podmínku.")));
+                    s.AppendLine(string.Format("<small style='margin-left:10px;'>{0} {1} {2}. {3}</small>", Factory.tra("Zobrazeno prvních"), intRows, Factory.tra("záznamů"), Factory.tra("Zpřesněte filtrovací podmínku.")));
                 }
                 else
                 {
-                    s.AppendLine(string.Format("<small style='margin-left:10px;'>{0}: {1}.</small>",Factory.tra("Počet záznamů"), intRows));
+                    s.AppendLine(string.Format("<small style='margin-left:10px;'>{0}: {1}.</small>", Factory.tra("Počet záznamů"), intRows));
                 }
 
             }
@@ -119,8 +119,24 @@ namespace UI.Controllers
             {
                 s.Append("<a style='float:right;' tabindex='-1' href=\"javascript: _window_open('/p28/Record?pid=0')\">Založit nový kontakt</a>");
             }
-            if ((mq.Prefix == "p41" || mq.Prefix=="le5") && Factory.CurrentUser.TestPermission(BO.PermValEnum.GR_p41_Creator))
+            if (mq.Prefix == "p41")
             {
+                var mqP41 = (BO.myQueryP41)mq;
+                if (mqP41.p34id_for_p31_entry > 0)
+                {
+                    var recP34 = Factory.p34ActivityGroupBL.Load(mqP41.p34id_for_p31_entry);
+                    if (recP34 != null)
+                    {
+                        s.Append($"<span style='margin-left:100px;'>Projekty pro sešit </span><span class='badge-light'>{recP34.p34Name}</span>");
+                    }
+
+                }
+
+
+            }
+            if ((mq.Prefix == "p41" || mq.Prefix == "le5") && Factory.CurrentUser.TestPermission(BO.PermValEnum.GR_p41_Creator))
+            {
+
                 s.Append("<a style='float:right;' tabindex='-1' href=\"javascript: _window_open('/p41/Record?pid=0')\">Založit nový</a>");
             }
             if (mq.Prefix == "p56" && Factory.CurrentUser.j04IsModule_p56)
@@ -147,12 +163,18 @@ namespace UI.Controllers
                         s.Append(string.Format("<th>{0}</th>", col.Header));
                         break;
                 }
-                
+
             }
             s.Append(string.Format("</tr></thead><tbody id='{0}_tbody'>", tableid));
-            string strTrClass = "";
+            string strTrClass = "";object lastGroupByVal = null;
             for (int i = 0; i < intRows; i++)
             {
+                if (dt.Rows[i][3] !=System.DBNull.Value && !Equals(lastGroupByVal, dt.Rows[i][3]))
+                {
+                    s.Append($"<tr style='background-color:silver;'><td colspan=10>{dt.Rows[i][3]}</td></tr>");
+                }
+                   
+
                 strTrClass = "txz";
                 if (Convert.ToBoolean(dt.Rows[i]["isclosed"]) == true)
                 {
@@ -168,14 +190,11 @@ namespace UI.Controllers
                     else
                     {
                         strTrClass += " nefa";
-                    }                    
+                    }
                 }
-                s.Append($"<tr class='{strTrClass}' data-v='{dt.Rows[i]["pid"]}'");
-                //s.Append(string.Format("<tr class='{0}' data-v='{1}'", strTrClass, dt.Rows[i]["pid"]));
+                s.Append($"<tr class='{strTrClass}' data-v='{dt.Rows[i]["pid"]}'>");
                 
-                
-
-                s.Append(">");
+                //s.Append(">");
                 foreach (var col in cols)
                 {
                     if (col.NormalizedTypeName == "num")
@@ -190,6 +209,8 @@ namespace UI.Controllers
 
                 }
                 s.Append("</tr>");
+
+                lastGroupByVal = dt.Rows[i][3];
             }
             s.Append("</tbody></table>");
             s.Append($"<input type=\"hidden\" id=\"columnsinfo{tableid}\" value=\"{strJ72Columns}\"/>");    //předání používaných sloupců, aby se nemuseli znovu zjišťovat na serveru
@@ -201,13 +222,13 @@ namespace UI.Controllers
 
         //zdroj checkboxů pro taghelper mycombochecklist:
         public string GetHtml4Checkboxlist(string controlid, string entity, string selectedvalues, string masterprefix, int masterpid, string myqueryinline) //Vrací HTML seznam checkboxů pro taghelper: mycombochecklist
-        {            
-            var mq = new BO.InitMyQuery(Factory.CurrentUser).Load(entity,masterprefix,masterpid,myqueryinline);
+        {
+            var mq = new BO.InitMyQuery(Factory.CurrentUser).Load(entity, masterprefix, masterpid, myqueryinline);
             if (mq.j02id_query > 0 && mq.j02id_query != mq.CurrentUser.pid)
             {
                 mq.CurrentUser = Factory.j02UserBL.LoadRunningUser(mq.j02id_query);
             }
-            mq.explicit_columns = _colsProvider.getDefaultPallete(false, mq,Factory);
+            mq.explicit_columns = _colsProvider.getDefaultPallete(false, mq, Factory);
             var ce = Factory.EProvider.ByPrefix(mq.Prefix);
             if (ce.IsWithoutValidity == false)
             {
@@ -215,7 +236,7 @@ namespace UI.Controllers
             }
             mq.explicit_orderby = ce.SqlOrderByCombo;
 
-           
+
             List<int> selpids = null;
             if (String.IsNullOrEmpty(selectedvalues) == false)
             {
@@ -235,7 +256,7 @@ namespace UI.Controllers
                     strTextField = "a__p32Activity__AktivitaPlusSesit";
                     break;
             }
-            
+
             string strGroupField = null;
             string strLastGroup = null;
             string strGroup = null;
@@ -255,7 +276,7 @@ namespace UI.Controllers
             }
 
             sb.AppendLine("<ul style='list-style:none;padding-left:0px;'>");
-            
+
 
             for (int i = 0; i < intRows; i++)
             {
@@ -295,49 +316,49 @@ namespace UI.Controllers
 
 
             sb.AppendLine("</ul>");
-           
-            sb.AppendLine(string.Format("<button type='button' id='cmdCheckAll{0}' class='mycontrols_checkall btn btn-sm btn-light' style='font-size:80%;'>" + Factory.tra("Zaškrtnout vše")+"</button>", controlid));
-            sb.AppendLine(string.Format("<button type='button' id='cmdUnCheckAll{0}' class='mycontrols_uncheckall btn btn-sm btn-light' style='font-size:80%;'>" + Factory.tra("Odškrtnout vše")+"</button>", controlid));
-            
+
+            sb.AppendLine(string.Format("<button type='button' id='cmdCheckAll{0}' class='mycontrols_checkall btn btn-sm btn-light' style='font-size:80%;'>" + Factory.tra("Zaškrtnout vše") + "</button>", controlid));
+            sb.AppendLine(string.Format("<button type='button' id='cmdUnCheckAll{0}' class='mycontrols_uncheckall btn btn-sm btn-light' style='font-size:80%;'>" + Factory.tra("Odškrtnout vše") + "</button>", controlid));
+
             return sb.ToString();
         }
 
-        
-        
+
+
         public string GetAutoCompleteHtmlItems(int o15flag, string tableid) //Vrací options pro datalist v rámci autocomplete pole
         {
             var mq = new BO.myQuery("o15");
             var lis = Factory.o15AutoCompleteBL.GetList(mq).Where(p => (int)p.o15Flag == o15flag);
             return string.Join("|", lis.Select(p => p.o15Value));
-            
+
         }
 
-        public string GetMySelectHtmlOptions(string entity,string textfield,string orderfield)
+        public string GetMySelectHtmlOptions(string entity, string textfield, string orderfield)
         {
             var sb = new System.Text.StringBuilder();
             var mq = new BO.myQuery(entity) { IsRecordValid = true };
             textfield = System.Web.HttpUtility.UrlDecode(textfield).Replace("##", "'");
-            mq.explicit_selectsql =textfield + " AS combotext";
+            mq.explicit_selectsql = textfield + " AS combotext";
             if (!string.IsNullOrEmpty(orderfield))
-            {               
+            {
                 orderfield = System.Web.HttpUtility.UrlDecode(orderfield).Replace("##", "'");
                 mq.explicit_orderby = orderfield;
             }
-            
+
             var dt = Factory.gridBL.GetGridTable(mq);
-            foreach(DataRow dbRow in dt.Rows)
+            foreach (DataRow dbRow in dt.Rows)
             {
-                
+
                 sb.Append(string.Format("<option value='{0}'>{1}</option>", dbRow["pid"].ToString(), dbRow["combotext"]));
             }
-            
+
 
             return sb.ToString();
         }
 
 
 
-       
+
 
     }
 }

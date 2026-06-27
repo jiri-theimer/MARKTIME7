@@ -9,7 +9,7 @@ namespace UI.Models.Home
 {
     public class MyProfileViewModel:BaseViewModel
     {
-        
+        public int ActiveTabIndex { get; set; } = 1;
         public BO.j02User RecJ02 { get; set; }
         
         
@@ -34,5 +34,14 @@ namespace UI.Models.Home
         public List<BO.TheGridColumn> lisSearchboxP56 { get; set; }
         public List<BO.TheGridColumn> lisSearchboxP32 { get; set; }
         public List<BO.TheGridColumn> lisSearchboxP91 { get; set; }
+
+
+
+        public string SearchboxGroupbyJ02 { get; set; }
+        public string SearchboxGroupbyP41 { get; set; }
+        public string SearchboxGroupbyP28 { get; set; }
+        public string SearchboxGroupbyP56 { get; set; }
+        public string SearchboxGroupbyP32 { get; set; }
+        public string SearchboxGroupbyP91 { get; set; }
     }
 }
