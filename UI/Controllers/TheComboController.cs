@@ -166,6 +166,9 @@ namespace UI.Controllers
 
             }
             s.Append(string.Format("</tr></thead><tbody id='{0}_tbody'>", tableid));
+
+            var groupByField = Factory.CBL.LoadUserParam($"searchbox-groupby-{mq.Prefix}");
+            s.Append($"<h6>{groupByField}</h6>");
             string strTrClass = "";object lastGroupByVal = null;
             for (int i = 0; i < intRows; i++)
             {
