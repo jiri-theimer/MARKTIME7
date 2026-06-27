@@ -209,7 +209,7 @@ namespace UI.Controllers
             {
                 if (strGroupByField !=null && dt.Rows[i][strGroupByField] !=System.DBNull.Value && !Equals(lastGroupByVal, dt.Rows[i][strGroupByField]))
                 {
-                    s.Append($"<tr style='background-color:silver;'><td colspan=10>{dt.Rows[i][strGroupByField]}</td></tr>");
+                    s.Append($"<tr data-skip='true' data-v='0' style='background-color:silver;'><td colspan=10>{dt.Rows[i][strGroupByField]}</td></tr>");
                 }
                    
 

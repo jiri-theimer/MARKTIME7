@@ -229,8 +229,9 @@
         if (e.keyCode === 13 && e.target.id === "cmdCombo" + _controlid) {//ENTER
             
             var row = $("#" + _tabbodyid).find(".combo_selrow");
-            if (row.length > 0) {
-
+           
+            if (row.length > 0 && !$(row).attr("data-skip")) {
+                
                 record_was_selected(row[0]);
                 
                 //$(myDropdown).dropdown("toggle");
