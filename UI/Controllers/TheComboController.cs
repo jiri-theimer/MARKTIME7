@@ -161,8 +161,13 @@ namespace UI.Controllers
                 {
                     var recP34 = Factory.p34ActivityGroupBL.Load(mqP41.p34id_for_p31_entry);
                     if (recP34 != null)
-                    {
-                        s.Append($"<span style='margin-left:100px;'>Projekty pro sešit </span><span class='badge-light'>{recP34.p34Name}</span>");
+                    {                        
+                        if (!mqP41.zrusit_p34id_for_p31_entry)
+                        {
+                            s.Append($"<span style='margin-left:100px;'>Projekty pro sešit </span><span class='badge-light'>{recP34.p34Name}</span>");
+                            s.Append($"<a href='javascript:zrusit_p34id_for_p31_entry()' tabindex='-1'>Zrušit filtr</button>");
+                        }
+                        
                     }
 
                 }

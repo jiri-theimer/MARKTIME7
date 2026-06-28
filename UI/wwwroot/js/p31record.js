@@ -451,3 +451,14 @@ function handle_billingflag()
 function report(prefix,pid) {
     _window_open("/ReportsClient/ReportContext/?prefix="+prefix+"&pid=" + pid, 3);
 }
+
+
+function zrusit_p34id_for_p31_entry()
+{
+    $("#zrusit_p34id_for_p31_entry").val(true);
+
+
+   
+    _postback("zrusit_p34id_for_p31_entry");
+    
+}

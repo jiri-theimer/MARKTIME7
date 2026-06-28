@@ -1,9 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
+﻿
 namespace UI.Models.Record
 {
     public class p31Record: BaseRecordViewModel
@@ -93,7 +88,10 @@ namespace UI.Models.Record
         public bool IsOfferNavicKusovnik { get; set; }
         public int p34ID_Kusovnik { get; set; }
         public List<KusovnikInline> lisKusovnik { get; set; }
-        
+
+        public bool zrusit_p34id_for_p31_entry { get; set; }
+
+
     }
 
     public class KusovnikInline

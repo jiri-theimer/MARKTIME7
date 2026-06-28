@@ -547,7 +547,7 @@ namespace UI.Controllers
             if (v.RecP34 != null)
             {
                 v.MyQueryInline_Project = $"{v.MyQueryInline_Project}|p34id_for_p31_entry|int|{v.RecP34.pid}|p33id_for_p31_entry|int|{(int)v.RecP34.p33ID}|p34incomestatementflag_for_p31_entry|int|{(int)v.RecP34.p34IncomeStatementFlag}";
-
+                
                 if (!v.disp.IsInhaled)
                 {
                     InhaleP34(v, 0);
@@ -598,7 +598,10 @@ namespace UI.Controllers
                 }
             }
 
-
+            if (v.zrusit_p34id_for_p31_entry)
+            {
+                v.MyQueryInline_Project = $"{v.MyQueryInline_Project}|zrusit_p34id_for_p31_entry|bool|true";
+            }
 
             if (v.Rec.p32ID > 0 && v.RecP32 == null)
             {
@@ -834,6 +837,9 @@ namespace UI.Controllers
                         v.Rec.Value_Trimmed = "0";
                     }
 
+                    break;
+                case "zrusit_p34id_for_p31_entry":
+                    v.Element2Focus = "cmdComboRec_p41ID";
                     break;
                 case "p32id":
                     if (v.Rec.p32ID > 0)

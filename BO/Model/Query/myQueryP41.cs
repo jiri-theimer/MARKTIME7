@@ -21,6 +21,7 @@ namespace BO
         public bool notquery_disponible { get; set; }   //zobrazit všechny projekty bez testování přístupových práv
         
         public int p34id_for_p31_entry { get; set; }    //omezovat na projekty pro vykazování v sešitu p34id_for_p31_entry
+        public bool zrusit_p34id_for_p31_entry { get; set; }    //true: uživatel explicitně zrušil filtrování projektů podle sešitu při vykazování úkonů
         public int p33id_for_p31_entry { get; set; }
         public int p34incomestatementflag_for_p31_entry { get; set; }
 
@@ -253,23 +254,23 @@ namespace BO
                 {
                     bolAllProjects = true; //může vykazovat ve všech projektech hodiny a kusovník
                 }
-                if (bolAllExpenses && this.p34incomestatementflag_for_p31_entry == 1 && (p33id_for_p31_entry == 2 || p33id_for_p31_entry == 5))
+                if (bolAllExpenses && this.p34incomestatementflag_for_p31_entry == 1 && (this.p33id_for_p31_entry == 2 || this.p33id_for_p31_entry == 5))
                 {
                     bolAllProjects = true; //může vykazovat ve všech projektech peněžní výdaje
                 }
-                if (bolAllFees && this.p34incomestatementflag_for_p31_entry == 2 && (p33id_for_p31_entry == 2 || p33id_for_p31_entry == 5))
+                if (bolAllFees && this.p34incomestatementflag_for_p31_entry == 2 && (this.p33id_for_p31_entry == 2 || this.p33id_for_p31_entry == 5))
                 {
                     bolAllProjects = true; //může vykazovat ve všech projektech pevné odměny
                 }
             }
             
-            if (bolAllProjects && this.p34id_for_p31_entry == 0)
+            if (bolAllProjects && (this.p34id_for_p31_entry == 0 || this.zrusit_p34id_for_p31_entry))
             {
                 return; //nabídka všech projektů, protože není filtrován sešit
             }
 
             var sb = new System.Text.StringBuilder();
-            if (this.p34id_for_p31_entry > 0)
+            if (this.p34id_for_p31_entry > 0 || !this.zrusit_p34id_for_p31_entry)
             {
                 //odfiltrovat projekty pouze podle sešitu
                 //sb.Append("EXISTS (SELECT 1 FROM p43ProjectType_Workload WHERE p42ID=a.p42ID AND p34ID=@p34id");
