@@ -99,7 +99,7 @@ namespace BL
             AF("p28TreePath", "Stromový název", "a.p28TreePath");
             AF("p28TreeLevel", "Tree Level", "a.p28TreeLevel", "num0");
             AF("HasChilds", "Má podřízené", "convert(bit,case when a.p28TreeNext>a.p28TreePrev then 1 else 0 end)", "bool");
-            AF("ChildContactsInline", "Podřízené kontakty", "dbo.p28_get_childs_inline_print_version6(a.p28ID)");
+            //AF("ChildContactsInline", "Podřízené kontakty", "dbo.p28_get_childs_inline_print_version6(a.p28ID)");
 
             AppendTimestamp();
 

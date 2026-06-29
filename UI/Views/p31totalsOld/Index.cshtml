@@ -48,7 +48,7 @@
                 <a id="cmdMore" class="nav-link onetab-offcanvas" tabindex="-1" role="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvas_more">
                     <span class="onetab-caret"></span>
                     @_f.tra("Součty")
-                    
+                    <span class="badge-light">BigData</span>
                 </a>
             </li>
         </ul>
@@ -316,7 +316,7 @@
             @if (!Model.SelectedTemplate.j79IsSystem)
             {
                 <div style="padding:6px;">
-                    <button type="button" class="btn btn-danger" onclick="delete_template()" style="min-width:150px;">@_f.tra("Odstranit šablonu")</button>
+                    <button type="button" class="btn btn-danger w-100" onclick="delete_template()" style="min-width:150px;">@_f.tra("Odstranit šablonu")</button>
                 </div>
             }
             
@@ -342,10 +342,10 @@
             </div>
         }
 
+        
         <div style="padding:6px;">
-            <button type="button" class="btn btn-info" onclick="switch2newversion()">@_f.tra("Přepnout rozhraní do nové verze (2026)")</button>
+            <a class="btn btn btn-outline-info" href="javascript:switch2newversion()">@_f.tra("Přepnout do rozhraní")<span class="badge-light ms-3">WebDataRocks</span></a>
         </div>
-
 
         <hr />
         @Html.EditorFor(m => _IsGrid, "~/Views/Shared/_TableLayoutDeisgner.cshtml")

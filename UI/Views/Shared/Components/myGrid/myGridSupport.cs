@@ -315,39 +315,49 @@ namespace UI.Views.Shared.Components.myGrid
 
             if (_grid.GridState.j75CurrentRecordPid > 0 && intVirtualRowsCount > gridState.j75PageSize) //má se skočit na konkrétní záznam a záznamů je více než na 1 stránku
             {
-                System.Data.DataRow[] recs = dt.Select($"pid={_grid.GridState.j75CurrentRecordPid}");
-                if (recs.Count() > 0)
+                try
                 {
-                    //záznam existuje v dt: buď je na první stránce nebo v úvodních 500 záznamech, kde se nepoužívá OFFSET
-                    var intIndex = dt.Rows.IndexOf(recs[0]);
-                    _grid.GridState.j75CurrentPagerIndex = intIndex - (intIndex % _grid.GridState.j75PageSize);
-                }
-                else
-                {
-                    if (intVirtualRowsCount > dt.Rows.Count)
+
+                    System.Data.DataRow[] recs = dt.Select($"pid={_grid.GridState.j75CurrentRecordPid}");
+                    if (recs.Count() > 0)
                     {
-                        //záznam není v dt a celkový počet záznamů je větší než v dt (tedy více než 500). Je třeba najít odpovídající stránku a pro ní vygenerovat datatable                        
-
-                        try
-                        {
-                            var lisPIDs = _Factory.gridBL.GetListOfFindPid(mq, intVirtualRowsCount);
-                            var qryPID = lisPIDs.Where(p => p.pid == _grid.GridState.j75CurrentRecordPid);
-                            if (qryPID.Count() > 0)
-                            {
-                                var intIndex = qryPID.First().rowindex;
-                                _grid.GridState.j75CurrentPagerIndex = intIndex - (intIndex % _grid.GridState.j75PageSize);
-                                mq.OFFSET_PageNum = gridState.j75CurrentPagerIndex / gridState.j75PageSize;
-                                dt = _Factory.gridBL.GetGridTable(mq);   //znovu načíst dotaz kvůli dohledanému záznamu na jiné stránce j75CurrentPagerIndex
-                            }
-                        }
-                        catch
-                        {
-                            BO.Code.File.LogError($"Selhalo SQL v dohledání záznamu na druhé nebo další stránce tabulky,pid: {_grid.GridState.j75CurrentRecordPid},j75CurrentPagerIndex: {_grid.GridState.j75CurrentPagerIndex}, mq.OFFSET_PageNum: {mq.OFFSET_PageNum}, intVirtualRowsCount: {intVirtualRowsCount}", _Factory.CurrentUser.j02Login, "render_thegrid_html");
-                        }
-
-
+                        //záznam existuje v dt: buď je na první stránce nebo v úvodních 500 záznamech, kde se nepoužívá OFFSET
+                        var intIndex = dt.Rows.IndexOf(recs[0]);
+                        _grid.GridState.j75CurrentPagerIndex = intIndex - (intIndex % _grid.GridState.j75PageSize);
                     }
+                    else
+                    {
+                        if (intVirtualRowsCount > dt.Rows.Count)
+                        {
+                            //záznam není v dt a celkový počet záznamů je větší než v dt (tedy více než 500). Je třeba najít odpovídající stránku a pro ní vygenerovat datatable                        
+
+                            try
+                            {
+                                var lisPIDs = _Factory.gridBL.GetListOfFindPid(mq, intVirtualRowsCount);
+                                var qryPID = lisPIDs.Where(p => p.pid == _grid.GridState.j75CurrentRecordPid);
+                                if (qryPID.Count() > 0)
+                                {
+                                    var intIndex = qryPID.First().rowindex;
+                                    _grid.GridState.j75CurrentPagerIndex = intIndex - (intIndex % _grid.GridState.j75PageSize);
+                                    mq.OFFSET_PageNum = gridState.j75CurrentPagerIndex / gridState.j75PageSize;
+                                    dt = _Factory.gridBL.GetGridTable(mq);   //znovu načíst dotaz kvůli dohledanému záznamu na jiné stránce j75CurrentPagerIndex
+                                }
+                            }
+                            catch
+                            {
+                                BO.Code.File.LogError($"Selhalo SQL v dohledání záznamu na druhé nebo další stránce tabulky,pid: {_grid.GridState.j75CurrentRecordPid},j75CurrentPagerIndex: {_grid.GridState.j75CurrentPagerIndex}, mq.OFFSET_PageNum: {mq.OFFSET_PageNum}, intVirtualRowsCount: {intVirtualRowsCount}", _Factory.CurrentUser.j02Login, "render_thegrid_html");
+                            }
+
+
+                        }
+                    }
+
                 }
+                catch(Exception ex)
+                {
+                    
+                }
+                
 
             }
 
