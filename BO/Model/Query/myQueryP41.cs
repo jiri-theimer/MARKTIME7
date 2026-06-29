@@ -270,7 +270,7 @@ namespace BO
             }
 
             var sb = new System.Text.StringBuilder();
-            if (this.p34id_for_p31_entry > 0 || !this.zrusit_p34id_for_p31_entry)
+            if (this.p34id_for_p31_entry > 0 && !this.zrusit_p34id_for_p31_entry)
             {
                 //odfiltrovat projekty pouze podle sešitu
                 //sb.Append("EXISTS (SELECT 1 FROM p43ProjectType_Workload WHERE p42ID=a.p42ID AND p34ID=@p34id");
@@ -288,7 +288,7 @@ namespace BO
             
             sb.Append("EXISTS (SELECT 1 FROM x69EntityRole_Assign xa inner join x67EntityRole xb ON xa.x67ID=xb.x67ID INNER JOIN o28ProjectRole_Workload xc ON xb.x67ID=xc.x67ID");
             sb.Append(" WHERE xb.x67Entity='p41' AND xc.o28EntryFlag>0");
-            if (this.p34id_for_p31_entry > 0)
+            if (this.p34id_for_p31_entry > 0 && !this.zrusit_p34id_for_p31_entry)
             {
                 sb.Append(" AND xc.p34ID=@p34id");
             }            
@@ -305,15 +305,17 @@ namespace BO
             sb.Append(")");
             sb.Append(")");
 
-            
-            if (this.p34id_for_p31_entry > 0)
-            {
-                AQ(sb.ToString(), "j02id_query", get_real_j02id_query(), "AND", null, null, "p34id", this.p34id_for_p31_entry);
-            }
-            else
-            {
-                AQ(sb.ToString(), "j02id_query", get_real_j02id_query());
-            }
+
+            AQ(sb.ToString(), "j02id_query", get_real_j02id_query());
+
+            //if (this.p34id_for_p31_entry > 0)
+            //{
+            //    AQ(sb.ToString(), "j02id_query", get_real_j02id_query(), "AND", null, null, "p34id", this.p34id_for_p31_entry);
+            //}
+            //else
+            //{
+            //    AQ(sb.ToString(), "j02id_query", get_real_j02id_query());
+            //}
                 
 
             
