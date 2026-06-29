@@ -16,6 +16,7 @@ namespace UI.Controllers
             {
                 def.ColHeaders = recP85.p85FreeText01;
             }
+            def.Sql = def.Sql.Replace("@j02id_query", Factory.CurrentUser.pid.ToString());
             var dt = Factory.gridBL.GetListFromPureSql(def.Sql);
 
             string strTempFileName = new BL.Code.Datatable2Html(def, Factory).CreateXlsFile(dt);
