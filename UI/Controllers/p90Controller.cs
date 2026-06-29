@@ -123,6 +123,14 @@ namespace UI.Controllers
                     v.Rec.p28ID = p28id;
                     v.ComboP28Name = Factory.p28ContactBL.Load(p28id).p28Name;
                 }
+                if (v.Rec.pid == 0 && v.RecP89 != null && v.RecP89.p89DefaultText1 != null)
+                {
+                    v.Rec.p90Text1 = v.RecP89.p89DefaultText1;
+                }
+                if (v.Rec.pid == 0 && v.RecP89 != null && v.RecP89.p89DefaultText2 != null)
+                {
+                    v.Rec.p90Text2 = v.RecP89.p89DefaultText2;
+                }
             }
 
             RefreshStateRecord(v);
@@ -190,6 +198,8 @@ namespace UI.Controllers
                     v.Rec.p90Amount_WithoutVat = Math.Round(v.Rec.p90Amount / (1 + v.Rec.p90VatRate / 100), 2);
                     v.Rec.p90Amount_Vat = Math.Round(v.Rec.p90Amount - v.Rec.p90Amount_WithoutVat, 2);
                 }
+
+                
 
                 return View(v);
             }
