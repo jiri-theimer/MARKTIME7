@@ -1,0 +1,183 @@
+@model EntryHoursViewModel
+@inject BL.Factory _f
+
+@{
+    var isNew = Model.pid == 0;
+    var dayUrl = Url.Action("Day", "Calendar", new { d = Model.Date.ToString("yyyy-MM-dd") });
+    var activityHidden = Model.ActivityEntryFlag == 1;  // AktivitaSeNezadava
+    var activityRequired = Model.ActivityEntryFlag == 3; // AktivitaJePovinna
+}
+
+<div class="grid gap-3">
+
+    <div class="flex items-center justify-between">
+        <a href="@dayUrl" class="btn btn-ghost btn-sm">
+            <span class="material-icons-outlined" style="font-size:20px;">arrow_back</span>
+            @_f.tra("Zpět")
+        </a>
+        <div class="text-sm text-base-content/60">@Model.Date.ToString("d. MMMM yyyy")</div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.Message))
+    {
+        <div role="alert" class="alert alert-error">
+            <span class="material-icons-outlined">error_outline</span>
+            <span>@Model.Message</span>
+        </div>
+    }
+
+    <form method="post" asp-action="SaveHours" id="ukonForm">
+        <input type="hidden" asp-for="pid" />
+        <input type="hidden" asp-for="Date" />
+        <input type="hidden" name="oper" id="oper" value="" />
+
+        <div class="card bg-base-100 shadow-sm">
+            <div class="card-body gap-3">
+
+                @* Sešit - PRVNÍ volba, postback při změně *@
+                <label class="form-control">
+                    <div class="label">
+                        <span class="label-text font-semibold">@_f.tra("Sešit") *</span>
+                    </div>
+                    <select asp-for="p34ID" class="select select-bordered w-full"
+                            onchange="postback('p34change')">
+                        <option value="0">— @_f.tra("vyberte sešit") —</option>
+                        @foreach (var s in Model.SesitComboItems)
+                        {
+                            <option value="@s.Id" selected="@(s.Id == Model.p34ID)">
+                                @s.Text@(string.IsNullOrEmpty(s.Meta) ? "" : $" ({s.Meta})")
+                            </option>
+                        }
+                    </select>
+                </label>
+
+                @* Projekt - mycombo, postback při změně (přenačtení aktivit) *@
+                <label class="form-control">
+                    <div class="label">
+                        <span class="label-text font-semibold">@_f.tra("Projekt") *</span>
+                    </div>
+                    <mycombo asp-for="p41ID"
+                             selected-text="@Model.SelectedProjectText"
+                             items="@Model.ProjectComboItems"
+                             placeholder="@_f.tra("vyberte projekt")"
+                             event-after-change="onProjectChange" />
+                </label>
+
+                @* Aktivita - jen pokud to sešit dovoluje *@
+                @if (!activityHidden)
+                {
+                    <label class="form-control">
+                        <div class="label">
+                            <span class="label-text font-semibold">
+                                @_f.tra("Aktivita")@(activityRequired ? " *" : "")
+                            </span>
+                            @if (!activityRequired)
+                            {
+                                <span class="label-text-alt text-base-content/50">@_f.tra("volitelně")</span>
+                            }
+                        </div>
+                        @if (Model.p34ID > 0 && Model.p41ID > 0)
+                        {
+                            <mycombo asp-for="p32ID"
+                                     selected-text="@Model.SelectedActivityText"
+                                     items="@Model.ActivityComboItems"
+                                     placeholder="@_f.tra("vyberte aktivitu")" />
+                        }
+                        else
+                        {
+                            <div class="text-sm text-base-content/50 italic px-1">
+                                @_f.tra("Nejprve vyberte sešit a projekt.")
+                            </div>
+                            <input type="hidden" asp-for="p32ID" />
+                        }
+                    </label>
+                }
+                else
+                {
+                    <input type="hidden" asp-for="p32ID" value="0" />
+                }
+
+                @* Úkol - volitelný *@
+                <label class="form-control">
+                    <div class="label">
+                        <span class="label-text font-semibold">@_f.tra("Úkol")</span>
+                        <span class="label-text-alt text-base-content/50">@_f.tra("volitelně")</span>
+                    </div>
+                    <select asp-for="p56ID" id="p56ID" class="select select-bordered w-full">
+                        <option value="0">— @_f.tra("bez úkolu") —</option>
+                        @foreach (var t in Model.TaskList)
+                        {
+                            <option value="@t.pid" selected="@(t.pid == Model.p56ID)">@t.p56Name</option>
+                        }
+                    </select>
+                </label>
+
+                @* Hodiny - povinné *@
+                <label class="form-control">
+                    <div class="label">
+                        <span class="label-text font-semibold">@_f.tra("Hodiny") *</span>
+                        <span class="label-text-alt text-base-content/50">např. 1.5 nebo 01:30</span>
+                    </div>
+                    <input asp-for="Hours" class="input input-bordered w-full"
+                           inputmode="decimal" autocomplete="off" enterkeyhint="next" placeholder="0" />
+                </label>
+
+                @* Čas od - do, volitelné *@
+                <div class="grid grid-cols-2 gap-2">
+                    <label class="form-control">
+                        <div class="label"><span class="label-text">@_f.tra("Čas od")</span></div>
+                        <input asp-for="TimeFrom" type="time" class="input input-bordered w-full" />
+                    </label>
+                    <label class="form-control">
+                        <div class="label"><span class="label-text">@_f.tra("Čas do")</span></div>
+                        <input asp-for="TimeUntil" type="time" class="input input-bordered w-full" />
+                    </label>
+                </div>
+
+                @* Popis - povinný *@
+                <label class="form-control">
+                    <div class="label"><span class="label-text font-semibold">@_f.tra("Popis") *</span></div>
+                    <textarea asp-for="Description" class="textarea textarea-bordered w-full"
+                              rows="3" autocapitalize="sentences"></textarea>
+                </label>
+
+            </div>
+        </div>
+
+        <div class="grid gap-2 mt-3">
+            <button type="submit" class="btn btn-primary btn-block">
+                <span class="material-icons-outlined" style="font-size:20px;">check</span>
+                @_f.tra("Uložit")
+            </button>
+
+            @if (!isNew)
+            {
+                <button type="submit"
+                        formaction="@Url.Action("Delete", new { id = Model.pid, d = Model.Date.ToString("yyyy-MM-dd") })"
+                        class="btn btn-error btn-outline btn-block"
+                        onclick="return confirm('@_f.tra("Opravdu smazat tento úkon?")');">
+                    <span class="material-icons-outlined" style="font-size:20px;">delete</span>
+                    @_f.tra("Smazat")
+                </button>
+            }
+
+            <a href="@dayUrl" class="btn btn-ghost btn-block">@_f.tra("Storno")</a>
+        </div>
+    </form>
+
+</div>
+
+@section scripts {
+    <script>
+        // Postback - nastaví oper a odešle formulář (změna sešitu / projektu)
+        function postback(oper) {
+            document.getElementById('oper').value = oper;
+            document.getElementById('ukonForm').submit();
+        }
+
+        // Po výběru projektu v mycombu spusť postback pro přenačtení aktivit
+        function onProjectChange(p41id) {
+            postback('p41change');
+        }
+    </script>
+}

@@ -1,0 +1,15 @@
+@model BaseViewModel
+@inject BL.Factory _f
+
+<div class="card bg-base-100 shadow-sm">
+    <div class="card-body items-center text-center py-12">
+        <span class="material-icons-outlined text-base-content/30" style="font-size:64px;">construction</span>
+        <h2 class="card-title">@_f.tra("Připravujeme")</h2>
+        <p class="text-base-content/60">
+            @_f.tra("Tento typ úkonu")@(string.IsNullOrEmpty(Model.PageTitleAfter) ? "" : $" — {Model.PageTitleAfter}") @_f.tra("zatím není v mobilní aplikaci dostupný.")
+        </p>
+        <a asp-controller="Calendar" asp-action="Index" class="btn btn-primary mt-2">
+            @_f.tra("Zpět na kalendář")
+        </a>
+    </div>
+</div>
