@@ -1,0 +1,42 @@
+@model BaseViewModel
+@inject BL.Factory _f
+
+<div class="grid gap-3">
+    <div class="card bg-base-100 shadow-sm">
+        <div class="card-body">
+            <h2 class="card-title">
+                @_f.tra("Vítejte")@if (_f.CurrentUser != null) { <span>, @_f.CurrentUser.FullNameAsc</span>}
+            </h2>
+            <p class="text-base-content/70">
+                @_f.tra("Toto je mobilní rozhraní MARKtime. Použijte spodní menu pro navigaci.")
+            </p>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+        <a asp-action="Calendar" class="card bg-base-100 shadow-sm hover:bg-base-300 transition">
+            <div class="card-body items-center text-center p-4">
+                <span class="material-icons-outlined text-primary" style="font-size:32px;">today</span>
+                <span class="font-medium">@_f.tra("Kalendář")</span>
+            </div>
+        </a>
+        <a asp-action="Tasks" class="card bg-base-100 shadow-sm hover:bg-base-300 transition">
+            <div class="card-body items-center text-center p-4">
+                <span class="material-icons-outlined text-primary" style="font-size:32px;">receipt_long</span>
+                <span class="font-medium">@_f.tra("Úkony")</span>
+            </div>
+        </a>
+        <a asp-action="Todos" class="card bg-base-100 shadow-sm hover:bg-base-300 transition">
+            <div class="card-body items-center text-center p-4">
+                <span class="material-icons-outlined text-primary" style="font-size:32px;">task_alt</span>
+                <span class="font-medium">@_f.tra("Úkoly")</span>
+            </div>
+        </a>
+        <a asp-action="Reports" class="card bg-base-100 shadow-sm hover:bg-base-300 transition">
+            <div class="card-body items-center text-center p-4">
+                <span class="material-icons-outlined text-primary" style="font-size:32px;">print</span>
+                <span class="font-medium">@_f.tra("Sestavy")</span>
+            </div>
+        </a>
+    </div>
+</div>

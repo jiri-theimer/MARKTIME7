@@ -1,0 +1,89 @@
+@model LoginViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Přihlášení");
+    Layout = "~/Views/Shared/_LayoutAnonym.cshtml";
+
+    var _returnurl = Context.Request.Query["returnurl"];
+    var _culture = System.Globalization.CultureInfo.CurrentUICulture.Name;
+}
+
+<div class="card bg-base-100 shadow">
+    <div class="card-body">
+
+        <h2 class="card-title">@_f.tra("Přihlášení")</h2>
+
+        @if (!string.IsNullOrEmpty(Model.Message))
+        {
+            <div role="alert" class="alert alert-error">
+                <span class="material-icons-outlined">error_outline</span>
+                <span>@Html.Raw(Model.Message)</span>
+            </div>
+        }
+
+        <form method="post" asp-action="UserLogin" asp-controller="Login">
+            <input type="hidden" name="returnurl" value="@_returnurl" />
+            <input type="hidden" name="culture" value="@_culture" />
+            <input type="hidden" asp-for="Browser_UserAgent" id="Browser_UserAgent" />
+            <input type="hidden" asp-for="Browser_AvailWidth" id="Browser_AvailWidth" />
+            <input type="hidden" asp-for="Browser_AvailHeight" id="Browser_AvailHeight" />
+            <input type="hidden" asp-for="Browser_InnerWidth" id="Browser_InnerWidth" />
+            <input type="hidden" asp-for="Browser_InnerHeight" id="Browser_InnerHeight" />
+            <input type="hidden" asp-for="Browser_DeviceType" id="Browser_DeviceType" />
+            <input type="hidden" asp-for="Browser_Host" id="Browser_Host" />
+
+            <label class="floating-label mt-3">
+                <span>@_f.tra("Uživatel")</span>
+                <input asp-for="Login"
+                       class="input input-bordered w-full"
+                       autocomplete="username"
+                       inputmode="email"
+                       autocapitalize="off"
+                       autocorrect="off"
+                       enterkeyhint="next" />
+            </label>
+
+            <label class="floating-label mt-3">
+                <span>@_f.tra("Heslo")</span>
+                <input asp-for="Password"
+                       type="password"
+                       class="input input-bordered w-full"
+                       autocomplete="current-password"
+                       enterkeyhint="go" />
+            </label>
+
+            <label class="label cursor-pointer justify-start gap-2 mt-3">
+                <input type="checkbox" class="checkbox checkbox-sm"
+                       onchange="document.getElementById('CookieExpiresInHours').value = this.checked ? 720 : 8" />
+                <span class="label-text">@_f.tra("Zapamatovat na 30 dní")</span>
+            </label>
+            <input type="hidden" asp-for="CookieExpiresInHours" id="CookieExpiresInHours" value="168" />
+
+            <div class="card-actions mt-4">
+                <button type="submit" class="btn btn-primary btn-block">
+                    <span class="material-icons-outlined" style="font-size:20px;">login</span>
+                    @_f.tra("Přihlásit se")
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        // Vyplnit Browser_* skrytá pole pro accesslog
+        (function () {
+            try {
+                document.getElementById('Browser_UserAgent').value = navigator.userAgent || '';
+                document.getElementById('Browser_AvailWidth').value = (screen && screen.availWidth) || 0;
+                document.getElementById('Browser_AvailHeight').value = (screen && screen.availHeight) || 0;
+                document.getElementById('Browser_InnerWidth').value = window.innerWidth || 0;
+                document.getElementById('Browser_InnerHeight').value = window.innerHeight || 0;
+                document.getElementById('Browser_DeviceType').value = 'mobile';
+                document.getElementById('Browser_Host').value = window.location.host || '';
+            } catch (e) { /* tichá chyba */ }
+        })();
+    </script>
+}

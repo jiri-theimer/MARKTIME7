@@ -1,0 +1,26 @@
+/*
+ * MO Tailwind CSS + DaisyUI 5 input
+ * --------------------------------
+ * Build (z adresáře MO/Styles/):
+ *   c:\DEV\_tailwind\tailwindcss-windows-x64.exe -i app.css -o ../wwwroot/css/app.css --minify
+ *
+ * Vyžaduje v c:\DEV\_tailwind\ tyto soubory vedle tailwindcss-windows-x64.exe:
+ *   - daisyui.mjs
+ *   - daisyui-theme.mjs
+ * Stahnete je z https://github.com/saadeghi/daisyui/releases/latest
+ */
+
+@import "tailwindcss";
+
+/* @source říká Tailwindu, kde hledat třídy. Defaultní auto-discovery
+   nestačí, protože sourcem jsou Razor (.cshtml) a C# (.cs) soubory. */
+@source "../Views";
+@source "../Controllers";
+
+/* Vyloučit soubory v c:\DEV\_tailwind\, ať Tailwind nescanuje sám sebe ani daisyui.mjs */
+@source not "c:/DEV/_tailwind/tailwindcss-windows-x64.exe";
+@source not "c:/DEV/_tailwind/daisyui{,*}.mjs";
+
+@plugin "c:/DEV/_tailwind/daisyui.mjs" {
+    themes: light --default, dark --prefersdark;
+}

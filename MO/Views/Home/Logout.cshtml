@@ -1,0 +1,16 @@
+@model BaseViewModel
+@inject BL.Factory _f
+@{
+    Model.PageTitle = _f.tra("Odhlášení");
+    Layout = "~/Views/Shared/_LayoutAnonym.cshtml";
+}
+
+<div class="card bg-base-100 shadow">
+    <div class="card-body items-center text-center">
+        <span class="material-icons-outlined text-success" style="font-size:48px;">check_circle</span>
+        <h2 class="card-title">@_f.tra("Došlo k odhlášení uživatele")</h2>
+        <a asp-action="UserLogin" asp-controller="Login" class="btn btn-primary mt-2">
+            @_f.tra("Přihlásit se")
+        </a>
+    </div>
+</div>

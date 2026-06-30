@@ -1,0 +1,13 @@
+@model BaseViewModel
+@{
+    Layout = "~/Views/Shared/_LayoutAnonym.cshtml";
+}
+
+<div class="card bg-base-100 shadow">
+    <div class="card-body items-center text-center">
+        <span class="material-icons-outlined text-error" style="font-size:48px;">error_outline</span>
+        <h2 class="card-title">Chyba</h2>
+        <p class="text-base-content/70">Při zpracování požadavku došlo k chybě.</p>
+        <a asp-controller="Home" asp-action="Index" class="btn btn-primary mt-2">Domů</a>
+    </div>
+</div>

@@ -1,0 +1,84 @@
+@model MyProfileViewModel
+@inject BL.Factory _f
+
+<div class="grid gap-3">
+
+    @* Hlavička profilu *@
+    <div class="card bg-base-100 shadow-sm">
+        <div class="card-body">
+            <div class="flex items-center gap-3">
+                <div class="avatar avatar-placeholder">
+                    <div class="bg-primary text-primary-content rounded-full w-14">
+                        <span class="text-xl">
+                            @{
+                                var initials = "";
+                                if (Model.RecJ02 != null)
+                                {
+                                    var fn = Model.RecJ02.j02FirstName ?? "";
+                                    var ln = Model.RecJ02.j02LastName ?? "";
+                                    if (fn.Length > 0) initials += fn[0];
+                                    if (ln.Length > 0) initials += ln[0];
+                                    if (string.IsNullOrEmpty(initials) && !string.IsNullOrEmpty(Model.RecJ02.j02Login))
+                                        initials = Model.RecJ02.j02Login.Substring(0, 1).ToUpper();
+                                }
+                            }
+                            @initials
+                        </span>
+                    </div>
+                </div>
+                <div>
+                    <div class="font-bold">@Model.RecJ02?.FullNameAsc</div>
+                    <div class="text-sm text-base-content/60">@Model.RecJ02?.j02Login</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Údaje *@
+    <div class="card bg-base-100 shadow-sm">
+        <div class="card-body p-0">
+            <ul class="list">
+                <li class="list-row">
+                    <span class="material-icons-outlined text-base-content/60">mail</span>
+                    <div>
+                        <div class="text-xs text-base-content/60">@_f.tra("E-mail")</div>
+                        <div>@Model.RecJ02?.j02Email</div>
+                    </div>
+                </li>
+                <li class="list-row">
+                    <span class="material-icons-outlined text-base-content/60">smartphone</span>
+                    <div>
+                        <div class="text-xs text-base-content/60">@_f.tra("Mobil")</div>
+                        <div>@Model.RecJ02?.j02Mobile</div>
+                    </div>
+                </li>
+                <li class="list-row">
+                    <span class="material-icons-outlined text-base-content/60">badge</span>
+                    <div>
+                        <div class="text-xs text-base-content/60">@_f.tra("Aplikační role")</div>
+                        <div>@Model.RecJ02?.j04Name</div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    @* Browser / klient info *@
+    @if (Model.client_info != null)
+    {
+        <div class="card bg-base-100 shadow-sm">
+            <div class="card-body">
+                <h3 class="font-semibold text-sm text-base-content/60 uppercase tracking-wide">@_f.tra("Klient")</h3>
+                <div class="text-sm">
+                    <div>@Model.client_info.UA.Family @Model.client_info.UA.Major</div>
+                    <div class="text-base-content/60">@Model.client_info.OS.Family @Model.client_info.OS.Major</div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <a asp-action="Logout" class="btn btn-error btn-outline mt-2">
+        <span class="material-icons-outlined" style="font-size:20px;">logout</span>
+        @_f.tra("Odhlásit se")
+    </a>
+</div>

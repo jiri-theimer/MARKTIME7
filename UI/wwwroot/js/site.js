@@ -80,6 +80,22 @@ document.onkeydown = function (e) {
             
         }
 
+        if (e.key == "t" || e.key == "T") {
+            if (window.location.href.indexOf("TheGrid/") > 0 || window.location.href.indexOf("/RecPage") > 0) {
+                var prefix = _thegrid.entity.substr(0, 3);
+                var pid = $("#tg_selected_pid").val();
+                if (pid == "" || pid == "0")
+                {
+                    return;
+                }
+                _window_open("/ReportsClient/ReportContext/?prefix="+prefix+"&pid="+pid)
+            }
+
+        }
+
+
+    
+
         if ((e.key == "a" || e.key == "A") && window.location.href.indexOf("TheGrid/") > 0 && document.getElementById("tg_selected_pid")) {
             var pid = $("#tg_selected_pid").val();
             if (pid == "" || pid=="0") {

@@ -1,0 +1,182 @@
+@model BaseViewModel
+@inject BL.Factory _f
+@{
+    var activeAction = (string)ViewContext.RouteData.Values["action"] ?? "";
+    var activeController = (string)ViewContext.RouteData.Values["controller"] ?? "";
+
+    // Pomocná funkce pro označení aktivní položky docku (pro CSS třídu .dock-active)
+    string IsActive(params string[] actions)
+    {
+        return actions.Any(a => string.Equals(a, activeAction, StringComparison.OrdinalIgnoreCase))
+            ? "dock-active"
+            : "";
+    }
+}
+<!DOCTYPE html>
+<html lang="@System.Globalization.CultureInfo.CurrentUICulture.Name" data-theme="light">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#ffffff" />
+    <title>@(string.IsNullOrEmpty(Model?.PageTitle) ? "MARKtime" : Model.PageTitle + " — MARKtime")</title>
+
+    <!-- DEV ONLY: Tailwind 4 + DaisyUI 5 via CDN. Před produkcí nahradit buildem app.css. -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@@5" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/@@tailwindcss/browser@@4"></script>
+    <link rel="stylesheet" href="~/css/app.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/icons.css" asp-append-version="true" />
+
+    <link rel="icon" href="~/favicon.ico" />
+</head>
+<body class="min-h-screen bg-base-200">
+
+    <div class="drawer drawer-end">
+        <input id="mo-drawer" type="checkbox" class="drawer-toggle" />
+
+        <div class="drawer-content flex flex-col min-h-screen">
+
+            @* ===== Top navbar ===== *@
+            <header class="navbar bg-base-100 shadow-sm sticky top-0 z-30">
+                <div class="flex-1">
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-ghost px-2 normal-case gap-1">
+                        <img src="~/images/logo.png" alt="MARKtime" class="h-7 w-auto" />
+                        <span class="badge badge-warning badge-sm">BETA</span>
+                    </a>
+                </div>
+
+                <div class="flex-none gap-2">
+                    @if (User?.Identity?.IsAuthenticated == true)
+                    {
+                        <a asp-controller="Home" asp-action="Logout" class="btn btn-ghost btn-sm">
+                            <span class="material-icons-outlined" style="font-size:18px;">logout</span>
+                            <span class="hidden sm:inline">@_f.tra("Odhlásit")</span>
+                        </a>
+                    }
+
+                    @* Theme switcher (light/dark) - DaisyUI theme-controller *@
+                    <div class="dropdown dropdown-end">
+                        <div tabindex="0" role="button" class="btn btn-ghost btn-sm">
+                            <span class="material-icons-outlined" style="font-size:18px;">palette</span>
+                        </div>
+                        <ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-40 w-32 p-2 shadow">
+                            <li>
+                                <label class="flex gap-2 cursor-pointer">
+                                    <input type="radio" name="theme-dropdown"
+                                           class="theme-controller btn btn-ghost btn-sm btn-block justify-start"
+                                           aria-label="Light" value="light" />
+                                </label>
+                            </li>
+                            <li>
+                                <label class="flex gap-2 cursor-pointer">
+                                    <input type="radio" name="theme-dropdown"
+                                           class="theme-controller btn btn-ghost btn-sm btn-block justify-start"
+                                           aria-label="Dark" value="dark" />
+                                </label>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </header>
+
+
+            @* ===== Hlavní obsah ===== *@
+            <main class="flex-1 px-3 pt-3 pb-24">
+                @* pb-24 dělá místo pro dock *@
+                @if (!string.IsNullOrEmpty(Model?.PageTitle))
+                {
+                    <h1 class="text-2xl font-bold mb-3">@Model.PageTitle</h1>
+                }
+
+                @RenderBody()
+            </main>
+
+
+            @* ===== Bottom dock ===== *@
+            <nav class="dock dock-sm bg-base-100 border-t border-base-300"
+                 style="padding-bottom: env(safe-area-inset-bottom);">
+
+                <a asp-controller="Home" asp-action="Calendar" class="@IsActive("Calendar")">
+                    <span class="material-icons-outlined" style="font-size:22px;">today</span>
+                    <span class="dock-label">@_f.tra("Kalendář")</span>
+                </a>
+
+                <a asp-controller="Home" asp-action="Tasks" class="@IsActive("Tasks")">
+                    <span class="material-icons-outlined" style="font-size:22px;">receipt_long</span>
+                    <span class="dock-label">@_f.tra("Úkony")</span>
+                </a>
+
+                <a asp-controller="Home" asp-action="Todos" class="@IsActive("Todos")">
+                    <span class="material-icons-outlined" style="font-size:22px;">task_alt</span>
+                    <span class="dock-label">@_f.tra("Úkoly")</span>
+                </a>
+
+                <a asp-controller="Home" asp-action="Reports" class="@IsActive("Reports")">
+                    <span class="material-icons-outlined" style="font-size:22px;">print</span>
+                    <span class="dock-label">@_f.tra("Sestavy")</span>
+                </a>
+
+                <a asp-controller="Home" asp-action="MyProfile" class="@IsActive("MyProfile")">
+                    <span class="material-icons-outlined" style="font-size:22px;">person</span>
+                    <span class="dock-label">@_f.tra("Profil")</span>
+                </a>
+
+                @* Více otevře pravý drawer - používá label pro otevření checkbox toggle *@
+                <label for="mo-drawer" class="cursor-pointer">
+                    <span class="material-icons-outlined" style="font-size:22px;">menu</span>
+                    <span class="dock-label">@_f.tra("Více")</span>
+                </label>
+
+            </nav>
+        </div>
+
+        @* ===== Drawer "Více" (pravý panel) ===== *@
+        <div class="drawer-side z-50">
+            <label for="mo-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
+
+            <aside class="bg-base-100 min-h-full w-72 p-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-bold">@_f.tra("Více")</h2>
+                    <label for="mo-drawer" class="btn btn-ghost btn-sm btn-circle">
+                        <span class="material-icons-outlined" style="font-size:20px;">close</span>
+                    </label>
+                </div>
+
+                <ul class="menu menu-lg gap-1 p-0">
+                    @* Placeholder položky - postupně doplníš až přibudou další pohledy *@
+                    <li>
+                        <a class="text-base-content/60">
+                            <span class="material-icons-outlined" style="font-size:20px;">settings</span>
+                            @_f.tra("Nastavení")
+                        </a>
+                    </li>
+                    <li>
+                        <a class="text-base-content/60">
+                            <span class="material-icons-outlined" style="font-size:20px;">notifications</span>
+                            @_f.tra("Hlídače")
+                        </a>
+                    </li>
+                    <li>
+                        <a class="text-base-content/60">
+                            <span class="material-icons-outlined" style="font-size:20px;">mail</span>
+                            @_f.tra("Pošta")
+                        </a>
+                    </li>
+                    <li>
+                        <a class="text-base-content/60">
+                            <span class="material-icons-outlined" style="font-size:20px;">help_outline</span>
+                            @_f.tra("Nápověda")
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="mt-6 pt-4 border-t border-base-300 text-xs text-base-content/50">
+                    @_f.tra("Verze") @_f.App.AppBuild
+                </div>
+            </aside>
+        </div>
+
+    </div>
+
+    @await RenderSectionAsync("scripts", required: false)
+</body>
+</html>
