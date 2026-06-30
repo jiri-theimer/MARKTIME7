@@ -14,13 +14,6 @@ namespace MO.Controllers
         }
 
 
-        public IActionResult Calendar()
-        {
-            var v = new BaseViewModel { PageTitle = Factory.tra("Kalendář") };
-            return View(v);
-        }
-
-
         public IActionResult Tasks()
         {
             var v = new BaseViewModel { PageTitle = Factory.tra("Úkony") };

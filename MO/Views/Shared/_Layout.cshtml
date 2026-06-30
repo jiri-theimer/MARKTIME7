@@ -20,9 +20,6 @@
     <meta name="theme-color" content="#ffffff" />
     <title>@(string.IsNullOrEmpty(Model?.PageTitle) ? "MARKtime" : Model.PageTitle + " — MARKtime")</title>
 
-    <!-- DEV ONLY: Tailwind 4 + DaisyUI 5 via CDN. Před produkcí nahradit buildem app.css. -->
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@@5" rel="stylesheet" type="text/css" />
-    <script src="https://cdn.jsdelivr.net/npm/@@tailwindcss/browser@@4"></script>
     <link rel="stylesheet" href="~/css/app.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/icons.css" asp-append-version="true" />
 
@@ -95,7 +92,7 @@
             <nav class="dock dock-sm bg-base-100 border-t border-base-300"
                  style="padding-bottom: env(safe-area-inset-bottom);">
 
-                <a asp-controller="Home" asp-action="Calendar" class="@IsActive("Calendar")">
+                <a asp-controller="Calendar" asp-action="Index" class="@IsActive("Calendar", "Day", "New", "Edit")">
                     <span class="material-icons-outlined" style="font-size:22px;">today</span>
                     <span class="dock-label">@_f.tra("Kalendář")</span>
                 </a>
@@ -178,5 +175,7 @@
     </div>
 
     @await RenderSectionAsync("scripts", required: false)
+
+    <script src="~/js/mycombo.js" asp-append-version="true"></script>
 </body>
 </html>

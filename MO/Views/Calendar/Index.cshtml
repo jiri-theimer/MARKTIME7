@@ -1,0 +1,99 @@
+@model CalendarViewModel
+@inject BL.Factory _f
+
+@{
+    var today = DateTime.Today;
+    var prevMonth = Model.d0.AddMonths(-1).ToString("yyyy-MM-01");
+    var nextMonth = Model.d0.AddMonths(1).ToString("yyyy-MM-01");
+    var daysPerWeek = Model.ShowWeekend ? 7 : 5;
+    var weeks = (int)Math.Ceiling((Model.d2 - Model.d1).TotalDays / 7);
+    var monthTotal = Model.lisSums.Where(s => s.p31Date.Month == Model.Month).Sum(s => s.Hours);
+}
+
+<div class="grid gap-3">
+
+    @* Top navigation: prev / month / next + weekend toggle *@
+    <div class="flex items-center justify-between gap-2">
+        <a asp-action="Index" asp-route-d="@prevMonth"
+           class="btn btn-ghost btn-sm">
+            <span class="material-icons-outlined" style="font-size:20px;">chevron_left</span>
+        </a>
+
+        <div class="text-center flex-1">
+            <div class="font-semibold text-lg leading-tight">@Model.PageTitle</div>
+            <div class="text-xs text-base-content/60">
+                @_f.tra("Celkem"): <strong>@monthTotal.ToString("0.##")</strong> h
+            </div>
+        </div>
+
+        <a asp-action="Index" asp-route-d="@nextMonth"
+           class="btn btn-ghost btn-sm">
+            <span class="material-icons-outlined" style="font-size:20px;">chevron_right</span>
+        </a>
+    </div>
+
+    @* Weekday header *@
+    <div class="grid gap-1" style="grid-template-columns: repeat(@daysPerWeek, minmax(0,1fr));">
+        @{
+            var weekStart = Model.d1;
+            for (int i = 0; i < daysPerWeek; i++)
+            {
+                var dow = weekStart.AddDays(i);
+                var name = System.Globalization.CultureInfo.CurrentUICulture
+                    .DateTimeFormat.GetAbbreviatedDayName(dow.DayOfWeek);
+                <div class="text-center text-xs font-semibold text-base-content/60 uppercase">
+                    @name
+                </div>
+            }
+        }
+    </div>
+
+    @* Days grid *@
+    <div class="grid gap-1" style="grid-template-columns: repeat(@daysPerWeek, minmax(0,1fr));">
+        @for (int w = 0; w < weeks; w++)
+        {
+            for (int dInWeek = 0; dInWeek < daysPerWeek; dInWeek++)
+            {
+                var d = Model.d1.AddDays(w * 7 + dInWeek);
+                var inMonth = d.Month == Model.Month;
+                var hours = Model.GetHours(d);
+                var isHoliday = Model.IsHoliday(d);
+                var isToday = d.Date == today;
+                var isWeekend = d.DayOfWeek == DayOfWeek.Saturday || d.DayOfWeek == DayOfWeek.Sunday;
+
+                var cls = "card card-compact bg-base-100 shadow-sm aspect-square cursor-pointer hover:bg-base-300 transition";
+                if (!inMonth) cls += " opacity-40";
+                if (isToday) cls += " ring-2 ring-primary";
+                if (isHoliday) cls += " bg-error/10";
+                else if (isWeekend) cls += " bg-base-200";
+
+                <a asp-action="Day" asp-route-d="@d.ToString("yyyy-MM-dd")"
+                   class="@cls" title="@(isHoliday ? Model.GetHolidayName(d) : "")">
+                    <div class="card-body p-1.5 flex flex-col justify-between">
+                        <div class="text-sm font-semibold @(isToday ? "text-primary" : "")">
+                            @d.Day
+                        </div>
+                        @if (hours > 0)
+                        {
+                            <div class="text-xs font-bold text-right">
+                                @hours.ToString("0.##") h
+                            </div>
+                        }
+                    </div>
+                </a>
+            }
+        }
+    </div>
+
+    @* Footer toggle *@
+    <form method="post" asp-action="ToggleWeekend" asp-route-d="@Model.d0.ToString("yyyy-MM-01")"
+          class="flex items-center justify-end gap-2 mt-2">
+        <button type="submit" class="btn btn-ghost btn-sm">
+            <span class="material-icons-outlined" style="font-size:18px;">
+                @(Model.ShowWeekend ? "visibility_off" : "visibility")
+            </span>
+            @(Model.ShowWeekend ? _f.tra("Skrýt víkend") : _f.tra("Zobrazit víkend"))
+        </button>
+    </form>
+
+</div>

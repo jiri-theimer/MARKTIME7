@@ -1,0 +1,10 @@
+Safelist – třídy, které se NEvyskytují staticky ve zdrojácích, protože se
+ukládají do databáze (barva štítku, sloupec Stitek.Barva) a renderují přes
+@s.Barva. Bez tohoto seznamu by je purge odstranil a štítky by ztratily barvu.
+
+badge-primary
+badge-secondary
+badge-success
+badge-warning
+badge-error
+badge-info
