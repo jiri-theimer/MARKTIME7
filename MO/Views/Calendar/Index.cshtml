@@ -23,12 +23,19 @@
             <div class="flex items-center justify-center gap-2">
                 <span class="font-semibold text-lg leading-tight">@Model.PageTitle</span>
                 <div class="tabs tabs-boxed tabs-xs">
-                    <a asp-action="Index" asp-route-d="@Model.d0.ToString("yyyy-MM-01")" class="tab tab-active">@_f.tra("Měsíc")</a>
-                    <a asp-action="Week" asp-route-d="@today.ToString("yyyy-MM-dd")" class="tab">@_f.tra("Týden agenda")</a>
+                    <a asp-action="Index" asp-route-d="@Model.d0.ToString("yyyy-MM-01")" class="tab tab-active text-xs">@_f.tra("Měsíc")</a>
+                    <a asp-action="Week" asp-route-d="@today.ToString("yyyy-MM-dd")" class="tab text-xs">@_f.tra("Týden agenda")</a>
                 </div>
             </div>
             <div class="text-xs text-base-content/60">
                 @_f.tra("Celkem"): <strong>@monthTotal.ToString("0.##")</strong> h
+                <a asp-controller="Stats" asp-action="Index"
+                   asp-route-d1="@(new DateTime(Model.Year, Model.Month, 1).ToString("yyyy-MM-dd"))"
+                   asp-route-d2="@(new DateTime(Model.Year, Model.Month, 1).AddMonths(1).AddDays(-1).ToString("yyyy-MM-dd"))"
+                   asp-route-label="@Model.PageTitle"
+                   class="ml-1 align-middle">
+                    <span class="material-icons-outlined" style="font-size:14px;vertical-align:middle;">bar_chart</span>
+                </a>
             </div>
         </div>
 

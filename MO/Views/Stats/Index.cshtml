@@ -1,0 +1,111 @@
+﻿@model StatsViewModel
+@inject BL.Factory _f
+
+<div class="grid gap-3">
+
+    <div class="text-sm text-base-content/60 text-center -mt-1">@Model.PeriodLabel</div>
+
+    @* ===== Souhrn hodin ===== *@
+    <div class="card bg-base-100 shadow-sm">
+        <div class="card-body p-0">
+            <ul class="list">
+
+                <li class="list-row items-center">
+                    <span class="material-icons-outlined text-base-content/40" style="font-size:18px;">summarize</span>
+                    <div class="flex-1">@_f.tra("Vykázané hodiny")</div>
+                    <div class="font-bold">@Model.Hodiny.ToString("0.##") h</div>
+                </li>
+
+                <li class="list-row items-center pl-8">
+                    <div class="flex-1 text-sm text-base-content/70">@_f.tra("Z toho fakturovatelné aktivity")</div>
+                    <div class="text-sm">@Model.HodinyFa.ToString("0.##") h</div>
+                </li>
+
+                <li class="list-row items-center pl-8">
+                    <div class="flex-1 text-sm text-base-content/70">@_f.tra("Z toho rozpracované (čeká na schválení)")</div>
+                    <div class="text-sm">@Model.HodinyWip.ToString("0.##") h</div>
+                </li>
+
+                <li class="list-row items-center pl-14">
+                    <div class="flex-1 text-xs text-base-content/50">@_f.tra("Z toho fakturovatelné aktivity")</div>
+                    <div class="text-xs">@Model.HodinyFaWip.ToString("0.##") h</div>
+                </li>
+
+                <li class="list-row items-center pl-14">
+                    <div class="flex-1 text-xs text-base-content/50">@_f.tra("Z toho nefakturovatelné aktivity")</div>
+                    <div class="text-xs" style="color:#c0392b;">@Model.HodinyNeFaWip.ToString("0.##") h</div>
+                </li>
+
+                <li class="list-row items-center pl-8">
+                    <div class="flex-1 text-sm text-base-content/70">@_f.tra("Z toho schváleno a čeká na vyúčtování")</div>
+                    <div class="text-sm">@Model.Hodiny4Approve.ToString("0.##") h</div>
+                </li>
+
+                @if (Model.HasRatesAccess)
+                {
+                    <li class="list-row items-center pl-8">
+                        <div class="flex-1 text-sm text-base-content/70">@_f.tra("Sazbou")</div>
+                        <div class="text-sm">@Model.HodinyVyfa4.ToString("0.##") h</div>
+                        <span style="display:inline-block;width:12px;height:12px;background:green;border-radius:2px;"></span>
+                    </li>
+                    <li class="list-row items-center pl-8">
+                        <div class="flex-1 text-sm text-base-content/70">@_f.tra("Zahrnuto do paušálu")</div>
+                        <div class="text-sm">@Model.HodinyVyfa6.ToString("0.##") h</div>
+                        <span style="display:inline-block;width:12px;height:12px;background:pink;border-radius:2px;"></span>
+                    </li>
+                    <li class="list-row items-center pl-8">
+                        <div class="flex-1 text-sm text-base-content/70">@_f.tra("Odepsáno")</div>
+                        <div class="text-sm">@Model.HodinyVyfa23.ToString("0.##") h</div>
+                        <span style="display:inline-block;width:12px;height:12px;background:#8B0000;border-radius:2px;"></span>
+                    </li>
+                }
+
+                <li class="list-row items-center">
+                    <span class="material-icons-outlined text-base-content/40" style="font-size:18px;">schedule</span>
+                    <div class="flex-1">@_f.tra("Fond pracovní doby")</div>
+                    <div class="font-semibold">@Model.Fond.ToString("0.##") h</div>
+                </li>
+
+                <li class="list-row items-center pl-8">
+                    <div class="flex-1 text-sm text-base-content/70">@_f.tra("Utilizace (všechny hodiny)")</div>
+                    <div class="text-sm font-semibold" style="color:#6366f1;">@Model.UtilTotal.ToString("0.##") %</div>
+                </li>
+
+                <li class="list-row items-center pl-8">
+                    <div class="flex-1 text-sm text-base-content/70">@_f.tra("Utilizace (fakturovatelné aktivity)")</div>
+                    <div class="text-sm font-semibold" style="color:#149414;">@Model.UtilFa.ToString("0.##") %</div>
+                </li>
+
+            </ul>
+        </div>
+    </div>
+
+    @* ===== Top 15 naposledy vykazovaných projektů ===== *@
+    <div class="text-xs uppercase text-base-content/50 font-semibold px-1 mt-2">
+        @_f.tra("Naposledy vykazované projekty")
+    </div>
+    <div class="card bg-base-100 shadow-sm">
+        <div class="card-body p-0">
+            <ul class="list">
+                @foreach (var p in Model.Top15Projects)
+                {
+                    <li class="list-row p-0">
+                        <a asp-controller="Ukon" asp-action="New"
+                           asp-route-d="@DateTime.Today.ToString("yyyy-MM-dd")"
+                           asp-route-p41id="@p.p41ID"
+                           class="flex items-center gap-2 w-full px-4 py-3 hover:bg-base-200 transition">
+                            <div class="flex-1 min-w-0">
+                                <div class="text-sm truncate" title="@p.Project">@p.Project</div>
+                            </div>
+                            <div class="text-xs text-base-content/50 shrink-0">
+                                @BO.Code.Time.GetTimestamp(p.LastDate)
+                            </div>
+                            <span class="material-icons-outlined text-base-content/30" style="font-size:16px;">add</span>
+                        </a>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+
+</div>

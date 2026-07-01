@@ -44,8 +44,8 @@ namespace MO.Controllers
         }
 
 
-        // ===== Nový úkon - sešit již vybrán v Day view =====
-        public IActionResult New(string d, int p34id)
+        // ===== Nový úkon - sešit již vybrán v Day view (nebo auto-vybrán, když přicházíme z odkazu projektu) =====
+        public IActionResult New(string d, int p34id, int p41id = 0)
         {
             // Rozcestník podle typu sešitu hned na vstupu
             if (p34id > 0)
@@ -60,16 +60,37 @@ namespace MO.Controllers
                     });
                 }
             }
+            else
+            {
+                // Žádný sešit nezvolen (např. odkaz z hitparády projektů) - auto-vybrat první hodinový sešit
+                var lisP34 = Factory.p34ActivityGroupBL
+                    .GetList_WorksheetEntry_InAllProjects(Factory.CurrentUser.pid);
+                var hodinovySesit = lisP34.FirstOrDefault(s => s.p33ID == BO.p33IdENUM.Cas);
+                if (hodinovySesit != null)
+                {
+                    p34id = hodinovySesit.pid;
+                }
+                else
+                {
+                    // Uživatel nemá žádný hodinový sešit - nasměrovat na Den, ať si vybere sám
+                    return RedirectToAction("Day", "Calendar", new { d });
+                }
+            }
 
             var v = new EntryHoursViewModel
             {
                 Date = ParseDate(d) ?? DateTime.Today,
                 PageTitle = Factory.tra("Nový úkon"),
-                p34ID = p34id
+                p34ID = p34id,
+                p41ID = p41id
             };
 
             LoadSesitList(v);
             LoadProjects(v);
+            if (v.p41ID > 0)
+            {
+                LoadActivities(v);
+            }
             LoadFreeFields(v, 0);
             return View("EditHours", v);
         }

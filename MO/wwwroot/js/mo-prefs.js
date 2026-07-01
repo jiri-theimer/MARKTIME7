@@ -56,5 +56,14 @@
                 a.setAttribute('href', '/Calendar/Week?d=' + iso);
             });
         }
+
+        // Dynamický "zpět" odkaz (Day view) - Měsíc nebo Týden agenda podle poslední preference
+        var backLink = document.getElementById('backLink');
+        if (backLink) {
+            var useWeek = moGetCalendarType() === 'week';
+            backLink.setAttribute('href', useWeek ? backLink.dataset.weekHref : backLink.dataset.monthHref);
+            var label = document.getElementById('backLinkLabel');
+            if (label) label.textContent = useWeek ? backLink.dataset.weekLabel : backLink.dataset.monthLabel;
+        }
     });
 })();

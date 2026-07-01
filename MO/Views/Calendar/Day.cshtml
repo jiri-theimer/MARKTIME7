@@ -3,6 +3,7 @@
 
 @{
     var monthAnchor = new DateTime(Model.Date.Year, Model.Date.Month, 1).ToString("yyyy-MM-01");
+    var weekAnchor = BO.Code.Bas.get_first_prev_monday(Model.Date).ToString("yyyy-MM-dd");
     var prevDay = Model.Date.AddDays(-1).ToString("yyyy-MM-dd");
     var nextDay = Model.Date.AddDays(1).ToString("yyyy-MM-dd");
 }
@@ -11,10 +12,14 @@
 
     @* Top: zpět + prev/next den *@
     <div class="flex items-center justify-between gap-2">
-        <a asp-action="Index" asp-route-d="@monthAnchor"
+        <a id="backLink" href="@Url.Action("Index", "Calendar", new { d = monthAnchor })"
+           data-month-href="@Url.Action("Index", "Calendar", new { d = monthAnchor })"
+           data-week-href="@Url.Action("Week", "Calendar", new { d = weekAnchor })"
+           data-month-label="@_f.tra("Měsíc")"
+           data-week-label="@_f.tra("Týden agenda")"
            class="btn btn-ghost btn-sm">
             <span class="material-icons-outlined" style="font-size:20px;">arrow_back</span>
-            @_f.tra("Měsíc")
+            <span id="backLinkLabel">@_f.tra("Měsíc")</span>
         </a>
 
         <div class="flex gap-1">
