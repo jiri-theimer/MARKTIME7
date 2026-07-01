@@ -8,6 +8,9 @@ namespace MO.Models
         public string HolidayName { get; set; }
         public IEnumerable<BO.p31Worksheet> Entries { get; set; } = new List<BO.p31Worksheet>();
         public double TotalHours { get; set; }
+
+        public int MoneyEntryCount => Entries?.Count(e =>
+            e.p33ID == BO.p33IdENUM.PenizeBezDPH || e.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu) ?? 0;
     }
 
     public class WeekViewModel : BaseViewModel

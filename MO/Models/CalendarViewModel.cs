@@ -26,6 +26,12 @@ namespace MO.Models
             return lisP31?.Count(p => p.p31Date.Date == d.Date) ?? 0;
         }
 
+        public int GetMoneyEntryCount(DateTime d)
+        {
+            return lisP31?.Count(p => p.p31Date.Date == d.Date &&
+                (p.p33ID == BO.p33IdENUM.PenizeBezDPH || p.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu)) ?? 0;
+        }
+
         public bool IsHoliday(DateTime d)
         {
             return lisC26?.Any(h => h.c26Date.Date == d.Date) == true;

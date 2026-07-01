@@ -25,13 +25,11 @@
                 </div>
             </div>
             <div class="text-xs text-base-content/60">
-                @_f.tra("Celkem"): <strong>@Model.WeekTotalHours.ToString("0.##")</strong> h
                 <a asp-controller="Stats" asp-action="Index"
                    asp-route-d1="@Model.d1.ToString("yyyy-MM-dd")"
                    asp-route-d2="@Model.d2.ToString("yyyy-MM-dd")"
-                   asp-route-label="@Model.PageTitle"
-                   class="ml-1 align-middle">
-                    <span class="material-icons-outlined" style="font-size:14px;vertical-align:middle;">bar_chart</span>
+                   asp-route-label="@Model.PageTitle">
+                    @_f.tra("Celkem"): <strong>@Model.WeekTotalHours.ToString("0.##")</strong> h
                 </a>
             </div>
         </div>
@@ -59,9 +57,20 @@
                         <span class="badge badge-error badge-outline badge-sm">@day.HolidayName</span>
                     }
                 </div>
-                @if (day.TotalHours > 0)
+                @if (day.TotalHours > 0 || day.MoneyEntryCount > 0)
                 {
-                    <div class="font-bold text-primary text-sm">@day.TotalHours.ToString("0.##") h</div>
+                    <div class="flex items-center gap-1.5">
+                        @if (day.TotalHours > 0)
+                        {
+                            <div class="font-bold text-primary text-sm">@day.TotalHours.ToString("0.##") h</div>
+                        }
+                        @if (day.MoneyEntryCount > 0)
+                        {
+                            <div class="badge badge-secondary badge-sm gap-0.5" title="@day.MoneyEntryCount @_f.tra("peněžních úkonů")">
+                                <span class="material-icons-outlined" style="font-size:12px;">payments</span>@day.MoneyEntryCount
+                            </div>
+                        }
+                    </div>
                 }
             </a>
 
@@ -105,7 +114,14 @@
                                             <div>@Html.Raw(_symbol)</div>
                                         }
                                         <div class="font-bold text-primary text-sm">
-                                            @entry.p31Hours_Orig.ToString("0.##") h
+                                            @if (entry.p33ID == BO.p33IdENUM.PenizeBezDPH || entry.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu)
+                                            {
+                                                @(MO.Code.AmountFormat.Thousands(entry.p31Amount_WithoutVat_Orig)) @entry.j27Code_Billing_Orig
+                                            }
+                                            else
+                                            {
+                                                @(entry.p31Hours_Orig.ToString("0.##")) <text>h</text>
+                                            }
                                         </div>
                                         <button type="button"
                                                 onclick="openCopyDialog(@entry.pid, '@day.Date.ToString("yyyy-MM-dd")')"

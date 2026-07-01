@@ -104,7 +104,14 @@
                                 <div>@Html.Raw(_symbol)</div>
                             }
                             <div class="font-bold text-primary text-sm">
-                                @entry.p31Hours_Orig.ToString("0.##") h
+                                @if (entry.p33ID == BO.p33IdENUM.PenizeBezDPH || entry.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu)
+                                {
+                                    @(MO.Code.AmountFormat.Thousands(entry.p31Amount_WithoutVat_Orig)) @entry.j27Code_Billing_Orig
+                                }
+                                else
+                                {
+                                    @(entry.p31Hours_Orig.ToString("0.##")) <text>h</text>
+                                }
                             </div>
                             <button type="button"
                                     onclick="openCopyDialog(@entry.pid, '@Model.Date.ToString("yyyy-MM-dd")')"

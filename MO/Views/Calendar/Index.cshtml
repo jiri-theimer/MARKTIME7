@@ -28,13 +28,11 @@
                 </div>
             </div>
             <div class="text-xs text-base-content/60">
-                @_f.tra("Celkem"): <strong>@monthTotal.ToString("0.##")</strong> h
                 <a asp-controller="Stats" asp-action="Index"
                    asp-route-d1="@(new DateTime(Model.Year, Model.Month, 1).ToString("yyyy-MM-dd"))"
                    asp-route-d2="@(new DateTime(Model.Year, Model.Month, 1).AddMonths(1).AddDays(-1).ToString("yyyy-MM-dd"))"
-                   asp-route-label="@Model.PageTitle"
-                   class="ml-1 align-middle">
-                    <span class="material-icons-outlined" style="font-size:14px;vertical-align:middle;">bar_chart</span>
+                   asp-route-label="@Model.PageTitle">
+                    @_f.tra("Celkem"): <strong>@monthTotal.ToString("0.##")</strong> h
                 </a>
             </div>
         </div>
@@ -70,6 +68,7 @@
                 var d = Model.d1.AddDays(w * 7 + dInWeek);
                 var inMonth = d.Month == Model.Month;
                 var hours = Model.GetHours(d);
+                var moneyCount = Model.GetMoneyEntryCount(d);
                 var isHoliday = Model.IsHoliday(d);
                 var isToday = d.Date == today;
                 var isWeekend = d.DayOfWeek == DayOfWeek.Saturday || d.DayOfWeek == DayOfWeek.Sunday;
@@ -86,12 +85,21 @@
                         <div class="text-sm font-semibold @(isToday ? "text-primary" : "")">
                             @d.Day
                         </div>
-                        @if (hours > 0)
-                        {
-                            <div class="text-xs font-bold text-right">
-                                @hours.ToString("0.##") h
-                            </div>
-                        }
+                        <div class="flex flex-col items-end gap-0.5">
+                            @if (hours > 0)
+                            {
+                                <div class="text-xs font-bold text-right">
+                                    @hours.ToString("0.##") h
+                                </div>
+                            }
+                            @if (moneyCount > 0)
+                            {
+                                <div class="badge badge-secondary badge-xs gap-0.5" style="font-size:0.6rem;padding:0 4px;line-height:1.4;"
+                                     title="@moneyCount @_f.tra("peněžních úkonů")">
+                                    <span class="material-icons-outlined" style="font-size:9px;">payments</span>@moneyCount
+                                </div>
+                            }
+                        </div>
                     </div>
                 </a>
             }

@@ -1,0 +1,342 @@
+@model EntryMoneyViewModel
+@inject BL.Factory _f
+
+@{
+    var isNew = Model.pid == 0;
+    var dayUrl = Model.Ret == "week" && !string.IsNullOrEmpty(Model.RetD)
+        ? Url.Action("Week", "Calendar", new { d = Model.RetD }) + "#entry-" + Model.pid
+        : Url.Action("Day", "Calendar", new { d = Model.Date.ToString("yyyy-MM-dd") });
+    var activityHidden = Model.ActivityEntryFlag == 1;  // AktivitaSeNezadava
+    var activityRequired = Model.ActivityEntryFlag == 3; // AktivitaJePovinna
+    var isDphRozpis = Model.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu;
+    var isVydaj = Model.IncomeStatementFlag == (int)BO.p34IncomeStatementFlagENUM.Vydaj;
+}
+
+<div class="grid gap-3">
+
+    <div class="flex items-center justify-between">
+        <a href="@dayUrl" class="btn btn-ghost btn-sm">
+            <span class="material-icons-outlined" style="font-size:20px;">arrow_back</span>
+            @_f.tra("Zpět")
+        </a>
+        <div class="text-sm text-base-content/60">@Model.Date.ToString("d. MMMM yyyy")</div>
+    </div>
+
+    <form method="post" asp-action="SaveMoney" id="ukonForm">
+        <input type="hidden" asp-for="pid" />
+        <input type="hidden" asp-for="Ret" />
+        <input type="hidden" asp-for="RetD" />
+        <input type="hidden" name="oper" id="oper" value="" />
+
+        @* Datum — v editaci zobrazit a umožnit změnu *@
+        @if (!isNew)
+        {
+            <div class="flex items-center gap-2 px-1">
+                <span class="material-icons-outlined text-base-content/40" style="font-size:16px;">calendar_today</span>
+                <button type="button" onclick="toggleDateEdit()"
+                        class="text-sm text-base-content/60 hover:text-base-content transition">
+                    <span id="dateLabel">@Model.Date.ToString("d. MMMM yyyy")</span>
+                    <span class="material-icons-outlined" style="font-size:14px;vertical-align:middle;">edit</span>
+                </button>
+            </div>
+            <div id="dateEditRow" style="display:none;" class="px-1">
+                <input type="date" id="DatePicker"
+                       value="@Model.Date.ToString("yyyy-MM-dd")"
+                       onchange="onDateChange(this.value)"
+                       class="input input-bordered input-sm w-full" />
+            </div>
+            <input type="hidden" asp-for="Date" id="DateHidden" />
+        }
+        else
+        {
+            <input type="hidden" asp-for="Date" />
+        }
+
+        <div class="card bg-base-100 shadow-sm">
+            <div class="card-body gap-3">
+
+                @* Sešit - předvybrán v Day view, zobrazuje se jen informativně *@
+                <input type="hidden" asp-for="p34ID" />
+                @if (!string.IsNullOrEmpty(Model.SelectedSesitText))
+                {
+                    <div class="flex items-center gap-2 px-1 py-1 text-sm text-base-content/70">
+                        <span class="material-icons-outlined" style="font-size:18px;">payments</span>
+                        <span>@Model.SelectedSesitText</span>
+                    </div>
+                }
+
+                @* Projekt - mycombo, postback při změně (přenačtení aktivit) *@
+                <label class="form-control">
+                    <div class="label">
+                        <span class="label-text font-semibold">@_f.tra("Projekt") *</span>
+                    </div>
+                    <mycombo asp-for="p41ID"
+                             selected-text="@Model.SelectedProjectText"
+                             items="@Model.ProjectComboItems"
+                             placeholder="@_f.tra("vyberte projekt")"
+                             event-after-change="onProjectChange" />
+                </label>
+
+                @* Aktivita - jen pokud to sešit dovoluje *@
+                @if (!activityHidden)
+                {
+                    <label class="form-control">
+                        <div class="label">
+                            <span class="label-text font-semibold">
+                                @_f.tra("Aktivita")@(activityRequired ? " *" : "")
+                            </span>
+                            @if (!activityRequired)
+                            {
+                                <span class="label-text-alt text-base-content/50">@_f.tra("volitelně")</span>
+                            }
+                        </div>
+                        @if (Model.p34ID > 0 && Model.p41ID > 0)
+                        {
+                            <mycombo asp-for="p32ID"
+                                     selected-text="@Model.SelectedActivityText"
+                                     items="@Model.ActivityComboItems"
+                                     placeholder="@_f.tra("vyberte aktivitu")" />
+                        }
+                        else
+                        {
+                            <div class="text-sm text-base-content/50 italic px-1">
+                                @_f.tra("Nejprve vyberte sešit a projekt.")
+                            </div>
+                            <input type="hidden" asp-for="p32ID" />
+                        }
+                    </label>
+                }
+                else
+                {
+                    <input type="hidden" asp-for="p32ID" value="0" />
+                }
+
+                @* Úkol - volitelný, jen pokud u projektu existují úkoly *@
+                @if (Model.TaskList.Any())
+                {
+                    <label class="form-control">
+                        <div class="label">
+                            <span class="label-text font-semibold">@_f.tra("Úkol")</span>
+                            <span class="label-text-alt text-base-content/50">@_f.tra("volitelně")</span>
+                        </div>
+                        <select asp-for="p56ID" id="p56ID" class="select select-bordered w-full">
+                            <option value="0">— @_f.tra("bez úkolu") —</option>
+                            @foreach (var t in Model.TaskList)
+                            {
+                                <option value="@t.pid" selected="@(t.pid == Model.p56ID)">@t.p56Name</option>
+                            }
+                        </select>
+                    </label>
+                }
+                else
+                {
+                    <input type="hidden" asp-for="p56ID" value="0" />
+                }
+
+                @* Částka bez DPH - povinné *@
+                <div class="grid grid-cols-2 gap-2">
+                    <label class="form-control">
+                        <div class="label">
+                            <span class="label-text font-semibold">@_f.tra("Bez DPH") *</span>
+                        </div>
+                        <input asp-for="AmountWithoutVat" id="AmountWithoutVat" class="input input-bordered w-full"
+                               inputmode="decimal" autocomplete="off" enterkeyhint="next" placeholder="0" />
+                    </label>
+
+                    <label class="form-control">
+                        <div class="label">
+                            <span class="label-text font-semibold">@_f.tra("Měna") *</span>
+                        </div>
+                        <mycombo asp-for="j27ID"
+                                 selected-text="@Model.SelectedCurrencyText"
+                                 items="@Model.CurrencyComboItems"
+                                 placeholder="@_f.tra("měna")" />
+                    </label>
+                </div>
+
+                @* DPH rozpis - pouze pro sešit typu "Peníze s rozpisem DPH" *@
+                @if (isDphRozpis)
+                {
+                    <div class="grid grid-cols-3 gap-2">
+                        <label class="form-control">
+                            <div class="label"><span class="label-text">@_f.tra("DPH %")</span></div>
+                            <input asp-for="VatRatePercent" id="VatRatePercent" class="input input-bordered w-full"
+                                   inputmode="decimal" autocomplete="off" placeholder="0" />
+                        </label>
+                        <label class="form-control">
+                            <div class="label"><span class="label-text">@_f.tra("Částka DPH")</span></div>
+                            <input asp-for="AmountVat" id="AmountVat" class="input input-bordered w-full"
+                                   inputmode="decimal" autocomplete="off" placeholder="0" />
+                        </label>
+                        <label class="form-control">
+                            <div class="label"><span class="label-text">@_f.tra("Vč. DPH")</span></div>
+                            <input asp-for="AmountWithVat" id="AmountWithVat" class="input input-bordered w-full"
+                                   inputmode="decimal" autocomplete="off" placeholder="0" />
+                        </label>
+                    </div>
+                }
+                else
+                {
+                    <input type="hidden" asp-for="VatRatePercent" />
+                    <input type="hidden" asp-for="AmountVat" />
+                    <input type="hidden" asp-for="AmountWithVat" />
+                }
+
+                @* Kód dokladu a druh úhrady - pouze pro výdaj *@
+                @if (isVydaj)
+                {
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="form-control">
+                            <div class="label">
+                                <span class="label-text font-semibold">@_f.tra("Kód dokladu")</span>
+                                <span class="label-text-alt text-base-content/50">@_f.tra("volitelně")</span>
+                            </div>
+                            <input asp-for="DocumentCode" class="input input-bordered w-full" autocomplete="off" />
+                        </label>
+                        <label class="form-control">
+                            <div class="label">
+                                <span class="label-text font-semibold">@_f.tra("Druh úhrady")</span>
+                                <span class="label-text-alt text-base-content/50">@_f.tra("volitelně")</span>
+                            </div>
+                            <mycombo asp-for="j19ID"
+                                     selected-text="@Model.SelectedPaymentTypeText"
+                                     items="@Model.PaymentTypeComboItems"
+                                     placeholder="@_f.tra("druh úhrady")" />
+                        </label>
+                    </div>
+                }
+                else
+                {
+                    <input type="hidden" asp-for="DocumentCode" />
+                    <input type="hidden" asp-for="j19ID" />
+                }
+
+                @* Popis - povinný *@
+                <label class="form-control">
+                    <div class="label"><span class="label-text font-semibold">@_f.tra("Popis") *</span></div>
+                    <textarea asp-for="Description" class="textarea textarea-bordered w-full"
+                              rows="3" autocapitalize="sentences"></textarea>
+                </label>
+
+                @* Uživatelská pole (freefields) *@
+                @if (Model.ff1?.VisibleInputsCount > 0)
+                {
+                    <partial name="_FreeFields" model="Model.ff1" />
+                }
+
+            </div>
+        </div>
+
+        <div class="grid gap-2 mt-3">
+            <button type="submit" class="btn btn-primary btn-block">
+                <span class="material-icons-outlined" style="font-size:20px;">check</span>
+                @_f.tra("Uložit")
+            </button>
+
+            @if (!isNew)
+            {
+                <button type="submit"
+                        formaction="@Url.Action("Delete", new { id = Model.pid, d = Model.Date.ToString("yyyy-MM-dd"), ret = Model.Ret, retd = Model.RetD })"
+                        class="btn btn-error btn-outline btn-block"
+                        onclick="return confirm('@_f.tra("Opravdu smazat tento úkon?")');">
+                    <span class="material-icons-outlined" style="font-size:20px;">delete</span>
+                    @_f.tra("Smazat")
+                </button>
+            }
+
+            <a href="@dayUrl" class="btn btn-ghost btn-block">@_f.tra("Zpět")</a>
+        </div>
+    </form>
+
+</div>
+
+@section scripts {
+    <script>
+        function toggleDateEdit() {
+            var row = document.getElementById('dateEditRow');
+            row.style.display = row.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function onDateChange(val) {
+            var hidden = document.getElementById('DateHidden');
+            if (hidden) hidden.value = val;
+            var label = document.getElementById('dateLabel');
+            if (label && val) {
+                var p = val.split('-');
+                var d = new Date(parseInt(p[0]), parseInt(p[1]) - 1, parseInt(p[2]));
+                label.textContent = d.toLocaleDateString('@System.Globalization.CultureInfo.CurrentUICulture.Name',
+                    { day: 'numeric', month: 'long', year: 'numeric' });
+            }
+            toggleDateEdit();
+        }
+
+        function onProjectChange(p41id) {
+            document.getElementById('oper').value = 'p41change';
+            document.getElementById('ukonForm').submit();
+        }
+
+        // Parsovat částku - "1234,56" / "1234.56" → desetinné číslo
+        function parseAmount(s) {
+            if (!s) return null;
+            var n = parseFloat(String(s).replace(',', '.'));
+            return isNaN(n) ? null : n;
+        }
+
+        @if (isDphRozpis)
+        {
+                <text>
+                // DPH rozpis: dopočítat chybějící hodnoty ze zadaných (bez DPH / DPH% / vč. DPH)
+                function round2(n) { return Math.round(n * 100) / 100; }
+
+                // Bez DPH + sazba -> DPH, vč. DPH
+                function calcFromBezAndRate() {
+                    var bez = parseAmount(document.getElementById('AmountWithoutVat').value);
+                    var sazba = parseAmount(document.getElementById('VatRatePercent').value);
+                    if (bez === null || sazba === null) return;
+                    var dph = round2(bez * sazba / 100);
+                    document.getElementById('AmountVat').value = dph;
+                    document.getElementById('AmountWithVat').value = round2(bez + dph);
+                }
+
+                // Vč. DPH + sazba -> bez DPH, DPH
+                function calcFromTotalAndRate() {
+                    var svc = parseAmount(document.getElementById('AmountWithVat').value);
+                    var sazba = parseAmount(document.getElementById('VatRatePercent').value);
+                    if (svc === null || sazba === null) return;
+                    var bez = round2(svc / (1 + sazba / 100));
+                    document.getElementById('AmountWithoutVat').value = bez;
+                    document.getElementById('AmountVat').value = round2(svc - bez);
+                }
+
+                // Bez DPH + vč. DPH (bez známé sazby) -> jen částka DPH
+                function calcVatFromDiff() {
+                    var bez = parseAmount(document.getElementById('AmountWithoutVat').value);
+                    var svc = parseAmount(document.getElementById('AmountWithVat').value);
+                    if (bez === null || svc === null) return;
+                    document.getElementById('AmountVat').value = round2(svc - bez);
+                }
+
+                document.addEventListener('DOMContentLoaded', function () {
+                    var elBez = document.getElementById('AmountWithoutVat');
+                    var elSazba = document.getElementById('VatRatePercent');
+                    var elVcDph = document.getElementById('AmountWithVat');
+
+                    elBez.addEventListener('change', function () {
+                        if (elSazba.value) calcFromBezAndRate();
+                        else if (elVcDph.value) calcVatFromDiff();
+                    });
+                    elSazba.addEventListener('change', function () {
+                        // Sazbu bereme jako výchozí pramen pravdy - pokud je zadaná celková
+                        // částka vč. DPH, dopočítáme z ní (typický postup: "mám doklad na 1210 Kč vč. DPH 21 %").
+                        if (elVcDph.value) calcFromTotalAndRate();
+                        else if (elBez.value) calcFromBezAndRate();
+                    });
+                    elVcDph.addEventListener('change', function () {
+                        if (elSazba.value) calcFromTotalAndRate();
+                        else if (elBez.value) calcVatFromDiff();
+                    });
+                });
+                </text>
+        }
+    </script>
+}
