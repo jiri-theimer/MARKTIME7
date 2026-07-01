@@ -11,6 +11,11 @@
             ? "dock-active"
             : "";
     }
+
+    // Zda uživateli právě běží nějaké stopky - pro vizuální indikaci ikony v navbaru
+    var isAuthenticated = User?.Identity?.IsAuthenticated == true;
+    var hasRunningStopwatch = isAuthenticated && _f.CurrentUser != null
+        && _f.p68StopWatchBL.GetList(_f.CurrentUser.pid).Any(p => p.p68IsRunning);
 }
 <!DOCTYPE html>
 <html lang="@System.Globalization.CultureInfo.CurrentUICulture.Name" data-theme="light">
@@ -25,6 +30,33 @@
     <link rel="stylesheet" href="~/css/p31status.css" asp-append-version="true" />
 
     <link rel="icon" href="~/favicon.ico" />
+
+    <style>
+            @@keyframes stopkyPulse {
+                0% {
+                    box-shadow: 0 0 0 0 rgba(220,38,38,.6);
+                }
+
+                70% {
+                    box-shadow: 0 0 0 6px rgba(220,38,38,0);
+                }
+
+                100% {
+                    box-shadow: 0 0 0 0 rgba(220,38,38,0);
+                }
+            }
+
+            .stopky-live-dot {
+                position: absolute;
+                top: 6px;
+                right: 6px;
+                width: 9px;
+                height: 9px;
+                border-radius: 50%;
+                background: #dc2626;
+                animation: stopkyPulse 1.6s infinite;
+            }
+    </style>
 
     @* Nastavit skin ihned, ještě před vykreslením - žádné probliknutí *@
     <script>
@@ -53,11 +85,14 @@
                 </div>
 
                 <div class="flex-none gap-2">
-                    @if (User?.Identity?.IsAuthenticated == true)
+                    @if (isAuthenticated)
                     {
-                        <a asp-controller="Home" asp-action="Logout" class="btn btn-ghost btn-sm">
-                            <span class="material-icons-outlined" style="font-size:18px;">logout</span>
-                            <span class="hidden sm:inline">@_f.tra("Odhlásit")</span>
+                        <a asp-controller="Stopky" asp-action="Index" class="btn btn-ghost btn-sm btn-circle" style="position:relative;" title="@_f.tra("Stopky")">
+                            <span class="material-icons-outlined @(hasRunningStopwatch ? "text-primary" : "")" style="font-size:20px;">history_toggle_off</span>
+                            @if (hasRunningStopwatch)
+                            {
+                                <span class="stopky-live-dot"></span>
+                            }
                         </a>
                     }
 
@@ -189,6 +224,12 @@
                 </div>
 
                 <ul class="menu menu-lg gap-1 p-0">
+                    <li>
+                        <a asp-controller="Stopky" asp-action="Index" class="@IsActive("Stopky")">
+                            <span class="material-icons-outlined" style="font-size:20px;">history_toggle_off</span>
+                            @_f.tra("Stopky")
+                        </a>
+                    </li>
                     @* Placeholder položky - postupně doplníš až přibudou další pohledy *@
                     <li>
                         <a class="text-base-content/60">
@@ -215,6 +256,18 @@
                         </a>
                     </li>
                 </ul>
+
+                @if (isAuthenticated)
+                {
+                    <ul class="menu menu-lg gap-1 p-0 mt-2 pt-2 border-t border-base-300">
+                        <li>
+                            <a asp-controller="Home" asp-action="Logout" style="color:var(--color-error,#dc2626);">
+                                <span class="material-icons-outlined" style="font-size:20px;">logout</span>
+                                @_f.tra("Odhlásit")
+                            </a>
+                        </li>
+                    </ul>
+                }
 
                 <div class="mt-6 pt-4 border-t border-base-300 text-xs text-base-content/50">
                     @_f.tra("Verze") @_f.App.AppBuild

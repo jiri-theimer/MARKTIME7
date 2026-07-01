@@ -5,6 +5,9 @@ namespace MO.Models
         public int pid { get; set; }                     // 0 = nový záznam
         public DateTime Date { get; set; }
 
+        /// <summary>pid záznamu stopek, ze kterého úkon vznikl - po úspěšném uložení se stopky smažou.</summary>
+        public int p68ID { get; set; }
+
         // Sešit (p34) - PRVNÍ volba, určuje typ úkonu (p33id) a nabídku aktivit
         public int p34ID { get; set; }
         public IEnumerable<ComboItem> SesitComboItems { get; set; } = new List<ComboItem>();

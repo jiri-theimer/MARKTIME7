@@ -1,0 +1,203 @@
+﻿@model StopkyViewModel
+@inject BL.Factory _f
+
+<div class="grid gap-3">
+
+    <div class="flex items-center justify-between gap-2">
+        <a asp-controller="Calendar" asp-action="Index" class="btn btn-ghost btn-sm">
+            <span class="material-icons-outlined" style="font-size:20px;">arrow_back</span>
+            @_f.tra("Zpět")
+        </a>
+        <div class="text-lg font-bold">@_f.tra("Stopky")</div>
+        <div style="width:64px;"></div>
+    </div>
+
+    <form method="post" asp-action="Index" id="stopkyForm">
+        <input type="hidden" name="oper" id="oper" value="" />
+        <input type="hidden" name="p68id" id="p68id" value="0" />
+
+        @* Panel akcí *@
+        <div class="flex items-center gap-1 mb-2">
+            <button type="button" class="btn btn-ghost btn-sm" onclick="submitOper('add_row')">
+                <span class="material-icons-outlined" style="font-size:18px;color:var(--color-success,#16a34a);">add_circle_outline</span>
+                @_f.tra("Přidat")
+            </button>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="submitOper('reload')">
+                <span class="material-icons-outlined" style="font-size:18px;">refresh</span>
+                @_f.tra("Občerstvit")
+            </button>
+            @if (Model.Rows.Count > 0)
+            {
+                <button type="button" class="btn btn-ghost btn-sm ml-auto" onclick="handleClear()">
+                    <span class="material-icons-outlined" style="font-size:18px;color:var(--color-error,#dc2626);">delete_sweep</span>
+                    @_f.tra("Vyčistit")
+                </button>
+            }
+        </div>
+
+        @if (Model.Rows.Count == 0)
+        {
+            <div class="card bg-base-100 shadow-sm">
+                <div class="card-body items-center text-center py-8">
+                    <span class="material-icons-outlined text-base-content/30" style="font-size:48px;">history_toggle_off</span>
+                    <div class="text-base-content/60">@_f.tra("Žádné stopky. Přidejte novou a začněte měřit čas.")</div>
+                </div>
+            </div>
+        }
+
+        <div class="grid gap-2">
+            @for (int i = 0; i < Model.Rows.Count; i++)
+            {
+                var row = Model.Rows[i];
+                var hasDuration = row.p68IsRunning || row.p68Duration > 0;
+
+                <div id="row-@row.pid" class="card bg-base-100 shadow-sm @(row.p68IsRunning ? "ring-2 ring-primary" : "")">
+                    <div class="card-body p-3 gap-2">
+
+                        @* Řádek: start/stop + čas + kopírovat/smazat *@
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                @if (row.p68IsRunning)
+                                {
+                                    <button type="button" class="btn btn-circle btn-sm btn-error" title="@_f.tra("Zastavit stopky")"
+                                            onclick="submitOper('stop', @row.pid)">
+                                        <span class="material-icons-outlined" style="font-size:18px;">pause</span>
+                                    </button>
+                                    <span id="liveTimer" class="font-mono text-xl font-bold text-primary">00:00:00</span>
+                                }
+                                else
+                                {
+                                    <button type="button" class="btn btn-circle btn-sm btn-primary" title="@_f.tra("Spustit stopky")"
+                                            onclick="submitOper('start', @row.pid)">
+                                        <span class="material-icons-outlined" style="font-size:18px;">play_arrow</span>
+                                    </button>
+                                    <input name="Rows[@i].DurationHHMM" value="@row.DurationHHMM"
+                                           class="input input-bordered input-sm font-mono" style="width:6.5rem;"
+                                           inputmode="numeric" autocomplete="off" placeholder="00:00"
+                                           onchange="submitOper('reload')" />
+                                }
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <button type="button" class="btn btn-ghost btn-sm btn-square" title="@_f.tra("Kopírovat řádek")"
+                                        onclick="submitOper('clone_row', @row.pid)">
+                                    <span class="material-icons-outlined" style="font-size:18px;">content_copy</span>
+                                </button>
+                                <button type="button" class="btn btn-ghost btn-sm btn-square" title="@_f.tra("Smazat řádek")"
+                                        onclick="handleDeleteRow(@row.pid)">
+                                    <span class="material-icons-outlined" style="font-size:18px;color:var(--color-error,#dc2626);">delete</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <input type="hidden" name="Rows[@i].pid" value="@row.pid" />
+                        <input type="hidden" name="Rows[@i].p68Ordinary" value="@row.p68Ordinary" />
+                        <input type="hidden" name="Rows[@i].p68IsRunning" value="@row.p68IsRunning" />
+
+                        @* Projekt *@
+                        <mycombo asp-for="Rows[i].p41ID"
+                                 selected-text="@row.SelectedProjectText"
+                                 items="@Model.ProjectComboItems"
+                                 placeholder="@_f.tra("vyberte projekt")"
+                                 event-after-change="onStopwatchProjectChange" />
+
+                        @* Aktivita - jen když je vybraný projekt *@
+                        @if (row.p41ID > 0)
+                        {
+                            <mycombo asp-for="Rows[i].p32ID"
+                                     selected-text="@row.SelectedActivityText"
+                                     items="@row.ActivityComboItems"
+                                     placeholder="@_f.tra("vyberte aktivitu")"
+                                     event-after-change="onStopwatchFieldChange" />
+                        }
+                        else
+                        {
+                            <input type="hidden" name="Rows[@i].p32ID" value="0" />
+                        }
+
+                        @* Popis *@
+                        <textarea name="Rows[@i].p68Text" class="textarea textarea-bordered w-full" rows="2"
+                                  placeholder="@_f.tra("Popis")" autocapitalize="sentences"
+                                  onchange="submitOper('reload')">@row.p68Text</textarea>
+
+                        @* Uložit jako časový úkon - jen když stopky neběží a je z čeho vykazovat *@
+                        @if (!row.p68IsRunning && hasDuration)
+                        {
+                            <a asp-controller="Ukon" asp-action="New" asp-route-p68id="@row.pid"
+                               class="btn btn-primary btn-sm btn-block">
+                                <span class="material-icons-outlined" style="font-size:18px;">save</span>
+                                @_f.tra("Uložit jako časový úkon")
+                            </a>
+                        }
+
+                    </div>
+                </div>
+            }
+        </div>
+    </form>
+
+</div>
+
+@section scripts {
+    <script>
+        function submitOper(oper, pid) {
+            document.getElementById('oper').value = oper;
+            if (pid !== undefined) {
+                document.getElementById('p68id').value = pid;
+            }
+            document.getElementById('stopkyForm').submit();
+        }
+
+        function onStopwatchProjectChange(pid) {
+            // po změně projektu je třeba přenačíst nabídku aktivit pro daný řádek
+            submitOper('reload');
+        }
+        function onStopwatchFieldChange(pid) {
+            submitOper('reload');
+        }
+
+        function handleDeleteRow(pid) {
+            submitOper('delete_row', pid);
+        }
+
+        function handleClear() {
+            if (!confirm('@_f.tra("Opravdu nenávratně odstranit všechny stopky?")')) return;
+            submitOper('clear');
+        }
+
+        // --- Živé tikání běžící stopky ---
+        var _runningStartUtc = @Html.Raw(string.IsNullOrEmpty(Model.RunningStartUtc) ? "null" : "'" + Model.RunningStartUtc + "'");
+        var _runningBaseDuration = @Model.RunningBaseDuration;
+
+        function pad(n) { return (n < 10 ? '0' : '') + n; }
+
+        function tickStopwatch() {
+            if (!_runningStartUtc) return;
+            var el = document.getElementById('liveTimer');
+            if (!el) return;
+
+            var startMs = new Date(_runningStartUtc).getTime();
+            var nowMs = new Date().getTime();
+            var elapsed = Math.floor((nowMs - startMs) / 1000) + _runningBaseDuration;
+            if (elapsed < 0) elapsed = 0;
+
+            var h = Math.floor(elapsed / 3600);
+            var m = Math.floor((elapsed % 3600) / 60);
+            var s = elapsed % 60;
+            el.textContent = pad(h) + ':' + pad(m) + ':' + pad(s);
+        }
+
+        if (_runningStartUtc) {
+            tickStopwatch();
+            setInterval(tickStopwatch, 1000);
+        }
+
+        // Odscrollovat na řádek ovlivněný poslední akcí (např. nově přidaný)
+        document.addEventListener('DOMContentLoaded', function () {
+            var jump = @Model.JumpToPid;
+            if (jump > 0) {
+                var el = document.getElementById('row-' + jump);
+                if (el) el.scrollIntoView({ block: 'center', behavior: 'instant' });
+            }
+        });
+    </script>
+}

@@ -70,8 +70,29 @@ namespace MO.Controllers
 
 
         // ===== Nový úkon - sešit již vybrán v Day view (nebo auto-vybrán, když přicházíme z odkazu projektu) =====
-        public IActionResult New(string d, int p34id, int p41id = 0)
+        // p68id: pokud přicházíme ze Stopek, předvyplní se projekt/aktivita/text/čas z daného záznamu stopek
+        public IActionResult New(string d, int p34id, int p41id = 0, int p68id = 0)
         {
+            BO.p68StopWatch stopwatch = null;
+            if (p68id > 0)
+            {
+                stopwatch = Factory.p68StopWatchBL.Load(p68id);
+                if (stopwatch == null || stopwatch.j02ID != Factory.CurrentUser.pid || stopwatch.p68IsRunning)
+                {
+                    // cizí, neexistující nebo dosud běžící záznam stopek - ignorovat
+                    stopwatch = null;
+                }
+                else
+                {
+                    if (p41id <= 0) p41id = stopwatch.p41ID;
+                    if (p34id <= 0 && stopwatch.p32ID > 0)
+                    {
+                        var recP32Stopky = Factory.p32ActivityBL.Load(stopwatch.p32ID);
+                        if (recP32Stopky != null) p34id = recP32Stopky.p34ID;
+                    }
+                }
+            }
+
             // Rozcestník podle typu sešitu hned na vstupu
             if (p34id > 0)
             {
@@ -113,6 +134,18 @@ namespace MO.Controllers
                 p34ID = p34id,
                 p41ID = p41id
             };
+
+            if (stopwatch != null)
+            {
+                v.p68ID = stopwatch.pid;
+                v.p32ID = stopwatch.p32ID;
+                v.Description = stopwatch.p68Text;
+                v.Hours = BO.Code.Time.GetTimeFromSeconds((double)stopwatch.p68Duration);
+                if (stopwatch.DateInsert.HasValue)
+                {
+                    v.Date = stopwatch.DateInsert.Value.Date;
+                }
+            }
 
             LoadSesitList(v);
             LoadProjects(v);
@@ -450,6 +483,12 @@ namespace MO.Controllers
                 if (v.IsNavicKusovnik && v.KusovnikRows != null && v.KusovnikRows.Count > 0)
                 {
                     SaveKusovnikRows(ret, v);
+                }
+
+                // Úkon vznikl ze stopek - záznam stopek už není potřeba
+                if (v.p68ID > 0)
+                {
+                    Factory.CBL.DeleteRecord("p68", v.p68ID);
                 }
             }
             catch (Exception ex)
