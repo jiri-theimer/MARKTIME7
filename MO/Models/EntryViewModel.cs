@@ -24,6 +24,6 @@ namespace MO.Models
         // Popis - povinné
         public string Description { get; set; }
 
-        public string Message { get; set; }
+        
     }
 }

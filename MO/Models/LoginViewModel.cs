@@ -6,7 +6,7 @@ namespace MO.Models
         public string Password { get; set; }
         public int CookieExpiresInHours { get; set; } = 168;
 
-        public string Message { get; set; }
+        
 
         // Browser detekce - používá se pro j90LoginAccessLog
         public string Browser_UserAgent { get; set; }

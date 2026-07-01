@@ -87,7 +87,7 @@
 
                 @* Centrální zobrazení zpráv — z BaseViewModel.Message nebo TempData (po redirectu) *@
                 @{
-                    var _bvm = Model as MO.Models.BaseViewModel;
+                    var _bvm = Model as MO.Models.BaseViewModel;                    
                     var _msg = _bvm?.Message ?? TempData["Message"]?.ToString();
                     var _msgSuccess = _bvm?.MessageSuccess ?? TempData["MessageSuccess"]?.ToString();
                 }
