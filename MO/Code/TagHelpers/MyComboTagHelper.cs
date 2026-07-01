@@ -91,21 +91,44 @@ namespace MO.Code.TagHelpers
             sb.Append("              autocapitalize=\"off\" spellcheck=\"false\" />");
             sb.Append("    </div>");
 
-            // Seznam položek
+            // Seznam položek - s volitelným seskupováním (GroupBy)
             sb.Append("    <div class=\"mc-list flex-1 overflow-y-auto\">");
+
+            var useGroups = items.Any(i => !string.IsNullOrEmpty(i.GroupBy));
+            string lastGroup = null;
+
             foreach (var it in items)
             {
-                // Haystack pro search - lowercase + diakritika-stripped, dělá se v JS pomocí normalize() v okamžiku filtrace.
-                // Sem dáme prostý lowercase concatenated string; mc_filter normalizuje obě strany.
-                var haystack = ((it.Code ?? "") + " " + (it.Text ?? "") + " " + (it.Meta ?? "")).ToLowerInvariant();
+                // Skupinová hlavička - vloží se při každé změně GroupBy hodnoty
+                if (useGroups)
+                {
+                    var grp = it.GroupBy ?? "";
+                    if (grp != lastGroup)
+                    {
+                        lastGroup = grp;
+                        sb.Append($"      <div class=\"mc-group-header\" data-group=\"{encoder.Encode(grp)}\"");
+                        sb.Append("           style=\"position:sticky;top:0;z-index:1;\">");
+                        if (!string.IsNullOrEmpty(grp))
+                        {
+                            sb.Append($"        <div class=\"px-3 py-1 text-xs font-bold uppercase tracking-wide\" style=\"background:#c0c0c0;color:#666;\">{encoder.Encode(grp)}</div>");
+                        }
+                        sb.Append("      </div>");
+                    }
+                }
+
+                var haystack = ((it.Code ?? "") + " " + (it.Text ?? "") + " " + (it.Meta ?? "") + " " + (it.GroupBy ?? "")).ToLowerInvariant();
                 var isSelected = it.Id.ToString() == selectedValue;
                 var itemCls = "mc-item px-3 py-2 border-b border-base-200 active:bg-base-300"
-                    + (isSelected ? " mc-item-selected bg-primary/10 border-l-4 border-l-primary" : " border-l-4 border-l-transparent");
+                    + (isSelected ? " mc-item-selected bg-primary/10 border-l-4 border-l-primary" : " border-l-4 border-l-transparent")
+                    + (useGroups && !string.IsNullOrEmpty(it.GroupBy) ? $" data-group=\"{encoder.Encode(it.GroupBy)}\"" : "");
 
                 sb.Append($"      <div class=\"{itemCls}\"");
                 sb.Append($"           data-id=\"{it.Id}\"");
                 sb.Append($"           data-text=\"{encoder.Encode(it.Text ?? "")}\"");
-                sb.Append($"           data-haystack=\"{encoder.Encode(haystack)}\">");
+                sb.Append($"           data-haystack=\"{encoder.Encode(haystack)}\"");
+                if (useGroups && !string.IsNullOrEmpty(it.GroupBy))
+                    sb.Append($"           data-group=\"{encoder.Encode(it.GroupBy)}\"");
+                sb.Append("           >");
                 sb.Append("        <div class=\"flex gap-2 items-baseline\">");
                 if (!string.IsNullOrEmpty(it.Code))
                 {

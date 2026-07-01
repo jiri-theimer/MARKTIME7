@@ -16,5 +16,12 @@ namespace MO.Models
 
         /// <summary>Volitelný dodatečný řádek (např. klient, stav, atd.)</summary>
         public string Meta { get; set; }
+
+        /// <summary>
+        /// Volitelné seskupení. Položky se stejnou hodnotou GroupBy budou vizuálně
+        /// pod společnou hlavičkou (neklikatelný řádek s jiným pozadím).
+        /// Pořadí skupin odpovídá pořadí prvního výskytu GroupBy v kolekci.
+        /// </summary>
+        public string GroupBy { get; set; }
     }
 }

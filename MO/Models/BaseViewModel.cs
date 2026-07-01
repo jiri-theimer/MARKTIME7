@@ -14,5 +14,11 @@ namespace MO.Models
         public string PageSymbol { get; set; }
 
         public string Javascript_CallOnLoad { get; set; }
+
+        /// <summary>Chybová zpráva zobrazená layoutem (může obsahovat HTML)</summary>
+        public string Message { get; set; }
+
+        /// <summary>Úspěšná zpráva zobrazená layoutem</summary>
+        public string MessageSuccess { get; set; }
     }
 }

@@ -75,6 +75,21 @@
             if (show) visible++;
         });
 
+        // Skupinové hlavičky - schovat pokud všechny jejich položky jsou skryté
+        modal.querySelectorAll('.mc-group-header').forEach(function (hdr) {
+            var grp = hdr.dataset.group;
+            var hasVisible = false;
+            if (grp) {
+                modal.querySelectorAll('.mc-item[data-group="' + grp + '"]').forEach(function (it) {
+                    if (it.style.display !== 'none') hasVisible = true;
+                });
+            } else {
+                // Hlavičky bez skupiny (prázdný GroupBy) - vždy viditelné pokud existují
+                hasVisible = true;
+            }
+            hdr.style.display = hasVisible ? '' : 'none';
+        });
+
         var empty = modal.querySelector('.mc-empty');
         if (empty) empty.classList.toggle('hidden', visible > 0);
 

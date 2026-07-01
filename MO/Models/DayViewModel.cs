@@ -8,6 +8,8 @@ namespace MO.Models
         public bool IsHoliday { get; set; }
         public string HolidayName { get; set; }
 
+        public IEnumerable<BO.p34ActivityGroup> SesitList { get; set; } = new List<BO.p34ActivityGroup>();
+
         public string DayName => System.Globalization.CultureInfo.CurrentUICulture
             .DateTimeFormat.GetDayName(Date.DayOfWeek);
     }

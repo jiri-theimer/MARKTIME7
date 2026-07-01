@@ -68,13 +68,19 @@
     {
         @foreach (var entry in Model.Entries)
         {
-            <a asp-controller="Ukon" asp-action="Edit" asp-route-id="@entry.pid"
-               class="card bg-base-100 shadow-sm hover:bg-base-300 transition">
+            <div class="card bg-base-100 shadow-sm hover:bg-base-300 transition">
                 <div class="card-body p-3">
-                    <div class="flex items-start justify-between gap-2">
-                        <div class="min-w-0 flex-1">
-                            <div class="font-semibold text-sm truncate">@entry.p41Code</div>
-                            <div class="text-sm text-base-content/80 line-clamp-2">@entry.p31Text</div>
+                    <div class="flex items-start gap-2">
+
+                        @* Klikatelná oblast pro editaci *@
+                        <a asp-controller="Ukon" asp-action="Edit" asp-route-id="@entry.pid"
+                           class="min-w-0 flex-1">
+                            <div class="font-semibold text-sm truncate">@entry.Project</div>
+                            @if (!string.IsNullOrEmpty(entry.p32Name))
+                            {
+                                <div class="text-xs text-base-content/50">@entry.p32Name</div>
+                            }
+                            <div class="text-sm text-base-content/80" style="white-space:pre-wrap;">@entry.p31Text</div>
                             @if (entry.p31DateTimeFrom_Orig.HasValue && entry.p31DateTimeUntil_Orig.HasValue)
                             {
                                 <div class="text-xs text-base-content/60 mt-1">
@@ -82,23 +88,176 @@
                                     @entry.p31DateTimeUntil_Orig.Value.ToString("HH:mm")
                                 </div>
                             }
-                        </div>
-                        <div class="text-right shrink-0">
-                            <div class="font-bold text-primary">
+                        </a>
+
+                        @* Pravý sloupec: hodiny + kopírovat *@
+                        <div class="flex flex-col items-end gap-1 shrink-0">
+                            <div class="font-bold text-primary text-sm">
                                 @entry.p31Hours_Orig.ToString("0.##") h
                             </div>
+                            <button type="button"
+                                    onclick="openCopyDialog(@entry.pid, '@Model.Date.ToString("yyyy-MM-dd")')"
+                                    title="Kopírovat úkon"
+                                    class="text-base-content/30 hover:text-primary transition"
+                                    style="line-height:1;">
+                                <span class="material-icons-outlined" style="font-size:18px;">content_copy</span>
+                            </button>
                         </div>
+
                     </div>
                 </div>
-            </a>
+            </div>
         }
     }
 
-    @* "+" akce: nový úkon *@
-    <a asp-controller="Ukon" asp-action="New" asp-route-d="@Model.Date.ToString("yyyy-MM-dd")"
-       class="btn btn-primary btn-block mt-2">
-        <span class="material-icons-outlined" style="font-size:20px;">add</span>
-        @_f.tra("Přidat úkon")
-    </a>
+    @* Sešity — "Vykázat do..." *@
+    <style>
+            .sesit-btn {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.375rem 0.5rem;
+                border-radius: 0.375rem;
+                font-size: 0.875rem;
+                color: rgba(0,0,0,0.6);
+                border-left: 3px solid transparent;
+                transition: all .15s;
+                text-decoration: none;
+            }
+
+                .sesit-btn:hover {
+                    background: #eef2ff;
+                    border-left-color: #6366f1;
+                    padding-left: 0.625rem;
+                    color: rgba(0,0,0,0.85);
+                }
+    </style>
+    <div class="mt-2">
+        <div class="text-xs uppercase text-base-content/50 font-semibold mb-1 px-1">
+            @_f.tra("Vykázat do...")
+        </div>
+        <div class="flex flex-col">
+            @foreach (var s in Model.SesitList)
+            {
+                <a asp-controller="Ukon" asp-action="New"
+                   asp-route-d="@Model.Date.ToString("yyyy-MM-dd")"
+                   asp-route-p34id="@s.pid"
+                   class="sesit-btn">
+                    <span class="material-icons-outlined" style="font-size:18px;color:rgba(0,0,0,0.35);">
+                        @(s.p33ID == BO.p33IdENUM.Cas ? "schedule" :
+                          s.p33ID == BO.p33IdENUM.Kusovnik ? "inventory_2" : "payments")
+                    </span>
+                    <span style="flex:1">@s.p34Name</span>
+                    <span style="font-size:0.75rem;color:rgba(0,0,0,0.3);">@s.p33Name</span>
+                </a>
+            }
+        </div>
+    </div>
 
 </div>
+
+@* Dialog pro výběr data při kopírování úkonu *@
+<style>
+    #copyDialog {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 999;
+        background: rgba(0,0,0,.45);
+        align-items: flex-end;
+    }
+
+        #copyDialog.open {
+            display: flex;
+        }
+
+    #copyDialogBox {
+        background: #fff;
+        border-radius: 1rem 1rem 0 0;
+        padding: 1.25rem;
+        width: 100%;
+        max-width: 480px;
+        margin: 0 auto;
+    }
+</style>
+<div id="copyDialog" onclick="if(event.target===this) closeCopyDialog()">
+    <div id="copyDialogBox">
+        <div style="font-weight:600;margin-bottom:1rem;">@_f.tra("Zkopírovat úkon — datum")</div>
+
+        <div style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:1rem;">
+            <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
+                <input type="radio" name="copyDate" value="same" checked
+                       onchange="onCopyDateChange(this.value)" />
+                <span id="labelSame">@_f.tra("Stejné datum")</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
+                <input type="radio" name="copyDate" value="today"
+                       onchange="onCopyDateChange(this.value)" />
+                <span>@_f.tra("Dnešní datum")</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
+                <input type="radio" name="copyDate" value="custom"
+                       onchange="onCopyDateChange(this.value)" />
+                <span>@_f.tra("Jiné datum")</span>
+            </label>
+            <input type="date" id="copyCustomDate"
+                   style="display:none;margin-left:1.5rem;padding:.375rem .5rem;border:1px solid #d1d5db;border-radius:.375rem;font-size:.875rem;" />
+        </div>
+
+        <div style="display:flex;gap:.5rem;">
+            <button onclick="confirmCopy()"
+                    style="flex:1;padding:.5rem;background:#6366f1;color:#fff;border:none;border-radius:.5rem;font-size:.9rem;cursor:pointer;">
+                @_f.tra("Kopírovat")
+            </button>
+            <button onclick="closeCopyDialog()"
+                    style="padding:.5rem 1rem;border:1px solid #d1d5db;border-radius:.5rem;font-size:.9rem;cursor:pointer;background:#fff;">
+                @_f.tra("Storno")
+            </button>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        var _copyId = 0;
+        var _copyOrigDate = '';
+        var _todayDate = '@DateTime.Today.ToString("yyyy-MM-dd")';
+
+        function openCopyDialog(id, origDate) {
+            _copyId = id;
+            _copyOrigDate = origDate;
+            document.getElementById('labelSame').textContent = '@_f.tra("Stejné datum")' + ' (' + formatDate(origDate) + ')';
+            document.querySelector('input[name="copyDate"][value="same"]').checked = true;
+            document.getElementById('copyCustomDate').style.display = 'none';
+            document.getElementById('copyCustomDate').value = origDate;
+            document.getElementById('copyDialog').classList.add('open');
+        }
+
+        function closeCopyDialog() {
+            document.getElementById('copyDialog').classList.remove('open');
+        }
+
+        function onCopyDateChange(val) {
+            document.getElementById('copyCustomDate').style.display = val === 'custom' ? 'block' : 'none';
+        }
+
+        function confirmCopy() {
+            var mode = document.querySelector('input[name="copyDate"]:checked').value;
+            var d;
+            if (mode === 'same')   d = _copyOrigDate;
+            else if (mode === 'today') d = _todayDate;
+            else {
+                d = document.getElementById('copyCustomDate').value;
+                if (!d) { alert('@_f.tra("Zadejte datum.")'); return; }
+            }
+            closeCopyDialog();
+            window.location.href = '/Ukon/Copy?id=' + _copyId + '&d=' + encodeURIComponent(d);
+        }
+
+        function formatDate(iso) {
+            if (!iso) return '';
+            var p = iso.split('-');
+            return p[2] + '. ' + p[1] + '. ' + p[0];
+        }
+    </script>
+}

@@ -84,6 +84,27 @@
                     <h1 class="text-2xl font-bold mb-3">@Model.PageTitle</h1>
                 }
 
+                @* Centrální zobrazení zpráv — z BaseViewModel.Message nebo TempData (po redirectu) *@
+                @{
+                    var _bvm = Model as MO.Models.BaseViewModel;
+                    var _msg = _bvm?.Message ?? TempData["Message"]?.ToString();
+                    var _msgSuccess = _bvm?.MessageSuccess ?? TempData["MessageSuccess"]?.ToString();
+                }
+                @if (!string.IsNullOrEmpty(_msgSuccess))
+                {
+                    <div role="alert" class="alert alert-success mb-3">
+                        <span class="material-icons-outlined">check_circle</span>
+                        <span>@_msgSuccess</span>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(_msg))
+                {
+                    <div role="alert" class="alert alert-error mb-3">
+                        <span class="material-icons-outlined">error_outline</span>
+                        <span>@Html.Raw(_msg)</span>
+                    </div>
+                }
+
                 @RenderBody()
             </main>
 

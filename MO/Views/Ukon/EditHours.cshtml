@@ -28,28 +28,44 @@
 
     <form method="post" asp-action="SaveHours" id="ukonForm">
         <input type="hidden" asp-for="pid" />
-        <input type="hidden" asp-for="Date" />
         <input type="hidden" name="oper" id="oper" value="" />
+
+        @* Datum — v editaci zobrazit a umožnit změnu *@
+        @if (!isNew)
+        {
+            <div class="flex items-center gap-2 px-1">
+                <span class="material-icons-outlined text-base-content/40" style="font-size:16px;">calendar_today</span>
+                <button type="button" onclick="toggleDateEdit()"
+                        class="text-sm text-base-content/60 hover:text-base-content transition">
+                    <span id="dateLabel">@Model.Date.ToString("d. MMMM yyyy")</span>
+                    <span class="material-icons-outlined" style="font-size:14px;vertical-align:middle;">edit</span>
+                </button>
+            </div>
+            <div id="dateEditRow" style="display:none;" class="px-1">
+                <input type="date" id="DatePicker"
+                       value="@Model.Date.ToString("yyyy-MM-dd")"
+                       onchange="onDateChange(this.value)"
+                       class="input input-bordered input-sm w-full" />
+            </div>
+            <input type="hidden" asp-for="Date" id="DateHidden" />
+        }
+        else
+        {
+            <input type="hidden" asp-for="Date" />
+        }
 
         <div class="card bg-base-100 shadow-sm">
             <div class="card-body gap-3">
 
-                @* Sešit - PRVNÍ volba, postback při změně *@
-                <label class="form-control">
-                    <div class="label">
-                        <span class="label-text font-semibold">@_f.tra("Sešit") *</span>
+                @* Sešit - předvybrán v Day view, zobrazuje se jen informativně *@
+                <input type="hidden" asp-for="p34ID" />
+                @if (!string.IsNullOrEmpty(Model.SelectedSesitText))
+                {
+                    <div class="flex items-center gap-2 px-1 py-1 text-sm text-base-content/70">
+                        <span class="material-icons-outlined" style="font-size:18px;">folder_open</span>
+                        <span>@Model.SelectedSesitText</span>
                     </div>
-                    <select asp-for="p34ID" class="select select-bordered w-full"
-                            onchange="postback('p34change')">
-                        <option value="0">— @_f.tra("vyberte sešit") —</option>
-                        @foreach (var s in Model.SesitComboItems)
-                        {
-                            <option value="@s.Id" selected="@(s.Id == Model.p34ID)">
-                                @s.Text@(string.IsNullOrEmpty(s.Meta) ? "" : $" ({s.Meta})")
-                            </option>
-                        }
-                    </select>
-                </label>
+                }
 
                 @* Projekt - mycombo, postback při změně (přenačtení aktivit) *@
                 <label class="form-control">
@@ -97,20 +113,27 @@
                     <input type="hidden" asp-for="p32ID" value="0" />
                 }
 
-                @* Úkol - volitelný *@
-                <label class="form-control">
-                    <div class="label">
-                        <span class="label-text font-semibold">@_f.tra("Úkol")</span>
-                        <span class="label-text-alt text-base-content/50">@_f.tra("volitelně")</span>
-                    </div>
-                    <select asp-for="p56ID" id="p56ID" class="select select-bordered w-full">
-                        <option value="0">— @_f.tra("bez úkolu") —</option>
-                        @foreach (var t in Model.TaskList)
-                        {
-                            <option value="@t.pid" selected="@(t.pid == Model.p56ID)">@t.p56Name</option>
-                        }
-                    </select>
-                </label>
+                @* Úkol - volitelný, jen pokud u projektu existují úkoly *@
+                @if (Model.TaskList.Any())
+                {
+                    <label class="form-control">
+                        <div class="label">
+                            <span class="label-text font-semibold">@_f.tra("Úkol")</span>
+                            <span class="label-text-alt text-base-content/50">@_f.tra("volitelně")</span>
+                        </div>
+                        <select asp-for="p56ID" id="p56ID" class="select select-bordered w-full">
+                            <option value="0">— @_f.tra("bez úkolu") —</option>
+                            @foreach (var t in Model.TaskList)
+                            {
+                                <option value="@t.pid" selected="@(t.pid == Model.p56ID)">@t.p56Name</option>
+                            }
+                        </select>
+                    </label>
+                }
+                else
+                {
+                    <input type="hidden" asp-for="p56ID" value="0" />
+                }
 
                 @* Hodiny - povinné *@
                 <label class="form-control">
@@ -122,16 +145,29 @@
                            inputmode="decimal" autocomplete="off" enterkeyhint="next" placeholder="0" />
                 </label>
 
-                @* Čas od - do, volitelné *@
-                <div class="grid grid-cols-2 gap-2">
-                    <label class="form-control">
-                        <div class="label"><span class="label-text">@_f.tra("Čas od")</span></div>
-                        <input asp-for="TimeFrom" type="time" class="input input-bordered w-full" />
-                    </label>
-                    <label class="form-control">
-                        <div class="label"><span class="label-text">@_f.tra("Čas do")</span></div>
-                        <input asp-for="TimeUntil" type="time" class="input input-bordered w-full" />
-                    </label>
+                @* Čas od - do, volitelné — přepínač *@
+                @{
+                    var showTime = !string.IsNullOrEmpty(Model.TimeFrom) || !string.IsNullOrEmpty(Model.TimeUntil);
+                }
+                <div>
+                    <button type="button"
+                            onclick="toggleTime(this)"
+                            class="flex items-center gap-1 text-xs text-base-content/50 hover:text-base-content/80 transition py-1">
+                        <span class="material-icons-outlined" id="timeToggleIcon" style="font-size:16px;">
+                            @(showTime ? "expand_less" : "expand_more")
+                        </span>
+                        @_f.tra("Čas od — do")
+                    </button>
+                    <div id="timeFields" class="grid grid-cols-2 gap-2 @(showTime ? "" : "hidden")">
+                        <label class="form-control">
+                            <div class="label"><span class="label-text">@_f.tra("Čas od")</span></div>
+                            <input asp-for="TimeFrom" type="time" class="input input-bordered w-full" />
+                        </label>
+                        <label class="form-control">
+                            <div class="label"><span class="label-text">@_f.tra("Čas do")</span></div>
+                            <input asp-for="TimeUntil" type="time" class="input input-bordered w-full" />
+                        </label>
+                    </div>
                 </div>
 
                 @* Popis - povinný *@
@@ -169,15 +205,111 @@
 
 @section scripts {
     <script>
-        // Postback - nastaví oper a odešle formulář (změna sešitu / projektu)
-        function postback(oper) {
-            document.getElementById('oper').value = oper;
+        function toggleDateEdit() {
+            var row = document.getElementById('dateEditRow');
+            row.style.display = row.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function onDateChange(val) {
+            var hidden = document.getElementById('DateHidden');
+            if (hidden) hidden.value = val;
+            // Aktualizovat popisek
+            var label = document.getElementById('dateLabel');
+            if (label && val) {
+                var p = val.split('-');
+                var d = new Date(parseInt(p[0]), parseInt(p[1]) - 1, parseInt(p[2]));
+                label.textContent = d.toLocaleDateString('@System.Globalization.CultureInfo.CurrentUICulture.Name',
+                    { day: 'numeric', month: 'long', year: 'numeric' });
+            }
+            toggleDateEdit();
+        }
+
+        function toggleTime(btn) {
+            var fields = document.getElementById('timeFields');
+            var icon = document.getElementById('timeToggleIcon');
+            var hidden = fields.classList.toggle('hidden');
+            icon.textContent = hidden ? 'expand_more' : 'expand_less';
+        }
+
+        function onProjectChange(p41id) {
+            document.getElementById('oper').value = 'p41change';
             document.getElementById('ukonForm').submit();
         }
 
-        // Po výběru projektu v mycombu spusť postback pro přenačtení aktivit
-        function onProjectChange(p41id) {
-            postback('p41change');
+        // Převod HH:MM na minuty
+        function toMinutes(hhmm) {
+            if (!hhmm) return null;
+            var parts = hhmm.split(':');
+            if (parts.length !== 2) return null;
+            var h = parseInt(parts[0], 10);
+            var m = parseInt(parts[1], 10);
+            if (isNaN(h) || isNaN(m)) return null;
+            return h * 60 + m;
         }
+
+        // Minuty na HH:MM
+        function toHHMM(minutes) {
+            if (minutes < 0) minutes += 24 * 60;
+            var h = Math.floor(minutes / 60) % 24;
+            var m = minutes % 60;
+            return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+        }
+
+        // Parsovat hodiny — "1,5" / "1.5" / "01:30" → desetinné číslo
+        function parseHours(s) {
+            if (!s) return null;
+            s = s.trim();
+            // formát HH:MM
+            if (/^\d{1,2}:\d{2}$/.test(s)) {
+                var p = s.split(':');
+                return parseInt(p[0], 10) + parseInt(p[1], 10) / 60;
+            }
+            var n = parseFloat(s.replace(',', '.'));
+            return isNaN(n) ? null : n;
+        }
+
+        // Od + Do → Hodiny
+        function calcHoursFromTime() {
+            var from = toMinutes(document.getElementById('TimeFrom').value);
+            var to   = toMinutes(document.getElementById('TimeUntil').value);
+            if (from === null || to === null) return;
+            var diff = to - from;
+            if (diff <= 0) diff += 24 * 60;   // přes půlnoc
+            var h = diff / 60;
+            document.getElementById('Hours').value = Math.round(h * 100) / 100;
+        }
+
+        // Od + Hodiny → Do
+        function calcTimeUntilFromHours() {
+            var from  = toMinutes(document.getElementById('TimeFrom').value);
+            var hours = parseHours(document.getElementById('Hours').value);
+            if (from === null || hours === null || hours <= 0) return;
+            document.getElementById('TimeUntil').value = toHHMM(from + Math.round(hours * 60));
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var elFrom  = document.getElementById('TimeFrom');
+            var elTo    = document.getElementById('TimeUntil');
+            var elHours = document.getElementById('Hours');
+
+            elFrom.addEventListener('change',  function () {
+                if (elTo.value)    { calcHoursFromTime(); }
+                else if (elHours.value) { calcTimeUntilFromHours(); }
+            });
+            elTo.addEventListener('change',    calcHoursFromTime);
+            elHours.addEventListener('change', function () {
+                if (elFrom.value) { calcTimeUntilFromHours(); }
+            });
+
+            // Před odesláním: pokud jsou od i do vyplněny, přepočítat hodiny z nich.
+            // Vždy zajistit, že Value_Orig jde na server s desetinnou ČÁRKOU.
+            document.getElementById('ukonForm').addEventListener('submit', function () {
+                if (elFrom.value && elTo.value) {
+                    calcHoursFromTime();
+                }
+                // Zaměnit tečku za čárku pro Value_Orig (BL očekává čárku)
+                elHours.value = elHours.value.replace('.', ',');
+            });
+        });
     </script>
 }

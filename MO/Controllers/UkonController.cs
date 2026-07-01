@@ -5,13 +5,67 @@ namespace MO.Controllers
 {
     public class UkonController : BaseController
     {
-        // ===== Nový úkon - výchozí hodinový formulář =====
-        public IActionResult New(string d)
+        // ===== Kopírování úkonu =====
+        public IActionResult Copy(int id, string d)
         {
+            var rec = Factory.p31WorksheetBL.Load(id);
+            if (rec == null || rec.j02ID != Factory.CurrentUser.pid)
+                return RedirectToAction("Index", "Calendar");
+
+            var sesit = Factory.p34ActivityGroupBL.Load(rec.p34ID);
+            if (sesit != null && sesit.p33ID != BO.p33IdENUM.Cas)
+            {
+                return View("NotYet", new BaseViewModel
+                {
+                    PageTitle = Factory.tra("Připravujeme"),
+                    PageTitleAfter = sesit.p33Name
+                });
+            }
+
+            var v = new EntryHoursViewModel
+            {
+                PageTitle = Factory.tra("Kopie úkonu"),
+                pid = 0,                          // nový záznam
+                Date = ParseDate(d) ?? rec.p31Date,
+                p34ID = rec.p34ID,
+                p41ID = rec.p41ID,
+                p32ID = rec.p32ID,
+                p56ID = rec.p56ID,
+                Description = rec.p31Text,
+                Hours = rec.p31Hours_Orig.ToString("0.##",
+                    System.Globalization.CultureInfo.InvariantCulture),
+                // Čas od/do záměrně nekopírujeme — bývá specifický pro konkrétní den
+            };
+
+            LoadSesitList(v);
+            LoadProjects(v);
+            LoadActivities(v);
+            return View("EditHours", v);
+        }
+
+
+        // ===== Nový úkon - sešit již vybrán v Day view =====
+        public IActionResult New(string d, int p34id)
+        {
+            // Rozcestník podle typu sešitu hned na vstupu
+            if (p34id > 0)
+            {
+                var sesit = Factory.p34ActivityGroupBL.Load(p34id);
+                if (sesit != null && sesit.p33ID != BO.p33IdENUM.Cas)
+                {
+                    return View("NotYet", new BaseViewModel
+                    {
+                        PageTitle = Factory.tra("Připravujeme"),
+                        PageTitleAfter = sesit.p33Name
+                    });
+                }
+            }
+
             var v = new EntryHoursViewModel
             {
                 Date = ParseDate(d) ?? DateTime.Today,
-                PageTitle = Factory.tra("Nový úkon")
+                PageTitle = Factory.tra("Nový úkon"),
+                p34ID = p34id
             };
 
             LoadSesitList(v);
@@ -68,26 +122,6 @@ namespace MO.Controllers
         [HttpPost]
         public IActionResult SaveHours(EntryHoursViewModel v, string oper)
         {
-            // --- Postback: změna sešitu ---
-            if (oper == "p34change")
-            {
-                var sesit = Factory.p34ActivityGroupBL.Load(v.p34ID);
-
-                // Jiný typ než hodiny -> redirect na příslušné view (zatím připravujeme)
-                if (sesit != null && sesit.p33ID != BO.p33IdENUM.Cas)
-                {
-                    return RedirectToAction("NotYetByType", new { p34id = v.p34ID, d = v.Date.ToString("yyyy-MM-dd") });
-                }
-
-                // Stejný typ (hodiny) -> přenačti aktivity, vyčisti vybranou aktivitu
-                v.p32ID = 0;
-                v.SelectedActivityText = null;
-                LoadSesitList(v);
-                LoadProjects(v);
-                LoadActivities(v);
-                return View("EditHours", v);
-            }
-
             // --- Postback: změna projektu (přenačtení aktivit + úkolů) ---
             if (oper == "p41change")
             {
@@ -255,7 +289,7 @@ namespace MO.Controllers
         private void LoadProjects(EntryHoursViewModel v)
         {
             var lisP41 = Factory.p41ProjectBL
-                .GetList(new BO.myQueryP41("p41") { j02id_query = Factory.CurrentUser.pid })
+                .GetList(new BO.myQueryP41("p41") { j02id_query = Factory.CurrentUser.pid, p34id_for_p31_entry = v.p34ID })
                 .ToList();
 
             v.ProjectComboItems = lisP41.Select(p => new ComboItem
@@ -263,7 +297,7 @@ namespace MO.Controllers
                 Id = p.pid,
                 Code = p.p41Code,
                 Text = p.PrefferedName,
-                Meta=p.Client
+                Meta = p.Client
             }).ToList();
 
             if (v.p41ID > 0)
@@ -298,8 +332,8 @@ namespace MO.Controllers
             v.ActivityComboItems = lisP32.Select(a => new ComboItem
             {
                 Id = a.pid,
-                Code = a.p32Code,
-                Text = a.p32Name
+                Text = a.p32Name,
+                GroupBy = a.p38Name
             }).ToList();
 
             if (v.p32ID > 0)
@@ -319,6 +353,10 @@ namespace MO.Controllers
         private DateTime? ParseDate(string s)
         {
             if (string.IsNullOrWhiteSpace(s)) return null;
+            if (DateTime.TryParseExact(s, "yyyy-MM-dd",
+                System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None, out var dt))
+                return dt;
             try { return BO.Code.Bas.String2Date(s); }
             catch { return null; }
         }

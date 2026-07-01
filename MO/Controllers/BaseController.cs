@@ -15,6 +15,13 @@ namespace MO.Controllers
         public string ParentLayoutName { get; set; }
 
 
+        /// <summary>Chybová zpráva — zobrazí se přes layout (přežije redirect)</summary>
+        protected void SetMessage(string msg) => TempData["Message"] = msg;
+
+        /// <summary>Úspěšná zpráva — zobrazí se přes layout (přežije redirect)</summary>
+        protected void SetMessageSuccess(string msg) => TempData["MessageSuccess"] = msg;
+
+
         // Test probíhá před spuštěním každé Akce
         public override void OnActionExecuting(ActionExecutingContext context)
         {

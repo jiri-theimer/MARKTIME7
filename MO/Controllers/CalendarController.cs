@@ -23,7 +23,7 @@ namespace MO.Controllers
 
             LoadCalendarData(v);
 
-            v.PageTitle = v.d0.ToString("LLLL yyyy",
+            v.PageTitle = v.d0.ToString("MMMM yyyy",
                 System.Globalization.CultureInfo.CurrentUICulture);
             v.PageTitle = char.ToUpper(v.PageTitle[0]) + v.PageTitle.Substring(1);
 
@@ -75,6 +75,10 @@ namespace MO.Controllers
                 v.HolidayName = holiday.c26Name;
             }
 
+            v.SesitList = Factory.p34ActivityGroupBL
+                .GetList_WorksheetEntry_InAllProjects(Factory.CurrentUser.pid)
+                .ToList();
+
             return View(v);
         }
 
@@ -105,6 +109,12 @@ namespace MO.Controllers
         private DateTime? ParseDate(string s)
         {
             if (string.IsNullOrWhiteSpace(s)) return null;
+            // URL parametry posíláme jako yyyy-MM-dd
+            if (DateTime.TryParseExact(s, "yyyy-MM-dd",
+                System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None, out var dt))
+                return dt;
+            // Fallback pro jiné formáty
             try { return BO.Code.Bas.String2Date(s); }
             catch { return null; }
         }
