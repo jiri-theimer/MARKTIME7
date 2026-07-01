@@ -3,7 +3,9 @@
 
 @{
     var isNew = Model.pid == 0;
-    var dayUrl = Url.Action("Day", "Calendar", new { d = Model.Date.ToString("yyyy-MM-dd") });
+    var dayUrl = Model.Ret == "week" && !string.IsNullOrEmpty(Model.RetD)
+        ? Url.Action("Week", "Calendar", new { d = Model.RetD }) + "#entry-" + Model.pid
+        : Url.Action("Day", "Calendar", new { d = Model.Date.ToString("yyyy-MM-dd") });
     var activityHidden = Model.ActivityEntryFlag == 1;  // AktivitaSeNezadava
     var activityRequired = Model.ActivityEntryFlag == 3; // AktivitaJePovinna
 }
@@ -20,6 +22,8 @@
 
     <form method="post" asp-action="SaveHours" id="ukonForm">
         <input type="hidden" asp-for="pid" />
+        <input type="hidden" asp-for="Ret" />
+        <input type="hidden" asp-for="RetD" />
         <input type="hidden" name="oper" id="oper" value="" />
 
         @* Datum — v editaci zobrazit a umožnit změnu *@
@@ -187,7 +191,7 @@
             @if (!isNew)
             {
                 <button type="submit"
-                        formaction="@Url.Action("Delete", new { id = Model.pid, d = Model.Date.ToString("yyyy-MM-dd") })"
+                        formaction="@Url.Action("Delete", new { id = Model.pid, d = Model.Date.ToString("yyyy-MM-dd"), ret = Model.Ret, retd = Model.RetD })"
                         class="btn btn-error btn-outline btn-block"
                         onclick="return confirm('@_f.tra("Opravdu smazat tento úkon?")');">
                     <span class="material-icons-outlined" style="font-size:20px;">delete</span>

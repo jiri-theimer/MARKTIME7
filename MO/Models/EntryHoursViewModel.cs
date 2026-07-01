@@ -37,7 +37,7 @@ namespace MO.Models
         // Popis - povinné
         public string Description { get; set; }
 
-        
+
 
         /// <summary>Uživatelská pole (freefields) - plní se v controlleru, ne z formuláře</summary>
         [Microsoft.AspNetCore.Mvc.ModelBinding.BindNever]
@@ -48,5 +48,11 @@ namespace MO.Models
 
         /// <summary>Popis stavu záznamu pro zobrazení v ReadOnly hlavičce</summary>
         public string RecordStateLabel { get; set; }
+
+        /// <summary>Odkud přišel uživatel - "week" nebo null (Day). Řídí kam vede Zpět/Uložit.</summary>
+        public string Ret { get; set; }
+
+        /// <summary>Kotevní datum pro návrat (u "week" pondělí daného týdne)</summary>
+        public string RetD { get; set; }
     }
 }

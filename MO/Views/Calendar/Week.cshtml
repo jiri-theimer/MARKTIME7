@@ -17,7 +17,7 @@
         </a>
 
         <div class="text-center flex-1">
-            <div class="flex items-center justify-center gap-2">
+            <div class="flex items-center justify-center gap-2" style="flex-wrap:wrap;">
                 <span class="font-semibold text-lg leading-tight">@Model.PageTitle</span>
                 <div class="tabs tabs-boxed tabs-xs">
                     <a asp-action="Index" asp-route-d="@monthAnchor" class="tab text-xs">@_f.tra("Měsíc")</a>
@@ -76,11 +76,12 @@
                     {
                         var _trCls = MO.Code.TheGridRowSymbol.p31_tr_cssclass(entry) ?? "";
                         var _symbol = MO.Code.TheGridRowSymbol.p31_symbol(entry);
-                        <div class="card bg-base-100 shadow-sm hover:bg-base-300 transition @_trCls">
+                        <div id="entry-@entry.pid" class="card bg-base-100 shadow-sm hover:bg-base-300 transition @_trCls">
                             <div class="card-body p-2.5">
                                 <div class="flex items-start gap-2">
 
                                     <a asp-controller="Ukon" asp-action="Edit" asp-route-id="@entry.pid"
+                                       asp-route-ret="week" asp-route-retd="@Model.d1.ToString("yyyy-MM-dd")"
                                        class="min-w-0 flex-1">
                                         <div class="flex items-baseline gap-2">
                                             @if (entry.p31DateTimeFrom_Orig.HasValue && entry.p31DateTimeUntil_Orig.HasValue)
@@ -203,6 +204,19 @@
 @section scripts {
     <script>
         moRememberCalendarType('week');
+
+        // Odskrolovat na konkrétní záznam, pokud se vracíme z editace (URL #entry-<pid>)
+        document.addEventListener('DOMContentLoaded', function () {
+            if (location.hash && location.hash.indexOf('#entry-') === 0) {
+                var el = document.getElementById(location.hash.substring(1));
+                if (el) {
+                    el.scrollIntoView({ block: 'center', behavior: 'instant' });
+                    el.style.transition = 'box-shadow .3s';
+                    el.style.boxShadow = '0 0 0 3px #6366f1';
+                    setTimeout(function () { el.style.boxShadow = ''; }, 1500);
+                }
+            }
+        });
 
         var _copyId = 0;
         var _copyOrigDate = '';

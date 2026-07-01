@@ -97,7 +97,7 @@ namespace MO.Controllers
 
 
         // ===== Editace existujícího úkonu =====
-        public IActionResult Edit(int id)
+        public IActionResult Edit(int id, string ret = null, string retd = null)
         {
             var rec = Factory.p31WorksheetBL.Load(id);
             if (rec == null || rec.j02ID != Factory.CurrentUser.pid)
@@ -144,7 +144,9 @@ namespace MO.Controllers
                 TimeFrom = rec.p31DateTimeFrom_Orig?.ToString("HH:mm"),
                 TimeUntil = rec.p31DateTimeUntil_Orig?.ToString("HH:mm"),
                 IsReadOnly = isReadOnly,
-                RecordStateLabel = isReadOnly ? (disp.LockedReasonMessage ?? Factory.tra("Záznam nelze upravovat.")) : null
+                RecordStateLabel = isReadOnly ? (disp.LockedReasonMessage ?? Factory.tra("Záznam nelze upravovat.")) : null,
+                Ret = ret,
+                RetD = retd
             };
 
             LoadSesitList(v);
@@ -270,6 +272,10 @@ namespace MO.Controllers
                 return View("EditHours", v);
             }
 
+            if (v.Ret == "week" && !string.IsNullOrEmpty(v.RetD))
+            {
+                return Redirect(Url.Action("Week", "Calendar", new { d = v.RetD }) + "#entry-" + v.pid);
+            }
             return RedirectToAction("Day", "Calendar", new { d = v.Date.ToString("yyyy-MM-dd") });
         }
 
@@ -288,19 +294,22 @@ namespace MO.Controllers
 
         // ===== Smazání =====
         [HttpPost]
-        public IActionResult Delete(int id, string d)
+        public IActionResult Delete(int id, string d, string ret = null, string retd = null)
         {
             var rec = Factory.p31WorksheetBL.Load(id);
             if (rec != null && rec.j02ID == Factory.CurrentUser.pid)
             {
-                try
+                var err = Factory.CBL.DeleteRecord("p31", id);
+                if (!string.IsNullOrEmpty(err))
                 {
-                    var t = Factory.p31WorksheetBL.GetType().GetMethod("Delete", new[] { typeof(int) });
-                    t?.Invoke(Factory.p31WorksheetBL, new object[] { id });
+                    SetMessage(err);
                 }
-                catch { /* tichá chyba pro MVP */ }
             }
 
+            if (ret == "week" && !string.IsNullOrEmpty(retd))
+            {
+                return RedirectToAction("Week", "Calendar", new { d = retd });
+            }
             return RedirectToAction("Day", "Calendar", new { d });
         }
 
