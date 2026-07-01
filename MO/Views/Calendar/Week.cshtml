@@ -43,15 +43,25 @@
     @foreach (var day in Model.Days)
     {
         var isToday = day.Date.Date == today;
+        var headerStyle = isToday ? "" : "background-color:#dbe7f5;";
 
-        <div class="mt-1">
+        <div class="mt-5 first:mt-0">
             @* Hlavička dne - klik vede do Day view (přidání úkonu, plný detail) *@
             <a asp-action="Day" asp-route-d="@day.Date.ToString("yyyy-MM-dd")"
-               class="flex items-center justify-between px-1 py-1.5 hover:bg-base-200 rounded transition">
-                <div class="flex items-center gap-2">
-                    <div class="text-sm font-semibold @(isToday ? "text-primary" : "")">
-                        @day.DayName @day.Date.ToString("d. M.")
+               style="@headerStyle"
+               class="flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg mb-2 transition hover:brightness-95
+                @(isToday ? "bg-primary text-primary-content" : "")">
+                <div class="flex items-baseline gap-2" style="flex-wrap:wrap;">
+                    <span class="badge badge-sm font-bold tracking-wide @(isToday ? "bg-primary-content/20 border-none text-primary-content" : "badge-ghost")">
+                        @day.DayName
+                    </span>
+                    <div class="text-lg font-extrabold">
+                        @day.Date.ToString("d. M.")
                     </div>
+                    @if (isToday)
+                    {
+                        <span class="badge badge-sm bg-primary-content/20 border-none text-primary-content">@_f.tra("Dnes")</span>
+                    }
                     @if (day.IsHoliday)
                     {
                         <span class="badge badge-error badge-outline badge-sm">@day.HolidayName</span>
@@ -62,11 +72,12 @@
                     <div class="flex items-center gap-1.5">
                         @if (day.TotalHours > 0)
                         {
-                            <div class="font-bold text-primary text-sm">@day.TotalHours.ToString("0.##") h</div>
+                            <div class="font-bold text-sm @(isToday ? "" : "text-primary")">@day.TotalHours.ToString("0.##") h</div>
                         }
                         @if (day.MoneyEntryCount > 0)
                         {
-                            <div class="badge badge-secondary badge-sm gap-0.5" title="@day.MoneyEntryCount @_f.tra("peněžních úkonů")">
+                            <div class="badge badge-sm gap-0.5 @(isToday ? "bg-primary-content/20 border-none text-primary-content" : "badge-secondary")"
+                                 title="@day.MoneyEntryCount @_f.tra("peněžních úkonů")">
                                 <span class="material-icons-outlined" style="font-size:12px;">payments</span>@day.MoneyEntryCount
                             </div>
                         }

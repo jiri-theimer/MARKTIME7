@@ -71,10 +71,18 @@
     }
     else
     {
-        @foreach (var entry in Model.Entries)
+        var _pids = Model.Entries.Select(e => e.pid).ToHashSet();
+        // Kusovníkové úkony navázané přes p31MasterID na jiný (viditelný) úkon dne se nezobrazují
+        // jako samostatná karta, ale vypíšou se pod svým "mistrem".
+        var _topLevel = Model.Entries.Where(e => e.p31MasterID == 0 || !_pids.Contains(e.p31MasterID));
+
+        @foreach (var entry in _topLevel)
         {
             var _trCls = MO.Code.TheGridRowSymbol.p31_tr_cssclass(entry) ?? "";
             var _symbol = MO.Code.TheGridRowSymbol.p31_symbol(entry);
+            var _children = entry.p33ID == BO.p33IdENUM.Cas
+                ? Model.Entries.Where(e => e.p31MasterID == entry.pid).ToList()
+                : new List<BO.p31Worksheet>();
             <div class="card bg-base-100 shadow-sm hover:bg-base-300 transition @_trCls">
                 <div class="card-body p-3">
                     <div class="flex items-start gap-2">
@@ -97,7 +105,7 @@
                             }
                         </a>
 
-                        @* Pravý sloupec: symbol + hodiny + kopírovat *@
+                        @* Pravý sloupec: symbol + hodiny/částka/kusy + kopírovat *@
                         <div class="flex flex-col items-end gap-1 shrink-0">
                             @if (!string.IsNullOrEmpty(_symbol))
                             {
@@ -107,6 +115,10 @@
                                 @if (entry.p33ID == BO.p33IdENUM.PenizeBezDPH || entry.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu)
                                 {
                                     @(MO.Code.AmountFormat.Thousands(entry.p31Amount_WithoutVat_Orig)) @entry.j27Code_Billing_Orig
+                                }
+                                else if (entry.p33ID == BO.p33IdENUM.Kusovnik)
+                                {
+                                    @(entry.p31Value_Orig.ToString("0.##")) <text>@_f.tra("ks")</text>
                                 }
                                 else
                                 {
@@ -123,6 +135,29 @@
                         </div>
 
                     </div>
+
+                    @* Svázané kusovníkové úkony *@
+                    @if (_children.Count > 0)
+                    {
+                        <div class="mt-2 pt-2 border-t border-base-200 grid gap-1">
+                            @foreach (var child in _children)
+                            {
+                                <a asp-controller="Ukon" asp-action="Edit" asp-route-id="@child.pid"
+                                   class="flex items-center justify-between gap-2 text-sm hover:bg-base-200 rounded px-1 -mx-1 py-0.5">
+                                    <div class="min-w-0 text-base-content/70 truncate">
+                                        @child.p32Name
+                                        @if (!string.IsNullOrEmpty(child.p31Text))
+                                        {
+                                            <text> — @child.p31Text</text>
+                                        }
+                                    </div>
+                                    <div class="shrink-0 font-semibold">
+                                        @child.p31Value_Orig.ToString("0.##") @_f.tra("ks")
+                                    </div>
+                                </a>
+                            }
+                        </div>
+                    }
                 </div>
             </div>
         }

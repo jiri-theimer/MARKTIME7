@@ -11,6 +11,7 @@ namespace MO.Controllers
             var v = new CalendarViewModel
             {
                 PageTitle = Factory.tra("Kalendář"),
+                HideHeaderTitle = true,
                 d0 = ParseDate(d) ?? DateTime.Today,
                 ShowWeekend = Factory.CBL.LoadUserParamBool("mo-calendar-showweekend", false)
             };
@@ -89,6 +90,7 @@ namespace MO.Controllers
             }
 
             v.PageTitle = $"{v.d1:d. M.} – {v.d2:d. M. yyyy}";
+            v.HideHeaderTitle = true;
 
             return View(v);
         }
@@ -103,7 +105,8 @@ namespace MO.Controllers
             {
                 Date = date,
                 PageTitle = date.ToString("d. MMMM yyyy",
-                    System.Globalization.CultureInfo.CurrentUICulture)
+                    System.Globalization.CultureInfo.CurrentUICulture),
+                HideHeaderTitle = true
             };
 
             var mq = new BO.myQueryP31

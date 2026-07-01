@@ -121,6 +121,11 @@ namespace MO.Controllers
                 LoadActivities(v);
             }
             LoadFreeFields(v, 0);
+            LoadKusovnikOffer(v);
+            if (v.p41ID > 0 && v.IsNavicKusovnik)
+            {
+                LoadKusovnikForProject(v);
+            }
             return View("EditHours", v);
         }
 
@@ -209,6 +214,11 @@ namespace MO.Controllers
             LoadProjects(v);
             LoadActivities(v);
             LoadFreeFields(v, rec.pid);
+            if (!isReadOnly)
+            {
+                LoadKusovnikOffer(v);
+                LoadExistingKusovnikEntries(v);
+            }
             return View(isReadOnly ? "ViewHours" : "EditHours", v);
         }
 
@@ -274,6 +284,59 @@ namespace MO.Controllers
                     v.SelectedActivityText = null;
                 }
 
+                LoadKusovnikOffer(v);
+                if (v.IsNavicKusovnik)
+                {
+                    // Projekt se změnil - nabídka kusovníkových sešitů/aktivit je pro jiný projekt jiná
+                    v.p34ID_Kusovnik = 0;
+                    LoadKusovnikForProject(v);
+                }
+
+                return View("EditHours", v);
+            }
+
+            // --- Postback: zapnutí/vypnutí "K hodinám vykázat i kusovníkové úkony" ---
+            if (oper == "kusovnik_toggle")
+            {
+                ReloadAll(v);
+                if (v.IsNavicKusovnik)
+                {
+                    LoadKusovnikForProject(v);
+                    if (v.KusovnikRows.Count == 0)
+                    {
+                        v.KusovnikRows.Add(new KusovnikRowViewModel());
+                    }
+                }
+                return View("EditHours", v);
+            }
+
+            // --- Postback: změna kusovníkového sešitu (přenačtení aktivit pro řádky) ---
+            if (oper == "kusovnik_p34id")
+            {
+                ReloadAll(v);
+                LoadKusovnikForProject(v);
+                return View("EditHours", v);
+            }
+
+            // --- Postback: přidat prázdný řádek kusovníku ---
+            if (oper == "kusovnik_add")
+            {
+                ReloadAll(v);
+                LoadKusovnikForProject(v);
+                v.KusovnikRows.Add(new KusovnikRowViewModel());
+                return View("EditHours", v);
+            }
+
+            // --- Postback: odebrat řádek kusovníku ---
+            if (!string.IsNullOrEmpty(oper) && oper.StartsWith("kusovnik_remove_"))
+            {
+                ReloadAll(v);
+                LoadKusovnikForProject(v);
+                if (int.TryParse(oper.Substring("kusovnik_remove_".Length), out var removeIdx)
+                    && removeIdx >= 0 && removeIdx < v.KusovnikRows.Count)
+                {
+                    v.KusovnikRows.RemoveAt(removeIdx);
+                }
                 return View("EditHours", v);
             }
 
@@ -332,6 +395,19 @@ namespace MO.Controllers
                 return View("EditHours", v);
             }
 
+            // Validace kusovníkových řádků (jen ty vyplněné - prázdné řádky se ignorují)
+            string kusovnikError = null;
+            if (v.IsNavicKusovnik)
+            {
+                kusovnikError = ValidateKusovnikRows(v);
+                if (kusovnikError != null)
+                {
+                    v.Message = kusovnikError;
+                    ReloadAll(v);
+                    return View("EditHours", v);
+                }
+            }
+
             // Načíst definice freefields + posbírat hodnoty z formuláře
             LoadFreeFields(v, v.pid);
             CollectFreeFieldsFromForm(v);
@@ -368,6 +444,12 @@ namespace MO.Controllers
                     v.Message = Factory.tra("Úkon se nepodařilo uložit.");
                     ReloadAll(v);
                     return View("EditHours", v);
+                }
+
+                // Uložit i navazující kusovníkové úkony (přidávají se, existující se nepřepisují)
+                if (v.IsNavicKusovnik && v.KusovnikRows != null && v.KusovnikRows.Count > 0)
+                {
+                    SaveKusovnikRows(ret, v);
                 }
             }
             catch (Exception ex)
@@ -743,6 +825,13 @@ namespace MO.Controllers
             // Freefields: definice + viditelnost, pak posbírat hodnoty z POSTu zpět
             LoadFreeFields(v, v.pid);
             CollectFreeFieldsFromForm(v);
+
+            LoadKusovnikOffer(v);
+            if (v.IsNavicKusovnik && v.p41ID > 0)
+            {
+                LoadKusovnikForProject(v);
+            }
+            LoadExistingKusovnikEntries(v);
         }
 
         private DateTime? ParseDate(string s)
@@ -754,6 +843,133 @@ namespace MO.Controllers
                 return dt;
             try { return BO.Code.Bas.String2Date(s); }
             catch { return null; }
+        }
+
+
+        // ===== Pomocné metody - kusovníkové úkony "navíc" k hodinám =====
+
+        // Zda vůbec nabízet checkbox "K hodinám vykázat i kusovníkové úkony" - existuje-li pro uživatele
+        // aspoň jeden sešit typu Kusovník (v libovolném jeho projektu).
+        private void LoadKusovnikOffer(EntryHoursViewModel v)
+        {
+            v.IsOfferNavicKusovnik = Factory.p34ActivityGroupBL
+                .GetList_WorksheetEntry_InAllProjects(Factory.CurrentUser.pid)
+                .Any(s => s.p33ID == BO.p33IdENUM.Kusovnik);
+        }
+
+        // Již uložené kusovníkové úkony navázané na tento hodinový úkon (p31MasterID) - jen pro zobrazení.
+        private void LoadExistingKusovnikEntries(EntryHoursViewModel v)
+        {
+            if (v.pid <= 0)
+            {
+                v.ExistingKusovnikEntries = new List<BO.p31Worksheet>();
+                return;
+            }
+            v.ExistingKusovnikEntries = Factory.p31WorksheetBL.GetList(new BO.myQueryP31 { p31masterid = v.pid }).ToList();
+        }
+
+        // Nabídka kusovníkových sešitů a aktivit pro konkrétní vybraný projekt (v.p41ID).
+        private void LoadKusovnikForProject(EntryHoursViewModel v)
+        {
+            if (v.p41ID <= 0) return;
+
+            var recP41 = Factory.p41ProjectBL.Load(v.p41ID);
+            if (recP41 == null) return;
+
+            var lisP34 = Factory.p34ActivityGroupBL
+                .GetList_WorksheetEntryIn_OneProject(recP41, Factory.CurrentUser.pid)
+                .Where(s => s.p33ID == BO.p33IdENUM.Kusovnik)
+                .ToList();
+
+            v.KusovnikSesitComboItems = lisP34.Select(s => new ComboItem
+            {
+                Id = s.pid,
+                Text = s.p34Name
+            }).ToList();
+
+            if (lisP34.Count == 0)
+            {
+                v.p34ID_Kusovnik = 0;
+                v.KusovnikActivityComboItems = new List<ComboItem>();
+                return;
+            }
+
+            if (v.p34ID_Kusovnik <= 0 || !lisP34.Any(s => s.pid == v.p34ID_Kusovnik))
+            {
+                v.p34ID_Kusovnik = lisP34.First().pid;
+            }
+
+            var lisP32 = Factory.p32ActivityBL.GetList(new BO.myQueryP32
+            {
+                p34id = v.p34ID_Kusovnik
+            }).ToList();
+
+            v.KusovnikActivityComboItems = lisP32.Select(a => new ComboItem
+            {
+                Id = a.pid,
+                Text = a.p32Name
+            }).ToList();
+        }
+
+        // Zvaliduje vyplněné řádky kusovníku (prázdné řádky se přeskočí). Vrátí chybovou zprávu, nebo null.
+        private string ValidateKusovnikRows(EntryHoursViewModel v)
+        {
+            if (v.KusovnikRows == null) return null;
+
+            foreach (var row in v.KusovnikRows)
+            {
+                bool isUsed = row.p32ID > 0 || !string.IsNullOrWhiteSpace(row.Pocet) || !string.IsNullOrWhiteSpace(row.Text);
+                if (!isUsed) continue;
+
+                if (row.p32ID <= 0)
+                {
+                    return Factory.tra("U kusovníkového řádku vyberte aktivitu.");
+                }
+                var recP32 = Factory.p32ActivityBL.Load(row.p32ID);
+                if (recP32 == null)
+                {
+                    return Factory.tra("U kusovníkového řádku vyberte aktivitu.");
+                }
+                if (ParseDecimal(row.Pocet) == 0)
+                {
+                    return Factory.tra("U kusovníkového řádku zadejte počet.");
+                }
+                if (recP32.p32IsTextRequired && string.IsNullOrWhiteSpace(row.Text))
+                {
+                    return Factory.tra("U kusovníkového řádku vyplňte text.");
+                }
+            }
+            return null;
+        }
+
+        // Uloží vyplněné kusovníkové řádky jako samostatné úkony navázané na hlavní hodinový úkon (p31MasterID).
+        // Prázdné řádky se přeskočí. Vždy se přidávají nové - existující se touto cestou needitují.
+        private void SaveKusovnikRows(int masterPid, EntryHoursViewModel v)
+        {
+            var recMaster = Factory.p31WorksheetBL.Load(masterPid);
+            if (recMaster == null) return;
+
+            foreach (var row in v.KusovnikRows)
+            {
+                bool isUsed = row.p32ID > 0 || !string.IsNullOrWhiteSpace(row.Pocet) || !string.IsNullOrWhiteSpace(row.Text);
+                if (!isUsed) continue;
+                if (row.p32ID <= 0 || ParseDecimal(row.Pocet) == 0) continue;
+
+                var recSlave = new BO.p31WorksheetEntryInput
+                {
+                    p31MasterID = masterPid,
+                    p31Text = row.Text,
+                    p34ID = v.p34ID_Kusovnik,
+                    p32ID = row.p32ID,
+                    Value_Orig = row.Pocet,
+                    p41ID = recMaster.p41ID,
+                    p56ID = recMaster.p56ID,
+                    j02ID = recMaster.j02ID
+                };
+                recSlave.Addp31Date(recMaster.p31Date);
+
+                Factory.p31WorksheetBL.SaveOrigRecord(recSlave, BO.p33IdENUM.Kusovnik, null);
+            }
         }
 
 

@@ -8,6 +8,12 @@ namespace MO.Models
         public string PageTitle { get; set; }
         public string PageTitleAfter { get; set; }
 
+        /// <summary>
+        /// Potlačí vykreslení hlavního nadpisu (H1) v layoutu - PageTitle se použije jen jako &lt;title&gt; stránky.
+        /// Používá se u stránek, které si titulek/datum zobrazují vlastní hlavičkou (Day, Index, Week v Kalendáři).
+        /// </summary>
+        public bool HideHeaderTitle { get; set; }
+
         /// <summary>id elementu, na který se má automaticky udělit focus po načtení stránky</summary>
         public string Element2Focus { get; set; }
 

@@ -182,6 +182,95 @@
             </div>
         </div>
 
+        @* Již uložené kusovníkové úkony navázané na tento hodinový úkon *@
+        @if (Model.ExistingKusovnikEntries != null && Model.ExistingKusovnikEntries.Any())
+        {
+            <div class="card bg-base-100 shadow-sm">
+                <div class="card-body gap-1 p-3">
+                    <div class="text-xs uppercase text-base-content/50 font-semibold">
+                        @_f.tra("Již vykázané kusovníkové úkony")
+                    </div>
+                    @foreach (var k in Model.ExistingKusovnikEntries)
+                    {
+                        <a asp-controller="Ukon" asp-action="Edit" asp-route-id="@k.pid"
+                           class="flex items-center justify-between gap-2 py-1 hover:bg-base-200 rounded px-1 -mx-1">
+                            <div class="min-w-0">
+                                <div class="text-sm font-medium truncate">@k.p32Name</div>
+                                @if (!string.IsNullOrEmpty(k.p31Text))
+                                {
+                                    <div class="text-xs text-base-content/50 truncate">@k.p31Text</div>
+                                }
+                            </div>
+                            <div class="text-sm font-bold text-primary shrink-0">
+                                @k.p31Value_Orig.ToString("0.##")
+                            </div>
+                        </a>
+                    }
+                </div>
+            </div>
+        }
+
+        @* K hodinám vykázat i kusovníkové úkony *@
+        @if (Model.IsOfferNavicKusovnik)
+        {
+            <div class="card bg-base-100 shadow-sm">
+                <div class="card-body gap-2 p-3">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" asp-for="IsNavicKusovnik" class="checkbox checkbox-sm"
+                               onchange="submitOper('kusovnik_toggle')" />
+                        <span class="label-text font-semibold">@_f.tra("K hodinám vykázat i kusovníkové úkony")</span>
+                    </label>
+
+                    @if (Model.IsNavicKusovnik)
+                    {
+                        @if (Model.KusovnikSesitComboItems.Any())
+                        {
+                            <div class="flex items-center gap-2">
+                                <select asp-for="p34ID_Kusovnik" class="select select-bordered select-sm flex-1"
+                                        onchange="submitOper('kusovnik_p34id')">
+                                    @foreach (var s in Model.KusovnikSesitComboItems)
+                                    {
+                                        <option value="@s.Id" selected="@(s.Id == Model.p34ID_Kusovnik)">@s.Text</option>
+                                    }
+                                </select>
+                                <button type="button" class="btn btn-sm btn-outline" onclick="submitOper('kusovnik_add')">
+                                    <span class="material-icons-outlined" style="font-size:16px;">add_circle_outline</span>
+                                    @_f.tra("Přidat")
+                                </button>
+                            </div>
+
+                            @for (int i = 0; i < Model.KusovnikRows.Count; i++)
+                            {
+                                <div class="flex items-start gap-2 border-t border-base-200 pt-2 mt-1">
+                                    <select asp-for="KusovnikRows[i].p32ID" class="select select-bordered select-sm" style="max-width:40%;">
+                                        <option value="0"></option>
+                                        @foreach (var a in Model.KusovnikActivityComboItems)
+                                        {
+                                            <option value="@a.Id" selected="@(a.Id == Model.KusovnikRows[i].p32ID)">@a.Text</option>
+                                        }
+                                    </select>
+                                    <input asp-for="KusovnikRows[i].Pocet" inputmode="decimal" autocomplete="off"
+                                           placeholder="@_f.tra("Počet")" class="input input-bordered input-sm" style="width:64px;" />
+                                    <input asp-for="KusovnikRows[i].Text" placeholder="@_f.tra("Text")"
+                                           class="input input-bordered input-sm flex-1" />
+                                    <button type="button" class="btn btn-ghost btn-sm btn-square" title="@_f.tra("Odebrat")"
+                                            onclick="submitOper('kusovnik_remove_@i')">
+                                        <span class="material-icons-outlined" style="font-size:16px;">close</span>
+                                    </button>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="text-xs text-base-content/50 italic px-1">
+                                @_f.tra("Pro tento projekt není dostupný žádný kusovníkový sešit.")
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        }
+
         <div class="grid gap-2 mt-3">
             <button type="submit" class="btn btn-primary btn-block">
                 <span class="material-icons-outlined" style="font-size:20px;">check</span>
@@ -235,6 +324,11 @@
 
         function onProjectChange(p41id) {
             document.getElementById('oper').value = 'p41change';
+            document.getElementById('ukonForm').submit();
+        }
+
+        function submitOper(oper) {
+            document.getElementById('oper').value = oper;
             document.getElementById('ukonForm').submit();
         }
 
