@@ -70,6 +70,7 @@ namespace MO.Controllers
 
             LoadSesitList(v);
             LoadProjects(v);
+            LoadFreeFields(v, 0);
             return View("EditHours", v);
         }
 
@@ -79,21 +80,33 @@ namespace MO.Controllers
         {
             var rec = Factory.p31WorksheetBL.Load(id);
             if (rec == null || rec.j02ID != Factory.CurrentUser.pid)
-            {
                 return RedirectToAction("Index", "Calendar");
+
+            // Ověření oprávnění
+            var disp = Factory.p31WorksheetBL.InhaleRecDisposition(rec);
+
+            if (!disp.ReadAccess)
+            {
+                return View("EditHours", new EntryHoursViewModel
+                {
+                    PageTitle = Factory.tra("Úprava úkonu"),
+                    Date = rec.p31Date,
+                    Message = Factory.tra("Nemáte oprávnění k záznamu.")
+                });
             }
 
             // Rozcestník podle typu sešitu - zatím umíme jen hodiny
             var sesit = Factory.p34ActivityGroupBL.Load(rec.p34ID);
             if (sesit != null && sesit.p33ID != BO.p33IdENUM.Cas)
             {
-                // Ne-hodinový úkon - zatím připravujeme
                 return View("NotYet", new BaseViewModel
                 {
                     PageTitle = Factory.tra("Připravujeme"),
                     PageTitleAfter = sesit.p33Name
                 });
             }
+
+            var isReadOnly = !disp.OwnerAccess || disp.RecordState != BO.p31RecordState.Editing;
 
             var v = new EntryHoursViewModel
             {
@@ -108,13 +121,16 @@ namespace MO.Controllers
                 Hours = rec.p31Hours_Orig.ToString("0.##",
                     System.Globalization.CultureInfo.InvariantCulture),
                 TimeFrom = rec.p31DateTimeFrom_Orig?.ToString("HH:mm"),
-                TimeUntil = rec.p31DateTimeUntil_Orig?.ToString("HH:mm")
+                TimeUntil = rec.p31DateTimeUntil_Orig?.ToString("HH:mm"),
+                IsReadOnly = isReadOnly,
+                RecordStateLabel = isReadOnly ? (disp.LockedReasonMessage ?? Factory.tra("Záznam nelze upravovat.")) : null
             };
 
             LoadSesitList(v);
             LoadProjects(v);
             LoadActivities(v);
-            return View("EditHours", v);
+            LoadFreeFields(v, rec.pid);
+            return View(isReadOnly ? "ViewHours" : "EditHours", v);
         }
 
 
@@ -134,6 +150,23 @@ namespace MO.Controllers
             }
 
             // --- Skutečné uložení ---
+            // Ověřit oprávnění i při POSTu (obrana proti manipulaci s formulářem)
+            if (v.pid > 0)
+            {
+                var rec2 = Factory.p31WorksheetBL.Load(v.pid);
+                if (rec2 != null)
+                {
+                    var disp2 = Factory.p31WorksheetBL.InhaleRecDisposition(rec2);
+                    if (!disp2.OwnerAccess || disp2.RecordState != BO.p31RecordState.Editing)
+                    {
+                        v.Message = Factory.tra("Záznam nelze upravovat.");
+                        v.IsReadOnly = true;
+                        ReloadAll(v);
+                        return View("EditHours", v);
+                    }
+                }
+            }
+
             if (v.p34ID <= 0)
             {
                 v.Message = Factory.tra("Vyberte sešit.");
@@ -171,6 +204,10 @@ namespace MO.Controllers
                 return View("EditHours", v);
             }
 
+            // Načíst definice freefields + posbírat hodnoty z formuláře
+            LoadFreeFields(v, v.pid);
+            CollectFreeFieldsFromForm(v);
+
             var input = new BO.p31WorksheetEntryInput
             {
                 j02ID = Factory.CurrentUser.pid,
@@ -197,7 +234,7 @@ namespace MO.Controllers
 
             try
             {
-                var ret = Factory.p31WorksheetBL.SaveOrigRecord(input, BO.p33IdENUM.Cas, null);
+                var ret = Factory.p31WorksheetBL.SaveOrigRecord(input, BO.p33IdENUM.Cas, v.ff1?.inputs);
                 if (ret <= 0)
                 {
                     v.Message = Factory.tra("Úkon se nepodařilo uložit.");
@@ -314,6 +351,64 @@ namespace MO.Controllers
                     p41id = v.p41ID,
                     j02id = Factory.CurrentUser.pid
                 }).Take(100).ToList();
+
+                if (v.p56ID > 0)
+                {
+                    var selTask = v.TaskList.FirstOrDefault(t => t.pid == v.p56ID);
+                    if (selTask != null) v.SelectedTaskText = selTask.p56Name;
+                }
+            }
+        }
+
+        private void LoadFreeFields(EntryHoursViewModel v, int recPid)
+        {
+            v.ff1 = new FreeFieldsViewModel();
+            v.ff1.InhaleFreeFieldsView(Factory, recPid, "p31");
+            // Viditelnost dle sešitu (p34ID určuje typ záznamu)
+            if (v.p34ID > 0)
+            {
+                v.ff1.RefreshInputsVisibility(Factory, recPid, "p31", v.p34ID);
+            }
+        }
+
+        private void CollectFreeFieldsFromForm(EntryHoursViewModel v)
+        {
+            if (v.ff1?.inputs == null) return;
+
+            foreach (var ff in v.ff1.inputs)
+            {
+                var key = "ff_" + ff.x28Field;
+                if (!Request.Form.ContainsKey(key))
+                {
+                    // checkbox neposílá nic když není zaškrtnutý
+                    if (ff.TypeName == "boolean") ff.CheckInput = false;
+                    continue;
+                }
+
+                var raw = Request.Form[key].ToString();
+                switch (ff.TypeName)
+                {
+                    case "boolean":
+                        ff.CheckInput = raw == "true" || raw == "on";
+                        break;
+                    case "date":
+                    case "datetime":
+                        if (DateTime.TryParse(raw, out var dt)) ff.DateInput = dt;
+                        else ff.DateInput = null;
+                        break;
+                    case "decimal":
+                        if (double.TryParse(raw.Replace(',', '.'),
+                            System.Globalization.NumberStyles.Any,
+                            System.Globalization.CultureInfo.InvariantCulture, out var num))
+                            ff.NumInput = num;
+                        break;
+                    case "integer":
+                        if (int.TryParse(raw, out var iv)) ff.IntInput = iv;
+                        break;
+                    default:
+                        ff.StringInput = raw;
+                        break;
+                }
             }
         }
 
@@ -348,6 +443,9 @@ namespace MO.Controllers
             LoadSesitList(v);
             LoadProjects(v);
             LoadActivities(v);
+            // Freefields: definice + viditelnost, pak posbírat hodnoty z POSTu zpět
+            LoadFreeFields(v, v.pid);
+            CollectFreeFieldsFromForm(v);
         }
 
         private DateTime? ParseDate(string s)

@@ -25,6 +25,7 @@ namespace MO.Models
         // Úkol (p56) - volitelné
         public int p56ID { get; set; }
         public IEnumerable<BO.p56Task> TaskList { get; set; } = new List<BO.p56Task>();
+        public string SelectedTaskText { get; set; }
 
         // Hodiny - povinné
         public string Hours { get; set; }
@@ -37,5 +38,15 @@ namespace MO.Models
         public string Description { get; set; }
 
         public string Message { get; set; }
+
+        /// <summary>Uživatelská pole (freefields) - plní se v controlleru, ne z formuláře</summary>
+        [Microsoft.AspNetCore.Mvc.ModelBinding.BindNever]
+        public FreeFieldsViewModel ff1 { get; set; } = new FreeFieldsViewModel();
+
+        /// <summary>Záznam je pouze pro čtení (nemá OwnerAccess nebo stav != Editing)</summary>
+        public bool IsReadOnly { get; set; }
+
+        /// <summary>Popis stavu záznamu pro zobrazení v ReadOnly hlavičce</summary>
+        public string RecordStateLabel { get; set; }
     }
 }

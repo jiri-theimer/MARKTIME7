@@ -1,0 +1,82 @@
+@model MO.Models.FreeFieldsViewModel
+@inject BL.Factory _f
+
+@if (Model?.inputs != null)
+{
+    @foreach (var ff in Model.inputs.Where(p => p.IsVisible))
+    {
+        <label class="form-control">
+            <div class="label">
+                <span class="label-text font-semibold">
+                    @ff.x28Name@(ff.x28IsRequired ? " *" : "")
+                </span>
+            </div>
+
+            @switch (ff.TypeName)
+            {
+                case "boolean":
+                    <input type="checkbox" name="ff_@(ff.x28Field)" value="true"
+                           class="checkbox" @(ff.CheckInput ? "checked" : "") />
+                    break;
+
+                case "date":
+                case "datetime":
+                    <input type="date" name="ff_@(ff.x28Field)"
+                           value="@(ff.DateInput?.ToString("yyyy-MM-dd"))"
+                           class="input input-bordered w-full" />
+                    break;
+
+                case "decimal":
+                    <input type="text" inputmode="decimal" name="ff_@(ff.x28Field)"
+                           value="@(ff.NumInput != 0 ? ff.NumInput.ToString(System.Globalization.CultureInfo.InvariantCulture) : "")"
+                           class="input input-bordered w-full" />
+                    break;
+
+                case "integer":
+                    <input type="text" inputmode="numeric" name="ff_@(ff.x28Field)"
+                           value="@(ff.IntInput != 0 ? ff.IntInput.ToString() : "")"
+                           class="input input-bordered w-full" />
+                    break;
+
+                default:
+                    @if (ff.x28IsFixedDataSource && !string.IsNullOrEmpty(ff.x28DataSource))
+                    {
+                        @* Pevný výběr - select z x28DataSource (oddělené ;) *@
+                        <select name="ff_@(ff.x28Field)" class="select select-bordered w-full">
+                            <option value=""></option>
+                            @foreach (var opt in BO.Code.Bas.ConvertString2List(ff.x28DataSource, ";"))
+                            {
+                                <option value="@opt" selected="@(ff.StringInput == opt)">@opt</option>
+                            }
+                        </select>
+                    }
+                    else if (!string.IsNullOrEmpty(ff.x28DataSource))
+                    {
+                        @* Autocomplete - text input + datalist s návrhy z x28DataSource *@
+                        var listId = "ffdl_" + ff.x28Field;
+                        <input type="text" name="ff_@(ff.x28Field)" list="@listId"
+                               value="@ff.StringInput" autocomplete="off"
+                               class="input input-bordered w-full" />
+                        <datalist id="@listId">
+                            @foreach (var opt in BO.Code.Bas.ConvertString2List(ff.x28DataSource, ";"))
+                            {
+                                <option value="@opt"></option>
+                            }
+                        </datalist>
+                    }
+                    else if (ff.TextboxHeight > 1)
+                    {
+                        <textarea name="ff_@(ff.x28Field)" rows="@ff.TextboxHeight"
+                                  class="textarea textarea-bordered w-full">@ff.StringInput</textarea>
+                    }
+                    else
+                    {
+                        <input type="text" name="ff_@(ff.x28Field)"
+                               value="@ff.StringInput"
+                               class="input input-bordered w-full" />
+                    }
+                    break;
+            }
+        </label>
+    }
+}

@@ -18,14 +18,6 @@
         <div class="text-sm text-base-content/60">@Model.Date.ToString("d. MMMM yyyy")</div>
     </div>
 
-    @if (!string.IsNullOrEmpty(Model.Message))
-    {
-        <div role="alert" class="alert alert-error">
-            <span class="material-icons-outlined">error_outline</span>
-            <span>@Model.Message</span>
-        </div>
-    }
-
     <form method="post" asp-action="SaveHours" id="ukonForm">
         <input type="hidden" asp-for="pid" />
         <input type="hidden" name="oper" id="oper" value="" />
@@ -177,6 +169,12 @@
                               rows="3" autocapitalize="sentences"></textarea>
                 </label>
 
+                @* Uživatelská pole (freefields) *@
+                @if (Model.ff1?.VisibleInputsCount > 0)
+                {
+                    <partial name="_FreeFields" model="Model.ff1" />
+                }
+
             </div>
         </div>
 
@@ -197,7 +195,7 @@
                 </button>
             }
 
-            <a href="@dayUrl" class="btn btn-ghost btn-block">@_f.tra("Storno")</a>
+            <a href="@dayUrl" class="btn btn-ghost btn-block">@_f.tra("Zpět")</a>
         </div>
     </form>
 

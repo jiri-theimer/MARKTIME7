@@ -22,6 +22,7 @@
 
     <link rel="stylesheet" href="~/css/app.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/icons.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/p31status.css" asp-append-version="true" />
 
     <link rel="icon" href="~/favicon.ico" />
 </head>
@@ -103,6 +104,20 @@
                         <span class="material-icons-outlined">error_outline</span>
                         <span>@Html.Raw(_msg)</span>
                     </div>
+                }
+
+                @* Messages4Notify — BL notifikační zprávy (Key: "error" nebo "info") *@
+                @if (_f.CurrentUser?.Messages4Notify != null)
+                {
+                    @foreach (var c in _f.CurrentUser.Messages4Notify)
+                    {
+                        var _notifyCls = c.Key == "info" ? "alert-info" : "alert-error";
+                        var _notifyIcon = c.Key == "info" ? "info" : "error_outline";
+                        <div role="alert" class="alert @_notifyCls mb-2">
+                            <span class="material-icons-outlined">@_notifyIcon</span>
+                            <span>@Html.Raw(c.Value)</span>
+                        </div>
+                    }
                 }
 
                 @RenderBody()
