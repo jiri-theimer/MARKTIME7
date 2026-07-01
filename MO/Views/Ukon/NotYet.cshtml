@@ -8,7 +8,7 @@
         <p class="text-base-content/60">
             @_f.tra("Tento typ úkonu")@(string.IsNullOrEmpty(Model.PageTitleAfter) ? "" : $" — {Model.PageTitleAfter}") @_f.tra("zatím není v mobilní aplikaci dostupný.")
         </p>
-        <a asp-controller="Calendar" asp-action="Index" class="btn btn-primary mt-2">
+        <a asp-controller="Calendar" asp-action="Index" data-mo-cal-link class="btn btn-primary mt-2">
             @_f.tra("Zpět na kalendář")
         </a>
     </div>

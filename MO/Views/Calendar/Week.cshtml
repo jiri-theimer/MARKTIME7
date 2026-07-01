@@ -1,0 +1,241 @@
+@model WeekViewModel
+@inject BL.Factory _f
+
+@{
+    var today = DateTime.Today;
+    var prevWeek = Model.d1.AddDays(-7).ToString("yyyy-MM-dd");
+    var nextWeek = Model.d1.AddDays(7).ToString("yyyy-MM-dd");
+    var monthAnchor = new DateTime(Model.d0.Year, Model.d0.Month, 1).ToString("yyyy-MM-01");
+}
+
+<div class="grid gap-3">
+
+    @* Navigace: předchozí / rozsah + tabs / další týden *@
+    <div class="flex items-center justify-between gap-2">
+        <a asp-action="Week" asp-route-d="@prevWeek" class="btn btn-ghost btn-sm">
+            <span class="material-icons-outlined" style="font-size:20px;">chevron_left</span>
+        </a>
+
+        <div class="text-center flex-1">
+            <div class="flex items-center justify-center gap-2">
+                <span class="font-semibold text-lg leading-tight">@Model.PageTitle</span>
+                <div class="tabs tabs-boxed tabs-xs">
+                    <a asp-action="Index" asp-route-d="@monthAnchor" class="tab">@_f.tra("Měsíc")</a>
+                    <a asp-action="Week" asp-route-d="@Model.d1.ToString("yyyy-MM-dd")" class="tab tab-active">@_f.tra("Týden agenda")</a>
+                </div>
+            </div>
+            <div class="text-xs text-base-content/60">
+                @_f.tra("Celkem"): <strong>@Model.WeekTotalHours.ToString("0.##")</strong> h
+            </div>
+        </div>
+
+        <a asp-action="Week" asp-route-d="@nextWeek" class="btn btn-ghost btn-sm">
+            <span class="material-icons-outlined" style="font-size:20px;">chevron_right</span>
+        </a>
+    </div>
+
+    @* Dny týdne *@
+    @foreach (var day in Model.Days)
+    {
+        var isToday = day.Date.Date == today;
+
+        <div class="mt-1">
+            @* Hlavička dne - klik vede do Day view (přidání úkonu, plný detail) *@
+            <a asp-action="Day" asp-route-d="@day.Date.ToString("yyyy-MM-dd")"
+               class="flex items-center justify-between px-1 py-1.5 hover:bg-base-200 rounded transition">
+                <div class="flex items-center gap-2">
+                    <div class="text-sm font-semibold @(isToday ? "text-primary" : "")">
+                        @day.DayName @day.Date.ToString("d. M.")
+                    </div>
+                    @if (day.IsHoliday)
+                    {
+                        <span class="badge badge-error badge-outline badge-sm">@day.HolidayName</span>
+                    }
+                </div>
+                @if (day.TotalHours > 0)
+                {
+                    <div class="font-bold text-primary text-sm">@day.TotalHours.ToString("0.##") h</div>
+                }
+            </a>
+
+            @if (!day.Entries.Any())
+            {
+                <div class="text-xs text-base-content/40 px-1 py-1 italic">@_f.tra("Bez úkonů")</div>
+            }
+            else
+            {
+                <div class="grid gap-1.5 mt-1">
+                    @foreach (var entry in day.Entries)
+                    {
+                        var _trCls = MO.Code.TheGridRowSymbol.p31_tr_cssclass(entry) ?? "";
+                        var _symbol = MO.Code.TheGridRowSymbol.p31_symbol(entry);
+                        <div class="card bg-base-100 shadow-sm hover:bg-base-300 transition @_trCls">
+                            <div class="card-body p-2.5">
+                                <div class="flex items-start gap-2">
+
+                                    <a asp-controller="Ukon" asp-action="Edit" asp-route-id="@entry.pid"
+                                       class="min-w-0 flex-1">
+                                        <div class="flex items-baseline gap-2">
+                                            @if (entry.p31DateTimeFrom_Orig.HasValue && entry.p31DateTimeUntil_Orig.HasValue)
+                                            {
+                                                <span class="text-xs text-base-content/50 shrink-0">
+                                                    @entry.p31DateTimeFrom_Orig.Value.ToString("HH:mm")–@entry.p31DateTimeUntil_Orig.Value.ToString("HH:mm")
+                                                </span>
+                                            }
+                                            <span class="font-semibold text-sm truncate">@entry.Project</span>
+                                        </div>
+                                        @if (!string.IsNullOrEmpty(entry.p32Name))
+                                        {
+                                            <div class="text-xs text-base-content/50">@entry.p32Name</div>
+                                        }
+                                        <div class="text-sm text-base-content/80" style="white-space:pre-wrap;">@entry.p31Text</div>
+                                    </a>
+
+                                    <div class="flex flex-col items-end gap-1 shrink-0">
+                                        @if (!string.IsNullOrEmpty(_symbol))
+                                        {
+                                            <div>@Html.Raw(_symbol)</div>
+                                        }
+                                        <div class="font-bold text-primary text-sm">
+                                            @entry.p31Hours_Orig.ToString("0.##") h
+                                        </div>
+                                        <button type="button"
+                                                onclick="openCopyDialog(@entry.pid, '@day.Date.ToString("yyyy-MM-dd")')"
+                                                title="Kopírovat úkon"
+                                                class="text-base-content/30 hover:text-primary transition"
+                                                style="line-height:1;">
+                                            <span class="material-icons-outlined" style="font-size:16px;">content_copy</span>
+                                        </button>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+
+    @* Přepínač víkendu *@
+    <form method="post" asp-action="ToggleWeekend" asp-route-d="@Model.d1.ToString("yyyy-MM-dd")"
+          onsubmit="moRememberShowWeekend(@((!Model.ShowWeekend).ToString().ToLower()))"
+          class="flex items-center justify-end gap-2 mt-2">
+        <input type="hidden" name="view" value="week" />
+        <button type="submit" class="btn btn-ghost btn-sm">
+            <span class="material-icons-outlined" style="font-size:18px;">
+                @(Model.ShowWeekend ? "visibility_off" : "visibility")
+            </span>
+            @(Model.ShowWeekend ? _f.tra("Skrýt víkend") : _f.tra("Zobrazit víkend"))
+        </button>
+    </form>
+
+</div>
+
+@* Dialog pro výběr data při kopírování úkonu *@
+<style>
+    #copyDialog {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 999;
+        background: rgba(0,0,0,.45);
+        align-items: flex-end;
+    }
+
+        #copyDialog.open {
+            display: flex;
+        }
+
+    #copyDialogBox {
+        background: #fff;
+        border-radius: 1rem 1rem 0 0;
+        padding: 1.25rem;
+        width: 100%;
+        max-width: 480px;
+        margin: 0 auto;
+    }
+</style>
+<div id="copyDialog" onclick="if(event.target===this) closeCopyDialog()">
+    <div id="copyDialogBox">
+        <div style="font-weight:600;margin-bottom:1rem;">@_f.tra("Zkopírovat úkon — datum")</div>
+
+        <div style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:1rem;">
+            <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
+                <input type="radio" name="copyDate" value="same" checked
+                       onchange="onCopyDateChange(this.value)" />
+                <span id="labelSame">@_f.tra("Stejné datum")</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
+                <input type="radio" name="copyDate" value="today"
+                       onchange="onCopyDateChange(this.value)" />
+                <span>@_f.tra("Dnešní datum")</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;">
+                <input type="radio" name="copyDate" value="custom"
+                       onchange="onCopyDateChange(this.value)" />
+                <span>@_f.tra("Jiné datum")</span>
+            </label>
+            <input type="date" id="copyCustomDate"
+                   style="display:none;margin-left:1.5rem;padding:.375rem .5rem;border:1px solid #d1d5db;border-radius:.375rem;font-size:.875rem;" />
+        </div>
+
+        <div style="display:flex;gap:.5rem;">
+            <button onclick="confirmCopy()"
+                    style="flex:1;padding:.5rem;background:#6366f1;color:#fff;border:none;border-radius:.5rem;font-size:.9rem;cursor:pointer;">
+                @_f.tra("Kopírovat")
+            </button>
+            <button onclick="closeCopyDialog()"
+                    style="padding:.5rem 1rem;border:1px solid #d1d5db;border-radius:.5rem;font-size:.9rem;cursor:pointer;background:#fff;">
+                @_f.tra("Storno")
+            </button>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        moRememberCalendarType('week');
+
+        var _copyId = 0;
+        var _copyOrigDate = '';
+        var _todayDate = '@DateTime.Today.ToString("yyyy-MM-dd")';
+
+        function openCopyDialog(id, origDate) {
+            _copyId = id;
+            _copyOrigDate = origDate;
+            document.getElementById('labelSame').textContent = '@_f.tra("Stejné datum")' + ' (' + formatDate(origDate) + ')';
+            document.querySelector('input[name="copyDate"][value="same"]').checked = true;
+            document.getElementById('copyCustomDate').style.display = 'none';
+            document.getElementById('copyCustomDate').value = origDate;
+            document.getElementById('copyDialog').classList.add('open');
+        }
+
+        function closeCopyDialog() {
+            document.getElementById('copyDialog').classList.remove('open');
+        }
+
+        function onCopyDateChange(val) {
+            document.getElementById('copyCustomDate').style.display = val === 'custom' ? 'block' : 'none';
+        }
+
+        function confirmCopy() {
+            var mode = document.querySelector('input[name="copyDate"]:checked').value;
+            var d;
+            if (mode === 'same')   d = _copyOrigDate;
+            else if (mode === 'today') d = _todayDate;
+            else {
+                d = document.getElementById('copyCustomDate').value;
+                if (!d) { alert('@_f.tra("Zadejte datum.")'); return; }
+            }
+            closeCopyDialog();
+            window.location.href = '/Ukon/Copy?id=' + _copyId + '&d=' + encodeURIComponent(d);
+        }
+
+        function formatDate(iso) {
+            if (!iso) return '';
+            var p = iso.split('-');
+            return p[2] + '. ' + p[1] + '. ' + p[0];
+        }
+    </script>
+}

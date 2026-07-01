@@ -25,6 +25,16 @@
     <link rel="stylesheet" href="~/css/p31status.css" asp-append-version="true" />
 
     <link rel="icon" href="~/favicon.ico" />
+
+    @* Nastavit skin ihned, ještě před vykreslením - žádné probliknutí *@
+    <script>
+            (function () {
+                try {
+                    var t = localStorage.getItem('mo-theme') || 'light';
+                    document.documentElement.setAttribute('data-theme', t);
+                } catch (e) { }
+            })();
+    </script>
 </head>
 <body class="min-h-screen bg-base-200">
 
@@ -60,15 +70,19 @@
                             <li>
                                 <label class="flex gap-2 cursor-pointer">
                                     <input type="radio" name="theme-dropdown"
-                                           class="theme-controller btn btn-ghost btn-sm btn-block justify-start"
-                                           aria-label="Light" value="light" />
+                                           class="theme-controller"
+                                           aria-label="Light" value="light"
+                                           onchange="moSetTheme('light')" />
+                                    <span>@_f.tra("Light")</span>
                                 </label>
                             </li>
                             <li>
                                 <label class="flex gap-2 cursor-pointer">
                                     <input type="radio" name="theme-dropdown"
-                                           class="theme-controller btn btn-ghost btn-sm btn-block justify-start"
-                                           aria-label="Dark" value="dark" />
+                                           class="theme-controller"
+                                           aria-label="Dark" value="dark"
+                                           onchange="moSetTheme('dark')" />
+                                    <span>@_f.tra("Dark")</span>
                                 </label>
                             </li>
                         </ul>
@@ -87,7 +101,7 @@
 
                 @* Centrální zobrazení zpráv — z BaseViewModel.Message nebo TempData (po redirectu) *@
                 @{
-                    var _bvm = Model as MO.Models.BaseViewModel;                    
+                    var _bvm = Model as MO.Models.BaseViewModel;
                     var _msg = _bvm?.Message ?? TempData["Message"]?.ToString();
                     var _msgSuccess = _bvm?.MessageSuccess ?? TempData["MessageSuccess"]?.ToString();
                 }
@@ -128,7 +142,7 @@
             <nav class="dock dock-sm bg-base-100 border-t border-base-300"
                  style="padding-bottom: env(safe-area-inset-bottom);">
 
-                <a asp-controller="Calendar" asp-action="Index" class="@IsActive("Calendar", "Day", "New", "Edit")">
+                <a asp-controller="Calendar" asp-action="Index" data-mo-cal-link class="@IsActive("Calendar", "Day", "New", "Edit", "Week")">
                     <span class="material-icons-outlined" style="font-size:22px;">today</span>
                     <span class="dock-label">@_f.tra("Kalendář")</span>
                 </a>
@@ -209,6 +223,8 @@
         </div>
 
     </div>
+
+    <script src="~/js/mo-prefs.js" asp-append-version="true"></script>
 
     @await RenderSectionAsync("scripts", required: false)
 

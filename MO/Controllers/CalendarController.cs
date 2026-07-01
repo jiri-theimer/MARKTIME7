@@ -32,11 +32,65 @@ namespace MO.Controllers
 
 
         [HttpPost]
-        public IActionResult ToggleWeekend(string d)
+        public IActionResult ToggleWeekend(string d, string view)
         {
             var current = Factory.CBL.LoadUserParamBool("mo-calendar-showweekend", false);
             Factory.CBL.SetUserParam("mo-calendar-showweekend", (!current).ToString().ToLower());
-            return RedirectToAction("Index", new { d });
+            return view == "week"
+                ? RedirectToAction("Week", new { d })
+                : RedirectToAction("Index", new { d });
+        }
+
+
+        // ===== Týdenní agenda =====
+        public IActionResult Week(string d)
+        {
+            var v = new WeekViewModel
+            {
+                d0 = ParseDate(d) ?? DateTime.Today,
+                ShowWeekend = Factory.CBL.LoadUserParamBool("mo-calendar-showweekend", false)
+            };
+
+            v.d1 = BO.Code.Bas.get_first_prev_monday(v.d0);
+            v.d2 = v.ShowWeekend ? v.d1.AddDays(6) : v.d1.AddDays(4);
+
+            var lisP31 = Factory.p31WorksheetBL.GetList(new BO.myQueryP31
+            {
+                j02id = Factory.CurrentUser.pid,
+                global_d1 = v.d1,
+                global_d2 = v.d2
+            }).ToList();
+
+            var lisC26 = Factory.c26HolidayBL.GetList(new BO.myQueryC26
+            {
+                global_d1 = v.d1,
+                global_d2 = v.d2
+            }).ToList();
+
+            var dayCount = (v.d2 - v.d1).Days + 1;
+            for (int i = 0; i < dayCount; i++)
+            {
+                var date = v.d1.AddDays(i);
+                var holiday = lisC26.FirstOrDefault(h => h.c26Date.Date == date.Date);
+
+                var wd = new WeekDay
+                {
+                    Date = date,
+                    DayName = System.Globalization.CultureInfo.CurrentUICulture
+                        .DateTimeFormat.GetDayName(date.DayOfWeek),
+                    IsHoliday = holiday != null,
+                    HolidayName = holiday?.c26Name,
+                    Entries = lisP31.Where(p => p.p31Date.Date == date.Date)
+                        .OrderBy(p => p.p31DateTimeFrom_Orig ?? p.p31Date.AddHours(23.99))
+                        .ToList()
+                };
+                wd.TotalHours = wd.Entries.Sum(e => e.p31Hours_Orig);
+                v.Days.Add(wd);
+            }
+
+            v.PageTitle = $"{v.d1:d. M.} – {v.d2:d. M. yyyy}";
+
+            return View(v);
         }
 
 

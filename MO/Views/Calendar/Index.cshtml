@@ -12,7 +12,7 @@
 
 <div class="grid gap-3">
 
-    @* Top navigation: prev / month / next + weekend toggle *@
+    @* Top navigation: prev / month + tabs / next *@
     <div class="flex items-center justify-between gap-2">
         <a asp-action="Index" asp-route-d="@prevMonth"
            class="btn btn-ghost btn-sm">
@@ -20,7 +20,13 @@
         </a>
 
         <div class="text-center flex-1">
-            <div class="font-semibold text-lg leading-tight">@Model.PageTitle</div>
+            <div class="flex items-center justify-center gap-2">
+                <span class="font-semibold text-lg leading-tight">@Model.PageTitle</span>
+                <div class="tabs tabs-boxed tabs-xs">
+                    <a asp-action="Index" asp-route-d="@Model.d0.ToString("yyyy-MM-01")" class="tab tab-active">@_f.tra("Měsíc")</a>
+                    <a asp-action="Week" asp-route-d="@today.ToString("yyyy-MM-dd")" class="tab">@_f.tra("Týden agenda")</a>
+                </div>
+            </div>
             <div class="text-xs text-base-content/60">
                 @_f.tra("Celkem"): <strong>@monthTotal.ToString("0.##")</strong> h
             </div>
@@ -87,6 +93,7 @@
 
     @* Footer toggle *@
     <form method="post" asp-action="ToggleWeekend" asp-route-d="@Model.d0.ToString("yyyy-MM-01")"
+          onsubmit="moRememberShowWeekend(@((!Model.ShowWeekend).ToString().ToLower()))"
           class="flex items-center justify-end gap-2 mt-2">
         <button type="submit" class="btn btn-ghost btn-sm">
             <span class="material-icons-outlined" style="font-size:18px;">
@@ -97,3 +104,9 @@
     </form>
 
 </div>
+
+@section scripts {
+    <script>
+        moRememberCalendarType('month');
+    </script>
+}
