@@ -82,15 +82,15 @@
 
                                     <a asp-controller="Ukon" asp-action="Edit" asp-route-id="@entry.pid"
                                        asp-route-ret="week" asp-route-retd="@Model.d1.ToString("yyyy-MM-dd")"
-                                       class="min-w-0 flex-1">
-                                        <div class="flex items-baseline gap-2">
+                                       class="min-w-0 flex-1 block">
+                                        <div class="flex items-baseline gap-2" style="flex-wrap:wrap;">
                                             @if (entry.p31DateTimeFrom_Orig.HasValue && entry.p31DateTimeUntil_Orig.HasValue)
                                             {
                                                 <span class="text-xs text-base-content/50 shrink-0">
                                                     @entry.p31DateTimeFrom_Orig.Value.ToString("HH:mm")–@entry.p31DateTimeUntil_Orig.Value.ToString("HH:mm")
                                                 </span>
                                             }
-                                            <span class="font-semibold text-sm truncate">@entry.Project</span>
+                                            <span class="font-semibold text-sm min-w-0" style="overflow-wrap:break-word;">@entry.Project</span>
                                         </div>
                                         @if (!string.IsNullOrEmpty(entry.p32Name))
                                         {

@@ -164,11 +164,17 @@ namespace MO.Controllers
             // --- Postback: změna projektu (přenačtení aktivit + úkolů) ---
             if (oper == "p41change")
             {
-                v.p32ID = 0;
-                v.SelectedActivityText = null;
                 LoadSesitList(v);
                 LoadProjects(v);
                 LoadActivities(v);
+
+                // Zachovat vybranou aktivitu, pokud existuje v nabídce pro nový projekt
+                if (v.p32ID > 0 && !v.ActivityComboItems.Any(a => a.Id == v.p32ID))
+                {
+                    v.p32ID = 0;
+                    v.SelectedActivityText = null;
+                }
+
                 return View("EditHours", v);
             }
 
@@ -300,7 +306,7 @@ namespace MO.Controllers
             if (rec != null && rec.j02ID == Factory.CurrentUser.pid)
             {
                 var err = Factory.CBL.DeleteRecord("p31", id);
-                if (!string.IsNullOrEmpty(err))
+                if (!string.IsNullOrEmpty(err) && err != "1")
                 {
                     SetMessage(err);
                 }

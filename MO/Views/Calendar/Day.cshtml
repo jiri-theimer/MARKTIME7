@@ -81,8 +81,8 @@
 
                         @* Klikatelná oblast pro editaci *@
                         <a asp-controller="Ukon" asp-action="Edit" asp-route-id="@entry.pid"
-                           class="min-w-0 flex-1">
-                            <div class="font-semibold text-sm truncate">@entry.Project</div>
+                           class="min-w-0 flex-1 block">
+                            <div class="font-semibold text-sm" style="overflow-wrap:break-word;">@entry.Project</div>
                             @if (!string.IsNullOrEmpty(entry.p32Name))
                             {
                                 <div class="text-xs text-base-content/50">@entry.p32Name</div>
