@@ -1,0 +1,156 @@
+﻿@model UkonyListViewModel
+@inject BL.Factory _f
+
+@{
+    var today = DateTime.Today;
+    var monthStart = new DateTime(today.Year, today.Month, 1);
+    var prevMonthStart = monthStart.AddMonths(-1);
+    var prevMonthEnd = monthStart.AddDays(-1);
+    var weekStart = BO.Code.Bas.get_first_prev_monday(today);
+}
+
+<div class="grid gap-3">
+
+    <div class="text-lg font-bold">@_f.tra("Úkony")</div>
+
+    @* ===== Filtr ===== *@
+    <form method="get" asp-action="Ukony" class="card bg-base-100 shadow-sm">
+        <div class="card-body p-3 gap-2">
+
+            <div class="grid grid-cols-2 gap-2">
+                <label class="form-control">
+                    <div class="label"><span class="label-text">@_f.tra("Od")</span></div>
+                    <input type="date" name="d1" value="@Model.DateFrom.ToString("yyyy-MM-dd")"
+                           class="input input-bordered input-sm w-full" />
+                </label>
+                <label class="form-control">
+                    <div class="label"><span class="label-text">@_f.tra("Do")</span></div>
+                    <input type="date" name="d2" value="@Model.DateTo.ToString("yyyy-MM-dd")"
+                           class="input input-bordered input-sm w-full" />
+                </label>
+            </div>
+
+            <div class="flex gap-1" style="flex-wrap:wrap;">
+                <a class="btn btn-ghost btn-xs"
+                   asp-action="Ukony" asp-route-d1="@weekStart.ToString("yyyy-MM-dd")" asp-route-d2="@today.ToString("yyyy-MM-dd")"
+                   asp-route-state="@Model.StateFilter" asp-route-format="@Model.FormatFilter">
+                    @_f.tra("Tento týden")
+                </a>
+                <a class="btn btn-ghost btn-xs"
+                   asp-action="Ukony" asp-route-d1="@monthStart.ToString("yyyy-MM-dd")" asp-route-d2="@today.ToString("yyyy-MM-dd")"
+                   asp-route-state="@Model.StateFilter" asp-route-format="@Model.FormatFilter">
+                    @_f.tra("Tento měsíc")
+                </a>
+                <a class="btn btn-ghost btn-xs"
+                   asp-action="Ukony" asp-route-d1="@prevMonthStart.ToString("yyyy-MM-dd")" asp-route-d2="@prevMonthEnd.ToString("yyyy-MM-dd")"
+                   asp-route-state="@Model.StateFilter" asp-route-format="@Model.FormatFilter">
+                    @_f.tra("Minulý měsíc")
+                </a>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2">
+                <label class="form-control">
+                    <div class="label"><span class="label-text">@_f.tra("Stav úkonu")</span></div>
+                    <select name="state" class="select select-bordered select-sm w-full">
+                        <option value="0" selected="@(Model.StateFilter == 0)">@_f.tra("Vše")</option>
+                        <option value="1" selected="@(Model.StateFilter == 1)">@_f.tra("Rozpracované")</option>
+                        <option value="4" selected="@(Model.StateFilter == 4)">@_f.tra("Schválené")</option>
+                        <option value="9" selected="@(Model.StateFilter == 9)">@_f.tra("Neschválené")</option>
+                        <option value="10" selected="@(Model.StateFilter == 10)">@_f.tra("Vyúčtované")</option>
+                    </select>
+                </label>
+                <label class="form-control">
+                    <div class="label"><span class="label-text">@_f.tra("Formát úkonu")</span></div>
+                    <select name="format" class="select select-bordered select-sm w-full">
+                        <option value="0" selected="@(Model.FormatFilter == 0)">@_f.tra("Vše")</option>
+                        <option value="1" selected="@(Model.FormatFilter == 1)">@_f.tra("Hodiny")</option>
+                        <option value="2" selected="@(Model.FormatFilter == 2)">@_f.tra("Peníze")</option>
+                        <option value="3" selected="@(Model.FormatFilter == 3)">@_f.tra("Kusovník")</option>
+                    </select>
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-sm btn-block mt-1">
+                <span class="material-icons-outlined" style="font-size:16px;">filter_alt</span>
+                @_f.tra("Filtrovat")
+            </button>
+        </div>
+    </form>
+
+    @* ===== Souhrn ===== *@
+    <div class="flex items-center justify-between px-1 text-sm text-base-content/60">
+        <div>@Model.TotalCount @_f.tra("úkonů")</div>
+        @if (Model.TotalHours > 0)
+        {
+            <div>@_f.tra("Celkem hodin"): <strong class="text-primary">@Model.TotalHours.ToString("0.##") h</strong></div>
+        }
+    </div>
+
+    @if (Model.IsTruncated)
+    {
+        <div role="alert" class="alert alert-warning">
+            <span class="material-icons-outlined" style="font-size:18px;">warning</span>
+            <span>@_f.tra("Výsledek je oříznut na prvních 300 záznamů - zúžte prosím filtr.")</span>
+        </div>
+    }
+
+    @* ===== Seznam úkonů ===== *@
+    @if (!Model.Entries.Any())
+    {
+        <div class="card bg-base-100 shadow-sm">
+            <div class="card-body items-center text-center py-8">
+                <span class="material-icons-outlined text-base-content/30" style="font-size:48px;">receipt_long</span>
+                <div class="text-base-content/60">@_f.tra("Žádné úkony nevyhovují filtru.")</div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="grid gap-2">
+            @foreach (var entry in Model.Entries)
+            {
+                var _trCls = MO.Code.TheGridRowSymbol.p31_tr_cssclass(entry) ?? "";
+                var _symbol = MO.Code.TheGridRowSymbol.p31_symbol(entry);
+
+                <a asp-controller="Ukon" asp-action="Edit" asp-route-id="@entry.pid"
+                   class="card bg-base-100 shadow-sm hover:bg-base-300 transition @_trCls">
+                    <div class="card-body p-3">
+                        <div class="flex items-start gap-2">
+                            <div class="min-w-0 flex-1">
+                                <div class="text-xs text-base-content/50">@entry.p31Date.ToString("d. M. yyyy")</div>
+                                <div class="font-semibold text-sm" style="overflow-wrap:break-word;">@entry.Project</div>
+                                @if (!string.IsNullOrEmpty(entry.p32Name))
+                                {
+                                    <div class="text-xs text-base-content/50">@entry.p32Name</div>
+                                }
+                                <div class="text-sm text-base-content/80" style="white-space:pre-wrap;">@entry.p31Text</div>
+                            </div>
+
+                            <div class="flex flex-col items-end gap-1 shrink-0">
+                                @if (!string.IsNullOrEmpty(_symbol))
+                                {
+                                    <div>@Html.Raw(_symbol)</div>
+                                }
+                                <div class="font-bold text-primary text-sm">
+                                    @if (entry.p33ID == BO.p33IdENUM.PenizeBezDPH || entry.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu)
+                                    {
+                                        @(MO.Code.AmountFormat.Thousands(entry.p31Amount_WithoutVat_Orig)) @entry.j27Code_Billing_Orig
+                                    }
+                                    else if (entry.p33ID == BO.p33IdENUM.Kusovnik)
+                                    {
+                                        @(entry.p31Value_Orig.ToString("0.##")) <text>@_f.tra("ks")</text>
+                                    }
+                                    else
+                                    {
+                                        @(entry.p31Hours_Orig.ToString("0.##")) <text>h</text>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            }
+        </div>
+    }
+
+</div>
