@@ -1,0 +1,174 @@
+﻿@model EntryKusovnikViewModel
+@inject BL.Factory _f
+
+@{
+    var isFromUkony = Model.Ret == "ukony" && !string.IsNullOrEmpty(Model.RetD);
+    var dayUrl = Model.Ret == "week" && !string.IsNullOrEmpty(Model.RetD)
+        ? Url.Action("Week", "Calendar", new { d = Model.RetD }) + "#entry-" + Model.pid
+        : isFromUkony
+            ? Model.RetD + "#entry-" + Model.pid
+            : Url.Action("Day", "Calendar", new { d = Model.Date.ToString("yyyy-MM-dd") });
+    var backLabel = isFromUkony ? _f.tra("Zpět do přehledu úkonů") : _f.tra("Zpět");
+}
+
+<div class="grid gap-3">
+
+    <div class="flex items-center justify-between">
+        <a href="@dayUrl" class="btn btn-ghost btn-sm">
+            <span class="material-icons-outlined" style="font-size:20px;">arrow_back</span>
+            @backLabel
+        </a>
+        <div class="text-sm text-base-content/60">@Model.Date.ToString("d. MMMM yyyy")</div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.RecordStateLabel))
+    {
+        <div role="alert" class="alert alert-info">
+            <span class="material-icons-outlined">lock</span>
+            <span>@Model.RecordStateLabel</span>
+        </div>
+    }
+
+    <div class="card bg-base-100 shadow-sm">
+        <div class="card-body p-0">
+            <ul class="list">
+
+                @* Datum *@
+                <li class="list-row">
+                    <span class="material-icons-outlined text-base-content/40" style="font-size:18px;">calendar_today</span>
+                    <div>
+                        <div class="text-xs text-base-content/50">@_f.tra("Datum")</div>
+                        <div>@Model.Date.ToString("d. MMMM yyyy")</div>
+                    </div>
+                </li>
+
+                @* Uživatel *@
+                <li class="list-row">
+                    <span class="material-icons-outlined text-base-content/40" style="font-size:18px;">person</span>
+                    <div>
+                        <div class="text-xs text-base-content/50">@_f.tra("Uživatel")</div>
+                        <div>@_f.CurrentUser.FullNameAsc</div>
+                    </div>
+                </li>
+
+                @* Projekt (FullName) *@
+                @if (Model.p41ID > 0)
+                {
+                    var recP41 = _f.p41ProjectBL.Load(Model.p41ID);
+                    @if (recP41 != null)
+                    {
+                        <li class="list-row">
+                            <span class="material-icons-outlined text-base-content/40" style="font-size:18px;">work_outline</span>
+                            <div>
+                                <div class="text-xs text-base-content/50">@_f.tra("Projekt")</div>
+                                <div>@recP41.FullName</div>
+                            </div>
+                        </li>
+                    }
+                }
+
+                @* Úkol *@
+                @if (!string.IsNullOrEmpty(Model.SelectedTaskText))
+                {
+                    <li class="list-row">
+                        <span class="material-icons-outlined text-base-content/40" style="font-size:18px;">task_alt</span>
+                        <div>
+                            <div class="text-xs text-base-content/50">@_f.tra("Úkol")</div>
+                            <div>@Model.SelectedTaskText</div>
+                        </div>
+                    </li>
+                }
+
+                @* Sešit *@
+                @if (!string.IsNullOrEmpty(Model.SelectedSesitText))
+                {
+                    <li class="list-row">
+                        <span class="material-icons-outlined text-base-content/40" style="font-size:18px;">folder_open</span>
+                        <div>
+                            <div class="text-xs text-base-content/50">@_f.tra("Sešit")</div>
+                            <div>@Model.SelectedSesitText</div>
+                        </div>
+                    </li>
+                }
+
+                @* Aktivita *@
+                @if (!string.IsNullOrEmpty(Model.SelectedActivityText))
+                {
+                    <li class="list-row">
+                        <span class="material-icons-outlined text-base-content/40" style="font-size:18px;">category</span>
+                        <div>
+                            <div class="text-xs text-base-content/50">@_f.tra("Aktivita")</div>
+                            <div>@Model.SelectedActivityText</div>
+                        </div>
+                    </li>
+                }
+
+                @* Počet *@
+                <li class="list-row">
+                    <span class="material-icons-outlined text-base-content/40" style="font-size:18px;">inventory_2</span>
+                    <div class="flex-1">
+                        <div class="text-xs text-base-content/50">@_f.tra("Počet")</div>
+                        <div class="font-bold text-primary">
+                            @MO.Code.AmountFormat.Thousands(Model.Pocet)
+                        </div>
+                    </div>
+                </li>
+
+                @* Uživatelská pole (freefields) *@
+                @if (Model.ff1?.inputs != null)
+                {
+                    @foreach (var ff in Model.ff1.inputs.Where(p => p.IsVisible))
+                    {
+                        var ffValue = "";
+                        switch (ff.TypeName)
+                        {
+                            case "boolean":
+                                ffValue = ff.CheckInput ? _f.tra("Ano") : _f.tra("Ne");
+                                break;
+                            case "date":
+                            case "datetime":
+                                ffValue = ff.DateInput?.ToString("d. MMMM yyyy") ?? "";
+                                break;
+                            case "decimal":
+                                ffValue = ff.NumInput != 0 ? ff.NumInput.ToString("0.##") : "";
+                                break;
+                            case "integer":
+                                ffValue = ff.IntInput != 0 ? ff.IntInput.ToString() : "";
+                                break;
+                            default:
+                                ffValue = ff.StringInput ?? "";
+                                break;
+                        }
+
+                        @if (!string.IsNullOrEmpty(ffValue))
+                        {
+                            <li class="list-row">
+                                <span class="material-icons-outlined text-base-content/40" style="font-size:18px;">label_outline</span>
+                                <div>
+                                    <div class="text-xs text-base-content/50">@ff.x28Name</div>
+                                    <div>@ffValue</div>
+                                </div>
+                            </li>
+                        }
+                    }
+                }
+
+                @* Popis *@
+                @if (!string.IsNullOrEmpty(Model.Description))
+                {
+                    <li class="list-row items-start">
+                        <span class="material-icons-outlined text-base-content/40 mt-0.5" style="font-size:18px;">notes</span>
+                        <div>
+                            <div class="text-xs text-base-content/50">@_f.tra("Popis")</div>
+                            <div class="text-sm" style="white-space:pre-wrap;">@Model.Description</div>
+                        </div>
+                    </li>
+                }
+
+            </ul>
+        </div>
+    </div>
+
+    <a href="@dayUrl" class="btn btn-ghost btn-block">@backLabel</a>
+
+</div>

@@ -15,11 +15,21 @@ namespace MO.Controllers
             var sesit = Factory.p34ActivityGroupBL.Load(rec.p34ID);
             if (sesit != null && sesit.p33ID == BO.p33IdENUM.Kusovnik)
             {
-                return View("NotYet", new BaseViewModel
+                var vk = new EntryKusovnikViewModel
                 {
-                    PageTitle = Factory.tra("Připravujeme"),
-                    PageTitleAfter = sesit.p33Name
-                });
+                    PageTitle = Factory.tra("Kopie úkonu"),
+                    pid = 0,
+                    Date = ParseDate(d) ?? rec.p31Date,
+                    p34ID = rec.p34ID,
+                    p41ID = rec.p41ID,
+                    p32ID = rec.p32ID,
+                    p56ID = rec.p56ID,
+                    Description = rec.p31Text,
+                    Pocet = rec.p31Value_Orig.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)
+                };
+
+                ReloadAllKusovnik(vk);
+                return View("EditKusovnik", vk);
             }
 
             if (sesit != null && IsMoneyType(sesit.p33ID))
@@ -120,11 +130,7 @@ namespace MO.Controllers
                 var sesit = Factory.p34ActivityGroupBL.Load(p34id);
                 if (sesit != null && sesit.p33ID == BO.p33IdENUM.Kusovnik)
                 {
-                    return View("NotYet", new BaseViewModel
-                    {
-                        PageTitle = Factory.tra("Připravujeme"),
-                        PageTitleAfter = sesit.p33Name
-                    });
+                    return NewKusovnik(d, p34id, p41id, task);
                 }
                 if (sesit != null && IsMoneyType(sesit.p33ID))
                 {
@@ -211,6 +217,27 @@ namespace MO.Controllers
         }
 
 
+        // ===== Nový kusovníkový úkon =====
+        private IActionResult NewKusovnik(string d, int p34id, int p41id, BO.p56Task task)
+        {
+            var v = new EntryKusovnikViewModel
+            {
+                Date = ParseDate(d) ?? DateTime.Today,
+                PageTitle = Factory.tra("Nový úkon"),
+                p34ID = p34id,
+                p41ID = p41id
+            };
+
+            if (task != null)
+            {
+                v.p56ID = task.pid;
+            }
+
+            ReloadAllKusovnik(v);
+            return View("EditKusovnik", v);
+        }
+
+
         // ===== Editace existujícího úkonu =====
         public IActionResult Edit(int id, string ret = null, string retd = null)
         {
@@ -218,19 +245,16 @@ namespace MO.Controllers
             if (rec == null || rec.j02ID != Factory.CurrentUser.pid)
                 return RedirectToAction("Index", "Calendar");
 
-            // Rozcestník podle typu sešitu - kusovník zatím nepodporujeme
+            // Rozcestník podle typu sešitu
             var sesit = Factory.p34ActivityGroupBL.Load(rec.p34ID);
-            if (sesit != null && sesit.p33ID == BO.p33IdENUM.Kusovnik)
-            {
-                return View("NotYet", new BaseViewModel
-                {
-                    PageTitle = Factory.tra("Připravujeme"),
-                    PageTitleAfter = sesit.p33Name
-                });
-            }
 
             // Ověření oprávnění
             var disp = Factory.p31WorksheetBL.InhaleRecDisposition(rec);
+
+            if (sesit != null && sesit.p33ID == BO.p33IdENUM.Kusovnik)
+            {
+                return EditKusovnik(rec, sesit, disp, ret, retd);
+            }
 
             if (sesit != null && IsMoneyType(sesit.p33ID))
             {
@@ -322,6 +346,43 @@ namespace MO.Controllers
 
             ReloadAllMoney(v, sesit);
             return View(isReadOnly ? "ViewMoney" : "EditMoney", v);
+        }
+
+
+        // ===== Editace existujícího kusovníkového úkonu =====
+        private IActionResult EditKusovnik(BO.p31Worksheet rec, BO.p34ActivityGroup sesit, BO.p31RecDisposition disp, string ret, string retd)
+        {
+            if (!disp.ReadAccess)
+            {
+                return View("EditKusovnik", new EntryKusovnikViewModel
+                {
+                    PageTitle = Factory.tra("Úprava úkonu"),
+                    Date = rec.p31Date,
+                    Message = Factory.tra("Nemáte oprávnění k záznamu.")
+                });
+            }
+
+            var isReadOnly = !disp.OwnerAccess || disp.RecordState != BO.p31RecordState.Editing;
+
+            var v = new EntryKusovnikViewModel
+            {
+                PageTitle = Factory.tra("Úprava úkonu"),
+                pid = rec.pid,
+                Date = rec.p31Date,
+                p34ID = rec.p34ID,
+                p41ID = rec.p41ID,
+                p32ID = rec.p32ID,
+                p56ID = rec.p56ID,
+                Description = rec.p31Text,
+                Pocet = rec.p31Value_Orig.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture),
+                IsReadOnly = isReadOnly,
+                RecordStateLabel = isReadOnly ? (disp.LockedReasonMessage ?? Factory.tra("Záznam nelze upravovat.")) : null,
+                Ret = ret,
+                RetD = retd
+            };
+
+            ReloadAllKusovnik(v);
+            return View(isReadOnly ? "ViewKusovnik" : "EditKusovnik", v);
         }
 
 
@@ -675,6 +736,125 @@ namespace MO.Controllers
                 v.Message = ex.Message;
                 ReloadAllMoney(v, recSesit);
                 return View("EditMoney", v);
+            }
+
+            if (v.Ret == "week" && !string.IsNullOrEmpty(v.RetD))
+            {
+                return Redirect(Url.Action("Week", "Calendar", new { d = v.RetD }) + "#entry-" + v.pid);
+            }
+            if (v.Ret == "ukony" && !string.IsNullOrEmpty(v.RetD))
+            {
+                return Redirect(v.RetD + "#entry-" + v.pid);
+            }
+            return RedirectToAction("Day", "Calendar", new { d = v.Date.ToString("yyyy-MM-dd") });
+        }
+
+
+        // ===== Postback / uložení kusovníkového úkonu =====
+        [HttpPost]
+        public IActionResult SaveKusovnik(EntryKusovnikViewModel v, string oper)
+        {
+            var recSesit = v.p34ID > 0 ? Factory.p34ActivityGroupBL.Load(v.p34ID) : null;
+
+            // --- Postback: změna projektu (přenačtení aktivit + úkolů) ---
+            if (oper == "p41change")
+            {
+                ReloadAllKusovnik(v);
+
+                if (v.p32ID > 0 && !v.ActivityComboItems.Any(a => a.Id == v.p32ID))
+                {
+                    v.p32ID = 0;
+                    v.SelectedActivityText = null;
+                }
+
+                return View("EditKusovnik", v);
+            }
+
+            // --- Skutečné uložení ---
+            if (v.pid > 0)
+            {
+                var rec2 = Factory.p31WorksheetBL.Load(v.pid);
+                if (rec2 != null)
+                {
+                    var disp2 = Factory.p31WorksheetBL.InhaleRecDisposition(rec2);
+                    if (!disp2.OwnerAccess || disp2.RecordState != BO.p31RecordState.Editing)
+                    {
+                        v.Message = Factory.tra("Záznam nelze upravovat.");
+                        v.IsReadOnly = true;
+                        ReloadAllKusovnik(v);
+                        return View("EditKusovnik", v);
+                    }
+                }
+            }
+
+            if (v.p34ID <= 0 || recSesit == null)
+            {
+                v.Message = Factory.tra("Vyberte sešit.");
+                ReloadAllKusovnik(v);
+                return View("EditKusovnik", v);
+            }
+            if (v.p41ID <= 0)
+            {
+                v.Message = Factory.tra("Vyberte projekt.");
+                ReloadAllKusovnik(v);
+                return View("EditKusovnik", v);
+            }
+
+            // Aktivita povinná dle sešitu?
+            if (recSesit.p34ActivityEntryFlag == BO.p34ActivityEntryFlagENUM.AktivitaJePovinna
+                && v.p32ID <= 0)
+            {
+                v.Message = Factory.tra("Vyberte aktivitu.");
+                ReloadAllKusovnik(v);
+                return View("EditKusovnik", v);
+            }
+
+            if (ParseDecimal(v.Pocet) == 0)
+            {
+                v.Message = Factory.tra("Vyplňte počet.");
+                ReloadAllKusovnik(v);
+                return View("EditKusovnik", v);
+            }
+
+            if (string.IsNullOrWhiteSpace(v.Description))
+            {
+                v.Message = Factory.tra("Vyplňte popis úkonu.");
+                ReloadAllKusovnik(v);
+                return View("EditKusovnik", v);
+            }
+
+            v.ff1 = LoadFreeFieldsFor(v.p34ID, v.pid);
+            CollectFreeFieldsFromFormInto(v.ff1);
+
+            var input = new BO.p31WorksheetEntryInput
+            {
+                j02ID = Factory.CurrentUser.pid,
+                p34ID = v.p34ID,
+                p41ID = v.p41ID,
+                p32ID = v.p32ID,
+                p56ID = v.p56ID,
+                p31Text = v.Description,
+                Value_Orig = v.Pocet,
+                p31RecordSourceFlag = 1     // 1 = mobilní aplikace
+            };
+            input.SetPID(v.pid);
+            input.Addp31Date(v.Date);
+
+            try
+            {
+                var ret = Factory.p31WorksheetBL.SaveOrigRecord(input, BO.p33IdENUM.Kusovnik, v.ff1?.inputs);
+                if (ret <= 0)
+                {
+                    v.Message = Factory.tra("Úkon se nepodařilo uložit.");
+                    ReloadAllKusovnik(v);
+                    return View("EditKusovnik", v);
+                }
+            }
+            catch (Exception ex)
+            {
+                v.Message = ex.Message;
+                ReloadAllKusovnik(v);
+                return View("EditKusovnik", v);
             }
 
             if (v.Ret == "week" && !string.IsNullOrEmpty(v.RetD))
@@ -1220,6 +1400,105 @@ namespace MO.Controllers
             }
 
             // Freefields: definice + viditelnost, pak posbírat hodnoty z POSTu zpět
+            v.ff1 = LoadFreeFieldsFor(v.p34ID, v.pid);
+            CollectFreeFieldsFromFormInto(v.ff1);
+        }
+
+
+        // ===== Pomocné metody - kusovníkový úkon =====
+
+        private void LoadSesitListKusovnik(EntryKusovnikViewModel v)
+        {
+            var lisP34 = Factory.p34ActivityGroupBL
+                .GetList_WorksheetEntry_InAllProjects(Factory.CurrentUser.pid)
+                .Where(s => s.p33ID == BO.p33IdENUM.Kusovnik)
+                .ToList();
+
+            v.SesitComboItems = lisP34.Select(s => new ComboItem
+            {
+                Id = s.pid,
+                Code = s.p34Code,
+                Text = s.p34Name
+            }).ToList();
+
+            if (v.p34ID > 0)
+            {
+                var sel = lisP34.FirstOrDefault(s => s.pid == v.p34ID);
+                if (sel != null)
+                {
+                    v.SelectedSesitText = sel.p34Name;
+                    v.ActivityEntryFlag = (int)sel.p34ActivityEntryFlag;
+                }
+            }
+        }
+
+        private void LoadProjectsKusovnik(EntryKusovnikViewModel v)
+        {
+            var lisP41 = Factory.p41ProjectBL
+                .GetList(new BO.myQueryP41("p41") { j02id_query = Factory.CurrentUser.pid, p34id_for_p31_entry = v.p34ID })
+                .ToList();
+
+            v.ProjectComboItems = lisP41.Select(p => new ComboItem
+            {
+                Id = p.pid,
+                Code = p.p41Code,
+                Text = p.PrefferedName,
+                Meta = p.Client
+            }).ToList();
+
+            if (v.p41ID > 0)
+            {
+                var sel = lisP41.FirstOrDefault(p => p.pid == v.p41ID);
+                if (sel != null) v.SelectedProjectText = sel.p41NameShort ?? sel.p41Name;
+            }
+
+            if (v.p41ID > 0)
+            {
+                v.TaskList = Factory.p56TaskBL.GetList(new BO.myQueryP56
+                {
+                    p41id = v.p41ID,
+                    j02id = Factory.CurrentUser.pid
+                }).Take(100).ToList();
+
+                if (v.p56ID > 0)
+                {
+                    var selTask = v.TaskList.FirstOrDefault(t => t.pid == v.p56ID);
+                    if (selTask != null) v.SelectedTaskText = selTask.p56Name;
+                }
+            }
+        }
+
+        private void LoadActivitiesKusovnik(EntryKusovnikViewModel v)
+        {
+            if (v.p34ID <= 0 || v.p41ID <= 0) return;
+            if (v.ActivityEntryFlag == (int)BO.p34ActivityEntryFlagENUM.AktivitaSeNezadava) return;
+
+            var lisP32 = Factory.p32ActivityBL.GetList(new BO.myQueryP32
+            {
+                p34id = v.p34ID,
+                p41id = v.p41ID
+            }).ToList();
+
+            v.ActivityComboItems = lisP32.Select(a => new ComboItem
+            {
+                Id = a.pid,
+                Text = a.p32Name,
+                GroupBy = a.p38Name
+            }).ToList();
+
+            if (v.p32ID > 0)
+            {
+                var sel = lisP32.FirstOrDefault(a => a.pid == v.p32ID);
+                if (sel != null) v.SelectedActivityText = sel.p32Name;
+            }
+        }
+
+        private void ReloadAllKusovnik(EntryKusovnikViewModel v)
+        {
+            LoadSesitListKusovnik(v);
+            LoadProjectsKusovnik(v);
+            LoadActivitiesKusovnik(v);
+
             v.ff1 = LoadFreeFieldsFor(v.p34ID, v.pid);
             CollectFreeFieldsFromFormInto(v.ff1);
         }
