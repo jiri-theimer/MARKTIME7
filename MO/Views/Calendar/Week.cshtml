@@ -97,15 +97,16 @@
                 <div class="grid gap-1 mt-1 mb-1">
                     @foreach (var task in day.TasksDue)
                     {
-                        @* Úkoly zatím bez vlastního detailu - jen informační přehled termínu *@
-                        <div class="flex items-center gap-2 text-xs px-2 py-1 rounded bg-warning/10">
+                        <a asp-controller="Ukol" asp-action="Edit" asp-route-id="@task.pid"
+                           asp-route-ret="week" asp-route-retd="@Model.d0.ToString("yyyy-MM-dd")"
+                           class="flex items-center gap-2 text-xs px-2 py-1 rounded bg-warning/10 hover:bg-warning/20 transition">
                             <span class="material-icons-outlined text-warning" style="font-size:14px;">task_alt</span>
                             <span class="truncate flex-1">@task.p56Name</span>
                             @if (!string.IsNullOrEmpty(task.p41Name))
                             {
                                 <span class="text-base-content/40 shrink-0">@task.p41Name</span>
                             }
-                        </div>
+                        </a>
                     }
                 </div>
             }

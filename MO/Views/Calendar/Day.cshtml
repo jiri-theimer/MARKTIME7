@@ -68,10 +68,11 @@
                 <div class="text-xs uppercase text-base-content/50 font-semibold">
                     @_f.tra("Úkoly s termínem")
                 </div>
-                @* Úkoly zatím bez vlastního detailu - jen informační přehled termínu *@
                 @foreach (var task in Model.TasksDue)
                 {
-                    <div class="flex items-center gap-2 text-sm px-2 py-1.5 rounded bg-warning/10">
+                    <a asp-controller="Ukol" asp-action="Edit" asp-route-id="@task.pid"
+                       asp-route-ret="day" asp-route-retd="@Model.Date.ToString("yyyy-MM-dd")"
+                       class="flex items-center gap-2 text-sm px-2 py-1.5 rounded bg-warning/10 hover:bg-warning/20 transition">
                         <span class="material-icons-outlined text-warning" style="font-size:16px;">task_alt</span>
                         <div class="min-w-0 flex-1">
                             <div class="truncate">@task.p56Name</div>
@@ -80,7 +81,7 @@
                                 <div class="text-xs text-base-content/50 truncate">@task.p41Name</div>
                             }
                         </div>
-                    </div>
+                    </a>
                 }
             </div>
         </div>

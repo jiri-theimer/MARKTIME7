@@ -12,6 +12,14 @@
         bool isActive = Model.DateFrom?.Date == d1?.Date && Model.DateTo?.Date == d2?.Date;
         return "btn btn-xs " + (isActive ? "btn-primary" : "btn-ghost");
     }
+
+    // Návratová URL na tento přehled se stejným filtrem - "Zpět do přehledu úkolů" na detailu úkolu
+    var backToUkolyUrl = Url.Action("Tasks", "Home", new
+    {
+        d1 = Model.DateFrom?.ToString("yyyy-MM-dd"),
+        d2 = Model.DateTo?.ToString("yyyy-MM-dd"),
+        state = Model.StateFilter
+    });
 }
 
 <div class="grid gap-3">
@@ -62,7 +70,7 @@
                 <select name="state" class="select select-bordered select-sm w-full">
                     <option value="0" selected="@(Model.StateFilter == 0)">@_f.tra("Otevřené")</option>
                     <option value="1" selected="@(Model.StateFilter == 1)">@_f.tra("Vše")</option>
-                    <option value="2" selected="@(Model.StateFilter == 2)">@_f.tra("Dokončené")</option>
+                    <option value="2" selected="@(Model.StateFilter == 2)">@_f.tra("Uzavřené")</option>
                 </select>
             </label>
 
@@ -99,15 +107,15 @@
     else
     {
         <div class="grid gap-2">
-            @* Úkoly zatím nemají vlastní detail/editaci v MO - jde jen o informační přehled.
-               Až přibude Ukol/Edit view, karty půjde jednoduše obalit odkazem stejně jako v Ukony.cshtml. *@
+            @* Karta vede na Ukol/Edit - zobrazení detailu a jednoduchá aktualizace stavu/termínu/poznámky *@
             @foreach (var task in Model.Entries)
             {
                 var isOverdue = task.p56PlanUntil.HasValue && task.p56PlanUntil.Value.Date < today
                     && task.p56OutlookStatus != BO.p56OutlookStatusEnum.Dokonceno;
 
-                <div class="card bg-base-100 shadow-sm @(isOverdue ? "ring-1 ring-error" : "")">
-                    <div class="card-body p-3">
+                <div id="task-@task.pid" class="card bg-base-100 shadow-sm hover:bg-base-300 transition @(isOverdue ? "ring-1 ring-error" : "")">
+                    <a asp-controller="Ukol" asp-action="Edit" asp-route-id="@task.pid"
+                       asp-route-ret="ukoly" asp-route-retd="@backToUkolyUrl" class="card-body p-3 block">
                         <div class="flex items-start gap-2">
                             <div class="min-w-0 flex-1">
                                 <div class="font-semibold text-sm" style="overflow-wrap:break-word;">@task.p56Name</div>
@@ -128,20 +136,88 @@
                                 }
                             </div>
 
-                            <div class="badge badge-sm shrink-0" style="background-color:@task.b02Color;color:@task.ForeColor;border-color:@task.b02Color;">
+                            <div class="badge badge-sm badge-outline gap-1.5 shrink-0">
+                                <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background-color:@task.b02Color;flex-shrink:0;"></span>
                                 @task.b02Name
                             </div>
                         </div>
+                    </a>
 
-                        <a asp-controller="Ukon" asp-action="New" asp-route-p41id="@task.p41ID" asp-route-p56id="@task.pid"
-                           class="btn btn-ghost btn-xs mt-2">
-                            <span class="material-icons-outlined" style="font-size:14px;">schedule</span>
-                            @_f.tra("Vykázat úkon")
-                        </a>
-                    </div>
+                    @if (task.p41ID > 0)
+                    {
+                        <div class="px-3 pb-3">
+                            <a asp-controller="Ukon" asp-action="New" asp-route-p41id="@task.p41ID" asp-route-p56id="@task.pid"
+                               class="btn btn-ghost btn-xs">
+                                <span class="material-icons-outlined" style="font-size:14px;">schedule</span>
+                                @_f.tra("Vykázat úkon")
+                            </a>
+                        </div>
+                    }
                 </div>
             }
         </div>
     }
 
 </div>
+
+@section scripts {
+    <script>
+        (function () {
+            var STORAGE_KEY = 'mo-tasks-filter';
+            var params = new URLSearchParams(window.location.search);
+            var hasAnyFilterParam = params.has('d1') || params.has('d2') || params.has('state');
+
+            if (!hasAnyFilterParam) {
+                // Na stránku jsme přišli bez filtru v URL (např. z dockové navigace) -
+                // pokud máme uložený poslední filtr, přesměrovat na něj.
+                var saved = null;
+                try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch (e) { saved = null; }
+
+                if (saved && (saved.d1 || saved.d2 || saved.state)) {
+                    var qs = new URLSearchParams(saved).toString();
+                    window.location.replace(window.location.pathname + '?' + qs + window.location.hash);
+                    return;
+                }
+            }
+
+            // Uložit aktuálně použitý (vykreslený) filtr pro příště
+            var current = {
+                d1: '@Model.DateFrom?.ToString("yyyy-MM-dd")',
+                d2: '@Model.DateTo?.ToString("yyyy-MM-dd")',
+                state: '@Model.StateFilter'
+            };
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(current)); } catch (e) { }
+        })();
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var hash = window.location.hash;
+            if (!hash || hash.indexOf('#task-') !== 0) return;
+
+            var el = document.querySelector(hash);
+            if (!el) return;
+
+            el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+
+            // Krátké zvýraznění, ať je jasné, na který záznam se odscrollovalo
+            el.classList.add('mo-highlight-flash');
+            setTimeout(function () {
+                el.classList.remove('mo-highlight-flash');
+            }, 2000);
+        });
+    </script>
+    <style>
+        @@keyframes moHighlightFlash {
+            0% {
+                box-shadow: 0 0 0 3px rgba(250,204,21,.9);
+            }
+
+            100% {
+                box-shadow: 0 0 0 3px rgba(250,204,21,0);
+            }
+        }
+
+        .mo-highlight-flash {
+            animation: moHighlightFlash 2s ease-out;
+        }
+    </style>
+}

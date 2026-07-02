@@ -222,5 +222,35 @@
             };
             try { localStorage.setItem(STORAGE_KEY, JSON.stringify(current)); } catch (e) { }
         })();
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var hash = window.location.hash;
+            if (!hash || hash.indexOf('#entry-') !== 0) return;
+
+            var el = document.querySelector(hash);
+            if (!el) return;
+
+            el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+
+            el.classList.add('mo-highlight-flash');
+            setTimeout(function () {
+                el.classList.remove('mo-highlight-flash');
+            }, 2000);
+        });
     </script>
+    <style>
+        @@keyframes moHighlightFlash {
+            0% {
+                box-shadow: 0 0 0 3px rgba(250,204,21,.9);
+            }
+
+            100% {
+                box-shadow: 0 0 0 3px rgba(250,204,21,0);
+            }
+        }
+
+        .mo-highlight-flash {
+            animation: moHighlightFlash 2s ease-out;
+        }
+    </style>
 }

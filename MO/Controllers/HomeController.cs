@@ -88,7 +88,13 @@ namespace MO.Controllers
 
             var mq = new BO.myQueryP56
             {
-                j02id = Factory.CurrentUser.pid   // úkoly, kde má uživatel přidělenou libovolnou roli
+                j02id = Factory.CurrentUser.pid,   // úkoly, kde má uživatel přidělenou libovolnou roli
+                IsRecordValid = v.StateFilter switch
+                {
+                    1 => null,    // Vše
+                    2 => false,   // Uzavřené
+                    _ => true     // 0 = Otevřené (výchozí)
+                }
             };
 
             if (v.DateFrom.HasValue || v.DateTo.HasValue)
@@ -98,16 +104,7 @@ namespace MO.Controllers
                 mq.global_d2 = v.DateTo;
             }
 
-            var lis = Factory.p56TaskBL.GetList(mq).AsEnumerable();
-
-            switch (v.StateFilter)
-            {
-                case 0: lis = lis.Where(t => t.p56OutlookStatus != BO.p56OutlookStatusEnum.Dokonceno); break;   // Otevřené (výchozí)
-                case 2: lis = lis.Where(t => t.p56OutlookStatus == BO.p56OutlookStatusEnum.Dokonceno); break;   // Dokončené
-                                                                                                                // 1 = Vše, bez filtru
-            }
-
-            var lisAll = lis
+            var lisAll = Factory.p56TaskBL.GetList(mq)
                 .OrderBy(t => t.p56PlanUntil ?? DateTime.MaxValue)
                 .ThenBy(t => t.p56PlanFrom ?? DateTime.MaxValue)
                 .ToList();
