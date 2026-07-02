@@ -24,6 +24,7 @@ namespace UI.Models.p31oper
         public bool Approve_UrovenSchvalovani { get; set; }
         public bool Approve_DoDefaultApproveState { get; set; }
         public bool Approve_ShowRecZoom { get; set; }
+        public bool Zrusit_p34id_for_p31_entry { get; set; }
         public int Approve_GridBox_Position { get; set; }   //0:nezobrazovat, 1:vlevo, 2:vpravo, neukládá se do bitstream, ale do userkeys
 
         public bool Approve_ZafixovatAkce { get; set; }
@@ -50,6 +51,10 @@ namespace UI.Models.p31oper
             if (BO.Code.Bas.bit_compare_or(this.HesBitStream, 65536)) this.Approve_UrovenSchvalovani = true;
             if (BO.Code.Bas.bit_compare_or(this.HesBitStream, 131072)) this.Approve_DoDefaultApproveState = true;
             if (BO.Code.Bas.bit_compare_or(this.HesBitStream, 262144)) this.Approve_ShowRecZoom = true;
+
+            if (BO.Code.Bas.bit_compare_or(this.HesBitStream, 524288)) this.Zrusit_p34id_for_p31_entry = true;
+
+            
 
         }
     }

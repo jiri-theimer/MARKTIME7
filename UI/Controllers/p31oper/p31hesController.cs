@@ -62,6 +62,7 @@ namespace UI.Controllers.p31oper
                 if (v.Approve_UrovenSchvalovani) v.HesBitStream += 65536;
                 if (v.Approve_DoDefaultApproveState) v.HesBitStream += 131072;  //automaticky nahazovat fakturační status
                 if (v.Approve_ShowRecZoom) v.HesBitStream += 262144;
+                if (v.Zrusit_p34id_for_p31_entry) v.HesBitStream += 524288;
 
                 var c = Factory.j02UserBL.Load(Factory.CurrentUser.pid);
                 c.j02HesBitStream = v.HesBitStream;

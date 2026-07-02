@@ -140,26 +140,30 @@
                 @_f.tra("Další nastavení")
             </div>
             <div class="card-body">
-                <input type="checkbox" asp-for="@Model.TimesheetEntryByMinutes" id="chkTimesheetEntryByMinutes" />
+
+                <input type="checkbox" asp-for="Zrusit_p34id_for_p31_entry" id="chkZrusit_p34id_for_p31_entry" />
+                <label for="chkZrusit_p34id_for_p31_entry">@_f.tra("Vypnout filtrování projektů podle vykazovaného sešitu")</label>
+               
+                <input type="checkbox" asp-for="TimesheetEntryByMinutes" id="chkTimesheetEntryByMinutes" style="margin-left:50px;"/>
                 <label for="chkTimesheetEntryByMinutes">@_f.tra("Hodiny vykazovat pevně v minutách (např. 90)")</label>
                 <hr />
 
 
                 <strong>@_f.tra("Předvyplňovat sešit a aktivitu"):</strong>
                 <div>
-                    <input type="radio" id="chk99" value="99" asp-for="@Model.ActivityFlag" />
+                    <input type="radio" id="chk99" value="99" asp-for="ActivityFlag" />
                     <label for="chk99">@_f.tra("Bez předvyplněného sešitu")</label>
                 </div>
                 <div>
-                    <input type="radio" id="chk0" value="0" asp-for="@Model.ActivityFlag" />
+                    <input type="radio" id="chk0" value="0" asp-for="ActivityFlag" />
                     <label for="chk0">@_f.tra("Předvyplnit první sešit v nabídce sešitů")</label>
                 </div>
                 <div>
-                    <input type="radio" id="chk1" value="1" asp-for="@Model.ActivityFlag" />
+                    <input type="radio" id="chk1" value="1" asp-for="ActivityFlag" />
                     <label for="chk1">@_f.tra("Předvyplnit sešit z naposledy vykazovaného úkonu")</label>
                 </div>
                 <div>
-                    <input type="radio" id="chk2" value="2" asp-for="@Model.ActivityFlag" />
+                    <input type="radio" id="chk2" value="2" asp-for="ActivityFlag" />
                     <label for="chk2">@_f.tra("Předvyplnit aktivitu+sešit z naposledy vykazovaného úkonu")</label>
                 </div>
             </div>

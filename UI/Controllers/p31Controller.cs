@@ -51,7 +51,7 @@ namespace UI.Controllers
             v.disp = new DispoziceViewModel();
             v.disp.InitItems("p31", Factory);
             v.PravaZaJineho = Factory.CBL.LoadUserParamInt("p31/Record-PravaZaJineho", 1);
-
+            
 
             v.IsNavicKusovnik = Factory.CBL.LoadUserParamBool("p31/Record-IsNavicKusovnik", false);
 
@@ -598,7 +598,7 @@ namespace UI.Controllers
                 }
             }
 
-            if (v.zrusit_p34id_for_p31_entry)
+            if (Factory.CurrentUser.IsHes(524288))
             {
                 v.MyQueryInline_Project = $"{v.MyQueryInline_Project}|zrusit_p34id_for_p31_entry|bool|true";
             }
@@ -840,6 +840,13 @@ namespace UI.Controllers
                     break;
                 case "zrusit_p34id_for_p31_entry":
                     v.Element2Focus = "cmdComboRec_p41ID";
+                    if (!Factory.CurrentUser.IsHes(524288))
+                    {
+                        var recJ02 = Factory.j02UserBL.Load(Factory.CurrentUser.pid);
+                        recJ02.j02HesBitStream += 524288;
+                        Factory.j02UserBL.Save(recJ02, null);
+                        this.AddMessageTranslated("Filtrování podle sešitu si můžete zapnout v [Moje předvolby pro vykazování].", "info");
+                    }
                     break;
                 case "p32id":
                     if (v.Rec.p32ID > 0)
@@ -938,6 +945,7 @@ namespace UI.Controllers
                 case "pravazajineho":
                     Factory.CBL.SetUserParam("p31/Record-PravaZaJineho", v.PravaZaJineho.ToString());
                     break;
+                
 
             }
 

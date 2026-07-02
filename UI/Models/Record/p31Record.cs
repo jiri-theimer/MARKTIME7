@@ -89,7 +89,7 @@ namespace UI.Models.Record
         public int p34ID_Kusovnik { get; set; }
         public List<KusovnikInline> lisKusovnik { get; set; }
 
-        public bool zrusit_p34id_for_p31_entry { get; set; }
+        
 
 
     }

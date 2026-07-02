@@ -455,9 +455,7 @@ function report(prefix,pid) {
 
 function zrusit_p34id_for_p31_entry()
 {
-    $("#zrusit_p34id_for_p31_entry").val(true);
-
-
+    
    
     _postback("zrusit_p34id_for_p31_entry");
     
