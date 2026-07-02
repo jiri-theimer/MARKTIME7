@@ -87,6 +87,9 @@
                 <div class="flex-none gap-2">
                     @if (isAuthenticated)
                     {
+                        <a asp-controller="Ukon" asp-action="QuickAdd" class="btn btn-ghost btn-sm btn-circle" title="@_f.tra("Nový úkon")">
+                            <span class="material-icons-outlined" style="font-size:22px;">add</span>
+                        </a>
                         <a asp-controller="Stopky" asp-action="Index" class="btn btn-ghost btn-sm btn-circle" style="position:relative;" title="@_f.tra("Stopky")">
                             <span class="material-icons-outlined @(hasRunningStopwatch ? "text-primary" : "")" style="font-size:20px;">history_toggle_off</span>
                             @if (hasRunningStopwatch)

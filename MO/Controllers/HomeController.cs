@@ -17,11 +17,16 @@ namespace MO.Controllers
         // ===== Úkony - seznam vykázaných úkonů uživatele s filtrem =====
         public IActionResult Ukony(string d1, string d2, int state = 0, int format = 0)
         {
+            var todayNow = DateTime.Today;
+            var defaultMonthStart = new DateTime(todayNow.Year, todayNow.Month, 1);
+            var defaultMonthEnd = defaultMonthStart.AddMonths(1).AddDays(-1);
+
             var v = new UkonyListViewModel
             {
                 PageTitle = Factory.tra("Úkony"),
-                DateFrom = ParseDate(d1) ?? new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1),
-                DateTo = ParseDate(d2) ?? DateTime.Today,
+                HideHeaderTitle = true,
+                DateFrom = ParseDate(d1) ?? defaultMonthStart,
+                DateTo = ParseDate(d2) ?? defaultMonthEnd,
                 StateFilter = state,
                 FormatFilter = format
             };

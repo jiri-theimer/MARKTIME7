@@ -3,9 +3,13 @@
 
 @{
     var today = DateTime.Today;
+    var yesterday = today.AddDays(-1);
+    var yearStart = new DateTime(today.Year, 1, 1);
     var monthStart = new DateTime(today.Year, today.Month, 1);
+    var monthEnd = monthStart.AddMonths(1).AddDays(-1);
     var prevMonthStart = monthStart.AddMonths(-1);
     var prevMonthEnd = monthStart.AddDays(-1);
+    var yearEnd = new DateTime(today.Year, 12, 31);
     var weekStart = BO.Code.Bas.get_first_prev_monday(today);
 
     // Návratová URL na tento přehled se stejným filtrem - použije se jako "Zpět do přehledu úkonů" na detailu úkonu
@@ -39,21 +43,36 @@
                 </label>
             </div>
 
-            <div class="flex gap-1" style="flex-wrap:wrap;">
-                <a class="btn btn-ghost btn-xs"
+            <div class="flex gap-1" style="flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px;">
+                <a class="btn btn-ghost btn-xs" style="flex-shrink:0;"
+                   asp-action="Ukony" asp-route-d1="@today.ToString("yyyy-MM-dd")" asp-route-d2="@today.ToString("yyyy-MM-dd")"
+                   asp-route-state="@Model.StateFilter" asp-route-format="@Model.FormatFilter">
+                    @_f.tra("Dnes")
+                </a>
+                <a class="btn btn-ghost btn-xs" style="flex-shrink:0;"
+                   asp-action="Ukony" asp-route-d1="@yesterday.ToString("yyyy-MM-dd")" asp-route-d2="@yesterday.ToString("yyyy-MM-dd")"
+                   asp-route-state="@Model.StateFilter" asp-route-format="@Model.FormatFilter">
+                    @_f.tra("Včera")
+                </a>
+                <a class="btn btn-ghost btn-xs" style="flex-shrink:0;"
                    asp-action="Ukony" asp-route-d1="@weekStart.ToString("yyyy-MM-dd")" asp-route-d2="@today.ToString("yyyy-MM-dd")"
                    asp-route-state="@Model.StateFilter" asp-route-format="@Model.FormatFilter">
                     @_f.tra("Tento týden")
                 </a>
-                <a class="btn btn-ghost btn-xs"
-                   asp-action="Ukony" asp-route-d1="@monthStart.ToString("yyyy-MM-dd")" asp-route-d2="@today.ToString("yyyy-MM-dd")"
+                <a class="btn btn-ghost btn-xs" style="flex-shrink:0;"
+                   asp-action="Ukony" asp-route-d1="@monthStart.ToString("yyyy-MM-dd")" asp-route-d2="@monthEnd.ToString("yyyy-MM-dd")"
                    asp-route-state="@Model.StateFilter" asp-route-format="@Model.FormatFilter">
                     @_f.tra("Tento měsíc")
                 </a>
-                <a class="btn btn-ghost btn-xs"
+                <a class="btn btn-ghost btn-xs" style="flex-shrink:0;"
                    asp-action="Ukony" asp-route-d1="@prevMonthStart.ToString("yyyy-MM-dd")" asp-route-d2="@prevMonthEnd.ToString("yyyy-MM-dd")"
                    asp-route-state="@Model.StateFilter" asp-route-format="@Model.FormatFilter">
                     @_f.tra("Minulý měsíc")
+                </a>
+                <a class="btn btn-ghost btn-xs" style="flex-shrink:0;"
+                   asp-action="Ukony" asp-route-d1="@yearStart.ToString("yyyy-MM-dd")" asp-route-d2="@yearEnd.ToString("yyyy-MM-dd")"
+                   asp-route-state="@Model.StateFilter" asp-route-format="@Model.FormatFilter">
+                    @_f.tra("Tento rok")
                 </a>
             </div>
 
@@ -164,3 +183,37 @@
     }
 
 </div>
+
+@section scripts {
+    <script>
+        (function () {
+            var STORAGE_KEY = 'mo-ukony-filter-v2';
+            try { localStorage.removeItem('mo-ukony-filter'); } catch (e) { }  // úklid staré (chybné) hodnoty z dřívějška
+
+            var params = new URLSearchParams(window.location.search);
+            var hasAnyFilterParam = params.has('d1') || params.has('d2') || params.has('state') || params.has('format');
+
+            if (!hasAnyFilterParam) {
+                // Na stránku jsme přišli bez filtru v URL (např. z dockové navigace) -
+                // pokud máme uložený poslední filtr, přesměrovat na něj.
+                var saved = null;
+                try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch (e) { saved = null; }
+
+                if (saved && (saved.d1 || saved.d2 || saved.state || saved.format)) {
+                    var qs = new URLSearchParams(saved).toString();
+                    window.location.replace(window.location.pathname + '?' + qs);
+                    return;
+                }
+            }
+
+            // Uložit aktuálně použitý (vykreslený) filtr pro příště
+            var current = {
+                d1: '@Model.DateFrom.ToString("yyyy-MM-dd")',
+                d2: '@Model.DateTo.ToString("yyyy-MM-dd")',
+                state: '@Model.StateFilter',
+                format: '@Model.FormatFilter'
+            };
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(current)); } catch (e) { }
+        })();
+    </script>
+}

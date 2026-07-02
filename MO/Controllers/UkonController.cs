@@ -69,6 +69,16 @@ namespace MO.Controllers
         }
 
 
+        // ===== Rychlé založení úkonu (ikona "+" v navbaru) - stejný sešit jako naposledy vykázaný, datum dnes =====
+        public IActionResult QuickAdd()
+        {
+            var last = Factory.p31WorksheetBL.LoadMyLastCreated(false);
+            var p34id = last?.p34ID ?? 0;
+
+            return RedirectToAction("New", new { d = DateTime.Today.ToString("yyyy-MM-dd"), p34id });
+        }
+
+
         // ===== Nový úkon - sešit již vybrán v Day view (nebo auto-vybrán, když přicházíme z odkazu projektu) =====
         // p68id: pokud přicházíme ze Stopek, předvyplní se projekt/aktivita/text/čas z daného záznamu stopek
         public IActionResult New(string d, int p34id, int p41id = 0, int p68id = 0)
