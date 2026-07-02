@@ -14,6 +14,14 @@ namespace MO.Models
         public List<BO.p31WorksheetTimelineDay> lisSums { get; set; } = new List<BO.p31WorksheetTimelineDay>();
         public IEnumerable<BO.c26Holiday> lisC26 { get; set; } = new List<BO.c26Holiday>();
 
+        /// <summary>Úkoly přidělené uživateli s termínem (p56PlanUntil) v zobrazeném období.</summary>
+        public IEnumerable<BO.p56Task> lisTasks { get; set; } = new List<BO.p56Task>();
+
+        public int GetTasksDueCount(DateTime d)
+        {
+            return lisTasks?.Count(t => t.p56PlanUntil?.Date == d.Date) ?? 0;
+        }
+
         // Pomocné: rychlý lookup hodin a stavů pro den
         public double GetHours(DateTime d)
         {

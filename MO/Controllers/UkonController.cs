@@ -81,7 +81,7 @@ namespace MO.Controllers
 
         // ===== Nový úkon - sešit již vybrán v Day view (nebo auto-vybrán, když přicházíme z odkazu projektu) =====
         // p68id: pokud přicházíme ze Stopek, předvyplní se projekt/aktivita/text/čas z daného záznamu stopek
-        public IActionResult New(string d, int p34id, int p41id = 0, int p68id = 0)
+        public IActionResult New(string d, int p34id, int p41id = 0, int p68id = 0, int p56id = 0)
         {
             BO.p68StopWatch stopwatch = null;
             if (p68id > 0)
@@ -100,6 +100,17 @@ namespace MO.Controllers
                         var recP32Stopky = Factory.p32ActivityBL.Load(stopwatch.p32ID);
                         if (recP32Stopky != null) p34id = recP32Stopky.p34ID;
                     }
+                }
+            }
+
+            // Přišli jsme z přehledu Úkoly - "Vykázat úkon" na konkrétní úkol
+            BO.p56Task task = null;
+            if (p56id > 0)
+            {
+                task = Factory.p56TaskBL.Load(p56id);
+                if (task != null)
+                {
+                    if (p41id <= 0) p41id = task.p41ID;
                 }
             }
 
@@ -155,6 +166,11 @@ namespace MO.Controllers
                 {
                     v.Date = stopwatch.DateInsert.Value.Date;
                 }
+            }
+
+            if (task != null)
+            {
+                v.p56ID = task.pid;
             }
 
             LoadSesitList(v);

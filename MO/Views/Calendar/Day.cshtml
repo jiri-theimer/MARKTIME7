@@ -23,6 +23,9 @@
         </a>
 
         <div class="flex gap-1">
+            <a asp-controller="Stopky" asp-action="Index" class="btn btn-ghost btn-sm" title="@_f.tra("Stopky")">
+                <span class="material-icons-outlined" style="font-size:20px;">history_toggle_off</span>
+            </a>
             <a asp-action="Day" asp-route-d="@prevDay" class="btn btn-ghost btn-sm">
                 <span class="material-icons-outlined" style="font-size:20px;">chevron_left</span>
             </a>
@@ -56,6 +59,32 @@
             }
         </div>
     </div>
+
+    @* Úkoly s termínem tento den *@
+    @if (Model.TasksDue.Count > 0)
+    {
+        <div class="card bg-base-100 shadow-sm">
+            <div class="card-body p-3 gap-1">
+                <div class="text-xs uppercase text-base-content/50 font-semibold">
+                    @_f.tra("Úkoly s termínem")
+                </div>
+                @* Úkoly zatím bez vlastního detailu - jen informační přehled termínu *@
+                @foreach (var task in Model.TasksDue)
+                {
+                    <div class="flex items-center gap-2 text-sm px-2 py-1.5 rounded bg-warning/10">
+                        <span class="material-icons-outlined text-warning" style="font-size:16px;">task_alt</span>
+                        <div class="min-w-0 flex-1">
+                            <div class="truncate">@task.p56Name</div>
+                            @if (!string.IsNullOrEmpty(task.p41Name))
+                            {
+                                <div class="text-xs text-base-content/50 truncate">@task.p41Name</div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
 
     @* Seznam úkonů *@
     @if (!Model.Entries.Any())

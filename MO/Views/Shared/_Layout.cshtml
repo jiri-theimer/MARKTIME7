@@ -195,11 +195,6 @@
                     <span class="dock-label">@_f.tra("Úkoly")</span>
                 </a>
 
-                <a asp-controller="Home" asp-action="Reports" class="@IsActive("Reports")">
-                    <span class="material-icons-outlined" style="font-size:22px;">print</span>
-                    <span class="dock-label">@_f.tra("Sestavy")</span>
-                </a>
-
                 <a asp-controller="Home" asp-action="MyProfile" class="@IsActive("MyProfile")">
                     <span class="material-icons-outlined" style="font-size:22px;">person</span>
                     <span class="dock-label">@_f.tra("Profil")</span>
@@ -233,23 +228,17 @@
                             @_f.tra("Stopky")
                         </a>
                     </li>
+                    <li>
+                        <a asp-controller="Home" asp-action="Reports" class="@IsActive("Reports")">
+                            <span class="material-icons-outlined" style="font-size:20px;">print</span>
+                            @_f.tra("Sestavy")
+                        </a>
+                    </li>
                     @* Placeholder položky - postupně doplníš až přibudou další pohledy *@
                     <li>
                         <a class="text-base-content/60">
                             <span class="material-icons-outlined" style="font-size:20px;">settings</span>
                             @_f.tra("Nastavení")
-                        </a>
-                    </li>
-                    <li>
-                        <a class="text-base-content/60">
-                            <span class="material-icons-outlined" style="font-size:20px;">notifications</span>
-                            @_f.tra("Hlídače")
-                        </a>
-                    </li>
-                    <li>
-                        <a class="text-base-content/60">
-                            <span class="material-icons-outlined" style="font-size:20px;">mail</span>
-                            @_f.tra("Pošta")
                         </a>
                     </li>
                     <li>

@@ -74,9 +74,50 @@ namespace MO.Controllers
 
 
         // ===== Úkoly - projektové úkoly (p56Task) - zatím připravujeme =====
-        public IActionResult Tasks()
+        // ===== Úkoly - přehled úkolů přidělených uživateli, s filtrem =====
+        public IActionResult Tasks(string d1, string d2, int state = 0)
         {
-            var v = new BaseViewModel { PageTitle = Factory.tra("Úkoly") };
+            var v = new UkolyListViewModel
+            {
+                PageTitle = Factory.tra("Úkoly"),
+                HideHeaderTitle = true,
+                DateFrom = ParseDate(d1),
+                DateTo = ParseDate(d2),
+                StateFilter = state
+            };
+
+            var mq = new BO.myQueryP56
+            {
+                j02id = Factory.CurrentUser.pid   // úkoly, kde má uživatel přidělenou libovolnou roli
+            };
+
+            if (v.DateFrom.HasValue || v.DateTo.HasValue)
+            {
+                mq.period_field = "p56PlanFrom_or_p56PlanUntil";
+                mq.global_d1 = v.DateFrom;
+                mq.global_d2 = v.DateTo;
+            }
+
+            var lis = Factory.p56TaskBL.GetList(mq).AsEnumerable();
+
+            switch (v.StateFilter)
+            {
+                case 0: lis = lis.Where(t => t.p56OutlookStatus != BO.p56OutlookStatusEnum.Dokonceno); break;   // Otevřené (výchozí)
+                case 2: lis = lis.Where(t => t.p56OutlookStatus == BO.p56OutlookStatusEnum.Dokonceno); break;   // Dokončené
+                                                                                                                // 1 = Vše, bez filtru
+            }
+
+            var lisAll = lis
+                .OrderBy(t => t.p56PlanUntil ?? DateTime.MaxValue)
+                .ThenBy(t => t.p56PlanFrom ?? DateTime.MaxValue)
+                .ToList();
+
+            v.TotalCount = lisAll.Count;
+
+            const int maxRows = 300;
+            v.IsTruncated = lisAll.Count > maxRows;
+            v.Entries = lisAll.Take(maxRows).ToList();
+
             return View(v);
         }
 

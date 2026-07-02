@@ -20,6 +20,13 @@
         state = Model.StateFilter,
         format = Model.FormatFilter
     });
+
+    // Zvýraznění aktuálně aplikované zkratky období
+    string PeriodBtnCls(DateTime d1, DateTime d2)
+    {
+        bool isActive = Model.DateFrom.Date == d1.Date && Model.DateTo.Date == d2.Date;
+        return "btn btn-xs " + (isActive ? "btn-primary" : "btn-ghost");
+    }
 }
 
 <div class="grid gap-3">
@@ -44,32 +51,32 @@
             </div>
 
             <div class="flex gap-1" style="flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px;">
-                <a class="btn btn-ghost btn-xs" style="flex-shrink:0;"
+                <a class="@PeriodBtnCls(today, today)" style="flex-shrink:0;"
                    asp-action="Ukony" asp-route-d1="@today.ToString("yyyy-MM-dd")" asp-route-d2="@today.ToString("yyyy-MM-dd")"
                    asp-route-state="@Model.StateFilter" asp-route-format="@Model.FormatFilter">
                     @_f.tra("Dnes")
                 </a>
-                <a class="btn btn-ghost btn-xs" style="flex-shrink:0;"
+                <a class="@PeriodBtnCls(yesterday, yesterday)" style="flex-shrink:0;"
                    asp-action="Ukony" asp-route-d1="@yesterday.ToString("yyyy-MM-dd")" asp-route-d2="@yesterday.ToString("yyyy-MM-dd")"
                    asp-route-state="@Model.StateFilter" asp-route-format="@Model.FormatFilter">
                     @_f.tra("Včera")
                 </a>
-                <a class="btn btn-ghost btn-xs" style="flex-shrink:0;"
+                <a class="@PeriodBtnCls(weekStart, today)" style="flex-shrink:0;"
                    asp-action="Ukony" asp-route-d1="@weekStart.ToString("yyyy-MM-dd")" asp-route-d2="@today.ToString("yyyy-MM-dd")"
                    asp-route-state="@Model.StateFilter" asp-route-format="@Model.FormatFilter">
                     @_f.tra("Tento týden")
                 </a>
-                <a class="btn btn-ghost btn-xs" style="flex-shrink:0;"
+                <a class="@PeriodBtnCls(monthStart, monthEnd)" style="flex-shrink:0;"
                    asp-action="Ukony" asp-route-d1="@monthStart.ToString("yyyy-MM-dd")" asp-route-d2="@monthEnd.ToString("yyyy-MM-dd")"
                    asp-route-state="@Model.StateFilter" asp-route-format="@Model.FormatFilter">
                     @_f.tra("Tento měsíc")
                 </a>
-                <a class="btn btn-ghost btn-xs" style="flex-shrink:0;"
+                <a class="@PeriodBtnCls(prevMonthStart, prevMonthEnd)" style="flex-shrink:0;"
                    asp-action="Ukony" asp-route-d1="@prevMonthStart.ToString("yyyy-MM-dd")" asp-route-d2="@prevMonthEnd.ToString("yyyy-MM-dd")"
                    asp-route-state="@Model.StateFilter" asp-route-format="@Model.FormatFilter">
                     @_f.tra("Minulý měsíc")
                 </a>
-                <a class="btn btn-ghost btn-xs" style="flex-shrink:0;"
+                <a class="@PeriodBtnCls(yearStart, yearEnd)" style="flex-shrink:0;"
                    asp-action="Ukony" asp-route-d1="@yearStart.ToString("yyyy-MM-dd")" asp-route-d2="@yearEnd.ToString("yyyy-MM-dd")"
                    asp-route-state="@Model.StateFilter" asp-route-format="@Model.FormatFilter">
                     @_f.tra("Tento rok")

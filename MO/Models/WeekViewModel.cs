@@ -11,6 +11,9 @@ namespace MO.Models
 
         public int MoneyEntryCount => Entries?.Count(e =>
             e.p33ID == BO.p33IdENUM.PenizeBezDPH || e.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu) ?? 0;
+
+        /// <summary>Úkoly přidělené uživateli s termínem (p56PlanUntil) tento den.</summary>
+        public List<BO.p56Task> TasksDue { get; set; } = new List<BO.p56Task>();
     }
 
     public class WeekViewModel : BaseViewModel

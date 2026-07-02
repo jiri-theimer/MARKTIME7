@@ -67,7 +67,7 @@
                         <span class="badge badge-error badge-outline badge-sm">@day.HolidayName</span>
                     }
                 </div>
-                @if (day.TotalHours > 0 || day.MoneyEntryCount > 0)
+                @if (day.TotalHours > 0 || day.MoneyEntryCount > 0 || day.TasksDue.Count > 0)
                 {
                     <div class="flex items-center gap-1.5">
                         @if (day.TotalHours > 0)
@@ -81,9 +81,34 @@
                                 <span class="material-icons-outlined" style="font-size:12px;">payments</span>@day.MoneyEntryCount
                             </div>
                         }
+                        @if (day.TasksDue.Count > 0)
+                        {
+                            <div class="badge badge-sm gap-0.5 @(isToday ? "bg-primary-content/20 border-none text-primary-content" : "badge-warning")"
+                                 title="@day.TasksDue.Count @_f.tra("úkolů s termínem")">
+                                <span class="material-icons-outlined" style="font-size:12px;">task_alt</span>@day.TasksDue.Count
+                            </div>
+                        }
                     </div>
                 }
             </a>
+
+            @if (day.TasksDue.Count > 0)
+            {
+                <div class="grid gap-1 mt-1 mb-1">
+                    @foreach (var task in day.TasksDue)
+                    {
+                        @* Úkoly zatím bez vlastního detailu - jen informační přehled termínu *@
+                        <div class="flex items-center gap-2 text-xs px-2 py-1 rounded bg-warning/10">
+                            <span class="material-icons-outlined text-warning" style="font-size:14px;">task_alt</span>
+                            <span class="truncate flex-1">@task.p56Name</span>
+                            @if (!string.IsNullOrEmpty(task.p41Name))
+                            {
+                                <span class="text-base-content/40 shrink-0">@task.p41Name</span>
+                            }
+                        </div>
+                    }
+                </div>
+            }
 
             @if (!day.Entries.Any())
             {

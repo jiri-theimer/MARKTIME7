@@ -10,6 +10,9 @@ namespace MO.Models
 
         public IEnumerable<BO.p34ActivityGroup> SesitList { get; set; } = new List<BO.p34ActivityGroup>();
 
+        /// <summary>Úkoly přidělené uživateli s termínem (p56PlanUntil) tento den.</summary>
+        public List<BO.p56Task> TasksDue { get; set; } = new List<BO.p56Task>();
+
         public string DayName => System.Globalization.CultureInfo.CurrentUICulture
             .DateTimeFormat.GetDayName(Date.DayOfWeek);
     }
