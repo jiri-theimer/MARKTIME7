@@ -228,12 +228,6 @@
                             @_f.tra("Stopky")
                         </a>
                     </li>
-                    <li>
-                        <a asp-controller="Home" asp-action="Reports" class="@IsActive("Reports")">
-                            <span class="material-icons-outlined" style="font-size:20px;">print</span>
-                            @_f.tra("Sestavy")
-                        </a>
-                    </li>
                     @* Placeholder položky - postupně doplníš až přibudou další pohledy *@
                     <li>
                         <a class="text-base-content/60">
@@ -242,7 +236,7 @@
                         </a>
                     </li>
                     <li>
-                        <a class="text-base-content/60">
+                        <a asp-controller="Home" asp-action="Help" class="@IsActive("Help")">
                             <span class="material-icons-outlined" style="font-size:20px;">help_outline</span>
                             @_f.tra("Nápověda")
                         </a>

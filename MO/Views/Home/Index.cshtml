@@ -34,10 +34,10 @@
             <span class="font-medium">@_f.tra("Úkoly")</span>
         </div>
     </a>
-    <a asp-action="Reports" class="card bg-base-100 shadow-sm hover:bg-base-300 transition">
+    <a asp-controller="Stopky" asp-action="Index" class="card bg-base-100 shadow-sm hover:bg-base-300 transition">
         <div class="card-body items-center text-center p-4">
-            <span class="material-icons-outlined text-primary" style="font-size:32px;">print</span>
-            <span class="font-medium">@_f.tra("Sestavy")</span>
+            <span class="material-icons-outlined text-primary" style="font-size:32px;">history_toggle_off</span>
+            <span class="font-medium">@_f.tra("Stopky")</span>
         </div>
     </a>
 </div>

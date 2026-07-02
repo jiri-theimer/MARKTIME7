@@ -126,6 +126,13 @@ namespace MO.Controllers
         }
 
 
+        public IActionResult Help()
+        {
+            var v = new BaseViewModel { PageTitle = Factory.tra("Nápověda"), HideHeaderTitle = true };
+            return View(v);
+        }
+
+
         public IActionResult More()
         {
             var v = new BaseViewModel { PageTitle = Factory.tra("Více") };
