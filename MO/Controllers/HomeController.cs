@@ -43,7 +43,7 @@ namespace MO.Controllers
                 case 3: lis = lis.Where(e => e.p33ID == BO.p33IdENUM.Kusovnik); break;
             }
 
-            var lisAll = lis.OrderByDescending(e => e.p31Date).ThenByDescending(e => e.pid).ToList();
+            var lisAll = lis.OrderByDescending(e => e.pid).ToList();
 
             v.TotalCount = lisAll.Count;
             v.TotalHours = lisAll.Where(e => e.p33ID == BO.p33IdENUM.Cas).Sum(e => e.p31Hours_Orig);

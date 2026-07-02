@@ -502,6 +502,10 @@ namespace MO.Controllers
             {
                 return Redirect(Url.Action("Week", "Calendar", new { d = v.RetD }) + "#entry-" + v.pid);
             }
+            if (v.Ret == "ukony" && !string.IsNullOrEmpty(v.RetD))
+            {
+                return Redirect(v.RetD + "#entry-" + v.pid);
+            }
             return RedirectToAction("Day", "Calendar", new { d = v.Date.ToString("yyyy-MM-dd") });
         }
 
@@ -651,6 +655,10 @@ namespace MO.Controllers
             {
                 return Redirect(Url.Action("Week", "Calendar", new { d = v.RetD }) + "#entry-" + v.pid);
             }
+            if (v.Ret == "ukony" && !string.IsNullOrEmpty(v.RetD))
+            {
+                return Redirect(v.RetD + "#entry-" + v.pid);
+            }
             return RedirectToAction("Day", "Calendar", new { d = v.Date.ToString("yyyy-MM-dd") });
         }
 
@@ -684,6 +692,10 @@ namespace MO.Controllers
             if (ret == "week" && !string.IsNullOrEmpty(retd))
             {
                 return RedirectToAction("Week", "Calendar", new { d = retd });
+            }
+            if (ret == "ukony" && !string.IsNullOrEmpty(retd))
+            {
+                return Redirect(retd);
             }
             return RedirectToAction("Day", "Calendar", new { d });
         }

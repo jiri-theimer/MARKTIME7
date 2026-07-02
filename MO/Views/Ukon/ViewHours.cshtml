@@ -2,7 +2,13 @@
 @inject BL.Factory _f
 
 @{
-    var dayUrl = Url.Action("Day", "Calendar", new { d = Model.Date.ToString("yyyy-MM-dd") });
+    var isFromUkony = Model.Ret == "ukony" && !string.IsNullOrEmpty(Model.RetD);
+    var dayUrl = Model.Ret == "week" && !string.IsNullOrEmpty(Model.RetD)
+        ? Url.Action("Week", "Calendar", new { d = Model.RetD }) + "#entry-" + Model.pid
+        : isFromUkony
+            ? Model.RetD + "#entry-" + Model.pid
+            : Url.Action("Day", "Calendar", new { d = Model.Date.ToString("yyyy-MM-dd") });
+    var backLabel = isFromUkony ? _f.tra("Zpět do přehledu úkonů") : _f.tra("Zpět");
 }
 
 <div class="grid gap-3">
@@ -10,7 +16,7 @@
     <div class="flex items-center justify-between">
         <a href="@dayUrl" class="btn btn-ghost btn-sm">
             <span class="material-icons-outlined" style="font-size:20px;">arrow_back</span>
-            @_f.tra("Zpět")
+            @backLabel
         </a>
         <div class="text-sm text-base-content/60">@Model.Date.ToString("d. MMMM yyyy")</div>
     </div>
@@ -167,6 +173,6 @@
         </div>
     </div>
 
-    <a href="@dayUrl" class="btn btn-ghost btn-block">@_f.tra("Zpět")</a>
+    <a href="@dayUrl" class="btn btn-ghost btn-block">@backLabel</a>
 
 </div>

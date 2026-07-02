@@ -7,6 +7,15 @@
     var prevMonthStart = monthStart.AddMonths(-1);
     var prevMonthEnd = monthStart.AddDays(-1);
     var weekStart = BO.Code.Bas.get_first_prev_monday(today);
+
+    // Návratová URL na tento přehled se stejným filtrem - použije se jako "Zpět do přehledu úkonů" na detailu úkonu
+    var backToUkonyUrl = Url.Action("Ukony", "Home", new
+    {
+        d1 = Model.DateFrom.ToString("yyyy-MM-dd"),
+        d2 = Model.DateTo.ToString("yyyy-MM-dd"),
+        state = Model.StateFilter,
+        format = Model.FormatFilter
+    });
 }
 
 <div class="grid gap-3">
@@ -112,7 +121,8 @@
                 var _trCls = MO.Code.TheGridRowSymbol.p31_tr_cssclass(entry) ?? "";
                 var _symbol = MO.Code.TheGridRowSymbol.p31_symbol(entry);
 
-                <a asp-controller="Ukon" asp-action="Edit" asp-route-id="@entry.pid"
+                <a id="entry-@entry.pid" asp-controller="Ukon" asp-action="Edit" asp-route-id="@entry.pid"
+                   asp-route-ret="ukony" asp-route-retd="@backToUkonyUrl"
                    class="card bg-base-100 shadow-sm hover:bg-base-300 transition @_trCls">
                     <div class="card-body p-3">
                         <div class="flex items-start gap-2">

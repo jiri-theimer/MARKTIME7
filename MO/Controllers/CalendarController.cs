@@ -116,7 +116,7 @@ namespace MO.Controllers
                 global_d2 = date
             };
             v.Entries = Factory.p31WorksheetBL.GetList(mq)
-                .OrderBy(p => p.p31DateTimeFrom_Orig ?? p.p31Date.AddHours(23.99))
+                .OrderByDescending(p => p.pid)
                 .ToList();
 
             v.TotalHours = v.Entries.Sum(e => e.p31Hours_Orig);
