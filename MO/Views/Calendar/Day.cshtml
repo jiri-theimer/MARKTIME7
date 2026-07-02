@@ -46,7 +46,7 @@
                 <div class="text-right">
                     <div class="text-xs text-base-content/60">@_f.tra("Celkem")</div>
                     <div class="text-2xl font-bold @(Model.TotalHours > 0 ? "text-primary" : "")">
-                        @Model.TotalHours.ToString("0.##") h
+                        @MO.Code.HoursFormat.Show(Model.TotalHours, _f)
                     </div>
                 </div>
             </div>
@@ -152,7 +152,7 @@
                                 }
                                 else
                                 {
-                                    @(entry.p31Hours_Orig.ToString("0.##")) <text>h</text>
+                                    @MO.Code.HoursFormat.Show(entry.p31Hours_Orig, _f)
                                 }
                             </div>
                             <button type="button"

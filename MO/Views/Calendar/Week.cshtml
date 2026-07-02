@@ -29,7 +29,7 @@
                    asp-route-d1="@Model.d1.ToString("yyyy-MM-dd")"
                    asp-route-d2="@Model.d2.ToString("yyyy-MM-dd")"
                    asp-route-label="@Model.PageTitle">
-                    @_f.tra("Celkem"): <strong>@Model.WeekTotalHours.ToString("0.##")</strong> h
+                    @_f.tra("Celkem"): <strong>@MO.Code.HoursFormat.Show(Model.WeekTotalHours, _f)</strong>
                 </a>
             </div>
         </div>
@@ -72,7 +72,7 @@
                     <div class="flex items-center gap-1.5">
                         @if (day.TotalHours > 0)
                         {
-                            <div class="font-bold text-sm @(isToday ? "" : "text-primary")">@day.TotalHours.ToString("0.##") h</div>
+                            <div class="font-bold text-sm @(isToday ? "" : "text-primary")">@MO.Code.HoursFormat.Show(day.TotalHours, _f)</div>
                         }
                         @if (day.MoneyEntryCount > 0)
                         {
@@ -157,7 +157,7 @@
                                             }
                                             else
                                             {
-                                                @(entry.p31Hours_Orig.ToString("0.##")) <text>h</text>
+                                                @MO.Code.HoursFormat.Show(entry.p31Hours_Orig, _f)
                                             }
                                         </div>
                                         <button type="button"

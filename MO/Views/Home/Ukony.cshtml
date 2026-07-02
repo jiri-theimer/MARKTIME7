@@ -117,7 +117,7 @@
         <div>@Model.TotalCount @_f.tra("úkonů")</div>
         @if (Model.TotalHours > 0)
         {
-            <div>@_f.tra("Celkem hodin"): <strong class="text-primary">@Model.TotalHours.ToString("0.##") h</strong></div>
+            <div>@_f.tra("Celkem hodin"): <strong class="text-primary">@MO.Code.HoursFormat.Show(Model.TotalHours, _f)</strong></div>
         }
     </div>
 
@@ -178,7 +178,7 @@
                                     }
                                     else
                                     {
-                                        @(entry.p31Hours_Orig.ToString("0.##")) <text>h</text>
+                                        @MO.Code.HoursFormat.Show(entry.p31Hours_Orig, _f)
                                     }
                                 </div>
                             </div>

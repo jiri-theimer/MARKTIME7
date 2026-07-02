@@ -67,8 +67,7 @@ namespace MO.Controllers
                 p32ID = rec.p32ID,
                 p56ID = rec.p56ID,
                 Description = rec.p31Text,
-                Hours = rec.p31Hours_Orig.ToString("0.##",
-                    System.Globalization.CultureInfo.InvariantCulture),
+                Hours = MO.Code.HoursFormat.ShowForInput(rec.p31Hours_Orig, Factory),
                 // Čas od/do záměrně nekopírujeme — bývá specifický pro konkrétní den
             };
 
@@ -283,8 +282,7 @@ namespace MO.Controllers
                 p32ID = rec.p32ID,
                 p56ID = rec.p56ID,
                 Description = rec.p31Text,
-                Hours = rec.p31Hours_Orig.ToString("0.##",
-                    System.Globalization.CultureInfo.InvariantCulture),
+                Hours = MO.Code.HoursFormat.ShowForInput(rec.p31Hours_Orig, Factory),
                 TimeFrom = rec.p31DateTimeFrom_Orig?.ToString("HH:mm"),
                 TimeUntil = rec.p31DateTimeUntil_Orig?.ToString("HH:mm"),
                 IsReadOnly = isReadOnly,
@@ -508,12 +506,9 @@ namespace MO.Controllers
                 ReloadAll(v);
                 return View("EditHours", v);
             }
-            if (string.IsNullOrWhiteSpace(v.Description))
-            {
-                v.Message = Factory.tra("Vyplňte popis úkonu.");
-                ReloadAll(v);
-                return View("EditHours", v);
-            }
+
+            // Popis úkonu není vždy povinný - o tom rozhoduje nastavení aktivity, validaci provede server
+            // (Factory.p31WorksheetBL.SaveOrigRecord); zde jen předáme, co uživatel vyplnil.
 
             // Validace kusovníkových řádků (jen ty vyplněné - prázdné řádky se ignorují)
             string kusovnikError = null;
@@ -561,7 +556,7 @@ namespace MO.Controllers
                 var ret = Factory.p31WorksheetBL.SaveOrigRecord(input, BO.p33IdENUM.Cas, v.ff1?.inputs);
                 if (ret <= 0)
                 {
-                    v.Message = Factory.tra("Úkon se nepodařilo uložit.");
+                    v.Message = GetSaveErrorMessage();
                     ReloadAll(v);
                     return View("EditHours", v);
                 }
@@ -682,12 +677,7 @@ namespace MO.Controllers
                 return View("EditMoney", v);
             }
 
-            if (string.IsNullOrWhiteSpace(v.Description))
-            {
-                v.Message = Factory.tra("Vyplňte popis úkonu.");
-                ReloadAllMoney(v, recSesit);
-                return View("EditMoney", v);
-            }
+            // Popis úkonu není vždy povinný - o tom rozhoduje nastavení aktivity, validaci provede server
 
             // Načíst definice freefields + posbírat hodnoty z formuláře
             v.ff1 = LoadFreeFieldsFor(v.p34ID, v.pid);
@@ -726,7 +716,7 @@ namespace MO.Controllers
                 var ret = Factory.p31WorksheetBL.SaveOrigRecord(input, recSesit.p33ID, v.ff1?.inputs);
                 if (ret <= 0)
                 {
-                    v.Message = Factory.tra("Úkon se nepodařilo uložit.");
+                    v.Message = GetSaveErrorMessage();
                     ReloadAllMoney(v, recSesit);
                     return View("EditMoney", v);
                 }
@@ -816,12 +806,7 @@ namespace MO.Controllers
                 return View("EditKusovnik", v);
             }
 
-            if (string.IsNullOrWhiteSpace(v.Description))
-            {
-                v.Message = Factory.tra("Vyplňte popis úkonu.");
-                ReloadAllKusovnik(v);
-                return View("EditKusovnik", v);
-            }
+            // Popis úkonu není vždy povinný - o tom rozhoduje nastavení aktivity, validaci provede server
 
             v.ff1 = LoadFreeFieldsFor(v.p34ID, v.pid);
             CollectFreeFieldsFromFormInto(v.ff1);
@@ -845,7 +830,7 @@ namespace MO.Controllers
                 var ret = Factory.p31WorksheetBL.SaveOrigRecord(input, BO.p33IdENUM.Kusovnik, v.ff1?.inputs);
                 if (ret <= 0)
                 {
-                    v.Message = Factory.tra("Úkon se nepodařilo uložit.");
+                    v.Message = GetSaveErrorMessage();
                     ReloadAllKusovnik(v);
                     return View("EditKusovnik", v);
                 }
@@ -1089,6 +1074,13 @@ namespace MO.Controllers
                 LoadKusovnikForProject(v);
             }
             LoadExistingKusovnikEntries(v);
+        }
+
+        // Server (BL) při neúspěšném uložení zapíše skutečný důvod (např. povinnost textu dle nastavení
+        // aktivity) do fronty zpráv aktuálního uživatele - tady si ho vyzvedneme, ať to vidí i uživatel MO.
+        private string GetSaveErrorMessage()
+        {
+            return Factory.CurrentUser.GetLastMessageNotify() ?? Factory.tra("Úkon se nepodařilo uložit.");
         }
 
         private DateTime? ParseDate(string s)

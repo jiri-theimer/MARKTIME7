@@ -215,9 +215,9 @@
                     <input type="hidden" asp-for="j19ID" />
                 }
 
-                @* Popis - povinný *@
+                @* Popis - povinnost řídí nastavení aktivity, validaci provede server *@
                 <label class="form-control">
-                    <div class="label"><span class="label-text font-semibold">@_f.tra("Popis") *</span></div>
+                    <div class="label"><span class="label-text font-semibold">@_f.tra("Popis")</span></div>
                     <textarea asp-for="Description" class="textarea textarea-bordered w-full"
                               rows="3" autocapitalize="sentences"></textarea>
                 </label>

@@ -140,10 +140,13 @@
                 <label class="form-control">
                     <div class="label">
                         <span class="label-text font-semibold">@_f.tra("Hodiny") *</span>
-                        <span class="label-text-alt text-base-content/50">např. 1.5 nebo 01:30</span>
+                        <span class="label-text-alt text-base-content/50">
+                            @(MO.Code.HoursFormat.IsHHMM(_f) ? "např. 01:30 nebo 1.5" : "např. 1.5 nebo 01:30")
+                        </span>
                     </div>
                     <input asp-for="Hours" class="input input-bordered w-full"
-                           inputmode="decimal" autocomplete="off" enterkeyhint="next" placeholder="0" />
+                           inputmode="decimal" autocomplete="off" enterkeyhint="next"
+                           placeholder="@(MO.Code.HoursFormat.IsHHMM(_f) ? "00:00" : "0")" />
                 </label>
 
                 @* Čas od - do, volitelné — přepínač *@
@@ -171,9 +174,9 @@
                     </div>
                 </div>
 
-                @* Popis - povinný *@
+                @* Popis - povinnost řídí nastavení aktivity, validaci provede server *@
                 <label class="form-control">
-                    <div class="label"><span class="label-text font-semibold">@_f.tra("Popis") *</span></div>
+                    <div class="label"><span class="label-text font-semibold">@_f.tra("Popis")</span></div>
                     <textarea asp-for="Description" class="textarea textarea-bordered w-full"
                               rows="3" autocapitalize="sentences"></textarea>
                 </label>

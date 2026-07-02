@@ -108,7 +108,7 @@
                     <span class="material-icons-outlined text-base-content/40" style="font-size:18px;">schedule</span>
                     <div class="flex-1">
                         <div class="text-xs text-base-content/50">@_f.tra("Hodiny")</div>
-                        <div class="font-bold text-primary">@Model.Hours h</div>
+                        <div class="font-bold text-primary">@Model.Hours@(MO.Code.HoursFormat.IsHHMM(_f) ? "" : " h")</div>
                     </div>
                     @if (!string.IsNullOrEmpty(Model.TimeFrom) && !string.IsNullOrEmpty(Model.TimeUntil))
                     {

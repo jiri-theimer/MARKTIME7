@@ -32,7 +32,7 @@
                    asp-route-d1="@(new DateTime(Model.Year, Model.Month, 1).ToString("yyyy-MM-dd"))"
                    asp-route-d2="@(new DateTime(Model.Year, Model.Month, 1).AddMonths(1).AddDays(-1).ToString("yyyy-MM-dd"))"
                    asp-route-label="@Model.PageTitle">
-                    @_f.tra("Celkem"): <strong>@monthTotal.ToString("0.##")</strong> h
+                    @_f.tra("Celkem"): <strong>@MO.Code.HoursFormat.Show(monthTotal, _f)</strong>
                 </a>
             </div>
         </div>
@@ -90,7 +90,7 @@
                             @if (hours > 0)
                             {
                                 <div class="text-xs font-bold text-right">
-                                    @hours.ToString("0.##") h
+                                    @MO.Code.HoursFormat.Show(hours, _f)
                                 </div>
                             }
                             @if (moneyCount > 0)
