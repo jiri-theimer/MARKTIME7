@@ -12,6 +12,25 @@
             : "";
     }
 
+    // Kalendář: akce "Index" koliduje s Home/Index, proto tady kontrolujeme i controller.
+    // Přidání/editace úkonu (Ukon/New, Ukon/Edit, Ukon/Copy) se otevírá z kalendáře, takže i tam
+    // má dock položka "Kalendář" zůstat zvýrazněná.
+    var isCalendarActive =
+        (string.Equals(activeController, "Calendar", StringComparison.OrdinalIgnoreCase)
+            && new[] { "Index", "Day", "Week", "ToggleWeekend" }.Any(a => string.Equals(a, activeAction, StringComparison.OrdinalIgnoreCase)))
+        || (string.Equals(activeController, "Ukon", StringComparison.OrdinalIgnoreCase)
+            && new[] { "New", "Edit", "Copy" }.Any(a => string.Equals(a, activeAction, StringComparison.OrdinalIgnoreCase)));
+
+    // Ukony filtrované podle formátu (Hodiny/Peníze/Kusovník) - všechny tři vedou na stejnou akci,
+    // rozlišit aktivní položku jde jen podle query parametru "format".
+    string IsUkonyFormatActive(string formatValue)
+    {
+        if (!string.Equals(activeController, "Home", StringComparison.OrdinalIgnoreCase)) return "";
+        if (!string.Equals(activeAction, "Ukony", StringComparison.OrdinalIgnoreCase)) return "";
+        var currentFormat = Context.Request.Query["format"].ToString();
+        return string.Equals(currentFormat, formatValue) ? "dock-active" : "";
+    }
+
     // Zda uživateli právě běží nějaké stopky - pro vizuální indikaci ikony v navbaru
     var isAuthenticated = User?.Identity?.IsAuthenticated == true;
     var hasRunningStopwatch = isAuthenticated && _f.CurrentUser != null
@@ -180,22 +199,22 @@
             <nav class="dock dock-sm bg-base-100 border-t border-base-300"
                  style="padding-bottom: env(safe-area-inset-bottom);">
 
-                <a asp-controller="Calendar" asp-action="Index" data-mo-cal-link class="@IsActive("Calendar", "Day", "New", "Edit", "Week")">
+                <a asp-controller="Calendar" asp-action="Index" data-mo-cal-link class="@(isCalendarActive ? "dock-active" : "")">
                     <span class="material-icons-outlined" style="font-size:22px;">today</span>
                     <span class="dock-label">@_f.tra("Kalendář")</span>
                 </a>
 
-                <a asp-controller="Home" asp-action="Ukony" asp-route-format="1" class="@IsActive("Ukony")">
+                <a asp-controller="Home" asp-action="Ukony" asp-route-format="1" class="@IsUkonyFormatActive("1")">
                     <span class="material-icons-outlined" style="font-size:22px;">schedule</span>
                     <span class="dock-label">@_f.tra("Hodiny")</span>
                 </a>
 
-                <a asp-controller="Home" asp-action="Ukony" asp-route-format="2" class="@IsActive("Ukony")">
+                <a asp-controller="Home" asp-action="Ukony" asp-route-format="2" class="@IsUkonyFormatActive("2")">
                     <span class="material-icons-outlined" style="font-size:22px;">payments</span>
                     <span class="dock-label">@_f.tra("Peníze")</span>
                 </a>
 
-                <a asp-controller="Home" asp-action="Ukony" asp-route-format="3" class="@IsActive("Ukony")">
+                <a asp-controller="Home" asp-action="Ukony" asp-route-format="3" class="@IsUkonyFormatActive("3")">
                     <span class="material-icons-outlined" style="font-size:22px;">inventory_2</span>
                     <span class="dock-label">@_f.tra("Kusovník")</span>
                 </a>

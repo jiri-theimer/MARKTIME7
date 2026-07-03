@@ -26,9 +26,9 @@
             Kalendář
         </summary>
         <div class="px-3 pb-3 text-sm text-base-content/80" style="white-space:normal;">
-            <p><strong>Den</strong> — zobrazí všechny úkony vykázané v daný den, seřazené od nejnovějšího. Nahoře jsou vidět úkoly s termínem dokončení pro daný den. Kliknutím na jednu z dlaždic sešitu dole založíš nový úkon. Šipky nahoře přepínají den dozadu/dopředu.</p>
-            <p><strong>Týden agenda</strong> — stejné úkony rozdělené po dnech v týdnu. Dnešní den je zvýrazněný barevně. U každého dne je vidět součet hodin, případně počet peněžních úkonů a úkolů s termínem.</p>
-            <p style="margin-bottom:0;"><strong>Měsíc</strong> — mřížka celého měsíce. V každé buňce je vidět počet odpracovaných hodin a malé odznaky pro peněžní úkony a úkoly s termínem. Kliknutím na den se dostaneš do jeho detailu.</p>
+            <p><strong>Den</strong> — zobrazí všechny úkony vykázané v daný den, seřazené od nejnovějšího. Nahoře jsou vidět úkoly s termínem dokončení a kalendářové termíny (schůzky, milníky) pro daný den. Kliknutím na jednu z dlaždic sešitu dole založíš nový úkon. Šipky nahoře přepínají den dozadu/dopředu.</p>
+            <p><strong>Týden agenda</strong> — stejné úkony rozdělené po dnech v týdnu. Dnešní den je zvýrazněný barevně. U každého dne je vidět součet hodin a odznaky pro peněžní úkony, úkoly s termínem a kalendářové termíny.</p>
+            <p style="margin-bottom:0;"><strong>Měsíc</strong> — mřížka celého měsíce. V každé buňce je vidět počet odpracovaných hodin a malé odznaky pro peněžní úkony, úkoly s termínem a kalendářové termíny. Kliknutím na den se dostaneš do jeho detailu.</p>
         </div>
     </details>
 
@@ -39,23 +39,24 @@
             Typy vykazovaných úkonů
         </summary>
         <div class="px-3 pb-3 text-sm text-base-content/80" style="white-space:normal;">
-            <p>Aplikace rozlišuje tři formáty úkonu, podle toho, jaký sešit si zvolíš v obrazovce Den:</p>
+            <p>Aplikace rozlišuje tři formáty úkonu, podle toho, jaký sešit si zvolíš v obrazovce Den (nebo v dolním menu — viz dále):</p>
             <p><strong>Hodiny</strong> — klasické vykázání odpracovaného času. Zadáš projekt, případně aktivitu a úkol, počet hodin (nebo čas od–do) a popis.</p>
             <p><strong>Peníze</strong> — výdaje nebo odměny. Zadáš částku bez DPH a měnu. U sešitů s rozpisem DPH navíc sazbu DPH a částku vč. DPH — chybějící hodnotu si aplikace dopočítá sama. U výdajů lze doplnit kód dokladu a druh úhrady.</p>
             <p><strong>Kusovník</strong> — nejjednodušší typ — zadáš jen počet kusů (např. počet zpracovaných dokladů) a popis.</p>
-            <p style="margin-bottom:0;">Ve formuláři pro hodinový úkon lze navíc zaškrtnout volbu pro vykázání i kusovníkových úkonů — tím se k hodinám přidají i související kusovníkové položky (např. počet vyřízených dokladů v rámci té samé schůzky).</p>
+            <p>Ve formuláři pro hodinový úkon lze navíc zaškrtnout volbu pro vykázání i kusovníkových úkonů — tím se k hodinám přidají i související kusovníkové položky (např. počet vyřízených dokladů v rámci té samé schůzky).</p>
+            <p style="margin-bottom:0;">Sešit lze v editaci úkonu kdykoliv změnit — stačí kliknout na jeho název nahoře formuláře. Otevře se nabídka sešitů; u nového (dosud neuloženého) úkonu se nabízí i sešity jiného formátu — po výběru tě appka rovnou přepne na odpovídající formulář.</p>
         </div>
     </details>
 
-    @* ===== Úkony ===== *@
+    @* ===== Přehledy Hodiny / Peníze / Kusovník ===== *@
     <details class="card bg-base-100 shadow-sm">
         <summary class="p-3 font-semibold" style="cursor:pointer;list-style:none;">
             <span class="material-icons-outlined" style="font-size:18px;vertical-align:middle;">receipt_long</span>
-            Úkony
+            Hodiny / Peníze / Kusovník
         </summary>
         <div class="px-3 pb-3 text-sm text-base-content/80" style="white-space:normal;">
-            <p>Přehled všech tvých vykázaných úkonů (hodinových, peněžních i kusovníkových) v jednom seznamu, seřazený od nejnovějšího.</p>
-            <p>Filtr nahoře umožňuje omezit výpis podle časového období (s rychlými zkratkami Dnes/Tento týden/Tento měsíc/...), stavu úkonu (rozpracované, schválené, neschválené, vyúčtované) a formátu (hodiny/peníze/kusovník). Naposledy použitý filtr se pamatuje i při dalším otevření.</p>
+            <p>Tři samostatné odkazy v dolním menu — každý zobrazí přehled tvých vykázaných úkonů daného formátu, seřazený od nejnovějšího.</p>
+            <p>Filtr nahoře umožňuje omezit výpis podle časového období (s rychlými zkratkami Dnes/Tento týden/Tento měsíc/...), stavu úkonu (rozpracované, schválené, neschválené, vyúčtované) a případně i formátu, pokud bys ho chtěl přepnout přímo v přehledu. Naposledy použitý filtr se pamatuje i při dalším otevření.</p>
             <p style="margin-bottom:0;">Kliknutím na kartu úkonu se dostaneš do jeho detailu, kde jej můžeš upravit nebo smazat.</p>
         </div>
     </details>
@@ -68,7 +69,7 @@
         </summary>
         <div class="px-3 pb-3 text-sm text-base-content/80" style="white-space:normal;">
             <p>Přehled úkolů, které máš přidělené (jako vlastník nebo v jiné roli). Úkoly s termínem dokončení se zobrazují i přímo v kalendáři (Den, Týden, Měsíc).</p>
-            <p>Filtr umožňuje omezit výpis podle termínu a stavu (otevřené / vše / uzavřené). Uzavřené úkoly jsou v seznamu vizuálně odlišené — přeškrtnutý název a zelená ikona.</p>
+            <p>Filtr umožňuje omezit výpis podle termínu a stavu (otevřené / vše / uzavřené). Uzavřené úkoly jsou v seznamu vizuálně odlišené — přeškrtnutý název a zelená ikona; u nich se tlačítko pro vykázání úkonu nenabízí.</p>
             <p style="margin-bottom:0;">V detailu úkolu můžeš změnit jeho název, stav, plánované zahájení, termín dokončení a poznámku. Tlačítko pro vykázání úkonu rovnou založí nový hodinový úkon navázaný na daný projekt a úkol.</p>
         </div>
     </details>
@@ -94,6 +95,18 @@
         </summary>
         <div class="px-3 pb-3 text-sm text-base-content/80" style="white-space:normal;">
             <p style="margin-bottom:0;">Ikona plus vpravo nahoře v hlavičce založí nový úkon na dnešní datum, ve stejném sešitu, jaký jsi naposledy vykazoval — pro rychlé zapsání dalšího úkonu bez zbytečného klikání.</p>
+        </div>
+    </details>
+
+    @* ===== Nastavení ===== *@
+    <details class="card bg-base-100 shadow-sm">
+        <summary class="p-3 font-semibold" style="cursor:pointer;list-style:none;">
+            <span class="material-icons-outlined" style="font-size:18px;vertical-align:middle;">settings</span>
+            Nastavení
+        </summary>
+        <div class="px-3 pb-3 text-sm text-base-content/80" style="white-space:normal;">
+            <p>Dostupné z menu „Více" nebo z profilu. Zatím lze nastavit formát zobrazení hodin v celé aplikaci — buď dekadické číslo (např. 1,5 h), nebo formát HH:MM (např. 01:30).</p>
+            <p style="margin-bottom:0;">Odsud vede i odkaz na změnu přihlašovacího hesla.</p>
         </div>
     </details>
 

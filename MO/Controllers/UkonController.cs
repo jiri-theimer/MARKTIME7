@@ -84,6 +84,16 @@ namespace MO.Controllers
             var last = Factory.p31WorksheetBL.LoadMyLastCreated(false);
             var p34id = last?.p34ID ?? 0;
 
+            if (p34id == 0)
+            {
+                var lisP34 = Factory.p34ActivityGroupBL.GetList_WorksheetEntry_InAllProjects(Factory.CurrentUser.pid);
+                if (lisP34.Count() > 0)
+                {
+                    p34id = lisP34.First().pid;
+                }
+            }
+
+            //BO.Code.File.LogInfo($"p34id: {p34id}");
             return RedirectToAction("New", new { d = DateTime.Today.ToString("yyyy-MM-dd"), p34id });
         }
 
@@ -1127,10 +1137,13 @@ namespace MO.Controllers
             if (v.p34ID <= 0 || v.p41ID <= 0) return;
             if (v.ActivityEntryFlag == (int)BO.p34ActivityEntryFlagENUM.AktivitaSeNezadava) return;
 
+            var recP41 = Factory.p41ProjectBL.Load(v.p41ID);
+
             var lisP32 = Factory.p32ActivityBL.GetList(new BO.myQueryP32
             {
                 p34id = v.p34ID,
-                p41id = v.p41ID
+                p41id = v.p41ID,
+                p61id = recP41?.p61ID ?? 0
             })
                 .OrderBy(p => p.p38Ordinary).ThenBy(p => p.p38Name).ThenBy(p => p.p32Ordinary).ThenBy(p => p.p32Name)
                 .ToList();
