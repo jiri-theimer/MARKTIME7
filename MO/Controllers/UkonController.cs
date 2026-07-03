@@ -561,6 +561,7 @@ namespace MO.Controllers
                     ReloadAll(v);
                     return View("EditHours", v);
                 }
+                v.pid = ret;   // u nového záznamu ID doteď neznáme - potřebujeme ho pro kotvu #entry-{pid} po redirectu
 
                 // Uložit i navazující kusovníkové úkony (přidávají se, existující se nepřepisují)
                 if (v.IsNavicKusovnik && v.KusovnikRows != null && v.KusovnikRows.Count > 0)
@@ -589,7 +590,7 @@ namespace MO.Controllers
             {
                 return Redirect(v.RetD + "#entry-" + v.pid);
             }
-            return RedirectToAction("Day", "Calendar", new { d = v.Date.ToString("yyyy-MM-dd") });
+            return Redirect(Url.Action("Day", "Calendar", new { d = v.Date.ToString("yyyy-MM-dd") }) + "#entry-" + v.pid);
         }
 
 
@@ -722,6 +723,7 @@ namespace MO.Controllers
                     ReloadAllMoney(v, recSesit);
                     return View("EditMoney", v);
                 }
+                v.pid = ret;   // u nového záznamu ID doteď neznáme - potřebujeme ho pro kotvu #entry-{pid} po redirectu
             }
             catch (Exception ex)
             {
@@ -738,7 +740,7 @@ namespace MO.Controllers
             {
                 return Redirect(v.RetD + "#entry-" + v.pid);
             }
-            return RedirectToAction("Day", "Calendar", new { d = v.Date.ToString("yyyy-MM-dd") });
+            return Redirect(Url.Action("Day", "Calendar", new { d = v.Date.ToString("yyyy-MM-dd") }) + "#entry-" + v.pid);
         }
 
 
@@ -837,6 +839,7 @@ namespace MO.Controllers
                     ReloadAllKusovnik(v);
                     return View("EditKusovnik", v);
                 }
+                v.pid = ret;   // u nového záznamu ID doteď neznáme - potřebujeme ho pro kotvu #entry-{pid} po redirectu
             }
             catch (Exception ex)
             {
@@ -853,7 +856,7 @@ namespace MO.Controllers
             {
                 return Redirect(v.RetD + "#entry-" + v.pid);
             }
-            return RedirectToAction("Day", "Calendar", new { d = v.Date.ToString("yyyy-MM-dd") });
+            return Redirect(Url.Action("Day", "Calendar", new { d = v.Date.ToString("yyyy-MM-dd") }) + "#entry-" + v.pid);
         }
 
 

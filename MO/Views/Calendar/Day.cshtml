@@ -142,7 +142,7 @@
             var _children = entry.p33ID == BO.p33IdENUM.Cas
                 ? Model.Entries.Where(e => e.p31MasterID == entry.pid).ToList()
                 : new List<BO.p31Worksheet>();
-            <div class="card bg-base-100 shadow-sm hover:bg-base-300 transition @_trCls">
+            <div id="entry-@entry.pid" class="card bg-base-100 shadow-sm hover:bg-base-300 transition @_trCls">
                 <div class="card-body p-3">
                     <div class="flex items-start gap-2">
 
@@ -371,5 +371,35 @@
             var p = iso.split('-');
             return p[2] + '. ' + p[1] + '. ' + p[0];
         }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var hash = window.location.hash;
+            if (!hash || hash.indexOf('#entry-') !== 0) return;
+
+            var el = document.querySelector(hash);
+            if (!el) return;
+
+            el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+
+            el.classList.add('mo-highlight-flash');
+            setTimeout(function () {
+                el.classList.remove('mo-highlight-flash');
+            }, 2000);
+        });
     </script>
+    <style>
+        @@keyframes moHighlightFlash {
+            0% {
+                box-shadow: 0 0 0 3px rgba(250,204,21,.9);
+            }
+
+            100% {
+                box-shadow: 0 0 0 3px rgba(250,204,21,0);
+            }
+        }
+
+        .mo-highlight-flash {
+            animation: moHighlightFlash 2s ease-out;
+        }
+    </style>
 }
