@@ -198,16 +198,23 @@
             try { localStorage.removeItem('mo-ukony-filter'); } catch (e) { }  // úklid staré (chybné) hodnoty z dřívějška
 
             var params = new URLSearchParams(window.location.search);
-            var hasAnyFilterParam = params.has('d1') || params.has('d2') || params.has('state') || params.has('format');
+            var hasDateOrStateParam = params.has('d1') || params.has('d2') || params.has('state');
 
-            if (!hasAnyFilterParam) {
-                // Na stránku jsme přišli bez filtru v URL (např. z dockové navigace) -
-                // pokud máme uložený poslední filtr, přesměrovat na něj.
+            if (!hasDateOrStateParam) {
+                // Přišli jsme bez období/stavu v URL (typicky z dockové navigace Hodiny/Peníze/
+                // Kusovník, která posílá jen "format") - obnovit uložené období a stav, ale
+                // "format" respektovat z URL, pokud tam je (je to explicitní volba uživatele).
                 var saved = null;
                 try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch (e) { saved = null; }
 
-                if (saved && (saved.d1 || saved.d2 || saved.state || saved.format)) {
-                    var qs = new URLSearchParams(saved).toString();
+                if (saved && (saved.d1 || saved.d2 || saved.state)) {
+                    var restored = {
+                        d1: saved.d1 || '',
+                        d2: saved.d2 || '',
+                        state: saved.state || '0',
+                        format: params.has('format') ? params.get('format') : (saved.format || '0')
+                    };
+                    var qs = new URLSearchParams(restored).toString();
                     window.location.replace(window.location.pathname + '?' + qs);
                     return;
                 }

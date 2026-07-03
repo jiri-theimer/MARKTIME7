@@ -31,7 +31,11 @@
             <li class="list-row items-center">
                 <span class="material-icons-outlined text-base-content/40" style="font-size:18px;">summarize</span>
                 <div class="flex-1">@_f.tra("Vykázané hodiny")</div>
-                <div class="font-bold">@MO.Code.HoursFormat.Show(Model.Hodiny, _f)</div>
+                <a asp-controller="Home" asp-action="Ukony" asp-route-format="1"
+                   asp-route-d1="@Model.d1.ToString("yyyy-MM-dd")" asp-route-d2="@Model.d2.ToString("yyyy-MM-dd")"
+                   class="font-bold text-primary hover:underline">
+                    @MO.Code.HoursFormat.Show(Model.Hodiny, _f)
+                </a>
             </li>
 
             <li class="list-row items-center pl-8">
