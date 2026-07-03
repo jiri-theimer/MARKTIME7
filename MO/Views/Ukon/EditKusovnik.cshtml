@@ -57,14 +57,19 @@
         <div class="card bg-base-100 shadow-sm">
             <div class="card-body gap-3">
 
-                @* Sešit - předvybrán v Day view, zobrazuje se jen informativně *@
+                @* Sešit - klik otevře dialog s výběrem (jen sešity typu Kusovník) *@
                 <input type="hidden" asp-for="p34ID" />
                 @if (!string.IsNullOrEmpty(Model.SelectedSesitText))
                 {
-                    <div class="flex items-center gap-2 px-1 py-1 text-sm text-base-content/70">
-                        <span class="material-icons-outlined" style="font-size:18px;">inventory_2</span>
-                        <span>@Model.SelectedSesitText</span>
-                    </div>
+                    <button type="button" onclick="openSesitDialog()"
+                            class="flex items-center justify-between gap-2 px-1 py-1 text-sm text-base-content/70 w-full"
+                            style="cursor:pointer;background:none;border:none;">
+                        <span class="flex items-center gap-2">
+                            <span class="material-icons-outlined" style="font-size:18px;">inventory_2</span>
+                            <span>@Model.SelectedSesitText</span>
+                        </span>
+                        <span class="material-icons-outlined text-base-content/40" style="font-size:18px;">unfold_more</span>
+                    </button>
                 }
 
                 @* Projekt - mycombo, postback při změně (přenačtení aktivit) *@
@@ -183,11 +188,92 @@
 
 </div>
 
+@* Dialog pro výběr sešitu *@
+<style>
+    #sesitDialog {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 999;
+        background: rgba(0,0,0,.45);
+        align-items: flex-end;
+    }
+
+        #sesitDialog.open {
+            display: flex;
+        }
+
+    #sesitDialogBox {
+        background: #fff;
+        border-radius: 1rem 1rem 0 0;
+        padding: 1.25rem;
+        width: 100%;
+        max-width: 480px;
+        margin: 0 auto;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+</style>
+<div id="sesitDialog" onclick="if(event.target===this) closeSesitDialog()">
+    <div id="sesitDialogBox">
+        <div style="font-weight:600;margin-bottom:1rem;">@_f.tra("Vyberte sešit")</div>
+
+        <div style="display:flex;flex-direction:column;gap:.25rem;margin-bottom:1rem;">
+            @foreach (var s in Model.SesitComboItems)
+            {
+                <button type="button" onclick="selectSesit(@s.Id, '@s.Tag')"
+                        style="text-align:left;padding:.6rem .75rem;border-radius:.5rem;border:none;cursor:pointer;font-size:.9rem;
+                    background:@(s.Id == Model.p34ID ? "#eef2ff" : "transparent");
+                    color:@(s.Id == Model.p34ID ? "#4338ca" : "inherit");
+                    font-weight:@(s.Id == Model.p34ID ? "600" : "400");">
+                    <div>@s.Text</div>
+                    @if (Model.pid == 0)
+                    {
+                        <div style="font-size:.75rem;font-weight:400;color:#9ca3af;">@s.Meta</div>
+                    }
+                </button>
+            }
+        </div>
+
+        <button onclick="closeSesitDialog()"
+                style="width:100%;padding:.5rem;border:1px solid #d1d5db;border-radius:.5rem;font-size:.9rem;cursor:pointer;background:#fff;">
+            @_f.tra("Storno")
+        </button>
+    </div>
+</div>
+
 @section scripts {
     <script>
+        var CURRENT_FORM_TYPE = 'kusovnik';
+
         function toggleDateEdit() {
             var row = document.getElementById('dateEditRow');
             row.style.display = row.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function openSesitDialog() {
+            document.getElementById('sesitDialog').classList.add('open');
+        }
+        function closeSesitDialog() {
+            document.getElementById('sesitDialog').classList.remove('open');
+        }
+        function selectSesit(id, formatTag) {
+            closeSesitDialog();
+
+            if (formatTag !== CURRENT_FORM_TYPE) {
+                var d = document.getElementById('DateHidden')
+                    ? document.getElementById('DateHidden').value
+                    : '@Model.Date.ToString("yyyy-MM-dd")';
+                var p41id = @Model.p41ID;
+                var url = '/Ukon/New?d=' + encodeURIComponent(d) + '&p34id=' + id;
+                if (p41id > 0) url += '&p41id=' + p41id;
+                window.location.href = url;
+                return;
+            }
+
+            document.getElementById('p34ID').value = id;
+            document.getElementById('oper').value = 'p34change';
+            document.getElementById('ukonForm').submit();
         }
 
         function onDateChange(val) {

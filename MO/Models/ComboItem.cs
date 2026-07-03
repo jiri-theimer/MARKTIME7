@@ -23,5 +23,8 @@ namespace MO.Models
         /// Pořadí skupin odpovídá pořadí prvního výskytu GroupBy v kolekci.
         /// </summary>
         public string GroupBy { get; set; }
+
+        /// <summary>Obecný textový příznak pro specifické scénáře (např. kategorie formátu úkonu u výběru sešitu)</summary>
+        public string Tag { get; set; }
     }
 }

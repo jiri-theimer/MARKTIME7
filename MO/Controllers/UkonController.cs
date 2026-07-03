@@ -414,6 +414,38 @@ namespace MO.Controllers
                 return View("EditHours", v);
             }
 
+            // --- Postback: změna sešitu (přenačtení projektů + aktivit) ---
+            if (oper == "p34change")
+            {
+                LoadSesitList(v);
+                LoadProjects(v);
+
+                if (v.p41ID > 0 && !v.ProjectComboItems.Any(p => p.Id == v.p41ID))
+                {
+                    // Projekt pro nově vybraný sešit není nabízen
+                    v.p41ID = 0;
+                    v.SelectedProjectText = null;
+                    v.p32ID = 0;
+                    v.SelectedActivityText = null;
+                }
+
+                LoadActivities(v);
+                if (v.p32ID > 0 && !v.ActivityComboItems.Any(a => a.Id == v.p32ID))
+                {
+                    v.p32ID = 0;
+                    v.SelectedActivityText = null;
+                }
+
+                LoadKusovnikOffer(v);
+                if (v.IsNavicKusovnik)
+                {
+                    v.p34ID_Kusovnik = 0;
+                    LoadKusovnikForProject(v);
+                }
+
+                return View("EditHours", v);
+            }
+
             // --- Postback: zapnutí/vypnutí "K hodinám vykázat i kusovníkové úkony" ---
             if (oper == "kusovnik_toggle")
             {
@@ -617,6 +649,27 @@ namespace MO.Controllers
                 return View("EditMoney", v);
             }
 
+            // --- Postback: změna sešitu (přenačtení projektů + aktivit, jiný sešit může mít i jiná pravidla DPH/kódu dokladu) ---
+            if (oper == "p34change")
+            {
+                ReloadAllMoney(v, recSesit);
+
+                if (v.p41ID > 0 && !v.ProjectComboItems.Any(p => p.Id == v.p41ID))
+                {
+                    v.p41ID = 0;
+                    v.SelectedProjectText = null;
+                    v.p32ID = 0;
+                    v.SelectedActivityText = null;
+                }
+                else if (v.p32ID > 0 && !v.ActivityComboItems.Any(a => a.Id == v.p32ID))
+                {
+                    v.p32ID = 0;
+                    v.SelectedActivityText = null;
+                }
+
+                return View("EditMoney", v);
+            }
+
             // --- Skutečné uložení ---
             // Ověřit oprávnění i při POSTu (obrana proti manipulaci s formulářem)
             if (v.pid > 0)
@@ -757,6 +810,27 @@ namespace MO.Controllers
                 ReloadAllKusovnik(v);
 
                 if (v.p32ID > 0 && !v.ActivityComboItems.Any(a => a.Id == v.p32ID))
+                {
+                    v.p32ID = 0;
+                    v.SelectedActivityText = null;
+                }
+
+                return View("EditKusovnik", v);
+            }
+
+            // --- Postback: změna sešitu (přenačtení projektů + aktivit) ---
+            if (oper == "p34change")
+            {
+                ReloadAllKusovnik(v);
+
+                if (v.p41ID > 0 && !v.ProjectComboItems.Any(p => p.Id == v.p41ID))
+                {
+                    v.p41ID = 0;
+                    v.SelectedProjectText = null;
+                    v.p32ID = 0;
+                    v.SelectedActivityText = null;
+                }
+                else if (v.p32ID > 0 && !v.ActivityComboItems.Any(a => a.Id == v.p32ID))
                 {
                     v.p32ID = 0;
                     v.SelectedActivityText = null;
@@ -915,16 +989,23 @@ namespace MO.Controllers
         // ===== Pomocné metody =====
         private void LoadSesitList(EntryHoursViewModel v)
         {
-            var lisP34 = Factory.p34ActivityGroupBL
-                .GetList_WorksheetEntry_InAllProjects(Factory.CurrentUser.pid)
-                .ToList();
+            var lisP34Raw = Factory.p34ActivityGroupBL
+                .GetList_WorksheetEntry_InAllProjects(Factory.CurrentUser.pid);
+
+            // U nového (dosud neuloženého) záznamu nabídnout sešity všech formátů - výběr jiného
+            // formátu pak ve view vede na přesměrování do odpovídajícího formuláře. U editace
+            // existujícího záznamu nabízet jen sešity stejného formátu (Hodiny) - v místě.
+            var lisP34 = (v.pid == 0
+                ? lisP34Raw
+                : lisP34Raw.Where(s => s.p33ID == BO.p33IdENUM.Cas)).ToList();
 
             v.SesitComboItems = lisP34.Select(s => new ComboItem
             {
                 Id = s.pid,
                 Code = s.p34Code,
                 Text = s.p34Name,
-                Meta = s.p33Name      // typ úkonu (Čas / Peníze / Kusovník)
+                Meta = s.p33Name,      // typ úkonu (Hodiny / Peníze / Kusovník) - zobrazeno v dialogu
+                Tag = GetFormatTag(s.p33ID)
             }).ToList();
 
             if (v.p34ID > 0)
@@ -1050,7 +1131,9 @@ namespace MO.Controllers
             {
                 p34id = v.p34ID,
                 p41id = v.p41ID
-            }).ToList();
+            })
+                .OrderBy(p => p.p38Ordinary).ThenBy(p => p.p38Name).ThenBy(p => p.p32Ordinary).ThenBy(p => p.p32Name)
+                .ToList();
 
             v.ActivityComboItems = lisP32.Select(a => new ComboItem
             {
@@ -1087,7 +1170,16 @@ namespace MO.Controllers
         // aktivity) do fronty zpráv aktuálního uživatele - tady si ho vyzvedneme, ať to vidí i uživatel MO.
         private string GetSaveErrorMessage()
         {
-            return Factory.CurrentUser.GetLastMessageNotify() ?? Factory.tra("Úkon se nepodařilo uložit.");
+            var msg = Factory.CurrentUser.GetLastMessageNotify();
+            if (string.IsNullOrEmpty(msg))
+            {
+                return Factory.tra("Úkon se nepodařilo uložit.");
+            }
+
+            // Zprávu jsme si vyzvedli do v.Message - vyprázdnit frontu, ať ji layout nevypíše ještě
+            // jednou přes centrální cyklus Messages4Notify (odtud plyne duplicita hlášky).
+            Factory.CurrentUser.Messages4Notify = null;
+            return msg;
         }
 
         private DateTime? ParseDate(string s)
@@ -1158,7 +1250,9 @@ namespace MO.Controllers
             var lisP32 = Factory.p32ActivityBL.GetList(new BO.myQueryP32
             {
                 p34id = v.p34ID_Kusovnik
-            }).ToList();
+            })
+                .OrderBy(p => p.p38Ordinary).ThenBy(p => p.p38Name).ThenBy(p => p.p32Ordinary).ThenBy(p => p.p32Name)
+                .ToList();
 
             v.KusovnikActivityComboItems = lisP32.Select(a => new ComboItem
             {
@@ -1236,6 +1330,17 @@ namespace MO.Controllers
             return p33id == BO.p33IdENUM.PenizeBezDPH || p33id == BO.p33IdENUM.PenizeVcDPHRozpisu;
         }
 
+        // Kategorie formuláře, do kterého daný typ sešitu patří - používá se při výběru sešitu
+        // v editaci úkonu: v rámci stejné kategorie stačí postback (přenačíst nabídku), mezi
+        // kategoriemi je nutné přesměrovat na jiný formulář (Hodiny/Peníze/Kusovník mají odlišná pole).
+        private static string GetFormatTag(BO.p33IdENUM p33id)
+        {
+            if (p33id == BO.p33IdENUM.Cas) return "hours";
+            if (IsMoneyType(p33id)) return "money";
+            if (p33id == BO.p33IdENUM.Kusovnik) return "kusovnik";
+            return "other";
+        }
+
         private double ParseDecimal(string s)
         {
             if (string.IsNullOrWhiteSpace(s)) return 0;
@@ -1247,17 +1352,20 @@ namespace MO.Controllers
 
         private void LoadSesitListMoney(EntryMoneyViewModel v)
         {
-            var lisP34 = Factory.p34ActivityGroupBL
-                .GetList_WorksheetEntry_InAllProjects(Factory.CurrentUser.pid)
-                .Where(s => IsMoneyType(s.p33ID))
-                .ToList();
+            var lisP34Raw = Factory.p34ActivityGroupBL
+                .GetList_WorksheetEntry_InAllProjects(Factory.CurrentUser.pid);
+
+            var lisP34 = (v.pid == 0
+                ? lisP34Raw
+                : lisP34Raw.Where(s => IsMoneyType(s.p33ID))).ToList();
 
             v.SesitComboItems = lisP34.Select(s => new ComboItem
             {
                 Id = s.pid,
                 Code = s.p34Code,
                 Text = s.p34Name,
-                Meta = s.p33Name
+                Meta = s.p33Name,
+                Tag = GetFormatTag(s.p33ID)
             }).ToList();
 
             if (v.p34ID > 0)
@@ -1318,7 +1426,9 @@ namespace MO.Controllers
             {
                 p34id = v.p34ID,
                 p41id = v.p41ID
-            }).ToList();
+            })
+                .OrderBy(p => p.p38Ordinary).ThenBy(p => p.p38Name).ThenBy(p => p.p32Ordinary).ThenBy(p => p.p32Name)
+                .ToList();
 
             v.ActivityComboItems = lisP32.Select(a => new ComboItem
             {
@@ -1408,16 +1518,20 @@ namespace MO.Controllers
 
         private void LoadSesitListKusovnik(EntryKusovnikViewModel v)
         {
-            var lisP34 = Factory.p34ActivityGroupBL
-                .GetList_WorksheetEntry_InAllProjects(Factory.CurrentUser.pid)
-                .Where(s => s.p33ID == BO.p33IdENUM.Kusovnik)
-                .ToList();
+            var lisP34Raw = Factory.p34ActivityGroupBL
+                .GetList_WorksheetEntry_InAllProjects(Factory.CurrentUser.pid);
+
+            var lisP34 = (v.pid == 0
+                ? lisP34Raw
+                : lisP34Raw.Where(s => s.p33ID == BO.p33IdENUM.Kusovnik)).ToList();
 
             v.SesitComboItems = lisP34.Select(s => new ComboItem
             {
                 Id = s.pid,
                 Code = s.p34Code,
-                Text = s.p34Name
+                Text = s.p34Name,
+                Meta = s.p33Name,
+                Tag = GetFormatTag(s.p33ID)
             }).ToList();
 
             if (v.p34ID > 0)
@@ -1476,7 +1590,9 @@ namespace MO.Controllers
             {
                 p34id = v.p34ID,
                 p41id = v.p41ID
-            }).ToList();
+            })
+                .OrderBy(p => p.p38Ordinary).ThenBy(p => p.p38Name).ThenBy(p => p.p32Ordinary).ThenBy(p => p.p32Name)
+                .ToList();
 
             v.ActivityComboItems = lisP32.Select(a => new ComboItem
             {

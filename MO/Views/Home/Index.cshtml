@@ -22,10 +22,22 @@
             <span class="font-medium">@_f.tra("Kalendář")</span>
         </div>
     </a>
-    <a asp-action="Ukony" class="card bg-base-100 shadow-sm hover:bg-base-300 transition">
+    <a asp-action="Ukony" asp-route-format="1" class="card bg-base-100 shadow-sm hover:bg-base-300 transition">
         <div class="card-body items-center text-center p-4">
-            <span class="material-icons-outlined text-primary" style="font-size:32px;">receipt_long</span>
-            <span class="font-medium">@_f.tra("Úkony")</span>
+            <span class="material-icons-outlined text-primary" style="font-size:32px;">schedule</span>
+            <span class="font-medium">@_f.tra("Hodiny")</span>
+        </div>
+    </a>
+    <a asp-action="Ukony" asp-route-format="2" class="card bg-base-100 shadow-sm hover:bg-base-300 transition">
+        <div class="card-body items-center text-center p-4">
+            <span class="material-icons-outlined text-primary" style="font-size:32px;">payments</span>
+            <span class="font-medium">@_f.tra("Peníze")</span>
+        </div>
+    </a>
+    <a asp-action="Ukony" asp-route-format="3" class="card bg-base-100 shadow-sm hover:bg-base-300 transition">
+        <div class="card-body items-center text-center p-4">
+            <span class="material-icons-outlined text-primary" style="font-size:32px;">inventory_2</span>
+            <span class="font-medium">@_f.tra("Kusovník")</span>
         </div>
     </a>
     <a asp-action="Tasks" class="card bg-base-100 shadow-sm hover:bg-base-300 transition">

@@ -31,7 +31,7 @@
 
 <div class="grid gap-3">
 
-    <div class="text-lg font-bold">@_f.tra("Úkony")</div>
+    <div class="text-lg font-bold">@Model.PageTitle</div>
 
     @* ===== Filtr ===== *@
     <form method="get" asp-action="Ukony" class="card bg-base-100 shadow-sm">
@@ -125,7 +125,7 @@
     {
         <div role="alert" class="alert alert-warning">
             <span class="material-icons-outlined" style="font-size:18px;">warning</span>
-            <span>@_f.tra("Výsledek je oříznut na prvních 300 záznamů - zúžte prosím filtr.")</span>
+            <span>@_f.tra("Výsledek je oříznut na prvních 1000 záznamů - zúžte prosím filtr.")</span>
         </div>
     }
 

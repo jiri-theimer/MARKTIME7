@@ -23,7 +23,13 @@ namespace MO.Controllers
 
             var v = new UkonyListViewModel
             {
-                PageTitle = Factory.tra("Úkony"),
+                PageTitle = format switch
+                {
+                    1 => Factory.tra("Hodiny"),
+                    2 => Factory.tra("Peníze"),
+                    3 => Factory.tra("Kusovník"),
+                    _ => Factory.tra("Úkony")
+                },
                 HideHeaderTitle = true,
                 DateFrom = ParseDate(d1) ?? defaultMonthStart,
                 DateTo = ParseDate(d2) ?? defaultMonthEnd,
@@ -165,7 +171,14 @@ namespace MO.Controllers
 
             if (Factory.j02UserBL.Save(c, null) <= 0)
             {
-                v.Message = Factory.CurrentUser.GetLastMessageNotify() ?? Factory.tra("Nastavení se nepodařilo uložit.");
+                var msg = Factory.CurrentUser.GetLastMessageNotify();
+                v.Message = string.IsNullOrEmpty(msg) ? Factory.tra("Nastavení se nepodařilo uložit.") : msg;
+                if (!string.IsNullOrEmpty(msg))
+                {
+                    // Zpráva je teď ve v.Message - vyprázdnit frontu, ať ji layout nevypíše ještě
+                    // jednou přes centrální cyklus Messages4Notify.
+                    Factory.CurrentUser.Messages4Notify = null;
+                }
                 return View(v);
             }
 

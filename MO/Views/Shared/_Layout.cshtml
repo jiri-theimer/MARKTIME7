@@ -185,19 +185,24 @@
                     <span class="dock-label">@_f.tra("Kalendář")</span>
                 </a>
 
-                <a asp-controller="Home" asp-action="Ukony" class="@IsActive("Ukony")">
-                    <span class="material-icons-outlined" style="font-size:22px;">receipt_long</span>
-                    <span class="dock-label">@_f.tra("Úkony")</span>
+                <a asp-controller="Home" asp-action="Ukony" asp-route-format="1" class="@IsActive("Ukony")">
+                    <span class="material-icons-outlined" style="font-size:22px;">schedule</span>
+                    <span class="dock-label">@_f.tra("Hodiny")</span>
+                </a>
+
+                <a asp-controller="Home" asp-action="Ukony" asp-route-format="2" class="@IsActive("Ukony")">
+                    <span class="material-icons-outlined" style="font-size:22px;">payments</span>
+                    <span class="dock-label">@_f.tra("Peníze")</span>
+                </a>
+
+                <a asp-controller="Home" asp-action="Ukony" asp-route-format="3" class="@IsActive("Ukony")">
+                    <span class="material-icons-outlined" style="font-size:22px;">inventory_2</span>
+                    <span class="dock-label">@_f.tra("Kusovník")</span>
                 </a>
 
                 <a asp-controller="Home" asp-action="Tasks" class="@IsActive("Tasks")">
                     <span class="material-icons-outlined" style="font-size:22px;">task_alt</span>
                     <span class="dock-label">@_f.tra("Úkoly")</span>
-                </a>
-
-                <a asp-controller="Home" asp-action="MyProfile" class="@IsActive("MyProfile")">
-                    <span class="material-icons-outlined" style="font-size:22px;">person</span>
-                    <span class="dock-label">@_f.tra("Profil")</span>
                 </a>
 
                 @* Více otevře pravý drawer - používá label pro otevření checkbox toggle *@
@@ -222,6 +227,12 @@
                 </div>
 
                 <ul class="menu menu-lg gap-1 p-0">
+                    <li>
+                        <a asp-controller="Home" asp-action="MyProfile" class="@IsActive("MyProfile")">
+                            <span class="material-icons-outlined" style="font-size:20px;">person</span>
+                            @_f.tra("Profil")
+                        </a>
+                    </li>
                     <li>
                         <a asp-controller="Stopky" asp-action="Index" class="@IsActive("Stopky")">
                             <span class="material-icons-outlined" style="font-size:20px;">history_toggle_off</span>
