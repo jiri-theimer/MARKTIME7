@@ -16,6 +16,7 @@ namespace MO.Controllers
             var v = new HomeIndexViewModel
             {
                 PageTitle = Factory.tra("Domů"),
+                HideHeaderTitle = true,
                 Stats = BuildStats(monthStart, monthEnd, Factory.tra("Tento měsíc"))
             };
             return View(v);

@@ -75,6 +75,23 @@
                 background: #dc2626;
                 animation: stopkyPulse 1.6s infinite;
             }
+
+            /* Sbalovací sekce (<details>/<summary>) se šipkou vpravo - sdíleno napříč MO */
+            .mo-details-summary {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: .5rem;
+            }
+
+            .mo-details-chevron {
+                transition: transform .15s ease;
+                flex-shrink: 0;
+            }
+
+            details[open] > .mo-details-summary .mo-details-chevron {
+                transform: rotate(180deg);
+            }
     </style>
 
     @* Nastavit skin ihned, ještě před vykreslením - žádné probliknutí *@

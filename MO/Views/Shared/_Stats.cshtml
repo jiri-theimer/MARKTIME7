@@ -1,24 +1,6 @@
 @model StatsViewModel
 @inject BL.Factory _f
 
-<style>
-    .mo-details-summary {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: .5rem;
-    }
-
-    .mo-details-chevron {
-        transition: transform .15s ease;
-        flex-shrink: 0;
-    }
-
-    details[open] > .mo-details-summary .mo-details-chevron {
-        transform: rotate(180deg);
-    }
-</style>
-
 @* ===== Souhrn hodin - sbalovací ===== *@
 <details class="card bg-base-100 shadow-sm" open>
     <summary class="mo-details-summary p-3 font-semibold" style="cursor:pointer;list-style:none;">

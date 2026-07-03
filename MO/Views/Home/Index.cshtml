@@ -2,17 +2,21 @@
 @inject BL.Factory _f
 
 <div class="grid gap-3">
-    <div class="card bg-base-100 shadow-sm">
-        <div class="card-body">
-            <h2 class="card-title">
+    <details class="card bg-base-100 shadow-sm">
+        <summary class="mo-details-summary p-3" style="cursor:pointer;list-style:none;">
+            <h2 class="card-title" style="margin-bottom:0;">
                 @_f.tra("Vítejte")@if (_f.CurrentUser != null) {
                 <span>, @_f.CurrentUser.FullNameAsc</span>
             }
         </h2>
+        <span class="material-icons-outlined mo-details-chevron text-base-content/50" style="font-size:20px;">expand_more</span>
+    </summary>
+    <div class="px-3 pb-3">
         <p class="text-base-content/70">
             @_f.tra("Toto je mobilní rozhraní MARKtime. Použijte spodní menu pro navigaci.")
         </p>
     </div>
+</details>
 </div>
 
 <partial name="_Stats" model="Model.Stats" />
