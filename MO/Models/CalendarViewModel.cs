@@ -22,6 +22,14 @@ namespace MO.Models
             return lisTasks?.Count(t => t.p56PlanUntil?.Date == d.Date) ?? 0;
         }
 
+        /// <summary>Kalendářové termíny (o22Milestone) v zobrazeném období - jen pro čtení.</summary>
+        public IEnumerable<BO.o22Milestone> lisMilestones { get; set; } = new List<BO.o22Milestone>();
+
+        public int GetMilestonesCount(DateTime d)
+        {
+            return lisMilestones?.Count(m => m.o22PlanFrom?.Date == d.Date) ?? 0;
+        }
+
         // Pomocné: rychlý lookup hodin a stavů pro den
         public double GetHours(DateTime d)
         {

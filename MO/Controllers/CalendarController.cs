@@ -76,6 +76,14 @@ namespace MO.Controllers
                 global_d2 = v.d2
             }).ToList();
 
+            var lisMilestones = Factory.o22MilestoneBL.GetList(new BO.myQueryO22
+            {
+                j02id = Factory.CurrentUser.pid,
+                period_field = "o22PlanFrom",
+                global_d1 = v.d1,
+                global_d2 = v.d2
+            }).ToList();
+
             var dayCount = (v.d2 - v.d1).Days + 1;
             for (int i = 0; i < dayCount; i++)
             {
@@ -92,7 +100,8 @@ namespace MO.Controllers
                     Entries = lisP31.Where(p => p.p31Date.Date == date.Date)
                         .OrderBy(p => p.p31DateTimeFrom_Orig ?? p.p31Date.AddHours(23.99))
                         .ToList(),
-                    TasksDue = lisTasks.Where(t => t.p56PlanUntil?.Date == date.Date).ToList()
+                    TasksDue = lisTasks.Where(t => t.p56PlanUntil?.Date == date.Date).ToList(),
+                    Milestones = lisMilestones.Where(m => m.o22PlanFrom?.Date == date.Date).ToList()
                 };
                 wd.TotalHours = wd.Entries.Sum(e => e.p31Hours_Orig);
                 v.Days.Add(wd);
@@ -153,6 +162,14 @@ namespace MO.Controllers
                 global_d2 = date
             }).ToList();
 
+            v.Milestones = Factory.o22MilestoneBL.GetList(new BO.myQueryO22
+            {
+                j02id = Factory.CurrentUser.pid,
+                period_field = "o22PlanFrom",
+                global_d1 = date,
+                global_d2 = date
+            }).ToList();
+
             return View(v);
         }
 
@@ -184,6 +201,15 @@ namespace MO.Controllers
             {
                 j02id = Factory.CurrentUser.pid,
                 period_field = "p56PlanUntil",
+                global_d1 = v.d1,
+                global_d2 = v.d2
+            }).ToList();
+
+            // Kalendářové termíny (o22Milestone) v zobrazeném období
+            v.lisMilestones = Factory.o22MilestoneBL.GetList(new BO.myQueryO22
+            {
+                j02id = Factory.CurrentUser.pid,
+                period_field = "o22PlanFrom",
                 global_d1 = v.d1,
                 global_d2 = v.d2
             }).ToList();

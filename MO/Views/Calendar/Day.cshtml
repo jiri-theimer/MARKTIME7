@@ -87,6 +87,35 @@
         </div>
     }
 
+    @* Kalendářové termíny (o22Milestone) tento den - jen pro čtení *@
+    @if (Model.Milestones.Count > 0)
+    {
+        <div class="card bg-base-100 shadow-sm">
+            <div class="card-body p-3 gap-1">
+                <div class="text-xs uppercase text-base-content/50 font-semibold">
+                    @_f.tra("Termíny")
+                </div>
+                @foreach (var m in Model.Milestones)
+                {
+                    <div class="flex items-center gap-2 text-sm px-2 py-1.5 rounded bg-info/10">
+                        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background-color:@m.o21Color;flex-shrink:0;"></span>
+                        <div class="min-w-0 flex-1">
+                            <div class="truncate">@m.o22Name</div>
+                            @if (!string.IsNullOrEmpty(m.p41Name))
+                            {
+                                <div class="text-xs text-base-content/50 truncate">@m.ProjectWithClient</div>
+                            }
+                        </div>
+                        @if (!m.o22IsAllDay && m.o22PlanFrom.HasValue)
+                        {
+                            <div class="text-xs text-base-content/50 shrink-0">@m.o22PlanFrom.Value.ToString("HH:mm")</div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
     @* Seznam úkonů *@
     @if (!Model.Entries.Any())
     {

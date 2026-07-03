@@ -13,6 +13,9 @@ namespace MO.Models
         /// <summary>Úkoly přidělené uživateli s termínem (p56PlanUntil) tento den.</summary>
         public List<BO.p56Task> TasksDue { get; set; } = new List<BO.p56Task>();
 
+        /// <summary>Kalendářové termíny (o22Milestone) tento den - jen pro čtení.</summary>
+        public List<BO.o22Milestone> Milestones { get; set; } = new List<BO.o22Milestone>();
+
         public string DayName => System.Globalization.CultureInfo.CurrentUICulture
             .DateTimeFormat.GetDayName(Date.DayOfWeek);
     }

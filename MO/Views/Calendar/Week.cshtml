@@ -67,7 +67,7 @@
                         <span class="badge badge-error badge-outline badge-sm">@day.HolidayName</span>
                     }
                 </div>
-                @if (day.TotalHours > 0 || day.MoneyEntryCount > 0 || day.TasksDue.Count > 0)
+                @if (day.TotalHours > 0 || day.MoneyEntryCount > 0 || day.TasksDue.Count > 0 || day.Milestones.Count > 0)
                 {
                     <div class="flex items-center gap-1.5">
                         @if (day.TotalHours > 0)
@@ -86,6 +86,13 @@
                             <div class="badge badge-sm gap-0.5 @(isToday ? "bg-primary-content/20 border-none text-primary-content" : "badge-warning")"
                                  title="@day.TasksDue.Count @_f.tra("úkolů s termínem")">
                                 <span class="material-icons-outlined" style="font-size:12px;">task_alt</span>@day.TasksDue.Count
+                            </div>
+                        }
+                        @if (day.Milestones.Count > 0)
+                        {
+                            <div class="badge badge-sm gap-0.5 @(isToday ? "bg-primary-content/20 border-none text-primary-content" : "badge-info")"
+                                 title="@day.Milestones.Count @_f.tra("termínů v kalendáři")">
+                                <span class="material-icons-outlined" style="font-size:12px;">event</span>@day.Milestones.Count
                             </div>
                         }
                     </div>
@@ -107,6 +114,23 @@
                                 <span class="text-base-content/40 shrink-0">@task.p41Name</span>
                             }
                         </a>
+                    }
+                </div>
+            }
+
+            @if (day.Milestones.Count > 0)
+            {
+                <div class="grid gap-1 mt-1 mb-1">
+                    @foreach (var m in day.Milestones)
+                    {
+                        <div class="flex items-center gap-2 text-xs px-2 py-1 rounded bg-info/10">
+                            <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background-color:@m.o21Color;flex-shrink:0;"></span>
+                            <span class="truncate flex-1">@m.o22Name</span>
+                            @if (!string.IsNullOrEmpty(m.p41Name))
+                            {
+                                <span class="text-base-content/40 shrink-0">@m.p41Name</span>
+                            }
+                        </div>
                     }
                 </div>
             }

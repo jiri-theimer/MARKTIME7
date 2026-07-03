@@ -70,6 +70,7 @@
                 var hours = Model.GetHours(d);
                 var moneyCount = Model.GetMoneyEntryCount(d);
                 var tasksCount = Model.GetTasksDueCount(d);
+                var milestonesCount = Model.GetMilestonesCount(d);
                 var isHoliday = Model.IsHoliday(d);
                 var isToday = d.Date == today;
                 var isWeekend = d.DayOfWeek == DayOfWeek.Saturday || d.DayOfWeek == DayOfWeek.Sunday;
@@ -105,6 +106,13 @@
                                 <div class="badge badge-warning badge-xs gap-0.5" style="font-size:0.6rem;padding:0 4px;line-height:1.4;"
                                      title="@tasksCount @_f.tra("úkolů s termínem")">
                                     <span class="material-icons-outlined" style="font-size:9px;">task_alt</span>@tasksCount
+                                </div>
+                            }
+                            @if (milestonesCount > 0)
+                            {
+                                <div class="badge badge-info badge-xs gap-0.5" style="font-size:0.6rem;padding:0 4px;line-height:1.4;"
+                                     title="@milestonesCount @_f.tra("termínů v kalendáři")">
+                                    <span class="material-icons-outlined" style="font-size:9px;">event</span>@milestonesCount
                                 </div>
                             }
                         </div>
