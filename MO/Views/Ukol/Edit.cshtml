@@ -33,14 +33,6 @@
         </a>
     </div>
 
-    @if (!string.IsNullOrEmpty(Model.Message))
-    {
-        <div role="alert" class="alert alert-warning">
-            <span class="material-icons-outlined" style="font-size:18px;">warning</span>
-            <span>@Model.Message</span>
-        </div>
-    }
-
     @if (Model.pid > 0)
     {
         <div class="card bg-base-100 shadow-sm">
@@ -69,15 +61,18 @@
         {
             <div class="card bg-base-100 shadow-sm">
                 <div class="card-body p-3 gap-2">
-                    @if (!string.IsNullOrEmpty(Model.PlanFrom) || !string.IsNullOrEmpty(Model.PlanUntil))
+                    @if (!string.IsNullOrEmpty(Model.PlanFrom))
                     {
                         <div>
-                            <div class="text-xs text-base-content/50">@_f.tra("Termín")</div>
-                            <div>
-                                @(!string.IsNullOrEmpty(Model.PlanFrom) ? DateTime.Parse(Model.PlanFrom).ToString("d. M. yyyy") : "—")
-                                –
-                                @(!string.IsNullOrEmpty(Model.PlanUntil) ? DateTime.Parse(Model.PlanUntil).ToString("d. M. yyyy") : "—")
-                            </div>
+                            <div class="text-xs text-base-content/50">@_f.tra("Plánované zahájení úkolu")</div>
+                            <div>@DateTime.Parse(Model.PlanFrom).ToString("d. M. yyyy")</div>
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.PlanUntil))
+                    {
+                        <div>
+                            <div class="text-xs text-base-content/50">@_f.tra("Termín (plánované dokončení)")</div>
+                            <div>@DateTime.Parse(Model.PlanUntil).ToString("d. M. yyyy")</div>
                         </div>
                     }
                     @if (!string.IsNullOrEmpty(Model.Notepad))
@@ -117,11 +112,11 @@
 
                         <div class="grid grid-cols-2 gap-2">
                             <label class="form-control">
-                                <div class="label"><span class="label-text">@_f.tra("Termín od")</span></div>
+                                <div class="label"><span class="label-text">@_f.tra("Plánované zahájení úkolu")</span></div>
                                 <input type="date" asp-for="PlanFrom" class="input input-bordered input-sm w-full" />
                             </label>
                             <label class="form-control">
-                                <div class="label"><span class="label-text">@_f.tra("Termín do")</span></div>
+                                <div class="label"><span class="label-text">@_f.tra("Termín (plánované dokončení)")</span></div>
                                 <input type="date" asp-for="PlanUntil" class="input input-bordered input-sm w-full" />
                             </label>
                         </div>

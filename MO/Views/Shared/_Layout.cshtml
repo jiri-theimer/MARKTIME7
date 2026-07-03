@@ -228,9 +228,8 @@
                             @_f.tra("Stopky")
                         </a>
                     </li>
-                    @* Placeholder položky - postupně doplníš až přibudou další pohledy *@
                     <li>
-                        <a class="text-base-content/60">
+                        <a asp-controller="Home" asp-action="Settings" class="@IsActive("Settings")">
                             <span class="material-icons-outlined" style="font-size:20px;">settings</span>
                             @_f.tra("Nastavení")
                         </a>

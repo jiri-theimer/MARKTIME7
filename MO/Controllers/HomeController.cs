@@ -133,6 +133,117 @@ namespace MO.Controllers
         }
 
 
+        // ===== Nastavení - zatím jen formát hodin, časem přibudou další parametry profilu =====
+        public IActionResult Settings()
+        {
+            var v = new SettingsViewModel
+            {
+                PageTitle = Factory.tra("Nastavení"),
+                HideHeaderTitle = true,
+                HoursFormat = Factory.CurrentUser.j02DefaultHoursFormat == "T" ? "T" : "N"
+            };
+            return View(v);
+        }
+
+        [HttpPost]
+        public IActionResult Settings(SettingsViewModel v)
+        {
+            v.PageTitle = Factory.tra("Nastavení");
+            v.HideHeaderTitle = true;
+
+            var c = Factory.j02UserBL.Load(Factory.CurrentUser.pid);
+            if (c == null)
+            {
+                v.Message = Factory.tra("Nastavení se nepodařilo uložit.");
+                return View(v);
+            }
+
+            c.j02DefaultHoursFormat = v.HoursFormat == "T" ? "T" : "N";
+
+            if (Factory.j02UserBL.Save(c, null) <= 0)
+            {
+                v.Message = Factory.CurrentUser.GetLastMessageNotify() ?? Factory.tra("Nastavení se nepodařilo uložit.");
+                return View(v);
+            }
+
+            v.MessageSuccess = Factory.tra("Nastavení bylo uloženo.");
+            return View(v);
+        }
+
+
+        // ===== Změna přihlašovacího hesla =====
+        public IActionResult ChangePassword()
+        {
+            var v = new ChangePasswordViewModel
+            {
+                PageTitle = Factory.tra("Změna přihlašovacího hesla"),
+                HideHeaderTitle = true
+            };
+
+            if (Factory.CurrentUser.j02IsMustChangePassword)
+            {
+                v.Message = Factory.tra("Administrátor nastavil, že si musíte změnit přihlašovací heslo.");
+            }
+
+            return View(v);
+        }
+
+        [HttpPost]
+        public IActionResult ChangePassword(ChangePasswordViewModel v)
+        {
+            v.PageTitle = Factory.tra("Změna přihlašovacího hesla");
+            v.HideHeaderTitle = true;
+
+            if (string.IsNullOrEmpty(v.NewPassword) || string.IsNullOrEmpty(v.VerifyPassword))
+            {
+                v.Message = Factory.tra("Vyplňte nové heslo a jeho ověření.");
+                return View(v);
+            }
+
+            var cPwdSupp = new BL.Code.PasswordSupport();
+
+            var res = cPwdSupp.CheckPassword(v.NewPassword);
+            if (!res.issuccess)
+            {
+                v.Message = res.Message;
+                return View(v);
+            }
+
+            if (v.NewPassword != v.VerifyPassword)
+            {
+                v.Message = Factory.tra("Heslo nesouhlasí s jeho ověřením.");
+                return View(v);
+            }
+
+            res = cPwdSupp.VerifyUserPassword(v.CurrentPassword, Factory.CurrentUser.j02Login, Factory.CurrentUser);
+            if (!res.issuccess)
+            {
+                v.Message = res.Message;
+                return View(v);
+            }
+
+            var resSave = Factory.j02UserBL.SaveNewPassword(Factory.CurrentUser.pid, v.NewPassword, false);
+            if (!resSave.issuccess)
+            {
+                v.Message = resSave.Message;
+                return View(v);
+            }
+
+            var recJ02 = Factory.j02UserBL.Load(Factory.CurrentUser.pid);
+            if (recJ02 != null)
+            {
+                recJ02.j02IsMustChangePassword = false;
+                Factory.j02UserBL.Save(recJ02, null);
+            }
+
+            v.CurrentPassword = null;
+            v.NewPassword = null;
+            v.VerifyPassword = null;
+            v.MessageSuccess = Factory.tra("Heslo bylo změněno.");
+            return View(v);
+        }
+
+
         public IActionResult More()
         {
             var v = new BaseViewModel { PageTitle = Factory.tra("Více") };

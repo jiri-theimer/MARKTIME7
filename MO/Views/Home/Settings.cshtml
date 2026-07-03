@@ -1,0 +1,62 @@
+﻿@model SettingsViewModel
+
+<div class="grid gap-3">
+
+    <div class="flex items-center justify-between">
+        <a asp-controller="Calendar" asp-action="Index" class="btn btn-ghost btn-sm">
+            <span class="material-icons-outlined" style="font-size:20px;">arrow_back</span>
+            Zpět
+        </a>
+        <div class="text-lg font-bold">Nastavení</div>
+        <div style="width:64px;"></div>
+    </div>
+
+    <form method="post" asp-action="Settings">
+        <div class="card bg-base-100 shadow-sm">
+            <div class="card-body p-3 gap-2">
+
+                <div class="font-semibold text-sm">Formát hodin</div>
+                <div class="text-xs text-base-content/50 -mt-1">
+                    Jak se mají hodiny zobrazovat v celé aplikaci.
+                </div>
+
+                <label class="flex items-center gap-3 py-2 cursor-pointer">
+                    <input type="radio" name="HoursFormat" value="N" class="radio radio-primary"
+                           checked="@(Model.HoursFormat != "T")" />
+                    <div>
+                        <div class="font-medium">Dekadické číslo</div>
+                        <div class="text-xs text-base-content/50">např. 1,5 h</div>
+                    </div>
+                </label>
+
+                <label class="flex items-center gap-3 py-2 cursor-pointer">
+                    <input type="radio" name="HoursFormat" value="T" class="radio radio-primary"
+                           checked="@(Model.HoursFormat == "T")" />
+                    <div>
+                        <div class="font-medium">Formát HH:MM</div>
+                        <div class="text-xs text-base-content/50">např. 01:30</div>
+                    </div>
+                </label>
+
+            </div>
+        </div>
+
+        <div class="grid gap-2 mt-3">
+            <button type="submit" class="btn btn-primary btn-block">
+                <span class="material-icons-outlined" style="font-size:20px;">check</span>
+                Uložit
+            </button>
+        </div>
+    </form>
+
+    <a asp-controller="Home" asp-action="ChangePassword" class="card bg-base-100 shadow-sm hover:bg-base-300 transition">
+        <div class="card-body p-3 flex-row items-center justify-between">
+            <div class="flex items-center gap-2">
+                <span class="material-icons-outlined text-base-content/60" style="font-size:20px;">lock_reset</span>
+                <span class="font-medium">Změna přihlašovacího hesla</span>
+            </div>
+            <span class="material-icons-outlined text-base-content/40" style="font-size:20px;">chevron_right</span>
+        </div>
+    </a>
+
+</div>
