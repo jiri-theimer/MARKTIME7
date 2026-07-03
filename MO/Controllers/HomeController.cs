@@ -9,7 +9,15 @@ namespace MO.Controllers
     {
         public IActionResult Index()
         {
-            var v = new BaseViewModel { PageTitle = Factory.tra("Domů") };
+            var today = DateTime.Today;
+            var monthStart = new DateTime(today.Year, today.Month, 1);
+            var monthEnd = monthStart.AddMonths(1).AddDays(-1);
+
+            var v = new HomeIndexViewModel
+            {
+                PageTitle = Factory.tra("Domů"),
+                Stats = BuildStats(monthStart, monthEnd, Factory.tra("Tento měsíc"))
+            };
             return View(v);
         }
 

@@ -93,7 +93,6 @@ namespace MO.Controllers
                 }
             }
 
-            //BO.Code.File.LogInfo($"p34id: {p34id}");
             return RedirectToAction("New", new { d = DateTime.Today.ToString("yyyy-MM-dd"), p34id });
         }
 
@@ -1138,13 +1137,29 @@ namespace MO.Controllers
             if (v.ActivityEntryFlag == (int)BO.p34ActivityEntryFlagENUM.AktivitaSeNezadava) return;
 
             var recP41 = Factory.p41ProjectBL.Load(v.p41ID);
+            var p61id = recP41?.p61ID ?? 0;
 
             var lisP32 = Factory.p32ActivityBL.GetList(new BO.myQueryP32
             {
                 p34id = v.p34ID,
                 p41id = v.p41ID,
-                p61id = recP41?.p61ID ?? 0
-            })
+                p61id = p61id
+            }).ToList();
+
+            // Pojistka: kombinace sešit + projekt + cluster (p61id) může legitimně vrátit prázdno
+            // (typicky když se sešit "uhodne" jinak, než by si ho uživatel vybral ručně - např. rychlé
+            // přidání přes "+" bere sešit z posledního vykázaného úkonu bez ohledu na projekt).
+            // V takovém případě je lepší nabídnout aktivity bez omezení clusterem než prázdný seznam.
+            if (lisP32.Count == 0 && p61id > 0)
+            {
+                lisP32 = Factory.p32ActivityBL.GetList(new BO.myQueryP32
+                {
+                    p34id = v.p34ID,
+                    p41id = v.p41ID
+                }).ToList();
+            }
+
+            lisP32 = lisP32
                 .OrderBy(p => p.p38Ordinary).ThenBy(p => p.p38Name).ThenBy(p => p.p32Ordinary).ThenBy(p => p.p32Name)
                 .ToList();
 
