@@ -29,6 +29,7 @@ namespace MO.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Edit(UkolViewModel v, string oper)
         {
             var rec = Factory.p56TaskBL.Load(v.pid);

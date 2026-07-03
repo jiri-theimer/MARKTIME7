@@ -41,6 +41,7 @@ namespace MO.Controllers
 
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public ActionResult UserLogin(LoginViewModel v, string returnurl, string oper, string culture)
         {
             if (oper == "postback")
@@ -257,6 +258,7 @@ namespace MO.Controllers
 
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult SaveLang(string culture)
         {
             var allowed = new HashSet<string> { "cs-CZ", "en-US", "sk-SK" };

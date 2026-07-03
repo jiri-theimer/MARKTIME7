@@ -386,6 +386,7 @@ namespace MO.Controllers
 
         // ===== Postback / uložení hodinového úkonu =====
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult SaveHours(EntryHoursViewModel v, string oper)
         {
             // --- Postback: změna projektu (přenačtení aktivit + úkolů) ---
@@ -594,6 +595,7 @@ namespace MO.Controllers
 
         // ===== Postback / uložení peněžního úkonu =====
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult SaveMoney(EntryMoneyViewModel v, string oper)
         {
             // Sešit určuje konkrétní typ (PenizeBezDPH / PenizeVcDPHRozpisu) a zda jde o výdaj či odměnu
@@ -742,6 +744,7 @@ namespace MO.Controllers
 
         // ===== Postback / uložení kusovníkového úkonu =====
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult SaveKusovnik(EntryKusovnikViewModel v, string oper)
         {
             var recSesit = v.p34ID > 0 ? Factory.p34ActivityGroupBL.Load(v.p34ID) : null;
@@ -868,6 +871,7 @@ namespace MO.Controllers
 
         // ===== Smazání =====
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Delete(int id, string d, string ret = null, string retd = null)
         {
             var rec = Factory.p31WorksheetBL.Load(id);

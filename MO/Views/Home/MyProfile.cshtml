@@ -59,9 +59,28 @@
                         <div>@Model.RecJ02?.j04Name</div>
                     </div>
                 </li>
+                <li class="list-row">
+                    <span class="material-icons-outlined text-base-content/60">schedule</span>
+                    <div>
+                        <div class="text-xs text-base-content/60">@_f.tra("Formát hodin")</div>
+                        <div>
+                            @(Model.RecJ02?.j02DefaultHoursFormat == "T" ? _f.tra("Formát HH:MM") : _f.tra("Dekadické číslo"))
+                        </div>
+                    </div>
+                </li>
             </ul>
         </div>
     </div>
+
+    <a asp-controller="Home" asp-action="Settings" class="card bg-base-100 shadow-sm hover:bg-base-300 transition">
+        <div class="card-body p-3 flex-row items-center justify-between">
+            <div class="flex items-center gap-2">
+                <span class="material-icons-outlined text-base-content/60" style="font-size:20px;">settings</span>
+                <span class="font-medium">@_f.tra("Nastavení")</span>
+            </div>
+            <span class="material-icons-outlined text-base-content/40" style="font-size:20px;">chevron_right</span>
+        </div>
+    </a>
 
     @* Browser / klient info *@
     @if (Model.client_info != null)

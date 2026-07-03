@@ -31,12 +31,15 @@ namespace MO.Controllers
                 FormatFilter = format
             };
 
+            const int maxRows = 1000;
+
             var mq = new BO.myQueryP31
             {
                 j02id = Factory.CurrentUser.pid,
                 global_d1 = v.DateFrom,
                 global_d2 = v.DateTo,
-                p31statequery = v.StateFilter
+                p31statequery = v.StateFilter,
+                explicit_orderby = "a.p31ID DESC"
             };
 
             var lis = Factory.p31WorksheetBL.GetList(mq).AsEnumerable();
@@ -48,12 +51,11 @@ namespace MO.Controllers
                 case 3: lis = lis.Where(e => e.p33ID == BO.p33IdENUM.Kusovnik); break;
             }
 
-            var lisAll = lis.OrderByDescending(e => e.pid).ToList();
+            var lisAll = lis.ToList();
 
             v.TotalCount = lisAll.Count;
             v.TotalHours = lisAll.Where(e => e.p33ID == BO.p33IdENUM.Cas).Sum(e => e.p31Hours_Orig);
 
-            const int maxRows = 300;
             v.IsTruncated = lisAll.Count > maxRows;
             v.Entries = lisAll.Take(maxRows).ToList();
 
@@ -146,6 +148,7 @@ namespace MO.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Settings(SettingsViewModel v)
         {
             v.PageTitle = Factory.tra("Nastavení");
@@ -189,6 +192,7 @@ namespace MO.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult ChangePassword(ChangePasswordViewModel v)
         {
             v.PageTitle = Factory.tra("Změna přihlašovacího hesla");

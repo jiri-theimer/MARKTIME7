@@ -13,6 +13,7 @@ namespace MO.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult Index(StopkyViewModel v, string oper, int p68id)
         {
             // Nejprve uložit rozpracované změny (text/aktivita/projekt/ruční čas) ze všech řádků,

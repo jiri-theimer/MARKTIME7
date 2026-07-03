@@ -33,6 +33,7 @@ namespace MO.Controllers
 
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult ToggleWeekend(string d, string view)
         {
             var current = Factory.CBL.LoadUserParamBool("mo-calendar-showweekend", false);
@@ -59,7 +60,8 @@ namespace MO.Controllers
             {
                 j02id = Factory.CurrentUser.pid,
                 global_d1 = v.d1,
-                global_d2 = v.d2
+                global_d2 = v.d2,
+                explicit_orderby = "a.p31ID DESC"
             }).ToList();
 
             var lisC26 = Factory.c26HolidayBL.GetList(new BO.myQueryC26
@@ -131,11 +133,10 @@ namespace MO.Controllers
             {
                 j02id = Factory.CurrentUser.pid,
                 global_d1 = date,
-                global_d2 = date
+                global_d2 = date,
+                explicit_orderby = "a.p31ID DESC"
             };
-            v.Entries = Factory.p31WorksheetBL.GetList(mq)
-                .OrderByDescending(p => p.pid)
-                .ToList();
+            v.Entries = Factory.p31WorksheetBL.GetList(mq).ToList();
 
             v.TotalHours = v.Entries.Sum(e => e.p31Hours_Orig);
 
@@ -182,7 +183,8 @@ namespace MO.Controllers
             {
                 j02id = Factory.CurrentUser.pid,
                 global_d1 = v.d1,
-                global_d2 = v.d2
+                global_d2 = v.d2,
+                explicit_orderby = "a.p31ID DESC"
             }).ToList();
 
             // Denní souhrny
