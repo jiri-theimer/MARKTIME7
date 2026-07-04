@@ -167,6 +167,10 @@
                                 {
                                     <div>@Html.Raw(_symbol)</div>
                                 }
+                                @if (entry.o27ID_Last > 0)
+                                {
+                                    <span class="material-icons-outlined text-base-content/40" style="font-size:16px;" title="@_f.tra("Obsahuje přílohu")">attach_file</span>
+                                }
                                 <div class="font-bold text-primary text-sm">
                                     @if (entry.p33ID == BO.p33IdENUM.PenizeBezDPH || entry.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu)
                                     {

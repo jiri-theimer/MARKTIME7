@@ -218,7 +218,8 @@
                     <a asp-controller="Ukon" asp-action="DownloadAttachment" asp-route-guid="@att.o27Guid"
                        target="_blank" class="flex items-center gap-2 text-sm hover:underline">
                         <span class="material-icons-outlined text-base-content/40" style="font-size:18px;">description</span>
-                        <span class="truncate">@att.o27OriginalFileName</span>
+                        <span class="truncate flex-1">@att.o27OriginalFileName</span>
+                        <span class="text-xs text-base-content/40 shrink-0">@MO.Code.FileSizeFormat.Show(att.o27FileSize)</span>
                     </a>
                 }
             </div>

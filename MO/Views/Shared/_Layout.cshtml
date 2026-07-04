@@ -99,6 +99,39 @@
                 --btn-color: var(--color-success);
                 --btn-fg: var(--color-success-content);
             }
+
+            /* Neurčitý loading overlay (např. nahrávání přílohy) */
+            #mo-upload-overlay {
+                display: none;
+                position: fixed;
+                inset: 0;
+                z-index: 9999;
+                background: rgba(0,0,0,.55);
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 1rem;
+                color: #fff;
+            }
+
+                #mo-upload-overlay.open {
+                    display: flex;
+                }
+
+            #mo-upload-spinner {
+                width: 42px;
+                height: 42px;
+                border-radius: 50%;
+                border: 4px solid rgba(255,255,255,.3);
+                border-top-color: #fff;
+                animation: moSpin .8s linear infinite;
+            }
+
+            @@keyframes moSpin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
     </style>
 
     @* Nastavit skin ihned, ještě před vykreslením - žádné probliknutí *@
@@ -112,6 +145,12 @@
     </script>
 </head>
 <body class="min-h-screen bg-base-200" style="overflow-x:hidden;">
+
+    @* Neurčitý loading overlay - použití: moShowUploadOverlay('Nahrávám přílohu...') *@
+    <div id="mo-upload-overlay">
+        <div id="mo-upload-spinner"></div>
+        <div id="mo-upload-overlay-text"></div>
+    </div>
 
     <div class="drawer drawer-end">
         <input id="mo-drawer" type="checkbox" class="drawer-toggle" />
@@ -317,6 +356,7 @@
     </div>
 
     <script src="~/js/mo-prefs.js" asp-append-version="true"></script>
+    <script src="~/js/mo-upload-overlay.js" asp-append-version="true"></script>
     <script src="~/js/mo-double-submit-guard.js" asp-append-version="true"></script>
 
     @await RenderSectionAsync("scripts", required: false)

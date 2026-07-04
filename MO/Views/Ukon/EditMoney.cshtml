@@ -258,6 +258,7 @@
                             <div class="flex items-center gap-2 text-sm">
                                 <span class="material-icons-outlined text-base-content/40" style="font-size:18px;">description</span>
                                 <span class="flex-1 truncate">@att.p85FreeText01</span>
+                                <span class="text-xs text-base-content/40 shrink-0">@MO.Code.FileSizeFormat.Show(att.p85FreeNumber01)</span>
                                 <button type="button" class="btn btn-ghost btn-xs btn-square"
                                         onclick="submitOper('delete_staged_@att.pid')">
                                     <span class="material-icons-outlined" style="font-size:16px;color:var(--color-error,#dc2626);">delete</span>
@@ -271,12 +272,18 @@
                     <div class="text-sm text-base-content/50 italic">@_f.tra("Zatím žádné přílohy (např. fotka účtenky).")</div>
                 }
 
-                <label class="btn btn-primary btn-sm btn-block mt-1" style="cursor:pointer;">
-                    <span class="material-icons-outlined" style="font-size:18px;">add_a_photo</span>
-                    @_f.tra("Přidat přílohu")
-                    <input type="file" name="stagingFile" form="ukonForm" accept="image/*" capture="environment"
-                           style="display:none;" onchange="submitOper('stage_attachment')" />
-                </label>
+                <input type="file" id="stagingFileInput" name="stagingFile" form="ukonForm" accept="image/*"
+                       style="display:none;" onchange="moShowUploadOverlay('@_f.tra("Nahrávám přílohu...")'); submitOper('stage_attachment')" />
+                <div class="grid grid-cols-2 gap-2 mt-1">
+                    <button type="button" class="btn btn-primary btn-sm" onclick="pickAttachmentFile('stagingFileInput', true)">
+                        <span class="material-icons-outlined" style="font-size:18px;">photo_camera</span>
+                        @_f.tra("Vyfotit")
+                    </button>
+                    <button type="button" class="btn btn-primary btn-outline btn-sm" onclick="pickAttachmentFile('stagingFileInput', false)">
+                        <span class="material-icons-outlined" style="font-size:18px;">photo_library</span>
+                        @_f.tra("Vybrat soubor")
+                    </button>
+                </div>
             </div>
         </div>
     }
@@ -299,6 +306,7 @@
                                    target="_blank" class="flex-1 truncate hover:underline">
                                     @att.o27OriginalFileName
                                 </a>
+                                <span class="text-xs text-base-content/40 shrink-0">@MO.Code.FileSizeFormat.Show(att.o27FileSize)</span>
                                 <form method="post" asp-action="DeleteAttachment" style="display:inline;"
                                       onsubmit="return confirm('@_f.tra("Opravdu smazat tuto přílohu?")');">
                                     <input type="hidden" name="pid" value="@Model.pid" />
@@ -322,12 +330,18 @@
                     <input type="hidden" name="pid" value="@Model.pid" />
                     <input type="hidden" name="ret" value="@Model.Ret" />
                     <input type="hidden" name="retd" value="@Model.RetD" />
-                    <label class="btn btn-primary btn-sm btn-block mt-1" style="cursor:pointer;">
-                        <span class="material-icons-outlined" style="font-size:18px;">add_a_photo</span>
-                        @_f.tra("Přidat přílohu")
-                        <input type="file" name="file" accept="image/*" capture="environment"
-                               style="display:none;" onchange="document.getElementById('uploadAttachmentForm').submit();" />
-                    </label>
+                    <input type="file" id="uploadAttachmentInput" name="file" accept="image/*"
+                           style="display:none;" onchange="moShowUploadOverlay('@_f.tra("Nahrávám přílohu...")'); document.getElementById('uploadAttachmentForm').submit();" />
+                    <div class="grid grid-cols-2 gap-2 mt-1">
+                        <button type="button" class="btn btn-primary btn-sm" onclick="pickAttachmentFile('uploadAttachmentInput', true)">
+                            <span class="material-icons-outlined" style="font-size:18px;">photo_camera</span>
+                            @_f.tra("Vyfotit")
+                        </button>
+                        <button type="button" class="btn btn-primary btn-outline btn-sm" onclick="pickAttachmentFile('uploadAttachmentInput', false)">
+                            <span class="material-icons-outlined" style="font-size:18px;">photo_library</span>
+                            @_f.tra("Vybrat soubor")
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
@@ -465,6 +479,19 @@
         function submitOper(oper) {
             document.getElementById('oper').value = oper;
             document.getElementById('ukonForm').submit();
+        }
+
+        // Jedno skryté file pole slouží pro obě tlačítka (Vyfotit / Vybrat soubor) - "capture"
+        // se nastaví (nebo odebere) těsně před otevřením výběru, ať se prohlížeč nezachová
+        // pokaždé stejně a uživatel měl vždy obě možnosti k dispozici.
+        function pickAttachmentFile(inputId, useCamera) {
+            var input = document.getElementById(inputId);
+            if (useCamera) {
+                input.setAttribute('capture', 'environment');
+            } else {
+                input.removeAttribute('capture');
+            }
+            input.click();
         }
 
         // Parsovat částku - "1234,56" / "1234.56" → desetinné číslo
