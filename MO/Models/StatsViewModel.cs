@@ -6,6 +6,9 @@ namespace MO.Models
         public DateTime d2 { get; set; }
         public string PeriodLabel { get; set; }
 
+        /// <summary>true = sekce "Souhrn hodin" v _Stats.cshtml bude ve výchozím stavu sbalená (Home/Index)</summary>
+        public bool CollapsedByDefault { get; set; }
+
         // Vykázané hodiny
         public double Hodiny { get; set; }
         public double HodinyFa { get; set; }

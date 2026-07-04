@@ -19,6 +19,7 @@ namespace MO.Controllers
                 HideHeaderTitle = true,
                 Stats = BuildStats(monthStart, monthEnd, Factory.tra("Tento měsíc"))
             };
+            v.Stats.CollapsedByDefault = true;
             return View(v);
         }
 

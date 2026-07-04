@@ -2,7 +2,7 @@
 @inject BL.Factory _f
 
 @* ===== Souhrn hodin - sbalovací ===== *@
-<details class="card bg-base-100 shadow-sm" open>
+<details class="card bg-base-100 shadow-sm" @Html.Raw(Model.CollapsedByDefault ? "" : "open")>
     <summary class="mo-details-summary p-3 font-semibold" style="cursor:pointer;list-style:none;">
         <span>@Model.PeriodLabel</span>
         <span class="material-icons-outlined mo-details-chevron text-base-content/50" style="font-size:20px;">expand_more</span>
