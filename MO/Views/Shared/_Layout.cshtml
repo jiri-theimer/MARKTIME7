@@ -132,6 +132,54 @@
                     transform: rotate(360deg);
                 }
             }
+
+            /* Drawer (menu "Více") - zkompilované CSS používá moderní allow-discrete/@@starting-style
+                       přechod pro visibility/opacity, který u některých (hlavně mobilních) prohlížečů při
+                       prvním otevření po načtení stránky nesprávně vůbec nezobrazí panel - až po dalším
+                       překreslení. Vypnutím přechodu se panel zobrazí okamžitě, bez animace, ale spolehlivě. */
+            .drawer-side {
+                transition: none !important;
+            }
+
+            /* Drawer řízený přímo přes JS třídu (viz moOpenDrawer/moCloseDrawer) - nezávisí na
+                       CSS :checked triku, který se na některých zařízeních ukázal jako nespolehlivý. */
+            #mo-drawer-side {
+                /* Vynutit pozici a rozměry přes position:fixed, nezávisle na CSS grid mechanismu
+                           (.drawer/.drawer-end), který se u některých prohlížečů při úplně prvním
+                           vykreslení stránky uplatnil nesprávně (panel se objevil vlevo). Overlay a
+                           samotný panel (aside) se pozicují každý zvlášť, ať to nezávisí na flex/grid. */
+                position: fixed !important;
+                inset: 0 !important;
+                width: 100% !important;
+                height: 100dvh !important;
+            }
+
+                #mo-drawer-side .drawer-overlay {
+                    position: fixed !important;
+                    inset: 0 !important;
+                }
+
+                #mo-drawer-side > aside {
+                    position: fixed !important;
+                    top: 0 !important;
+                    right: 0 !important;
+                    left: auto !important;
+                    height: 100dvh !important;
+                    translate: 0 !important;
+                    transform: none !important;
+                    transition: none !important;
+                }
+
+                #mo-drawer-side.mo-open {
+                    visibility: visible !important;
+                    opacity: 1 !important;
+                    pointer-events: auto !important;
+                }
+
+                    #mo-drawer-side.mo-open > *:not(.drawer-overlay) {
+                        translate: 0 !important;
+                        transform: none !important;
+                    }
     </style>
 
     @* Nastavit skin ihned, ještě před vykreslením - žádné probliknutí *@
@@ -145,6 +193,26 @@
     </script>
 </head>
 <body class="min-h-screen bg-base-200" style="overflow-x:hidden;">
+
+    @* Drawer "Více" - řízeno přímo přes JS třídu (ne přes CSS :checked trik), inline skript
+       přímo v layoutu (ne v cachovaném externím souboru), aby fungovalo spolehlivě i při
+       problémech s načítáním/cachováním externích JS souborů. *@
+    <script>
+            function moOpenDrawer(e) {
+                if (e) e.preventDefault();
+                var side = document.getElementById('mo-drawer-side');
+                if (side) side.classList.add('mo-open');
+                var cb = document.getElementById('mo-drawer');
+                if (cb) cb.checked = true;
+            }
+            function moCloseDrawer(e) {
+                if (e) e.preventDefault();
+                var side = document.getElementById('mo-drawer-side');
+                if (side) side.classList.remove('mo-open');
+                var cb = document.getElementById('mo-drawer');
+                if (cb) cb.checked = false;
+            }
+    </script>
 
     @* Neurčitý loading overlay - použití: moShowUploadOverlay('Nahrávám přílohu...') *@
     <div id="mo-upload-overlay">
@@ -287,8 +355,9 @@
                     <span class="dock-label">@_f.tra("Úkoly")</span>
                 </a>
 
-                @* Více otevře pravý drawer - používá label pro otevření checkbox toggle *@
-                <label for="mo-drawer" class="cursor-pointer">
+                @* Více otevře pravý drawer - onclick navíc k label/checkbox mechanismu, ať to
+                   funguje spolehlivě i kdyby checkbox trik selhal *@
+                <label for="mo-drawer" class="cursor-pointer" onclick="moOpenDrawer(event)">
                     <span class="material-icons-outlined" style="font-size:22px;">menu</span>
                     <span class="dock-label">@_f.tra("Více")</span>
                 </label>
@@ -297,13 +366,13 @@
         </div>
 
         @* ===== Drawer "Více" (pravý panel) ===== *@
-        <div class="drawer-side z-50">
-            <label for="mo-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
+        <div class="drawer-side z-50" id="mo-drawer-side">
+            <label for="mo-drawer" aria-label="close sidebar" class="drawer-overlay" onclick="moCloseDrawer(event)"></label>
 
             <aside class="bg-base-100 min-h-full w-72 p-4">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-lg font-bold">@_f.tra("Více")</h2>
-                    <label for="mo-drawer" class="btn btn-ghost btn-sm btn-circle">
+                    <label for="mo-drawer" class="btn btn-ghost btn-sm btn-circle" onclick="moCloseDrawer(event)">
                         <span class="material-icons-outlined" style="font-size:20px;">close</span>
                     </label>
                 </div>
