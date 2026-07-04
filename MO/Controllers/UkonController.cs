@@ -51,6 +51,7 @@ namespace MO.Controllers
                     j27ID = rec.j27ID_Billing_Orig,
                     DocumentCode = null,   // kód dokladu záměrně nekopírujeme
                     j19ID = rec.j19ID,
+                    UploadGuid = Guid.NewGuid().ToString()
                 };
 
                 ReloadAllMoney(vm);
@@ -211,7 +212,8 @@ namespace MO.Controllers
                 Date = ParseDate(d) ?? DateTime.Today,
                 PageTitle = Factory.tra("Nový úkon"),
                 p34ID = p34id,
-                p41ID = p41id
+                p41ID = p41id,
+                UploadGuid = Guid.NewGuid().ToString()
             };
 
             // výchozí měna - domácí měna licence
@@ -350,6 +352,8 @@ namespace MO.Controllers
                 Ret = ret,
                 RetD = retd
             };
+
+            v.Attachments = Factory.o27AttachmentBL.GetList(new BO.myQueryO27 { entity = "p31", recpid = rec.pid }).ToList();
 
             ReloadAllMoney(v, sesit);
             return View(isReadOnly ? "ViewMoney" : "EditMoney", v);
@@ -638,10 +642,67 @@ namespace MO.Controllers
         // ===== Postback / uložení peněžního úkonu =====
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult SaveMoney(EntryMoneyViewModel v, string oper)
+        public async Task<IActionResult> SaveMoney(EntryMoneyViewModel v, string oper, IFormFile stagingFile)
         {
             // Sešit určuje konkrétní typ (PenizeBezDPH / PenizeVcDPHRozpisu) a zda jde o výdaj či odměnu
             var recSesit = v.p34ID > 0 ? Factory.p34ActivityGroupBL.Load(v.p34ID) : null;
+
+            // Přílohy: u uloženého záznamu jde o commitnuté (o27Attachment), u dosud neuloženého
+            // o dočasně nahrané (p85Tempbox pod UploadGuid) - znovu načíst po každém postbacku.
+            if (v.pid > 0)
+            {
+                v.Attachments = Factory.o27AttachmentBL.GetList(new BO.myQueryO27 { entity = "p31", recpid = v.pid }).ToList();
+            }
+            else if (!string.IsNullOrEmpty(v.UploadGuid))
+            {
+                v.StagedAttachments = Factory.p85TempboxBL.GetList(v.UploadGuid).ToList();
+            }
+
+            // --- Postback: nahrát přílohu do staging area (jen dosud neuložený záznam) ---
+            if (oper == "stage_attachment")
+            {
+                if (v.pid <= 0 && !string.IsNullOrEmpty(v.UploadGuid) && stagingFile != null && stagingFile.Length > 0)
+                {
+                    var tempFileName = Guid.NewGuid().ToString() + System.IO.Path.GetExtension(stagingFile.FileName);
+                    var tempFullPath = System.IO.Path.Combine(Factory.TempFolder, tempFileName);
+
+                    using (var stream = new FileStream(tempFullPath, FileMode.Create))
+                    {
+                        await stagingFile.CopyToAsync(stream);
+                    }
+
+                    Factory.p85TempboxBL.Save(new BO.p85Tempbox
+                    {
+                        p85GUID = v.UploadGuid,
+                        p85FreeText01 = stagingFile.FileName,
+                        p85FreeText02 = stagingFile.ContentType,
+                        p85FreeText03 = tempFileName,
+                        p85FreeNumber01 = stagingFile.Length
+                    });
+
+                    v.StagedAttachments = Factory.p85TempboxBL.GetList(v.UploadGuid).ToList();
+                }
+
+                ReloadAllMoney(v, recSesit);
+                return View("EditMoney", v);
+            }
+
+            // --- Postback: odebrat dosud nahraný, ale ještě necommitnutý soubor ---
+            if (!string.IsNullOrEmpty(oper) && oper.StartsWith("delete_staged_"))
+            {
+                if (int.TryParse(oper.Substring("delete_staged_".Length), out var p85id))
+                {
+                    Factory.p85TempboxBL.VirtualDelete(p85id);
+                }
+
+                if (!string.IsNullOrEmpty(v.UploadGuid))
+                {
+                    v.StagedAttachments = Factory.p85TempboxBL.GetList(v.UploadGuid).ToList();
+                }
+
+                ReloadAllMoney(v, recSesit);
+                return View("EditMoney", v);
+            }
 
             // --- Postback: změna projektu (přenačtení aktivit + úkolů) ---
             if (oper == "p41change")
@@ -776,6 +837,8 @@ namespace MO.Controllers
                 input.j19ID = v.j19ID;
             }
 
+            var wasNew = v.pid == 0;
+
             try
             {
                 var ret = Factory.p31WorksheetBL.SaveOrigRecord(input, recSesit.p33ID, v.ff1?.inputs);
@@ -786,6 +849,12 @@ namespace MO.Controllers
                     return View("EditMoney", v);
                 }
                 v.pid = ret;   // u nového záznamu ID doteď neznáme - potřebujeme ho pro kotvu #entry-{pid} po redirectu
+
+                // Nový záznam - commitnout přílohy dočasně nahrané před uložením (viz UploadGuid)
+                if (wasNew && !string.IsNullOrEmpty(v.UploadGuid))
+                {
+                    Factory.o27AttachmentBL.SaveDropzoneFromTemp(v.UploadGuid, "p31", ret);
+                }
             }
             catch (Exception ex)
             {
@@ -979,6 +1048,102 @@ namespace MO.Controllers
                 return Redirect(retd);
             }
             return RedirectToAction("Day", "Calendar", new { d });
+        }
+
+
+        // ===== Přílohy (fotky účtenek apod.) - přes ověřenou cestu SaveDropzoneFromTemp =====
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UploadAttachment(int pid, IFormFile file, string ret, string retd)
+        {
+            var rec = Factory.p31WorksheetBL.Load(pid);
+            if (rec == null || rec.j02ID != Factory.CurrentUser.pid)
+            {
+                return RedirectToAction("Day", "Calendar");
+            }
+
+            var disp = Factory.p31WorksheetBL.InhaleRecDisposition(rec);
+            if (!disp.OwnerAccess || disp.RecordState != BO.p31RecordState.Editing)
+            {
+                SetMessage(Factory.tra("Záznam nelze upravovat."));
+                return Redirect(Url.Action("Edit", new { id = pid, ret, retd }));
+            }
+
+            if (file == null || file.Length == 0)
+            {
+                SetMessage(Factory.tra("Vyberte soubor."));
+                return Redirect(Url.Action("Edit", new { id = pid, ret, retd }));
+            }
+
+            // 1) Uložit soubor do dočasné složky a zaregistrovat v p85Tempbox (stejně jako
+            //    desktopový dropzone před commitem).
+            var tempguid = Guid.NewGuid().ToString();
+            var tempFileName = Guid.NewGuid().ToString() + System.IO.Path.GetExtension(file.FileName);
+            var tempFullPath = System.IO.Path.Combine(Factory.TempFolder, tempFileName);
+
+            using (var stream = new FileStream(tempFullPath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            Factory.p85TempboxBL.Save(new BO.p85Tempbox
+            {
+                p85GUID = tempguid,
+                p85FreeText01 = file.FileName,
+                p85FreeText02 = file.ContentType,
+                p85FreeText03 = tempFileName,
+                p85FreeNumber01 = file.Length
+            });
+
+            // 2) Commit - stejná, plošně vyzkoušená cesta jako v UI (desktop)
+            var ok = Factory.o27AttachmentBL.SaveDropzoneFromTemp(tempguid, "p31", pid);
+            if (!ok)
+            {
+                SetMessage(Factory.tra("Přílohu se nepodařilo uložit."));
+            }
+
+            return Redirect(Url.Action("Edit", new { id = pid, ret, retd }));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult DeleteAttachment(int pid, int attachmentId, string ret, string retd)
+        {
+            var rec = Factory.p31WorksheetBL.Load(pid);
+            if (rec != null && rec.j02ID == Factory.CurrentUser.pid)
+            {
+                var disp = Factory.p31WorksheetBL.InhaleRecDisposition(rec);
+                if (disp.OwnerAccess && disp.RecordState == BO.p31RecordState.Editing)
+                {
+                    var recAtt = Factory.o27AttachmentBL.Load(attachmentId);
+                    if (recAtt != null && recAtt.o27Entity == "p31" && recAtt.o27RecordPid == pid)
+                    {
+                        Factory.o27AttachmentBL.Move2Deleted(recAtt);
+                        Factory.CBL.DeleteRecord("o27", attachmentId);
+                    }
+                }
+            }
+
+            return Redirect(Url.Action("Edit", new { id = pid, ret, retd }));
+        }
+
+        // Stažení/náhled přílohy - přístup přes GUID (ne přímo přes pid), navíc ověřen přístup k rodičovskému úkonu
+        public IActionResult DownloadAttachment(string guid)
+        {
+            var recAtt = Factory.o27AttachmentBL.LoadByGuid(guid);
+            if (recAtt == null) return NotFound();
+
+            if (recAtt.o27Entity == "p31")
+            {
+                var recP31 = Factory.p31WorksheetBL.Load(recAtt.o27RecordPid);
+                if (recP31 == null || recP31.j02ID != Factory.CurrentUser.pid) return Forbid();
+            }
+
+            var fullPath = System.IO.Path.Combine(Factory.UploadFolder, recAtt.o27ArchiveFolder, recAtt.o27ArchiveFileName);
+            if (!System.IO.File.Exists(fullPath)) return NotFound();
+
+            var contentType = string.IsNullOrEmpty(recAtt.o27ContentType) ? "application/octet-stream" : recAtt.o27ContentType;
+            return File(System.IO.File.ReadAllBytes(fullPath), contentType, recAtt.o27OriginalFileName);
         }
 
 

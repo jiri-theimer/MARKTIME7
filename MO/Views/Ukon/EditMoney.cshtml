@@ -26,10 +26,11 @@
         <div class="text-sm text-base-content/60">@Model.Date.ToString("d. MMMM yyyy")</div>
     </div>
 
-    <form method="post" asp-action="SaveMoney" id="ukonForm">
+    <form method="post" asp-action="SaveMoney" id="ukonForm" enctype="multipart/form-data">
         <input type="hidden" asp-for="pid" />
         <input type="hidden" asp-for="Ret" />
         <input type="hidden" asp-for="RetD" />
+        <input type="hidden" asp-for="UploadGuid" />
         <input type="hidden" name="oper" id="oper" value="" />
 
         @* Datum — v editaci zobrazit a umožnit změnu *@
@@ -238,27 +239,120 @@
 
             </div>
         </div>
-
-        <div class="grid gap-2 mt-3">
-            <button type="submit" class="btn btn-primary btn-block">
-                <span class="material-icons-outlined" style="font-size:20px;">check</span>
-                @_f.tra("Uložit")
-            </button>
-
-            @if (!isNew)
-            {
-                <button type="submit"
-                        formaction="@Url.Action("Delete", new { id = Model.pid, d = Model.Date.ToString("yyyy-MM-dd"), ret = Model.Ret, retd = Model.RetD })"
-                        class="btn btn-error btn-outline btn-block"
-                        onclick="return confirm('@_f.tra("Opravdu smazat tento úkon?")');">
-                    <span class="material-icons-outlined" style="font-size:20px;">delete</span>
-                    @_f.tra("Smazat")
-                </button>
-            }
-
-            <a href="@dayUrl" class="btn btn-ghost btn-block">@backLabel</a>
-        </div>
     </form>
+
+    @* Přílohy u dosud neuloženého záznamu - soubor se jen dočasně nahraje (staging) a commitne
+       se až po úspěšném uložení úkonu (viz UploadGuid a oper="stage_attachment"). Form tag je
+       uzavřený výše, proto file input odkazuje na hlavní formulář přes atribut form="ukonForm". *@
+    @if (isNew)
+    {
+        <div class="card bg-base-100 shadow-sm mt-3">
+            <div class="card-body p-3 gap-2">
+                <div class="text-sm font-semibold">@_f.tra("Přílohy")</div>
+
+                @if (Model.StagedAttachments.Any())
+                {
+                    <div class="grid gap-2">
+                        @foreach (var att in Model.StagedAttachments)
+                        {
+                            <div class="flex items-center gap-2 text-sm">
+                                <span class="material-icons-outlined text-base-content/40" style="font-size:18px;">description</span>
+                                <span class="flex-1 truncate">@att.p85FreeText01</span>
+                                <button type="button" class="btn btn-ghost btn-xs btn-square"
+                                        onclick="submitOper('delete_staged_@att.pid')">
+                                    <span class="material-icons-outlined" style="font-size:16px;color:var(--color-error,#dc2626);">delete</span>
+                                </button>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-sm text-base-content/50 italic">@_f.tra("Zatím žádné přílohy (např. fotka účtenky).")</div>
+                }
+
+                <label class="btn btn-primary btn-sm btn-block mt-1" style="cursor:pointer;">
+                    <span class="material-icons-outlined" style="font-size:18px;">add_a_photo</span>
+                    @_f.tra("Přidat přílohu")
+                    <input type="file" name="stagingFile" form="ukonForm" accept="image/*" capture="environment"
+                           style="display:none;" onchange="submitOper('stage_attachment')" />
+                </label>
+            </div>
+        </div>
+    }
+
+    @* Přílohy u již uloženého záznamu - commitují se okamžitě, vlastní (samostatné) formuláře *@
+    @if (!isNew)
+    {
+        <div class="card bg-base-100 shadow-sm mt-3">
+            <div class="card-body p-3 gap-2">
+                <div class="text-sm font-semibold">@_f.tra("Přílohy")</div>
+
+                @if (Model.Attachments.Any())
+                {
+                    <div class="grid gap-2">
+                        @foreach (var att in Model.Attachments)
+                        {
+                            <div class="flex items-center gap-2 text-sm">
+                                <span class="material-icons-outlined text-base-content/40" style="font-size:18px;">description</span>
+                                <a asp-controller="Ukon" asp-action="DownloadAttachment" asp-route-guid="@att.o27Guid"
+                                   target="_blank" class="flex-1 truncate hover:underline">
+                                    @att.o27OriginalFileName
+                                </a>
+                                <form method="post" asp-action="DeleteAttachment" style="display:inline;"
+                                      onsubmit="return confirm('@_f.tra("Opravdu smazat tuto přílohu?")');">
+                                    <input type="hidden" name="pid" value="@Model.pid" />
+                                    <input type="hidden" name="attachmentId" value="@att.pid" />
+                                    <input type="hidden" name="ret" value="@Model.Ret" />
+                                    <input type="hidden" name="retd" value="@Model.RetD" />
+                                    <button type="submit" class="btn btn-ghost btn-xs btn-square">
+                                        <span class="material-icons-outlined" style="font-size:16px;color:var(--color-error,#dc2626);">delete</span>
+                                    </button>
+                                </form>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-sm text-base-content/50 italic">@_f.tra("Zatím žádné přílohy (např. fotka účtenky).")</div>
+                }
+
+                <form method="post" asp-action="UploadAttachment" enctype="multipart/form-data" id="uploadAttachmentForm">
+                    <input type="hidden" name="pid" value="@Model.pid" />
+                    <input type="hidden" name="ret" value="@Model.Ret" />
+                    <input type="hidden" name="retd" value="@Model.RetD" />
+                    <label class="btn btn-primary btn-sm btn-block mt-1" style="cursor:pointer;">
+                        <span class="material-icons-outlined" style="font-size:18px;">add_a_photo</span>
+                        @_f.tra("Přidat přílohu")
+                        <input type="file" name="file" accept="image/*" capture="environment"
+                               style="display:none;" onchange="document.getElementById('uploadAttachmentForm').submit();" />
+                    </label>
+                </form>
+            </div>
+        </div>
+    }
+
+    <div class="grid gap-2 mt-3">
+        <button type="submit" form="ukonForm" class="btn btn-success btn-block">
+            <span class="material-icons-outlined" style="font-size:20px;">check</span>
+            @_f.tra("Uložit")
+        </button>
+
+        @if (!isNew)
+        {
+            <button type="submit" form="ukonForm"
+                    formaction="@Url.Action("Delete", new { id = Model.pid, d = Model.Date.ToString("yyyy-MM-dd"), ret = Model.Ret, retd = Model.RetD })"
+                    class="btn btn-error btn-outline btn-block"
+                    onclick="return confirm('@_f.tra("Opravdu smazat tento úkon?")');">
+                <span class="material-icons-outlined" style="font-size:20px;">delete</span>
+                @_f.tra("Smazat")
+            </button>
+        }
+
+        <a href="@dayUrl" class="btn btn-ghost btn-block">@backLabel</a>
+    </div>
+
 
 </div>
 
@@ -365,6 +459,11 @@
 
         function onProjectChange(p41id) {
             document.getElementById('oper').value = 'p41change';
+            document.getElementById('ukonForm').submit();
+        }
+
+        function submitOper(oper) {
+            document.getElementById('oper').value = oper;
             document.getElementById('ukonForm').submit();
         }
 

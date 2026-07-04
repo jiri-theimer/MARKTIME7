@@ -70,5 +70,17 @@ namespace MO.Models
 
         /// <summary>Kotevní datum pro návrat (u "week" pondělí daného týdne)</summary>
         public string RetD { get; set; }
+
+        /// <summary>Přílohy (fotky účtenek apod.) navázané na tento úkon - jen u již uloženého záznamu</summary>
+        public List<BO.o27Attachment> Attachments { get; set; } = new List<BO.o27Attachment>();
+
+        /// <summary>
+        /// GUID pro dočasné uložení příloh u dosud neuloženého (nového) záznamu - commitne se
+        /// přes Factory.o27AttachmentBL.SaveDropzoneFromTemp až po úspěšném uložení úkonu.
+        /// </summary>
+        public string UploadGuid { get; set; }
+
+        /// <summary>Zatím jen dočasně nahrané soubory (p85Tempbox) u nového záznamu, ještě necommitnuté</summary>
+        public List<BO.p85Tempbox> StagedAttachments { get; set; } = new List<BO.p85Tempbox>();
     }
 }

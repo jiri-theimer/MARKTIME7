@@ -92,6 +92,13 @@
             details[open] > .mo-details-summary .mo-details-chevron {
                 transform: rotate(180deg);
             }
+
+            /* .btn-success chybí ve staticky zkompilovaném app.css - definice zrcadlí přesně
+                       stejný vzorec, jaký DaisyUI používá pro .btn-primary (--btn-color/--btn-fg). */
+            .btn-success {
+                --btn-color: var(--color-success);
+                --btn-fg: var(--color-success-content);
+            }
     </style>
 
     @* Nastavit skin ihned, ještě před vykreslením - žádné probliknutí *@

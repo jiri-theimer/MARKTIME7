@@ -207,6 +207,24 @@
         </div>
     </div>
 
+    @* Přílohy *@
+    @if (Model.Attachments.Any())
+    {
+        <div class="card bg-base-100 shadow-sm">
+            <div class="card-body p-3 gap-2">
+                <div class="text-sm font-semibold">@_f.tra("Přílohy")</div>
+                @foreach (var att in Model.Attachments)
+                {
+                    <a asp-controller="Ukon" asp-action="DownloadAttachment" asp-route-guid="@att.o27Guid"
+                       target="_blank" class="flex items-center gap-2 text-sm hover:underline">
+                        <span class="material-icons-outlined text-base-content/40" style="font-size:18px;">description</span>
+                        <span class="truncate">@att.o27OriginalFileName</span>
+                    </a>
+                }
+            </div>
+        </div>
+    }
+
     <a href="@dayUrl" class="btn btn-ghost btn-block">@backLabel</a>
 
 </div>
