@@ -79,6 +79,50 @@ namespace MO.Controllers
         }
 
 
+        // ===== Nový úkon odpovídajícího formátu (tlačítko "+" v Ukony) =====
+        public IActionResult NewByFormat(int format)
+        {
+            var targetTypes = format switch
+            {
+                1 => new[] { BO.p33IdENUM.Cas },
+                2 => new[] { BO.p33IdENUM.PenizeBezDPH, BO.p33IdENUM.PenizeVcDPHRozpisu },
+                3 => new[] { BO.p33IdENUM.Kusovnik },
+                _ => new[] { BO.p33IdENUM.Cas }
+            };
+
+            var lisP34 = Factory.p34ActivityGroupBL
+                .GetList_WorksheetEntry_InAllProjects(Factory.CurrentUser.pid)
+                .Where(s => targetTypes.Contains(s.p33ID))
+                .ToList();
+
+            var p34id = 0;
+
+            // Zkusit navázat na sešit z naposledy vykázaného úkonu odpovídajícího formátu
+            // (omezeno na posledních 90 dní, ať dotaz zůstane rychlý i u dlouholetých uživatelů)
+            if (lisP34.Any())
+            {
+                var recentIds = lisP34.Select(s => s.pid).ToHashSet();
+                var lastOfFormat = Factory.p31WorksheetBL.GetList(new BO.myQueryP31
+                {
+                    j02id = Factory.CurrentUser.pid,
+                    global_d1 = DateTime.Today.AddDays(-90),
+                    global_d2 = DateTime.Today,
+                    explicit_orderby = "a.p31ID DESC"
+                }).FirstOrDefault(e => recentIds.Contains(e.p34ID));
+
+                p34id = lastOfFormat?.p34ID ?? lisP34.First().pid;
+            }
+
+            if (p34id == 0)
+            {
+                // Uživatel nemá žádný sešit tohoto formátu - nasměrovat na Den, ať si vybere sám
+                return RedirectToAction("Day", "Calendar");
+            }
+
+            return RedirectToAction("New", "Ukon", new { d = DateTime.Today.ToString("yyyy-MM-dd"), p34id });
+        }
+
+
         private DateTime? ParseDate(string s)
         {
             if (string.IsNullOrWhiteSpace(s)) return null;

@@ -511,20 +511,22 @@
                 function calcFromBezAndRate() {
                     var bez = parseAmount(document.getElementById('AmountWithoutVat').value);
                     var sazba = parseAmount(document.getElementById('VatRatePercent').value);
-                    if (bez === null || sazba === null) return;
+                    if (sazba === null) sazba = 0;   // prázdné pole DPH % ("0" je jen placeholder) = sazba 0 %
+                    if (bez === null) return;
                     var dph = round2(bez * sazba / 100);
-                    document.getElementById('AmountVat').value = dph;
-                    document.getElementById('AmountWithVat').value = round2(bez + dph);
+                    setComputed('AmountVat', dph);
+                    setComputed('AmountWithVat', round2(bez + dph));
                 }
 
                 // Vč. DPH + sazba -> bez DPH, DPH
                 function calcFromTotalAndRate() {
                     var svc = parseAmount(document.getElementById('AmountWithVat').value);
                     var sazba = parseAmount(document.getElementById('VatRatePercent').value);
-                    if (svc === null || sazba === null) return;
+                    if (sazba === null) sazba = 0;
+                    if (svc === null) return;
                     var bez = round2(svc / (1 + sazba / 100));
-                    document.getElementById('AmountWithoutVat').value = bez;
-                    document.getElementById('AmountVat').value = round2(svc - bez);
+                    setComputed('AmountWithoutVat', bez);
+                    setComputed('AmountVat', round2(svc - bez));
                 }
 
                 // Bez DPH + vč. DPH (bez známé sazby) -> jen částka DPH
@@ -532,7 +534,22 @@
                     var bez = parseAmount(document.getElementById('AmountWithoutVat').value);
                     var svc = parseAmount(document.getElementById('AmountWithVat').value);
                     if (bez === null || svc === null) return;
-                    document.getElementById('AmountVat').value = round2(svc - bez);
+                    setComputed('AmountVat', round2(svc - bez));
+                }
+
+                // Zapíše hodnotu dopočítanou skriptem a označí pole příznakem "jen dopočítáno" - ať se
+                // taková hodnota v dalším kroku nesplete se skutečně zadaným vstupem od uživatele
+                // (jinak by se např. sazba 0 % "propsaná" do Vč. DPH mohla vzít jako reálně zadaná
+                // celková částka a při doplnění skutečné sazby by se špatně přepočítala částka Bez DPH).
+                function setComputed(id, val) {
+                    var el = document.getElementById(id);
+                    el.value = val;
+                    el.dataset.autoFilled = 'true';
+                }
+
+                // true, jen pokud pole má hodnotu A tu hodnotu tam sám napsal uživatel (ne skript)
+                function hasRealValue(el) {
+                    return !!el.value && el.dataset.autoFilled !== 'true';
                 }
 
                 document.addEventListener('DOMContentLoaded', function () {
@@ -540,19 +557,27 @@
                     var elSazba = document.getElementById('VatRatePercent');
                     var elVcDph = document.getElementById('AmountWithVat');
 
+                    // Jakmile uživatel do pole sám zasáhne, přestává se brát jako "jen dopočítané"
+                    [elBez, elSazba, elVcDph].forEach(function (el) {
+                        el.addEventListener('input', function () { el.dataset.autoFilled = 'false'; });
+                    });
+
                     elBez.addEventListener('change', function () {
-                        if (elSazba.value) calcFromBezAndRate();
-                        else if (elVcDph.value) calcVatFromDiff();
+                        // Pokud je už vyplněná (reálně, ne dopočítaná) celková částka vč. DPH, ale sazba
+                        // ne, uživatel má pravděpodobně doklad se známou celkovou částkou - nepřepisovat
+                        // ji, jen dopočítat DPH z rozdílu. Jinak přepočítat vč. DPH ze sazby (i nulové).
+                        if (!hasRealValue(elSazba) && hasRealValue(elVcDph)) calcVatFromDiff();
+                        else calcFromBezAndRate();
                     });
                     elSazba.addEventListener('change', function () {
-                        // Sazbu bereme jako výchozí pramen pravdy - pokud je zadaná celková
+                        // Sazbu bereme jako výchozí pramen pravdy - pokud je reálně zadaná celková
                         // částka vč. DPH, dopočítáme z ní (typický postup: "mám doklad na 1210 Kč vč. DPH 21 %").
-                        if (elVcDph.value) calcFromTotalAndRate();
-                        else if (elBez.value) calcFromBezAndRate();
+                        if (hasRealValue(elVcDph)) calcFromTotalAndRate();
+                        else if (hasRealValue(elBez)) calcFromBezAndRate();
                     });
                     elVcDph.addEventListener('change', function () {
-                        if (elSazba.value) calcFromTotalAndRate();
-                        else if (elBez.value) calcVatFromDiff();
+                        if (hasRealValue(elSazba)) calcFromTotalAndRate();
+                        else if (hasRealValue(elBez)) calcVatFromDiff();
                     });
                 });
                 </text>

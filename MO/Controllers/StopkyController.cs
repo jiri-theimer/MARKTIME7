@@ -7,7 +7,7 @@ namespace MO.Controllers
     {
         public IActionResult Index()
         {
-            var v = new StopkyViewModel { PageTitle = Factory.tra("Stopky") };
+            var v = new StopkyViewModel { PageTitle = Factory.tra("Stopky"), HideHeaderTitle = true };
             RefreshState(v);
             return View(v);
         }
@@ -66,7 +66,7 @@ namespace MO.Controllers
                     break;
             }
 
-            var v2 = new StopkyViewModel { PageTitle = Factory.tra("Stopky"), JumpToPid = p68id };
+            var v2 = new StopkyViewModel { PageTitle = Factory.tra("Stopky"), HideHeaderTitle = true, JumpToPid = p68id };
             RefreshState(v2);
             return View(v2);
         }

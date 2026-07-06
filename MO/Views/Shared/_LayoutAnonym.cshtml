@@ -12,6 +12,13 @@
     <link rel="stylesheet" href="~/css/icons.css" asp-append-version="true" />
 
     <link rel="icon" href="~/favicon.ico" />
+
+    @* ===== PWA ===== *@
+    <link rel="manifest" href="~/manifest.json" asp-append-version="true" />
+    <link rel="apple-touch-icon" href="~/images/icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+
     @RenderSection("header_content", required: false)
 </head>
 <body class="min-h-screen bg-base-200 flex flex-col" style="overflow-x:hidden;">
@@ -19,7 +26,7 @@
     <header class="navbar bg-base-100 shadow-sm">
         <div class="flex-1 px-2 gap-1">
             <img src="~/images/logo.png" alt="MARKtime" class="h-7 w-auto" />
-            <span class="badge badge-warning badge-sm">BETA</span>
+            
         </div>
     </header>
 
@@ -49,5 +56,6 @@
     </main>
 
     @await RenderSectionAsync("scripts", required: false)
+    <script src="~/js/mo-sw-register.js" asp-append-version="true"></script>
 </body>
 </html>

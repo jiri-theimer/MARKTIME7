@@ -31,7 +31,12 @@
 
 <div class="grid gap-3">
 
-    <div class="text-lg font-bold">@Model.PageTitle</div>
+    <div class="flex items-center justify-between">
+        <div class="text-lg font-bold">@Model.PageTitle</div>
+        <a asp-action="NewByFormat" asp-route-format="@Model.FormatFilter" class="btn btn-primary btn-xs btn-circle" title="@_f.tra("Nový úkon")">
+            <span class="material-icons-outlined" style="font-size:16px;">add</span>
+        </a>
+    </div>
 
     @* ===== Filtr ===== *@
     <form method="get" asp-action="Ukony" class="card bg-base-100 shadow-sm">

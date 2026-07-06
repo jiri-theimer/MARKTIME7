@@ -50,6 +50,14 @@
 
     <link rel="icon" href="~/favicon.ico" />
 
+    @* ===== PWA ===== *@
+    <link rel="manifest" href="~/manifest.json" asp-append-version="true" />
+    <link rel="apple-touch-icon" href="~/images/icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="MARKtime" />
+    <meta name="mobile-web-app-capable" content="yes" />
+
     <style>
             @@keyframes stopkyPulse {
                 0% {
@@ -230,7 +238,7 @@
                 <div class="flex-1">
                     <a asp-controller="Home" asp-action="Index" class="btn btn-ghost px-2 normal-case gap-1">
                         <img src="~/images/logo.png" alt="MARKtime" class="h-7 w-auto" />
-                        <span class="badge badge-warning badge-sm">BETA</span>
+                        
                     </a>
                 </div>
 
@@ -427,6 +435,7 @@
     <script src="~/js/mo-prefs.js" asp-append-version="true"></script>
     <script src="~/js/mo-upload-overlay.js" asp-append-version="true"></script>
     <script src="~/js/mo-double-submit-guard.js" asp-append-version="true"></script>
+    <script src="~/js/mo-sw-register.js" asp-append-version="true"></script>
 
     @await RenderSectionAsync("scripts", required: false)
 

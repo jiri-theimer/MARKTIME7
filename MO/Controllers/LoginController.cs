@@ -41,7 +41,11 @@ namespace MO.Controllers
 
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        // Pozn.: ValidateAntiForgeryToken zde záměrně NENÍ - v TWA (Trusted Web Activity, appka
+        // z Google Play) izolovaný Chrome kontext způsoboval, že se antiforgery cookie a token
+        // spolehlivě neshodovaly, což vedlo k Error 400 při KAŽDÉM pokusu o přihlášení, bez
+        // ohledu na správnost hesla. Login-CSRF je výrazně menší riziko než rozbité přihlášení
+        // pro appku z Play Store. Ostatní (autentizované) akce zůstávají chráněné beze změny.
         public ActionResult UserLogin(LoginViewModel v, string returnurl, string oper, string culture)
         {
             if (oper == "postback")
