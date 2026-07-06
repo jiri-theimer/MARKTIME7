@@ -427,6 +427,25 @@ namespace MO.Controllers
                 return View("EditHours", v);
             }
 
+            // --- Postback: změna aktivity (předvyplnění výchozího textu a hodnoty dle nastavení aktivity) ---
+            if (oper == "p32change")
+            {
+                var recP32 = ReloadAll(v);
+                var (defText, defValue) = GetP32Defaults(recP32, v.pid);
+                if (defValue > 0)
+                {
+                    ModelState.Remove("Hours");
+                    v.Hours = defValue.ToString();
+                }
+                if (defText != null)
+                {
+                    ModelState.Remove("Description");
+                    v.Description = defText;
+                }
+
+                return View("EditHours", v);
+            }
+
             // --- Postback: změna sešitu (přenačtení projektů + aktivit) ---
             if (oper == "p34change")
             {
@@ -719,6 +738,25 @@ namespace MO.Controllers
                 return View("EditMoney", v);
             }
 
+            // --- Postback: změna aktivity (předvyplnění výchozího textu a částky dle nastavení aktivity) ---
+            if (oper == "p32change")
+            {
+                var recP32 = ReloadAllMoney(v, recSesit);
+                var (defText, defValue) = GetP32Defaults(recP32, v.pid);
+                if (defValue > 0)
+                {
+                    ModelState.Remove("AmountWithoutVat");
+                    v.AmountWithoutVat = defValue.ToString();
+                }
+                if (defText != null)
+                {
+                    ModelState.Remove("Description");
+                    v.Description = defText;
+                }
+
+                return View("EditMoney", v);
+            }
+
             // --- Postback: změna sešitu (přenačtení projektů + aktivit, jiný sešit může mít i jiná pravidla DPH/kódu dokladu) ---
             if (oper == "p34change")
             {
@@ -891,6 +929,25 @@ namespace MO.Controllers
                 {
                     v.p32ID = 0;
                     v.SelectedActivityText = null;
+                }
+
+                return View("EditKusovnik", v);
+            }
+
+            // --- Postback: změna aktivity (předvyplnění výchozího textu a počtu dle nastavení aktivity) ---
+            if (oper == "p32change")
+            {
+                var recP32 = ReloadAllKusovnik(v);
+                var (defText, defValue) = GetP32Defaults(recP32, v.pid);
+                if (defValue > 0)
+                {
+                    ModelState.Remove("Pocet");
+                    v.Pocet = defValue.ToString();
+                }
+                if (defText != null)
+                {
+                    ModelState.Remove("Description");
+                    v.Description = defText;
                 }
 
                 return View("EditKusovnik", v);
@@ -1295,11 +1352,11 @@ namespace MO.Controllers
             }
         }
 
-        private void LoadActivities(EntryHoursViewModel v)
+        private BO.p32Activity LoadActivities(EntryHoursViewModel v)
         {
             // Aktivity se zadávají jen pokud to sešit dovoluje a je vybrán projekt
-            if (v.p34ID <= 0 || v.p41ID <= 0) return;
-            if (v.ActivityEntryFlag == (int)BO.p34ActivityEntryFlagENUM.AktivitaSeNezadava) return;
+            if (v.p34ID <= 0 || v.p41ID <= 0) return null;
+            if (v.ActivityEntryFlag == (int)BO.p34ActivityEntryFlagENUM.AktivitaSeNezadava) return null;
 
             var recP41 = Factory.p41ProjectBL.Load(v.p41ID);
             var p61id = recP41?.p61ID ?? 0;
@@ -1335,18 +1392,20 @@ namespace MO.Controllers
                 GroupBy = a.p38Name
             }).ToList();
 
+            BO.p32Activity sel = null;
             if (v.p32ID > 0)
             {
-                var sel = lisP32.FirstOrDefault(a => a.pid == v.p32ID);
+                sel = lisP32.FirstOrDefault(a => a.pid == v.p32ID);
                 if (sel != null) v.SelectedActivityText = sel.p32Name;
             }
+            return sel;
         }
 
-        private void ReloadAll(EntryHoursViewModel v)
+        private BO.p32Activity ReloadAll(EntryHoursViewModel v)
         {
             LoadSesitList(v);
             LoadProjects(v);
-            LoadActivities(v);
+            var recP32 = LoadActivities(v);
             // Freefields: definice + viditelnost, pak posbírat hodnoty z POSTu zpět
             LoadFreeFields(v, v.pid);
             CollectFreeFieldsFromForm(v);
@@ -1357,6 +1416,7 @@ namespace MO.Controllers
                 LoadKusovnikForProject(v);
             }
             LoadExistingKusovnikEntries(v);
+            return recP32;
         }
 
         // Server (BL) při neúspěšném uložení zapíše skutečný důvod (např. povinnost textu dle nastavení
@@ -1543,6 +1603,13 @@ namespace MO.Controllers
             return num;
         }
 
+        /// <summary>Výchozí text a hodnota z aktivity - jen pro nový záznam (pid==0), jinak (null, 0).</summary>
+        private (string Text, double Value) GetP32Defaults(BO.p32Activity recP32, int pid)
+        {
+            if (recP32 == null || pid != 0) return (null, 0);
+            return (recP32.p32DefaultWorksheetText, recP32.p32Value_Default);
+        }
+
         private void LoadSesitListMoney(EntryMoneyViewModel v)
         {
             var lisP34Raw = Factory.p34ActivityGroupBL
@@ -1610,10 +1677,10 @@ namespace MO.Controllers
             }
         }
 
-        private void LoadActivitiesMoney(EntryMoneyViewModel v)
+        private BO.p32Activity LoadActivitiesMoney(EntryMoneyViewModel v)
         {
-            if (v.p34ID <= 0 || v.p41ID <= 0) return;
-            if (v.ActivityEntryFlag == (int)BO.p34ActivityEntryFlagENUM.AktivitaSeNezadava) return;
+            if (v.p34ID <= 0 || v.p41ID <= 0) return null;
+            if (v.ActivityEntryFlag == (int)BO.p34ActivityEntryFlagENUM.AktivitaSeNezadava) return null;
 
             var lisP32 = Factory.p32ActivityBL.GetList(new BO.myQueryP32
             {
@@ -1630,11 +1697,13 @@ namespace MO.Controllers
                 GroupBy = a.p38Name
             }).ToList();
 
+            BO.p32Activity sel = null;
             if (v.p32ID > 0)
             {
-                var sel = lisP32.FirstOrDefault(a => a.pid == v.p32ID);
+                sel = lisP32.FirstOrDefault(a => a.pid == v.p32ID);
                 if (sel != null) v.SelectedActivityText = sel.p32Name;
             }
+            return sel;
         }
 
         private void LoadCurrencyList(EntryMoneyViewModel v)
@@ -1679,11 +1748,11 @@ namespace MO.Controllers
 
         // Přenačte veškeré nabídky pro peněžní úkon. Sešit lze předat rovnou (např. z New/Edit),
         // jinak se dohledá dle v.p34ID.
-        private void ReloadAllMoney(EntryMoneyViewModel v, BO.p34ActivityGroup sesit = null)
+        private BO.p32Activity ReloadAllMoney(EntryMoneyViewModel v, BO.p34ActivityGroup sesit = null)
         {
             LoadSesitListMoney(v);
             LoadProjectsMoney(v);
-            LoadActivitiesMoney(v);
+            var recP32 = LoadActivitiesMoney(v);
             LoadCurrencyList(v);
 
             if (sesit == null && v.p34ID > 0)
@@ -1704,6 +1773,7 @@ namespace MO.Controllers
             // Freefields: definice + viditelnost, pak posbírat hodnoty z POSTu zpět
             v.ff1 = LoadFreeFieldsFor(v.p34ID, v.pid);
             CollectFreeFieldsFromFormInto(v.ff1);
+            return recP32;
         }
 
 
@@ -1774,10 +1844,10 @@ namespace MO.Controllers
             }
         }
 
-        private void LoadActivitiesKusovnik(EntryKusovnikViewModel v)
+        private BO.p32Activity LoadActivitiesKusovnik(EntryKusovnikViewModel v)
         {
-            if (v.p34ID <= 0 || v.p41ID <= 0) return;
-            if (v.ActivityEntryFlag == (int)BO.p34ActivityEntryFlagENUM.AktivitaSeNezadava) return;
+            if (v.p34ID <= 0 || v.p41ID <= 0) return null;
+            if (v.ActivityEntryFlag == (int)BO.p34ActivityEntryFlagENUM.AktivitaSeNezadava) return null;
 
             var lisP32 = Factory.p32ActivityBL.GetList(new BO.myQueryP32
             {
@@ -1794,21 +1864,24 @@ namespace MO.Controllers
                 GroupBy = a.p38Name
             }).ToList();
 
+            BO.p32Activity sel = null;
             if (v.p32ID > 0)
             {
-                var sel = lisP32.FirstOrDefault(a => a.pid == v.p32ID);
+                sel = lisP32.FirstOrDefault(a => a.pid == v.p32ID);
                 if (sel != null) v.SelectedActivityText = sel.p32Name;
             }
+            return sel;
         }
 
-        private void ReloadAllKusovnik(EntryKusovnikViewModel v)
+        private BO.p32Activity ReloadAllKusovnik(EntryKusovnikViewModel v)
         {
             LoadSesitListKusovnik(v);
             LoadProjectsKusovnik(v);
-            LoadActivitiesKusovnik(v);
+            var recP32 = LoadActivitiesKusovnik(v);
 
             v.ff1 = LoadFreeFieldsFor(v.p34ID, v.pid);
             CollectFreeFieldsFromFormInto(v.ff1);
+            return recP32;
         }
     }
 }
