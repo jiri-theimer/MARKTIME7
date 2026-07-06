@@ -938,9 +938,11 @@ namespace MO.Controllers
             if (oper == "p32change")
             {
                 var recP32 = ReloadAllKusovnik(v);
+                Factory.CurrentUser.AddMessage(recP32.p32Name);
                 var (defText, defValue) = GetP32Defaults(recP32, v.pid);
                 if (defValue > 0)
                 {
+                    
                     ModelState.Remove("Pocet");
                     v.Pocet = defValue.ToString();
                 }
