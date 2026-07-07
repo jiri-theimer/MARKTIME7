@@ -102,7 +102,8 @@
                             <mycombo asp-for="p32ID"
                                      selected-text="@Model.SelectedActivityText"
                                      items="@Model.ActivityComboItems"
-                                     placeholder="@_f.tra("vyberte aktivitu")" />
+                                     placeholder="@_f.tra("vyberte aktivitu")"
+                                     event-after-change="onActivityChange" />
                         }
                         else
                         {
@@ -291,6 +292,11 @@
 
         function onProjectChange(p41id) {
             document.getElementById('oper').value = 'p41change';
+            document.getElementById('ukonForm').submit();
+        }
+
+        function onActivityChange(p32id) {
+            document.getElementById('oper').value = 'p32change';
             document.getElementById('ukonForm').submit();
         }
     </script>

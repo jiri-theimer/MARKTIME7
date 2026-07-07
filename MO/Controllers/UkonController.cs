@@ -238,6 +238,14 @@ namespace MO.Controllers
                 p41ID = p41id
             };
 
+            var maKusovnikovySesit = Factory.p34ActivityGroupBL
+                .GetList_WorksheetEntry_InAllProjects(Factory.CurrentUser.pid)
+                .Any(s => s.p33ID == BO.p33IdENUM.Kusovnik);
+            if (!maKusovnikovySesit)
+            {
+                v.Message = Factory.tra("Nemáte k dispozici žádný kusovníkový sešit.");
+            }
+
             if (task != null)
             {
                 v.p56ID = task.pid;
@@ -938,11 +946,9 @@ namespace MO.Controllers
             if (oper == "p32change")
             {
                 var recP32 = ReloadAllKusovnik(v);
-                Factory.CurrentUser.AddMessage(recP32.p32Name);
                 var (defText, defValue) = GetP32Defaults(recP32, v.pid);
                 if (defValue > 0)
                 {
-                    
                     ModelState.Remove("Pocet");
                     v.Pocet = defValue.ToString();
                 }
@@ -1783,12 +1789,10 @@ namespace MO.Controllers
 
         private void LoadSesitListKusovnik(EntryKusovnikViewModel v)
         {
-            var lisP34Raw = Factory.p34ActivityGroupBL
-                .GetList_WorksheetEntry_InAllProjects(Factory.CurrentUser.pid);
-
-            var lisP34 = (v.pid == 0
-                ? lisP34Raw
-                : lisP34Raw.Where(s => s.p33ID == BO.p33IdENUM.Kusovnik)).ToList();
+            var lisP34 = Factory.p34ActivityGroupBL
+                .GetList_WorksheetEntry_InAllProjects(Factory.CurrentUser.pid)
+                .Where(s => s.p33ID == BO.p33IdENUM.Kusovnik)
+                .ToList();
 
             v.SesitComboItems = lisP34.Select(s => new ComboItem
             {

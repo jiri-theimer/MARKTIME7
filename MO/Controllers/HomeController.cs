@@ -115,7 +115,15 @@ namespace MO.Controllers
 
             if (p34id == 0)
             {
+                
                 // Uživatel nemá žádný sešit tohoto formátu - nasměrovat na Den, ať si vybere sám
+                TempData["Message"] = format switch
+                {
+                    1 => Factory.tra("Nemáte k dispozici žádný hodinový sešit."),
+                    2 => Factory.tra("Nemáte k dispozici žádný peněžní sešit."),
+                    3 => Factory.tra("Nemáte k dispozici žádný kusovníkový sešit."),
+                    _ => Factory.tra("Nemáte k dispozici žádný sešit tohoto typu.")
+                };
                 return RedirectToAction("Day", "Calendar");
             }
 
