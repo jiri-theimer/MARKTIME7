@@ -102,10 +102,57 @@
             }
 
             /* .btn-success chybí ve staticky zkompilovaném app.css - definice zrcadlí přesně
-                       stejný vzorec, jaký DaisyUI používá pro .btn-primary (--btn-color/--btn-fg). */
+                                   stejný vzorec, jaký DaisyUI používá pro .btn-primary (--btn-color/--btn-fg). */
             .btn-success {
                 --btn-color: var(--color-success);
                 --btn-fg: var(--color-success-content);
+            }
+
+            /* mycombo - ruční oprava přetékání dlouhého (50+ znaků) textu mimo šířku obrazovky.
+                           Psáno jako čisté CSS s !important, aby to nezáviselo na tom, co je (ne)aktuálně
+                           ve staticky zkompilovaném app.css, a spolehlivě to přebilo Tailwind/DaisyUI třídy. */
+            #ukonForm,
+            #ukonForm .card,
+            #ukonForm .card-body,
+            #ukonForm label {
+                min-width: 0 !important;
+            }
+
+            .mc-wrap {
+                display: block !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                min-width: 0 !important;
+                box-sizing: border-box !important;
+            }
+
+                .mc-wrap > button {
+                    display: flex !important;
+                    width: 100% !important;
+                    max-width: 100% !important;
+                    min-width: 0 !important;
+                    box-sizing: border-box !important;
+                }
+
+            .mc-trigger-text {
+                display: block !important;
+                flex: 1 1 auto !important;
+                min-width: 0 !important;
+                max-width: 100% !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+                white-space: nowrap !important;
+            }
+
+            .mc-item .flex {
+                min-width: 0 !important;
+            }
+
+            .mc-item .font-medium {
+                min-width: 0 !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+                white-space: nowrap !important;
             }
 
             /* Neurčitý loading overlay (např. nahrávání přílohy) */
@@ -142,20 +189,20 @@
             }
 
             /* Drawer (menu "Více") - zkompilované CSS používá moderní allow-discrete/@@starting-style
-                       přechod pro visibility/opacity, který u některých (hlavně mobilních) prohlížečů při
-                       prvním otevření po načtení stránky nesprávně vůbec nezobrazí panel - až po dalším
-                       překreslení. Vypnutím přechodu se panel zobrazí okamžitě, bez animace, ale spolehlivě. */
+                                   přechod pro visibility/opacity, který u některých (hlavně mobilních) prohlížečů při
+                                   prvním otevření po načtení stránky nesprávně vůbec nezobrazí panel - až po dalším
+                                   překreslení. Vypnutím přechodu se panel zobrazí okamžitě, bez animace, ale spolehlivě. */
             .drawer-side {
                 transition: none !important;
             }
 
             /* Drawer řízený přímo přes JS třídu (viz moOpenDrawer/moCloseDrawer) - nezávisí na
-                       CSS :checked triku, který se na některých zařízeních ukázal jako nespolehlivý. */
+                                   CSS :checked triku, který se na některých zařízeních ukázal jako nespolehlivý. */
             #mo-drawer-side {
                 /* Vynutit pozici a rozměry přes position:fixed, nezávisle na CSS grid mechanismu
-                           (.drawer/.drawer-end), který se u některých prohlížečů při úplně prvním
-                           vykreslení stránky uplatnil nesprávně (panel se objevil vlevo). Overlay a
-                           samotný panel (aside) se pozicují každý zvlášť, ať to nezávisí na flex/grid. */
+                                       (.drawer/.drawer-end), který se u některých prohlížečů při úplně prvním
+                                       vykreslení stránky uplatnil nesprávně (panel se objevil vlevo). Overlay a
+                                       samotný panel (aside) se pozicují každý zvlášť, ať to nezávisí na flex/grid. */
                 position: fixed !important;
                 inset: 0 !important;
                 width: 100% !important;
@@ -238,7 +285,7 @@
                 <div class="flex-1">
                     <a asp-controller="Home" asp-action="Index" class="btn btn-ghost px-2 normal-case gap-1">
                         <img src="~/images/logo.png" alt="MARKtime" class="h-7 w-auto" />
-                        
+
                     </a>
                 </div>
 

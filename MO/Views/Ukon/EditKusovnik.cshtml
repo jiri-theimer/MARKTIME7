@@ -73,7 +73,7 @@
                 }
 
                 @* Projekt - mycombo, postback při změně (přenačtení aktivit) *@
-                <label class="form-control">
+                <label class="form-control block w-full min-w-0">
                     <div class="label">
                         <span class="label-text font-semibold">@_f.tra("Projekt") *</span>
                     </div>
@@ -87,7 +87,7 @@
                 @* Aktivita - jen pokud to sešit dovoluje *@
                 @if (!activityHidden)
                 {
-                    <label class="form-control">
+                    <label class="form-control block w-full min-w-0">
                         <div class="label">
                             <span class="label-text font-semibold">
                                 @_f.tra("Aktivita")@(activityRequired ? " *" : "")
@@ -122,7 +122,7 @@
                 @* Úkol - volitelný, jen pokud u projektu existují úkoly *@
                 @if (Model.TaskList.Any())
                 {
-                    <label class="form-control">
+                    <label class="form-control block w-full min-w-0">
                         <div class="label">
                             <span class="label-text font-semibold">@_f.tra("Úkol")</span>
                             <span class="label-text-alt text-base-content/50">@_f.tra("volitelně")</span>
@@ -142,7 +142,7 @@
                 }
 
                 @* Počet - jediná hodnota kusovníkového úkonu *@
-                <label class="form-control">
+                <label class="form-control block w-full min-w-0">
                     <div class="label">
                         <span class="label-text font-semibold">@_f.tra("Počet") *</span>
                     </div>
@@ -151,7 +151,7 @@
                 </label>
 
                 @* Popis - povinnost řídí nastavení aktivity, validaci provede server *@
-                <label class="form-control">
+                <label class="form-control block w-full min-w-0">
                     <div class="label"><span class="label-text font-semibold">@_f.tra("Popis")</span></div>
                     <textarea asp-for="Description" class="textarea textarea-bordered w-full"
                               rows="3" autocapitalize="sentences"></textarea>

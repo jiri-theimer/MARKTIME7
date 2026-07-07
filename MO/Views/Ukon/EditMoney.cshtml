@@ -76,7 +76,7 @@
                 }
 
                 @* Projekt - mycombo, postback při změně (přenačtení aktivit) *@
-                <label class="form-control">
+                <label class="form-control block w-full min-w-0">
                     <div class="label">
                         <span class="label-text font-semibold">@_f.tra("Projekt") *</span>
                     </div>
@@ -90,7 +90,7 @@
                 @* Aktivita - jen pokud to sešit dovoluje *@
                 @if (!activityHidden)
                 {
-                    <label class="form-control">
+                    <label class="form-control block w-full min-w-0">
                         <div class="label">
                             <span class="label-text font-semibold">
                                 @_f.tra("Aktivita")@(activityRequired ? " *" : "")
@@ -125,7 +125,7 @@
                 @* Úkol - volitelný, jen pokud u projektu existují úkoly *@
                 @if (Model.TaskList.Any())
                 {
-                    <label class="form-control">
+                    <label class="form-control block w-full min-w-0">
                         <div class="label">
                             <span class="label-text font-semibold">@_f.tra("Úkol")</span>
                             <span class="label-text-alt text-base-content/50">@_f.tra("volitelně")</span>
@@ -146,7 +146,7 @@
 
                 @* Částka bez DPH - povinné *@
                 <div class="grid grid-cols-2 gap-2">
-                    <label class="form-control">
+                    <label class="form-control block w-full min-w-0">
                         <div class="label">
                             <span class="label-text font-semibold">@_f.tra("Bez DPH") *</span>
                         </div>
@@ -154,7 +154,7 @@
                                inputmode="decimal" autocomplete="off" enterkeyhint="next" placeholder="0" />
                     </label>
 
-                    <label class="form-control">
+                    <label class="form-control block w-full min-w-0">
                         <div class="label">
                             <span class="label-text font-semibold">@_f.tra("Měna") *</span>
                         </div>
@@ -172,17 +172,17 @@
                 @if (isDphRozpis)
                 {
                     <div class="grid grid-cols-3 gap-2">
-                        <label class="form-control">
+                        <label class="form-control block w-full min-w-0">
                             <div class="label"><span class="label-text">@_f.tra("DPH %")</span></div>
                             <input asp-for="VatRatePercent" id="VatRatePercent" class="input input-bordered w-full"
                                    inputmode="decimal" autocomplete="off" placeholder="0" />
                         </label>
-                        <label class="form-control">
+                        <label class="form-control block w-full min-w-0">
                             <div class="label"><span class="label-text">@_f.tra("Částka DPH")</span></div>
                             <input asp-for="AmountVat" id="AmountVat" class="input input-bordered w-full"
                                    inputmode="decimal" autocomplete="off" placeholder="0" />
                         </label>
-                        <label class="form-control">
+                        <label class="form-control block w-full min-w-0">
                             <div class="label"><span class="label-text">@_f.tra("Vč. DPH")</span></div>
                             <input asp-for="AmountWithVat" id="AmountWithVat" class="input input-bordered w-full"
                                    inputmode="decimal" autocomplete="off" placeholder="0" />
@@ -200,14 +200,14 @@
                 @if (isVydaj)
                 {
                     <div class="grid grid-cols-2 gap-2">
-                        <label class="form-control">
+                        <label class="form-control block w-full min-w-0">
                             <div class="label">
                                 <span class="label-text font-semibold">@_f.tra("Kód dokladu")</span>
                                 <span class="label-text-alt text-base-content/50">@_f.tra("volitelně")</span>
                             </div>
                             <input asp-for="DocumentCode" class="input input-bordered w-full" autocomplete="off" />
                         </label>
-                        <label class="form-control">
+                        <label class="form-control block w-full min-w-0">
                             <div class="label">
                                 <span class="label-text font-semibold">@_f.tra("Druh úhrady")</span>
                                 <span class="label-text-alt text-base-content/50">@_f.tra("volitelně")</span>
@@ -226,7 +226,7 @@
                 }
 
                 @* Popis - povinnost řídí nastavení aktivity, validaci provede server *@
-                <label class="form-control">
+                <label class="form-control block w-full min-w-0">
                     <div class="label"><span class="label-text font-semibold">@_f.tra("Popis")</span></div>
                     <textarea asp-for="Description" class="textarea textarea-bordered w-full"
                               rows="3" autocapitalize="sentences"></textarea>

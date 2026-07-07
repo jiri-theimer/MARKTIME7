@@ -38,7 +38,8 @@ namespace MO.Code.TagHelpers
         {
             output.TagMode = TagMode.StartTagAndEndTag;
             output.TagName = "div";
-            output.Attributes.SetAttribute("class", "mc-wrap relative");
+            output.Attributes.SetAttribute("class", "mc-wrap relative w-full min-w-0");
+            output.Attributes.SetAttribute("style", "display:block;width:100%;min-width:0;max-width:100%;");
 
             var name = For.Name;                                  // posílá se s formulářem
             var ctlId = "mc_" + name.Replace(".", "_").Replace("[", "_").Replace("]", "_");
@@ -57,10 +58,12 @@ namespace MO.Code.TagHelpers
             sb.Append($"<input type=\"hidden\" id=\"{ctlId}\" name=\"{encoder.Encode(name)}\" value=\"{encoder.Encode(selectedValue)}\" />");
 
             // Trigger button - vypadá jako input
+            // POZN.: min-width/max-width/overflow řešeno i přes inline style (ne jen Tailwind třídy),
+            // aby to fungovalo spolehlivě i bez čerstvého Tailwind (CSS) buildu.
             var hasSelection = !string.IsNullOrEmpty(SelectedText) && selectedValue != "0";
             var triggerTextCls = hasSelection ? "" : "text-base-content/40";
-            sb.Append($"<button type=\"button\" class=\"input input-bordered w-full flex items-center justify-between gap-1 pr-1\" onclick=\"mc_open('{ctlId}')\">");
-            sb.Append($"  <span class=\"mc-trigger-text truncate text-left {triggerTextCls}\" id=\"{ctlId}_text\" data-placeholder=\"{encoder.Encode(placeholder)}\">");
+            sb.Append($"<button type=\"button\" class=\"input input-bordered w-full min-w-0 flex items-center justify-between gap-1 pr-1\" style=\"width:100%;max-width:100%;min-width:0;box-sizing:border-box;display:flex;\" onclick=\"mc_open('{ctlId}')\">");
+            sb.Append($"  <span class=\"mc-trigger-text truncate text-left min-w-0 {triggerTextCls}\" id=\"{ctlId}_text\" data-placeholder=\"{encoder.Encode(placeholder)}\" style=\"display:block;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;\">");
             sb.Append(encoder.Encode(hasSelection ? SelectedText : placeholder));
             sb.Append("  </span>");
             sb.Append("  <span class=\"flex items-center gap-0 shrink-0\">");
@@ -129,12 +132,12 @@ namespace MO.Code.TagHelpers
                 if (useGroups && !string.IsNullOrEmpty(it.GroupBy))
                     sb.Append($"           data-group=\"{encoder.Encode(it.GroupBy)}\"");
                 sb.Append("           >");
-                sb.Append("        <div class=\"flex gap-2 items-baseline\">");
+                sb.Append("        <div class=\"flex gap-2 items-baseline min-w-0\">");
                 if (!string.IsNullOrEmpty(it.Code))
                 {
                     sb.Append($"          <span class=\"font-mono text-xs text-base-content/60 shrink-0\" style=\"min-width:6em;\">{encoder.Encode(it.Code)}</span>");
                 }
-                sb.Append($"          <span class=\"font-medium truncate\">{encoder.Encode(it.Text ?? "")}</span>");
+                sb.Append($"          <span class=\"font-medium truncate min-w-0\">{encoder.Encode(it.Text ?? "")}</span>");
                 sb.Append("        </div>");
                 if (!string.IsNullOrEmpty(it.Meta))
                 {
