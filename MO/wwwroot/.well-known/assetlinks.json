@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "net.marktime.mobile.twa",
+        "sha256_cert_fingerprints": ["CD:68:7F:3D:14:34:3A:A3:C9:82:DD:2F:CF:90:57:BF:90:DA:B5:90:27:C8:20:3C:52:F8:43:C5:E6:0A:63:01"]
+      }
+    }]

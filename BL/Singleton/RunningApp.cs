@@ -54,7 +54,15 @@ namespace BL.Singleton
 
                 }
             }
+
             
+            config = new ConfigurationBuilder().AddJsonFile("c:\\temp\\appsecrets.json", true).Build();
+            this.DefaultSmtpSetting = new BO.SmtpSettings();
+            this.DefaultSmtpSetting.Host = config.GetSection("Smtp")["Host"];
+            this.DefaultSmtpSetting.Username = config.GetSection("Smtp")["Username"];
+            this.DefaultSmtpSetting.Password = config.GetSection("Smtp")["Password"];
+
+
         }
 
         public string ParseConnectStringFromLogin(string login)
@@ -126,6 +134,8 @@ namespace BL.Singleton
         private HostingModeEnum _HostingMode { get; set; }
         private bool _AllowGoogleLogin { get; set; }
 
+
+        public BO.SmtpSettings DefaultSmtpSetting { get; set; }
         public HostingModeEnum HostingMode
         {
             get

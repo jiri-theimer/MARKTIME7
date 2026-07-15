@@ -39,7 +39,12 @@ namespace MO
                  {
                      config.Cookie.HttpOnly = true;
                      config.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-                     config.Cookie.SameSite = SameSiteMode.Strict;
+                     // Lax (ne Strict): Strict by cookie odmítl poslat při příchodu "zvenčí" appky
+                     // (odkaz z e-mailu, QR kód, ikona na ploše, SSO redirect z MO...) - i kdyby
+                     // uživatel byl reálně přihlášený, takový požadavek by ho poslal na Login.
+                     // Lax pořád chrání proti CSRF (cookie se neposílá u cross-site POST/iframe),
+                     // ale funguje i při "vnější" navigaci na stránku.
+                     config.Cookie.SameSite = SameSiteMode.Lax;
                      config.SlidingExpiration = true;
                      config.ExpireTimeSpan = TimeSpan.FromHours(24);
                      config.Cookie.Name = Configuration.GetSection("Authentication")["CookieName"];

@@ -21,7 +21,7 @@ namespace UI
             Configuration = new ConfigurationBuilder()
                  .SetBasePath(env.ContentRootPath)
                  .AddJsonFile("appsettings.json", false, true)
-                 .AddJsonFile($"appsettings.{env.EnvironmentName}.json", true, true)
+                 .AddJsonFile($"appsettings.{env.EnvironmentName}.json", true, true)                 
                  .Build();
         }
 
@@ -34,7 +34,7 @@ namespace UI
                 .PersistKeysToFileSystem(new System.IO.DirectoryInfo(Configuration.GetSection("Authentication")["KeyPath"]))
                 .SetApplicationName(Configuration.GetSection("Authentication")["AppName"]);
 
-
+            
 
             services.AddAuthentication("Identity.Application")
                  .AddCookie("Identity.Application", config =>
@@ -148,6 +148,8 @@ namespace UI
             });
 
 
+            services.Configure<BO.SmtpSettings>(Configuration.GetSection("Smtp"));
+
             //services.Configure<RequestLocalizationOptions>(options =>
             //{
             //    var supportedCultures = new[] { "cs-CZ", "en-US", "sk-SK", }.Select(x => new CultureInfo(x)).ToList();
@@ -203,7 +205,7 @@ namespace UI
                 app.UseExceptionHandler("/Home/Error");
                 app.UseHsts();
             }
-
+          
             //app.UseDeveloperExceptionPage();    //zjt: v r mci v voje
             if (Configuration.GetSection("App")["NotUseHttpsRedirection"] != null && !Configuration.GetSection("App").GetValue<Boolean>("NotUseHttpsRedirection"))
             {

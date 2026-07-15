@@ -26,19 +26,17 @@
         padding: 5px;
     }
 
-
-    
 </style>
 
 
 <div id="divMenuContainerMe" style="border-top:solid 1px silver;">
 
     <div style="padding:10px;">
-       
 
+       
         @if (_f.CurrentUser.TestPermission(BO.PermValEnum.GR_MyProfile))
         {
-            
+
             <div class="input-group">
                 <div>
                     <a id="linkMyProfile" class="nav-link" href="/Home/MyProfile">
@@ -71,7 +69,7 @@
                                value="cs-CZ"
                                id="lang-cs"
                                onchange="this.form.submit()"
-                               @( _culture == "cs-CZ" ? "checked" : null )>
+                        @( _culture == "cs-CZ" ? "checked" : null )>
                         <label class="form-check-label" for="lang-cs">
                             <img src="/images/small_czechrepublic.gif" width="18" class="me-1" />
                             Čeština
@@ -85,7 +83,7 @@
                                value="en-US"
                                id="lang-en"
                                onchange="this.form.submit()"
-                               @( _culture == "en-US" ? "checked" : null )>
+                        @( _culture == "en-US" ? "checked" : null )>
                         <label class="form-check-label" for="lang-en">
                             <img src="/images/small_uk.gif" width="18" class="me-1" />
                             English
@@ -99,7 +97,7 @@
                                value="sk-SK"
                                id="lang-sk"
                                onchange="this.form.submit()"
-                               @( _culture == "sk-SK" ? "checked" : null )>
+                        @( _culture == "sk-SK" ? "checked" : null )>
                         <label class="form-check-label" for="lang-sk">
                             <img src="/images/small_slovakia.gif" width="18" class="me-1" />
                             Slovenčina
@@ -198,14 +196,17 @@
             <div class="col-auto">
 
                 
+                <a class="nav-link" data-bs-toggle="modal" data-bs-target="#exampleModal" href="#">
+                    <myicon symbol="smartphone"></myicon>
+                    Mobilní appka
+                </a>
 
-                
                 <a id="linkNews" class="nav-link nav-news-link" href="javascript:_news()" title="Novinky | Blog">
-                        <span class="nav-news-text">@_f.tra("novinky")</span>
-                        <span class="nav-news-dot" aria-hidden="true"></span>
-                    </a>
-                
+                    <span class="nav-news-text">@_f.tra("novinky")</span>
+                    <span class="nav-news-dot" aria-hidden="true"></span>
+                </a>
 
+                
             </div>
             <div class="col-auto">
 

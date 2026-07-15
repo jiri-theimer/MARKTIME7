@@ -1,9 +1,10 @@
-﻿using System;
+﻿using BO;
+using Microsoft.Extensions.Options;
+using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Net.Mail;
 using System.Linq;
-using BO;
+using System.Net.Mail;
+using System.Text;
 
 
 namespace BL
@@ -36,10 +37,12 @@ namespace BL
     class MailBL : BaseBL, IMailBL
     {
         private BO.j40MailAccount _account;
+        
         public MailBL(BL.Factory mother) : base(mother)
         {
             Rebex.Licensing.Key = "==FmUGVeH5TmvcatEzt0Z4rBvjoahsK0e0albLXKX2bgBB+JxAEBiGKcZlB73B+U5q3G5YP==";
 
+           
         }
         private List<Rebex.Mail.Attachment> _attachments;
         private string _subjectinbody;
@@ -240,9 +243,9 @@ namespace BL
             }
 
 
-            using (SmtpClient client = new SmtpClient("smtp.mycorecloud.net", 25))
+            using (SmtpClient client = new SmtpClient(_mother.App.DefaultSmtpSetting.Host, 25))
             {
-                client.Credentials = new System.Net.NetworkCredential("smtp-marktime", "Oomaidee3Ais");
+                client.Credentials = new System.Net.NetworkCredential(_mother.App.DefaultSmtpSetting.Username, _mother.App.DefaultSmtpSetting.Password);
 
                 //m.Headers.Add("Message-ID", System.Guid.NewGuid().ToString("N"));                
                 client.DeliveryMethod = SmtpDeliveryMethod.SpecifiedPickupDirectory;    //odeslanou zprávu uložit na serveru jako EML soubor

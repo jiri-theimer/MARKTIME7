@@ -493,6 +493,44 @@
                     </ul>
 
                     <ul class="navbar-nav" style="margin-left:auto;">
+                        <li style="display:none;">
+                           
+
+                            <!-- Button trigger modal -->
+                            <a class="nav-link nomobile" data-bs-toggle="modal" data-bs-target="#exampleModal" title="Vyzkoušejte mobilní appku pro vykazování." href="#">
+                                <span class="material-icons-outlined-btn" style="color:orange;">smartphone</span>
+                            </a>
+
+                            <!-- Modal -->
+                            <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h1 class="modal-title fs-5" id="exampleModalLabel">Mobilní appka</h1>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <img src="/images/qr_mobile.png" />
+                                            <p>
+                                                Appka je zatím v testovací fázi na Google Play a brzy bude dostupná i přímo z Google Play.
+                                                <hr />
+                                                Je funkční přímo z prohlížeče (a vždy bude) přes url <a href="https://mobile.marktime.net" target="_blank">https://mobile.marktime.net</a>.
+                                                <br />
+                                                Vyzkoušejte a dejte nám vědět, co vylepšit.
+
+                                                <hr />
+                                                Appka je automaticky dostupná všem našim cloud uživatelům.
+                                                Instalace na serverech našich zákazníků je třeba řešit individuálně.
+                                            </p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zavřít</button>
+                                            
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
                         @if (_f.CurrentUser.j02LastReadNews_Timestamp == null)
                         {
                             <li class="nav-news" title="Novinky | Blog">
