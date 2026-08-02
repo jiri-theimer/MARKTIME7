@@ -167,8 +167,6 @@ namespace UI.Controllers
 
                     var lisJ18 = lisP41.Select(p => new { p.j18ID, p.j18Name, p.j18Ordinary }).Distinct().OrderBy(p => p.j18Ordinary);
 
-                    
-
                     foreach (var rec in lisJ18)
                     {
                         bool bolStredisko = true;
@@ -192,29 +190,39 @@ namespace UI.Controllers
                             foreach (var c in qryP41)
                             {
 
-                                if (c.j18ID == 0)
+                                if (c.p41ParentID == 0 && c.p41TreeNext == c.p41TreePrev)
                                 {
-                                    lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = 999999, Name = GetBrachName(c, v) });
-                                }
-                                else
-                                {
-                                    if (c.p41ParentID == 0 && c.p41TreeNext == c.p41TreePrev)
+                                    if (c.j18ID == 0)
                                     {
-                                        lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = -1 * c.j18ID, Name = GetBrachName(c, v) });
+                                        lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = 999999, Name = GetBrachName(c, v) });
                                     }
                                     else
                                     {
-                                        var recParent = lisP41.FirstOrDefault(p => p.pid == c.p41ParentID && p.j18ID == rec.j18ID);
-                                        if (recParent != null)
+                                        lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = -1 * c.j18ID, Name = GetBrachName(c, v) });
+                                    }
+                                    
+
+                                }
+                                else
+                                {
+                                    var recParent = lisP41.FirstOrDefault(p => p.pid == c.p41ParentID && p.j18ID == rec.j18ID);
+                                    if (recParent != null)
+                                    {
+                                        lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = c.p41ParentID, Name = GetBrachName(c, v) });
+                                    }
+                                    else
+                                    {
+                                        if (c.j18ID == 0)
                                         {
-                                            lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = c.p41ParentID, Name = GetBrachName(c, v) });
+                                            lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = 999999, Name = GetBrachName(c, v) });
                                         }
                                         else
                                         {
                                             lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = -1 * c.j18ID, Name = GetBrachName(c, v) });
                                         }
-
+                                        
                                     }
+
                                 }
 
 

@@ -88,9 +88,20 @@ namespace BL.Code
             }
             using (var request = new HttpRequestMessage(new HttpMethod("GET"), url))
             {
+                request.Headers.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36");
+                request.Headers.Accept.ParseAdd("application/json, text/plain, */*");
 
-                HttpResponseMessage response = hc.SendAsync(request).Result;
-                string strResult = response.Content.ReadAsStringAsync().Result;
+                //HttpResponseMessage response = hc.SendAsync(request).Result;
+                //string strResult = response.Content.ReadAsStringAsync().Result;
+
+                HttpResponseMessage response = await hc.SendAsync(request);
+                string strResult = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    rec.errormessage = $"HTTP {(int)response.StatusCode}: {strResult}";
+                    return rec;
+                }
 
                 if (string.IsNullOrEmpty(strResult) || strResult.ToLower() == "false")
                 {

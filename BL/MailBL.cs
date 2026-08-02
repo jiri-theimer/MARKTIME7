@@ -345,7 +345,7 @@ namespace BL
                     default:
                         client.Connect(_account.j40SmtpHost, _account.j40SmtpPort);
 
-
+                        
                         break;
                 }
             }
@@ -371,8 +371,16 @@ namespace BL
 
             if (!client.IsAuthenticated && !_account.j40SmtpUseDefaultCredentials)
             {
+                if (_account.j40SmtpHost.ToLower() == "smtp.mycorecloud.net")
+                {
+                    client.Login(_mother.App.DefaultSmtpSetting.Username, _mother.App.DefaultSmtpSetting.Password);
 
-                client.Login(_account.j40SmtpLogin, new BO.Code.Cls.Crypto().Decrypt(_account.j40SmtpPassword));
+                }
+                else
+                {
+                    client.Login(_account.j40SmtpLogin, new BO.Code.Cls.Crypto().Decrypt(_account.j40SmtpPassword));
+                }
+                
 
             }
 

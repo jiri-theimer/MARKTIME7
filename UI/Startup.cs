@@ -148,7 +148,7 @@ namespace UI
             });
 
 
-            services.Configure<BO.SmtpSettings>(Configuration.GetSection("Smtp"));
+            //services.Configure<BO.SmtpSettings>(Configuration.GetSection("Smtp"));
 
             //services.Configure<RequestLocalizationOptions>(options =>
             //{
