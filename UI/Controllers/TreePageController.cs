@@ -137,8 +137,8 @@ namespace UI.Controllers
             }
 
             var lisP41 = Factory.p41ProjectBL.GetList(mq);   //.OrderBy(p => p.p41TreeIndex);
-           
-           
+
+
             var lisflat = new List<UI.Models.Asi.TreeNode>();
             lisflat.Add(new UI.Models.Asi.TreeNode() { Id = 999999, IdParent = 0, Name = "-----------------" });
 
@@ -182,7 +182,7 @@ namespace UI.Controllers
                             {
                                 bolStredisko = false;
                             }
-                            
+
                         }
                         if (bolStredisko)
                         {
@@ -200,7 +200,7 @@ namespace UI.Controllers
                                     {
                                         lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = -1 * c.j18ID, Name = GetBrachName(c, v) });
                                     }
-                                    
+
 
                                 }
                                 else
@@ -220,7 +220,7 @@ namespace UI.Controllers
                                         {
                                             lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = -1 * c.j18ID, Name = GetBrachName(c, v) });
                                         }
-                                        
+
                                     }
 
                                 }
@@ -229,7 +229,7 @@ namespace UI.Controllers
 
                             }
                         }
-                        
+
                     }
 
                     break;
@@ -247,30 +247,42 @@ namespace UI.Controllers
                         foreach (var c in qryP41)
                         {
 
-                            if (c.p42ID == 0)
+
+
+                            if (c.p41ParentID == 0 && c.p41TreeNext == c.p41TreePrev)
                             {
-                                lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = 999999, Name = GetBrachName(c, v) });
-                            }
-                            else
-                            {
-                                if (c.p41ParentID == 0 && c.p41TreeNext == c.p41TreePrev)
+                                if (c.p42ID == 0)
                                 {
-                                    lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = -1 * c.p42ID, Name = GetBrachName(c, v) });
+                                    lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = 999999, Name = GetBrachName(c, v) });
                                 }
                                 else
                                 {
-                                    var recParent = lisP41.FirstOrDefault(p => p.pid == c.p41ParentID && p.p42ID == rec.p42ID);
-                                    if (recParent != null)
+                                    lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = -1 * c.p42ID, Name = GetBrachName(c, v) });
+                                }
+                                
+                            }
+                            else
+                            {
+                                var recParent = lisP41.FirstOrDefault(p => p.pid == c.p41ParentID && p.p42ID == rec.p42ID);
+                                if (recParent != null)
+                                {
+                                    lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = c.p41ParentID, Name = GetBrachName(c, v) });
+                                }
+                                else
+                                {
+                                    if (c.p42ID == 0)
                                     {
-                                        lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = c.p41ParentID, Name = GetBrachName(c, v) });
+                                        lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = 999999, Name = GetBrachName(c, v) });
                                     }
                                     else
                                     {
                                         lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = -1 * c.p42ID, Name = GetBrachName(c, v) });
                                     }
-
+                                    
                                 }
+
                             }
+
 
 
 
@@ -343,33 +355,40 @@ namespace UI.Controllers
                         var qryP41 = lisP41.Where(p => p.p28ID_Client == recP28.p28ID_Client);
                         foreach (var c in qryP41)
                         {
-
-                            if (c.p28ID_Client == 0)
+                                                       
+                            if (c.p41ParentID == 0 && c.p41TreeNext == c.p41TreePrev)
                             {
-                                lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = 999999, Name = c.PrefferedName });
-                            }
-                            else
-                            {
-                                if (c.p41ParentID == 0 && c.p41TreeNext == c.p41TreePrev)
+                                if (c.p28ID_Client == 0)
                                 {
-                                    lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = -1 * c.p28ID_Client, Name = c.PrefferedName });
+                                    lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = 999999, Name = c.PrefferedName });
                                 }
                                 else
                                 {
-                                    var recParent = lisP41.FirstOrDefault(p => p.pid == c.p41ParentID && p.p28ID_Client == recP28.p28ID_Client);
-                                    if (recParent != null)
+                                    lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = -1 * c.p28ID_Client, Name = c.PrefferedName });
+                                }
+                                
+                            }
+                            else
+                            {
+                                var recParent = lisP41.FirstOrDefault(p => p.pid == c.p41ParentID && p.p28ID_Client == recP28.p28ID_Client);
+                                if (recParent != null)
+                                {
+                                    lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = c.p41ParentID, Name = c.PrefferedName });
+                                }
+                                else
+                                {
+                                    if (c.p28ID_Client == 0)
                                     {
-                                        lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = c.p41ParentID, Name = c.PrefferedName });
+                                        lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = 999999, Name = c.PrefferedName });
                                     }
                                     else
                                     {
                                         lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = -1 * c.p28ID_Client, Name = c.PrefferedName });
                                     }
-
+                                    
                                 }
+
                             }
-
-
 
                         }
                     }
