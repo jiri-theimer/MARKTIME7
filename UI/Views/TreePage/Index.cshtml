@@ -13,9 +13,10 @@
 @addTagHelper *, UI
 
 <style>
-    a.nav-link{
-        cursor:pointer;
+    a.nav-link {
+        cursor: pointer;
     }
+
     .tree-hit-summary {
         background: #fff3cd;
     }
@@ -25,11 +26,11 @@
         border-radius: .25rem;
     }
     /* jemná modrá */
-    #tree1 .active{
+    #tree1 .active {
         background-color: var(--oznaceno) !important;
         color: var(--popredi) !important;
         border: solid 1px var(--oznaceno) !important;
-        border-radius:4px;
+        border-radius: 4px;
     }
 
 
@@ -71,6 +72,7 @@
         color: #000;
         cursor: pointer;
     }
+
 </style>
 
 
@@ -236,8 +238,8 @@
         <br />
         <input type="radio" asp-for="@Model.groupby" id="opg5" value="p51" onchange="reload_setting(this)" />
         <label for="opg5">@_f.tra("Ceník fakturačních sazeb")</label>
-        
 
+        
         <hr />
         <div style="padding:20px;">
             <label for="ProjectMask">@_f.tra("Maska zobrazení projektu")</label>
@@ -253,485 +255,475 @@
 <input type="hidden" asp-for="pid" />
 
 <script type="text/javascript">
-          let _inicializace=true;
-          let _offcanvasIsLoaded = false;
-          var _groupby="@Model.groupby";
-          
-          var _pid = "@Model.pid";
+    let _inicializace = true;
+    let _offcanvasIsLoaded = false;
+    var _groupby = "@Model.groupby";
 
-          var _currentloadingtabs = false;
-          var _local_binquery = "@(Model.recordbinquery != null ? Model.recordbinquery.Value : 0)";
+    var _pid = "@Model.pid";
 
-          $(document).ready(function () {
+    var _currentloadingtabs = false;
+    var _local_binquery = "@(Model.recordbinquery != null ? Model.recordbinquery.Value : 0)";
 
-
-              $("#offcanvas_more").on("show.bs.offcanvas", function () {
-                  if (_offcanvasIsLoaded)
-                  {
-
-                      return;
-                  }
-
-                  _offcanvasIsLoaded = true;
+    $(document).ready(function() {
 
 
-              });
+        $("#offcanvas_more").on("show.bs.offcanvas", function() {
+            if (_offcanvasIsLoaded) {
+
+                return;
+            }
+
+            _offcanvasIsLoaded = true;
 
 
-              register_menu("cmdgridquerymenu", "cmdgridquerymenu_menu", "/Menu/grid_query?prefix=p41&j72id=@(Model.TheGridQueryButton.j72id)");
+        });
+
+
+        register_menu("cmdgridquerymenu", "cmdgridquerymenu_menu", "/Menu/grid_query?prefix=p41&j72id=@(Model.TheGridQueryButton.j72id)");
 
 
 
-              var key = "p41-treepage_panel1_size";
-              var defWidth = localStorage.getItem(key);
-              if (defWidth == null) {
-                  defWidth = 400;
-                  localStorage.setItem(key, defWidth);
-              }
-              _splitter_init("2", "p41-treepage");
-              _splitter_resize_after_init("2", defWidth);
+        var key = "p41-treepage_panel1_size";
+        var defWidth = localStorage.getItem(key);
+        if (defWidth == null) {
+            defWidth = 400;
+            localStorage.setItem(key, defWidth);
+        }
+        _splitter_init("2", "p41-treepage");
+        _splitter_resize_after_init("2", defWidth);
+
               
 
-
-              var offset = $("#divTabContent").offset();
-              var h_vertical = _device.innerHeight - offset.top;
-              h_vertical = parseInt(h_vertical);
-
-              if (_device.type === "Phone") {
-                  h_vertical = 400;
-              }
-
-              $("#divTabContent").css("height", h_vertical + "px");
-
-
-
-              _mainmenu_highlight_current("cmdTreePage");
-
-
-
-              if (_local_binquery != "1") {
-                  $(".showmore").toggle();
-              }
-
-
-              tree1_init();
-
-
-
-              if (_pid !="0")
-              {
-                  selectTreeLeafById(_pid);
-                  leftgrid_handle_rowselect(_pid);
-              }
-          });
-
-
-
-
-          function tabclick(tab) {    //uložit aktuální záložku do profilu uživatele
-              $("#navtabs .nav-link").removeClass("active");
-              $(tab).addClass("active");
-              $.post("/Common/SetUserParam", { key: "treepage-tab-p41", value: tab.id.replace("tab", "") }, function (data) {
-
-
-              });
-          }
-
-          function reload() {
-              _redirect("/TreePage/Index?groupby="+_groupby+"&pid=" + _pid);
-          }
-
-
-
-
-
-
-          function rcm_from_tabs(e) {
-
-              e.target.setAttribute("menu_je_inicializovano", null);  //vyčistit paměť o inicializaci menu v rámci tohoto tlačítka
-
-              _cm(e, "p41", _pid, "grid");
-          }
-
-
-
-
-          
-
-
-
-          function handle_render_tabs(pid) {
-              //Aktualizovat záložky
-              if (_currentloadingtabs) {
-                  $("#tabtab1").html("Wait");
-              } else {
-                  _currentloadingtabs = true;
-                  //$("#tabtab1").html("-----");
-                  $.post("/TheGrid/getTabs", { prefix: "p41", pid: pid }, function (data) {
-                      callback_render_tabs(data);
-
-                  });
-                  
-              }
-          }
-
-          function callback_render_tabs(data) {
-              //vykreslení obsahu záložek načtených přes load_ajax_async
-              
-              _currentloadingtabs = false;
-              $("#tabtab1").html(data[0].name);
-              for (var i = 1; i < data.length; i++) {
-                  
-                  if (document.getElementById("tab" + data[i].entity))
-                  {
-                      
-                      if (data[i].badge != null) {
-                          $("#tab" + data[i].entity).html(data[i].name + data[i].badge);
-                      } else {
-                          $("#tab" + data[i].entity).html(data[i].name);
-                      }
-                  }
-
-              }
-          }
-
-
-
-          function rcm_from_tabs(e) {
-
-
-
-              e.target.setAttribute("menu_je_inicializovano", null);  //vyčistit paměť o inicializaci menu v rámci tohoto tlačítka
-
-              _cm(e, "p41", _pid, "grid");
-          }
-
-
-
-          function change_statequery(val) {
-              reload();
-          }
-
-          function reload_setting(opg) {
-
-
-              $.post(_ep("/Common/SetUserParam"), { key: "treepage-groupby", value: opg.value }, function (data) {
-                   _groupby=opg.value;
-                  reload();
-
-              });
-          }
-
-          function reload_setting_mask(cbx) {
-
-
-              $.post(_ep("/Common/SetUserParam"), { key: "treepage-projectmask", value: cbx.value }, function (data) {
-
-                  reload();
-
-              });
-          }
-
-
-
-          function tree1_init()
-           {
-                const treeDetails = document.querySelectorAll('#tree1 details');
-                let internalChange = false;
-
-                // najde nejbližší nadřazený <details>
-               function getParentDetail(el)
-               {
-                 let p = el.parentElement;
-                 while (p) {
-                   if (p.tagName === "DETAILS") return p;
-                   p = p.parentElement;
-                 }
-                 return null;
-               }
-
-
-                treeDetails.forEach(d => {
-
-                 d.addEventListener("toggle", () => {
-
-                   if (internalChange) return;
-
-                   if (_inicializace) {
-                       _inicializace = false;
-                       return;
-                   }
-
-                   // accordion: zavři ostatní foldery
-                   if (d.open)
-                   {
-
-                       internalChange = true;
-
-                       // najdu společného rodiče → tím určíme sourozence
-                       const parent = getParentDetail(d);
-
-                       // SOUROZENCI = všechny <details> se stejným rodičem
-                       const siblings = parent
-                           ? Array.from(parent.querySelectorAll(':scope > details'))
-                           : Array.from(document.querySelectorAll('#tree1 > details'));
-
-                       // zavři pouze přímé SOUROZENCE (a jen je)
-                       siblings.forEach(other => {
-                           if (other !== d) other.open = false;
-                       });
-
-                       internalChange = false;
-
-                       //otevření větve
-                       
-
-                   }
-                   else
-                   {
-                           //zavření větve
-                   }
-
-
-
-
-                   if (_inicializace)
-                   {
-                       _inicializace=false;
-                       return;
-                   }
-
-
-                 });
-               });
-
-
-           }
-
-
-        function searchTree(txt) {
-      const query = (txt?.value || "").trim();
-      const tree = document.querySelector("#tree1");
-      if (!tree) return;
-
-      const allDetails = Array.from(tree.querySelectorAll("details.branch"));
-
-      const CLS_SUMMARY = "tree-hit-summary";
-      const CLS_LEAF = "tree-hit-leaf";
-
-      const summaryByDetail = new Map();
-      const parentByDetail = new Map();
-
-      allDetails.forEach(d => {
-        summaryByDetail.set(d, d.querySelector(":scope > summary"));
-        parentByDetail.set(d, d.parentElement?.closest("details.branch") || null);
-      });
-
-      function clearHighlightsOnly() {
-        allDetails.forEach(d => {
-          summaryByDetail.get(d)?.classList.remove(CLS_SUMMARY);
-          d.querySelectorAll(":scope > .leaf a.nav-link").forEach(a => a.classList.remove(CLS_LEAF));
-        });
-      }
-
-      function resetAll() {
-        clearHighlightsOnly();
-        allDetails.forEach(d => (d.open = false));
-      }
-
-      function markAndOpenAncestors(detail, set) {
-        let cur = detail;
-        while (cur) {
-          if (set.has(cur)) break;
-          set.add(cur);
-          cur.open = true;
-          cur = parentByDetail.get(cur);
-        }
-      }
-
-      if (query.length < 3) {
-        resetAll();
-        return;
-      }
-
-      clearHighlightsOnly();
-
-      const q = query.toLowerCase();
-      const hasMatchInSubtree = new Set();
-
-      let firstHitElement = null;   // 👈 PRVNÍ NALEZENÁ POLOŽKA
-
-      // 1) hledání
-      allDetails.forEach(d => {
-        const summary = summaryByDetail.get(d);
-
-        const summaryText = (summary?.textContent || "").toLowerCase();
-        const summaryMatch = summaryText.includes(q);
-
-        if (summaryMatch) {
-          summary.classList.add(CLS_SUMMARY);
-          markAndOpenAncestors(d, hasMatchInSubtree);
-
-          if (!firstHitElement) firstHitElement = summary;
+        var offset = $("#divTabContent").offset();
+        var h_vertical = _device.innerHeight - offset.top;
+        h_vertical = parseInt(h_vertical);
+
+        if (_device.type === "Phone") {
+            h_vertical = 400;
         }
 
-        d.querySelectorAll(":scope > .leaf a.nav-link").forEach(a => {
-          if ((a.textContent || "").toLowerCase().includes(q)) {
-            a.classList.add(CLS_LEAF);
-            markAndOpenAncestors(d, hasMatchInSubtree);
+        $("#divTabContent").css("height", h_vertical + "px");
 
-            if (!firstHitElement) firstHitElement = a;
-          }
+
+
+        _mainmenu_highlight_current("cmdTreePage");
+
+
+
+        if (_local_binquery != "1") {
+            $(".showmore").toggle();
+        }
+
+
+        tree1_init();
+
+
+
+        if (_pid != "0") {
+            selectTreeLeafById(_pid);
+            leftgrid_handle_rowselect(_pid);
+        }
+    });
+
+
+
+
+    function tabclick(tab) {    //uložit aktuální záložku do profilu uživatele
+        $("#navtabs .nav-link").removeClass("active");
+        $(tab).addClass("active");
+        $.post("/Common/SetUserParam", { key: "treepage-tab-p41", value: tab.id.replace("tab", "") }, function(data) {
+
+
         });
-      });
+    }
 
-      // 2) zavření nerelevantních větví
-      allDetails.forEach(d => {
-        if (!hasMatchInSubtree.has(d)) d.open = false;
-      });
-
-      // 3) accordion po úrovních
-      function applyAccordion(container) {
-        const children = Array.from(container.querySelectorAll(":scope > details.branch"));
-        children.forEach(ch => {
-          ch.open = hasMatchInSubtree.has(ch);
-          if (ch.open) applyAccordion(ch);
-        });
-      }
-      applyAccordion(tree);
-
-      // 4️⃣ AUTOSCROLL NA PRVNÍ VÝSLEDEK
-      if (firstHitElement) {
-        requestAnimationFrame(() => {
-          firstHitElement.scrollIntoView({
-            behavior: "smooth",
-            block: "center"
-          });
-        });
-      }
+    function reload() {
+        _redirect("/TreePage/Index?groupby=" + _groupby + "&pid=" + _pid);
     }
 
 
 
 
 
-    document.querySelectorAll('#tree1 details').forEach(details => {
-        details.addEventListener('click', e => {
 
-        // zabráníme tomu, aby click na <summary> probublal dvakrát
-        // (summary má vlastní default chování)
-        if (e.target.tagName.toLowerCase() === 'summary') {
-          return;
-        }
+    function rcm_from_tabs(e) {
 
-        const leafLink = e.target.closest('a[data-id]');
-        if (leafLink && details.contains(leafLink)) {
-            const pid = leafLink.dataset.id ?? null;
-            const prefix = leafLink.dataset.prefix ?? null;
-            const text = leafLink.textContent.trim();
+        e.target.setAttribute("menu_je_inicializovano", null);  //vyčistit paměť o inicializaci menu v rámci tohoto tlačítka
 
-            leftgrid_handle_rowselect(pid);
-
-            return;
-        }
+        _cm(e, "p41", _pid, "grid");
+    }
 
 
-      });
-    });
-
-
-
-    ///složité
-          function leftgrid_handle_rowselect(pid) {
-              // if (_pid == "0" && pid != "0")  //ošetřit situaci, kdy stránka záznamu nemá vybraný záznam s hodnotou _pid
-              // {
-              //     _pid = pid;
-              //     reload();
-              //     return;
-              // }
-
-              var url = $("#fra_subgrid").attr("src");
-
-              var tabs = $(".nav-link.text-dark");
-              for (var i = 0; i < tabs.length; i++) {
-                  url = $(tabs[i]).attr("href");
-                 
-                  if (url.indexOf("caller") == -1) {
-                      url = url + "&caller=grid";     //donutit cílovou stránku, aby si uložila naposledy navštívený záznam
-                  }
-
-                  
-
-
-                  url = url.replaceAll("pid=" + _pid, "pid=" + pid);
-
-
-                  $(tabs[i]).attr("href", url);
-
-                  
-
-                  if ($(tabs[i]).hasClass("active")) {
-                      $("#fra_subgrid").attr("src", url);
-
-                  }
-              }
-
-              if (tabs.length == 1) {
-                  url = url.replaceAll("pid=" + _pid, "pid=" + pid);
-                  $(tabs[0]).attr("href", url);
-                  $("#fra_subgrid").attr("src", url);
-              }
-
-              if (document.getElementById("linkGo2Grid")) {
-                  url = $("#linkGo2Grid").attr("href");
-                  if (url != null) {
-                      url = url.replaceAll("pid=" + _pid, "pid=" + pid);
-                  }
-
-                  $("#linkGo2Grid").attr("href", url);
-              }
-
-              if (document.getElementById("linkMainTab"))
-              {
-                  url = $("#linkMainTab").attr("href");
-                  url = url.replaceAll("pid=" + _pid, "pid=" + pid);
-                  $("#linkMainTab").attr("href", url);
-              }
-
-
-                const tree = document.getElementById("tree1");
-                tree.querySelectorAll("a.nav-link").forEach(a =>
-                    a.classList.remove("active")
-                );
-                tree.querySelectorAll("summary").forEach(a =>
-                    a.classList.remove("active")
-                );
-                const leaf = tree.querySelector(`a[data-id="${pid}"]`);
-                leaf.classList.add("active");
-
-              _pid = pid;
-              $("#pid").val(pid);
-
-              handle_render_tabs(_pid);
-
-          }
 
 
           
 
-    function selectTreeLeafById(leafId)
-    {
+
+
+    function handle_render_tabs(pid) {
+        //Aktualizovat záložky
+        if (_currentloadingtabs) {
+            $("#tabtab1").html("Wait");
+        } else {
+            _currentloadingtabs = true;
+            //$("#tabtab1").html("-----");
+            $.post("/TheGrid/getTabs", { prefix: "p41", pid: pid }, function(data) {
+                callback_render_tabs(data);
+
+            });
+
+        }
+    }
+
+    function callback_render_tabs(data) {
+        //vykreslení obsahu záložek načtených přes load_ajax_async
+
+        _currentloadingtabs = false;
+        $("#tabtab1").html(data[0].name);
+        for (var i = 1; i < data.length; i++) {
+
+            if (document.getElementById("tab" + data[i].entity)) {
+
+                if (data[i].badge != null) {
+                    $("#tab" + data[i].entity).html(data[i].name + data[i].badge);
+                } else {
+                    $("#tab" + data[i].entity).html(data[i].name);
+                }
+            }
+
+        }
+    }
+
+
+
+    function rcm_from_tabs(e) {
+
+
+
+        e.target.setAttribute("menu_je_inicializovano", null);  //vyčistit paměť o inicializaci menu v rámci tohoto tlačítka
+
+        _cm(e, "p41", _pid, "grid");
+    }
+
+
+
+    function change_statequery(val) {
+        reload();
+    }
+
+    function reload_setting(opg) {
+
+
+        $.post(_ep("/Common/SetUserParam"), { key: "treepage-groupby", value: opg.value }, function(data) {
+            _groupby = opg.value;
+            reload();
+
+        });
+    }
+
+    function reload_setting_mask(cbx) {
+
+
+        $.post(_ep("/Common/SetUserParam"), { key: "treepage-projectmask", value: cbx.value }, function(data) {
+
+            reload();
+
+        });
+    }
+
+
+
+    function tree1_init() {
+        const treeDetails = document.querySelectorAll('#tree1 details');
+        let internalChange = false;
+
+        // najde nejbližší nadřazený <details>
+        function getParentDetail(el) {
+            let p = el.parentElement;
+            while (p) {
+                if (p.tagName === "DETAILS") return p;
+                p = p.parentElement;
+            }
+            return null;
+        }
+
+
+        treeDetails.forEach(d => {
+
+            d.addEventListener("toggle", () => {
+
+                if (internalChange) return;
+
+                if (_inicializace) {
+                    _inicializace = false;
+                    return;
+                }
+
+                // accordion: zavři ostatní foldery
+                if (d.open) {
+
+                    internalChange = true;
+
+                    // najdu společného rodiče → tím určíme sourozence
+                    const parent = getParentDetail(d);
+
+                    // SOUROZENCI = všechny <details> se stejným rodičem
+                    const siblings = parent
+                        ? Array.from(parent.querySelectorAll(':scope > details'))
+                        : Array.from(document.querySelectorAll('#tree1 > details'));
+
+                    // zavři pouze přímé SOUROZENCE (a jen je)
+                    siblings.forEach(other => {
+                        if (other !== d) other.open = false;
+                    });
+
+                    internalChange = false;
+
+                    //otevření větve
+
+                       
+                }
+                else {
+                    //zavření větve
+                }
+
+
+
+
+                if (_inicializace) {
+                    _inicializace = false;
+                    return;
+                }
+
+
+            });
+        });
+
+
+    }
+
+
+    function searchTree(txt) {
+        const query = (txt?.value || "").trim();
+        const tree = document.querySelector("#tree1");
+        if (!tree) return;
+
+        const allDetails = Array.from(tree.querySelectorAll("details.branch"));
+
+        const CLS_SUMMARY = "tree-hit-summary";
+        const CLS_LEAF = "tree-hit-leaf";
+
+        const summaryByDetail = new Map();
+        const parentByDetail = new Map();
+
+        allDetails.forEach(d => {
+            summaryByDetail.set(d, d.querySelector(":scope > summary"));
+            parentByDetail.set(d, d.parentElement?.closest("details.branch") || null);
+        });
+
+        function clearHighlightsOnly() {
+            allDetails.forEach(d => {
+                summaryByDetail.get(d)?.classList.remove(CLS_SUMMARY);
+                d.querySelectorAll(":scope > .leaf a.nav-link").forEach(a => a.classList.remove(CLS_LEAF));
+            });
+        }
+
+        function resetAll() {
+            clearHighlightsOnly();
+            allDetails.forEach(d => (d.open = false));
+        }
+
+        function markAndOpenAncestors(detail, set) {
+            let cur = detail;
+            while (cur) {
+                if (set.has(cur)) break;
+                set.add(cur);
+                cur.open = true;
+                cur = parentByDetail.get(cur);
+            }
+        }
+
+        if (query.length < 3) {
+            resetAll();
+            return;
+        }
+
+        clearHighlightsOnly();
+
+        const q = query.toLowerCase();
+        const hasMatchInSubtree = new Set();
+
+        let firstHitElement = null;   // 👈 PRVNÍ NALEZENÁ POLOŽKA
+
+        // 1) hledání
+        allDetails.forEach(d => {
+            const summary = summaryByDetail.get(d);
+
+            const summaryText = (summary?.textContent || "").toLowerCase();
+            const summaryMatch = summaryText.includes(q);
+
+            if (summaryMatch) {
+                summary.classList.add(CLS_SUMMARY);
+                markAndOpenAncestors(d, hasMatchInSubtree);
+
+                if (!firstHitElement) firstHitElement = summary;
+            }
+
+            d.querySelectorAll(":scope > .leaf a.nav-link").forEach(a => {
+                if ((a.textContent || "").toLowerCase().includes(q)) {
+                    a.classList.add(CLS_LEAF);
+                    markAndOpenAncestors(d, hasMatchInSubtree);
+
+                    if (!firstHitElement) firstHitElement = a;
+                }
+            });
+        });
+
+        // 2) zavření nerelevantních větví
+        allDetails.forEach(d => {
+            if (!hasMatchInSubtree.has(d)) d.open = false;
+        });
+
+        // 3) accordion po úrovních
+        function applyAccordion(container) {
+            const children = Array.from(container.querySelectorAll(":scope > details.branch"));
+            children.forEach(ch => {
+                ch.open = hasMatchInSubtree.has(ch);
+                if (ch.open) applyAccordion(ch);
+            });
+        }
+        applyAccordion(tree);
+
+        // 4️⃣ AUTOSCROLL NA PRVNÍ VÝSLEDEK
+        if (firstHitElement) {
+            requestAnimationFrame(() => {
+                firstHitElement.scrollIntoView({
+                    behavior: "smooth",
+                    block: "center"
+                });
+            });
+        }
+    }
+
+
+    document.getElementById('tree1').addEventListener('click', e => {
+
+        if (e.target.tagName.toLowerCase() === 'summary') {
+            const pid = e.target.dataset.id ?? null;
+            let prefix = e.target.dataset.prefix ?? null;
+
+            if (prefix==null || prefix=='')
+            {
+                prefix="p41";
+            }
+
+            if (pid && pid !== _pid && (prefix === 'p41')) {
+                leftgrid_handle_rowselect(pid);
+            }
+            return;   // necháme prohlížeč normálně otevřít/zavřít <details>
+        }
+
+        const leafLink = e.target.closest('a[data-id]');
+        if (leafLink) {
+            const pid = leafLink.dataset.id ?? null;
+            const prefix = leafLink.dataset.prefix ?? null;
+
+            leftgrid_handle_rowselect(pid);
+        }
+    });
+
+    
+
+
+
+    ///složité
+    function leftgrid_handle_rowselect(pid) {
+        
+        var url = $("#fra_subgrid").attr("src");
+
+        var tabs = $(".nav-link.text-dark");
+        for (var i = 0; i < tabs.length; i++) {
+            url = $(tabs[i]).attr("href");
+
+            if (url.indexOf("caller") == -1) {
+                url = url + "&caller=grid";     //donutit cílovou stránku, aby si uložila naposledy navštívený záznam
+            }
+
+                  
+
+
+            url = url.replaceAll("pid=" + _pid, "pid=" + pid);
+
+
+            $(tabs[i]).attr("href", url);
+
+                  
+
+            if ($(tabs[i]).hasClass("active")) {
+                $("#fra_subgrid").attr("src", url);
+
+            }
+        }
+
+              
+        if (tabs.length == 1) {
+            url = url.replaceAll("pid=" + _pid, "pid=" + pid);
+            $(tabs[0]).attr("href", url);
+            $("#fra_subgrid").attr("src", url);
+        }
+
+        if (document.getElementById("linkGo2Grid")) {
+            url = $("#linkGo2Grid").attr("href");
+            if (url != null) {
+                url = url.replaceAll("pid=" + _pid, "pid=" + pid);
+            }
+
+            $("#linkGo2Grid").attr("href", url);
+        }
+
+        if (document.getElementById("linkMainTab")) {
+            url = $("#linkMainTab").attr("href");
+            url = url.replaceAll("pid=" + _pid, "pid=" + pid);
+            $("#linkMainTab").attr("href", url);
+        }
+
+
+        const tree = document.getElementById("tree1");
+        tree.querySelectorAll("a.nav-link").forEach(a =>
+            a.classList.remove("active")
+        );
+        tree.querySelectorAll("summary").forEach(a =>
+            a.classList.remove("active")
+        );
+        let leaf = tree.querySelector(`a[data-id="${pid}"]`);
+        if (!leaf) {
+            leaf = tree.querySelector(`summary[data-id="${pid}"]`);
+        }
+        if (leaf) {
+            leaf.classList.add("active");
+        }
+
+        _pid = pid;
+        $("#pid").val(pid);
+
+        handle_render_tabs(_pid);
+
+    }
+
+
+          
+
+    function selectTreeLeafById(leafId) {
         const tree = document.getElementById("tree1");
         if (!tree) return;
 
         // najdi <a> s daným data-id
         let leaf = tree.querySelector(`a[data-id="${leafId}"]`);
 
-        if (!leaf)
-        {
-            leaf=tree.querySelector(`summary[data-id="${leafId}"]`);
+        if (!leaf) {
+            leaf = tree.querySelector(`summary[data-id="${leafId}"]`);
         }
-        
+
         if (!leaf) return;
 
         
