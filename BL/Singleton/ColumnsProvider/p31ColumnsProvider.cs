@@ -198,6 +198,9 @@ namespace BL
             oc = AFNUM_OCAS("Vynos3MinusNaklad1", "V3-N3", "ISNULL(p31_ocas.Vykazano_Vynos3,0)-ISNULL(p31_ocas.Naklad3,0)", true); oc.IHRC = true; oc.VYSL = true;
             oc = AFNUM_OCAS("Vynos3MinusNaklad1", "V3-N4", "ISNULL(p31_ocas.Vykazano_Vynos3,0)-ISNULL(p31_ocas.Naklad4,0)", true); oc.IHRC = true; oc.VYSL = true;
 
+            oc = AF("Odmena_Minus_Vydaj_Minus_RezijniHonorar", "Od-Vý-Rh", "(case when p34x.p33ID IN (2,5) and p34x.p34IncomeStatementFlag=2 then a.p31Amount_WithoutVat_Orig else 0 end) - (case when p34x.p33ID IN (2,5) and p34x.p34IncomeStatementFlag=1 then a.p31Amount_WithoutVat_Orig else 0 end) - (case when p34x.p33ID IN (1,3) then a.p31Hours_Orig*a.p31Rate_Overhead else 0 end)", "num", true); oc.IHRC = true; oc.VYSL = true;oc.Tooltip = "Pevná odměna - Výdaj - Režijní honorář";
+            oc = AF("Odmena_Minus_VydajPoMarzich_Minus_FakturacniHonorar", "Od-Vý2p-Fh", "(case when p34x.p33ID IN (2,5) and p34x.p34IncomeStatementFlag=2 then a.p31Amount_WithoutVat_Orig else 0 end) - (case when p34x.p33ID IN (2,5) and p34x.p34IncomeStatementFlag=1 then dbo.p31_get_expense_with_margins(a.p31Amount_WithoutVat_Orig,a.p31MarginHidden,a.p31MarginTransparent) else 0 end) - (case when p34x.p33ID IN (1,3) then a.p31Hours_Orig*a.p31Rate_Billing_Orig else 0 end)", "num", true); oc.IHRC = true; oc.VYSL = true; oc.Tooltip = "Pevná odměna - Výdaj po maržích - Fakturační honorář";
+
 
             this.CurrentFieldGroup = "Výsledovka z vyúčtovaných hodnot";//-----------Výsledovka z vyúčtovaných hodnot---------------------
             oc = AFNUM_OCAS("Vyfakturovano_Puvodni_Naklad_Domestic", "Vykázaný náklad x Kurz", "p31_ocas.Vyfakturovano_Puvodni_Naklad_Domestic", true); oc.IHRC = true; oc.VYSL = true;
@@ -215,8 +218,8 @@ namespace BL
             this.CurrentFieldGroup = "Expense marže";//-----------Expense marže---------------------
             AF("p31MarginHidden", "Skrytá marže", null, "num").IHRC = true; oc.VYSL = true;
             AF("p31MarginTransparent", "Přiznaná marže%", null, "num").IHRC = true; oc.VYSL = true;
-            AF("ExpenseAfterMarginHidden", "Výdaj po skryté marži", "a.p31Amount_WithoutVat_Orig+(a.p31Amount_WithoutVat_Orig*a.p31MarginHidden/100)", "num", true).IHRC = true; oc.VYSL = true;
-            AF("ExpenseAfterAllMargins", "Výdaj po obou maržích", "dbo.p31_get_expense_with_margins(a.p31Amount_WithoutVat_Orig,a.p31MarginHidden,a.p31MarginTransparent)", "num", true).IHRC = true;
+            AF("ExpenseAfterMarginHidden", "Výdaj po skryté marži", "case when p34x.p33ID IN (2,5) AND p34x.p34IncomeStatementFlag=1 then a.p31Amount_WithoutVat_Orig+(a.p31Amount_WithoutVat_Orig*a.p31MarginHidden/100) end", "num", true).IHRC = true; oc.VYSL = true;
+            AF("ExpenseAfterAllMargins", "Výdaj po obou maržích", "case when p34x.p33ID IN (2,5) AND p34x.p34IncomeStatementFlag=1 then dbo.p31_get_expense_with_margins(a.p31Amount_WithoutVat_Orig,a.p31MarginHidden,a.p31MarginTransparent) end", "num", true).IHRC = true;
             AF("Odmena_Minus_Vydaj_Minus_HonorarR", "Odměna - Výdaj s marží - Režijní honorář", "(case when p34x.p33ID IN (2,5) and p34x.p34IncomeStatementFlag=2 then a.p31Amount_WithoutVat_Orig else 0 end) - (case when p34x.p33ID IN (2,5) and p34x.p34IncomeStatementFlag=1 then dbo.p31_get_expense_with_margins(a.p31Amount_WithoutVat_Orig,a.p31MarginHidden,a.p31MarginTransparent) else 0 end) - (case when p34x.p33ID IN (1,3) then a.p31Hours_Orig*a.p31Rate_Overhead else 0 end)", "num", true).IHRC = true; oc.VYSL = true;
             
 

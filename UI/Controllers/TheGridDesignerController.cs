@@ -304,6 +304,7 @@ namespace UI.Controllers
                 foreach (string gg in qry.Where(p => p.DesignerGroup != null).Select(p => p.DesignerGroup).Distinct())
                 {
                     var cc = new kendoTreeItem() { text = gg, customvalue2 = "/images/folder.png", customvalue3 = "tree_group" };
+                    
                     grp.items.Add(cc);
                 }
 
@@ -313,7 +314,23 @@ namespace UI.Controllers
                 {
                     var cc = new kendoTreeItem() { id = rel.RelName + "__" + col.Entity + "__" + col.Field, text = col.Header };
                     cc.customvalue1 = rel.RelName + "__" + col.Entity;
-                    cc.tooltip = cc.tooltip;
+                    if (col.Tooltip != null)
+                    {
+                        cc.tooltip = col.Tooltip;
+                    }
+                    else
+                    {
+                        if (col.SqlSyntax != null)
+                        {
+                            cc.tooltip = col.SqlSyntax;
+                        }
+                        else
+                        {
+                            cc.tooltip = col.Field;
+                        }
+                        
+                    }
+                    
                     switch (Factory.CurrentUser.j02LangIndex)
                     {
                         case 1:
