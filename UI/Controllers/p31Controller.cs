@@ -120,6 +120,7 @@ namespace UI.Controllers
                     //v.SelectedLevelIndex = v.RecP41.p07Level;
                     InhaleP56Combo(v);
 
+                    
                     v.Element2Focus = "cmdComboRec_p32ID";
                     break;
                 case "p31":
@@ -1366,10 +1367,16 @@ namespace UI.Controllers
         private void InhaleP56Combo(p31Record v)
         {
             v.IsShowP56Combo = false;
-            if (v.Rec.p41ID == 0 || !Factory.CurrentUser.j04IsModule_p56) return;
+            //if (v.Rec.p41ID == 0 || !Factory.CurrentUser.j04IsModule_p56) return;
+            if (v.Rec.p41ID == 0) return;
             if (Factory.p56TaskBL.GetList(new BO.myQueryP56() { p41id = v.Rec.p41ID, j02id = v.Rec.j02ID, IsRecordValid = true }).Count() > 0)
             {
                 v.IsShowP56Combo = true;
+                
+            }
+            else
+            {
+                
             }
 
         }
