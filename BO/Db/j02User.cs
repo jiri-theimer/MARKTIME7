@@ -29,7 +29,8 @@ namespace BO
     {
         None=0,
         ZakazPrekrocitFond=1,
-        ZakazVidetVyuctovaneUkony=2
+        ZakazVidetVyuctovaneUkony=2,
+        ZakazVidetSchvaleneiVyuctovane=3
     }
 
 
