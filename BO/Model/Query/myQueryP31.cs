@@ -350,7 +350,7 @@ namespace BO
             {                
                 AQ("a.p91ID IS NULL", null, null);
             }
-            if (this.CurrentUser.j02WorksheetOperFlag == 3) //skrýt před uživatelem vyúčtované i schválené úkony
+            if (this.CurrentUser.j02WorksheetOperFlag == 3) //skrýt před uživatelem vyúčtované i schválené úkony, kvůli RHL
             {
                 AQ("a.p71ID IS NULL", null, null);
             }
