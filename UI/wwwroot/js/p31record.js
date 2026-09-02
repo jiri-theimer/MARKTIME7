@@ -340,10 +340,12 @@ function handle_recalc_duration(caller)     //caller: timefrom/timeuntil/hours
 
 function set_p31date_today()
 {
-    var d = new Date();
-   
-    $("#p31Datehelper").val(_format_date(d, false));
+    var d = new Date();    
+    //$("#p31Datehelper").val(_format_date(d, false));
+    
     $("#p31Date").val(_format_date(d, false));
+
+    $("#p31Datehelper").datepicker("update", d);
 
     if (document.getElementById("KopirovatZaznamDialog"))
     {
