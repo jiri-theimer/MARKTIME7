@@ -37,7 +37,14 @@ namespace BO
       
         public bool p58IsStopNotify { get; set; }
 
-        
+        public int p34ID { get; set; }
+        public int p32ID { get; set; }
+        public double p58FeeAmount { get; set; }
+        public x15IdEnum x15ID { get; set; }
+        public int j27ID { get; set; }
+        public string p58FeeText { get; set; }
+
+
         public string Owner { get; }
 
         public string p57Name { get; }
@@ -48,6 +55,8 @@ namespace BO
         public int b05RecordPid { get; }
         public string b05RecordEntity { get; }
 
+        
+        
 
 
 

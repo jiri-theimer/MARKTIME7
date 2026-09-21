@@ -152,6 +152,7 @@ namespace BL
             p.AddDateTime("p40FirstSupplyDate", rec.p40FirstSupplyDate);
             p.AddDateTime("p40LastSupplyDate", rec.p40LastSupplyDate);
             p.AddInt("p40GenerateDayAfterSupply", rec.p40GenerateDayAfterSupply);
+            p.AddInt("p58ID", rec.p58ID, true);
 
             int intPID = _db.SaveRecord("p40WorkSheet_Recurrence", p, rec);
             if (intPID > 0)

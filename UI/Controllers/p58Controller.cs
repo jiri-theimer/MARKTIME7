@@ -83,13 +83,25 @@ namespace UI.Controllers
                 v.ComboOwner = v.Rec.Owner;
                 v.b05RecordEntity = v.Rec.b05RecordEntity;
                 v.b05RecordPid = v.Rec.b05RecordPid;
+                if (v.Rec.j27ID > 0)
+                {
+                    v.ComboJ27Code = Factory.FBL.LoadCurrencyByID(v.Rec.j27ID).j27Code;
+                }
+                if (v.Rec.p34ID > 0)
+                {
+                    v.ComboP34 = Factory.p34ActivityGroupBL.Load(v.Rec.p34ID).p34Name;
+                }
+                if (v.Rec.p32ID > 0)
+                {
+                    v.ComboP32 = Factory.p32ActivityBL.Load(v.Rec.p32ID).p32Name;
+                }
 
                 if (v.Rec.p41ID > 0)
                 {
                     v.RecP41 = Factory.p41ProjectBL.Load(v.Rec.p41ID);
                     
                 }
-                if (!string.IsNullOrEmpty(v.Rec.p58Notepad) || v.Rec.p58Plan_Hours > 0 || v.Rec.p58Plan_Expenses > 0)
+                if (!string.IsNullOrEmpty(v.Rec.p58Notepad) || v.Rec.p58Plan_Hours > 0 || v.Rec.p58Plan_Expenses > 0 || (v.Rec.p34ID>0 && v.Rec.p32ID>0))
                 {
                     v.IsShowMore = true;
                 }
@@ -216,6 +228,13 @@ namespace UI.Controllers
                     c.x04ID = v.Notepad.SelectedX04ID;
                     c.p58IsStopNotify = v.Rec.p58IsStopNotify;
                 }
+
+                c.p34ID = v.Rec.p34ID;
+                c.p32ID = v.Rec.p32ID;
+                c.j27ID = v.Rec.j27ID;
+                c.x15ID = v.Rec.x15ID;
+                c.p58FeeAmount = v.Rec.p58FeeAmount;
+                c.p58FeeText = v.Rec.p58FeeText;
 
 
                 c.ValidUntil = v.Toolbar.GetValidUntil(c);

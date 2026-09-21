@@ -13,6 +13,7 @@ namespace BO
     {
         public BO.Code.RecurrenceTypeENUM p40RecurrenceType { get; set; }
         public int p41ID { get; set; }
+        public int p58ID { get; set; }
         public int j02ID { get; set; }
         public int p34ID { get; set; }
         public int p32ID { get; set; }

@@ -183,26 +183,64 @@
 
     @if (Model.IsShowMore)
     {
-        @Html.EditorFor(m => m.Notepad, "~/Views/Shared/_Notepad.cshtml")
 
 
-        <div class="row my-2">
-            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Zadavatel (Vlastník záznamu)"):</label>
-            <div class="col-sm-6 col-md-5">
-                <mycombo entity="j02User" asp-for="Rec.j02ID_Owner" selectedtext="@Model.ComboOwner" view-flag="2"></mycombo>
-            </div>
-            <label class="col-sm-1 col-md-1 col-form-label">@_f.tra("Typ úkolu"):</label>
-            <div class="col-sm-4 col-md-4">
-                <mycombo entity="p57TaskType" asp-for="@Model.Rec.p57ID" selectedtext="@Model.ComboP57" filter-flag="1" event_after_changevalue="change_p57id"></mycombo>
+        <div class="card my-2">
+                <div class="card-body">
+                    <div class="card-title" style="text-decoration: underline;">
+                        <span>Opakovaná odměna</span>
+                    </div>
 
-            </div>
+                    <table>
+                    <tr>
+                        <th>Bez DPH</th>
+                        <td>DPH</td>
+                        <th>Sešit</th>
+                        <th>Aktivita</th>
+                        <th>Měna</th>
+                    </tr>
+                    <tr>
+                        <td>
+                            <mynumber asp-for="Rec.p58FeeAmount" decimal-digits="2" placeholder="Bez dph"></mynumber>
+                        </td>
+                        <td>
+                            <select asp-for="@Model.Rec.x15ID" class="form-select">
+                                <option value="Nic"></option>
+                                <option value="BezDPH">@_f.tra("0% (Bez DPH)")</option>
+                                <option value="SnizenaSazba">@_f.tra("Snížená sazba DPH")</option>
+                                <option value="ZakladniSazba">@_f.tra("Základní sazba DPH")</option>
+                                <option value="SpecialniSazba">@_f.tra("Speciální sazba DPH")</option>
+                            </select>
+                        </td>
+                        <td style="min-width:250px;">
+                            <mycombo entity="p34ActivityGroup" asp-for="Rec.p34ID" selectedtext="@Model.ComboP34" event_after_changevalue="_postback()"></mycombo>
+                        </td>
+                        <td style="min-width:350px;">
+                            <mycombo entity="p32Activity" asp-for="Rec.p32ID" selectedtext="@Model.ComboP32" myqueryinline="p34id|int|@Model.Rec.p34ID"></mycombo>
+                        </td>
+                        <td>
+                            <mycombo entity="j27Currency" asp-for="Rec.j27ID" selectedtext="@Model.ComboJ27Code"></mycombo>
+                        </td>
+                    </tr>
+                    </table>
+                    
+                    
+                    <div class="form-floating my-2">
+                        <textarea class="form-control" asp-for="Rec.p58FeeText"></textarea>
+                        <label for="Rec_p58FeeText">@_f.tra("Maska textu generované odměny (úkonu)") [YYYY]: Rok, [MM] nebo [M]:Měsíc, [QQ] nebo [Q]: Čtvrtletí</label>
+                    </div>
+
+                </div>
+
 
         </div>
-        <div class="my-2">
-            <input type="checkbox" asp-for="@Model.Rec.p58IsStopNotify" />
-            <label for="Rec_p58IsStopNotify">@_f.tra("V úkolu vypnout notifikační zprávy")</label>
-        </div>
 
+
+
+        
+
+
+        
 
 
 
@@ -243,6 +281,27 @@
 
             </div>
         }
+
+
+        @Html.EditorFor(m => m.Notepad, "~/Views/Shared/_Notepad.cshtml")
+
+
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Zadavatel (Vlastník záznamu)"):</label>
+            <div class="col-sm-6 col-md-5">
+                <mycombo entity="j02User" asp-for="Rec.j02ID_Owner" selectedtext="@Model.ComboOwner" view-flag="2"></mycombo>
+            </div>
+            <label class="col-sm-1 col-md-1 col-form-label">@_f.tra("Typ úkolu"):</label>
+            <div class="col-sm-4 col-md-4">
+                <mycombo entity="p57TaskType" asp-for="@Model.Rec.p57ID" selectedtext="@Model.ComboP57" filter-flag="1" event_after_changevalue="change_p57id"></mycombo>
+
+            </div>
+
+        </div>
+        <div class="my-2">
+            <input type="checkbox" asp-for="@Model.Rec.p58IsStopNotify" />
+            <label for="Rec_p58IsStopNotify">@_f.tra("V úkolu vypnout notifikační zprávy")</label>
+        </div>
 
     }
     else

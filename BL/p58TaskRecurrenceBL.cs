@@ -93,6 +93,17 @@ namespace BL
                 p.AddEnumInt("p58PlanFlag", rec.p58PlanFlag, true);
                 p.AddBool("p58IsStopNotify", rec.p58IsStopNotify);
 
+                p.AddInt("p34ID", rec.p34ID, true);
+                p.AddInt("p32ID", rec.p32ID, true);
+                p.AddDouble("p58FeeAmount", rec.p58FeeAmount);
+                p.AddEnumInt("x15ID", rec.x15ID, true);
+                if (rec.p34ID>0 && rec.p32ID > 0 && rec.j27ID==0)
+                {
+                    rec.j27ID = _mother.Lic.j27ID;
+                }
+                p.AddInt("j27ID", rec.j27ID, true);
+                p.AddString("p58FeeText", rec.p58FeeText);
+
                 int intPID = _db.SaveRecord("p58TaskRecurrence", p, rec);
                 if (intPID > 0)
                 {

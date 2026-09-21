@@ -20,5 +20,9 @@
 
         public ReminderViewModel reminder { get; set; }
 
+
+        public string ComboP34 { get; set; }
+        public string ComboP32 { get; set; }
+        public string ComboJ27Code { get; set; }
     }
 }
