@@ -213,7 +213,7 @@
                             </select>
                         </td>
                         <td style="min-width:250px;">
-                            <mycombo entity="p34ActivityGroup" asp-for="Rec.p34ID" selectedtext="@Model.ComboP34" event_after_changevalue="_postback()"></mycombo>
+                            <mycombo entity="p34ActivityGroup" asp-for="Rec.p34ID" myqueryinline="isfeeinput|bool|true" selectedtext="@Model.ComboP34" event_after_changevalue="_postback()"></mycombo>
                         </td>
                         <td style="min-width:350px;">
                             <mycombo entity="p32Activity" asp-for="Rec.p32ID" selectedtext="@Model.ComboP32" myqueryinline="p34id|int|@Model.Rec.p34ID"></mycombo>

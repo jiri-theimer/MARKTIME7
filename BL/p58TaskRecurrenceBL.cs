@@ -173,6 +173,16 @@ namespace BL
                 this.AddMessage("Definujete příliš dlouhé období. Snižte datum posledního rozhodného datumu."); return false;
             }
 
+            if (rec.p34ID > 0)
+            {
+                //opakovaná odměna v opakovaném úkolu
+                if (rec.p58RecurrenceType == BO.Code.RecurrenceTypeENUM.Weeks2)
+                {
+                    this.AddMessage("U opakované odměny není podpora 2-týdenního opakování."); return false;
+                }
+            }
+            
+
 
             return true;
         }

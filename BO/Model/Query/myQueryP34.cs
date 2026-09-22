@@ -13,6 +13,7 @@ namespace BO
         
         public bool? ismoneyinput { get; set; }
         public bool? isexpenseinput { get; set; }
+        public bool? isfeeinput { get; set; }
         public bool? iskusovnik { get; set; }
 
         public myQueryP34()
@@ -46,6 +47,10 @@ namespace BO
             if (this.isexpenseinput == true)
             {
                 AQ("a.p33ID IN (2,5) AND a.p34IncomeStatementFlag=1", null, null);
+            }
+            if (this.isfeeinput == true)
+            {
+                AQ("a.p33ID IN (2,5) AND a.p34IncomeStatementFlag=2", null, null);
             }
             if (this.iskusovnik == true)
             {
