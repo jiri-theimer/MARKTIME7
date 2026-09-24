@@ -24,14 +24,14 @@
         <table class="table table-hover">
 
             <tr>
-                <td colspan="2" class="@(Model.Rec.isclosed ? "tdarchiv": "tdval")">
+                <td colspan="2" class="@(Model.Rec.isclosed ? "tdarchiv" : "tdval")">
                     @Model.Rec.p40Name
 
 
-                    @if(Model.Rec.p58ID != 0)
-            {
-                <a style="font-weight:bold;" href="/Record/RecPage?prefix=p58&pid=@Model.Rec.p58ID" target="_top">@_f.tra("Opakovaný úkol")</a>
-            }
+                    @if (Model.Rec.p58ID != 0)
+                    {
+                        <a style="font-weight:bold;" href="/Record/RecPage?prefix=p58&pid=@Model.Rec.p58ID" target="_top">@_f.tra("Opakovaný úkol")</a>
+                    }
                 </td>
             </tr>
 
@@ -64,7 +64,7 @@
                     <td class="tdval">
                         @if (_bolRowHover && _f.CurrentUser.j04IsModule_p28)
                         {
-                            <myval value="@Model.RecP41.Client" hoverprefix="p28" hoverpid="@Model.RecP41.p28ID_Client" datatype="@(_f.CurrentUser.j04IsModule_p28 ? "link": "string")" linktarget="_top" linkurl="@(_f.CurrentUser.j04IsModule_p28 ? $"/Record/RecPage?prefix=p28&pid={Model.RecP41.p28ID_Client}":"")"></myval>
+                            <myval value="@Model.RecP41.Client" hoverprefix="p28" hoverpid="@Model.RecP41.p28ID_Client" datatype="@(_f.CurrentUser.j04IsModule_p28 ? "link" : "string")" linktarget="_top" linkurl="@(_f.CurrentUser.j04IsModule_p28 ? $"/Record/RecPage?prefix=p28&pid={Model.RecP41.p28ID_Client}" : "")"></myval>
                         }
                         else
                         {
@@ -73,7 +73,7 @@
                     </td>
                 </tr>
             }
-            
+
             <tr>
                 <td class="tdlab">
                     @_f.tra("Typ opakování"):
@@ -109,13 +109,13 @@
                     }
                 </td>
             </tr>
-            
+
             <tr>
                 <td class="tdlab">
                     @_f.tra("Maska textu"):
                 </td>
                 <td class="tdval">
-                    <myval value="@(BO.Code.Bas.OM2(Model.Rec.p40Text,50))" tooltip="@(Model.Rec.p40Text !=null && Model.Rec.p40Text.Length>50 ? Model.Rec.p40Text: null))"></myval>
+                    <myval value="@(BO.Code.Bas.OM2(Model.Rec.p40Text, 50))" tooltip="@(Model.Rec.p40Text != null && Model.Rec.p40Text.Length > 50 ? Model.Rec.p40Text : null))"></myval>
 
                 </td>
             </tr>
@@ -324,7 +324,7 @@
 <script type="text/javascript">
 
 
-    $(document).ready(function () {
+    $(document).ready(function() {
 
 
 
@@ -334,7 +334,7 @@
 
     function change_plusminus(cbx) {
 
-        $.post(_ep("/Common/SetUserParam"), { key: "p40-PlusMinusp39Mesice", value: cbx.value }, function (data) {
+        $.post(_ep("/Common/SetUserParam"), { key: "p40-PlusMinusp39Mesice", value: cbx.value }, function(data) {
             location.replace(window.location.href);
 
         });
@@ -342,7 +342,7 @@
 
     function generate_manually(p39id) {
 
-        $.post("/p40/GenerateManually", { p39id: p39id }, function (data) {
+        $.post("/p40/GenerateManually", { p39id: p39id }, function(data) {
 
             if (data == -1) {
                 alert("Nemáte vlastnické oprávnění k projektu.");
@@ -360,7 +360,7 @@
 
     function generate_clear(p39id) {
 
-        $.post("/p40/GenerateClear", { p39id: p39id }, function (data) {
+        $.post("/p40/GenerateClear", { p39id: p39id }, function(data) {
 
 
             location.replace(window.location.href);

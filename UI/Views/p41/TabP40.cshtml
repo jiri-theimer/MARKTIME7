@@ -6,6 +6,7 @@
     Layout = "~/Views/Shared/_LayoutSubform.cshtml";
 
     IEnumerable<BO.p39WorkSheet_Recurrence_Plan> _lisP39 = _f.p40WorkSheet_RecurrenceBL.GetList_p39(0, 0, Model.p41id);
+
 }
 
 @addTagHelper *, UI
@@ -17,7 +18,7 @@
 <div class="card recpageboxauto">
     <div class="card-header">
         <span class="material-icons-outlined">repeat_on</span>
-        @_f.tra("Předpisy opakovaných úkonů/paušálů")
+        @_f.tra("Předpisy opakovaných odměn (úkonů)")
         @if (Model.HasOwnerPermissions)
         {
             <a class="btn descreet_link_over_grid" title="@_f.tra("Nový")" href="javascript:p40_create()"><span class="material-icons-outlined-btn menu_new_record">add_circle_outline</span></a>
@@ -34,15 +35,21 @@
 
                     <td>
                         @(c.NamePlusCerpano)
-                        
-                        @if (!c.isclosed && _lisP39.Where(p => p.p40ID==c.pid && p.p31ID_NewInstance == 0 && p.p39DateCreate < DateTime.Now.AddDays(-10)).Count() > 0)
+
+                        @if (c.p58ID > 0)
+                        {
+                            <a style="font-weight:bold;" href="/Record/RecPage?prefix=p58&pid=@c.p58ID" target="_top">@_f.tra("Opakovaný úkol")</a>
+                        }
+
+                        @if (!c.isclosed && _lisP39.Where(p => p.p40ID == c.pid && p.p31ID_NewInstance == 0 && p.p39DateCreate < DateTime.Now.AddDays(-10)).Count() > 0)
                         {
                             <div>
                                 <span class="badge text-bg-danger">Existují nevygenerované úkony mimo dosah robota!</span>
                             </div>
-                            
+
                         }
                     </td>
+                   
                     <td>
                         @BO.Code.Bas.Number2String(c.p40Value)
                     </td>
@@ -67,7 +74,15 @@
                     <td>
                         @if (Model.HasOwnerPermissions)
                         {
-                            <button type="button" class="btn btn-sm bog" onclick="_edit('p40',@c.pid)">@_f.tra("Upravit předpis")</button>
+                            @if (c.p58ID > 0)
+                            {
+                                <button type="button" class="btn btn-sm bog" onclick="_edit('p58',@c.p58ID)">@_f.tra("Upravit opakovaný úkol")</button>
+                            }
+                            else
+                            {
+                                <button type="button" class="btn btn-sm bog" onclick="_edit('p40',@c.pid)">@_f.tra("Upravit předpis")</button>
+                            }
+
                         }
 
                     </td>
@@ -79,7 +94,7 @@
 
                     </td>
                     <td>
-                        @if (Model.HasOwnerPermissions)
+                        @if (Model.HasOwnerPermissions && c.p58ID==0)
                         {
                             <a class="btn btn-sm bog" target="_top" href="/Record/RecPage?prefix=p40&pid=@(c.pid)">@_f.tra("Stránka předpisu")</a>
                         }
@@ -99,7 +114,7 @@
 <script type="text/javascript">
 
 
-    $(document).ready(function () {
+    $(document).ready(function() {
 
 
 
