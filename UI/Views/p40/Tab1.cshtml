@@ -26,6 +26,12 @@
             <tr>
                 <td colspan="2" class="@(Model.Rec.isclosed ? "tdarchiv": "tdval")">
                     @Model.Rec.p40Name
+
+
+                    @if(Model.Rec.p58ID != 0)
+            {
+                <a style="font-weight:bold;" href="/Record/RecPage?prefix=p58&pid=@Model.Rec.p58ID" target="_top">@_f.tra("Opakovaný úkol")</a>
+            }
                 </td>
             </tr>
 
@@ -67,6 +73,7 @@
                     </td>
                 </tr>
             }
+            
             <tr>
                 <td class="tdlab">
                     @_f.tra("Typ opakování"):

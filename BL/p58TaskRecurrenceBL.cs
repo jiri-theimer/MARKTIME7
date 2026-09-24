@@ -176,9 +176,18 @@ namespace BL
             if (rec.p34ID > 0)
             {
                 //opakovaná odměna v opakovaném úkolu
+                if (rec.p41ID == 0)
+                {
+                    this.AddMessage("U opakované odměny musí být vyplněný projekt."); return false;
+                }
                 if (rec.p58RecurrenceType == BO.Code.RecurrenceTypeENUM.Weeks2)
                 {
                     this.AddMessage("U opakované odměny není podpora 2-týdenního opakování."); return false;
+                }
+
+                if (rec.p32ID==0 || rec.p58FeeAmount==0 || string.IsNullOrEmpty(rec.p58FeeText))
+                {
+                    this.AddMessage("U opakované odměny musí být vyplněná aktivita, částka a text úkonu."); return false;
                 }
             }
             

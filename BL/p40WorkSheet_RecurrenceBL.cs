@@ -5,6 +5,7 @@ namespace BL
     public interface Ip40WorkSheet_RecurrenceBL
     {
         public BO.p40WorkSheet_Recurrence Load(int pid);
+        public BO.p40WorkSheet_Recurrence LoadByP58(int p58id);
         public BO.p39WorkSheet_Recurrence_Plan LoadP39(int p39id);
         public BO.p39WorkSheet_Recurrence_Plan LoadP39_FirstWaiting(int p40id, DateTime datNow);
         public IEnumerable<BO.p40WorkSheet_Recurrence> GetList(BO.myQueryP40 mq);
@@ -40,6 +41,11 @@ namespace BL
         public BO.p40WorkSheet_Recurrence Load(int pid)
         {
             return _db.Load<BO.p40WorkSheet_Recurrence>(GetSQL1(" WHERE a.p40ID=@pid"), new { pid = pid });
+        }
+
+        public BO.p40WorkSheet_Recurrence LoadByP58(int p58id)
+        {
+            return _db.Load<BO.p40WorkSheet_Recurrence>(GetSQL1(" WHERE a.p58ID=@p58id"), new { p58id = p58id });
         }
 
         public IEnumerable<BO.p40WorkSheet_Recurrence> GetList(BO.myQueryP40 mq)

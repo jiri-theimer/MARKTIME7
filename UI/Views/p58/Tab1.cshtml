@@ -12,6 +12,16 @@
 
     IEnumerable<BO.x69EntityRole_Assign> _lisX69 = _f.x67EntityRoleBL.GetList_X69("p58", Model.pid);
 
+    BO.p40WorkSheet_Recurrence _recP40=null;
+    if(Model.Rec.p58FeeAmount != 0)
+    {
+        _recP40 = _f.p40WorkSheet_RecurrenceBL.LoadByP58(Model.Rec.pid);
+
+    }
+    
+
+
+
 }
 
 @addTagHelper *, UI
@@ -113,6 +123,22 @@
                 </div>
             </div>
         }
+        @if (_recP40 !=null)
+        {
+            <div class="row my-1">
+                <div class="col-sm-2 col-md-3">
+                            <a href="/Record/RecPage?prefix=p40&pid=@_recP40.pid" target="_top">@_f.tra("Opakovaná odměna")</a>
+                        </div>
+                
+                <div class="col-sm-10 col-md-9">
+                    
+                    <myval value="@_recP40.p40Value" datatype="num" valueafter="@_recP40.j27Code"></myval>
+                    
+                    <i>@Model.Rec.p58FeeText</i>
+                </div>
+            </div>
+        }
+        
     </div>
 </div>
 

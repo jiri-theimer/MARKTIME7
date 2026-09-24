@@ -284,9 +284,18 @@ namespace BL
 
             oc = AF("Role v úkolu", "Role", "a.p58RolesInline");
 
+            this.CurrentFieldGroup = "Plán/rozpočet";
             AA("p58Plan_Hours", "Plán hodin", gdc0, null, "num");
             AA("p58Plan_Expenses", "Plán pen.výdajů", gdc0, null, "num");
             AA("p58Plan_Revenue", "Plán fakturace", gdc0, null, "num");
+
+            this.CurrentFieldGroup = "Opakovaná odměna";
+            AA("p58FeeAmount", "Částka",BO.TheGridDefColFlag._none, null, "num");
+            AA("p58FeeText", "Text odměny");
+            oc = AF("SesitOdmeny", "Sešit", "p34x.p34Name"); oc.RelSqlInCol = "LEFT OUTER JOIN p34ActivityGroup p34x ON a.p34ID=p34x.p34ID";
+            oc = AF("AktivitaOdmeny", "Aktivita", "p32x.p32Name"); oc.RelSqlInCol = "LEFT OUTER JOIN p32Activity p32x ON a.p32ID=p32x.p32ID";
+            oc = AF("MenaOdmeny", "Měna", "j27x.j27Code"); oc.RelSqlInCol = "LEFT OUTER JOIN j27Currency j27x ON a.j27ID=j27x.j27ID";
+
             AppendTimestamp();
 
             this.EntityName = "p60TaskTemplate";
