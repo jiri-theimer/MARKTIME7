@@ -103,6 +103,8 @@ namespace BL
                 }
                 p.AddInt("j27ID", rec.j27ID, true);
                 p.AddString("p58FeeText", rec.p58FeeText);
+                p.AddDouble("p58FreeHours", rec.p58FreeHours);
+                p.AddDouble("p58FreeFee", rec.p58FreeFee);
 
                 int intPID = _db.SaveRecord("p58TaskRecurrence", p, rec);
                 if (intPID > 0)

@@ -44,7 +44,8 @@ namespace BO
         public int j27ID { get; set; }
         public string p58FeeText { get; set; }
 
-
+        public double p58FreeHours { get; set; }
+        public double p58FreeFee { get; set; }
         public string Owner { get; }
 
         public string p57Name { get; }

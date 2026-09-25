@@ -41,7 +41,7 @@ namespace UI.Code.Menu
 
 
             DIV();
-            if (!recP41.isclosed)
+            if (!recP41.isclosed && rec.p58ID==0)
             {
                 AMI_Vykazat(recP41);
             }

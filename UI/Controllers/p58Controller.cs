@@ -265,6 +265,8 @@ namespace UI.Controllers
                 c.p58FeeAmount = v.Rec.p58FeeAmount;
                 c.p58FeeText = v.Rec.p58FeeText;
 
+                c.p58FreeHours = v.Rec.p58FreeHours;
+                c.p58FreeFee = v.Rec.p58FreeFee;
 
                 c.ValidUntil = v.Toolbar.GetValidUntil(c);
                 c.ValidFrom = v.Toolbar.GetValidFrom(c);

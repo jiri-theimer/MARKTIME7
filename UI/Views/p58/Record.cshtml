@@ -229,6 +229,24 @@
                         <textarea class="form-control" asp-for="Rec.p58FeeText"></textarea>
                         <label for="Rec_p58FeeText">@_f.tra("Maska textu generované odměny (úkonu)") [YYYY]: Rok, [MM] nebo [M]:Měsíc, [QQ] nebo [Q]: Čtvrtletí</label>
                     </div>
+                    <table>
+                        <tr>
+                            <td>
+                            <label class="col-sm-2 col-md-3 col-form-label">@_f.tra("Volné Fa hodiny zdarma"):</label>
+                            </td>
+                            <td>
+                            <mynumber asp-for="Rec.p58FreeHours" decimal-digits="2"></mynumber>
+                            </td>
+                            <td>
+                            <label class="col-sm-2 col-md-3 col-form-label">@_f.tra("Objem fakturačního honoráře zdarma"):</label>
+                            </td>
+                            <td>
+                            <mynumber asp-for="Rec.p58FreeFee" decimal-digits="2"></mynumber>
+                            </td>
+                        </tr>
+                    </table>
+               
+             
 
                 </div>
 
