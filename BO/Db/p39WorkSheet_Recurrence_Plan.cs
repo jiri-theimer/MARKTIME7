@@ -21,5 +21,7 @@ namespace BO
         public double p40Value { get; }
         public string p41Name { get; }
         public string Client { get; }
+
+        public int p58ID { get; set; }
     }
 }

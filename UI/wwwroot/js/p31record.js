@@ -215,8 +215,8 @@ function p41id_change(p41id) {
 }
 
 function p56id_change(p56id) {
-    //nic
-    //_postback("p56id");
+    
+    _postback("p56id");
 }
 
 

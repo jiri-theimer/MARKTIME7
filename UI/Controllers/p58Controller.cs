@@ -52,10 +52,16 @@ namespace UI.Controllers
                 if (lisP59.Count() > 0)
                 {
                     var recP59 = lisP59.First();
-                    var lisP39 = Factory.p40WorkSheet_RecurrenceBL.GetList_p39_waiting_on_generate(recP59.p59DateCreate.AddHours(-1), recP59.p59DateCreate.AddHours(1), new List<int> { recP40.pid });
+                    var lisP39 = Factory.p40WorkSheet_RecurrenceBL.GetList_p39_waiting_on_generate(recP59.p59DateCreate.AddHours(-1), recP59.p59DateCreate.AddHours(1), new List<int> { recP40.pid },true);
                     if (lisP39.Count() > 0)
                     {
                         var recP39 = lisP39.First();
+
+                        if (recP39.p31ID_NewInstance > 0)
+                        {
+                            //vyčistit stopu generování
+                            Factory.p40WorkSheet_RecurrenceBL.Generate_Clear(recP39);
+                        }
 
                         var ffi = new FreeFieldsViewModel();
                         ffi.InhaleFreeFieldsView(Factory, recP39.p40ID, "p31", "p40WorkSheet_Recurrence_FreeField");

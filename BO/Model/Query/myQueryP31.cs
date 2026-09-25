@@ -27,7 +27,7 @@ namespace BO
         public int p51id_costrate { get; set; }
         public int o23id { get; set; }
         public int p70id { get; set; }
-
+        public int p58id { get; set; }
         public int leindex { get; set; }   //nadřízená vertikální úrověň #1 - #4 - funguje dohromady i s p41ids
         public int lepid { get; set; }     //nadřízená vertikální úrověň, hodnota p41id
         public bool bez_podrizenych { get; set; }
@@ -114,6 +114,10 @@ namespace BO
             if (this.p56id > 0)
             {
                 AQ("a.p56ID=@p56id", "p56id", this.p56id);
+            }
+            if (this.p58id>0)
+            {
+                AQ($"a.p56ID IN (select p56ID_NewInstance FROM p59TaskRecurrence_Plan WHERE p58ID=@p58id AND p56ID_NewInstance IS NOT NULL)","p58id",this.p58id);
             }
             if (this.p31masterid > 0)
             {

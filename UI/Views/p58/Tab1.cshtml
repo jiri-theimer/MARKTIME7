@@ -18,8 +18,11 @@
         _recP40 = _f.p40WorkSheet_RecurrenceBL.LoadByP58(Model.Rec.pid);
 
     }
-    
 
+
+    var _lisP56 = _f.p56TaskBL.GetList(new BO.myQueryP56() { p58id = Model.Rec.pid });
+
+    var mq = new BO.myQueryP31() { p58id = Model.Rec.pid };
 
 
 }
@@ -233,6 +236,46 @@
 
 
 
+@if (_lisP56 != null && _lisP56.Count()>0)
+{
+    <div class="card recpageboxauto">
+        <div class="card-body">
+            <div class="card-title recpagetitle bgp56">
+                @_f.tra("Vygenerované úkoly")
+            </div>
+            <table class="table table-hover">
+                
+                @foreach (var c in _lisP56)
+                {
+                    <tr>
+                        <td class="td2" style="width:20px;"><a class="cm" onclick="_cm(event, 'p56', @(c.pid),'grid',null)">&#9776;</a></td>
+
+                        <td>
+                            @c.p56Name
+                        </td>
+                       
+                        <td>
+                            <small>
+                                <i>
+                                    @BO.Code.Bas.ObjectDate2String(c.DateInsert, "dd.MM.yyyy HH:mm")
+                                </i>
+                            </small>
+                            
+                        </td>
+                       
+                        
+
+                    </tr>
+
+
+                }
+            </table>
+
+
+        </div>
+    </div>
+}
+
 
 
 @Html.Raw("</div>")
@@ -261,4 +304,8 @@
 
         });
     }
+
+
+   
+
 </script>

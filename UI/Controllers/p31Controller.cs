@@ -640,7 +640,7 @@ namespace UI.Controllers
             }
             if (v.lisP40 == null && v.RecP41 != null && v.RecP34 != null && v.RecP34.p33ID == BO.p33IdENUM.Cas)
             {
-                v.lisP40 = Factory.p40WorkSheet_RecurrenceBL.GetList(new BO.myQueryP40() { p41id = v.RecP41.pid }).Where(p => p.p33ID == 2 || p.p33ID == 5);
+                v.lisP40 = Factory.p40WorkSheet_RecurrenceBL.GetList(new BO.myQueryP40() { p41id = v.RecP41.pid }).Where(p => p.p33ID == 2 || p.p33ID == 5).Where(p => p.p58ID == 0);
 
             }
 
@@ -1000,6 +1000,15 @@ namespace UI.Controllers
                     }
                     c.p54ID = v.Rec.p54ID;  //stupeň přesčasu
                     c.p40ID_FixPrice = v.Rec.p40ID_FixPrice;  //vazba na paušální odměnu
+
+                    if (c.p56ID>0 && c.p40ID_FixPrice == 0) //zjistit, zda úkol nemá vazbu na opakovanou odměnu
+                    {
+                        var recP40 = Factory.p40WorkSheet_RecurrenceBL.LoadByP56(c.p56ID);
+                        if (recP40 != null)
+                        {
+                            c.p40ID_FixPrice = recP40.pid;
+                        }
+                    }
 
                     break;
                 case BO.p33IdENUM.PenizeBezDPH:

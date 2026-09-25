@@ -6,11 +6,12 @@ namespace BL
     {
         public BO.p40WorkSheet_Recurrence Load(int pid);
         public BO.p40WorkSheet_Recurrence LoadByP58(int p58id);
+        public BO.p40WorkSheet_Recurrence LoadByP56(int p56id);
         public BO.p39WorkSheet_Recurrence_Plan LoadP39(int p39id);
         public BO.p39WorkSheet_Recurrence_Plan LoadP39_FirstWaiting(int p40id, DateTime datNow);
         public IEnumerable<BO.p40WorkSheet_Recurrence> GetList(BO.myQueryP40 mq);
         public IEnumerable<BO.p39WorkSheet_Recurrence_Plan> GetList_p39(int p40id, int days_inhistory = 0, int p41id = 0);
-        public IEnumerable<BO.p39WorkSheet_Recurrence_Plan> GetList_p39_waiting_on_generate(DateTime d1, DateTime d2,List<int> p40ids=null);
+        public IEnumerable<BO.p39WorkSheet_Recurrence_Plan> GetList_p39_waiting_on_generate(DateTime d1, DateTime d2,List<int> p40ids=null, bool zahrnout_neplatna_p31id = false);
         public int Save(BO.p40WorkSheet_Recurrence rec, List<BO.FreeFieldInput> lisFFI);
         public BO.p31WorksheetEntryInput Convert_p39_to_p31(BO.p39WorkSheet_Recurrence_Plan recP39);
         public int Generate_Recurrence_Instance(BO.p39WorkSheet_Recurrence_Plan c, List<BO.FreeFieldInput> lisFFI);
@@ -47,7 +48,10 @@ namespace BL
         {
             return _db.Load<BO.p40WorkSheet_Recurrence>(GetSQL1(" WHERE a.p58ID=@p58id"), new { p58id = p58id });
         }
-
+        public BO.p40WorkSheet_Recurrence LoadByP56(int p56id)
+        {
+            return _db.Load<BO.p40WorkSheet_Recurrence>(GetSQL1(" WHERE a.p58ID IN (SELECT p58ID FROM p59TaskRecurrence_Plan WHERE p56ID_NewInstance=@p56id)"), new { p56id = p56id });
+        }
         public IEnumerable<BO.p40WorkSheet_Recurrence> GetList(BO.myQueryP40 mq)
         {
             DL.FinalSqlCommand fq = DL.basQuery.GetFinalSql(GetSQL1(), mq, _mother.CurrentUser);
@@ -57,13 +61,13 @@ namespace BL
 
         public BO.p39WorkSheet_Recurrence_Plan LoadP39_FirstWaiting(int p40id,DateTime datNow)
         {
-            string s = "select top 1 a.*,p31.p31Text,p31.p31DateInsert,p31.p31Date FROM p39WorkSheet_Recurrence_Plan a LEFT OUTER JOIN p31Worksheet p31 ON a.p31ID_NewInstance=p31.p31ID WHERE a.p40ID=@p40id AND a.p31ID_NewInstance IS NULL AND a.p39DateCreate BETWEEN dateadd(day,-2,@dat) AND @dat ORDER BY a.p39DateCreate";
+            string s = "select top 1 a.*,p31.p31Text,p31.p31DateInsert,p31.p31Date,p40.p40Value,p40.p58ID FROM p39WorkSheet_Recurrence_Plan a LEFT OUTER JOIN p31Worksheet p31 ON a.p31ID_NewInstance=p31.p31ID LEFT OUTER JOIN p40WorkSheet_Recurrence p40 ON a.p40ID=p40.p40ID WHERE a.p40ID=@p40id AND a.p31ID_NewInstance IS NULL AND a.p39DateCreate BETWEEN dateadd(day,-2,@dat) AND @dat ORDER BY a.p39DateCreate";
             return _db.Load<BO.p39WorkSheet_Recurrence_Plan>(s, new { p40id = p40id,dat=datNow });
         }
 
         public BO.p39WorkSheet_Recurrence_Plan LoadP39(int p39id)
         {
-            string s = "select top 1 a.*,p31.p31Text,p31.p31DateInsert,p31.p31Date FROM p39WorkSheet_Recurrence_Plan a LEFT OUTER JOIN p31Worksheet p31 ON a.p31ID_NewInstance=p31.p31ID WHERE a.p39ID=@p39id";
+            string s = "select top 1 a.*,p31.p31Text,p31.p31DateInsert,p31.p31Date,p40.p40Value,p40.p58ID FROM p39WorkSheet_Recurrence_Plan a LEFT OUTER JOIN p31Worksheet p31 ON a.p31ID_NewInstance=p31.p31ID LEFT OUTER JOIN p40WorkSheet_Recurrence p40 ON a.p40ID=p40.p40ID WHERE a.p39ID=@p39id";
             return _db.Load<BO.p39WorkSheet_Recurrence_Plan>(s, new { p39id = p39id });
         }
 
@@ -90,12 +94,23 @@ namespace BL
             return _db.GetList<BO.p39WorkSheet_Recurrence_Plan>(sbret(), new { p40id = p40id,p41id=p41id });
         }
 
-        public IEnumerable<BO.p39WorkSheet_Recurrence_Plan> GetList_p39_waiting_on_generate(DateTime d1,DateTime d2, List<int> p40ids = null)
+        public IEnumerable<BO.p39WorkSheet_Recurrence_Plan> GetList_p39_waiting_on_generate(DateTime d1,DateTime d2, List<int> p40ids = null,bool zahrnout_neplatna_p31id=false)
         {
-            sb("select a.*,p31.p31Text,p31.p31DateInsert,p31.p31Date,p41.p41Name,p28.p28Name as Client,p40.p40Value");
+            sb("select a.*,p31.p31Text,p31.p31DateInsert,p31.p31Date,p41.p41Name,p28.p28Name as Client,p40.p40Value,p40.p58ID");
             sb(" FROM p39WorkSheet_Recurrence_Plan a INNER JOIN p40WorkSheet_Recurrence p40 ON a.p40ID=p40.p40ID LEFT OUTER JOIN p31Worksheet p31 ON a.p31ID_NewInstance=p31.p31ID");
             sb(" INNER JOIN p41Project p41 ON p40.p41ID=p41.p41ID LEFT OUTER JOIN p28Contact p28 ON p41.p28ID_Client=p28.p28ID");
-            sb(" WHERE GETDATE() BETWEEN p40.p40ValidFrom AND p40.p40ValidUntil AND GETDATE() BETWEEN p41.p41ValidFrom AND p41.p41ValidUntil AND a.p31ID_NewInstance IS NULL AND a.p39DateCreate BETWEEN @d1 AND @d2");
+            sb(" WHERE GETDATE() BETWEEN p40.p40ValidFrom AND p40.p40ValidUntil AND GETDATE() BETWEEN p41.p41ValidFrom AND p41.p41ValidUntil AND a.p39DateCreate BETWEEN @d1 AND @d2");
+            if (!zahrnout_neplatna_p31id)
+            {
+                sb(" AND a.p31ID_NewInstance IS NULL");
+            }
+            else
+            {
+                sb(" AND (a.p31ID_NewInstance IS NULL OR ISNULL(a.p31ID_NewInstance,0) NOT IN (select p31ID FROM p31Worksheet))");
+            }
+            
+            
+
             if (p40ids !=null && p40ids.Count() > 0)
             {
                 sb($" AND a.p40ID IN ({string.Join(",",p40ids)})");
