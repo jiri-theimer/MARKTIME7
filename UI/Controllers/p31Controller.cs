@@ -1006,6 +1006,10 @@ namespace UI.Controllers
                         var recP40 = Factory.p40WorkSheet_RecurrenceBL.LoadByP56(c.p56ID);
                         if (recP40 != null)
                         {
+                            if (recP40.p40FreeHours == 0)
+                            {
+
+                            }
                             c.p40ID_FixPrice = recP40.pid;
                         }
                     }
