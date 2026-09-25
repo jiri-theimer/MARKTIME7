@@ -273,34 +273,55 @@
 
                         </td>
                         <td>
-                            @if (c.p31ID_NewInstance > 0)
+                            @if (Model.Rec.p58ID == 0)
                             {
-                                @if (_f.p31WorksheetBL.Load(c.p31ID_NewInstance) == null)
+                                @if (c.p31ID_NewInstance > 0)
                                 {
-                                    <small style="color:brown">Vygenerovaný úkon neexistuje (byl odstraněn)</small>
-                                    <br />
-                                    <button type="button" class="btn btn-sm bog" style="color:red;" onclick="generate_manually(@c.p39ID)">@_f.tra("Vygenerovat úkon ručně")</button>
-                                    <br />
-                                    <button type="button" class="btn btn-sm bog" onclick="generate_clear(@c.p39ID)">@_f.tra("Vyčistit stopu generování")</button>
+                                    @if (_f.p31WorksheetBL.Load(c.p31ID_NewInstance) == null)
+                                    {
+                                        <small style="color:brown">Vygenerovaný úkon neexistuje (byl odstraněn)</small>
+                                        <br />
+                                        <button type="button" class="btn btn-sm bog" style="color:red;" onclick="generate_manually(@c.p39ID)">@_f.tra("Vygenerovat úkon ručně")</button>
+                                        <br />
+                                        <button type="button" class="btn btn-sm bog" onclick="generate_clear(@c.p39ID)">@_f.tra("Vyčistit stopu generování")</button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" class="btn btn-sm bog" onclick="p31_record(@c.p31ID_NewInstance)">@_f.tra("Vygenerováno")</button>
+                                    }
+
                                 }
                                 else
                                 {
-                                    <button type="button" class="btn btn-sm bog" onclick="p31_record(@c.p31ID_NewInstance)">@_f.tra("Vygenerováno")</button>
-                                }
+                                    if (c.p39DateCreate.AddDays(31) < DateTime.Now)
+                                    {
 
+                                        <button type="button" class="btn btn-sm bog" style="color:red;" onclick="generate_manually(@c.p39ID)">@_f.tra("Vygenerovat úkon ručně")</button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" class="btn btn-sm bog" style="color:brown" onclick="generate_manually(@c.p39ID)">@_f.tra("Nečekat a vygenerovat ručně")</button>
+                                    }
+                                }
                             }
                             else
                             {
-                                if (c.p39DateCreate.AddDays(31) < DateTime.Now)
+                                @if (c.p31ID_NewInstance>0)
                                 {
+                                    @if(_f.p31WorksheetBL.Load(c.p31ID_NewInstance) != null)
+                                    {
+                                        <button type="button" class="btn btn-sm bog" onclick="p31_record(@c.p31ID_NewInstance)">@_f.tra("Vygenerováno")</button>
+                                    }
+                                    else
+                                    {
+                                        <small style="color:brown">Vygenerovaný úkon neexistuje (byl odstraněn)</small>
+                                        <br />
+                                        <button type="button" class="btn btn-sm bog" onclick="generate_clear(@c.p39ID)">@_f.tra("Vyčistit stopu generování")</button>
+                                    }
 
-                                    <button type="button" class="btn btn-sm bog" style="color:red;" onclick="generate_manually(@c.p39ID)">@_f.tra("Vygenerovat úkon ručně")</button>
-                                }
-                                else
-                                {
-                                    <button type="button" class="btn btn-sm bog" style="color:brown" onclick="generate_manually(@c.p39ID)">@_f.tra("Nečekat a vygenerovat ručně")</button>
                                 }
                             }
+
                         </td>
                     </tr>
 

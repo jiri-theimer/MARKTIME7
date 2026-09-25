@@ -157,6 +157,11 @@ namespace UI.Controllers
                 {
                     return RecNotFound(v);
                 }
+                if (v.Rec.p58ID > 0)
+                {
+                    //přesměrovat na záznam opakovaného úkolu
+                    return RedirectToAction("Record", "p58", new { pid = v.Rec.p58ID });
+                }
                 v.ComboJ02 = v.Rec.j02Name;
                 v.ComboP32 = v.Rec.p32Name;
                 v.ComboP34 = v.Rec.p34Name;
