@@ -47,16 +47,23 @@ namespace UI.Controllers
             var recP40 = Factory.p40WorkSheet_RecurrenceBL.LoadByP58(p58id);
             if (recP40 != null)
             {
-                //opakovaná odměna z opakovaného úkolu
-                var lisP39=Factory.p40WorkSheet_RecurrenceBL.GetList_p39_waiting_on_generate(DateTime.Today.AddDays(-31), DateTime.Today.AddDays(30), new List<int> { recP40.pid });
-                foreach (var c in lisP39)
+                //opakovaná odměna z opakovaného úkolu                
+                var lisP59 = Factory.p58TaskRecurrenceBL.GetList_p59(p58id, p59id);
+                if (lisP59.Count() > 0)
                 {
-                    var ffi = new FreeFieldsViewModel();
-                    ffi.InhaleFreeFieldsView(Factory, c.p40ID, "p31", "p40WorkSheet_Recurrence_FreeField");
+                    var recP59 = lisP59.First();
+                    var lisP39 = Factory.p40WorkSheet_RecurrenceBL.GetList_p39_waiting_on_generate(recP59.p59DateCreate.AddHours(-1), recP59.p59DateCreate.AddHours(1), new List<int> { recP40.pid });
+                    if (lisP39.Count() > 0)
+                    {
+                        var recP39 = lisP39.First();
 
-                    Factory.p40WorkSheet_RecurrenceBL.Generate_Recurrence_Instance(c, ffi.inputs);
-
+                        var ffi = new FreeFieldsViewModel();
+                        ffi.InhaleFreeFieldsView(Factory, recP39.p40ID, "p31", "p40WorkSheet_Recurrence_FreeField");
+                        Factory.p40WorkSheet_RecurrenceBL.Generate_Recurrence_Instance(recP39, ffi.inputs);
+                    }
                 }
+                
+              
             }
 
             return new BO.Result(false);
