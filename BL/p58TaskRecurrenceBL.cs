@@ -237,6 +237,7 @@ namespace BL
                 return 0;
             }
 
+            
             var recP56 = new BO.p56Task() {
                 p57ID = recP58.p57ID, p56Name = recP59.p59Name, p56PlanUntil = recP59.p59PlanUntil, p41ID=recP58.p41ID
                 ,p56PlanFrom = recP59.p59PlanFrom, j02ID_Owner = recP58.j02ID_Owner
@@ -245,7 +246,7 @@ namespace BL
                 ,p56Ordinary=recP58.p58Ordinary,p56IsStopNotify=recP58.p58IsStopNotify
                 
             };
-
+            
             var lisX69 = _mother.x67EntityRoleBL.GetList_X69("p58", recP58.pid);
             int intP56ID = _mother.p56TaskBL.Save(recP56, null, lisX69.ToList());
             if (intP56ID > 0)
@@ -273,6 +274,8 @@ namespace BL
             {
                 _db.RunSql("UPDATE p59TaskRecurrence_Plan set p59ErrorMessage_NewInstance=@err WHERE p59ID=@p59id", new {err=_mother.GetFirstNotifyMessage(), p59id=p59id});
             }
+
+            
 
             return intP56ID;
 

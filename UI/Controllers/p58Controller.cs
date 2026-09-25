@@ -37,12 +37,28 @@ namespace UI.Controllers
         public BO.Result TryGenerate_Recurrence_Instance(int p58id,int p59id)
         {
             var ret = new BO.Result(false);
-
+            
             int intP56ID=Factory.p58TaskRecurrenceBL.Generate_Recurrence_Instance(p58id, p59id);
             if (intP56ID == 0)
             {                
                 return new BO.Result(true, Factory.GetFirstNotifyMessage());
             }
+
+            var recP40 = Factory.p40WorkSheet_RecurrenceBL.LoadByP58(p58id);
+            if (recP40 != null)
+            {
+                //opakovaná odměna z opakovaného úkolu
+                var lisP39=Factory.p40WorkSheet_RecurrenceBL.GetList_p39_waiting_on_generate(DateTime.Today.AddDays(-31), DateTime.Today.AddDays(30), new List<int> { recP40.pid });
+                foreach (var c in lisP39)
+                {
+                    var ffi = new FreeFieldsViewModel();
+                    ffi.InhaleFreeFieldsView(Factory, c.p40ID, "p31", "p40WorkSheet_Recurrence_FreeField");
+
+                    Factory.p40WorkSheet_RecurrenceBL.Generate_Recurrence_Instance(c, ffi.inputs);
+
+                }
+            }
+
             return new BO.Result(false);
         }
 

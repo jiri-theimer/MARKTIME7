@@ -274,6 +274,19 @@ namespace BL
                 rec.p31HoursEntryflag = BO.p31HoursEntryFlagENUM.Hodiny;
             }
 
+            if (recP40.p58ID > 0)
+            {
+                //najít nejnovější úkol založený z opakovaného úkolu
+                var lisP56 = _mother.p56TaskBL.GetList(new BO.myQueryP56() { p58id = recP40.p58ID });
+                if (lisP56.Count() > 0)
+                {
+                    var intP56ID= lisP56.OrderByDescending(p => p.pid).First().pid; //nejnovější úkol z opakováného úkolu
+
+                    rec.p56ID = intP56ID;
+                }
+                
+            }
+
             return rec;
         }
     }
