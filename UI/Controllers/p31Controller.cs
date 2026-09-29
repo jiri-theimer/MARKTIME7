@@ -1002,6 +1002,33 @@ namespace UI.Controllers
                     c.p40ID_FixPrice = v.Rec.p40ID_FixPrice;  //vazba na paušální odměnu
 
                    
+                    if (c.p40ID_FixPrice > 0)
+                    {
+                        //na vstupu je vazba na paušální odměnu bez vztahu přes úkol
+                        var hoursinput = BO.Code.Time.ShowAsDec(c.Value_Orig, 0, get_round2minutes(v.Rec.p41ID));
+                        var recP40 = Factory.p40WorkSheet_RecurrenceBL.Load(c.p40ID_FixPrice);
+                        if (recP40.p40FreeHours > 0)
+                        {
+                            var lisP31 = Factory.p31WorksheetBL.GetList(new myQueryP31() {p41id=c.p41ID, hodiny_v_p40id=true, p40id = c.p40ID_FixPrice, iswip = true });
+                            var hourswip = lisP31.Where(p => p.pid != c.pid).Sum(p => p.p31Hours_Orig);
+                            var chybidolimitu = recP40.p40FreeHours - hourswip;
+
+                            if (chybidolimitu > 0 && hourswip + hoursinput > recP40.p40FreeHours)
+                            {
+                                var s = $"V paušální odměně {recP40.p40Name} jsou nastavené Fa hodiny zdarma v objemu {BO.Code.Time.ShowAssHHMM(recP40.p40FreeHours)}.";
+                                s += $"<br>Aktuálně je z paušálu čerpáno {BO.Code.Time.ShowAssHHMM(hourswip)}.";
+                                s += $"<br>Nyní snižte hodiny na {BO.Code.Time.ShowAssHHMM(chybidolimitu)}, aby se limit volných hodin přesně vyčerpal.";
+                                
+                                this.AddMessageTranslated(s);
+                                return 0;
+                            }
+                            if (hourswip + hoursinput > recP40.p40FreeHours)
+                            {
+                                //vykazování hodin nad paušál
+                                c.p40ID_FixPrice = 0;
+                            }
+                        }
+                    }
                     if (c.p56ID>0) //zjistit, zda úkol nemá vazbu na opakovanou odměnu
                     {                                                                       
                         var hoursinput=BO.Code.Time.ShowAsDec(c.Value_Orig, 0, get_round2minutes(v.Rec.p41ID));
@@ -1018,8 +1045,7 @@ namespace UI.Controllers
                                 var chybidolimitu = recP40.p40FreeHours - hourswip;
 
                                 if (chybidolimitu>0 && hourswip + hoursinput > recP40.p40FreeHours)
-                                {
-                                                                        
+                                {                                                                        
                                     var s = $"V paušální odměně {recP40.p40Name} jsou nastavené Fa hodiny zdarma v objemu {BO.Code.Time.ShowAssHHMM(recP40.p40FreeHours)}.";
                                     s += $"<br>Aktuálně je z paušálu čerpáno {BO.Code.Time.ShowAssHHMM(hourswip)}.";
                                     s += $"<br>Nyní snižte hodiny na {BO.Code.Time.ShowAssHHMM(chybidolimitu)}, aby se limit volných hodin přesně vyčerpal.";
@@ -1032,14 +1058,8 @@ namespace UI.Controllers
                                 {
                                     //vykazování hodin nad paušál
                                     c.p40ID_FixPrice = 0;
-                                }
-                                
-                            }
-                            
-                           
-
-
-                            
+                                }                                
+                            }                            
                         }
                     }
                     
