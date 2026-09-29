@@ -46,6 +46,7 @@ namespace BO.Code
             int lngSec = ConvertTimeToSeconds(strTime);
             if (lngMinTimeUnit > 0)
                 lngSec = RoundSeconds(lngSec, lngMinTimeUnit);
+
             return System.Convert.ToDouble(lngSec) / 60 / 60;
         }
         

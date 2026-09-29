@@ -1001,19 +1001,48 @@ namespace UI.Controllers
                     c.p54ID = v.Rec.p54ID;  //stupeň přesčasu
                     c.p40ID_FixPrice = v.Rec.p40ID_FixPrice;  //vazba na paušální odměnu
 
-                    if (c.p56ID>0 && c.p40ID_FixPrice == 0) //zjistit, zda úkol nemá vazbu na opakovanou odměnu
-                    {
+                   
+                    if (c.p56ID>0) //zjistit, zda úkol nemá vazbu na opakovanou odměnu
+                    {                                                                       
+                        var hoursinput=BO.Code.Time.ShowAsDec(c.Value_Orig, 0, get_round2minutes(v.Rec.p41ID));
                         var recP40 = Factory.p40WorkSheet_RecurrenceBL.LoadByP56(c.p56ID);
+
                         if (recP40 != null)
                         {
-                            if (recP40.p40FreeHours == 0)
-                            {
-
-                            }
                             c.p40ID_FixPrice = recP40.pid;
+
+                            if (recP40.p40FreeHours > 0)
+                            {
+                                var lisP31 = Factory.p31WorksheetBL.GetList(new myQueryP31() { p56id = c.p56ID, iswip = true });
+                                var hourswip = lisP31.Where(p => p.pid != c.pid).Sum(p => p.p31Hours_Orig);
+                                var chybidolimitu = recP40.p40FreeHours - hourswip;
+
+                                if (chybidolimitu>0 && hourswip + hoursinput > recP40.p40FreeHours)
+                                {
+                                                                        
+                                    var s = $"V paušální odměně {recP40.p40Name} jsou nastavené Fa hodiny zdarma v objemu {BO.Code.Time.ShowAssHHMM(recP40.p40FreeHours)}.";
+                                    s += $"<br>Aktuálně je z paušálu čerpáno {BO.Code.Time.ShowAssHHMM(hourswip)}.";
+                                    s += $"<br>Nyní snižte hodiny na {BO.Code.Time.ShowAssHHMM(chybidolimitu)}, aby se limit volných hodin přesně vyčerpal.";
+                                    s += "<br>Hodiny nad paušál potom můžete vykazovat bez omezení.";
+
+                                    this.AddMessageTranslated(s);
+                                    return 0;
+                                }
+                                if (hourswip+hoursinput>recP40.p40FreeHours)
+                                {
+                                    //vykazování hodin nad paušál
+                                    c.p40ID_FixPrice = 0;
+                                }
+                                
+                            }
+                            
+                           
+
+
+                            
                         }
                     }
-
+                    
                     break;
                 case BO.p33IdENUM.PenizeBezDPH:
                 case BO.p33IdENUM.PenizeVcDPHRozpisu:
@@ -1212,16 +1241,14 @@ namespace UI.Controllers
 
         }
 
-
-        private string Record_RecalcDuration_getInfo(int seconds, string p41id, string hours_orig)
+        private int get_round2minutes(int p41id)
         {
-            if (seconds == 0) return null;
-
+            //vrátí počet minut, na které se mají zaokrouhlovat hodiny
             int round2minutes = Factory.Lic.x01Round2Minutes;
-            int projectid = BO.Code.Bas.InInt(p41id);
-            if (projectid > 0)
+           
+            if (p41id > 0)
             {
-                var recP41 = Factory.p41ProjectBL.Load(projectid);
+                var recP41 = Factory.p41ProjectBL.Load(p41id);
                 if (recP41.p28ID_Client > 0)
                 {
                     var recP28 = Factory.p28ContactBL.Load(recP41.p28ID_Client);
@@ -1232,6 +1259,17 @@ namespace UI.Controllers
                     round2minutes = recP41.p41Round2Minutes;    //zaokrouhlování na míru na projektu
                 }
             }
+
+            return round2minutes;
+        }
+
+        
+
+        private string Record_RecalcDuration_getInfo(int seconds, string p41id, string hours_orig)
+        {
+            if (seconds == 0) return null;
+            int round2minutes = get_round2minutes(BO.Code.Bas.InInt(p41id));
+            
             string s = null;
 
             if (hours_orig != null && hours_orig.Contains(":"))
