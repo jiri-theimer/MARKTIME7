@@ -49,12 +49,12 @@ namespace API.Controllers
                     return BadRequest("Chybné heslo nebo login.");
                 }
 
-                bool bolPermanentToken = false;
-                if (f.Lic.x01LoginDomain == "xplegal.cz")
-                {
-                    bolPermanentToken = true;   //token na jeden rok, výchozí hodnota je 1 den
-                    BO.Code.File.LogInfo($"{f.CurrentUser.j02Login}, bolPermanentToken=true, platnost tokenu je 1 rok.");
-                }
+                bool bolPermanentToken = true;  //token na jeden rok, výchozí hodnota je 1 den
+                //if (f.Lic.x01LoginDomain == "xplegal.cz")
+                //{
+                //    bolPermanentToken = true;   //token na jeden rok, výchozí hodnota je 1 den
+                //    BO.Code.File.LogInfo($"{f.CurrentUser.j02Login}, bolPermanentToken=true, platnost tokenu je 1 rok.");
+                //}
 
                 var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("Toto je super tajný klíč k API v aplikaci MARKTIME"));
                 var signinCredentials = new SigningCredentials(secretKey, SecurityAlgorithms.HmacSha256);
