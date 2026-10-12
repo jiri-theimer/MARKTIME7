@@ -625,7 +625,16 @@ namespace UI.Controllers
                             else
                             {
                                 d.p41ID = c.pid;
-                                Factory.o60SpisBL.Save(d);
+                                var intO60ID=Factory.o60SpisBL.Save(d);
+
+                                var ret = new BL.Code.InfoSoudClient().UlozSpisAsync(Factory.Lic.x01InfosoudToken, new BL.Code.InfoSoudSpisPozadavek
+                                {
+                                    KodSoudu = "OSPHA03",
+                                    SpisovaZnacka = "12 C 345/2024",
+                                    Nazev = "Novák vs. ABC s.r.o.",
+                                }).Result;
+
+
                             }
                             
                         }
