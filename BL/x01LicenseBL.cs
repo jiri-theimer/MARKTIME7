@@ -124,6 +124,8 @@ namespace BL
 
             p.AddInt("x01LockFlag", rec.x01LockFlag);
             p.AddBool("x01IsAllowDuplicity_p86", rec.x01IsAllowDuplicity_p86);
+
+            p.AddString("x01InfosoudToken", rec.x01InfosoudToken);
             
            
             _db.CurrentUser.j02Login = "guru";

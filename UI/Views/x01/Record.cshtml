@@ -268,6 +268,16 @@
     </div>
 
     <div class="row my-2">
+        <mylabel class="col-sm-2 col-md-3 col-form-label" explicit-for="Rec_x01InfosoudToken" text="Infosoud token" tooltip="Token, který si vygenerujete v aplikaci Infosoud. V kartě projektu je možné zadávat spisové značky ke sledování průběhu soudních řízení."></mylabel>
+
+        <div class="col-sm-10 col-md-9">
+            <input class="form-control" asp-for="Rec.x01InfosoudToken" />
+        </div>
+
+    </div>
+
+
+    <div class="row my-2">
         <label class="col-sm-2 col-md-3 col-form-label">@_f.tra("Výchozí Notepad editor"):</label>
         <div class="col-sm-5 col-md-4">
             <mycombo entity="x04NotepadConfig" asp-for="Rec.x04ID_Default" selectedtext="@Model.ComboX04" filter-flag="1"></mycombo>

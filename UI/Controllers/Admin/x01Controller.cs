@@ -90,7 +90,7 @@ namespace UI.Controllers.Admin
                 c.x01InvoiceMaturityDays = v.Rec.x01InvoiceMaturityDays;
                 c.x01IsCapacityFaNefa = v.Rec.x01IsCapacityFaNefa;
                 c.x01LockFlag = v.Rec.x01LockFlag;
-               
+                c.x01InfosoudToken = v.Rec.x01InfosoudToken;
 
                 c.ValidUntil = v.Toolbar.GetValidUntil(c);
                 c.ValidFrom = v.Toolbar.GetValidFrom(c);

@@ -226,6 +226,8 @@ namespace BL
                     of = AF("p41Project", "ExistVyuctovane", "a.p41ID", "Existují vyúčtované úkony", null, null, "bool");
                     of.SqlWrapper = "select p41ID FROM p31Worksheet WHERE p91ID IS NOT NULL AND p31Date BETWEEN @p31date1 AND @p31date2";
 
+                    AF("p41Project", "MajiInfosoud", "EXISTS (SELECT 1 FROM o60Spis WHERE p41ID=a.p41ID)", "Projekty s Infosoud spisy", null, null, "bool1x");
+
                     AF("p41Project", "CenikNaMiru", "a.p51ID_Billing IN (select p51ID FROM p51PriceList WHERE p51IsCustomTailor=1)", "Fakturační sazby na míru", null, null, "bool1x");
                     AF("p41Project", "CenikRoot", "a.p51ID_Billing IS NULL", "Nepřiřazený ceník (klientský nebo root)", null, null, "bool1x");
                     AF("p41Project", "CenikPrirazeny", "a.p51ID_Billing IN (select p51ID FROM p51PriceList WHERE p51TypeFlag=1)", "Přiřazený ceník fakturačních sazeb", null, null, "bool1x");

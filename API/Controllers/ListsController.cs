@@ -14,7 +14,7 @@ namespace API.Controllers
         public IEnumerable<BO.p41Project> p41(string prefix)
         {            
 
-            var lis=this.GetFactory().p41ProjectBL.GetList(new BO.myQueryP41(prefix) { MyRecordsDisponible=true});
+            var lis=this.GetFactory().p41ProjectBL.GetList(new BO.myQueryP41(prefix) { MyRecordsDisponible=true,IsRecordValid=null});
 
             return lis;
 
@@ -38,7 +38,7 @@ namespace API.Controllers
         public IEnumerable<BO.p28Contact> p28()
         {
             
-            var lis = this.GetFactory().p28ContactBL.GetList(new BO.myQueryP28());
+            var lis = this.GetFactory().p28ContactBL.GetList(new BO.myQueryP28() { IsRecordValid = null });
 
             return lis;
 

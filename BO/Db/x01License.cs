@@ -54,7 +54,7 @@ namespace BO
         public int x01LockFlag { get; set; }    //2: přístup pouze pro admina, 4: vypnutý robot
 
         
-       
+       public string x01InfosoudToken { get; set; }
 
         public string GetBillingLang(int intLangIndex)
         {
