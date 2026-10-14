@@ -24,6 +24,7 @@ namespace DL
             s += ",x01IsAllowDuplicity_VatID=b.x01IsAllowDuplicity_VatID,x01IsAllowDuplicity_RegID=b.x01IsAllowDuplicity_RegID,x01LangIndex=b.x01LangIndex,x01PasswordRecovery_Question=b.x01PasswordRecovery_Question,x01PasswordRecovery_Answer=b.x01PasswordRecovery_Answer,x01DateUpdate=b.x01DateUpdate,x01LimitUsers=b.x01LimitUsers";
             s += ",x01InvoiceMaturityDays=b.x01InvoiceMaturityDays,x15ID=b.x15ID";
             s += ",x01BillingFlag1=b.x01BillingFlag1,x01BillingFlag2=b.x01BillingFlag2,x01BillingFlag3=b.x01BillingFlag3,x01BillingFlag4=b.x01BillingFlag4";
+            s += ",x01InfosoudToken=b.x01InfosoudToken";
             s += " FROM a7_cloudheader.dbo.x01License a INNER JOIN x01License b ON a.x01LoginDomain=b.x01LoginDomain";
             _db.RunSql(s);
 

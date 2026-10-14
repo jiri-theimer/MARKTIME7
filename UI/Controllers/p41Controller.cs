@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using UI.Models;
 using UI.Models.capacity;
 using UI.Models.Record;
@@ -627,12 +628,25 @@ namespace UI.Controllers
                                 d.p41ID = c.pid;
                                 var intO60ID=Factory.o60SpisBL.Save(d);
 
-                                var ret = new BL.Code.InfoSoudClient().UlozSpisAsync(Factory.Lic.x01InfosoudToken, new BL.Code.InfoSoudSpisPozadavek
+                                BO.Code.File.LogInfo($"o60ID: {intO60ID}");
+
+                                if (Factory.Lic.x01InfosoudToken != null)
                                 {
-                                    KodSoudu = "OSPHA03",
-                                    SpisovaZnacka = "12 C 345/2024",
-                                    Nazev = "Novák vs. ABC s.r.o.",
-                                }).Result;
+                                    BO.Code.File.LogInfo(Factory.Lic.x01InfosoudToken);
+                                    var ret = new BL.Code.InfoSoudClient().UlozSpisAsync(Factory.Lic.x01InfosoudToken, new BL.Code.InfoSoudSpisPozadavek
+                                    {
+                                        KodSoudu = d.o60SoudCode,
+                                        SpisovaZnacka = d.o60SpisCode,
+                                        Nazev = d.o60Name,
+                                        Prijemce = d.o60Prijemce
+                                    }).Result;
+
+                                    
+                                    var json = JsonSerializer.Serialize(ret, new JsonSerializerOptions { WriteIndented = true });
+                                    BO.Code.File.LogInfo(json);
+
+                                }
+
 
 
                             }
