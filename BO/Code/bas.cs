@@ -564,6 +564,24 @@ namespace BO.Code
             return d;
         }
 
+        /// <summary>
+        /// Posune datum o zadaný počet měsíců a dní (nejdřív měsíce, potom dny).
+        /// Pokud je d posledním dnem měsíce, výsledek po posunu měsíců bude také posledním dnem měsíce.
+        /// </summary>
+        public static DateTime get_posun_datum(this DateTime d, int days, int months)
+        {
+            if (months != 0)
+            {
+                bool isEom = d.Day == DateTime.DaysInMonth(d.Year, d.Month);
+                d = d.AddMonths(months);
+                if (isEom)
+                {
+                    d = d.AddDays(DateTime.DaysInMonth(d.Year, d.Month) - d.Day);
+                }
+            }
+            return d.AddDays(days);
+        }
+
         public static bool Diff2String(string s1, string s2)
         {
             if (string.IsNullOrEmpty(s1) && !string.IsNullOrEmpty(s2)) return true;
