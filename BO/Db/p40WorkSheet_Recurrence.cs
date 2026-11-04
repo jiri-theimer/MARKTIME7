@@ -24,6 +24,7 @@ namespace BO
         public string p40TextInternal { get; set; }
         public DateTime? p40FirstSupplyDate { get; set; }
         public int p40GenerateDayAfterSupply { get; set; }
+        public int p40GenerateMonthAfterSupply { get; set; }
         public DateTime? p40LastSupplyDate { get; set; }
         public double p40Value { get; set; }
         public double p40FreeHours { get; set; }

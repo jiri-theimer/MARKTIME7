@@ -52,7 +52,21 @@ namespace UI.Controllers
                 if (lisP59.Count() > 0)
                 {
                     var recP59 = lisP59.First();
-                    var lisP39 = Factory.p40WorkSheet_RecurrenceBL.GetList_p39_waiting_on_generate(recP59.p59DateCreate.AddHours(-1), recP59.p59DateCreate.AddHours(1), new List<int> { recP40.pid },true);
+                    var recP58 = Factory.p58TaskRecurrenceBL.Load(p58id);
+
+                    //var lisP39 = Factory.p40WorkSheet_RecurrenceBL.GetList_p39_waiting_on_generate(recP59.p59DateCreate.AddHours(-1), recP59.p59DateCreate.AddHours(1), new List<int> { recP40.pid },true);
+                    var d1 = recP59.p59BaseDate.Value;
+                    if (recP58.p58Generate_DaysToBase_M != 0)
+                    {
+                        d1 = d1.AddMonths(recP58.p58Generate_DaysToBase_M);
+                    }
+                    if (recP58.p58Generate_DaysToBase_D !=0)
+                    {
+                        d1 = d1.AddDays(recP58.p58Generate_DaysToBase_D);
+                    }
+                                        
+                    var lisP39 = Factory.p40WorkSheet_RecurrenceBL.GetList_p39_waiting_on_generate(d1.AddHours(-1),d1.AddHours(1), new List<int> { recP40.pid }, true);
+
                     if (lisP39.Count() > 0)
                     {
                         var recP39 = lisP39.First();
