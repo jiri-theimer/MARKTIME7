@@ -193,6 +193,7 @@ namespace UI.Controllers
                         v.Rec.x15ID = qry.First().x15ID;
                         v.Rec.p40RecurrenceType = qry.First().p40RecurrenceType;
                         v.Rec.p40GenerateDayAfterSupply = qry.First().p40GenerateDayAfterSupply;
+                        
                         v.Rec.p40Text = qry.First().p40Text;
                     }
 
@@ -316,6 +317,7 @@ namespace UI.Controllers
                 c.p40LastSupplyDate = v.Rec.p40LastSupplyDate;
                 c.p40FirstSupplyDate = v.Rec.p40FirstSupplyDate;
                 c.p40GenerateDayAfterSupply = v.Rec.p40GenerateDayAfterSupply;
+                c.p40GenerateMonthAfterSupply = v.Rec.p40GenerateMonthAfterSupply;
                 c.x15ID = v.Rec.x15ID;
                 c.p40FreeFee = v.Rec.p40FreeFee;
                 c.p40FreeHours = v.Rec.p40FreeHours;

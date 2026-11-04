@@ -123,6 +123,12 @@
                             <mynumber asp-for="Rec.p40GenerateDayAfterSupply" class="record_ordinary" decimal-digits="0"></mynumber>
                         </div>
                     </div>
+                    <div class="row my-2">
+                        <label class="col-auto col-form-label">#@_f.tra("Kolik měsíců před/po generovat záznam úkonu (-/+):"):</label>
+                        <div class="col-auto">
+                            <mynumber asp-for="Rec.p40GenerateMonthAfterSupply" class="record_ordinary" decimal-digits="0"></mynumber>
+                        </div>
+                    </div>
                 </td>
             </tr>
         </table>
