@@ -39,7 +39,19 @@ namespace BL.AI.Core
             public string Group { get; set; }
             public string Type { get; set; }
             public string Hint { get; set; }
+            /// <summary>Typ sloupcového filtru gridu: string | number | date | bool; null = podle sloupce nelze filtrovat.</summary>
+            public string FilterType { get; set; }
         }
+
+        /// <summary>Typ sloupcového filtru podle FieldType – stejně jako TheGridColumn.NormalizedTypeName a thegrid.js (normalize_coltype_name).</summary>
+        public static string FilterTypeOf(string fieldType) => fieldType switch
+        {
+            "string" => "string",
+            "bool" => "bool",
+            "num" or "num0" or "num3" or "num4" or "num5" or "int" => "number",
+            "date" or "datetime" or "datetimesec" => "date",
+            _ => null      // time, filesize… – sloupcový filtr je nenabízí
+        };
 
         private class HintRec { public string hint { get; set; } public bool exclude { get; set; } }
 
@@ -104,7 +116,8 @@ namespace BL.AI.Core
                         Role = role,
                         Group = rel.RelName == "a" ? (col.DesignerGroup ?? alias) : alias,
                         Type = col.FieldType,
-                        Hint = h?.hint ?? col.Tooltip
+                        Hint = h?.hint ?? col.Tooltip,
+                        FilterType = col.IsFilterable ? FilterTypeOf(col.FieldType) : null
                     };
                     cat.Items.Add(e);
                     cat._byKey[key] = e;
@@ -135,8 +148,9 @@ namespace BL.AI.Core
             }
             else
             {
-                sb.AppendLine("# KATALOG SLOUPCŮ (id | název | skupina | typ | popis)");
-                foreach (var e in Items) sb.AppendLine($"{e.Id} | {e.Header} | {e.Group} | {e.Type} | {e.Hint}");
+                sb.AppendLine("# KATALOG SLOUPCŮ (id | název | skupina | typ filtru | popis)");
+                sb.AppendLine("typ filtru: string = text, number = číslo, date = datum, bool = ano/ne, - = podle sloupce nelze filtrovat");
+                foreach (var e in Items) sb.AppendLine($"{e.Id} | {e.Header} | {e.Group} | {e.FilterType ?? "-"} | {e.Hint}");
             }
             return sb.ToString();
         }
@@ -144,7 +158,7 @@ namespace BL.AI.Core
         /// <summary>Katalog pro UI formulář (klíč → název).</summary>
         public List<BO.AI.AiCatalogItem> ToUiList() => Items.Select(e => new BO.AI.AiCatalogItem
         {
-            Key = e.Key, Header = e.Header, Role = e.Role, Group = e.Group, Type = e.Type, Hint = e.Hint
+            Key = e.Key, Header = e.Header, Role = e.Role, Group = e.Group, Type = e.Type, Hint = e.Hint, Filter = e.FilterType
         }).ToList();
     }
 }

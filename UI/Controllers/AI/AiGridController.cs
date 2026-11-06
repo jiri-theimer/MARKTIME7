@@ -5,7 +5,7 @@ using UI.Models.AI;
 namespace UI.Controllers.AI
 {
     /// <summary>
-    /// AI návrh sloupců tabulky (návrhář sloupců). Otevírá se z menu „Tabulka“ v gridu.
+    /// AI návrh sloupců tabulky a sloupcového filtru. Otevírá se z menu „Tabulka“ v gridu a z návrháře sloupců.
     /// URL: /AiGrid/Index?j72id=…&amp;pathname=…, /AiGrid/Ask (POST), /AiGrid/Save (POST)
     /// </summary>
     public class AiGridController : BaseController
@@ -63,15 +63,17 @@ namespace UI.Controllers.AI
             return JsonResult(new { ok = r.Ok, error = r.Error, reply = r.Reply, proposal = r.Proposal, warnings = r.Warnings, raw = r.Raw, logId = r.LogId });
         }
 
-        /// <param name="overwrite">true = přepsat tabulku j72id (jen s oprávněním), false = uložit jako novou pojmenovanou tabulku</param>
+        /// <param name="mode">overwrite = přepsat tabulku j72id (jen s oprávněním), new = uložit jako novou pojmenovanou tabulku, filter = jen použít sloupcový filtr</param>
         [HttpPost]
-        public IActionResult Save(string payload, int j72id, long logId, bool overwrite, string pathname)
+        public IActionResult Save(string payload, int j72id, long logId, string mode, string pathname)
         {
             BO.AI.AiGridProposal p;
             try { p = JsonSerializer.Deserialize<BO.AI.AiGridProposal>(payload ?? ""); }
             catch { return JsonResult(new { ok = false, errors = new[] { "Neplatný vstup." } }); }
+            if (p == null || !Enum.TryParse<BL.AI.Grid.AiGridService.SaveMode>(mode ?? "", true, out var m))
+                return JsonResult(new { ok = false, errors = new[] { "Neplatný vstup." } });
 
-            var r = Service(j72id).Save(p, logId, overwrite, pathname);
+            var r = Service(j72id).Save(p, logId, m, pathname);
             return JsonResult(new { ok = r.Ok, j72id = r.J72ID, errors = r.Errors });
         }
 

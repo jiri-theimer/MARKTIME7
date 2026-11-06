@@ -59,6 +59,8 @@ namespace BO.AI
         [JsonPropertyName("group")] public string Group { get; set; }
         [JsonPropertyName("type")] public string Type { get; set; }
         [JsonPropertyName("hint")] public string Hint { get; set; }
+        /// <summary>Typ sloupcového filtru (agent tabulky): string | number | date | bool; null = nelze filtrovat.</summary>
+        [JsonPropertyName("filter")] public string Filter { get; set; }
     }
 
     /// <summary>Vstup z prohlížeče pro akci Ask agenta Součtů.</summary>
