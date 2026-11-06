@@ -1,5 +1,6 @@
 ﻿@model UI.Models.p31view.p31TotalsViewModel
 @inject BL.Factory _f
+@inject BL.AI.Core.ILlmClient _ai
 
 @{
     
@@ -52,19 +53,27 @@
 
 <div class="input-group m-0" style="padding-top:3px;">
     <div>
-        <ul class="nav nav-tabs">
+        <ul class="nav nav-tabs" title="WebDataRocks">
             <li class="onetab">
 
                 <a id="cmdMore" class="nav-link onetab-offcanvas" tabindex="-1" role="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvas_more">
                     <span class="onetab-caret"></span>
                     @_f.tra("Součty")
-                    <span class="badge-light">WebDataRocks</span>
+                    
                 </a>
             </li>
         </ul>
 
 
     </div>
+    @if (_ai.Options.Enabled && Model.record_prefix == null)
+    {
+        <div style="margin-left:5px;">
+            <button type="button" id="cmdAiTotals" onclick="_window_open('/AiTotals/Index', 3)" class="btn ai-btn" title="@_f.tra("Popište slovy, co chcete vidět, a AI navrhne šablonu Součtů")">
+                <span class="material-icons-outlined-btn">auto_awesome</span> @_f.tra("AI návrh šablony")
+            </button>
+        </div>
+    }
     <div style="margin-left:5px;">
         <select asp-for="SelectedJ79ID" class="form-select" onchange="j79id_onchange(this)">
             @foreach (var c in Model.lisJ79)
@@ -111,6 +120,9 @@
     {
         @Html.EditorFor(m => Model.TheGridQueryButton, "~/Views/Shared/_ButtonGridQuery.cshtml")
     }
+
+    
+
 
     @if (_IsBlank)
     {

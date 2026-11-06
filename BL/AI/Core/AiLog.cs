@@ -100,6 +100,20 @@ SELECT CAST(SCOPE_IDENTITY() AS bigint)",
             catch { return false; }
         }
 
+        /// <summary>Předchozí dotazy uživatele pro danou AI funkci (nejnovější první, bez duplicit a chybových).</summary>
+        public static List<string> GetHistory(BL.Factory f, string feature, int top = 30)
+        {
+            try
+            {
+                return f.db.GetList<string>(@"SELECT TOP (@top) j98Question FROM (
+    SELECT j98Question, MAX(j98ID) AS maxid FROM j98OpenAILog
+    WHERE j02ID=@j02id AND j98Feature=@feature AND j98Status<>'E' AND j98Question IS NOT NULL
+    GROUP BY j98Question) x
+ORDER BY maxid DESC", new { top, j02id = f.CurrentUser.pid, feature }).ToList();
+            }
+            catch { return new(); }
+        }
+
         private static string Cut(string s, int len) => s == null ? null : (s.Length > len ? s.Substring(0, len) : s);
     }
 }

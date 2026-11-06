@@ -9,12 +9,18 @@
 <link rel="stylesheet" href="~/css/ai/aichat.css" asp-append-version="true" />
 
 <div class="ai-chat-col">
-    <div id="ai_chat" class="ai-chat">
+    <div id="ai_chat" class="ai-chat" data-feature="@Model.Feature">
         <div class="ai-msg ai-assistant">@Model.Intro</div>
     </div>
     <div class="ai-input">
+        <div id="ai_history" class="ai-history" style="display:none;"></div>
         <textarea id="ai_prompt" class="form-control" rows="3" placeholder="@(Model.Placeholder ?? _f.tra("Váš dotaz…"))"></textarea>
-        <button id="ai_send" type="button" class="btn btn-primary">@_f.tra("Odeslat")</button>
+        <div class="ai-input-buttons">
+            <button id="ai_send" type="button" class="btn btn-primary">@_f.tra("Odeslat")</button>
+            <button id="ai_history_btn" type="button" class="btn btn-sm btn-outline-secondary" title="@_f.tra("Předchozí dotazy (šipka nahoru/dolů)")" style="display:none;">
+                <span class="material-icons-outlined-btn">history</span>
+            </button>
+        </div>
     </div>
 </div>
 
@@ -27,7 +33,8 @@
         rateDown = _f.tra("Špatná odpověď"),
         rateComment = _f.tra("Co bylo špatně? (nepovinné)"),
         send = _f.tra("Odeslat"),
-        thanks = _f.tra("Děkujeme za hodnocení")
+        thanks = _f.tra("Děkujeme za hodnocení"),
+        history = _f.tra("Předchozí dotazy")
     }));
 </script>
 <script src="~/js/ai/aichat.js" asp-append-version="true"></script>

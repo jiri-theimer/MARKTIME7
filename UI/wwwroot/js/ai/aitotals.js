@@ -23,7 +23,18 @@ $(function () {
     });
     $("#ai_period").on("change", function () { toggle_custom(); });
     $("#ai_form select, #ai_form input").on("change", function () { $(this).closest(".ai-confirm").removeClass("ai-confirm"); });
-    $("#ai_save").on("click", function () { ai_save(); });
+    $("#ai_save").on("click", function () { ai_save(false); });
+    // přepsání výchozí šablony – potvrzení druhým kliknutím (bez dialogu)
+    $("#ai_overwrite").on("click", function () {
+        var $b = $(this);
+        if (!$b.data("armed")) {
+            $b.data("armed", true).removeClass("btn-outline-warning").addClass("btn-warning").text(_ai_txt.overwriteConfirm);
+            setTimeout(function () { ai_overwrite_reset(); }, 5000);
+            return;
+        }
+        ai_overwrite_reset();
+        ai_save(true);
+    });
 
     _ai_chat = new AiChat({
         askUrl: "/AiTotals/Ask",
@@ -132,13 +143,19 @@ function show_warnings(w) {
     $("#ai_warnings").html(w.map(function (x) { return $("<div>").text(x).prop("outerHTML"); }).join("")).show();
 }
 
-function ai_save() {
+function ai_overwrite_reset() {
+    $("#ai_overwrite").data("armed", false).removeClass("btn-warning").addClass("btn-outline-warning").text(_ai_txt.overwrite);
+}
+
+function ai_save(overwrite) {
     if (!_ai_proposal) return;
     var p = read_form();
-    $("#ai_save").prop("disabled", true);
-    $.post("/AiTotals/Save", { payload: JSON.stringify(p), logId: _ai_chat.lastLogId }, function (r) {
-        $("#ai_save").prop("disabled", false);
+    $("#ai_save, #ai_overwrite").prop("disabled", true);
+    $.post("/AiTotals/Save", { payload: JSON.stringify(p), logId: _ai_chat.lastLogId, overwrite: overwrite }, function (r) {
+        $("#ai_save, #ai_overwrite").prop("disabled", false);
         if (!r.ok) { show_warnings(r.errors || []); return; }
+        // Součty načítají layout přednostně z localStorage – u přepsané šablony by jinak zůstal starý
+        try { localStorage.removeItem("webdatarocks_layout-" + r.j79id); } catch (e) { }
         if (window.parent && window.parent !== window && typeof window.parent.reload_explicit_j79id === "function") {
             window.parent.reload_explicit_j79id(r.j79id);     // stránka Součtů
             if (typeof window.parent._window_close === "function") window.parent._window_close();
@@ -146,7 +163,7 @@ function ai_save() {
             location.href = "/p31totals/Index?j79id=" + r.j79id;
         }
     }).fail(function () {
-        $("#ai_save").prop("disabled", false);
+        $("#ai_save, #ai_overwrite").prop("disabled", false);
         show_warnings([_ai_txt.error]);
     });
 }

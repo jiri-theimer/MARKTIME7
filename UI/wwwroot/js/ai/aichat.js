@@ -8,6 +8,7 @@
 //     onAnswer: function (r) { ... }          // úspěšná odpověď (r.reply, r.logId, r.warnings + data agenta)
 // });
 // chat.lastLogId – j98ID poslední odpovědi (pro vazbu na uložený výsledek)
+// Předchozí dotazy uživatele: tlačítko 🕘 a šipka nahoru/dolů v poli dotazu (feature = data-feature v #ai_chat, viz _AiChat.cshtml).
 
 function AiChat(opt) {
     var self = this;
@@ -19,11 +20,69 @@ function AiChat(opt) {
     self.$prompt = $(opt.prompt || "#ai_prompt");
     self.$send = $(opt.send || "#ai_send");
     self.txt = window._aichat_txt || {};
+    self.feature = opt.feature || self.$chat.data("feature");
+    self.past = [];             // předchozí dotazy (nejnovější první)
+    self.pastIndex = -1;        // pozice při procházení šipkami
+    self.$history = $(opt.historyBox || "#ai_history");
+    self.$historyBtn = $(opt.historyBtn || "#ai_history_btn");
 
     self.$send.on("click", function () { self.send(); });
-    self.$prompt.on("keydown", function (e) { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); self.send(); } });
+    self.$prompt.on("keydown", function (e) {
+        if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); self.send(); return; }
+        if (e.key === "Escape") { self.$history.hide(); return; }
+        if ((e.key === "ArrowUp" || e.key === "ArrowDown") && self.past.length && self.canBrowse(e.key)) {
+            e.preventDefault();
+            self.browse(e.key === "ArrowUp" ? 1 : -1);
+        }
+    });
+    self.$historyBtn.on("click", function (e) { e.stopPropagation(); self.toggleHistory(); });
+    $(document).on("click", function () { self.$history.hide(); });
+    self.loadHistory();
     self.$prompt.focus();
 }
+
+AiChat.prototype.loadHistory = function () {
+    var self = this;
+    if (!self.feature) return;
+    $.get("/Ai/History", { feature: self.feature }, function (list) {
+        self.past = list || [];
+        self.$historyBtn.toggle(self.past.length > 0);
+    });
+};
+
+// šipky listují historií jen v prázdném poli nebo když uživatel už historií prochází
+AiChat.prototype.canBrowse = function (key) {
+    var v = this.$prompt.val();
+    return v === "" || this.pastIndex >= 0;
+};
+
+AiChat.prototype.browse = function (dir) {
+    var i = this.pastIndex + dir;
+    if (i < 0) { this.pastIndex = -1; this.$prompt.val(""); return; }
+    if (i >= this.past.length) i = this.past.length - 1;
+    this.pastIndex = i;
+    this.$prompt.val(this.past[i]);
+};
+
+AiChat.prototype.toggleHistory = function () {
+    var self = this;
+    if (self.$history.is(":visible")) { self.$history.hide(); return; }
+    self.$history.empty().append($("<div>").addClass("ai-history-title").text(self.txt.history || ""));
+    self.past.forEach(function (q) {
+        self.$history.append($("<div>").addClass("ai-history-item").attr("title", q).text(q).on("click", function (e) {
+            e.stopPropagation();
+            self.$prompt.val(q).focus();
+            self.$history.hide();
+        }));
+    });
+    self.$history.show();
+};
+
+AiChat.prototype.remember = function (text) {
+    this.past = [text].concat(this.past.filter(function (q) { return q !== text; })).slice(0, 30);
+    this.pastIndex = -1;
+    this.$historyBtn.show();
+};
 
 AiChat.prototype.addMessage = function (cls, text) {
     var $m = $("<div>").addClass("ai-msg " + cls).text(text);
@@ -54,6 +113,7 @@ AiChat.prototype.send = function (textOverride) {
             self.history.pop();      // neúspěšný dotaz do historie nepatří
             return;
         }
+        self.remember(text);
         var $msg = self.addMessage("ai-assistant", r.reply || "");
         if (r.logId) { self.lastLogId = r.logId; self.addRating($msg, r.logId); }
         self.history.push({ role: "assistant", content: r.raw || r.reply || "" });

@@ -5,11 +5,16 @@
     var chatSettings = new UI.Models.AI.AiChatSettings
     {
         Intro = _f.tra("Popište, co chcete v Součtech vidět. Např.: „Nevyfakturované hodiny podle klientů za minulý měsíc“ nebo „Vykázané hodiny lidí po měsících letos“."),
-        Thinking = _f.tra("Připravuji návrh…")
+        Thinking = _f.tra("Připravuji návrh…"),
+        Feature = BL.AI.Totals.AiTotalsService.FeatureCode
     };
 }
 
 <link rel="stylesheet" href="~/css/ai/aitotals.css" asp-append-version="true" />
+
+<div class="ai-toolbar">
+    <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+</div>
 
 <div class="row ai-wrap">
     <!-- CHAT (společná komponenta) -->
@@ -79,8 +84,11 @@
 
             <div id="ai_warnings" class="alert alert-warning py-1 px-2" style="display:none;"></div>
 
+            <button id="ai_overwrite" type="button" class="class="btn btn-primary me-2" title="@_f.tra("Nahradí obsah šablony") „@Model.DefaultTemplateName“">
+                @_f.tra("Přepsat výchozí šablonu")
+            </button>
             <button id="ai_save" type="button" class="btn btn-success">
-                @_f.tra("Uložit šablonu a otevřít v Součtech")
+                @_f.tra("Uložit jako novou šablonu")
             </button>
         </div>
         <div id="ai_form_empty" class="text-muted p-3">@_f.tra("Návrh šablony se zobrazí zde.")</div>
@@ -95,7 +103,9 @@
     var _ai_txt = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(new
     {
         error = _f.tra("Chyba"),
-        add = _f.tra("+ přidat…")
+        add = _f.tra("+ přidat…"),
+        overwrite = _f.tra("Přepsat výchozí šablonu"),
+        overwriteConfirm = _f.tra("Opravdu přepsat?") + " „" + Model.DefaultTemplateName + "“"
     }));
 </script>
 <script src="~/js/ai/aitotals.js" asp-append-version="true"></script>

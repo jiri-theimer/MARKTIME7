@@ -41,7 +41,8 @@ namespace UI.Controllers.AI
                     new[] { new { pid = 0, name = Factory.tra("Bez omezení období") }, new { pid = 1, name = Factory.tra("Vlastní rozsah") } }
                     .Concat(svc.Periods.Where(p => p.pid > 1).Select(p => new { pid = p.pid, name = p.Header })), _json),
                 StatesJson = JsonSerializer.Serialize(BL.AI.Totals.AiTotalsService.States.Select(p => new { id = p.Key, name = Factory.tra(p.Value) }), _json),
-                TabsJson = JsonSerializer.Serialize(BL.AI.Totals.AiTotalsService.TabNames.Select(p => new { id = p.Key, name = Factory.tra(p.Value) }), _json)
+                TabsJson = JsonSerializer.Serialize(BL.AI.Totals.AiTotalsService.TabNames.Select(p => new { id = p.Key, name = Factory.tra(p.Value) }), _json),
+                DefaultTemplateName = svc.GetDefaultTemplate(false)?.j79Name ?? Factory.tra("Výchozí šablona statistiky")
             };
             return View(v);
         }
@@ -58,14 +59,15 @@ namespace UI.Controllers.AI
         }
 
         /// <param name="logId">j98ID posledního dotazu – zapíše se k němu uložená šablona</param>
+        /// <param name="overwrite">true = přepsat výchozí (systémovou) šablonu uživatele místo založení nové</param>
         [HttpPost]
-        public IActionResult Save(string payload, long logId)
+        public IActionResult Save(string payload, long logId, bool overwrite)
         {
             BO.AI.AiTotalsProposal p;
             try { p = JsonSerializer.Deserialize<BO.AI.AiTotalsProposal>(payload ?? ""); }
             catch { return JsonResult(new { ok = false, errors = new[] { "Neplatný vstup." } }); }
 
-            var r = Service().Save(p, logId);
+            var r = Service().Save(p, logId, overwrite);
             return JsonResult(new { ok = r.Ok, j79id = r.J79ID, errors = r.Errors });
         }
 

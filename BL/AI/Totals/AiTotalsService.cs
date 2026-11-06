@@ -22,7 +22,8 @@ namespace BL.AI.Totals
             _cp = cp; _pp = pp;
         }
 
-        protected override string Feature => "ai-totals";
+        public const string FeatureCode = "ai-totals";
+        protected override string Feature => FeatureCode;
 
         public AiTotalsCatalog Catalog => _catalog ??= AiTotalsCatalog.Build(F, _cp);
         public List<BO.ThePeriod> Periods => _pp.getPallete();
@@ -169,8 +170,25 @@ namespace BL.AI.Totals
             public List<string> Errors { get; set; } = new();
         }
 
-        /// <summary>Uloží potvrzený návrh jako novou osobní šablonu Součtů a předvyplní období.</summary>
-        public SaveResult Save(AiTotalsProposal p, long logId = 0)
+        /// <summary>Výchozí (systémová) šablona Součtů uživatele – zakládá ji p31totalsController, případně ji založí zde.</summary>
+        public BO.j79TotalsTemplate GetDefaultTemplate(bool createIfMissing)
+        {
+            BO.j79TotalsTemplate Find() => F.j79TotalsTemplateBL.GetList(F.CurrentUser.pid, null, true)
+                .FirstOrDefault(x => x.j02ID == F.CurrentUser.pid && x.j79IsSystem);
+            var rec = Find();
+            if (rec == null && createIfMissing)
+            {
+                F.j79TotalsTemplateBL.CreateDefaultSysRecord(F.CurrentUser.pid, null, true);
+                rec = Find();
+            }
+            return rec;
+        }
+
+        /// <summary>
+        /// Uloží potvrzený návrh a předvyplní období.
+        /// overwriteDefault = false → nová osobní šablona; true → přepíše obsah výchozí (systémové) šablony uživatele, název zůstává.
+        /// </summary>
+        public SaveResult Save(AiTotalsProposal p, long logId = 0, bool overwriteDefault = false)
         {
             var res = new SaveResult();
             if (p != null)
@@ -181,19 +199,30 @@ namespace BL.AI.Totals
             if (!v.IsValid) { res.Errors = v.Errors; return res; }
 
             var keys = p.Rows.Concat(p.Columns).Concat(p.Measures.Select(x => x.Key)).ToList();
-            var rec = new BO.j79TotalsTemplate
+
+            BO.j79TotalsTemplate rec;
+            if (overwriteDefault)
             {
-                j02ID = F.CurrentUser.pid,
-                j79Entity = null,                     // kořenové Součty (bez kontextu záznamu)
-                j79Name = p.Name.Length > 255 ? p.Name.Substring(0, 255) : p.Name,
-                j79Columns = string.Join(",", keys),
-                j79StateQuery = p.State,
-                j79TabQuery = string.IsNullOrEmpty(p.Tab) ? null : p.Tab,
-                j79Chart = p.Chart,
-                j79IsWebDataRocks = true,
-                j79IsSystem = false,
-                j79IsPublic = false
-            };
+                rec = GetDefaultTemplate(true);
+                if (rec == null || rec.j02ID != F.CurrentUser.pid || !rec.j79IsSystem) { res.Errors.Add("Výchozí šablonu se nepodařilo načíst."); return res; }
+            }
+            else
+            {
+                rec = new BO.j79TotalsTemplate
+                {
+                    j02ID = F.CurrentUser.pid,
+                    j79Entity = null,                     // kořenové Součty (bez kontextu záznamu)
+                    j79Name = p.Name.Length > 255 ? p.Name.Substring(0, 255) : p.Name,
+                    j79IsWebDataRocks = true,
+                    j79IsSystem = false,
+                    j79IsPublic = false
+                };
+            }
+            rec.j79Columns = string.Join(",", keys);
+            rec.j79StateQuery = p.State;
+            rec.j79TabQuery = string.IsNullOrEmpty(p.Tab) ? null : p.Tab;
+            rec.j79Chart = p.Chart;
+
             int id = F.j79TotalsTemplateBL.Save(rec, null, null);
             if (id <= 0) { res.Errors.Add("Šablonu se nepodařilo uložit."); return res; }
 

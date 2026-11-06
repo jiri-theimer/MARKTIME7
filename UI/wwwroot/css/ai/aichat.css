@@ -6,7 +6,12 @@
 .ai-assistant { background: #f3f3f3; }
 .ai-wait { color: #6c757d; font-style: italic; }
 .ai-error { background: #fde2e2; }
-.ai-input { display: flex; gap: 6px; padding: 8px 0; }
+.ai-input { display: flex; gap: 6px; padding: 8px 0; position: relative; }
+.ai-input-buttons { display: flex; flex-direction: column; gap: 4px; }
+.ai-history { position: absolute; bottom: 100%; left: 0; right: 0; max-height: 260px; overflow-y: auto; background: #fff; border: 1px solid #ccc; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,.15); z-index: 10; }
+.ai-history-title { padding: 4px 10px; font-size: 85%; color: #6c757d; border-bottom: 1px solid #eee; }
+.ai-history-item { padding: 6px 10px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ai-history-item:hover { background: #e7f1ff; }
 .ai-input textarea { resize: none; }
 .ai-rating { margin-top: 4px; font-size: 90%; white-space: normal; }
 .ai-thumb { cursor: pointer; opacity: .45; margin-right: 6px; }
