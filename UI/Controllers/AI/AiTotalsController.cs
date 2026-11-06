@@ -23,7 +23,9 @@ namespace UI.Controllers.AI
 
         private BL.AI.Totals.AiTotalsService Service() => new(Factory, _cp, _pp, _llm);
 
-        public IActionResult Index()
+        /// <param name="j79id">šablona, ze které bylo AI okno otevřeno (cíl tlačítka „Přepsat“)</param>
+        /// <param name="load">true = předvyplnit formulář šablonou j79id, false = začít s prázdným návrhem</param>
+        public IActionResult Index(int j79id, bool load = true)
         {
             var svc = Service();
             if (!svc.IsEnabled)
@@ -42,8 +44,23 @@ namespace UI.Controllers.AI
                     .Concat(svc.Periods.Where(p => p.pid > 1).Select(p => new { pid = p.pid, name = p.Header })), _json),
                 StatesJson = JsonSerializer.Serialize(BL.AI.Totals.AiTotalsService.States.Select(p => new { id = p.Key, name = Factory.tra(p.Value) }), _json),
                 TabsJson = JsonSerializer.Serialize(BL.AI.Totals.AiTotalsService.TabNames.Select(p => new { id = p.Key, name = Factory.tra(p.Value) }), _json),
-                DefaultTemplateName = svc.GetDefaultTemplate(false)?.j79Name ?? Factory.tra("Výchozí šablona statistiky")
+                FiltersJson = JsonSerializer.Serialize(
+                    new[] { new { id = 0, name = Factory.tra("Bez filtru") } }
+                    .Concat(svc.SavedFilters.Select(p => new { id = p.pid, name = p.j72Name })), _json),
             };
+
+            var target = svc.GetOverwriteTarget(j79id, false);
+            v.OverwriteJ79ID = target?.pid ?? 0;
+            v.OverwriteName = target?.j79Name ?? Factory.tra("Výchozí šablona statistiky");
+
+            var source = load ? svc.LoadAccessibleTemplate(j79id) : null;
+            if (source != null)
+            {
+                var warnings = new List<string>();
+                var initial = svc.FromTemplate(source, warnings);
+                v.InitialJson = JsonSerializer.Serialize(initial, _json);
+                v.InitialWarningsJson = JsonSerializer.Serialize(warnings, _json);
+            }
             return View(v);
         }
 
@@ -59,15 +76,15 @@ namespace UI.Controllers.AI
         }
 
         /// <param name="logId">j98ID posledního dotazu – zapíše se k němu uložená šablona</param>
-        /// <param name="overwrite">true = přepsat výchozí (systémovou) šablonu uživatele místo založení nové</param>
+        /// <param name="overwrite">true = přepsat šablonu j79id (pokud ji uživatel smí upravit), jinak výchozí šablonu uživatele</param>
         [HttpPost]
-        public IActionResult Save(string payload, long logId, bool overwrite)
+        public IActionResult Save(string payload, long logId, bool overwrite, int j79id)
         {
             BO.AI.AiTotalsProposal p;
             try { p = JsonSerializer.Deserialize<BO.AI.AiTotalsProposal>(payload ?? ""); }
             catch { return JsonResult(new { ok = false, errors = new[] { "Neplatný vstup." } }); }
 
-            var r = Service().Save(p, logId, overwrite);
+            var r = Service().Save(p, logId, overwrite, j79id);
             return JsonResult(new { ok = r.Ok, j79id = r.J79ID, errors = r.Errors });
         }
 

@@ -13,6 +13,7 @@
 <link rel="stylesheet" href="~/css/ai/aitotals.css" asp-append-version="true" />
 
 <div class="ai-toolbar">
+    <button type="button" id="cmdAiClear" class="btn btn-light me-2" title="@_f.tra("Začít znovu – smaže konverzaci i návrh")">@_f.tra("Vyčistit")</button>
     <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
 </div>
 
@@ -72,6 +73,10 @@
                         <label class="form-label">@_f.tra("Formát úkonů")</label>
                         <select id="ai_tab" class="form-select form-select-sm"></select>
                     </div>
+                    <div id="ai_box_filter" class="mt-2">
+                        <label class="form-label">@_f.tra("Uložený filtr")</label>
+                        <select id="ai_filter" class="form-select form-select-sm"></select>
+                    </div>
                     <div class="mt-2">
                         <label class="form-label">@_f.tra("Graf")</label>
                         <select id="ai_chart" class="form-select form-select-sm">
@@ -84,8 +89,8 @@
 
             <div id="ai_warnings" class="alert alert-warning py-1 px-2" style="display:none;"></div>
 
-            <button id="ai_overwrite" type="button" class="class="btn btn-primary me-2" title="@_f.tra("Nahradí obsah šablony") „@Model.DefaultTemplateName“">
-                @_f.tra("Přepsat výchozí šablonu")
+            <button id="ai_overwrite" type="button" class="btn btn-primary me-2" title="@_f.tra("Nahradí obsah šablony") „@Model.OverwriteName“">
+                @_f.tra("Přepsat šablonu") „@Model.OverwriteName“
             </button>
             <button id="ai_save" type="button" class="btn btn-success">
                 @_f.tra("Uložit jako novou šablonu")
@@ -100,15 +105,15 @@
     var _ai_periods = @Html.Raw(Model.PeriodsJson);
     var _ai_states = @Html.Raw(Model.StatesJson);
     var _ai_tabs = @Html.Raw(Model.TabsJson);
+    var _ai_filters = @Html.Raw(Model.FiltersJson);
+    var _ai_initial = @Html.Raw(Model.InitialJson);                 // návrh z předané šablony (nebo null)
+    var _ai_initial_warnings = @Html.Raw(Model.InitialWarningsJson);
+    var _ai_overwrite_j79id = @Model.OverwriteJ79ID;
     var _ai_txt = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(new
     {
         error = _f.tra("Chyba"),
         add = _f.tra("+ přidat…"),
-        overwrite = _f.tra("Přepsat výchozí šablonu"),
-        overwriteConfirm = _f.tra("Opravdu přepsat?") + " „" + Model.DefaultTemplateName + "“"
+        loaded = _f.tra("Načetl jsem šablonu") + " „{0}“. " + _f.tra("Napište, co v ní chcete změnit, nebo popište nový přehled.")
     }));
 </script>
 <script src="~/js/ai/aitotals.js" asp-append-version="true"></script>
-
-
-

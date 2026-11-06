@@ -16,6 +16,8 @@ namespace BO.AI
         /// <summary>j79TabQuery: "" | time | kusovnik | expense | fee.</summary>
         [JsonPropertyName("tab")] public string Tab { get; set; } = "";
         [JsonPropertyName("period")] public AiTotalsPeriod Period { get; set; } = new();
+        /// <summary>Uložený filtr Součtů (j72ID, j72SystemFlag = QueryOnly), 0 = bez filtru. Ukládá se do uživatelského parametru p31totals-j72id.</summary>
+        [JsonPropertyName("filter")] public int Filter { get; set; }
         /// <summary>j79Chart: 0 bez grafu, 1 sloupcový graf.</summary>
         [JsonPropertyName("chart")] public int Chart { get; set; }
     }

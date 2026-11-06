@@ -41,6 +41,16 @@ function AiChat(opt) {
     self.$prompt.focus();
 }
 
+// nová konverzace: smaže zprávy (kromě úvodní), historii pro model a vygeneruje nové ID konverzace
+AiChat.prototype.reset = function () {
+    this.$chat.children().not(":first").remove();
+    this.history = [];
+    this.lastLogId = 0;
+    this.pastIndex = -1;
+    this.conversation = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ("c" + Date.now() + Math.random().toString(16).slice(2));
+    this.$prompt.val("").focus();
+};
+
 AiChat.prototype.loadHistory = function () {
     var self = this;
     if (!self.feature) return;

@@ -68,10 +68,14 @@
     </div>
     @if (_ai.Options.Enabled && Model.record_prefix == null)
     {
-        <div style="margin-left:5px;">
-            <button type="button" id="cmdAiTotals" onclick="_window_open('/AiTotals/Index', 3)" class="btn ai-btn" title="@_f.tra("Popište slovy, co chcete vidět, a AI navrhne šablonu Součtů")">
+        <div class="dropdown" style="margin-left:5px;">
+            <button type="button" id="cmdAiTotals" class="btn ai-btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="@_f.tra("Popište slovy, co chcete vidět, a AI navrhne šablonu Součtů")">
                 <span class="material-icons-outlined-btn">auto_awesome</span> @_f.tra("AI návrh šablony")
             </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="javascript:ai_open_totals(true)">@_f.tra("Upravit aktuální šablonu") „@(Model.SelectedTemplate?.j79Name)“</a></li>
+                <li><a class="dropdown-item" href="javascript:ai_open_totals(false)">@_f.tra("Nová šablona – začít s prázdným návrhem")</a></li>
+            </ul>
         </div>
     }
     <div style="margin-left:5px;">
@@ -725,15 +729,21 @@ else
 @if (_ai.Options.Enabled && Model.record_prefix == null)
 {
     <script type="text/javascript">
-        // /p31totals/Index?ai=true             → po načtení otevřít AI návrh šablony
-        // /p31totals/Index?ai=true&aiq=dotaz   → otevřít a rovnou odeslat dotaz
+        // load = true: předvyplnit aktuální šablonou, false: prázdný návrh; q = volitelný dotaz k rovnou odeslání
+        function ai_open_totals(load, q) {
+            var url = "/AiTotals/Index?j79id=" + $("#SelectedJ79ID").val() + "&load=" + (load ? "true" : "false");
+            if (q) url += "&q=" + encodeURIComponent(q);
+            _window_open(url, 3);
+        }
+        // /p31totals/Index?ai=true           → rozbalí nabídku AI (uživatel zvolí aktuální/prázdnou)
+        // /p31totals/Index?ai=true&aiq=dotaz → otevře prázdný návrh a rovnou odešle dotaz
         $(function () {
             var qs = new URLSearchParams(window.location.search);
             var ai = (qs.get("ai") || "").toLowerCase();
-            if (ai === "true" || ai === "1") {
-                var q = qs.get("aiq");
-                _window_open("/AiTotals/Index" + (q ? "?q=" + encodeURIComponent(q) : ""), 3);
-            }
+            if (ai !== "true" && ai !== "1") return;
+            var q = qs.get("aiq");
+            if (q) ai_open_totals(false, q);
+            else bootstrap.Dropdown.getOrCreateInstance(document.getElementById("cmdAiTotals")).show();
         });
     </script>
 }

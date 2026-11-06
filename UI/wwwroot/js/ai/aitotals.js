@@ -8,6 +8,7 @@ $(function () {
     fill_select("#ai_period", _ai_periods.map(function (p) { return { v: p.pid, t: p.name }; }));
     fill_select("#ai_state", _ai_states.map(function (p) { return { v: p.id, t: p.name }; }));
     fill_select("#ai_tab", _ai_tabs.map(function (p) { return { v: p.id, t: p.name }; }));
+    fill_select("#ai_filter", _ai_filters.map(function (p) { return { v: p.id, t: p.name }; }));
     fill_add_select("#ai_add_rows", "dimension");
     fill_add_select("#ai_add_columns", "dimension");
     fill_add_select("#ai_add_measures", "measure");
@@ -24,17 +25,8 @@ $(function () {
     $("#ai_period").on("change", function () { toggle_custom(); });
     $("#ai_form select, #ai_form input").on("change", function () { $(this).closest(".ai-confirm").removeClass("ai-confirm"); });
     $("#ai_save").on("click", function () { ai_save(false); });
-    // přepsání výchozí šablony – potvrzení druhým kliknutím (bez dialogu)
-    $("#ai_overwrite").on("click", function () {
-        var $b = $(this);
-        if (!$b.data("armed")) {
-            $b.data("armed", true).text(_ai_txt.overwriteConfirm);
-            setTimeout(function () { ai_overwrite_reset(); }, 5000);
-            return;
-        }
-        ai_overwrite_reset();
-        ai_save(true);
-    });
+    $("#ai_overwrite").on("click", function () { ai_save(true); });
+    $("#cmdAiClear").on("click", function () { ai_clear(); });
 
     _ai_chat = new AiChat({
         askUrl: "/AiTotals/Ask",
@@ -48,6 +40,14 @@ $(function () {
             show_warnings(r.warnings || []);
         }
     });
+
+    // šablona, ze které bylo okno otevřeno (/AiTotals/Index?j79id=…) – předvyplnit formulář
+    if (_ai_initial) {
+        _ai_proposal = _ai_initial;
+        write_form(_ai_initial, []);
+        show_warnings(_ai_initial_warnings || []);
+        _ai_chat.addMessage("ai-assistant", _ai_txt.loaded.replace("{0}", _ai_initial.name || ""));
+    }
 
     // dotaz předaný z URL (/AiTotals/Index?q=…) – rovnou odeslat
     var q = new URLSearchParams(window.location.search).get("q");
@@ -72,8 +72,18 @@ function fill_add_select(sel, role) {
     });
 }
 
+// Vyčistit: nová konverzace a prázdný formulář (cíl tlačítka „Přepsat“ zůstává)
+function ai_clear() {
+    _ai_chat.reset();
+    _ai_proposal = null;
+    $("#ai_form").hide();
+    $("#ai_form_empty").show();
+    $("#ai_box_period, #ai_box_state, #ai_box_tab, #ai_box_filter").removeClass("ai-confirm");
+    show_warnings([]);
+}
+
 function ensure_proposal() {
-    if (!_ai_proposal) _ai_proposal = { name: "", rows: [], columns: [], measures: [], state: 0, tab: "", period: { value: 0, field: "p31Date", d1: null, d2: null }, chart: 0 };
+    if (!_ai_proposal) _ai_proposal = { name: "", rows: [], columns: [], measures: [], state: 0, tab: "", period: { value: 0, field: "p31Date", d1: null, d2: null }, chart: 0, filter: 0 };
     $("#ai_form").show(); $("#ai_form_empty").hide();
 }
 
@@ -83,6 +93,7 @@ function write_form(p, confirm) {
     $("#ai_state").val(p.state);
     $("#ai_tab").val(p.tab || "");
     $("#ai_chart").val(p.chart || 0);
+    $("#ai_filter").val(p.filter || 0);
     var per = p.period || { value: 0, field: "p31Date" };
     $("#ai_period").val(per.value);
     $("#ai_period_field").val(per.field || "p31Date");
@@ -90,7 +101,7 @@ function write_form(p, confirm) {
     toggle_custom();
     render_chips();
 
-    $("#ai_box_period, #ai_box_state, #ai_box_tab").removeClass("ai-confirm");
+    $("#ai_box_period, #ai_box_state, #ai_box_tab, #ai_box_filter").removeClass("ai-confirm");
     confirm.forEach(function (c) { $("#ai_box_" + c).addClass("ai-confirm"); });
 }
 
@@ -100,6 +111,7 @@ function read_form() {
     p.state = parseInt($("#ai_state").val() || "0");
     p.tab = $("#ai_tab").val() || "";
     p.chart = parseInt($("#ai_chart").val() || "0");
+    p.filter = parseInt($("#ai_filter").val() || "0");
     var v = parseInt($("#ai_period").val() || "0");
     p.period = {
         value: v, field: $("#ai_period_field").val(),
@@ -147,15 +159,11 @@ function show_warnings(w) {
     $("#ai_warnings").html(w.map(function (x) { return $("<div>").text(x).prop("outerHTML"); }).join("")).show();
 }
 
-function ai_overwrite_reset() {
-    $("#ai_overwrite").data("armed", false).text(_ai_txt.overwrite);
-}
-
 function ai_save(overwrite) {
     if (!_ai_proposal) return;
     var p = read_form();
     $("#ai_save, #ai_overwrite").prop("disabled", true);
-    $.post("/AiTotals/Save", { payload: JSON.stringify(p), logId: _ai_chat.lastLogId, overwrite: overwrite }, function (r) {
+    $.post("/AiTotals/Save", { payload: JSON.stringify(p), logId: _ai_chat.lastLogId, overwrite: overwrite, j79id: _ai_overwrite_j79id }, function (r) {
         $("#ai_save, #ai_overwrite").prop("disabled", false);
         if (!r.ok) { show_warnings(r.errors || []); return; }
         // Součty načítají layout přednostně z localStorage – u přepsané šablony by jinak zůstal starý

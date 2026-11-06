@@ -14,7 +14,7 @@
             public bool IsValid => Errors.Count == 0;
         }
 
-        public static Result Validate(BO.AI.AiTotalsProposal p, AiTotalsCatalog cat, IEnumerable<BO.ThePeriod> periods)
+        public static Result Validate(BO.AI.AiTotalsProposal p, AiTotalsCatalog cat, IEnumerable<BO.ThePeriod> periods, IEnumerable<int> filterIds = null)
         {
             var r = new Result();
             if (p == null) { r.Errors.Add("Návrh je prázdný."); return r; }
@@ -46,6 +46,7 @@
             if (p.State < 0 || p.State > 21) r.Errors.Add($"Neplatný stav úkonů: {p.State}");
             if (!Tabs.Contains(p.Tab ?? "")) r.Errors.Add($"Neplatný formát úkonů: {p.Tab}");
             if (p.Chart != 0 && p.Chart != 1) r.Errors.Add($"Neplatný typ grafu: {p.Chart}");
+            if (p.Filter != 0 && filterIds != null && !filterIds.Contains(p.Filter)) r.Errors.Add($"Neznámý uložený filtr: {p.Filter}");
 
             var per = p.Period ?? new BO.AI.AiTotalsPeriod();
             if (!PeriodFields.Contains(per.Field ?? "p31Date")) r.Errors.Add($"Neplatné pole období: {per.Field}");

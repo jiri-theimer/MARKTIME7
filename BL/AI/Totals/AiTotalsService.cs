@@ -28,6 +28,12 @@ namespace BL.AI.Totals
         public AiTotalsCatalog Catalog => _catalog ??= AiTotalsCatalog.Build(F, _cp);
         public List<BO.ThePeriod> Periods => _pp.getPallete();
 
+        /// <summary>Uložené filtry úkonů uživatele – stejný seznam jako menu filtrů v Součtech (Views/Menu/grid_query.cshtml).</summary>
+        public List<BO.j72TheGridTemplate> SavedFilters => _filters ??= F.j72TheGridTemplateBL.GetList("p31Worksheet", F.CurrentUser.pid, null)
+            .Where(p => p.j72SystemFlag == BO.j72SystemFlagEnum.QueryOnly).ToList();
+        private List<BO.j72TheGridTemplate> _filters;
+        private IEnumerable<int> FilterIds => SavedFilters.Select(p => p.pid);
+
         /// <summary>Stavy úkonů (j79StateQuery) – myQueryP31.Handle_p31StateQuery_p31.</summary>
         public static readonly Dictionary<int, string> States = new()
         {
@@ -75,7 +81,7 @@ namespace BL.AI.Totals
             if (ans.Proposal == null) return new();
 
             res.Proposal = ToKeys(ans.Proposal, out _);     // neznámá ID zachytí validátor
-            var v = AiTotalsValidator.Validate(res.Proposal, Catalog, Periods);
+            var v = AiTotalsValidator.Validate(res.Proposal, Catalog, Periods, FilterIds);
             res.Warnings = v.Warnings;
             return v.Errors;
         }
@@ -90,6 +96,10 @@ namespace BL.AI.Totals
             sb.AppendLine();
             sb.AppendLine("# FORMÁTY ÚKONŮ (tab)");
             foreach (var t in TabNames) sb.AppendLine($"\"{t.Key}\" | {t.Value}");
+            sb.AppendLine();
+            sb.AppendLine("# ULOŽENÉ FILTRY UŽIVATELE (filter = id)");
+            sb.AppendLine("0 | Bez filtru");
+            foreach (var x in SavedFilters) sb.AppendLine($"{x.pid} | {x.j72Name}");
             sb.AppendLine();
             sb.AppendLine("# NABÍDKA OBDOBÍ (period.value = pid)");
             sb.AppendLine("0 | Bez omezení období");
@@ -124,14 +134,15 @@ namespace BL.AI.Totals
                     ["d1"] = AiSchema.Nullable(AiSchema.Date()),
                     ["d2"] = AiSchema.Nullable(AiSchema.Date())
                 }),
-                ["chart"] = AiSchema.IntEnum(new[] { 0, 1 })
+                ["chart"] = AiSchema.IntEnum(new[] { 0, 1 }),
+                ["filter"] = AiSchema.IntEnum(new[] { 0 }.Concat(FilterIds).Distinct())
             });
 
             return AiSchema.Obj(new JsonObject
             {
                 ["reply"] = AiSchema.Str(),
                 ["proposal"] = AiSchema.Nullable(proposal),
-                ["confirm"] = AiSchema.Array(AiSchema.StrEnum(new[] { "period", "state", "tab" }))
+                ["confirm"] = AiSchema.Array(AiSchema.StrEnum(new[] { "period", "state", "tab", "filter" }))
             });
         }
 
@@ -184,27 +195,124 @@ namespace BL.AI.Totals
             return rec;
         }
 
+        /// <summary>Šablona Součtů, kterou uživatel vidí v nabídce Součtů (kořenové, WebDataRocks).</summary>
+        public BO.j79TotalsTemplate LoadAccessibleTemplate(int j79id)
+        {
+            if (j79id <= 0) return null;
+            if (!F.j79TotalsTemplateBL.GetList(F.CurrentUser.pid, null, true).Any(x => x.pid == j79id)) return null;
+            return F.j79TotalsTemplateBL.Load(j79id);
+        }
+
+        /// <summary>Stejné pravidlo jako p31totalsController.IsAllowEditTemplate.</summary>
+        public bool CanEdit(BO.j79TotalsTemplate t) => t != null && (F.CurrentUser.IsAdmin || t.j02ID == F.CurrentUser.pid);
+
+        /// <summary>Kterou šablonu přepíše tlačítko „Přepsat“: předanou, pokud ji uživatel smí upravit, jinak jeho výchozí.</summary>
+        public BO.j79TotalsTemplate GetOverwriteTarget(int j79id, bool createDefault)
+        {
+            var t = LoadAccessibleTemplate(j79id);
+            return CanEdit(t) ? t : GetDefaultTemplate(createDefault);
+        }
+
+        /// <summary>
+        /// Převede existující šablonu na návrh pro formulář AI okna: sloupce z j79Columns, rozložení a agregace
+        /// z j79WebDataRocksReport, stav/formát/graf ze šablony, období a uložený filtr z uživatelských parametrů Součtů.
+        /// </summary>
+        public AiTotalsProposal FromTemplate(BO.j79TotalsTemplate t, List<string> warnings)
+        {
+            var p = new AiTotalsProposal
+            {
+                Name = t.j79Name,
+                State = t.j79StateQuery,
+                Tab = t.j79TabQuery ?? "",
+                Chart = t.j79Chart,
+                Filter = F.CBL.LoadUserParamInt("p31totals-j72id", 0, 0)
+            };
+            if (p.Filter != 0 && !FilterIds.Contains(p.Filter)) p.Filter = 0;
+
+            // období – stejné klíče jako myPeriodViewModel
+            const string pk = "p31totals-period-root";
+            p.Period = new AiTotalsPeriod
+            {
+                Value = F.CBL.LoadUserParamInt($"{pk}-value", 0, 0),
+                Field = F.CBL.LoadUserParam($"{pk}-field", "p31Date") ?? "p31Date"
+            };
+            if (!AiTotalsValidator.PeriodFields.Contains(p.Period.Field)) p.Period.Field = "p31Date";
+            if (p.Period.Value == 1)
+            {
+                p.Period.D1 = F.CBL.LoadUserParamDate($"{pk}-d1")?.ToString("yyyy-MM-dd");
+                p.Period.D2 = F.CBL.LoadUserParamDate($"{pk}-d2")?.ToString("yyyy-MM-dd");
+            }
+            else if (p.Period.Value != 0 && !Periods.Any(x => x.pid == p.Period.Value)) p.Period.Value = 0;
+
+            // rozložení pivotu podle uloženého reportu (pole WebDataRocks = hlavičky sloupců)
+            var keys = (t.j79Columns ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+            var keyByHeader = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            if (keys.Count > 0)
+            {
+                foreach (var c in _cp.ParseTheGridColumns("p31", string.Join(",", keys), F))
+                {
+                    string h = c.Header.Contains("L5") ? F.getP07Level(5, true) : c.Header;
+                    keyByHeader[h] = c.UniqueName;
+                }
+            }
+            var inRows = new List<string>(); var inCols = new List<string>(); var agg = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            try
+            {
+                var slice = string.IsNullOrEmpty(t.j79WebDataRocksReport) ? null : JsonNode.Parse(t.j79WebDataRocksReport)?["slice"];
+                IEnumerable<string> Names(string part) => (slice?[part] as JsonArray ?? new JsonArray())
+                    .Select(x => x?["uniqueName"]?.GetValue<string>()).Where(x => x != null && keyByHeader.ContainsKey(x)).Select(x => keyByHeader[x]);
+                inRows = Names("rows").ToList();
+                inCols = Names("columns").ToList();
+                foreach (var m in slice?["measures"] as JsonArray ?? new JsonArray())
+                {
+                    var n = m?["uniqueName"]?.GetValue<string>();
+                    if (n != null && keyByHeader.TryGetValue(n, out var k)) agg[k] = m?["aggregation"]?.GetValue<string>() ?? "sum";
+                }
+            }
+            catch { /* poškozený report – rozložení odvodíme jen ze sloupců */ }
+
+            var skipped = new List<string>();
+            foreach (var k in keys)
+            {
+                var e = Catalog.ByKey(k);
+                if (e == null) { skipped.Add(keyByHeader.FirstOrDefault(x => x.Value.Equals(k, StringComparison.OrdinalIgnoreCase)).Key ?? k); continue; }
+                if (e.Role == "measure")
+                {
+                    var a = agg.TryGetValue(k, out var x) ? x : "sum";
+                    p.Measures.Add(new AiTotalsMeasure { Key = e.Key, Aggregation = AiTotalsValidator.Aggregations.Contains(a) ? a : "sum" });
+                }
+                else if (inCols.Contains(k, StringComparer.OrdinalIgnoreCase)) p.Columns.Add(e.Key);
+                else p.Rows.Add(e.Key);
+            }
+            if (skipped.Count > 0) warnings.Add("Sloupce, které AI návrh nepodporuje a byly vynechány: " + string.Join(", ", skipped));
+            return p;
+        }
+
         /// <summary>
         /// Uloží potvrzený návrh a předvyplní období.
-        /// overwriteDefault = false → nová osobní šablona; true → přepíše obsah výchozí (systémové) šablony uživatele, název zůstává.
+        /// overwrite = false → nová osobní šablona; true → přepíše obsah šablony j79id (pokud ji uživatel smí upravit),
+        /// jinak jeho výchozí (systémové) šablony. Název přepsané šablony zůstává.
         /// </summary>
-        public SaveResult Save(AiTotalsProposal p, long logId = 0, bool overwriteDefault = false)
+        public SaveResult Save(AiTotalsProposal p, long logId = 0, bool overwrite = false, int j79id = 0)
         {
             var res = new SaveResult();
             if (p != null)
             {
                 p.Rows ??= new(); p.Columns ??= new(); p.Measures ??= new(); p.Tab ??= "";
             }
-            var v = AiTotalsValidator.Validate(p, Catalog, Periods);
+            var v = AiTotalsValidator.Validate(p, Catalog, Periods, FilterIds);
             if (!v.IsValid) { res.Errors = v.Errors; return res; }
 
             var keys = p.Rows.Concat(p.Columns).Concat(p.Measures.Select(x => x.Key)).ToList();
 
             BO.j79TotalsTemplate rec;
-            if (overwriteDefault)
+            if (overwrite)
             {
-                rec = GetDefaultTemplate(true);
-                if (rec == null || rec.j02ID != F.CurrentUser.pid || !rec.j79IsSystem) { res.Errors.Add("Výchozí šablonu se nepodařilo načíst."); return res; }
+                var target = GetOverwriteTarget(j79id, true);
+                rec = target == null ? null : F.j79TotalsTemplateBL.Load(target.pid);
+                bool allowed = rec != null && (CanEdit(rec) || (rec.j79IsSystem && rec.j02ID == F.CurrentUser.pid));
+                if (!allowed) { res.Errors.Add("Šablonu nelze přepsat."); return res; }
+                rec.j79IsWebDataRocks = true;
             }
             else
             {
@@ -249,6 +357,7 @@ namespace BL.AI.Totals
                 F.CBL.SetUserParam($"{pk}-d1", d1.ToString("dd.MM.yyyy"));
                 F.CBL.SetUserParam($"{pk}-d2", d2.ToString("dd.MM.yyyy"));
             }
+            F.CBL.SetUserParam("p31totals-j72id", p.Filter.ToString());   // uložený filtr – stejný parametr jako tlačítko filtru v Součtech
             F.CBL.SetUserParam("p31totals--j79id", id.ToString());   // Součty otevřou novou šablonu
 
             LogResult(logId, "j79", id);
