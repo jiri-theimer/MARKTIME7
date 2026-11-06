@@ -1,4 +1,4 @@
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace BO.AI
 {
@@ -59,20 +59,10 @@ namespace BO.AI
         [JsonPropertyName("hint")] public string Hint { get; set; }
     }
 
-    /// <summary>Vstup z prohlížeče pro akci Ask.</summary>
-    public class AiTotalsAskInput
+    /// <summary>Vstup z prohlížeče pro akci Ask agenta Součtů.</summary>
+    public class AiTotalsAskInput : AiAskInput
     {
-        [JsonPropertyName("messages")] public List<AiChatMessage> Messages { get; set; } = new();
         /// <summary>Aktuální stav formuláře (uživatel mohl návrh ručně upravit).</summary>
         [JsonPropertyName("current")] public AiTotalsProposal Current { get; set; }
-        /// <summary>Identifikátor konverzace (generuje prohlížeč) → j98Guid.</summary>
-        [JsonPropertyName("conversation")] public string ConversationGuid { get; set; }
-        [JsonPropertyName("page")] public string ContextPage { get; set; }
-    }
-
-    public class AiChatMessage
-    {
-        [JsonPropertyName("role")] public string Role { get; set; }
-        [JsonPropertyName("content")] public string Content { get; set; }
     }
 }

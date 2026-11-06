@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 using UI.Models.AI;
 
@@ -28,7 +28,9 @@ namespace UI.Controllers.AI
             var svc = Service();
             if (!svc.IsEnabled)
             {
-                return this.StopPage(true, "AI asistent není v této instalaci zapnutý.");
+                string msg = "AI asistent není v této instalaci zapnutý.";
+                if (Factory.CurrentUser.IsAdmin) msg += " " + _llm.Options.DisabledReason + " Po úpravě konfigurace je nutné restartovat aplikaci.";
+                return this.StopPage(true, msg);
             }
             var v = new AiTotalsViewModel
             {
@@ -65,13 +67,6 @@ namespace UI.Controllers.AI
 
             var r = Service().Save(p, logId);
             return JsonResult(new { ok = r.Ok, j79id = r.J79ID, errors = r.Errors });
-        }
-
-        /// <summary>Hodnocení odpovědi: rating = 1 / -1.</summary>
-        [HttpPost]
-        public IActionResult Rate(long logId, int rating, string comment)
-        {
-            return JsonResult(new { ok = Service().Rate(logId, rating, comment) });
         }
 
         // System.Text.Json kvůli [JsonPropertyName] v BO.AI (aplikace jinak používá Newtonsoft)

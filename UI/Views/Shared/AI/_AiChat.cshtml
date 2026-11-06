@@ -1,0 +1,33 @@
+﻿@model UI.Models.AI.AiChatSettings
+@inject BL.Factory _f
+@*
+    Společný chat AI agentů. Použití ve view agenta:
+        <partial name="~/Views/Shared/AI/_AiChat.cshtml" model="new UI.Models.AI.AiChatSettings { Intro = ..., Placeholder = ... }" />
+    a v JS agenta:
+        var chat = new AiChat({ askUrl: "/AiXxx/Ask", page: "...", extra: function () { return {...}; }, onAnswer: function (r) { ... } });
+*@
+<link rel="stylesheet" href="~/css/ai/aichat.css" asp-append-version="true" />
+
+<div class="ai-chat-col">
+    <div id="ai_chat" class="ai-chat">
+        <div class="ai-msg ai-assistant">@Model.Intro</div>
+    </div>
+    <div class="ai-input">
+        <textarea id="ai_prompt" class="form-control" rows="3" placeholder="@(Model.Placeholder ?? _f.tra("Váš dotaz…"))"></textarea>
+        <button id="ai_send" type="button" class="btn btn-primary">@_f.tra("Odeslat")</button>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var _aichat_txt = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(new
+    {
+        thinking = Model.Thinking ?? _f.tra("Připravuji odpověď…"),
+        error = _f.tra("Chyba"),
+        rateUp = _f.tra("Dobrá odpověď"),
+        rateDown = _f.tra("Špatná odpověď"),
+        rateComment = _f.tra("Co bylo špatně? (nepovinné)"),
+        send = _f.tra("Odeslat"),
+        thanks = _f.tra("Děkujeme za hodnocení")
+    }));
+</script>
+<script src="~/js/ai/aichat.js" asp-append-version="true"></script>

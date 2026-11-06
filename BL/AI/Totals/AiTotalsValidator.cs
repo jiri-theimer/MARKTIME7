@@ -1,4 +1,4 @@
-namespace BL.AI.Totals
+﻿namespace BL.AI.Totals
 {
     /// <summary>Kontrola návrhu (s klíči sloupců) proti katalogu uživatele a pravidlům Součtů.</summary>
     public static class AiTotalsValidator

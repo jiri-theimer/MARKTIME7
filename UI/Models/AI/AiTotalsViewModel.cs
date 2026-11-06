@@ -1,4 +1,4 @@
-namespace UI.Models.AI
+﻿namespace UI.Models.AI
 {
     public class AiTotalsViewModel : BaseViewModel
     {

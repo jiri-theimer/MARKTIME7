@@ -1,9 +1,7 @@
-// AI návrh šablony Součtů – klient (historie konverzace se drží v prohlížeči, server je bezstavový)
-var _ai_history = [];       // [{role, content}] – assistant content = raw JSON odpovědi modelu
+﻿// Agent Součtů – formulář návrhu šablony. Chat, historie a hodnocení řeší společný aichat.js (AiChat).
 var _ai_proposal = null;    // aktuální návrh (klíče sloupců)
 var _ai_byKey = {};
-var _ai_conversation = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ("c" + Date.now() + Math.random().toString(16).slice(2));
-var _ai_lastLogId = 0;      // j98ID posledního úspěšného dotazu – předává se při uložení šablony
+var _ai_chat = null;
 
 $(function () {
     _ai_catalog.forEach(function (c) { _ai_byKey[c.key] = c; });
@@ -25,8 +23,20 @@ $(function () {
     });
     $("#ai_period").on("change", function () { toggle_custom(); });
     $("#ai_form select, #ai_form input").on("change", function () { $(this).closest(".ai-confirm").removeClass("ai-confirm"); });
-    $("#ai_prompt").on("keydown", function (e) { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); ai_send(); } });
-    $("#ai_prompt").focus();
+    $("#ai_save").on("click", function () { ai_save(); });
+
+    _ai_chat = new AiChat({
+        askUrl: "/AiTotals/Ask",
+        page: "p31totals",
+        extra: function () { return { current: _ai_proposal ? read_form() : null }; },
+        onAnswer: function (r) {
+            if (r.proposal) {
+                _ai_proposal = r.proposal;
+                write_form(r.proposal, r.confirm || []);
+            }
+            show_warnings(r.warnings || []);
+        }
+    });
 });
 
 function fill_select(sel, items) {
@@ -44,70 +54,6 @@ function fill_add_select(sel, role) {
         var $og = $("<optgroup>").attr("label", g);
         groups[g].forEach(function (c) { $og.append($("<option>").val(c.key).text(c.header).attr("title", c.hint || "")); });
         $s.append($og);
-    });
-}
-
-function add_msg(cls, text) {
-    var $m = $("<div>").addClass("ai-msg " + cls).text(text);
-    $("#ai_chat").append($m);
-    $("#ai_chat").scrollTop($("#ai_chat")[0].scrollHeight);
-    return $m;
-}
-
-function ai_send() {
-    var text = $.trim($("#ai_prompt").val());
-    if (!text) return;
-    $("#ai_prompt").val("");
-    add_msg("ai-user", text);
-    _ai_history.push({ role: "user", content: text });
-
-    var $wait = add_msg("ai-assistant", _ai_txt.thinking);
-    $("#ai_send").prop("disabled", true);
-
-    var payload = { messages: _ai_history, current: _ai_proposal ? read_form() : null, conversation: _ai_conversation, page: "p31totals" };
-    $.post("/AiTotals/Ask", { payload: JSON.stringify(payload) }, function (r) {
-        $wait.remove();
-        $("#ai_send").prop("disabled", false);
-        if (!r.ok) {
-            add_msg("ai-error", _ai_txt.error + ": " + (r.error || ""));
-            _ai_history.pop();      // neúspěšný dotaz do historie nepatří
-            return;
-        }
-        var $msg = add_msg("ai-assistant", r.reply || "");
-        if (r.logId) { _ai_lastLogId = r.logId; add_rating($msg, r.logId); }
-        _ai_history.push({ role: "assistant", content: r.raw || r.reply || "" });
-        if (r.proposal) {
-            _ai_proposal = r.proposal;
-            write_form(r.proposal, r.confirm || []);
-        }
-        show_warnings(r.warnings || []);
-    }).fail(function () {
-        $wait.remove();
-        $("#ai_send").prop("disabled", false);
-        add_msg("ai-error", _ai_txt.error);
-        _ai_history.pop();
-    });
-}
-
-// hodnocení odpovědi 👍 / 👎 (u 👎 volitelný komentář)
-function add_rating($msg, logId) {
-    var $r = $("<div>").addClass("ai-rating");
-    var $up = $("<span>").addClass("ai-thumb").attr("title", _ai_txt.rateUp).text("👍");
-    var $down = $("<span>").addClass("ai-thumb").attr("title", _ai_txt.rateDown).text("👎");
-    var $note = $("<div>").addClass("ai-rating-note").hide()
-        .append($("<input>").addClass("form-control form-control-sm").attr("placeholder", _ai_txt.rateComment))
-        .append($("<button>").attr("type", "button").addClass("btn btn-sm btn-outline-secondary").text(_ai_txt.send).on("click", function () {
-            send_rating(logId, -1, $note.find("input").val(), $r);
-        }));
-    $up.on("click", function () { send_rating(logId, 1, null, $r); });
-    $down.on("click", function () { $down.addClass("ai-thumb-on"); $up.removeClass("ai-thumb-on"); $note.show(); $note.find("input").focus(); });
-    $r.append($up).append($down).append($note);
-    $msg.append($r);
-}
-
-function send_rating(logId, rating, comment, $r) {
-    $.post("/AiTotals/Rate", { logId: logId, rating: rating, comment: comment || "" }, function () {
-        $r.empty().append($("<span>").addClass("ai-rated").text(rating === 1 ? "👍 " + _ai_txt.thanks : "👎 " + _ai_txt.thanks));
     });
 }
 
@@ -190,7 +136,7 @@ function ai_save() {
     if (!_ai_proposal) return;
     var p = read_form();
     $("#ai_save").prop("disabled", true);
-    $.post("/AiTotals/Save", { payload: JSON.stringify(p), logId: _ai_lastLogId }, function (r) {
+    $.post("/AiTotals/Save", { payload: JSON.stringify(p), logId: _ai_chat.lastLogId }, function (r) {
         $("#ai_save").prop("disabled", false);
         if (!r.ok) { show_warnings(r.errors || []); return; }
         if (window.parent && window.parent !== window && typeof window.parent.reload_explicit_j79id === "function") {

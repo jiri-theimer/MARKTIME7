@@ -1,4 +1,4 @@
-namespace BL.AI.Core
+﻿namespace BL.AI.Core
 {
     /// <summary>Jeden záznam do j98OpenAILog (jeden dotaz uživatele včetně případných opravných volání).</summary>
     public class AiLogEntry

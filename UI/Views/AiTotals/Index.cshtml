@@ -1,23 +1,20 @@
-@model UI.Models.AI.AiTotalsViewModel
+﻿@model UI.Models.AI.AiTotalsViewModel
 @inject BL.Factory _f
 @{
     Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    var chatSettings = new UI.Models.AI.AiChatSettings
+    {
+        Intro = _f.tra("Popište, co chcete v Součtech vidět. Např.: „Nevyfakturované hodiny podle klientů za minulý měsíc“ nebo „Vykázané hodiny lidí po měsících letos“."),
+        Thinking = _f.tra("Připravuji návrh…")
+    };
 }
 
 <link rel="stylesheet" href="~/css/ai/aitotals.css" asp-append-version="true" />
 
 <div class="row ai-wrap">
-    <!-- CHAT -->
-    <div class="col-5 ai-chat-col">
-        <div id="ai_chat" class="ai-chat">
-            <div class="ai-msg ai-assistant">
-                @_f.tra("Popište, co chcete v Součtech vidět. Např.: „Nevyfakturované hodiny podle klientů za minulý měsíc“ nebo „Vykázané hodiny lidí po měsících letos“.")
-            </div>
-        </div>
-        <div class="ai-input">
-            <textarea id="ai_prompt" class="form-control" rows="3" placeholder="@_f.tra("Váš dotaz…")"></textarea>
-            <button id="ai_send" type="button" class="btn btn-primary" onclick="ai_send()">@_f.tra("Odeslat")</button>
-        </div>
+    <!-- CHAT (společná komponenta) -->
+    <div class="col-5">
+        <partial name="~/Views/Shared/AI/_AiChat.cshtml" model="chatSettings" />
     </div>
 
     <!-- NÁVRH -->
@@ -82,7 +79,7 @@
 
             <div id="ai_warnings" class="alert alert-warning py-1 px-2" style="display:none;"></div>
 
-            <button id="ai_save" type="button" class="btn btn-success" onclick="ai_save()">
+            <button id="ai_save" type="button" class="btn btn-success">
                 @_f.tra("Uložit šablonu a otevřít v Součtech")
             </button>
         </div>
@@ -95,17 +92,10 @@
     var _ai_periods = @Html.Raw(Model.PeriodsJson);
     var _ai_states = @Html.Raw(Model.StatesJson);
     var _ai_tabs = @Html.Raw(Model.TabsJson);
-    var _ai_txt = {
-        thinking: "@_f.tra("Připravuji návrh…")",
-        error: "@_f.tra("Chyba")",
-        add: "Přidat...",
-        saved: "@_f.tra("Šablona byla uložena.")",
-        confirm: "@_f.tra("Zkontrolujte")",
-        rateUp: "@_f.tra("Dobrý návrh")",
-        rateDown: "@_f.tra("Špatný návrh")",
-        rateComment: "@_f.tra("Co bylo špatně? (nepovinné)")",
-        send: "@_f.tra("Odeslat")",
-        thanks: "@_f.tra("Děkujeme za hodnocení")"
-    };
+    var _ai_txt = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(new
+    {
+        error = _f.tra("Chyba"),
+        add = _f.tra("+ přidat…")
+    }));
 </script>
 <script src="~/js/ai/aitotals.js" asp-append-version="true"></script>
