@@ -720,3 +720,20 @@ else
         return params;
     }
 </script>
+
+
+@if (_ai.Options.Enabled && Model.record_prefix == null)
+{
+    <script type="text/javascript">
+        // /p31totals/Index?ai=true             → po načtení otevřít AI návrh šablony
+        // /p31totals/Index?ai=true&aiq=dotaz   → otevřít a rovnou odeslat dotaz
+        $(function () {
+            var qs = new URLSearchParams(window.location.search);
+            var ai = (qs.get("ai") || "").toLowerCase();
+            if (ai === "true" || ai === "1") {
+                var q = qs.get("aiq");
+                _window_open("/AiTotals/Index" + (q ? "?q=" + encodeURIComponent(q) : ""), 3);
+            }
+        });
+    </script>
+}

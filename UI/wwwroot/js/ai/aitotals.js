@@ -28,7 +28,7 @@ $(function () {
     $("#ai_overwrite").on("click", function () {
         var $b = $(this);
         if (!$b.data("armed")) {
-            $b.data("armed", true).removeClass("btn-outline-warning").addClass("btn-warning").text(_ai_txt.overwriteConfirm);
+            $b.data("armed", true).text(_ai_txt.overwriteConfirm);
             setTimeout(function () { ai_overwrite_reset(); }, 5000);
             return;
         }
@@ -48,6 +48,10 @@ $(function () {
             show_warnings(r.warnings || []);
         }
     });
+
+    // dotaz předaný z URL (/AiTotals/Index?q=…) – rovnou odeslat
+    var q = new URLSearchParams(window.location.search).get("q");
+    if (q) _ai_chat.send(q);
 });
 
 function fill_select(sel, items) {
@@ -144,7 +148,7 @@ function show_warnings(w) {
 }
 
 function ai_overwrite_reset() {
-    $("#ai_overwrite").data("armed", false).removeClass("btn-warning").addClass("btn-outline-warning").text(_ai_txt.overwrite);
+    $("#ai_overwrite").data("armed", false).text(_ai_txt.overwrite);
 }
 
 function ai_save(overwrite) {
