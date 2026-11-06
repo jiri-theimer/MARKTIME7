@@ -318,7 +318,27 @@ namespace UI.Code
             return true;
         }
 
-        public bool ToCSV(System.Data.DataTable dt, string strFilePath, BO.baseQuery mq, string strDelimiter, bool bolUvozovky)
+        /// <summary>
+        /// Číslo do CSV s přesností podle typu sloupce (num = 2, num3 = 3, num4 = 4, num0/int = 0 desetinných míst),
+        /// bez koncových nul. Zmenšuje datový zdroj Součtů (WebDataRocks má limit 1 MB). Oddělovač desetin dle aktuální kultury jako dříve.
+        /// </summary>
+        private static string CsvNumber(object raw, string fieldType)
+        {
+            int dec = fieldType switch { "num0" => 0, "int" => 0, "num3" => 3, "num4" => 4, _ => 2 };
+            string fmt = dec == 0 ? "0" : "0." + new string('#', dec);
+            string s = raw switch
+            {
+                decimal m => m.ToString(fmt),
+                double d => d.ToString(fmt),
+                float f => f.ToString(fmt),
+                _ => raw.ToString()
+            };
+            return s == "-0" ? "0" : s;
+        }
+
+
+        /// <param name="bolCompactNumbers">true = čísla zkrátit podle typu sloupce (CsvNumber) – používají Součty kvůli limitu WebDataRocks</param>
+        public bool ToCSV(System.Data.DataTable dt, string strFilePath, BO.baseQuery mq, string strDelimiter, bool bolUvozovky, bool bolCompactNumbers = false)
         {
             System.IO.StreamWriter sw = new System.IO.StreamWriter(strFilePath, false, System.Text.Encoding.UTF8);
             int intColsCount = mq.explicit_columns.Count();
@@ -349,7 +369,8 @@ namespace UI.Code
 
                     if (!Convert.IsDBNull(dr[col.UniqueName]))
                     {
-                        value = dr[col.UniqueName].ToString();
+                        object raw = dr[col.UniqueName];
+                        value = (bolCompactNumbers && (raw is decimal || raw is double || raw is float)) ? CsvNumber(raw, col.FieldType) : raw.ToString();
 
                         if (value.Contains("<") && value.Contains(">"))
                         {

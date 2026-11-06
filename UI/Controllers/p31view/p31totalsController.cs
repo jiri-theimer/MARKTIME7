@@ -241,7 +241,8 @@ namespace UI.Controllers.p31view
             
             var basDataExport = new Code.dataExport();
             var strFullPath = $"{Factory.TempFolder}\\WebDataRocks-{Factory.CurrentUser.j02Login}-{v.SelectedJ79ID}.csv";
-            basDataExport.ToCSV(dt, strFullPath, mq, ";", true);
+            
+            basDataExport.ToCSV(dt, strFullPath, mq, ";", true, true);
 
             v.DataSourceLengthBytes = (int)BO.Code.File.GetFileInfo(strFullPath).Length;
             v.DataSourceLengthMegaBytes = BO.Code.File.GetFileInfo(strFullPath).Length / 1024d / 1024d;
