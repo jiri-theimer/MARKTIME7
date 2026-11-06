@@ -1,7 +1,7 @@
 ﻿@model TheGridDesignerViewModel
 @inject BL.Singleton.TheEntitiesProvider _ep
 @inject BL.Factory _f
-
+@inject BL.AI.Core.ILlmClient _ai
 
 @{
 
@@ -119,6 +119,15 @@
         }
 
         <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+
+        @if (_ai.Options.Enabled && Model.Rec.pid > 0)
+        {
+            @* přepnout toto okno na AI návrh sloupců stejné tabulky (neuložené změny v návrháři se zahodí) *@
+            <button type="button" id="cmdGoAi" class="btn ai-btn" title="@_f.tra("Popište slovy, jaké sloupce má tabulka zobrazit. Neuložené změny v návrháři se zahodí.")"
+                    onclick="location.href='/AiGrid/Index?j72id=@(Model.Rec.pid)&pathname=' + encodeURIComponent('@(Model.CallerPathName)')">
+                <span class="material-icons-outlined-btn">auto_awesome</span> @_f.tra("Přejít do AI")
+            </button>
+        }
         
         <myshowmore></myshowmore>
 

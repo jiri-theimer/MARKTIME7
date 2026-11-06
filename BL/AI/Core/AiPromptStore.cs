@@ -11,6 +11,13 @@ namespace BL.AI.Core
     {
         private static readonly ConcurrentDictionary<string, string> _cache = new();
 
+        /// <summary>Jako Get, ale pro chybějící soubor vrací null (volitelné soubory, např. popisy sloupců entity).</summary>
+        public static string TryGet(string fileName)
+        {
+            var asm = Assembly.GetExecutingAssembly();
+            return asm.GetManifestResourceNames().Any(p => p.EndsWith("." + fileName, StringComparison.OrdinalIgnoreCase)) ? Get(fileName) : null;
+        }
+
         /// <param name="fileName">např. "totals.system.md" nebo "p31-hints.json"</param>
         public static string Get(string fileName)
         {

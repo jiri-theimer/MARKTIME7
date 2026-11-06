@@ -1,4 +1,6 @@
-﻿namespace BL.AI.Totals
+﻿using BL.AI.Core;
+
+namespace BL.AI.Totals
 {
     /// <summary>Kontrola návrhu (s klíči sloupců) proti katalogu uživatele a pravidlům Součtů.</summary>
     public static class AiTotalsValidator
@@ -14,7 +16,7 @@
             public bool IsValid => Errors.Count == 0;
         }
 
-        public static Result Validate(BO.AI.AiTotalsProposal p, AiTotalsCatalog cat, IEnumerable<BO.ThePeriod> periods, IEnumerable<int> filterIds = null)
+        public static Result Validate(BO.AI.AiTotalsProposal p, AiColumnCatalog cat, IEnumerable<BO.ThePeriod> periods, IEnumerable<int> filterIds = null)
         {
             var r = new Result();
             if (p == null) { r.Errors.Add("Návrh je prázdný."); return r; }

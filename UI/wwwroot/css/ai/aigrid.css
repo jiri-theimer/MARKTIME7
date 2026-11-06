@@ -1,0 +1,12 @@
+﻿/* Agent návrháře sloupců – rozvržení a formulář (chat: aichat.css) */
+.ai-toolbar { display: flex; justify-content: flex-end; align-items: center; padding: 4px 8px; border-bottom: 1px solid #ddd; }
+.ai-toolbar-title { margin-right: auto; color: #6c757d; font-weight: 600; }
+.ai-wrap { height: calc(100vh - 115px); margin: 0; }
+.ai-wrap > .col-5 { height: 100%; border-right: 1px solid #ddd; }
+.ai-form-col { overflow-y: auto; height: 100%; padding-top: 8px; }
+.ai-col-list { display: flex; flex-wrap: wrap; gap: 4px; min-height: 34px; }
+.ai-chip { background: #6c757d; color: #fff; border-radius: 12px; padding: 2px 4px 2px 4px; font-size: 85%; display: inline-flex; align-items: center; gap: 2px; }
+.ai-chip .ai-chip-text { padding: 0 4px; }
+.ai-chip .ai-x, .ai-chip .ai-mv { cursor: pointer; padding: 0 5px; font-weight: bold; opacity: .8; }
+.ai-chip .ai-x:hover, .ai-chip .ai-mv:hover { opacity: 1; }
+.ai-chip-new { background: #198754; }

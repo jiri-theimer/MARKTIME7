@@ -1,5 +1,6 @@
 ﻿@model DynamicMenuViewModel
 @inject BL.Factory _f
+@inject BL.AI.Core.ILlmClient _ai
 
 @{
     Layout = null;
@@ -21,6 +22,12 @@
         <a href="javascript:navrhar_sloupcu()">
             @_f.tra("Návrhář sloupců")
         </a>
+        @if (_ai.Options.Enabled)
+        {
+            <button type="button" class="btn btn-sm ai-btn ms-3" onclick="ai_navrhar_sloupcu()" title="@_f.tra("Popište slovy, jaké sloupce má tabulka zobrazit")">
+                <span class="material-icons-outlined-btn">auto_awesome</span> @_f.tra("AI návrh sloupců")
+            </button>
+        }
     </div>
 
     <div class="input-group" style="padding-left:10px;padding-right:10px;margin-top:7px;">
@@ -80,6 +87,11 @@
 
 
     
+    function ai_navrhar_sloupcu() {
+        var s = location.pathname;
+        _window_open("/AiGrid/Index?j72id=" + _thegrid.j72id + "&pathname=" + encodeURIComponent(s), 3);
+    }
+
     function navrhar_sloupcu() {
         var s = location.pathname;
         _window_open("/TheGridDesigner?j72id=" + _thegrid.j72id+"&pathname="+s, 2);

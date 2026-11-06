@@ -15,7 +15,7 @@ namespace BL.AI.Totals
     {
         private readonly BL.TheColumnsProvider _cp;
         private readonly BL.Singleton.ThePeriodProvider _pp;
-        private AiTotalsCatalog _catalog;
+        private AiColumnCatalog _catalog;
 
         public AiTotalsService(BL.Factory f, BL.TheColumnsProvider cp, BL.Singleton.ThePeriodProvider pp, ILlmClient llm) : base(f, llm)
         {
@@ -25,7 +25,7 @@ namespace BL.AI.Totals
         public const string FeatureCode = "ai-totals";
         protected override string Feature => FeatureCode;
 
-        public AiTotalsCatalog Catalog => _catalog ??= AiTotalsCatalog.Build(F, _cp);
+        public AiColumnCatalog Catalog => _catalog ??= AiColumnCatalog.Build(F, _cp, "p31", AiColumnCatalog.CatalogMode.Totals);
         public List<BO.ThePeriod> Periods => _pp.getPallete();
 
         /// <summary>Uložené filtry úkonů uživatele – stejný seznam jako menu filtrů v Součtech (Views/Menu/grid_query.cshtml).</summary>
