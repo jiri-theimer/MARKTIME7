@@ -16,8 +16,6 @@ namespace UI.Controllers
 {
     public class PokusController : BaseController
     {
-        static readonly string openAiApiKey = "";
-        static readonly string openAiEndpoint = "https://api.openai.com/v1/chat/completions";
 
         private const string UploadDir = @"c:\temp\_uploadpokus";
 
@@ -37,7 +35,7 @@ namespace UI.Controllers
             {
                 var result = await _viesClient.CheckAsync(dic, ct);
                 //var result = await viesClient.CheckAsync(dic, ct);
-                ViewBag.pokus=result;
+                ViewBag.pokus = result;
                 return View(v);
             }
             catch (ArgumentException ex)
@@ -51,7 +49,7 @@ namespace UI.Controllers
                 return View(v);
             }
 
-            
+
         }
 
         public IActionResult webdatarocks()
@@ -152,7 +150,7 @@ namespace UI.Controllers
             //BO.Code.File.WriteText2File("c:\\temp\\hovado_vystup_html.txt", Markdig.Markdown.ToHtml(xxx));
 
             //v.PageSymbol = Markdig.Markdown.ToHtml(xxx);
-            
+
             return View(v);
 
         }
@@ -166,7 +164,7 @@ namespace UI.Controllers
 
 
 
-        
+
 
         public IActionResult UploadFiles(string guid)
         {
@@ -196,11 +194,11 @@ namespace UI.Controllers
                 if (file.Length == 0)
                     continue;
 
-                
+
                 var fileuid = dropzoneuids[x];  //uid přidělené z dropzone
                 var filename = dropzonenames[x];
                 var archivefilename = fileuid + System.IO.Path.GetExtension(file.FileName);
-                
+
 
                 var archiveDestPath = System.IO.Path.Combine(Factory.TempFolder, archivefilename);
 
@@ -209,7 +207,7 @@ namespace UI.Controllers
                     await file.CopyToAsync(stream);
                 }
 
-                var rec = new BO.p85Tempbox() { p85GUID = tempguid, p85FreeText01 = file.FileName, p85FreeText02 = file.ContentType,p85FreeText03= archivefilename, p85FreeNumber01 = file.Length };
+                var rec = new BO.p85Tempbox() { p85GUID = tempguid, p85FreeText01 = file.FileName, p85FreeText02 = file.ContentType, p85FreeText03 = archivefilename, p85FreeNumber01 = file.Length };
                 if (filename == file.FileName)
                 {
                     rec.p85FreeText04 = fileuid;
@@ -221,8 +219,8 @@ namespace UI.Controllers
             return Ok(new { count = files.Count });
         }
 
-        
-        public IActionResult DeleteTempFile(string filename,string fileuid,string tempguid)
+
+        public IActionResult DeleteTempFile(string filename, string fileuid, string tempguid)
         {
             if (string.IsNullOrEmpty(tempguid))
             {
@@ -255,7 +253,7 @@ namespace UI.Controllers
                 }
                 strPath = $"{Factory.TempFolder}\\{rec.p85FreeText03}";
             }
-            
+
             if (!System.IO.File.Exists(strPath)) return NotFound();
             System.IO.File.Delete(strPath);
 
@@ -265,74 +263,8 @@ namespace UI.Controllers
             return Ok(new { ok = true });
         }
 
-        public async Task<string> Pokus(string strDotaz)
-        {
-            
-            StringBuilder contextBuilder = new();
-            
-
-            contextBuilder.AppendLine(System.IO.File.ReadAllText("c:\\temp\\hovado.txt"));
-
-            string kontext = contextBuilder.ToString();
-
-            string odpoved = await ZavolejOpenAI(strDotaz, kontext);
-
-            return odpoved;
-
-        }
 
 
-        public async Task<string> ZavolejOpenAI(string dotaz, string kontext)
-        {
-            using HttpClient client = new();
-
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", openAiApiKey);
-
-            //var dotazDoAI = new
-            //{
-            //    model = "gpt-4",  // nebo "gpt-3.5-turbo"
-            //    messages = new[]
-            //    {
-            //    new { role = "system", content = "Odpovídej jako chytrý chatbot na základě poskytnutého textu. Do odpovědi uveď ID textu, ze kterého čerpáš." },
-            //    new { role = "user", content = $"Zde je obsah několika dokumentů:\n\n{kontext}\n\nDotaz: {dotaz}" }
-            //},
-            //    max_tokens = 500,
-            //    temperature = 0.7
-            //};
-
-            var dotazDoAI = new
-            {
-                model = "gpt-4",  // nebo "gpt-3.5-turbo"
-                messages = new[]
-                {
-                new { role = "system", content = "Jsi chytrý chatbot, který odpovídá pouze na základě poskytnutých textů." +
-                " U každé odpovědi uveď ID textu (např. [zdroj: HELP_MT_001]) ze kterého informace pochází." +
-                " Nepřidávej vlastní znalosti. Pokud odpověď není ve zdrojích, napiš 'Odpověď nelze určit ze zadaných dokumentů.'" },
-                new { role = "user", content = $"Zde je obsah několika dokumentů:\n\n{kontext}\n\nDotaz: {dotaz}" }
-            },
-                max_tokens = 500,
-                temperature = 0.7
-            };
-
-            var response = await client.PostAsJsonAsync(openAiEndpoint, dotazDoAI);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                Console.WriteLine($"Chyba API: {response.StatusCode}");
-                return "Došlo k chybě při komunikaci s OpenAI.";
-            }
-
-            using var stream = await response.Content.ReadAsStreamAsync();
-            using var doc = await JsonDocument.ParseAsync(stream);
-            
-            var message = doc.RootElement
-                .GetProperty("choices")[0]
-                .GetProperty("message")
-                .GetProperty("content")
-                .GetString();
-
-            return message.Trim();
-        }
 
     }
 }

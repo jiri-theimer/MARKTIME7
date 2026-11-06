@@ -1,0 +1,111 @@
+@model UI.Models.AI.AiTotalsViewModel
+@inject BL.Factory _f
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+}
+
+<link rel="stylesheet" href="~/css/ai/aitotals.css" asp-append-version="true" />
+
+<div class="row ai-wrap">
+    <!-- CHAT -->
+    <div class="col-5 ai-chat-col">
+        <div id="ai_chat" class="ai-chat">
+            <div class="ai-msg ai-assistant">
+                @_f.tra("Popište, co chcete v Součtech vidět. Např.: „Nevyfakturované hodiny podle klientů za minulý měsíc“ nebo „Vykázané hodiny lidí po měsících letos“.")
+            </div>
+        </div>
+        <div class="ai-input">
+            <textarea id="ai_prompt" class="form-control" rows="3" placeholder="@_f.tra("Váš dotaz…")"></textarea>
+            <button id="ai_send" type="button" class="btn btn-primary" onclick="ai_send()">@_f.tra("Odeslat")</button>
+        </div>
+    </div>
+
+    <!-- NÁVRH -->
+    <div class="col-7 ai-form-col">
+        <div id="ai_form" style="display:none;">
+            <div class="mb-2">
+                <label class="form-label">@_f.tra("Název šablony")</label>
+                <input id="ai_name" class="form-control form-control-sm" maxlength="255" />
+            </div>
+
+            <div class="row">
+                <div class="col-6 mb-2">
+                    <label class="form-label">@_f.tra("Řádky")</label>
+                    <div id="ai_rows" class="ai-chips"></div>
+                    <select id="ai_add_rows" class="form-select form-select-sm ai-add" data-target="rows"></select>
+                </div>
+                <div class="col-6 mb-2">
+                    <label class="form-label">@_f.tra("Sloupce")</label>
+                    <div id="ai_columns" class="ai-chips"></div>
+                    <select id="ai_add_columns" class="form-select form-select-sm ai-add" data-target="columns"></select>
+                </div>
+            </div>
+
+            <div class="mb-2">
+                <label class="form-label">@_f.tra("Měřítka (hodnoty)")</label>
+                <div id="ai_measures" class="ai-chips"></div>
+                <select id="ai_add_measures" class="form-select form-select-sm ai-add" data-target="measures"></select>
+            </div>
+
+            <div class="row">
+                <div class="col-6 mb-2" id="ai_box_period">
+                    <label class="form-label">@_f.tra("Období")</label>
+                    <select id="ai_period" class="form-select form-select-sm"></select>
+                    <div id="ai_period_custom" class="row mt-1" style="display:none;">
+                        <div class="col"><input id="ai_d1" type="date" class="form-control form-control-sm" /></div>
+                        <div class="col"><input id="ai_d2" type="date" class="form-control form-control-sm" /></div>
+                    </div>
+                    <select id="ai_period_field" class="form-select form-select-sm mt-1">
+                        <option value="p31Date">@_f.tra("Datum úkonu")</option>
+                        <option value="p91Date">@_f.tra("Datum vyúčtování")</option>
+                        <option value="p91DateSupply">@_f.tra("DUZP vyúčtování")</option>
+                    </select>
+                </div>
+                <div class="col-6 mb-2">
+                    <div id="ai_box_state">
+                        <label class="form-label">@_f.tra("Stav úkonů")</label>
+                        <select id="ai_state" class="form-select form-select-sm"></select>
+                    </div>
+                    <div id="ai_box_tab" class="mt-2">
+                        <label class="form-label">@_f.tra("Formát úkonů")</label>
+                        <select id="ai_tab" class="form-select form-select-sm"></select>
+                    </div>
+                    <div class="mt-2">
+                        <label class="form-label">@_f.tra("Graf")</label>
+                        <select id="ai_chart" class="form-select form-select-sm">
+                            <option value="0">@_f.tra("Bez grafu")</option>
+                            <option value="1">@_f.tra("Sloupcový graf")</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div id="ai_warnings" class="alert alert-warning py-1 px-2" style="display:none;"></div>
+
+            <button id="ai_save" type="button" class="btn btn-success" onclick="ai_save()">
+                @_f.tra("Uložit šablonu a otevřít v Součtech")
+            </button>
+        </div>
+        <div id="ai_form_empty" class="text-muted p-3">@_f.tra("Návrh šablony se zobrazí zde.")</div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var _ai_catalog = @Html.Raw(Model.CatalogJson);
+    var _ai_periods = @Html.Raw(Model.PeriodsJson);
+    var _ai_states = @Html.Raw(Model.StatesJson);
+    var _ai_tabs = @Html.Raw(Model.TabsJson);
+    var _ai_txt = {
+        thinking: "@_f.tra("Připravuji návrh…")",
+        error: "@_f.tra("Chyba")",
+        add: "Přidat...",
+        saved: "@_f.tra("Šablona byla uložena.")",
+        confirm: "@_f.tra("Zkontrolujte")",
+        rateUp: "@_f.tra("Dobrý návrh")",
+        rateDown: "@_f.tra("Špatný návrh")",
+        rateComment: "@_f.tra("Co bylo špatně? (nepovinné)")",
+        send: "@_f.tra("Odeslat")",
+        thanks: "@_f.tra("Děkujeme za hodnocení")"
+    };
+</script>
+<script src="~/js/ai/aitotals.js" asp-append-version="true"></script>

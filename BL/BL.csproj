@@ -16,6 +16,8 @@
     <PackageReference Include="Rebex.Mail" Version="6.0.8372" />
     <PackageReference Include="Rebex.Smtp" Version="6.0.8372" />
     <PackageReference Include="Serilog.Extensions.Logging.File" Version="3.0.0" />
+	<EmbeddedResource Include="AI\**\*.md" />
+	<EmbeddedResource Include="AI\**\*.json" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,0 +1,671 @@
+{
+ "a__p31Worksheet__p31Code": {
+  "exclude": true
+ },
+ "a__p31Worksheet__j27Code_Billing_Orig": {
+  "hint": "Měna úkonu – přidat, pokud se sčítají částky ve více měnách."
+ },
+ "a__p31Worksheet__RowColor": {
+  "exclude": true
+ },
+ "a__p31Worksheet__p31ExternalCode": {
+  "exclude": true
+ },
+ "a__p31Worksheet__FP": {
+  "hint": "Vazba na finančí plán",
+  "exclude": true
+ },
+ "a__p31Worksheet__p31Date": {
+  "hint": "Datum úkonu (den)."
+ },
+ "a__p31Worksheet__UkonYear": {
+  "hint": "Rok úkonu."
+ },
+ "a__p31Worksheet__UkonMesic": {
+  "hint": "Měsíc úkonu (M2026-09). Pro trendy po měsících."
+ },
+ "a__p31Worksheet__UkonTyden": {
+  "hint": "Týden úkonu."
+ },
+ "a__p31Worksheet__p31Hours_Orig": {
+  "hint": "Vykázané hodiny celkem (Fa i NeFa). Synonyma: hodiny, čas, odpracováno, výkazy."
+ },
+ "a__p31Worksheet__p31HHMM_Orig": {
+  "exclude": true
+ },
+ "a__p31Worksheet__Vykazano_Hodiny_Fa": {
+  "hint": "Vykázané hodiny u fakturovatelných aktivit. Synonyma: fakturovatelné hodiny, billable."
+ },
+ "a__p31Worksheet__Vykazano_Hodiny_NeFa": {
+  "hint": "Vykázané hodiny u nefakturovatelných aktivit. Synonyma: interní hodiny, non-billable."
+ },
+ "a__p31Worksheet__Vykazano_Hodiny_Vyloucene": {
+  "hint": "Hodiny vyloučené z vyúčtování."
+ },
+ "a__p31Worksheet__Kusovnik": {
+  "hint": "Vykázané množství kusovníkových úkonů (kusy)."
+ },
+ "a__p31Worksheet__p31Value_Orig": {
+  "exclude": true
+ },
+ "a__p31Worksheet__p31Amount_WithoutVat_Orig": {
+  "hint": "Vykázaná částka bez DPH (honorář hodin + výdaje + pevné odměny). Částka v měně úkonu – při více měnách přidat dimenzi Měna, nebo použít variantu FK / x kurz."
+ },
+ "a__p31Worksheet__p31Amount_WithVat_Orig": {
+  "hint": "Vykázaná částka včetně DPH. Částka v měně úkonu – při více měnách přidat dimenzi Měna, nebo použít variantu FK / x kurz."
+ },
+ "a__p31Worksheet__p31Amount_Vat_Orig": {
+  "hint": "Vykázaná částka DPH. Částka v měně úkonu – při více měnách přidat dimenzi Měna, nebo použít variantu FK / x kurz."
+ },
+ "a__p31Worksheet__Vykazano_Odmena": {
+  "hint": "Vykázané pevné odměny (paušály) bez DPH. Částka v měně úkonu – při více měnách přidat dimenzi Měna, nebo použít variantu FK / x kurz."
+ },
+ "a__p31Worksheet__Vykazano_Vydaj": {
+  "hint": "Vykázané peněžní výdaje bez DPH. Synonyma: náklady, výdaje, expenses. Částka v měně úkonu – při více měnách přidat dimenzi Měna, nebo použít variantu FK / x kurz."
+ },
+ "a__p31Worksheet__VykazanoHodinyFaPoKorekci": {
+  "hint": "Fakturovatelné hodiny po korekci (pokud korekce není, původní Fa hodiny)."
+ },
+ "a__p31Worksheet__Fakturacni_Honorar_Po_Korekci": {
+  "hint": "Fakturační honorář hodin po korekci = hodiny po korekci × fakturační sazba. Částka v měně úkonu – při více měnách přidat dimenzi Měna, nebo použít variantu FK / x kurz."
+ },
+ "a__p31Worksheet__p31Amount_WithoutVat_AfterTrimming": {
+  "hint": "Částka bez DPH po korekci. Částka v měně úkonu – při více měnách přidat dimenzi Měna, nebo použít variantu FK / x kurz."
+ },
+ "a__p31Worksheet__p31Value_Off": {
+  "hint": "Interní hodnota mimo billing."
+ },
+ "a__p31Worksheet__WIP_Hodiny": {
+  "hint": "Rozpracované hodiny = dosud neschválené a nevyúčtované. Synonyma: WIP, rozpracovanost."
+ },
+ "a__p31Worksheet__WIP_Vydaje": {
+  "hint": "Rozpracované (neschválené) peněžní výdaje. Částka v měně úkonu – při více měnách přidat dimenzi Měna, nebo použít variantu FK / x kurz."
+ },
+ "a__p31Worksheet__WIP_BezDph": {
+  "hint": "Rozpracovaná částka bez DPH (neschválené a nevyúčtované úkony). Částka v měně úkonu – při více měnách přidat dimenzi Měna, nebo použít variantu FK / x kurz."
+ },
+ "a__p31Worksheet__WIP_BezDph_EUR": {
+  "hint": "Rozpracovaná částka bez DPH – jen úkony v EUR."
+ },
+ "a__p31Worksheet__WIP_Honorar": {
+  "hint": "Rozpracovaný honorář hodin (neschválené a nevyúčtované časové úkony). Částka v měně úkonu – při více měnách přidat dimenzi Měna, nebo použít variantu FK / x kurz."
+ },
+ "a__p31Worksheet__WIP_Vydaje_EUR": {
+  "hint": "Rozpracované výdaje – jen úkony v EUR."
+ },
+ "a__p31Worksheet__WIP_Pausaly": {
+  "hint": "Rozpracované pevné odměny. Částka v měně úkonu – při více měnách přidat dimenzi Měna, nebo použít variantu FK / x kurz."
+ },
+ "a__p31Worksheet__WIP_Pausaly_EUR": {
+  "hint": "Rozpracované pevné odměny – jen úkony v EUR."
+ },
+ "a__p31Worksheet__Nevyfakturovano_BezDph": {
+  "hint": "Nevyúčtováno bez DPH = rozpracované (původní částka) + schválené čekající na vyúčtování (schválená částka). Synonyma: nevyfakturováno, k fakturaci. Částka v měně úkonu – při více měnách přidat dimenzi Měna, nebo použít variantu FK / x kurz."
+ },
+ "a__p31Worksheet__Nevyfakturovano_Hodiny": {
+  "hint": "Nevyúčtované hodiny = rozpracované + schválené čekající na vyúčtování. Synonyma: nevyfakturované hodiny."
+ },
+ "a__p31Worksheet__Nevyfakturovano_Vydaje": {
+  "hint": "Nevyúčtované peněžní výdaje. Částka v měně úkonu – při více měnách přidat dimenzi Měna, nebo použít variantu FK / x kurz."
+ },
+ "a__p31Worksheet__Nevyfakturovano_Pausaly": {
+  "hint": "Nevyúčtované pevné odměny. Částka v měně úkonu – při více měnách přidat dimenzi Měna, nebo použít variantu FK / x kurz."
+ },
+ "a__p31Worksheet__Nevyfakturovano_Schvalene_Hodiny": {
+  "hint": "Schválené hodiny čekající na vyúčtování (všechny statusy schválení)."
+ },
+ "a__p31Worksheet__Nevyfakturovano_Schvalene_Hodiny_Pausal": {
+  "hint": "Schválené hodiny se statusem Zahrnout do paušálu, čekající na vyúčtování."
+ },
+ "a__p31Worksheet__Nevyfakturovano_Schvalene_Hodiny_Odpis": {
+  "hint": "Schválené hodiny se statusem Odpis, čekající na vyúčtování."
+ },
+ "a__p31Worksheet__Nevyfakturovano_Schvaleno_BezDph": {
+  "hint": "Schválená částka bez DPH čekající na vyúčtování. Částka v měně úkonu – při více měnách přidat dimenzi Měna, nebo použít variantu FK / x kurz."
+ },
+ "a__p31Worksheet__StatusVyuctovani": {
+  "hint": "Status vyúčtování."
+ },
+ "a__p31Worksheet__p31Hours_Invoiced": {
+  "hint": "Vyúčtované (vyfakturované) hodiny – hodnota ve faktuře."
+ },
+ "a__p31Worksheet__p31HHMM_Invoiced": {
+  "exclude": true
+ },
+ "a__p31Worksheet__p70Name_BillingLang1": {
+  "exclude": true
+ },
+ "a__p31Worksheet__p70Name_BillingLang2": {
+  "exclude": true
+ },
+ "a__p31Worksheet__p31Amount_WithoutVat_Invoiced": {
+  "hint": "Vyúčtováno bez DPH v měně faktury. Pro součet přes měny použít Vyúčtováno bez DPH x Kurz."
+ },
+ "a__p31Worksheet__p31Amount_WithVat_Invoiced": {
+  "hint": "Vyúčtováno včetně DPH v měně faktury."
+ },
+ "a__p31Worksheet__p31VatRate_Invoiced": {
+  "exclude": true
+ },
+ "a__p31Worksheet__p31Amount_WithoutVat_Invoiced_Domestic": {
+  "hint": "Vyúčtováno bez DPH přepočtené do domácí měny. Synonyma: obrat, tržby, vyfakturováno. Výchozí volba pro „kolik jsme vyfakturovali“."
+ },
+ "a__p31Worksheet__p31ExchangeRate_Invoice": {
+  "exclude": true
+ },
+ "a__p31Worksheet__Vyfakturovano_Hodiny_Fakturovat": {
+  "hint": "Vyúčtované hodiny se statusem Fakturovat."
+ },
+ "a__p31Worksheet__Vyfakturovano_Hodiny_Pausal": {
+  "hint": "Vyúčtované hodiny zahrnuté do paušálu (odepsané PAU)."
+ },
+ "a__p31Worksheet__Vyfakturovano_Hodiny_Odpis": {
+  "hint": "Vyúčtované hodiny jako odpis (ODP)."
+ },
+ "a__p31Worksheet__Vyfakturovano_OdpisCelkem": {
+  "hint": "Celkový odpis hodin = odpis + paušál."
+ },
+ "a__p31Worksheet__Vyfakturovano_Honorar": {
+  "hint": "Vyúčtovaný honorář hodin v měně faktury."
+ },
+ "a__p31Worksheet__Vyfakturovano_Honorar_Domestic": {
+  "hint": "Vyúčtovaný honorář hodin v domácí měně."
+ },
+ "a__p31Worksheet__Vyfakturovano_Vydaje": {
+  "hint": "Vyúčtované výdaje v měně faktury."
+ },
+ "a__p31Worksheet__Vyfakturovano_Vydaj_Domestic": {
+  "hint": "Vyúčtované výdaje v domácí měně."
+ },
+ "a__p31Worksheet__Vyfakturovano_Pausaly": {
+  "hint": "Vyúčtované pevné odměny v měně faktury."
+ },
+ "a__p31Worksheet__Vyfakturovano_Pausal_Domestic": {
+  "hint": "Vyúčtované pevné odměny v domácí měně."
+ },
+ "a__p31Worksheet__StatusSchvalovani": {
+  "hint": "Status schválení (Fakturovat / Paušál / Odpis …)."
+ },
+ "a__p31Worksheet__p31Hours_Approved_Billing": {
+  "hint": "Schválené hodiny se statusem Fakturovat."
+ },
+ "a__p31Worksheet__p31Amount_WithoutVat_Approved": {
+  "hint": "Schválená částka bez DPH se statusem Fakturovat. Částka v měně úkonu – při více měnách přidat dimenzi Měna, nebo použít variantu FK / x kurz."
+ },
+ "a__p31Worksheet__p31Hours_Approved_Internal": {
+  "hint": "Interně schválené hodiny."
+ },
+ "a__p31Worksheet__ISH_NaklSazba": {
+  "hint": "Interně schválené hodiny × schválená nákladová sazba."
+ },
+ "a__p31Worksheet__ISH_FaktSazba": {
+  "hint": "Interně schválené hodiny × schválená fakturační sazba."
+ },
+ "a__p31Worksheet__p31Value_Approved_Billing": {
+  "hint": "Schválené kusy (kusovník) se statusem Fakturovat."
+ },
+ "a__p31Worksheet__p31ApprovingLevel": {
+  "exclude": true
+ },
+ "a__p31Worksheet__p31VatRate_Approved": {
+  "exclude": true
+ },
+ "a__p31Worksheet__SchvaleneHodinyVPausalu": {
+  "hint": "Schválené hodiny se statusem Zahrnout do paušálu."
+ },
+ "a__p31Worksheet__KorekceHodinPausal": {
+  "hint": "Korekce hodin v paušálu (hodnota p31Value_FixPrice)."
+ },
+ "a__p31Worksheet__KorekceSchvalHodin": {
+  "hint": "Rozdíl schválených a vykázaných hodin (jen schválené úkony se změnou)."
+ },
+ "a__p31Worksheet__KorekceSchvalBezDph": {
+  "hint": "Rozdíl schválené a vykázané částky bez DPH."
+ },
+ "a__p31Worksheet__p31Amount_Internal": {
+  "hint": "Nákladový honorář = hodiny × nákladová sazba. Synonyma: nákladová cena práce."
+ },
+ "a__p31Worksheet__p31Amount_Overhead": {
+  "hint": "Režijní honorář = hodiny × režijní sazba."
+ },
+ "a__p31Worksheet__NakladovyPlusRezijniHonorar": {
+  "exclude": true
+ },
+ "a__p31Worksheet__HonorarSimulacniSazbaProjektu": {
+  "hint": "Hodiny × simulační (plánovaná interní) sazba projektu."
+ },
+ "a__p31Worksheet__HonorarSimulacniSazbaUzivatele": {
+  "hint": "Hodiny × simulační (plánovaná interní) sazba uživatele."
+ },
+ "a__p31Worksheet__p31ExchangeRate_Fixed": {
+  "exclude": true
+ },
+ "a__p31Worksheet__p31Amount_WithoutVat_FixedCurrency": {
+  "hint": "Vykázáno bez DPH přepočtené fixním kurzem (sčitatelné přes měny)."
+ },
+ "a__p31Worksheet__WIP_BezDph_FK": {
+  "hint": "Rozpracováno bez DPH přepočtené fixním kurzem."
+ },
+ "a__p31Worksheet__Nevyfakturovano_BezDph_FK": {
+  "hint": "Nevyúčtováno bez DPH přepočtené fixním kurzem."
+ },
+ "a__p31Worksheet__Naklad1": {
+  "hint": "Náklad = nákladový honorář hodin + peněžní výdaje."
+ },
+ "a__p31Worksheet__Naklad2": {
+  "hint": "Náklad = režijní ocenění hodin + peněžní výdaje."
+ },
+ "a__p31Worksheet__Naklad3": {
+  "hint": "Náklad = hodiny × simulační sazba projektu + peněžní výdaje."
+ },
+ "a__p31Worksheet__Naklad4": {
+  "hint": "Náklad = hodiny × simulační sazba uživatele + peněžní výdaje."
+ },
+ "a__p31Worksheet__Vynos1": {
+  "hint": "Výnos = všechny fakturovatelné úkony (Fa hodiny + Fa výdaje + Fa pevné odměny), vykázané ceny."
+ },
+ "a__p31Worksheet__Vynos2": {
+  "hint": "Výnos = honorář hodin + pevné odměny (bez výdajů), vykázané ceny."
+ },
+ "a__p31Worksheet__Vynos3": {
+  "hint": "Výnos = pouze pevné odměny."
+ },
+ "a__p31Worksheet__Vynos1MinusNaklad1": {
+  "hint": "Zisk z vykázaných hodnot = Výnos1 − Náklad1. Synonyma: marže, zisk, výsledovka."
+ },
+ "a__p31Worksheet__Vynos1MinusNaklad2": {
+  "hint": "Výnos1 − Náklad2 (režijní)."
+ },
+ "a__p31Worksheet__Vynos1MinusNaklad3": {
+  "hint": "Výnos1 − Náklad3 (simulační sazba projektu)."
+ },
+ "a__p31Worksheet__Vynos1MinusNaklad4": {
+  "hint": "Výnos1 − Náklad4 (simulační sazba uživatele)."
+ },
+ "a__p31Worksheet__Vynos2MinusNaklad1": {
+  "hint": "Výnos2 − Náklad1."
+ },
+ "a__p31Worksheet__Vynos3MinusNaklad1": {
+  "hint": "Výnos3 − Náklad1."
+ },
+ "a__p31Worksheet__Odmena_Minus_Vydaj_Minus_RezijniHonorar": {
+  "hint": "Pevná odměna − výdaje − režijní honorář."
+ },
+ "a__p31Worksheet__Odmena_Minus_VydajPoMarzich_Minus_FakturacniHonorar": {
+  "hint": "Pevná odměna − výdaje po maržích − fakturační honorář."
+ },
+ "a__p31Worksheet__Vyfakturovano_Puvodni_Naklad_Domestic": {
+  "hint": "Původní (vykázaný) náklad vyúčtovaných úkonů v domácí měně."
+ },
+ "a__p31Worksheet__Vyfakturovano_Vynos": {
+  "hint": "Vyúčtovaný výnos v měně faktury."
+ },
+ "a__p31Worksheet__Vyfakturovano_Vynos_Domestic": {
+  "hint": "Vyúčtovaný výnos v domácí měně."
+ },
+ "a__p31Worksheet__Vyfakturovano_Zisk": {
+  "hint": "Zisk po vyúčtování = vyúčtovaný výnos (domácí měna) − nákladový honorář − výdaje."
+ },
+ "a__p31Worksheet__Vyfakturovano_Zisk_Rezije": {
+  "hint": "Zisk po vyúčtování vůči režijnímu ocenění hodin."
+ },
+ "a__p31Worksheet__p31AKDS_FPR_SAZBA": {
+  "exclude": true
+ },
+ "a__p31Worksheet__p31AKDS_FPR_PODIL": {
+  "hint": "Podíl honoráře z paušálních hodin na vyúčtované pevné odměně (%)."
+ },
+ "a__p31Worksheet__p31AKDS_FPR_BODY": {
+  "hint": "Částka podílu paušálních hodin na vyúčtované pevné odměně."
+ },
+ "a__p31Worksheet__p31AKDS_FPR_VZOR": {
+  "exclude": true
+ },
+ "a__p31Worksheet__ExpenseAfterMarginHidden": {
+  "hint": "Výdaje navýšené o skrytou marži."
+ },
+ "a__p31Worksheet__ExpenseAfterAllMargins": {
+  "hint": "Výdaje navýšené o skrytou i přiznanou marži."
+ },
+ "a__p31Worksheet__Odmena_Minus_Vydaj_Minus_HonorarR": {
+  "hint": "Pevná odměna − výdaje s marží − režijní honorář."
+ },
+ "p31_j02__j02User__fullname_desc": {
+  "hint": "Osoba, která úkon vykázala. Synonyma: uživatel, pracovník, kolega, osoba."
+ },
+ "p31_j02__j02User__fullname_asc": {
+  "exclude": true
+ },
+ "p31_j02__j02User__j02Login": {
+  "exclude": true
+ },
+ "p31_j02__j02User__inicialy": {
+  "exclude": true
+ },
+ "p31_j02__j02User__inicialy2": {
+  "exclude": true
+ },
+ "p31_j02__j02User__j02IsLoginManualLocked": {
+  "exclude": true
+ },
+ "p31_j02__j02User__j02IsLoginAutoLocked": {
+  "exclude": true
+ },
+ "p31_j02__j02User__j02AutoLockedWhen": {
+  "exclude": true
+ },
+ "p31_j02__j02User__j02Email": {
+  "exclude": true
+ },
+ "p31_j02__j02User__j02FirstName": {
+  "exclude": true
+ },
+ "p31_j02__j02User__j02LastName": {
+  "exclude": true
+ },
+ "p31_j02__j02User__j02TitleBeforeName": {
+  "exclude": true
+ },
+ "p31_j02__j02User__j02TitleAfterName": {
+  "exclude": true
+ },
+ "p31_j02__j02User__AplikacniRoleUzivatele": {
+  "exclude": true
+ },
+ "p31_j02__j02User__PracFond": {
+  "exclude": true
+ },
+ "p31_j02__j02User__j02IsMustChangePassword": {
+  "exclude": true
+ },
+ "p31_j02__j02User__LangIndex": {
+  "exclude": true
+ },
+ "p31_j02__j02User__j02Code": {
+  "exclude": true
+ },
+ "p31_j02__j02User__j02CountryCode": {
+  "exclude": true
+ },
+ "p31_j02__j02User__TagsHtml": {
+  "exclude": true
+ },
+ "p31_j02__j02User__j02EmailSignature": {
+  "exclude": true
+ },
+ "p31_j02__j02User__j02DefaultHoursFormat": {
+  "exclude": true
+ },
+ "p31_p32__p32Activity__IsAbsence": {
+  "exclude": true
+ },
+ "p31_p32__p32Activity__IsAbsenceBreak": {
+  "exclude": true
+ },
+ "p31_p32__p32Activity__p32IsTextRequired": {
+  "exclude": true
+ },
+ "p31_p32__p32Activity__Predkontace": {
+  "exclude": true
+ },
+ "p31_p32__p32Activity__Cinnost": {
+  "exclude": true
+ },
+ "p32_p34__p34ActivityGroup__Editor": {
+  "exclude": true
+ },
+ "p31_p41__p41Project__p41Name": {
+  "exclude": true
+ },
+ "p31_p41__p41Project__NazevProjektu": {
+  "hint": "Projekt. Synonyma: zakázka, spis, případ."
+ },
+ "p31_p41__p41Project__p41NameShort": {
+  "exclude": true
+ },
+ "p31_p41__p41Project__NazevNeboZkraceny": {
+  "exclude": true
+ },
+ "p31_p41__p41Project__KlientProjektu": {
+  "hint": "Klient projektu. Synonyma: zákazník, klient, firma."
+ },
+ "p31_p41__p41Project__KlientPlusProjekt": {
+  "exclude": true
+ },
+ "p31_p41__p41Project__KlastrAktivit": {
+  "exclude": true
+ },
+ "p31_p41__p41Project__VlastnikProjektu": {
+  "exclude": true
+ },
+ "p31_p41__p41Project__RowColor": {
+  "exclude": true
+ },
+ "p31_p41__p41Project__WorksheetOperFlag": {
+  "exclude": true
+ },
+ "p31_p41__p41Project__FakturacniJazyk": {
+  "exclude": true
+ },
+ "p31_p41__p41Project__p41BillingMemo": {
+  "exclude": true
+ },
+ "p31_p41__p41Project__p41AccountingIds": {
+  "exclude": true
+ },
+ "p31_p41_client__p28Contact__p28Name": {
+  "hint": "Klient (kontakt) projektu."
+ },
+ "p31_p41_client__p28Contact__p28ShortName": {
+  "exclude": true
+ },
+ "p31_p41_client__p28Contact__p28CompanyName": {
+  "exclude": true
+ },
+ "p31_p41_client__p28Contact__JeFyzickaOsoba": {
+  "hint": "Fyzická osoba",
+  "exclude": true
+ },
+ "p31_p41_client__p28Contact__JePravnickaOsoba": {
+  "hint": "Právnická osoba",
+  "exclude": true
+ },
+ "p31_p41_client__p28Contact__p28LastName": {
+  "exclude": true
+ },
+ "p31_p41_client__p28Contact__p28FirstName": {
+  "exclude": true
+ },
+ "p31_p41_client__p28Contact__p28TitleBeforeName": {
+  "exclude": true
+ },
+ "p31_p41_client__p28Contact__p28TitleAfterName": {
+  "exclude": true
+ },
+ "p31_p41_client__p28Contact__VlastnikKontaktu": {
+  "exclude": true
+ },
+ "p31_p41_client__p28Contact__RowColor": {
+  "exclude": true
+ },
+ "p31_p41_client__p28Contact__p28CountryCode": {
+  "exclude": true
+ },
+ "p31_p41_client__p28Contact__p28BankAccount": {
+  "exclude": true
+ },
+ "p31_p41_client__p28Contact__p28BankCode": {
+  "exclude": true
+ },
+ "p31_p41_client__p28Contact__p28JobTitle": {
+  "exclude": true
+ },
+ "p31_p41_client__p28Contact__p28Salutation": {
+  "exclude": true
+ },
+ "p31_p41_client__p28Contact__p28ExternalCode": {
+  "exclude": true
+ },
+ "p31_p41_client__p28Contact__p28VatID": {
+  "exclude": true
+ },
+ "p31_p41_client__p28Contact__p28ICDPH_SK": {
+  "exclude": true
+ },
+ "p31_p41_client__p28Contact__PrirazenyCenik": {
+  "exclude": true
+ },
+ "p31_p41_client__p28Contact__FakturacniJazyk": {
+  "exclude": true
+ },
+ "p31_p41_client__p28Contact__p28VatCodePohoda": {
+  "exclude": true
+ },
+ "p31_p41_client__p28Contact__RezijniPrirazka": {
+  "exclude": true
+ },
+ "p31_p41_client__p28Contact__p28BillingMemo": {
+  "exclude": true
+ },
+ "p31_p41_client__p28Contact__p28PostCode1": {
+  "exclude": true
+ },
+ "p31_p41_client__p28Contact__p28BeforeAddress1": {
+  "exclude": true
+ },
+ "p31_p41_client__p28Contact__p28Street2": {
+  "exclude": true
+ },
+ "p31_p41_client__p28Contact__p28City2": {
+  "exclude": true
+ },
+ "p31_p41_client__p28Contact__p28PostCode2": {
+  "exclude": true
+ },
+ "p31_p41_client__p28Contact__p28Country2": {
+  "exclude": true
+ },
+ "p31_p41_client__p28Contact__p28TreePath": {
+  "exclude": true
+ },
+ "p31_p41_client__p28Contact__HasChilds": {
+  "exclude": true
+ },
+ "p31_p91__p91Invoice__p91CodeNumeric": {
+  "exclude": true
+ },
+ "p31_p91__p91Invoice__p91Text1": {
+  "exclude": true
+ },
+ "p31_p91__p91Invoice__p91Text2": {
+  "exclude": true
+ },
+ "p31_p91__p91Invoice__VystavovatelFaktury": {
+  "exclude": true
+ },
+ "p31_p91__p91Invoice__p91VatCodePohoda": {
+  "exclude": true
+ },
+ "p31_p91__p91Invoice__ZapojeneOsoby": {
+  "exclude": true
+ },
+ "p31_p91__p91Invoice__TagsHtml": {
+  "exclude": true
+ },
+ "p31_p91__p91Invoice__VlastnikVyuctovani": {
+  "exclude": true
+ },
+ "p31_p91__p91Invoice__RowColor": {
+  "exclude": true
+ },
+ "p31_p91__p91Invoice__ZamekA": {
+  "exclude": true
+ },
+ "p31_p91__p91Invoice__ZamekB": {
+  "exclude": true
+ },
+ "p31_p91__p91Invoice__ZamekC": {
+  "exclude": true
+ },
+ "p31_p91__p91Invoice__WorkflowSablona": {
+  "exclude": true
+ },
+ "p31_p91__p91Invoice__p91PortalFlag": {
+  "exclude": true
+ },
+ "p31_p91__p91Invoice__p91DateMaturity": {
+  "exclude": true
+ },
+ "p31_p91__p91Invoice__p91DateBilled": {
+  "exclude": true
+ },
+ "p31_p91__p91Invoice__p91DateExchange": {
+  "exclude": true
+ },
+ "p31_p91__p91Invoice__p91Client": {
+  "exclude": true
+ },
+ "p31_p91__p91Invoice__p91Client_RegID": {
+  "exclude": true
+ },
+ "p31_p91__p91Invoice__p91Client_VatID": {
+  "exclude": true
+ },
+ "p31_p91__p91Invoice__p91Client_ICDPH_SK": {
+  "exclude": true
+ },
+ "p31_p91__p91Invoice__p91ClientAddress1_Street": {
+  "exclude": true
+ },
+ "p31_p91__p91Invoice__p91ClientAddress1_City": {
+  "exclude": true
+ },
+ "p31_p91__p91Invoice__p91ClientAddress1_ZIP": {
+  "exclude": true
+ },
+ "p31_p91__p91Invoice__p91ClientAddress1_Country": {
+  "exclude": true
+ },
+ "p31_p91__p91Invoice__p91ClientAddress1_Before": {
+  "exclude": true
+ },
+ "p31_p91__p91Invoice__p91Supplier": {
+  "exclude": true
+ },
+ "p31_p91__p91Invoice__p91Supplier_RegID": {
+  "exclude": true
+ },
+ "p31_p91__p91Invoice__p91Supplier_VatID": {
+  "exclude": true
+ },
+ "p31_p91__p91Invoice__p91Supplier_ICDPH_SK": {
+  "exclude": true
+ },
+ "p31_p91__p91Invoice__p91Supplier_Street": {
+  "exclude": true
+ },
+ "p31_p91__p91Invoice__p91Supplier_City": {
+  "exclude": true
+ },
+ "p31_p91__p91Invoice__p91Supplier_ZIP": {
+  "exclude": true
+ },
+ "p31_p91__p91Invoice__VomStav": {
+  "exclude": true
+ },
+ "p31_p91__p91Invoice__VomKomu": {
+  "exclude": true
+ },
+ "p31_p91__p91Invoice__ProjectClient": {
+  "exclude": true
+ },
+ "p31_p56__p56Task__p56Code": {
+  "exclude": true
+ },
+ "p31_p56__p56Task__p56PlanFrom": {
+  "exclude": true
+ },
+ "p31_p56__p56Task__ToDoList": {
+  "exclude": true
+ }
+}

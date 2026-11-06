@@ -106,6 +106,8 @@ namespace UI
             services.AddSingleton<BL.Singleton.ThePeriodProvider>();
             services.AddSingleton<BL.Singleton.BackgroundWorkerQueue>();
 
+            services.AddSingleton<BL.AI.Core.ILlmClient>(p =>new BL.AI.Core.ClaudeClient(BL.AI.Core.AiOptions.Load(p.GetRequiredService<BL.Singleton.RunningApp>())));
+
             //VIES slu ba
             services.AddHttpClient<BL.Code.IViesClient, BL.Code.ViesClient>(client =>
             {
