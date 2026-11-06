@@ -73,8 +73,8 @@
                 <span class="material-icons-outlined-btn">auto_awesome</span> @_f.tra("AI návrh šablony")
             </button>
             <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="javascript:ai_open_totals(true)">@_f.tra("Upravit aktuální šablonu") „@(Model.SelectedTemplate?.j79Name)“</a></li>
                 <li><a class="dropdown-item" href="javascript:ai_open_totals(false)">@_f.tra("Nová šablona – začít s prázdným návrhem")</a></li>
+                <li><a class="dropdown-item" href="javascript:ai_open_totals(true)">@_f.tra("Upravit aktuální šablonu") „@(Model.SelectedTemplate?.j79Name)“</a></li>
             </ul>
         </div>
     }
@@ -373,7 +373,7 @@ else
          if (DATASOURCE_SIZE<=1)
          {
 
-             const pivot1 = new WebDataRocks({
+             var pivot1 = new WebDataRocks({
                 container: "#pivotContainer",
                 toolbar: true,
                 beforetoolbarcreated: customizeToolbar,
@@ -654,8 +654,36 @@ else
         tabs = tabs.filter(function(tab) {
           return tab.id !== "wdr-tab-connect";
         });
+
+        // export vždy s rozbalenými všemi úrovněmi (WebDataRocks jinak exportuje jen rozbalené větve)
+        var exp = tabs.find(function (t) { return t.id === "wdr-tab-export"; });
+        if (exp && exp.menu) {
+          exp.menu.forEach(function (item) {
+            var type = { "wdr-tab-export-print": "print", "wdr-tab-export-html": "html",
+                         "wdr-tab-export-excel": "excel", "wdr-tab-export-pdf": "pdf" }[item.id];
+            if (type) item.handler = function () { export_expanded(type); };
+          });
+        }
         return tabs;
       };
+    }
+
+    // rozbalí vše → export → vrátí původní rozbalení
+    function export_expanded(type) {
+      var saved = pivot1.getReport().slice;          // aktuální rozložení včetně rozbalených větví
+      var restore = function () { pivot1.runQuery(saved); };
+
+      var onDraw = function () {
+        pivot1.off("aftergriddraw", onDraw);
+        if (type === "print") {
+          pivot1.exportTo("print");
+          setTimeout(restore, 1000);
+        } else {
+          pivot1.exportTo(type, { filename: "Soucty" }, restore);
+        }
+      };
+      pivot1.on("aftergriddraw", onDraw);
+      pivot1.expandAllData();
     }
 
 
@@ -735,15 +763,22 @@ else
             if (q) url += "&q=" + encodeURIComponent(q);
             _window_open(url, 3);
         }
-        // /p31totals/Index?ai=true           → rozbalí nabídku AI (uživatel zvolí aktuální/prázdnou)
-        // /p31totals/Index?ai=true&aiq=dotaz → otevře prázdný návrh a rovnou odešle dotaz
+        // /p31totals/Index?ai=true             → rovnou otevřít AI okno s prázdným návrhem
+        // /p31totals/Index?ai=edit             → rovnou otevřít AI okno s aktuální šablonou
+        // /p31totals/Index?ai=true&aiq=dotaz   → otevřít prázdný návrh a rovnou odeslat dotaz
         $(function () {
             var qs = new URLSearchParams(window.location.search);
             var ai = (qs.get("ai") || "").toLowerCase();
-            if (ai !== "true" && ai !== "1") return;
+            if (ai !== "true" && ai !== "1" && ai !== "edit") return;
             var q = qs.get("aiq");
-            if (q) ai_open_totals(false, q);
-            else bootstrap.Dropdown.getOrCreateInstance(document.getElementById("cmdAiTotals")).show();
+
+            // parametry vyhodit z URL, aby se při dalším načtení stránky (postback, F5) znovu nevyhodnotily
+            qs.delete("ai");
+            qs.delete("aiq");
+            var clean = window.location.pathname + (qs.toString() ? "?" + qs.toString() : "") + window.location.hash;
+            window.history.replaceState(null, "", clean);
+
+            ai_open_totals(ai === "edit", q);
         });
     </script>
 }
