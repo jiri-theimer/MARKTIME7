@@ -1,0 +1,278 @@
+﻿/* =====================================================================
+   MARKTIME – moderní vzhled (html.mt-modern). Načítá se jen uživatelům s tímto vzhledem (UI.Code.UiLook).
+   Zásady:
+   - ŽÁDNÁ změna rozměrů v tabulkách: výška řádků, padding buněk i šířky rámečků zůstávají (hustota dat).
+     Mění se jen barvy rámečků, pozadí, písmo a zvýraznění.
+   - Barvy motivu uživatele: --pozadi, --oznaceno, --popredi (MyProfile).
+   - Vzduch a zaoblení jen mimo data: lišty, tlačítka, karty, nabídky, modální okna.
+   ===================================================================== */
+
+html.mt-modern {
+    --mt-text: #1f2328;
+    --mt-muted: #59636e;
+    --mt-line: #e3e6ea;          /* rámečky a oddělovače */
+    --mt-line-soft: #eef0f3;     /* vodorovné čáry v tabulkách */
+    --mt-line-faint: #f3f4f6;    /* svislé čáry v tabulkách */
+    --mt-head: #f7f8fa;          /* hlavička tabulek, karet */
+    --mt-hover: color-mix(in srgb, var(--pozadi, #0b4b92) 7%, #ffffff);
+    --mt-radius: 6px;
+    --mt-radius-lg: 10px;
+    --mt-shadow: 0 1px 2px rgba(16,24,40,.05);
+    --mt-shadow-pop: 0 10px 28px rgba(16,24,40,.16);
+    --bs-body-font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+    --bs-body-color: var(--mt-text);
+    --bs-border-color: var(--mt-line);
+    --bs-border-radius: var(--mt-radius);
+}
+
+html.mt-modern body {
+    font-family: var(--bs-body-font-family);
+    color: var(--mt-text);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+/* ------------------------------------------------------------------ horní lišta */
+html.mt-modern #mainmenu1_container {
+    box-shadow: 0 1px 0 rgba(0,0,0,.08), 0 2px 6px rgba(16,24,40,.08);
+    position: relative;
+    z-index: 1030;
+}
+
+    html.mt-modern #mainmenu1_container .nav-link {
+        border-radius: var(--mt-radius);
+        transition: background-color .12s ease;
+    }
+
+        html.mt-modern #mainmenu1_container .nav-link:hover {
+            background-color: color-mix(in srgb, var(--popredi, #fff) 14%, transparent);
+        }
+
+html.mt-modern .dropdown-menu {
+    border: 1px solid var(--mt-line);
+    border-radius: var(--mt-radius-lg);
+    box-shadow: var(--mt-shadow-pop);
+    padding: 4px;
+}
+
+    html.mt-modern .dropdown-menu .dropdown-item {
+        border-radius: var(--mt-radius);
+    }
+
+html.mt-modern #mainmenu1_container .dropdown-menu {
+    background-color: #fff;
+}
+
+/* ------------------------------------------------------------------ tlačítka */
+html.mt-modern .btn {
+    border-radius: var(--mt-radius);
+    transition: background-color .12s ease, border-color .12s ease, box-shadow .12s ease;
+}
+
+html.mt-modern .bog {
+    background-color: #f1f3f5;
+    border: 1px solid transparent !important;     /* šířka rámečku zůstává – stejná velikost tlačítka */
+}
+
+    html.mt-modern .bog:hover {
+        background-color: color-mix(in srgb, var(--oznaceno, #4169e1) 12%, #ffffff) !important;
+        border-color: var(--oznaceno, #4169e1) !important;
+        color: var(--mt-text) !important;
+    }
+
+html.mt-modern .btn-light {
+    background-color: #f3f4f6;
+    border-color: transparent;
+}
+
+    html.mt-modern .btn-light:hover {
+        background-color: #e6e8eb;
+        border-color: transparent;
+    }
+
+html.mt-modern .btn-outline-secondary,
+html.mt-modern .btn-outline-danger {
+    border-color: #d0d7de !important;
+    background-color: #fff;
+}
+
+html.mt-modern .btn-success, html.mt-modern .btn-primary, html.mt-modern .btn-danger, html.mt-modern .btn-warning {
+    box-shadow: var(--mt-shadow);
+}
+
+/* ------------------------------------------------------------------ formuláře */
+html.mt-modern .form-control,
+html.mt-modern .form-select {
+    border-color: #d0d7de;
+    border-radius: var(--mt-radius);
+}
+
+    html.mt-modern .form-control:hover:not(:focus):not(:disabled),
+    html.mt-modern .form-select:hover:not(:focus):not(:disabled) {
+        border-color: #afb8c1;
+    }
+
+html.mt-modern .form-control:disabled,
+html.mt-modern .form-control[readonly] {
+    background-color: #f6f8fa;
+}
+
+/* ------------------------------------------------------------------ karty, záložky, upozornění */
+html.mt-modern .card {
+    border-color: var(--mt-line);
+    border-radius: var(--mt-radius-lg);
+    box-shadow: var(--mt-shadow);
+}
+
+html.mt-modern .card-header {
+    background-color: var(--mt-head);
+    border-bottom-color: var(--mt-line);
+    font-weight: 600;
+}
+
+    html.mt-modern .card-header:first-child {
+        border-radius: calc(var(--mt-radius-lg) - 1px) calc(var(--mt-radius-lg) - 1px) 0 0;
+    }
+
+html.mt-modern .onetab {
+    border-color: #d0d7de;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+}
+
+html.mt-modern .alert {
+    border-radius: var(--mt-radius-lg);
+}
+
+html.mt-modern .badge {
+    border-radius: 999px;
+    font-weight: 600;
+}
+
+html.mt-modern .offcanvas {
+    box-shadow: var(--mt-shadow-pop);
+    border: none;
+}
+
+/* ------------------------------------------------------------------ modální okno */
+html.mt-modern #myModalContainer {
+    background-color: rgba(15,23,42,.45);
+}
+
+html.mt-modern #myModalContent {
+    border: none;
+    border-radius: var(--mt-radius-lg);
+    overflow: hidden;
+    box-shadow: 0 24px 60px rgba(15,23,42,.35);
+}
+
+/* ------------------------------------------------------------------ GRID (beze změny rozměrů) */
+html.mt-modern #container_grid {
+    border-right-color: var(--mt-line);
+}
+
+html.mt-modern table.tabgrid_auto,
+html.mt-modern table.tabgrid_fixed,
+html.mt-modern table.tabgrid_manual,
+html.mt-modern #filter_container {
+    border-color: transparent;
+    border-top-color: var(--mt-line);
+}
+
+    /* buňky: šířka rámečku 1px zůstává (rozměry beze změny) – vodorovné čáry jemné, svislé průhledné */
+    html.mt-modern .tabgrid_auto td,
+    html.mt-modern .tabgrid_fixed td,
+    html.mt-modern .tabgrid_manual td,
+    html.mt-modern td.td_nowrap {
+        border-color: transparent;
+        border-top-color: var(--mt-line-soft);
+        border-bottom-color: var(--mt-line-soft);
+    }
+
+    /* hlavička: bílá, výraznější text, podtržení stínem (nezabírá místo) */
+    html.mt-modern .tabgrid_auto th,
+    html.mt-modern .tabgrid_fixed th,
+    html.mt-modern .tabgrid_manual th {
+        background-color: #fff;
+        border-left-color: var(--mt-line-soft);
+        color: var(--mt-muted);
+        font-weight: 600;
+        box-shadow: inset 0 -2px 0 var(--mt-line);
+    }
+
+        html.mt-modern .tabgrid_auto th div,
+        html.mt-modern .tabgrid_fixed th div,
+        html.mt-modern .tabgrid_manual th div {
+            font-weight: 600;
+        }
+
+html.mt-modern #tr_header_query th {
+    background-color: #f7f8fa;
+    border-left-color: var(--mt-line-soft);
+    box-shadow: inset 0 -1px 0 var(--mt-line);
+}
+
+html.mt-modern #tabgrid1_tr_totals th {
+    background-color: #fff;
+    border-left-color: transparent;
+    box-shadow: inset 0 2px 0 var(--mt-line);
+}
+
+html.mt-modern #tabgrid1_tr_pager th {
+    background-color: var(--mt-head);
+    border-left-color: var(--mt-line);
+}
+
+html.mt-modern #tabgrid1_tr_totals th {
+    color: var(--mt-text);
+    font-weight: 600;
+}
+
+html.mt-modern #tabgrid1 td {
+    font-variant-numeric: tabular-nums;     /* číslice stejně široké – částky a hodiny lícují */
+}
+
+html.mt-modern #tabgrid1 tr.stripped {
+    background-color: #fafbfc;
+}
+
+html.mt-modern #tabgrid1 tr:hover {
+    background-color: var(--mt-hover);
+}
+
+/* vybraný řádek: jemně podbarvený, proužek v barvě motivu vlevo, běžné písmo */
+html.mt-modern #tabgrid1 tr.selrow > td {
+    background-color: color-mix(in srgb, var(--oznaceno, #4169e1) 16%, #ffffff);
+    color: var(--mt-text);
+}
+
+    html.mt-modern #tabgrid1 tr.selrow > td:first-child {
+        box-shadow: inset 3px 0 0 var(--pozadi, #0b4b92);
+    }
+
+html.mt-modern #tabgrid1 tr.highlight {
+    background-color: color-mix(in srgb, var(--oznaceno, #4169e1) 22%, #ffffff);
+}
+
+html.mt-modern #tr_header_headline th.sortcolumn {
+    color: var(--mt-text);
+}
+
+/* ------------------------------------------------------------------ ostatní tabulky (Bootstrap .table) */
+html.mt-modern .table {
+    --bs-table-border-color: var(--mt-line-soft);
+    --bs-table-hover-bg: var(--mt-hover);
+}
+
+    html.mt-modern .table > thead th {
+        color: var(--mt-muted);
+        font-weight: 600;
+        background-color: var(--mt-head);
+        border-bottom-color: var(--mt-line);
+    }
+
+html.mt-modern .table td,
+html.mt-modern .table th {
+    font-variant-numeric: tabular-nums;
+}

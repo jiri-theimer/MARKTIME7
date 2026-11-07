@@ -32,7 +32,7 @@
 
 @addTagHelper *, UI
 <!DOCTYPE html>
-<html lang="cs">
+<html lang="cs" class="@(UI.Code.UiLook.CssClass(_f))">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -84,6 +84,10 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/contextmenu.css" />
     <link rel="stylesheet" href="~/css/thegrid.css" asp-append-version="true" />
+    @if (UI.Code.UiLook.IsModern(_f))
+    {
+        <link rel="stylesheet" href="~/css/modern.css" asp-append-version="true" />
+    }
 
     @if (_f.CurrentUser.x01CustomCssFile != null)
     {

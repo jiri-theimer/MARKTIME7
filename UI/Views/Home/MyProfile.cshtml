@@ -163,6 +163,17 @@
                         <input type="hidden" asp-for="@Model.RecJ02.j02SkinSelColor" />
                         <input type="hidden" asp-for="@Model.RecJ02.j02SkinForeColor" />
 
+                        <div class="skin-look">
+                            <span class="me-2">@_f.tra("Vzhled aplikace"):</span>
+                            <div class="btn-group" role="group">
+                                <input type="radio" class="btn-check" name="ui_look" id="ui_look_modern" value="modern" autocomplete="off" @(UI.Code.UiLook.IsModern(_f) ? "checked" : "") />
+                                <label class="btn btn-sm btn-outline-primary" for="ui_look_modern">@_f.tra("Moderní")</label>
+                                <input type="radio" class="btn-check" name="ui_look" id="ui_look_classic" value="classic" autocomplete="off" @(UI.Code.UiLook.IsModern(_f) ? "" : "checked") />
+                                <label class="btn btn-sm btn-outline-primary" for="ui_look_classic">@_f.tra("Klasický")</label>
+                            </div>
+                            <span class="text-muted small ms-2">@_f.tra("Přepne se hned a platí jen pro vás.")</span>
+                        </div>
+
                         <div id="skin_tiles" class="skin-tiles"></div>
 
                         <div class="skin-custom">
@@ -720,7 +731,13 @@
         $("#skin_bg, #skin_sel, #skin_fore").on("input", function () { skin_apply($("#skin_bg").val(), $("#skin_sel").val(), $("#skin_fore").val(), true); });
         skin_apply($("#RecJ02_j02SkinBackColor").val() || "#0b4b92", $("#RecJ02_j02SkinSelColor").val() || "#4169e1", $("#RecJ02_j02SkinForeColor").val() || "#ffffff", false);
     }
-    $(function () { skin_init(); });
+    $(function () {
+        skin_init();
+        // vzhled aplikace (uživatelský parametr ui-look) – uloží se hned, stránka se načte znovu
+        $("input[name=ui_look]").on("change", function () {
+            $.post(_ep("/Common/SetUserParam"), { key: "ui-look", value: this.value }, function () { location.reload(); });
+        });
+    });
 
    
 
