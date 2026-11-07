@@ -1934,3 +1934,70 @@ a.att {
     margin-top: 4px;
     font-weight: 500;
 }
+
+
+/* ------------------------------------------------------------------
+   Barevný motiv uživatele (MyProfile) → prvky Bootstrapu.
+   Proměnné --pozadi / --oznaceno / --popredi nastavují layouty z j02Skin*.
+   Výchozí hodnoty v var() platí pro layouty bez motivu (přihlášení, nápověda).
+   Mění se jen barvy (ne rozměry ani rozvržení). Odkazy záměrně ne – světlé motivy by byly nečitelné.
+   ------------------------------------------------------------------ */
+.btn-primary {
+    --bs-btn-color: var(--popredi, #ffffff);
+    --bs-btn-bg: var(--pozadi, #0b4b92);
+    --bs-btn-border-color: var(--pozadi, #0b4b92);
+    --bs-btn-hover-color: var(--popredi, #ffffff);
+    --bs-btn-hover-bg: var(--oznaceno, #4169e1);
+    --bs-btn-hover-border-color: var(--oznaceno, #4169e1);
+    --bs-btn-active-color: var(--popredi, #ffffff);
+    --bs-btn-active-bg: var(--oznaceno, #4169e1);
+    --bs-btn-active-border-color: var(--oznaceno, #4169e1);
+    --bs-btn-disabled-color: var(--popredi, #ffffff);
+    --bs-btn-disabled-bg: var(--pozadi, #0b4b92);
+    --bs-btn-disabled-border-color: var(--pozadi, #0b4b92);
+}
+
+.btn-outline-primary {
+    --bs-btn-color: var(--pozadi, #0b4b92);
+    --bs-btn-border-color: var(--pozadi, #0b4b92);
+    --bs-btn-hover-color: var(--popredi, #ffffff);
+    --bs-btn-hover-bg: var(--pozadi, #0b4b92);
+    --bs-btn-hover-border-color: var(--pozadi, #0b4b92);
+    --bs-btn-active-color: var(--popredi, #ffffff);
+    --bs-btn-active-bg: var(--oznaceno, #4169e1);
+    --bs-btn-active-border-color: var(--oznaceno, #4169e1);
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--oznaceno, #4169e1);
+    box-shadow: 0 0 0 .2rem color-mix(in srgb, var(--pozadi, #0b4b92) 25%, transparent);
+}
+
+.form-check-input:checked {
+    background-color: var(--pozadi, #0b4b92);
+    border-color: var(--pozadi, #0b4b92);
+}
+
+.form-check-input:focus {
+    border-color: var(--oznaceno, #4169e1);
+    box-shadow: 0 0 0 .2rem color-mix(in srgb, var(--pozadi, #0b4b92) 25%, transparent);
+}
+
+.dropdown-item.active, .dropdown-item:active {
+    background-color: var(--oznaceno, #4169e1);
+    color: var(--popredi, #ffffff);
+}
+
+/* výběr motivu v MyProfile */
+.skin-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin-bottom: 12px; }
+.skin-tile { padding: 0; border: 2px solid #dee2e6; border-radius: 8px; overflow: hidden; background: #fff; text-align: left; cursor: pointer; transition: transform .1s, box-shadow .1s; }
+.skin-tile:hover { transform: translateY(-1px); box-shadow: 0 3px 8px rgba(0,0,0,.12); }
+.skin-tile-on { border-color: #212529; box-shadow: 0 0 0 2px #212529; }
+.skin-tile-bar { padding: 6px 8px; font-weight: 600; font-size: 90%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.skin-tile-body { padding: 8px; display: flex; gap: 6px; align-items: center; justify-content: space-between; font-size: 80%; }
+.skin-tile-sel { padding: 2px 6px; border-radius: 4px; }
+.skin-tile-btn { padding: 2px 8px; border-radius: 4px; }
+.skin-custom { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 8px; }
+.skin-custom input[type=color], .skin-advanced input[type=color] { width: 44px; height: 30px; padding: 0 2px; border: 1px solid #ced4da; border-radius: 4px; vertical-align: middle; }
+.skin-advanced summary { cursor: pointer; color: #6c757d; font-size: 90%; }
+.skin-advanced-body { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; padding: 8px 0; }

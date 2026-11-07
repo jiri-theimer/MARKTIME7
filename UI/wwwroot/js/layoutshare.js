@@ -403,6 +403,28 @@ function _stopky() {
   
     _window_open("/p68/Index",3);
 }
+
+// stav stopek v horní liště: barva ikony + běžící čas (H:MM). Volá se při načtení stránky, když stopky běží,
+// a z okna stopek po každé změně (window.parent._stopky_refresh).
+var _stopky_timer = null;
+function _stopky_refresh() {
+    if (!document.getElementById("stopky_icon")) return;
+    $.get(_ep("/p68/Running"), function (r) {
+        if (_stopky_timer) { clearInterval(_stopky_timer); _stopky_timer = null; }
+        var $i = $("#stopky_icon"), $t = $("#stopky_time");
+        $i.css("color", r.flag === 1 ? "lime" : (r.flag === 2 ? "orange" : "white"));
+        $i.attr("title", r.flag === 1 ? ("Stopky běží" + (r.project ? ": " + r.project : "")) : (r.flag === 2 ? "Stopky obsahují záznamy" : "Stopky"));
+        if (r.flag !== 1) { $t.text(""); return; }
+        var t0 = Date.now(), base = r.elapsed || 0;
+        var show = function () {
+            var s = base + Math.floor((Date.now() - t0) / 1000);
+            var h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60;
+            $t.text(" " + h + ":" + (m < 10 ? "0" : "") + m);
+        };
+        show();
+        _stopky_timer = setInterval(show, 15000);
+    });
+}
 function _bells() {
 
     _window_open("/Home/Bells", 3);

@@ -155,74 +155,35 @@
                 <div class="card" style="margin-top:40px;">
                     <div class="card-header">
                         <myicon symbol="palette"></myicon>
-                        Barvy mého ekosystému
+                        @_f.tra("Vzhled – barevný motiv")
                     </div>
                     <div class="card-body">
+                        @* barvy se ukládají do j02SkinBackColor / j02SkinSelColor / j02SkinForeColor (CSS proměnné --pozadi, --oznaceno, --popredi v layoutech) *@
+                        <input type="hidden" asp-for="@Model.RecJ02.j02SkinBackColor" />
+                        <input type="hidden" asp-for="@Model.RecJ02.j02SkinSelColor" />
+                        <input type="hidden" asp-for="@Model.RecJ02.j02SkinForeColor" />
 
-                        <div class="input-group">
-                            <div>
-                                <table>
-                                    <tr>
-                                        <td>
-                                            <label>@_f.tra("Změnit barvu pozadí"):</label>
-                                        </td>
-                                        <td>
-                                            <input type="color" asp-for="@Model.RecJ02.j02SkinBackColor" value="@Model.RecJ02.j02SkinBackColor" />
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <label>@_f.tra("Změnit barvu písma"):</label>
-                                        </td>
-                                        <td>
-                                            <input type="color" asp-for="@Model.RecJ02.j02SkinForeColor" value="@Model.RecJ02.j02SkinForeColor" />
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <label>@_f.tra("Změnit active barvu"):</label>
-                                        </td>
-                                        <td>
-                                            <input type="color" asp-for="@Model.RecJ02.j02SkinSelColor" value="@Model.RecJ02.j02SkinSelColor" />
-                                        </td>
-                                    </tr>
-                                </table>
-                            </div>
-                            <div>
-                                <div class="dropdown">
-                                    <button class="btn dropdown-toggle bog" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        @_f.tra("Pojmenované kombinace barev")
-                                    </button>
-                                    <ul class="dropdown-menu" style="columns: 2;">
-                                        <li><a class="dropdown-item" href="javascript:setskin('#0b4b92','#4169e1','#ffffff')">Tovární barvy MT7</a></li>
-                                        <li><a class="dropdown-item" href="javascript:setskin('#2D89EF','#808080','#FFFFFF')">MT6</a></li>
-                                        <li><a class="dropdown-item" href="javascript:setskin('#3C7BC9','#6f9fd8','#FFFFFF')">Little Boy Blue</a></li>
-                                        <li><a class="dropdown-item" href="javascript:setskin('#7D7B33','#9C9A40','#FFFFFF')">Golden Lime</a></li>
-                                        <li><a class="dropdown-item" href="javascript:setskin('#008373','#00A591','#FFFFFF')">Arcadia</a></li>
-                                        <li><a class="dropdown-item" href="javascript:setskin('#3D5676','#4C6A92','#FFFFFF')">Riverside</a></li>
-                                        <li><a class="dropdown-item" href="javascript:setskin('#457087','#578ca9','#FFFFFF')">Niagara</a></li>
-                                        <li><a class="dropdown-item" href="javascript:setskin('#CAC0A1','#EAE6DA','#000000')">Tofu</a></li>
-                                        <li><a class="dropdown-item" href="javascript:setskin('#5BCBD3','#95DEE3','#000000')">Island Paradise</a></li>
-                                        <li><a class="dropdown-item" href="javascript:setskin('#F43B26','#F7786B','#FFFFFF')">Peach Echo</a></li>
-                                        <li><a class="dropdown-item" href="javascript:setskin('#BA2B1E','#dd4132','#FFFFFF')">Fiesta</a></li>
-                                        <li><a class="dropdown-item" href="javascript:setskin('#E9AB18','#efc050','#000000')">Mimosa</a></li>
-                                        <li><a class="dropdown-item" href="javascript:setskin('#5E5845','#766f57','#FFFFFF')">Martini Olive</a></li>
-                                        <li><a class="dropdown-item" href="javascript:setskin('#564977','#6b5b95','#FFFFFF')">Ultra Violet</a></li>
+                        <div id="skin_tiles" class="skin-tiles"></div>
 
-                                        <li><a class="dropdown-item" href="javascript:setskin('#944743','#763835','#FFFFFF')">Chilli Oil</a></li>
-                                        <li><a class="dropdown-item" href="javascript:setskin('#8F9397','#b4b7ba','#FFFFFF')">Harbor Mist</a></li>
-                                        <li><a class="dropdown-item" href="javascript:setskin('#6E7271','#898e8c','#FFFFFF')">Neutral Gray</a></li>
-                                        <li><a class="dropdown-item" href="javascript:setskin('#93714D','#b18f6a','#FFFFFF')">Iced Coffe</a></li>
-                                        <li><a class="dropdown-item" href="javascript:setskin('#663538','#7f4145','#FFFFFF')">Red Pear</a></li>
-                                        <li><a class="dropdown-item" href="javascript:setskin('#B89228','#d5ae41','#000000')">Ceylon Yellow</a></li>
-                                        <li><a class="dropdown-item" href="javascript:setskin('#C36019','#e47a2e','#000000')">Russet Orange</a></li>
-                                        <li><a class="dropdown-item" href="javascript:setskin('#005A58','#006e6d','#FFFFFF')">Quetzal Green</a></li>
-
-                                    </ul>
-                                </div>
-                            </div>
+                        <div class="skin-custom">
+                            <label for="skin_accent">@_f.tra("Vlastní barva"):</label>
+                            <input type="color" id="skin_accent" title="@_f.tra("Zvolte jednu barvu – odstín pro označení a barvu písma dopočítá aplikace tak, aby byl text čitelný")" />
+                            <span class="text-muted small">@_f.tra("Odstín pro označení a barvu písma dopočítá aplikace tak, aby text zůstal čitelný.")</span>
                         </div>
 
+                        <details class="skin-advanced">
+                            <summary>@_f.tra("Pokročilé – všechny tři barvy ručně")</summary>
+                            <div class="skin-advanced-body">
+                                <label>@_f.tra("Pozadí lišty") <input type="color" id="skin_bg" /></label>
+                                <label>@_f.tra("Označený prvek") <input type="color" id="skin_sel" /></label>
+                                <label>@_f.tra("Písmo") <input type="color" id="skin_fore" /></label>
+                                <span id="skin_contrast_warn" class="text-danger small" style="display:none;">@_f.tra("Písmo je na pozadí špatně čitelné.")</span>
+                            </div>
+                        </details>
+
+                        <div id="skin_note" class="alert alert-info py-1 px-2 mt-2 mb-0" style="display:none;">
+                            @_f.tra("Toto je náhled. Barvy uložíte tlačítkem [Uložit změny].")
+                        </div>
                     </div>
                 </div>
             </form>
@@ -683,13 +644,83 @@
     });
 
 
-    function setskin(bgcolor, selcolor, forecolor) {
-    bgcolor = bgcolor.replace("#", "");
-    forecolor = forecolor.replace("#", "");
-    selcolor = selcolor.replace("#", "");
-    form1.action = "/Home/MyProfile?oper=skin&bgcolor=" + bgcolor + "&forecolor=" + forecolor + "&selcolor=" + selcolor;
-    form1.submit();
+    // ------------------------------------------------------------------ barevný motiv (náhled bez postbacku, uloží „Uložit změny“)
+    var _skin_themes = [
+        { name: "MARKTIME", bg: "#0b4b92", sel: "#4169e1", fore: "#ffffff" },
+        { name: "MT6 (původní)", bg: "#2d89ef", sel: "#808080", fore: "#ffffff" },
+        { name: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(_f.tra("Noční modrá"))), bg: "#1e2a44", sel: "#3d5080", fore: "#ffffff" },
+        { name: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(_f.tra("Grafit"))), bg: "#343a40", sel: "#5c6670", fore: "#ffffff" },
+        { name: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(_f.tra("Petrol"))), bg: "#00616f", sel: "#13808f", fore: "#ffffff" },
+        { name: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(_f.tra("Les"))), bg: "#2e6b3a", sel: "#4a8a57", fore: "#ffffff" },
+        { name: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(_f.tra("Švestka"))), bg: "#5b3a73", sel: "#7b5797", fore: "#ffffff" },
+        { name: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(_f.tra("Bordó"))), bg: "#7b2333", sel: "#a23b4e", fore: "#ffffff" },
+        { name: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(_f.tra("Terakota"))), bg: "#9a3f1f", sel: "#b9542f", fore: "#ffffff" },
+        { name: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(_f.tra("Pískovec"))), bg: "#e9e4d8", sel: "#d3c8ad", fore: "#212529" },
+        { name: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(_f.tra("Led"))), bg: "#e3eef8", sel: "#bcd6ee", fore: "#0b2540" }
+    ];
+    var _skin_txt = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(new { sample = _f.tra("Označeno"), button = _f.tra("Tlačítko") }));
+
+    function skin_hex(c) {
+        c = (c || "").trim().toLowerCase();
+        if (/^#[0-9a-f]{3}$/.test(c)) c = "#" + c[1] + c[1] + c[2] + c[2] + c[3] + c[3];
+        return /^#[0-9a-f]{6}$/.test(c) ? c : null;
     }
+    function skin_rgb(h) { return [parseInt(h.substr(1, 2), 16), parseInt(h.substr(3, 2), 16), parseInt(h.substr(5, 2), 16)]; }
+    function skin_tohex(rgb) { return "#" + rgb.map(function (x) { x = Math.max(0, Math.min(255, Math.round(x))); return (x < 16 ? "0" : "") + x.toString(16); }).join(""); }
+    // relativní jas a kontrast podle WCAG 2
+    function skin_lum(h) {
+        return skin_rgb(h).map(function (v) { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); })
+            .reduce(function (a, v, i) { return a + v * [0.2126, 0.7152, 0.0722][i]; }, 0);
+    }
+    function skin_contrast(a, b) { var x = skin_lum(a), y = skin_lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); }
+    function skin_mix(a, b, t) { var x = skin_rgb(a), y = skin_rgb(b); return skin_tohex(x.map(function (v, i) { return v + (y[i] - v) * t; })); }
+
+    // z jedné barvy: písmo černé/bílé podle kontrastu, označení světlejší (tmavý akcent) nebo tmavší (světlý akcent) s čitelným písmem
+    function skin_derive(bg) {
+        var fore = skin_contrast("#ffffff", bg) >= skin_contrast("#212529", bg) ? "#ffffff" : "#212529";
+        var toward = fore === "#ffffff" ? "#ffffff" : "#000000";
+        // tmavý akcent: označení o čtvrtinu světlejší; světlý akcent: jen mírně tmavší (jinak by s tmavým písmem splýval)
+        var sel = bg;
+        for (var t = (fore === "#ffffff" ? 0.25 : 0.12); t >= 0.03; t -= 0.03) {
+            sel = skin_mix(bg, toward, t);
+            if (skin_contrast(fore, sel) >= 3) break;
+        }
+        return { bg: bg, sel: sel, fore: fore };
+    }
+
+    function skin_apply(bg, sel, fore, preview) {
+        bg = skin_hex(bg); sel = skin_hex(sel); fore = skin_hex(fore);
+        if (!bg || !sel || !fore) return;
+        $("#RecJ02_j02SkinBackColor").val(bg);
+        $("#RecJ02_j02SkinSelColor").val(sel);
+        $("#RecJ02_j02SkinForeColor").val(fore);
+        var st = document.documentElement.style;
+        st.setProperty("--pozadi", bg); st.setProperty("--oznaceno", sel); st.setProperty("--popredi", fore);
+        $("#skin_accent").val(bg); $("#skin_bg").val(bg); $("#skin_sel").val(sel); $("#skin_fore").val(fore);
+        $("#skin_contrast_warn").toggle(skin_contrast(fore, bg) < 3);
+        $(".skin-tile").each(function () {
+            var t = _skin_themes[$(this).data("i")];
+            $(this).toggleClass("skin-tile-on", t.bg === bg && t.sel === sel && t.fore === fore);
+        });
+        if (preview) $("#skin_note").show();
+    }
+
+    function skin_init() {
+        var $box = $("#skin_tiles");
+        _skin_themes.forEach(function (t, i) {
+            var $tile = $("<button>").attr({ type: "button", title: t.name }).addClass("skin-tile").data("i", i)
+                .append($("<div>").addClass("skin-tile-bar").css({ background: t.bg, color: t.fore }).text(t.name))
+                .append($("<div>").addClass("skin-tile-body")
+                    .append($("<span>").addClass("skin-tile-sel").css({ background: t.sel, color: t.fore }).text(_skin_txt.sample))
+                    .append($("<span>").addClass("skin-tile-btn").css({ background: t.bg, color: t.fore }).text(_skin_txt.button)))
+                .on("click", function () { skin_apply(t.bg, t.sel, t.fore, true); });
+            $box.append($tile);
+        });
+        $("#skin_accent").on("input", function () { var d = skin_derive(skin_hex(this.value)); skin_apply(d.bg, d.sel, d.fore, true); });
+        $("#skin_bg, #skin_sel, #skin_fore").on("input", function () { skin_apply($("#skin_bg").val(), $("#skin_sel").val(), $("#skin_fore").val(), true); });
+        skin_apply($("#RecJ02_j02SkinBackColor").val() || "#0b4b92", $("#RecJ02_j02SkinSelColor").val() || "#4169e1", $("#RecJ02_j02SkinForeColor").val() || "#ffffff", false);
+    }
+    $(function () { skin_init(); });
 
    
 

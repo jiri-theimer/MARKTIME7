@@ -565,26 +565,18 @@
                         @if (_f.CurrentUser.j04IsModule_p31)
                         {
                             <li class="nonmobile">
-                                <a class="nav-link" id="cmdStopky" href="javascript: _stopky()">
-                                    @if (_f.CurrentUser.StopWatchFlag == 0)
-                                    {
-                                        <span class="material-icons-outlined-btn" style="color:white;" title="Stopky">history_toggle_off</span>
-
-                                    }
-                                    else
-                                    {
-                                        @if (_f.CurrentUser.StopWatchFlag == 1)
-                                        {
-                                            <span class="material-icons-outlined-btn" style="color:lime;" title="Stopky právě běží">history_toggle_off</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="material-icons-outlined-btn" style="color:orange;" title="Stopky obsahují záznamy">history_toggle_off</span>
-                                        }
-
-                                    }
-
+                                @{
+                                    int _swFlag = _f.CurrentUser.StopWatchFlag;
+                                    string _swColor = _swFlag == 1 ? "lime" : (_swFlag == 2 ? "orange" : "white");
+                                    string _swTitle = _swFlag == 1 ? "Stopky právě běží" : (_swFlag == 2 ? "Stopky obsahují záznamy" : "Stopky");
+                                }
+                                <a class="nav-link" id="cmdStopky" href="javascript: _stopky()" style="white-space:nowrap;">
+                                    <span id="stopky_icon" class="material-icons-outlined-btn" style="color:@_swColor;" title="@_f.tra(_swTitle)">history_toggle_off</span><small id="stopky_time" style="color:lime;font-variant-numeric:tabular-nums;"></small>
                                 </a>
+                                @if (_swFlag == 1)
+                                {
+                                    <script type="text/javascript">$(function () { _stopky_refresh(); });</script>
+                                }
                             </li>
                         }
                         @if (_islivechat)

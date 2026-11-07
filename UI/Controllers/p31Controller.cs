@@ -1456,7 +1456,8 @@ namespace UI.Controllers
         {
             var c = Factory.p68StopWatchBL.Load(v.p68ID);
 
-            v.p31Date = new DateTime(c.DateInsert.Value.Year, c.DateInsert.Value.Month, c.DateInsert.Value.Day);
+            var d = c.p68LastStart ?? c.DateInsert ?? DateTime.Today;     //den, kdy se naposledy měřilo (ne den založení časovače)
+            v.p31Date = d.Date;
             if (c.p41ID > 0)
             {
                 v.Rec.p41ID = c.p41ID;

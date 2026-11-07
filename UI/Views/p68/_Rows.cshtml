@@ -1,0 +1,98 @@
+﻿@model UI.Models.p31oper.p68ViewModel
+@inject BL.Factory _f
+@addTagHelper *, UI
+@*
+    Karty časovačů – vykresluje Index i AJAX operace (/p68/Oper, /p68/Rows).
+    Combo prvky (mycombo) se inicializují vlastním inline skriptem, proto se seznam vkládá celý přes $.html().
+*@
+@{
+    string Hms(int s) => $"{s / 3600}:{(s / 60) % 60:00}:{s % 60:00}";
+}
+
+<div id="sw_meta" data-total="@Model.TotalSeconds" data-running="@(Model.lisRows.Any(p => p.p68IsRunning) ? 1 : 0)" data-jump="@Model.Jump2Pid" data-count="@Model.lisRows.Count"></div>
+
+@if (Model.lisRows.Count == 0)
+{
+    <div class="sw-empty">
+        <span class="material-icons-outlined-btn sw-empty-icon">timer</span>
+        <h4>@_f.tra("Měřte čas práce jedním klikem")</h4>
+        <p>
+            @_f.tra("Spusťte časovač, až začnete pracovat. Projekt, aktivitu a popis můžete doplnit kdykoli – i po zastavení.")<br />
+            @_f.tra("Po skončení klikněte na „Vykázat“ a z naměřeného času vznikne časový úkon.")
+        </p>
+        <button type="button" class="btn btn-success btn-lg" onclick="sw_oper('new_start', 0)">
+            <span class="material-icons-outlined-btn">play_arrow</span> @_f.tra("Spustit časovač")
+        </button>
+    </div>
+}
+
+@for (int i = 0; i < Model.lisRows.Count; i++)
+{
+    var r = Model.lisRows[i];
+    bool run = r.p68IsRunning;
+    bool old = r.DateInsert != null && r.DateInsert.Value.Date < DateTime.Today;
+
+    <div class="sw-card@(run ? " sw-running" : "")" id="sw@(r.pid)" data-pid="@r.pid" data-index="@i">
+        <div class="sw-head">
+            <button type="button" class="sw-play" onclick="sw_oper('@(run ? "stop" : "start")', @r.pid)" title="@(run ? _f.tra("Zastavit") : _f.tra("Spustit – běžící časovač se zastaví"))">
+                <span class="material-icons-outlined-btn">@(run ? "pause" : "play_arrow")</span>
+            </button>
+
+            <div class="sw-time">
+                @if (run)
+                {
+                    <div class="sw-clock" data-elapsed="@r.ElapsedSeconds">@Hms(r.ElapsedSeconds)</div>
+                    <div class="sw-sub"><span class="sw-dot"></span>@_f.tra("běží od") @(r.p68LastStart?.ToString("H:mm"))</div>
+                }
+                else
+                {
+                    <input type="text" id="sw_dur_@(r.pid)" class="form-control sw-dur" value="@r.duration_hhmm" autocomplete="off" onchange="sw_save(@i, true)" title="@_f.tra("Naměřený čas – můžete jej ručně upravit")" />
+                    <script type="text/javascript">
+                        myhours_init({ controlid: "sw_dur_@(r.pid)", entryformat: "T", intervals: "00:15|00:30|00:45|01:00|01:30|02:00|02:30|03:00|04:00|05:00|06:00|07:00|08:00" });
+                    </script>
+                    <div class="sw-sub">@_f.tra("naměřeno")@(old ? " · " + r.DateInsert.Value.ToString("d.M.") : "")</div>
+                }
+            </div>
+
+            <div class="sw-adjust" title="@_f.tra("Upravit naměřený čas")">
+                <button type="button" class="btn btn-sm btn-light" onclick="sw_oper('adjust', @r.pid, { secs: -300 })">−5</button>
+                <button type="button" class="btn btn-sm btn-light" onclick="sw_oper('adjust', @r.pid, { secs: 300 })">+5</button>
+                <button type="button" class="btn btn-sm btn-light" onclick="sw_oper('adjust', @r.pid, { secs: 900 })">+15</button>
+                <span class="sw-adjust-unit">min</span>
+            </div>
+
+            <div class="sw-actions">
+                <button type="button" class="btn btn-success" onclick="sw_report(@r.pid, @(run ? "true" : "false"))" title="@_f.tra("Vytvořit časový úkon z naměřeného času – časovač se pak odstraní")">
+                    <span class="material-icons-outlined-btn">task_alt</span> @_f.tra("Vykázat")
+                </button>
+                <div class="dropdown">
+                    <button type="button" class="btn btn-light" data-bs-toggle="dropdown" aria-expanded="false" title="@_f.tra("Další akce")"><span class="material-icons-outlined-btn">more_vert</span></button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="javascript:sw_oper('clone', @r.pid)"><span class="material-icons-outlined-btn">content_copy</span> @_f.tra("Kopírovat (stejný projekt a text)")</a></li>
+                        <li><a class="dropdown-item text-danger" href="javascript:sw_oper('delete', @r.pid)"><span class="material-icons-outlined-btn">delete</span> @_f.tra("Odstranit časovač")</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-2 sw-fields">
+            <div class="col-12 col-md-7">
+                <mycombo entity="p41" search-result-width="900" combo-height="500" placeholder="@_f.tra("Projekt…")" asp-for="lisRows[i].p41ID" selectedtext="lisRows[i].Project" filter-flag="1" view-flag="1" myqueryinline="p07level|int|5|p33id_for_p31_entry|int|1" event_after_changevalue="sw_p41id_change(#pid#,@(r.pid))"></mycombo>
+            </div>
+            <div class="col-12 col-md-5">
+                @if (r.p41ID > 0)
+                {
+                    <mycombo entity="p32Activity" asp-for="lisRows[i].p32ID" combo-height="500" placeholder="@_f.tra("Aktivita…")" selectedtext="lisRows[i].Activity" myqueryinline="p33id|int|1|p41id|int|@(r.p41ID)|p61id|int|@(r.p61ID)" event_after_changevalue="sw_p32id_change(#pid#,@(i))"></mycombo>
+                }
+                else
+                {
+                    <input type="text" class="form-control" disabled placeholder="@_f.tra("Aktivita – nejdřív vyberte projekt")" />
+                }
+            </div>
+            <div class="col-12">
+                <textarea class="form-control sw-text" asp-for="lisRows[i].p68Text" rows="2" placeholder="@_f.tra("Co děláte? (text úkonu)")" onchange="sw_save(@i, false)"></textarea>
+            </div>
+        </div>
+        <input type="hidden" asp-for="lisRows[i].pid" />
+    </div>
+}
