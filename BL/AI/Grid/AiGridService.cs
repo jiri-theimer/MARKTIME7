@@ -8,7 +8,8 @@ namespace BL.AI.Grid
 {
     /// <summary>
     /// AI agent pro návrhář sloupců tabulky (j72TheGridTemplate): z dotazu uživatele navrhne sloupce, jejich pořadí
-    /// a sloupcový filtr (stav gridu j75Filter / j75OperatorFlag).
+    /// a sloupcový filtr (stav gridu j75Filter / j75OperatorFlag) a pevné filtry nad gridem (období, stav úkonů, formát, archiv –
+    /// uživatelské parametry, viz AiGridFixedFilters).
     /// Entitu určuje tabulka, ze které bylo okno otevřeno (j72Entity) – AI vybírá jen ze sloupců této entity a jejích relací.
     /// Uložení: přepsat tabulku (stejná oprávnění jako TheGridDesigner), uložit jako novou pojmenovanou tabulku,
     /// nebo jen použít filtr na tabulku, ze které bylo okno otevřeno.
@@ -21,11 +22,13 @@ namespace BL.AI.Grid
         protected override string Feature => FeatureName;
 
         private readonly BL.TheColumnsProvider _cp;
+        private readonly BL.Singleton.ThePeriodProvider _pp;
         private AiColumnCatalog _catalog;
+        private AiGridFixedFilters _fixed;
 
-        public AiGridService(BL.Factory f, BL.TheColumnsProvider cp, ILlmClient llm, int j72id) : base(f, llm)
+        public AiGridService(BL.Factory f, BL.TheColumnsProvider cp, BL.Singleton.ThePeriodProvider pp, ILlmClient llm, int j72id) : base(f, llm)
         {
-            _cp = cp;
+            _cp = cp; _pp = pp;
             Template = j72id > 0 ? F.j72TheGridTemplateBL.Load(j72id) : null;
         }
 
@@ -34,6 +37,8 @@ namespace BL.AI.Grid
         public string Prefix => Template?.j72Entity?.Substring(0, 3);
         public string EntityName => Prefix == null ? null : F.EProvider.ByPrefix(Prefix).AliasSingular;
         public AiColumnCatalog Catalog => _catalog ??= AiColumnCatalog.Build(F, _cp, Prefix, AiColumnCatalog.CatalogMode.Grid);
+        /// <summary>Pevné filtry, které grid této tabulky nabízí.</summary>
+        public AiGridFixedFilters FixedFilters => _fixed ??= new AiGridFixedFilters(F, _pp, Template);
 
         /// <summary>Stejné pravidlo jako TheGridDesignerController (HasOwnerPermissions).</summary>
         public bool CanOverwrite => Template != null &&
@@ -70,6 +75,7 @@ namespace BL.AI.Grid
                 p.MatchAny = state.j75OperatorFlag == 1 && p.Filter.Count > 1;
                 if (skippedF.Count > 0) warnings.Add("Podmínky filtru, které AI návrh nepodporuje a byly vynechány: " + string.Join(", ", skippedF));
             }
+            p.Fixed = FixedFilters.Load();
             return p;
         }
 
@@ -81,6 +87,7 @@ namespace BL.AI.Grid
         {
             new LlmSystemBlock { Text = AiPromptStore.Get("grid.system.md") },
             new LlmSystemBlock { Text = Catalog.ToPromptText(), Cache = true },   // cache breakpoint: instrukce + katalog entity
+            new LlmSystemBlock { Text = FixedFilters.ToPromptText() },
             new LlmSystemBlock { Text = $"Entita tabulky: {EntityName} ({Prefix}).\nTabulka: {Template?.GetName()}.\nDnešní datum: {DateTime.Today:yyyy-MM-dd} ({_days[(int)DateTime.Today.DayOfWeek]}).\nPřihlášený uživatel: {F.CurrentUser.j02FirstName} {F.CurrentUser.j02LastName}." }
         };
 
@@ -88,7 +95,7 @@ namespace BL.AI.Grid
         {
             var current = (input as AiGridAskInput)?.Current;
             if (current == null) return content;
-            return content + "\n\nAktuální návrh ve formuláři (sloupce v pořadí a filtr; uživatel je mohl upravit):\n" + JsonSerializer.Serialize(ToIds(current));
+            return content + "\n\nAktuální návrh ve formuláři (sloupce v pořadí, sloupcový filtr a pevné filtry; uživatel je mohl upravit):\n" + JsonSerializer.Serialize(ToIds(current));
         }
 
         protected override JsonObject BuildSchema()
@@ -110,6 +117,12 @@ namespace BL.AI.Grid
                 ["filter"] = AiSchema.Array(filter),
                 ["matchAny"] = new JsonObject { ["type"] = "boolean" }
             });
+            var fixedSchema = FixedFilters.BuildSchema();
+            if (fixedSchema != null)
+            {
+                ((JsonObject)proposal["properties"])["fixed"] = fixedSchema;
+                ((JsonArray)proposal["required"]).Add("fixed");
+            }
             return AiSchema.Obj(new JsonObject
             {
                 ["reply"] = AiSchema.Str(),
@@ -142,6 +155,7 @@ namespace BL.AI.Grid
             }
             if (requireName && string.IsNullOrWhiteSpace(p.Name)) errors.Add("Chybí název nové tabulky.");
             AiGridFilterCodec.Validate(p.Filter, Catalog, errors);
+            FixedFilters.Validate(p.Fixed, errors);
             if ((p.Columns?.Count ?? 0) > 40) warnings.Add("Tabulka má přes 40 sloupců – může být nepřehledná a pomalejší.");
             return (errors, warnings);
         }
@@ -167,7 +181,8 @@ namespace BL.AI.Grid
             Name = p.Name,
             Columns = (p.Columns ?? new()).Select(conv).ToList(),
             Filter = (p.Filter ?? new()).Select(f => new AiGridFilter { Column = conv(f.Column), Op = f.Op, Values = f.Values ?? new(), From = f.From, To = f.To }).ToList(),
-            MatchAny = p.MatchAny
+            MatchAny = p.MatchAny,
+            Fixed = p.Fixed
         };
 
         // ------------------------------------------------------------------ Save
@@ -186,6 +201,7 @@ namespace BL.AI.Grid
         /// Overwrite → přepíše sloupce tabulky, ze které bylo okno otevřeno (jen s oprávněním);
         /// New → uloží jako novou pojmenovanou tabulku (kopie včetně filtru j73) a přepne na ni grid volající stránky;
         /// Filter → nemění tabulku, jen nastaví sloupcový filtr (všechny jeho sloupce musí v tabulce už být).
+        /// Pevné filtry (období, stav, formát, archiv) se ukládají ve všech režimech.
         /// Sloupcový filtr se ukládá do stavu gridu uživatele (j75Filter) – stejně jako filtr zadaný v hlavičce gridu.
         /// </summary>
         public SaveResult Save(AiGridProposal p, long logId, SaveMode mode, string callerPathName)
@@ -197,11 +213,13 @@ namespace BL.AI.Grid
             {
                 var errs = new List<string>();
                 AiGridFilterCodec.Validate(p.Filter, Catalog, errs);
+                FixedFilters.Validate(p.Fixed, errs);
                 var tableCols = (Template.j72Columns ?? "").Split(",").ToHashSet(StringComparer.OrdinalIgnoreCase);
                 var missing = p.Filter.Where(f => !tableCols.Contains(f.Column ?? "")).Select(f => Catalog.ByKey(f.Column)?.Header ?? f.Column).Distinct().ToList();
                 if (missing.Count > 0) errs.Add("Filtr používá sloupce, které v uložené tabulce nejsou: " + string.Join(", ", missing) + ". Uložte nejdřív tabulku (Přepsat / Uložit jako novou).");
                 if (errs.Count > 0) { res.Errors = errs; return res; }
                 SaveState(Template.pid, Template.j72Columns, p);
+                FixedFilters.Save(p.Fixed);
                 LogResult(logId, "j72", Template.pid);
                 res.Ok = true; res.J72ID = Template.pid;
                 return res;
@@ -234,6 +252,7 @@ namespace BL.AI.Grid
             if (id <= 0) { res.Errors.Add("Tabulku se nepodařilo uložit."); return res; }
 
             SaveState(id, columns, p);
+            FixedFilters.Save(p.Fixed);
 
             // přepnout grid volající stránky na uloženou tabulku (stejné klíče jako návrhář)
             string px = Template.j72Entity.Substring(0, 3), rez = Template.j72Rez;

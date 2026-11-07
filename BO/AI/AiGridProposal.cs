@@ -13,6 +13,21 @@ namespace BO.AI
         [JsonPropertyName("filter")] public List<AiGridFilter> Filter { get; set; } = new();
         /// <summary>true = stačí splnit jednu z podmínek (j75OperatorFlag = 1, NEBO), false = všechny (A ZÁROVEŇ).</summary>
         [JsonPropertyName("matchAny")] public bool MatchAny { get; set; }
+        /// <summary>Pevné filtry nad gridem (období, stav, formát, archiv) – uživatelské parametry, ne šablona tabulky.</summary>
+        [JsonPropertyName("fixed")] public AiGridFixed Fixed { get; set; }
+    }
+
+    /// <summary>Pevné filtry gridu (rozbalovací tlačítka nad tabulkou). null = filtr v tomto gridu není.</summary>
+    public class AiGridFixed
+    {
+        /// <summary>Časové období (stejná struktura jako v Součtech).</summary>
+        [JsonPropertyName("period")] public AiTotalsPeriod Period { get; set; }
+        /// <summary>Stav úkonů 0–21 (0 = všechny).</summary>
+        [JsonPropertyName("state")] public int? State { get; set; }
+        /// <summary>Formát úkonů: "" | time | kusovnik | expense | fee.</summary>
+        [JsonPropertyName("tab")] public string Tab { get; set; }
+        /// <summary>Archiv: 0 = otevřené i v archivu, 1 = pouze otevřené, 2 = pouze v archivu.</summary>
+        [JsonPropertyName("archive")] public int? Archive { get; set; }
     }
 
     /// <summary>Jedna podmínka sloupcového filtru.</summary>

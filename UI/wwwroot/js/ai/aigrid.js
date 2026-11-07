@@ -1,5 +1,6 @@
-﻿// Agent tabulky – formulář sloupců a sloupcového filtru. Chat, historie a hodnocení řeší společný aichat.js (AiChat).
-var _ai_proposal = null;    // { name, columns: [klíče], filter: [{column, op, values, from, to}], matchAny }
+﻿// Agent tabulky – formulář sloupců, pevných filtrů a sloupcového filtru. Chat, historie a hodnocení řeší společný aichat.js (AiChat).
+var _ai_proposal = null;    // { name, columns: [klíče], filter: [{column, op, values, from, to}], matchAny, fixed: {period, state, tab, archive} }
+var _ai_initialFixed = {};  // pevné filtry při otevření okna – změny se zvýrazní
 var _ai_byKey = {};
 var _ai_initialKeys = {};   // sloupce původní tabulky – nové sloupce se zvýrazní
 var _ai_chat = null;
@@ -34,6 +35,7 @@ $(function () {
         render_filters();
     });
     $("#ai_match_any").on("change", function () { _ai_proposal.matchAny = $(this).is(":checked"); });
+    init_fixed();
     $("#ai_overwrite").on("click", function () { ai_save("overwrite"); });
     $("#ai_save").on("click", function () { ai_save("new"); });
     $("#ai_apply_filter").on("click", function () { ai_save("filter"); });
@@ -48,6 +50,7 @@ $(function () {
                 _ai_proposal.columns = r.proposal.columns || [];
                 _ai_proposal.filter = r.proposal.filter || [];
                 _ai_proposal.matchAny = !!r.proposal.matchAny;
+                if (r.proposal.fixed) { _ai_proposal.fixed = r.proposal.fixed; write_fixed(); }
                 if (r.proposal.name && !$("#ai_name").val()) $("#ai_name").val(r.proposal.name);
                 render_columns();
                 render_filters();
@@ -65,8 +68,11 @@ function load_initial() {
         name: i.name || "",
         columns: (i.columns || []).slice(),
         filter: (i.filter || []).map(function (f) { return $.extend({}, f, { values: (f.values || []).slice() }); }),
-        matchAny: !!i.matchAny
+        matchAny: !!i.matchAny,
+        fixed: JSON.parse(JSON.stringify(i.fixed || {}))
     };
+    _ai_initialFixed = JSON.parse(JSON.stringify(i.fixed || {}));
+    write_fixed();
     _ai_initialKeys = {};
     _ai_proposal.columns.forEach(function (k) { _ai_initialKeys[k] = true; });
     $("#ai_name").val(_ai_proposal.name);
@@ -164,11 +170,75 @@ function render_filters() {
     $("#ai_box_match").toggle(_ai_proposal.filter.length > 1);
 }
 
+// ------------------------------------------------------------------ pevné filtry (období, stav, formát, archiv)
+
+function init_fixed() {
+    var fx = _ai_fixed || {};
+    fill_select("#ai_period", fx.periods);
+    fill_select("#ai_period_field", fx.periodFields);
+    fill_select("#ai_state", fx.states);
+    fill_select("#ai_tab", fx.tabs);
+    fill_select("#ai_archive", fx.archive);
+    $("#ai_box_period").toggle(!!fx.periods);
+    $("#ai_state").toggle(!!fx.states);
+    $("#ai_tab").toggle(!!fx.tabs);
+    $("#ai_archive").toggle(!!fx.archive);
+    $("#ai_fixed").toggle(!!(fx.periods || fx.states || fx.tabs || fx.archive));
+    $("#ai_fixed select, #ai_fixed input").on("change", function () { read_fixed(); toggle_custom(); mark_fixed(); });
+}
+
+function fill_select(sel, items) {
+    var $s = $(sel).empty();
+    (items || []).forEach(function (i) { $s.append($("<option>").val(i.id).text(i.name)); });
+}
+
+function write_fixed() {
+    var x = _ai_proposal.fixed || {};
+    if (x.period) {
+        $("#ai_period").val(String(x.period.value));
+        $("#ai_period_field").val(x.period.field);
+        $("#ai_d1").val(x.period.d1 || ""); $("#ai_d2").val(x.period.d2 || "");
+    }
+    if (x.state != null) $("#ai_state").val(String(x.state));
+    if (x.tab != null) $("#ai_tab").val(x.tab);
+    if (x.archive != null) $("#ai_archive").val(String(x.archive));
+    toggle_custom();
+    mark_fixed();
+}
+
+function read_fixed() {
+    var fx = _ai_fixed || {}, x = _ai_proposal.fixed = _ai_proposal.fixed || {};
+    if (fx.periods) {
+        var v = parseInt($("#ai_period").val() || "0");
+        x.period = { value: v, field: $("#ai_period_field").val(), d1: v === 1 ? ($("#ai_d1").val() || null) : null, d2: v === 1 ? ($("#ai_d2").val() || null) : null };
+    }
+    if (fx.states) x.state = parseInt($("#ai_state").val() || "0");
+    if (fx.tabs) x.tab = $("#ai_tab").val() || "";
+    if (fx.archive) x.archive = parseInt($("#ai_archive").val() || "1");
+    return x;
+}
+
+function toggle_custom() {
+    $("#ai_period_custom").toggle($("#ai_period").val() === "1");
+}
+
+// zvýraznit pevné filtry, které se liší od stavu při otevření okna
+function mark_fixed() {
+    var a = _ai_proposal.fixed || {}, b = _ai_initialFixed || {};
+    var pa = a.period || {}, pb = b.period || {};
+    $("#ai_period").toggleClass("ai-changed", pa.value !== pb.value || (pa.value === 1 && (pa.d1 !== pb.d1 || pa.d2 !== pb.d2)));
+    $("#ai_period_field").toggleClass("ai-changed", pa.value !== 0 && pa.field !== pb.field);
+    $("#ai_state").toggleClass("ai-changed", a.state !== b.state);
+    $("#ai_tab").toggleClass("ai-changed", a.tab !== b.tab);
+    $("#ai_archive").toggleClass("ai-changed", a.archive !== b.archive);
+}
+
 // ------------------------------------------------------------------ formulář
 
 function read_form() {
     _ai_proposal.name = $("#ai_name").val();
     _ai_proposal.matchAny = $("#ai_match_any").is(":checked") && _ai_proposal.filter.length > 1;
+    read_fixed();
     return _ai_proposal;
 }
 
@@ -177,10 +247,16 @@ function show_warnings(w) {
     $("#ai_warnings").html(w.map(function (x) { return $("<div>").text(x).prop("outerHTML"); }).join("")).show();
 }
 
-// Vyčistit: nová konverzace, prázdný seznam sloupců i filtr – návrh tabulky od nuly
+// Vyčistit: nová konverzace, prázdný seznam sloupců, bez filtrů – návrh tabulky od nuly
 function ai_clear() {
     _ai_chat.reset();
-    _ai_proposal = { name: "", columns: [], filter: [], matchAny: false };
+    var fx = _ai_fixed || {}, pf = (_ai_initialFixed.period || {}).field;
+    _ai_proposal = { name: "", columns: [], filter: [], matchAny: false, fixed: {} };
+    if (fx.periods) _ai_proposal.fixed.period = { value: 0, field: pf, d1: null, d2: null };
+    if (fx.states) _ai_proposal.fixed.state = 0;
+    if (fx.tabs) _ai_proposal.fixed.tab = "";
+    if (fx.archive) _ai_proposal.fixed.archive = 1;
+    write_fixed();
     $("#ai_name").val("");
     render_columns();
     render_filters();

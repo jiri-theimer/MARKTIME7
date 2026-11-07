@@ -11,15 +11,16 @@ namespace UI.Controllers.AI
     public class AiGridController : BaseController
     {
         private readonly BL.TheColumnsProvider _cp;
+        private readonly BL.Singleton.ThePeriodProvider _pp;
         private readonly BL.AI.Core.ILlmClient _llm;
         private static readonly JsonSerializerOptions _json = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
-        public AiGridController(BL.TheColumnsProvider cp, BL.AI.Core.ILlmClient llm)
+        public AiGridController(BL.TheColumnsProvider cp, BL.Singleton.ThePeriodProvider pp, BL.AI.Core.ILlmClient llm)
         {
-            _cp = cp; _llm = llm;
+            _cp = cp; _pp = pp; _llm = llm;
         }
 
-        private BL.AI.Grid.AiGridService Service(int j72id) => new(Factory, _cp, _llm, j72id);
+        private BL.AI.Grid.AiGridService Service(int j72id) => new(Factory, _cp, _pp, _llm, j72id);
 
         /// <param name="j72id">tabulka gridu, ze které bylo okno otevřeno (určuje entitu)</param>
         /// <param name="pathname">stránka gridu (FlatView/MasterView/SlaveView) – pro přepnutí na novou tabulku</param>
@@ -46,6 +47,7 @@ namespace UI.Controllers.AI
                 CanOverwrite = svc.CanOverwrite,
                 Feature = svc.FeatureName,
                 CatalogJson = JsonSerializer.Serialize(svc.Catalog.ToUiList(), _json),
+                FixedJson = JsonSerializer.Serialize(svc.FixedFilters.ToUi(), _json),
                 InitialJson = JsonSerializer.Serialize(svc.CurrentProposal(warnings), _json)
             };
             v.InitialWarningsJson = JsonSerializer.Serialize(warnings, _json);

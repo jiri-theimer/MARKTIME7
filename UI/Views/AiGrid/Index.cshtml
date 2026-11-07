@@ -14,7 +14,7 @@
 
 <div class="ai-toolbar">
     <span class="ai-toolbar-title">@Model.EntityName – @Model.TableName</span>
-    <button type="button" id="cmdAiClear" class="btn btn-light me-2" title="@_f.tra("Začít znovu – smaže konverzaci, sloupce i filtr")">@_f.tra("Vyčistit")</button>
+    <button type="button" id="cmdAiClear" class="btn btn-warning me-2" title="@_f.tra("Začít znovu – smaže konverzaci, sloupce i filtr")">@_f.tra("Vyčistit")</button>
     <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
 </div>
 
@@ -30,8 +30,27 @@
         <div id="ai_columns" class="ai-col-list"></div>
         <select id="ai_add" class="form-select form-select-sm mt-1"></select>
 
+        <div id="ai_fixed" class="mt-3">
+            <label class="form-label">@_f.tra("Pevné filtry nad tabulkou") <small class="text-muted">(@_f.tra("platí pro všechny tabulky této entity"))</small></label>
+            <div class="row g-2">
+                <div class="col-12 col-lg-6" id="ai_box_period">
+                    <select id="ai_period" class="form-select form-select-sm" title="@_f.tra("Časové období")"></select>
+                    <select id="ai_period_field" class="form-select form-select-sm mt-1" title="@_f.tra("Datum, ke kterému se období vztahuje")"></select>
+                    <div id="ai_period_custom" class="ai-period-custom mt-1" style="display:none;">
+                        <input id="ai_d1" type="date" class="form-control form-control-sm" />
+                        <input id="ai_d2" type="date" class="form-control form-control-sm" />
+                    </div>
+                </div>
+                <div class="col-12 col-lg-6">
+                    <select id="ai_state" class="form-select form-select-sm ai-box" title="@_f.tra("Stav úkonů")"></select>
+                    <select id="ai_tab" class="form-select form-select-sm ai-box mt-1" title="@_f.tra("Formát úkonů")"></select>
+                    <select id="ai_archive" class="form-select form-select-sm ai-box mt-1" title="@_f.tra("Archiv")"></select>
+                </div>
+            </div>
+        </div>
+
         <div class="mt-3">
-            <label class="form-label">@_f.tra("Filtr záznamů")</label>
+            <label class="form-label">@_f.tra("Sloupcový filtr")</label>
             <div id="ai_filters"></div>
             <select id="ai_add_filter" class="form-select form-select-sm mt-1"></select>
             <div id="ai_box_match" class="form-check mt-1">
@@ -53,13 +72,14 @@
                 <button id="ai_overwrite" type="button" class="btn btn-primary me-2">@_f.tra("Přepsat tabulku") „@Model.TableName“</button>
             }
             <button id="ai_save" type="button" class="btn btn-success me-2">@_f.tra("Uložit jako novou tabulku")</button>
-            <button id="ai_apply_filter" type="button" class="btn bog" title="@_f.tra("Tabulku nemění, jen nastaví filtr záznamů")">@_f.tra("Použít jen filtr")</button>
+            <button id="ai_apply_filter" type="button" class="btn bog" title="@_f.tra("Tabulku nemění, jen nastaví pevné filtry a sloupcový filtr")">@_f.tra("Použít jen filtry")</button>
         </div>
     </div>
 </div>
 
 <script type="text/javascript">
     var _ai_catalog = @Html.Raw(Model.CatalogJson);
+    var _ai_fixed = @Html.Raw(Model.FixedJson);      // nabídky pevných filtrů (null = filtr v gridu není)
     var _ai_initial = @Html.Raw(Model.InitialJson);
     var _ai_initial_warnings = @Html.Raw(Model.InitialWarningsJson);
     var _ai_j72id = @Model.J72ID;

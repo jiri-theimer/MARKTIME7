@@ -11,6 +11,10 @@
 .ai-chip .ai-x:hover, .ai-chip .ai-mv:hover { opacity: 1; }
 .ai-chip-new { background: #198754; }
 
+/* pevné filtry */
+.ai-period-custom { display: flex; gap: 4px; }
+#ai_fixed select.ai-changed, #ai_fixed input.ai-changed { border: 2px solid #7c3aed; background-color: #f3edff; }
+
 /* sloupcový filtr */
 .ai-filter-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 4px 26px 4px 6px; margin-bottom: 4px; background: #f3f0ff; border-radius: 6px; position: relative; }
 .ai-filter-row .ai-filter-col { font-weight: 600; font-size: 90%; min-width: 120px; }
