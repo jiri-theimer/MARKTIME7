@@ -52,7 +52,7 @@ namespace UI.Views.Shared.TagHelpers
                 output.Content.AppendHtml($"<button id='cmdWrkQuickStat' type='button' class='btn btn-light px-1' style='{strStyle};background-color:#E7FFE7;' title='Rychlá statistika' onclick=\"_window_open('/Record/QuickStat?prefix={prefix}&pid={pid}')\"><span class='material-icons-outlined-btn'>auto_graph</span></button>");
 
             }
-            output.Content.AppendHtml($"<button id='cmdWrkTotals' type='button' class='btn btn-light px-1' style='{strStyle};background-color:#E7FFE7;' title='SOUČTY' onclick=\"_window_open('/p31Totals/Index?selected_entity={prefix}&selected_pids={pid}&blank=1')\"><span class='material-icons-outlined-btn'>functions</span></button>");
+            output.Content.AppendHtml($"<button id='cmdWrkTotals' type='button' class='btn btn-light px-1' style='{strStyle};background-color:#E7FFE7;' title='Pivot-Explorer' onclick=\"_window_open('/p31Totals/Index?selected_entity={prefix}&selected_pids={pid}&blank=1')\"><span class='material-icons-outlined-btn'>functions</span></button>");
             output.Content.AppendHtml($"<button id='cmdWrkReport' type='button' class='btn btn-light px-1' style='{strStyle};background-color:#E7FFE7;' title='Pevný REPORT' onclick=\"_window_open('/ReportsClient/ReportContext?prefix={strDbPrefix}&pid={pid}')\"><span class='material-icons-outlined-btn'>print</span></button>");
 
 

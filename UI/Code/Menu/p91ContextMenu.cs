@@ -165,7 +165,7 @@ namespace UI.Menu
                 }
                 
                 AMI("PDF archiv", $"javascript: _window_open('/p91oper/p96?p91id={pid}',3)", "folder_open", "more");
-                AMI("SOUČTY", $"javascript:_window_open('/p31totals/Index?selected_entity=p91&selected_pids={rec.pid}&blank=1')", "functions", "more");
+                AMI("Pivot-Explorer", $"javascript:_window_open('/p31totals/Index?selected_entity=p91&selected_pids={rec.pid}&blank=1')", "functions", "more",null,null,null,false);
             }
 
 

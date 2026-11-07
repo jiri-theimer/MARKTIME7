@@ -61,7 +61,7 @@ namespace UI.Menu
             {
                 AMI("PIERSTONE Report", $"javascript: _window_open('/Pierstone/Index?prefix=j02&pids={pid}',3)", "flag", "more");
             }
-            AMI("SOUČTY", $"javascript:_window_open('/p31totals/Index?selected_entity=j02&selected_pids={rec.pid}&blank=1')", "functions", "more");
+            AMI("Pivot-Explorer", $"javascript:_window_open('/p31totals/Index?selected_entity=j02&selected_pids={rec.pid}&blank=1')", "functions", "more",null,null,null,false);
 
             if (rec.j02VirtualParentID == 0)
             {

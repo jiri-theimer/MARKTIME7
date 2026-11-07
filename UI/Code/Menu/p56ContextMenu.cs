@@ -125,7 +125,7 @@ namespace UI.Menu
                     AMI_RecPage(strP91Code, "p91", intP91ID, "bind");
                 }
 
-                AMI("SOUČTY", $"javascript:_window_open('/p31totals/Index?selected_entity=p56&selected_pids={rec.pid}&blank=1')", "functions", "more");
+                AMI("Pivot-Explorer", $"javascript:_window_open('/p31totals/Index?selected_entity=p56&selected_pids={rec.pid}&blank=1')", "functions", "more",null,null,null,false);
             }
 
             

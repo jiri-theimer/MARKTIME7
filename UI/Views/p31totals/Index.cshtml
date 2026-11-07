@@ -74,12 +74,12 @@
 
 <div class="input-group m-0" style="padding-top:3px;">
     <div>
-        <ul class="nav nav-tabs" title="WebDataRocks">
+        <ul class="nav nav-tabs" title="@(_mt ? "Pivot-Explorer" : "WebDataRocks")">
             <li class="onetab">
 
                 <a id="cmdMore" class="nav-link onetab-offcanvas" tabindex="-1" role="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvas_more">
                     <span class="onetab-caret"></span>
-                    @_f.tra("Součty")
+                    @(_mt ? "Pivot-Explorer" : _f.tra("Součty"))
                     
                 </a>
             </li>
@@ -194,7 +194,7 @@
     <div class="col-auto">
         <select id="cbxPivotEngine" class="form-select form-select-sm" onchange="pivot_engine_change(this)" title="@_f.tra("Způsob zobrazení součtů")">
             <option value="wdr" selected="@(!_mt)">WebDataRocks</option>
-            <option value="mt" selected="@_mt">MARKTIME pivot</option>
+            <option value="mt" selected="@_mt">Pivot-Explorer</option>
         </select>
     </div>
 
