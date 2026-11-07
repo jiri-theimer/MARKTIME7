@@ -12,7 +12,8 @@ html.mt-modern {
     --mt-muted: #59636e;
     --mt-line: #e3e6ea;          /* rámečky a oddělovače */
     --mt-line-soft: #eef0f3;     /* vodorovné čáry v tabulkách */
-    --mt-line-faint: #f3f4f6;    /* svislé čáry v tabulkách */
+    --mt-line-faint: #f3f4f6;
+    --mt-line-v: #e8ebef;        /* svislé čáry v tabulkách – o stupeň jemnější než klasické #CCCCCC */
     --mt-head: #f7f8fa;          /* hlavička tabulek, karet */
     --mt-hover: color-mix(in srgb, var(--pozadi, #0b4b92) 7%, #ffffff);
     --mt-radius: 6px;
@@ -180,12 +181,12 @@ html.mt-modern #filter_container {
     border-top-color: var(--mt-line);
 }
 
-    /* buňky: šířka rámečku 1px zůstává (rozměry beze změny) – vodorovné čáry jemné, svislé průhledné */
+    /* buňky: šířka rámečku 1px zůstává (rozměry beze změny) – jemná mřížka; svislé čáry zůstávají kvůli orientaci v širokých tabulkách */
     html.mt-modern .tabgrid_auto td,
     html.mt-modern .tabgrid_fixed td,
     html.mt-modern .tabgrid_manual td,
     html.mt-modern td.td_nowrap {
-        border-color: transparent;
+        border-color: var(--mt-line-v);
         border-top-color: var(--mt-line-soft);
         border-bottom-color: var(--mt-line-soft);
     }
