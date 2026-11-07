@@ -180,10 +180,12 @@ namespace BL.Singleton
                 return _AppName;
             }
         }
+        /// <summary>Verze aplikace, pokud v appsettings.json chybí "App:Version". Verze 7.5 = AI agenti (Zeptej se MARKTIME, AI Součty, AI tabulka).</summary>
+        public const string DefaultVersion = "7.5";
         public string AppVersion {
             get
             {
-                return Configuration.GetSection("App")["Version"];
+                return DefaultVersion;     // appsettings.json "App": { "Version": "7.5" }
             }
         }
         public string AppBuild

@@ -1927,3 +1927,10 @@ a.att {
         color: #fff;
         vertical-align: middle;
     }
+
+/* tlačítko „Zeptej se“ v hlavní liště – nižší, aby nezvětšilo výšku menu */
+.ai-nav-btn {
+    padding: 2px 10px;
+    margin-top: 4px;
+    font-weight: 500;
+}

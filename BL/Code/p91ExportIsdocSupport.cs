@@ -18,7 +18,7 @@ namespace BL.Code
             {
                 version = "6.0.2",
                 EgovFlag = false,
-                IssuingSystem = "MARKTIME 7",
+                IssuingSystem = "MARKTIME " + BL.Singleton.RunningApp.DefaultVersion,
                 UUID = rec.p91Guid,
                 ElectronicPossibilityAgreementReference = new BO.Model.Integrace.FakturaExport.NoteType(),
                 DocumentType = BO.Model.Integrace.FakturaExport.DocumentTypeType.Item1,

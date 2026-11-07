@@ -392,12 +392,12 @@ namespace BL
         public void Write2AccessLog(BO.j90LoginAccessLog c) //zápis úspěšných přihlášení i neúspěšných pokusů o přihlášení
         {                                             
             string s = "INSERT INTO j90LoginAccessLog(j02ID,j90Date,j90ClientBrowser,j90BrowserFamily,j90Platform,j90BrowserDeviceType,j90BrowserDeviceFamily,j90ScreenPixelsWidth,j90ScreenPixelsHeight,j90BrowserInnerWidth,j90BrowserInnerHeight,j90LoginMessage,j90LoginName,j90CookieExpiresInHours,j90AppClient,j90UserHostAddress,x01ID)";
-            s += " VALUES(@j02id,GETDATE(),@useragent,@browser,@os,@devicetype,@devicefamily,@aw,@ah,@iw,@ih,@mes,@loginname,@cookieexpire,'7.0',@host,@x01id)";
+            s += " VALUES(@j02id,GETDATE(),@useragent,@browser,@os,@devicetype,@devicefamily,@aw,@ah,@iw,@ih,@mes,@loginname,@cookieexpire,@appclient,@host,@x01id)";
 
             var db = GetDbHandler(c.j90LoginName);
             if (db != null)
             {
-                db.RunSql(s, new { j02id = BO.Code.Bas.TestIntAsDbKey(c.j02ID), useragent = c.j90ClientBrowser, browser = c.j90BrowserFamily, os = c.j90Platform, devicetype = c.j90BrowserDeviceType, devicefamily = c.j90BrowserDeviceFamily, aw = c.j90ScreenPixelsWidth, ah = c.j90ScreenPixelsHeight, iw = c.j90BrowserInnerWidth, ih = c.j90BrowserInnerHeight, mes = c.j90LoginMessage, loginname = c.j90LoginName, cookieexpire = c.j90CookieExpiresInHours, host = c.j90UserHostAddress, x01id = c.x01ID });
+                db.RunSql(s, new { j02id = BO.Code.Bas.TestIntAsDbKey(c.j02ID), useragent = c.j90ClientBrowser, browser = c.j90BrowserFamily, os = c.j90Platform, devicetype = c.j90BrowserDeviceType, devicefamily = c.j90BrowserDeviceFamily, aw = c.j90ScreenPixelsWidth, ah = c.j90ScreenPixelsHeight, iw = c.j90BrowserInnerWidth, ih = c.j90BrowserInnerHeight, mes = c.j90LoginMessage, loginname = c.j90LoginName, cookieexpire = c.j90CookieExpiresInHours, appclient = this.App?.AppVersion ?? BL.Singleton.RunningApp.DefaultVersion, host = c.j90UserHostAddress, x01id = c.x01ID });
             }
             
         }

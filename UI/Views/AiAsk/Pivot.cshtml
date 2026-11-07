@@ -8,7 +8,7 @@
 
 <div class="input-group" style="padding: 3px 8px;background-color: #2D89EF;color:white;">
     <div style="flex:1;">
-        <span class="material-icons-outlined-btn" style="color:white;">pivot_table_chart</span>
+        <span class="material-icons-outlined-btn" style="color:white;">functions</span>
         @Model.Title
         @if (!string.IsNullOrEmpty(Model.Description))
         {
@@ -41,7 +41,7 @@
     function ai_pivot_drill(info) {
         $.ajax({ url: "/AiAsk/DrillDown?guid=" + encodeURIComponent(_ai_pivot_guid), type: "POST", contentType: "application/json", data: JSON.stringify(info) }).done(function (r) {
             if (r.error) { _notify_message(r.error, "warning"); return; }
-            _window_open("/p31totals/Drill?guid=" + r.guid + "&count=" + r.count + "&label=" + encodeURIComponent(info.label || ""), 3);
+            _window_open("/p31totals/Drill?guid=" + r.guid + "&count=" + r.count + "&label=" + encodeURIComponent(info.label || ""), 2);
         }).fail(function () { _notify_message(_ai_pivot_err, "error"); });
     }
 </script>

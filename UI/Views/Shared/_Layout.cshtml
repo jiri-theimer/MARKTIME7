@@ -148,13 +148,23 @@
                                 </a>
                             </li>
                         }
+                        @if (_ai.Options.Enabled)
+                        {
+                            <li style="margin-left:8px;" title="@_f.tra("Zeptej se MARKTIME – AI odpoví na otázky nad vašimi daty")">
+                                <a id="cmdAiAsk_mainmenu" class="btn btn-sm ai-btn ai-nav-btn" href="/AiAsk">
+                                    <span class="material-icons-outlined-btn">auto_awesome</span> @_f.tra("Zeptej se")
+                                </a>
+                            </li>
+                        }
                         @if (_f.CurrentUser.j04IsModule_p41 || _f.CurrentUser.j04IsModule_p28 || _f.CurrentUser.j04IsModule_p91)
                         {
-                            <li style="margin-right:8px;margin-left:8px;">
-
-                                <mySearch search-textbox-width="90" combo-height="700" search-result-width="800" placeholder="@_f.tra("Najít")..." event_after_changevalue="_search1_on_change"></mySearch>
-
-
+                            <li style="margin-right:8px;margin-left:4px;display:flex;align-items:center;">
+                                <a id="cmdSearchToggle" class="nav-link" href="javascript:_search_box_show()" title="@_f.tra("Najít, klávesová zkratka: /")">
+                                    <span class="material-icons-outlined-btn" style="color:white;">search</span>
+                                </a>
+                                <div id="divSearchBox" style="display:none;">
+                                    <mySearch search-textbox-width="160" combo-height="700" search-result-width="800" placeholder="@_f.tra("Najít")..." event_after_changevalue="_search1_on_change"></mySearch>
+                                </div>
                             </li>
                         }
 
@@ -541,14 +551,6 @@
                                 </a>
                             </li>
                         }
-                        @if (_ai.Options.Enabled)
-                        {
-                            <li class="nonmobile" title="@_f.tra("Zeptej se MARKTIME")">
-                                <a class="nav-link" href="/AiAsk">
-                                    <span class="material-icons-outlined-btn" style="color:#f107a3;">auto_awesome</span>
-                                </a>
-                            </li>
-                        }
                         <li>
                             <a class="nav-link" href="javascript:_bells()">
                                 @if (_f.CurrentUser.BellsCount > 0)
@@ -819,8 +821,21 @@
             _loading_hide();
 
 
+            // hledání je schované za ikonou lupy: klik nebo klávesa "/" (mimo vstupní pole) jej rozbalí, prázdné se po opuštění zase schová
             if (document.getElementById("cmdCombomySearch1")) {
-                document.getElementById("cmdCombomySearch1").focus();   //focus na searchbox, pokud je k dispozici
+                $("#cmdCombomySearch1").on("blur", function () {
+                    var me = this;
+                    setTimeout(function () {    // klik do výsledků hledání nesmí pole schovat
+                        if ($(me).val() === "" && !$("#divSearchBox").find(".dropdown-menu").hasClass("show")) _search_box_hide();
+                    }, 200);
+                });
+                $(document).on("keydown", function (e) {
+                    if (e.key !== "/" || e.ctrlKey || e.altKey || e.metaKey) return;
+                    var t = e.target, tag = (t.tagName || "").toLowerCase();
+                    if (tag === "input" || tag === "textarea" || tag === "select" || t.isContentEditable) return;
+                    e.preventDefault();
+                    _search_box_show();
+                });
             }
 
 
@@ -1027,6 +1042,17 @@
         }
 
 
+
+        function _search_box_show() {
+            $("#cmdSearchToggle").hide();
+            $("#divSearchBox").show();
+            document.getElementById("cmdCombomySearch1").focus();
+        }
+
+        function _search_box_hide() {
+            $("#divSearchBox").hide();
+            $("#cmdSearchToggle").show();
+        }
 
         function _window_open(url, flag, header, layout) {
             //flag=1: normální velikost, flag=2: maximalizovaná, flag=3: za každou cenu normální velikost

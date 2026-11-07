@@ -154,7 +154,7 @@ function ask_render_table(t) {
     if (t.guid) {
         if (!isList) {
             $btns.append($("<button>").attr("type", "button").addClass("btn btn-light btn-sm").attr("title", _ask_txt.pivotTitle)
-                .append($("<span>").addClass("material-icons-outlined-btn").text("pivot_table_chart")).append(document.createTextNode(_ask_txt.pivot))
+                .append($("<span>").addClass("material-icons-outlined-btn").text("functions")).append(document.createTextNode(_ask_txt.pivot))
                 .on("click", function () { _window_open("/AiAsk/Pivot?guid=" + encodeURIComponent(t.guid), 2); }));
         }
         if (t.canDrill) {
@@ -189,7 +189,7 @@ function ask_drill(t, row) {
     $.ajax({ url: "/AiAsk/DrillDown?guid=" + encodeURIComponent(t.guid), type: "POST", contentType: "application/json", data: JSON.stringify({ conds: conds, label: lbl }) })
         .done(function (r) {
             if (r.error) { _notify_message(r.error, "warning"); return; }
-            _window_open("/p31totals/Drill?guid=" + r.guid + "&count=" + r.count + "&label=" + encodeURIComponent(lbl), 3);
+            _window_open("/p31totals/Drill?guid=" + r.guid + "&count=" + r.count + "&label=" + encodeURIComponent(lbl), 2);
         })
         .fail(function () { _notify_message(_ask_txt.drillError, "error"); });
 }
