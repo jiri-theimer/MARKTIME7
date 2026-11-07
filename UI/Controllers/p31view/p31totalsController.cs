@@ -17,6 +17,9 @@ namespace UI.Controllers.p31view
             _pp = pp;
             _colsProvider = cp;
         }
+        /// <summary>Maximální počet agregovaných řádků (skupin) pro MARKTIME pivot – ochrana serveru i prohlížeče.</summary>
+        public const int PivotMaxRows = 50000;
+
         public IActionResult Index(string master_entity, int master_pid, string caller, int j79id, string selected_entity, string selected_pids,string guid_pids)
         {
             if (Factory.CBL.LoadUserParamBool("p31totals-useoldversion",false))
@@ -24,9 +27,30 @@ namespace UI.Controllers.p31view
                 //přesměrovat na starou verzi statistik
                 return RedirectToAction("Index", "p31totalsOld", new { master_entity = master_entity, master_pid = master_pid, caller= caller, j79id= j79id, selected_entity= selected_entity, selected_pids= selected_pids, guid_pids= guid_pids });
             }
-            
-            
 
+            var v = LoadModel(master_entity, master_pid, j79id, selected_entity, selected_pids, guid_pids);
+            if (v == null)
+            {
+                return this.StopPage(false, "Nepodařilo se založit výchozí šablonu statistiky.");
+            }
+            v.PivotEngine = Factory.CBL.LoadUserParam("p31totals-pivotengine", "wdr") == "mt" ? "mt" : "wdr";
+
+            if (caller == "grid" && !string.IsNullOrEmpty(master_entity) && master_pid > 0)
+            {
+                Factory.CBL.SaveLastCallingRecPid(master_entity, master_pid, "grid", true, false, null);   //uložit info o naposledy vybraném záznamu v gridu
+            }
+
+            if (v.PivotEngine == "wdr")
+            {
+                GenerateDataSource(v);      //CSV pro WebDataRocks; MARKTIME pivot si data načte přes PivotData
+            }
+
+            return View(v);
+        }
+
+        /// <summary>Načte šablonu, filtry a sloupce – společné pro Index (stránka) a PivotData (data MARKTIME pivotu). null = šablonu nelze založit.</summary>
+        private p31TotalsViewModel LoadModel(string master_entity, int master_pid, int j79id, string selected_entity, string selected_pids, string guid_pids)
+        {
             var v = new p31TotalsViewModel() { record_pid = master_pid, record_prefix = master_entity, SelectedJ79ID = j79id, selected_entity = selected_entity, selected_pids = selected_pids };
             if (!string.IsNullOrEmpty(guid_pids))
             {
@@ -66,7 +90,7 @@ namespace UI.Controllers.p31view
             }
             if (v.SelectedJ79ID == 0)
             {
-                return this.StopPage(false, "Nepodařilo se založit výchozí šablonu statistiky.");
+                return null;
             }
             v.SelectedTemplate = v.lisJ79.First(p => p.pid == v.SelectedJ79ID);
 
@@ -94,19 +118,9 @@ namespace UI.Controllers.p31view
 
             v.GridColumns = v.SelectedTemplate.j79Columns;
 
-            
-
-
-            if (caller == "grid" && !string.IsNullOrEmpty(master_entity) && master_pid > 0)
-            {
-                Factory.CBL.SaveLastCallingRecPid(master_entity, master_pid, "grid", true, false, null);   //uložit info o naposledy vybraném záznamu v gridu
-            }
-
-
             GenerateGridColumns(v);
-            GenerateDataSource(v);
 
-            return View(v);
+            return v;
         }
 
         private void GenerateGridColumns(p31TotalsViewModel v)
@@ -123,12 +137,20 @@ namespace UI.Controllers.p31view
             
         }        
 
-        private void GenerateDataSource(p31TotalsViewModel v)
+        /// <summary>Dotaz na agregovaná data podle šablony a filtrů stránky (null = šablona nemá sloupce).</summary>
+        private BO.myQueryP31 BuildQuery(p31TotalsViewModel v)
         {
             if (v.lisGridColumns == null)
             {
-                return;
+                return null;
             }
+            //vybrané záznamy jdou do SQL – připustit jen čísla
+            if (v.selected_pids != null)
+            {
+                v.selected_pids = string.Join(",", BO.Code.Bas.ConvertString2ListInt(v.selected_pids));
+                if (v.selected_pids == "") v.selected_pids = "-1";
+            }
+
             var finalcols = new List<BO.TheGridColumn>();
 
             foreach (var col in v.lisGridColumns)
@@ -223,6 +245,17 @@ namespace UI.Controllers.p31view
 
             mq.explicit_sqlgroupby = string.Join(",", finalcols.Where(p => p.IsShowTotals == false).Select(p => p.getFinalSqlSyntax_GROUPBY()));
 
+            return mq;
+        }
+
+        private void GenerateDataSource(p31TotalsViewModel v)
+        {
+            var mq = BuildQuery(v);
+            if (mq == null)
+            {
+                return;
+            }
+
             var dt = Factory.gridBL.GetGroupByList(mq);
             
             foreach(var col in mq.explicit_columns.Where(p => p.FieldType == "num"))
@@ -257,8 +290,37 @@ namespace UI.Controllers.p31view
 
       
         
+        /// <summary>
+        /// Data pro MARKTIME pivot (myPivot): agregované řádky ve sloupcovém JSON s číselníky.
+        /// Stejné parametry a filtry jako Index; uživatel se bere z přihlášení.
+        /// </summary>
+        public IActionResult PivotData(string master_entity, int master_pid, int j79id, string selected_entity, string selected_pids, string guid_pids)
+        {
+            var v = LoadModel(master_entity, master_pid, j79id, selected_entity, selected_pids, guid_pids);
+            if (v == null)
+            {
+                return Json(new { error = Factory.tra("Nepodařilo se načíst šablonu statistiky.") });
+            }
+            var mq = BuildQuery(v);
+            if (mq == null)
+            {
+                return Json(new { error = Factory.tra("Šablona nemá žádné sloupce. Nastavte je tlačítkem „Datový zdroj sloupců (polí)“.") });
+            }
+
+            //TOP N+1: zjistit překročení limitu bez načítání všech skupin
+            var sel = $"TOP ({PivotMaxRows + 1}) " + string.Join(",", mq.explicit_columns.Select(p => p.getFinalSqlSyntax_GROUPBY_SELECT()));
+            var dt = Factory.gridBL.GetGroupByList(mq, sel);
+            if (dt.Rows.Count > PivotMaxRows)
+            {
+                return Json(new { error = string.Format(Factory.tra("Výsledek má více než {0} řádků (kombinací hodnot). Zužte časové období, použijte filtr nebo odeberte podrobné sloupce (např. datum, popis úkonu)."), PivotMaxRows.ToString("N0")) });
+            }
+
+            return Content(Views.Shared.Components.myPivot.myPivotData.ToJson(dt, mq.explicit_columns.ToList(), "RowsCount"), "application/json", Encoding.UTF8);
+        }
+
         public IActionResult LoadDatasource(string login,int j79id)
         {
+            login = Factory.CurrentUser.j02Login;   //jen data přihlášeného uživatele (CSV se generuje pod jeho loginem)
             var strFullPath = $"{Factory.TempFolder}\\WebDataRocks-{login}-{j79id}.csv";
 
             if (!System.IO.File.Exists(strFullPath))

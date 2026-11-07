@@ -1,0 +1,62 @@
+﻿/* MARKTIME pivot (myPivot) */
+.mtp { display: flex; flex-direction: column; font-size: 13px; }
+.mtp-bar { display: flex; flex-wrap: wrap; gap: 4px 8px; padding: 6px; background: #f5f5f5; border: 1px solid #d0d0d0; border-bottom: none; }
+.mtp-zones { display: flex; flex-wrap: wrap; gap: 4px 8px; flex: 1 1 600px; }
+.mtp-zone { display: flex; align-items: center; gap: 4px; min-height: 30px; padding: 2px 6px; border: 1px dashed #c4c4c4; border-radius: 6px; background: #fff; flex: 1 1 180px; }
+.mtp-zone.mtp-over { border-color: #0d6efd; background: #eef4ff; }
+.mtp-zl { font-size: 11px; color: #777; text-transform: uppercase; white-space: nowrap; }
+.mtp-chips { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; min-height: 22px; flex: 1; }
+.mtp-hint { color: #aaa; font-size: 11px; }
+.mtp-avail { flex-basis: 100%; }
+.mtp-tools { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.mtp-tools .btn { padding: 4px 10px; font-size: 13px; white-space: nowrap; }
+.mtp-tools .btn .material-icons-outlined-btn { font-size: 20px; margin-top: -3px; }
+.mtp-info { color: #888; font-size: 11px; margin-left: 4px; white-space: nowrap; }
+
+.mtp-chip { display: inline-flex; align-items: center; gap: 2px; background: #6c757d; color: #fff; border-radius: 12px; padding: 1px 4px 1px 10px; cursor: grab; user-select: none; font-size: 12px; white-space: nowrap; }
+.mtp-chip.mtp-m { background: #2f6f9f; }
+.mtp-chip.mtp-drag { opacity: .4; }
+.mtp-chip .mtp-ic { cursor: pointer; padding: 0 4px; opacity: .8; }
+.mtp-chip .mtp-ic:hover { opacity: 1; }
+.mtp-chip .mtp-flt.on { color: #ffd54f; opacity: 1; font-weight: bold; }
+.mtp-chip .mtp-x { font-weight: bold; }
+.mtp-chip select.mtp-agg, .mtp-chip select.mtp-gran { font-size: 11px; padding: 0 2px; border-radius: 6px; border: none; margin-left: 4px; max-width: 120px; }
+.mtp-zone[data-zone="avail"] .mtp-chip { padding-right: 10px; }
+
+.mtp-msg { padding: 10px; border: 1px solid #d0d0d0; border-bottom: none; color: #555; }
+.mtp-msg.mtp-error { color: #842029; background: #f8d7da; }
+
+.mtp-body { overflow: auto; border: 1px solid #d0d0d0; height: 600px; background: #fff; }
+.mtp-table { border-collapse: separate; border-spacing: 0; min-width: 100%; }
+.mtp-table th, .mtp-table td { border-right: 1px solid #e2e2e2; border-bottom: 1px solid #e2e2e2; padding: 0 8px; height: 26px; white-space: nowrap; }
+.mtp-table thead th { position: sticky; background: #f0f0f0; font-weight: 600; text-align: center; z-index: 2; }
+.mtp-table thead tr:nth-child(1) th { top: 0; }
+.mtp-table thead tr:nth-child(2) th { top: 26px; }
+.mtp-table thead tr:nth-child(3) th { top: 52px; }
+.mtp-table thead tr:nth-child(4) th { top: 78px; }
+.mtp-table thead tr:nth-child(5) th { top: 104px; }
+.mtp-table thead th.mtp-corner { left: 0; z-index: 3; text-align: left; vertical-align: bottom; }
+.mtp-table thead th.mtp-mh { font-weight: normal; color: #444; }
+.mtp-table thead th.mtp-vs { cursor: pointer; }
+.mtp-table thead th.mtp-vs:hover { text-decoration: underline; }
+.mtp-table thead th.mtp-sub, .mtp-table thead th.mtp-gt { background: #e6e6e6; }
+.mtp-table td { text-align: right; font-variant-numeric: tabular-nums; }
+.mtp-table td.mtp-rl { text-align: left; position: sticky; left: 0; background: #fff; z-index: 1; max-width: 420px; overflow: hidden; text-overflow: ellipsis; }
+.mtp-table tbody tr:hover td { background: #f3f8ff; }
+.mtp-table tr.mtp-subr td { font-weight: 600; background: #fafafa; }
+.mtp-table tr.mtp-gtr td { font-weight: 700; background: #eaeaea; position: sticky; bottom: 0; }
+.mtp-table tr.mtp-gtr td.mtp-rl { z-index: 2; }
+.mtp-table td.mtp-subc { background: #fafafa; font-weight: 600; }
+.mtp-table td.mtp-gtc { background: #f2f2f2; font-weight: 600; }
+.mtp-table tr.mtp-sp td { padding: 0; border: none; height: auto; }
+.mtp-tg, .mtp-tg0 { display: inline-block; width: 16px; text-align: center; margin-right: 4px; }
+.mtp-tg { cursor: pointer; color: #0d6efd; font-weight: bold; border: 1px solid #c8d7ee; border-radius: 3px; line-height: 14px; }
+.mtp-tg:hover { background: #e7f0ff; }
+
+.mtp-pop { position: absolute; z-index: 2000; width: 290px; background: #fff; border: 1px solid #bbb; border-radius: 6px; box-shadow: 0 4px 16px rgba(0,0,0,.18); padding: 8px; font-size: 13px; }
+.mtp-pop-h { font-weight: 600; margin-bottom: 6px; }
+.mtp-pop-a { margin: 4px 0; font-size: 12px; }
+.mtp-pop-list { max-height: 280px; overflow: auto; border: 1px solid #eee; padding: 2px 4px; }
+.mtp-pop-list label { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+.mtp-pop-more { color: #888; font-size: 11px; padding: 4px 0; }
+.mtp-pop-b { margin-top: 8px; text-align: right; }

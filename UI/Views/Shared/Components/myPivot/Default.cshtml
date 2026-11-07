@@ -1,0 +1,95 @@
+﻿@model UI.Views.Shared.Components.myPivot.myPivotViewModel
+@inject BL.Factory _f
+
+<link rel="stylesheet" href="~/css/mypivot.css" asp-append-version="true" />
+<script src="~/js/mypivot.js" asp-append-version="true"></script>
+
+<div id="@Model.ElementId"></div>
+
+<script type="text/javascript">
+    var @(Model.JsVariable) = null;
+    $(function () {
+        var el = document.getElementById("@Model.ElementId");
+        // výška tabulky do konce okna (panel polí může mít víc řádků)
+        var fit = function () {
+            var body = el.querySelector(".mtp-body");
+            if (!body) return;
+            var h = @(Model.Height);
+            if (!h) h = Math.max(300, window.innerHeight - body.getBoundingClientRect().top - 20);
+            if (body.style.height !== h + "px") {
+                body.style.height = h + "px";
+                if (@(Model.JsVariable)) @(Model.JsVariable)._renderBody();
+            }
+        };
+        window.addEventListener("resize", fit);
+
+        // rozložení: uložené v prohlížeči má přednost před uloženým v šabloně
+        var storageKey = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.StorageKey));
+        var report = @Html.Raw(string.IsNullOrWhiteSpace(Model.ReportJson) ? "{}" : Model.ReportJson);
+        if (storageKey) {
+            try { var st = localStorage.getItem(storageKey); if (st) report = JSON.parse(st); } catch (e) { }
+        }
+        var onChange = @Html.Raw(string.IsNullOrEmpty(Model.OnReportChange) ? "null" : Model.OnReportChange);
+
+        @(Model.JsVariable) = new MtPivot(el, {
+            onLayout: fit,
+            dataUrl: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DataUrl)),
+            report: report,
+            exportUrl: "/myPivot/ExportExcel",
+            title: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Title ?? "")),
+            onReportChange: function (r) {
+                if (storageKey) { try { localStorage.setItem(storageKey, JSON.stringify(r)); } catch (e) { } }
+                if (onChange) onChange(r);
+            },
+            txt: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(new
+            {
+                filters = _f.tra("Filtry"),
+                columns = _f.tra("Sloupce"),
+                rows = _f.tra("Řádky"),
+                values = _f.tra("Hodnoty"),
+                available = _f.tra("Dostupná pole"),
+                fields = _f.tra("Pole"),
+                expandAll = _f.tra("Rozbalit vše"),
+                collapseAll = _f.tra("Sbalit vše"),
+                print = _f.tra("Tisk"),
+                dropHere = _f.tra("přetáhněte sem pole"),
+                filter = _f.tra("Filtr hodnot"),
+                sort = _f.tra("Řazení A–Z / Z–A"),
+                remove = _f.tra("Odebrat"),
+                search = _f.tra("Hledat…"),
+                selectAll = _f.tra("Vybrat vše"),
+                selectNone = _f.tra("Zrušit výběr"),
+                cancel = _f.tra("Zrušit"),
+                filterMore = _f.tra("Zobrazena jen část hodnot – upřesněte hledání."),
+                total = _f.tra("Celkem"),
+                grandTotal = _f.tra("Celkový součet"),
+                sortByValue = _f.tra("Seřadit řádky podle této hodnoty"),
+                empty = _f.tra("(prázdné)"),
+                yes = _f.tra("ANO"),
+                no = _f.tra("NE"),
+                records = _f.tra("Řádků:"),
+                loading = _f.tra("Načítám data…"),
+                loadError = _f.tra("Data se nepodařilo načíst."),
+                noMeasures = _f.tra("Přetáhněte do zóny Hodnoty alespoň jedno pole (tlačítko Pole)."),
+                gran = new Dictionary<string, string>
+                {
+                    ["day"] = _f.tra("den"),
+                    ["month"] = _f.tra("měsíc"),
+                    ["quarter"] = _f.tra("čtvrtletí"),
+                    ["year"] = _f.tra("rok")
+                },
+                agg = new Dictionary<string, string>
+                {
+                    ["sum"] = _f.tra("Součet"),
+                    ["average"] = _f.tra("Průměr"),
+                    ["count"] = _f.tra("Počet záznamů"),
+                    ["distinctcount"] = _f.tra("Počet různých"),
+                    ["min"] = _f.tra("Minimum"),
+                    ["max"] = _f.tra("Maximum")
+                }
+            }))
+        });
+
+        fit();
+    });
+</script>

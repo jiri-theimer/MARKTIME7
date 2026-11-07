@@ -16,6 +16,8 @@
     }
 
 
+    bool _mt = Model.PivotEngine == "mt";     //MARKTIME pivot místo WebDataRocks
+
     if (Model.selected_entity != null && Model.selected_pids != null)
     {
         var arr = BO.Code.Bas.ConvertString2ListInt(Model.selected_pids);
@@ -29,12 +31,14 @@
 
 @section header_content {
 
-
+    @if (!_mt)
+    {
     <link href="https://cdn.webdatarocks.com/latest/webdatarocks.min.css" rel="stylesheet" />
     <script src="~/lib/WebDataRocks/webdatarocks.toolbar.min.js"></script>
     <script src="~/lib/WebDataRocks/webdatarocks.js"></script>
+    }
 
-    @if (Model.ChartType > 0)
+    @if (Model.ChartType > 0 && !_mt)
     {
         <!-- amCharts 4 -->
         <script src="https://www.amcharts.com/lib/4/core.js"></script>
@@ -187,9 +191,19 @@
         
     </div>
 
+    <div class="col-auto">
+        <select id="cbxPivotEngine" class="form-select form-select-sm" onchange="pivot_engine_change(this)" title="@_f.tra("Způsob zobrazení součtů")">
+            <option value="wdr" selected="@(!_mt)">WebDataRocks</option>
+            <option value="mt" selected="@_mt">MARKTIME pivot</option>
+        </select>
+    </div>
+
+    @if (!_mt)
+    {
     <div class="col-auto" title="Velikost datového zdroje v MB. Limitní velikost je 1MB. Velikost datového zdroje snížíte přes filtrování dat (především časové období) a změnou okruhu sloupců.">
         <span class="badge text-bg-primary">@(BO.Code.Bas.FormatFileSize(Model.DataSourceLengthBytes))</span>
     </div>
+    }
 
 
     <div class="col-auto">
@@ -200,6 +214,8 @@
         </button>
     </div>
 
+    @if (!_mt)
+    {
     <div class="col-auto">
         <select asp-for="ChartType" onchange="chart_change()" class="form-select form-select-sm">
             <option value="0">@_f.tra("Bez grafu")</option>
@@ -207,6 +223,7 @@
         </select>
         
     </div>
+    }
 
     @if (Model.IsShared && (Model.SelectedTemplate.j02ID==_f.CurrentUser.j02ID || _f.CurrentUser.IsAdmin))
     {
@@ -329,7 +346,29 @@
 
 
 
-@if (Model.ChartType > 0)
+@if (_mt)
+{
+    //data se načtou zvlášť (PivotData) se stejnými parametry jako stránka
+    var _q = Context.Request.Query;
+    string _dataUrl = $"/p31totals/PivotData?j79id={Model.SelectedJ79ID}"
+        + $"&master_entity={Uri.EscapeDataString(_q["master_entity"].ToString())}&master_pid={Model.record_pid}"
+        + $"&selected_entity={Uri.EscapeDataString(_q["selected_entity"].ToString())}"
+        + (string.IsNullOrEmpty(_q["guid_pids"]) ? $"&selected_pids={Uri.EscapeDataString(_q["selected_pids"].ToString())}" : $"&guid_pids={Uri.EscapeDataString(_q["guid_pids"].ToString())}");
+
+    <div style="margin-top:6px;">
+        @await Component.InvokeAsync("myPivot", new UI.Views.Shared.Components.myPivot.myPivotViewModel()
+        {
+            ElementId = "mtPivot",
+            JsVariable = "pivot1",
+            DataUrl = _dataUrl,
+            ReportJson = Model.SelectedTemplate?.j79WebDataRocksReport,
+            StorageKey = "webdatarocks_layout-" + Model.SelectedJ79ID,
+            Title = Model.SelectedTemplate.j79IsSystem ? _f.tra("Součty") : Model.SelectedTemplate.j79Name,
+            OnReportChange = "mt_report_change"
+        })
+    </div>
+}
+else if (Model.ChartType > 0)
 {
     <div id="pivotContainer" style="height:600px;">></div>
     <div id="amchartsContainer" style="height:400px;"></div>
@@ -341,7 +380,8 @@ else
 
 
 <script>
-    var _Chart="@(Model.ChartType)";
+    var _Chart="@(_mt ? 0 : Model.ChartType)";
+    var _engine = "@(Model.PivotEngine)";
     var _tg_entity = "p31Worksheet";
     var _tabquery = "@(Model.p31tabquery != null ? Model.p31tabquery.Value : null)";    
     var _j79id = "@Model.SelectedJ79ID";
@@ -379,7 +419,7 @@ else
          
 
          const saved = localStorage.getItem(STORAGE_KEY);
-         if (saved) {
+         if (saved && _engine == "wdr") {
              report1 = JSON.parse(saved);
              report1.dataSource = { filename: CSV_URL, delimiter: ";" }; // vždy jistota
 
@@ -387,7 +427,7 @@ else
          }     
 
 
-         if (DATASOURCE_SIZE<=1)
+         if (_engine == "wdr" && DATASOURCE_SIZE<=1)
          {
 
              var pivot1 = new WebDataRocks({
@@ -508,6 +548,10 @@ else
     $(document).ready(function () {
 
         $("#cmdtotals").addClass("active");
+
+        if (_engine == "mt" && localStorage.getItem(STORAGE_KEY)) {
+            $("#cmdClear").css("display", "block");     //MARKTIME pivot používá uložené rozložení z prohlížeče
+        }
 
 
 
@@ -655,6 +699,19 @@ else
     }
 
 
+    // přepnutí WebDataRocks / MARKTIME pivot (uživatelský parametr)
+    function pivot_engine_change(cbx) {
+        $.post(_ep("/Common/SetUserParam"), { key: "p31totals-pivotengine", value: cbx.value }, function (data) {
+            reload();
+        });
+    }
+
+    // MARKTIME pivot: rozložení se uložilo do localStorage (komponenta) – zobrazit tlačítka jako u WebDataRocks
+    function mt_report_change(report) {
+        $("#cmdSaveChangesShared").css("display", "block");
+        $("#cmdClear").css("display", "block");
+    }
+
     function switch2oldversion()
     {
         $.post(_ep("/Common/SetUserParam"), { key: "p31totals-useoldversion", value: true }, function (data) {
@@ -726,6 +783,7 @@ else
     function save_shared_changes()
     {
         var data2save=pivot1.getReport();
+        data2save.dataSource = { filename: CSV_URL, delimiter: ";" };   //WebDataRocks vyžaduje zdroj dat i u rozložení uloženého z MARKTIME pivotu
         var s=JSON.stringify(data2save);
 
         $.post("/p31totals/SaveReportSetting", { j79id: _j79id, setting: s }, function (data) {

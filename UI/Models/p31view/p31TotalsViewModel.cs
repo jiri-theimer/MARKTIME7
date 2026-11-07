@@ -36,5 +36,8 @@ namespace UI.Models.p31view
       
         public int ChartType { get; set; }
 
+        /// <summary>Zobrazení součtů: "wdr" = WebDataRocks, "mt" = MARKTIME pivot (myPivot). Uživatelský parametr p31totals-pivotengine.</summary>
+        public string PivotEngine { get; set; }
+
     }
 }
