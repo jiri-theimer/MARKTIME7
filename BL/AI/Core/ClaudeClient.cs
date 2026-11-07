@@ -50,51 +50,12 @@ namespace BL.AI.Core
                 };
             }
 
-            using var msg = new HttpRequestMessage(HttpMethod.Post, Options.Endpoint);
-            msg.Headers.Add("x-api-key", Options.ApiKey);
-            msg.Headers.Add("anthropic-version", Options.ApiVersion);
-            msg.Content = new StringContent(body.ToJsonString(), Encoding.UTF8);
-            msg.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
-
-            var sw = Stopwatch.StartNew();
-            HttpResponseMessage resp;
-            string text;
-            try
-            {
-                resp = await _http.SendAsync(msg, ct);
-                text = await resp.Content.ReadAsStringAsync(ct);
-            }
-            catch (TaskCanceledException)
-            {
-                res.Error = "Vypršel časový limit volání AI.";
-                return res;
-            }
-            catch (Exception ex)
-            {
-                res.Error = "Chyba spojení s AI: " + ex.Message;
-                return res;
-            }
-            res.ElapsedMs = sw.ElapsedMilliseconds;
-
-            JsonNode root;
-            try { root = JsonNode.Parse(text); }
-            catch { res.Error = $"Neplatná odpověď AI (HTTP {(int)resp.StatusCode})."; return res; }
-
-            if (!resp.IsSuccessStatusCode)
-            {
-                res.Error = $"AI API HTTP {(int)resp.StatusCode}: {root?["error"]?["message"]?.GetValue<string>() ?? text}";
-                return res;
-            }
+            var (root, error, ms) = await SendAsync(body, ct);
+            res.ElapsedMs = ms;
+            if (root == null) { res.Error = error; return res; }
 
             res.StopReason = root["stop_reason"]?.GetValue<string>();
-            var u = root["usage"];
-            if (u != null)
-            {
-                res.Usage.InputTokens = u["input_tokens"]?.GetValue<int>() ?? 0;
-                res.Usage.OutputTokens = u["output_tokens"]?.GetValue<int>() ?? 0;
-                res.Usage.CacheReadTokens = u["cache_read_input_tokens"]?.GetValue<int>() ?? 0;
-                res.Usage.CacheWriteTokens = u["cache_creation_input_tokens"]?.GetValue<int>() ?? 0;
-            }
+            ReadUsage(root, res.Usage);
 
             var sb = new StringBuilder();
             foreach (var block in root["content"]?.AsArray() ?? new JsonArray())
@@ -116,6 +77,106 @@ namespace BL.AI.Core
 
             res.Ok = true;
             return res;
+        }
+
+        public async Task<LlmToolResult> CompleteToolsAsync(LlmToolRequest request, CancellationToken ct = default)
+        {
+            var res = new LlmToolResult { Model = Options.Model };
+            if (!Options.Enabled)
+            {
+                res.Error = "AI není v konfiguraci zapnuté nebo chybí API klíč.";
+                return res;
+            }
+
+            var tools = new JsonArray();
+            foreach (var t in request.Tools)
+            {
+                tools.Add(new JsonObject
+                {
+                    ["name"] = t.Name,
+                    ["description"] = t.Description,
+                    ["input_schema"] = JsonNode.Parse(t.InputSchema.ToJsonString())
+                });
+            }
+
+            // kopie zpráv: cache breakpoint na posledním bloku poslední zprávy (inkrementální cache konverzace)
+            // se nesmí propsat do historie, jinak by breakpointů přibývalo (API jich dovolí max. 4)
+            var messages = (JsonArray)JsonNode.Parse(request.Messages.ToJsonString());
+            if (messages.Count > 0 && messages[messages.Count - 1]?["content"] is JsonArray lastContent && lastContent.Count > 0
+                && lastContent[lastContent.Count - 1] is JsonObject lastBlock)
+            {
+                lastBlock["cache_control"] = new JsonObject { ["type"] = "ephemeral" };
+            }
+
+            var body = new JsonObject
+            {
+                ["model"] = Options.Model,
+                ["max_tokens"] = request.MaxTokens ?? Options.MaxTokens,
+                ["system"] = BuildSystem(request.System),     // cache breakpoint v system pokrývá i tools (pořadí cache: tools → system → messages)
+                ["tools"] = tools,
+                ["messages"] = messages,
+            };
+            if (!string.IsNullOrEmpty(request.ForceTool))
+                body["tool_choice"] = new JsonObject { ["type"] = "tool", ["name"] = request.ForceTool };
+
+            var (root, error, ms) = await SendAsync(body, ct);
+            res.ElapsedMs = ms;
+            if (root == null) { res.Error = error; return res; }
+
+            res.StopReason = root["stop_reason"]?.GetValue<string>();
+            ReadUsage(root, res.Usage);
+            res.Content = root["content"] as JsonArray ?? new JsonArray();
+            res.Content = (JsonArray)JsonNode.Parse(res.Content.ToJsonString());   // odpojit od root
+
+            switch (res.StopReason)
+            {
+                case "refusal":
+                    res.Error = "AI odmítla odpovědět."; return res;
+                case "max_tokens":
+                    res.Error = "Odpověď AI byla zkrácena (max_tokens)."; return res;
+            }
+            res.Ok = true;
+            return res;
+        }
+
+        /// <summary>Odešle požadavek; vrací kořen JSON odpovědi, nebo null a text chyby. Společné pro CompleteJsonAsync a CompleteToolsAsync.</summary>
+        private async Task<(JsonNode root, string error, long ms)> SendAsync(JsonObject body, CancellationToken ct)
+        {
+            using var msg = new HttpRequestMessage(HttpMethod.Post, Options.Endpoint);
+            msg.Headers.Add("x-api-key", Options.ApiKey);
+            msg.Headers.Add("anthropic-version", Options.ApiVersion);
+            msg.Content = new StringContent(body.ToJsonString(), Encoding.UTF8);
+            msg.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+            var sw = Stopwatch.StartNew();
+            HttpResponseMessage resp;
+            string text;
+            try
+            {
+                resp = await _http.SendAsync(msg, ct);
+                text = await resp.Content.ReadAsStringAsync(ct);
+            }
+            catch (TaskCanceledException) { return (null, "Vypršel časový limit volání AI.", sw.ElapsedMilliseconds); }
+            catch (Exception ex) { return (null, "Chyba spojení s AI: " + ex.Message, sw.ElapsedMilliseconds); }
+            long ms = sw.ElapsedMilliseconds;
+
+            JsonNode root;
+            try { root = JsonNode.Parse(text); }
+            catch { return (null, $"Neplatná odpověď AI (HTTP {(int)resp.StatusCode}).", ms); }
+
+            if (!resp.IsSuccessStatusCode)
+                return (null, $"AI API HTTP {(int)resp.StatusCode}: {root?["error"]?["message"]?.GetValue<string>() ?? text}", ms);
+            return (root, null, ms);
+        }
+
+        private static void ReadUsage(JsonNode root, LlmUsage usage)
+        {
+            var u = root["usage"];
+            if (u == null) return;
+            usage.InputTokens = u["input_tokens"]?.GetValue<int>() ?? 0;
+            usage.OutputTokens = u["output_tokens"]?.GetValue<int>() ?? 0;
+            usage.CacheReadTokens = u["cache_read_input_tokens"]?.GetValue<int>() ?? 0;
+            usage.CacheWriteTokens = u["cache_creation_input_tokens"]?.GetValue<int>() ?? 0;
         }
 
         private static JsonArray BuildSystem(List<LlmSystemBlock> blocks)

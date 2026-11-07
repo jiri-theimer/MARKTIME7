@@ -41,6 +41,10 @@ namespace BL.AI.Core
             public string Hint { get; set; }
             /// <summary>Typ sloupcového filtru gridu: string | number | date | bool; null = podle sloupce nelze filtrovat.</summary>
             public string FilterType { get; set; }
+            /// <summary>Sčítatelná hodnota primární entity (měřítko pro agregaci).</summary>
+            public bool Sum { get; set; }
+            /// <summary>Sloupec nelze použít v Součtech / agregaci (IsNotUseP31TOTALS, časové razítko) – jen filtr nebo zobrazení.</summary>
+            public bool NotForTotals { get; set; }
         }
 
         /// <summary>Typ sloupcového filtru podle FieldType – stejně jako TheGridColumn.NormalizedTypeName a thegrid.js (normalize_coltype_name).</summary>
@@ -117,7 +121,9 @@ namespace BL.AI.Core
                         Group = rel.RelName == "a" ? (col.DesignerGroup ?? alias) : alias,
                         Type = col.FieldType,
                         Hint = h?.hint ?? col.Tooltip,
-                        FilterType = col.IsFilterable ? FilterTypeOf(col.FieldType) : null
+                        FilterType = col.IsFilterable ? FilterTypeOf(col.FieldType) : null,
+                        Sum = rel.RelName == "a" && col.IsShowTotals && numeric,
+                        NotForTotals = col.IsNotUseP31TOTALS || col.IsTimestamp
                     };
                     cat.Items.Add(e);
                     cat._byKey[key] = e;

@@ -1,0 +1,20 @@
+﻿/* „Zeptej se MARKTIME“ – samostatná stránka a tabulky výsledků (chat: aichat.css) */
+.ai-ask-page { max-width: 1200px; margin: 0 auto; padding: 0 8px; }
+.ai-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; padding: 6px 0; border-bottom: 1px solid #ddd; }
+.ai-ask-title { font-weight: 600; font-size: 110%; }
+.ai-ask-title .material-icons-outlined-btn { color: #7b2ff7; vertical-align: middle; }
+.ai-ask-wrap { height: calc(100vh - 100px); min-height: 400px; }
+.ai-ask-wrap .ai-msg.ai-assistant { max-width: 100%; }
+
+.ai-result { white-space: normal; background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; padding: 6px 8px; margin-top: 8px; }
+.ai-result-title { font-weight: 600; }
+.ai-result-desc { color: #6c757d; font-size: 85%; }
+.ai-result-warn { white-space: normal; color: #8a6d3b; font-size: 85%; margin-top: 6px; }
+.ai-result-scroll { max-height: 460px; overflow: auto; margin-top: 4px; }
+.ai-table { margin-bottom: 0; font-size: 90%; }
+.ai-table thead th { position: sticky; top: 0; background: #f8f9fa; white-space: nowrap; }
+.ai-table tfoot td { font-weight: 600; border-top: 2px solid #999; background: #f8f9fa; position: sticky; bottom: 0; }
+.ai-table .ai-num { text-align: right; white-space: nowrap; }
+.ai-table td.ai-text { max-width: 420px; white-space: pre-wrap; }
+.ai-click-row { cursor: pointer; }
+.ai-result-buttons { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }

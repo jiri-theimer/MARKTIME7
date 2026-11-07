@@ -1,5 +1,6 @@
 ﻿@model BaseViewModel
 @inject BL.Factory _f
+@inject BL.AI.Core.ILlmClient _ai
 
 @{
     var cmenu = new UI.Menu.TheMenuSupport(_f);
@@ -537,6 +538,14 @@
                                 <a class="nav-link nav-news-link" href="javascript:_news()" title="Novinky | Blog">
                                     <span class="nav-news-text">@_f.tra("novinky")</span>
                                     <span class="nav-news-dot" aria-hidden="true"></span>
+                                </a>
+                            </li>
+                        }
+                        @if (_ai.Options.Enabled)
+                        {
+                            <li class="nonmobile" title="@_f.tra("Zeptej se MARKTIME")">
+                                <a class="nav-link" href="/AiAsk">
+                                    <span class="material-icons-outlined-btn" style="color:#f107a3;">auto_awesome</span>
                                 </a>
                             </li>
                         }

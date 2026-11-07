@@ -202,8 +202,8 @@ namespace BL.AI.Grid
             archive = HasArchive ? ArchiveValues.Select(p => new { id = p, name = _f.tra(ArchiveNames[p]) }).ToList() : null
         };
 
-        /// <summary>Datumová pole období podle entity – kopie nabídky z Views/myPeriod/selector.cshtml.</summary>
-        private static List<(string, string)> FieldsOf(string prefix) => prefix switch
+        /// <summary>Datumová pole období podle entity – kopie nabídky z Views/myPeriod/selector.cshtml. Používá i nástroj agregace.</summary>
+        public static List<(string Id, string Name)> FieldsOf(string prefix) => prefix switch
         {
             "p11" => new() { ("p11Date", "Datum docházky") },
             "b05" => new() { ("b05DateInsert", "Čas záznamu"), ("b05Date", "Datum") },

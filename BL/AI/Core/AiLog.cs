@@ -31,6 +31,19 @@
             Usage.CacheWriteTokens += r.Usage.CacheWriteTokens;
             DurationMs += r.ElapsedMs;
         }
+
+        /// <summary>Připočte tokeny a čas z jednoho kola tool use.</summary>
+        public void Add(LlmToolResult r)
+        {
+            if (r == null) return;
+            AiModel = r.Model;
+            StopReason = r.StopReason;
+            Usage.InputTokens += r.Usage.InputTokens;
+            Usage.OutputTokens += r.Usage.OutputTokens;
+            Usage.CacheReadTokens += r.Usage.CacheReadTokens;
+            Usage.CacheWriteTokens += r.Usage.CacheWriteTokens;
+            DurationMs += r.ElapsedMs;
+        }
     }
 
     /// <summary>Zápis do tabulky j98OpenAILog (rozšířené skriptem SQL/j98OpenAILog_upgrade.sql). Chyba logování nikdy neshodí AI funkci.</summary>

@@ -1,0 +1,46 @@
+﻿@model UI.Models.AI.AiAskViewModel
+@inject BL.Factory _f
+@{
+    Layout = _f.CurrentUser.GetLayoutPerDisplay();
+    var chatSettings = new UI.Models.AI.AiChatSettings
+    {
+        Intro = _f.tra("Zeptejte se na svá data v MARKTIME. Např.: „Kolik hodin jsme minulý měsíc vykázali podle klientů?“, „Ukaž moje včerejší úkony s popisem“, „Top 10 projektů podle nevyfakturovaných hodin“ nebo „Neuhrazené faktury po splatnosti“."),
+        Thinking = _f.tra("Hledám v datech…"),
+        Feature = Model.Feature
+    };
+}
+
+<link rel="stylesheet" href="~/css/ai/aiask.css" asp-append-version="true" />
+
+<div class="ai-ask-page">
+    <div class="ai-toolbar">
+        <span class="ai-ask-title me-auto"><span class="material-icons-outlined-btn">auto_awesome</span> @_f.tra("Zeptej se MARKTIME")</span>
+        <button type="button" id="cmdAskNew" class="btn btn-light" title="@_f.tra("Začít novou konverzaci")"><span class="material-icons-outlined-btn">add_comment</span>@_f.tra("Nová konverzace")</button>
+    </div>
+
+    <div class="ai-ask-wrap">
+        <partial name="~/Views/Shared/AI/_AiChat.cshtml" model="chatSettings" />
+    </div>
+</div>
+
+<script type="text/javascript">
+    var _ask_user = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(_f.CurrentUser.pid));
+    var _ask_txt = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(new
+    {
+        total = _f.tra("Celkem"),
+        yes = _f.tra("ano"),
+        no = _f.tra("ne"),
+        shown = _f.tra("Zobrazeno {0} z {1} řádků, celkem je spočítáno ze všech."),
+        shownList = _f.tra("Zobrazeno {0} z {1} záznamů, celkem je spočítáno ze všech."),
+        countList = _f.tra("Nalezeno záznamů: {0}"),
+        pivot = _f.tra("Pivot-Explorer"),
+        pivotTitle = _f.tra("Otevřít výsledek v kontingenční tabulce"),
+        drill = _f.tra("Zobrazit úkony"),
+        drillTitle = _f.tra("Všechny úkony výsledku v gridu"),
+        drillRow = _f.tra("Kliknutím na řádek zobrazíte jeho úkony"),
+        cardRow = _f.tra("Kliknutím otevřete kartu záznamu"),
+        drillError = _f.tra("Zdrojové úkony se nepodařilo načíst."),
+        empty = _f.tra("Nic nenalezeno.")
+    }));
+</script>
+<script src="~/js/ai/aiask.js" asp-append-version="true"></script>

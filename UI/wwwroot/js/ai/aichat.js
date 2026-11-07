@@ -5,7 +5,7 @@
 //     askUrl: "/AiTotals/Ask",               // akce agenta – přijme { payload: JSON }
 //     page: "p31totals",                      // → j98ContextPage
 //     extra: function () { return {...}; },   // doplňující data agenta do payloadu (např. stav formuláře)
-//     onAnswer: function (r) { ... }          // úspěšná odpověď (r.reply, r.logId, r.warnings + data agenta)
+//     onAnswer: function (r, $msg) { ... }    // úspěšná odpověď (r.reply, r.logId, r.warnings + data agenta), $msg = bublina odpovědi
 // });
 // chat.lastLogId – j98ID poslední odpovědi (pro vazbu na uložený výsledek)
 // Předchozí dotazy uživatele: tlačítko 🕘 a šipka nahoru/dolů v poli dotazu (feature = data-feature v #ai_chat, viz _AiChat.cshtml).
@@ -127,7 +127,7 @@ AiChat.prototype.send = function (textOverride) {
         var $msg = self.addMessage("ai-assistant", r.reply || "");
         if (r.logId) { self.lastLogId = r.logId; self.addRating($msg, r.logId); }
         self.history.push({ role: "assistant", content: r.raw || r.reply || "" });
-        if (self.opt.onAnswer) self.opt.onAnswer(r);
+        if (self.opt.onAnswer) self.opt.onAnswer(r, $msg);     // $msg = bublina odpovědi (agent do ní může vložit tabulky)
     }).fail(function () {
         $wait.remove();
         self.$send.prop("disabled", false);

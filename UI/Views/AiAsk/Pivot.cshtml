@@ -1,0 +1,47 @@
+﻿@model UI.Models.AI.AiAskPivotViewModel
+@inject BL.Factory _f
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+}
+
+@addTagHelper *, UI
+
+<div class="input-group" style="padding: 3px 8px;background-color: #2D89EF;color:white;">
+    <div style="flex:1;">
+        <span class="material-icons-outlined-btn" style="color:white;">pivot_table_chart</span>
+        @Model.Title
+        @if (!string.IsNullOrEmpty(Model.Description))
+        {
+            <small class="ms-2" style="opacity:.85;">@Model.Description</small>
+        }
+    </div>
+</div>
+
+<div class="bg-light input-group" style="padding-left: 10px;padding-top:2px;">
+    <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
+</div>
+
+<div style="margin-top:6px;">
+    @await Component.InvokeAsync("myPivot", new UI.Views.Shared.Components.myPivot.myPivotViewModel()
+    {
+        ElementId = "mtPivot",
+        JsVariable = "pivot1",
+        DataUrl = "/AiAsk/PivotData?guid=" + Model.Guid,
+        ReportJson = Model.ReportJson,
+        StorageKey = null,
+        Title = Model.Title,
+        OnDrill = Model.CanDrill ? "ai_pivot_drill" : null
+    })
+</div>
+
+<script type="text/javascript">
+    var _ai_pivot_guid = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Guid));
+    var _ai_pivot_err = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(_f.tra("Zdrojové úkony se nepodařilo načíst.")));
+
+    function ai_pivot_drill(info) {
+        $.ajax({ url: "/AiAsk/DrillDown?guid=" + encodeURIComponent(_ai_pivot_guid), type: "POST", contentType: "application/json", data: JSON.stringify(info) }).done(function (r) {
+            if (r.error) { _notify_message(r.error, "warning"); return; }
+            _window_open("/p31totals/Drill?guid=" + r.guid + "&count=" + r.count + "&label=" + encodeURIComponent(info.label || ""), 3);
+        }).fail(function () { _notify_message(_ai_pivot_err, "error"); });
+    }
+</script>

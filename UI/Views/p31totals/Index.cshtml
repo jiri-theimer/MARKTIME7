@@ -87,18 +87,7 @@
 
 
     </div>
-    @if (_ai.Options.Enabled && Model.record_prefix == null)
-    {
-        <div class="dropdown" style="margin-left:5px;">
-            <button type="button" id="cmdAiTotals" class="btn ai-btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="@_f.tra("Popište slovy, co chcete vidět, a AI navrhne šablonu Součtů")">
-                <span class="material-icons-outlined-btn">auto_awesome</span> @_f.tra("AI návrhář")
-            </button>
-            <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="javascript:ai_open_totals(false)">@_f.tra("Nová šablona – začít s prázdným návrhem")</a></li>
-                <li><a class="dropdown-item" href="javascript:ai_open_totals(true)">@_f.tra("Upravit aktuální šablonu") „@(Model.SelectedTemplate?.j79Name)“</a></li>
-            </ul>
-        </div>
-    }
+    
     <div style="margin-left:5px;">
         <select asp-for="SelectedJ79ID" class="form-select" onchange="j79id_onchange(this)">
             @foreach (var c in Model.lisJ79)
@@ -163,9 +152,22 @@
 
 <div class="row m-0" style="padding-top:10px;padding-bottom:10px;background-color:#F5F5F5;border:solid 1px silver;">
 
+    @if (_ai.Options.Enabled && Model.record_prefix == null)
+    {
+        <div class="col-auto">
+            <button type="button" id="cmdAiTotals" class="btn ai-btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="@_f.tra("Popište slovy, co chcete vidět, a AI navrhne šablonu Součtů")">
+                <span class="material-icons-outlined-btn">auto_awesome</span> @_f.tra("AI návrhář")
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="javascript:ai_open_totals(false)">@_f.tra("Nová šablona – začít s prázdným návrhem")</a></li>
+                <li><a class="dropdown-item" href="javascript:ai_open_totals(true)">@_f.tra("Upravit aktuální šablonu") „@(Model.SelectedTemplate?.j79Name)“</a></li>
+            </ul>
+        </div>
+    }
+
     @if (Model.IsAllowEditTemplate)
     {
-        <div class="col-auto" style="margin-left:0px;">
+        <div class="col-auto" style="margin-left:5px;">
             <button type="button" class="btn bog" onclick="grid_designer()">
                 @_f.tra("Datový zdroj sloupců (polí)")
 
