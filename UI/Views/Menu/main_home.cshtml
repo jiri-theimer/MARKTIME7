@@ -31,7 +31,7 @@
     {
         _GridUrlB05 = cmenu.GetMainmenuEntityUrl("b05");
     }
-    string _GridUrlP55 = cmenu.GetMainmenuEntityUrl("p55");
+    //string _GridUrlP55 = cmenu.GetMainmenuEntityUrl("p55");
 
 
     string _pripnout_tooltip = _f.tra("Připnout odkaz do MENU");
@@ -368,18 +368,22 @@
                             </a>
                             <button type="button" data-key="p58" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
                         }
-                        @if (_GridUrlP55 != null)
+                        @if (1==2)
                         {
-                            <a id="linkTodolist" class="locallink" href="@(_GridUrlP55)">
+                            <a id="linkTodolist" class="locallink">
                                 <span class="material-icons-outlined-btn">control_point_duplicate</span>
                                 Todo-list
                             </a>
                             <button type="button" data-key="p55" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
                         }
-                        <a id="linkSablonyUkolu" class="locallink" href="/TheGrid/FlatView?prefix=p60">
+                        @if(1==2)
+                        {
+                            <a id="linkSablonyUkolu" class="locallink" href="/TheGrid/FlatView?prefix=p60">
                             <span class="material-icons-outlined-btn">copy_all</span>
                             Šablony úkolů
-                        </a>
+                            </a>
+                        }
+                        
 
                         <button type="button" data-key="p58" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
 
@@ -631,7 +635,7 @@
                     }
 
                    
-                    @if (_GridUrlP15 != null)
+                    @if (1==2 && _GridUrlP15 != null)
                     {
 
                         <a id="linkP15" class="locallink" href="@(_GridUrlP15)">

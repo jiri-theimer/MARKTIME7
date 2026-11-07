@@ -177,19 +177,7 @@
 
 
 
-    <div class="col-auto">
-        @if (Model.lisGridColumns != null && Model.lisGridColumns.Count() > 0)
-        {
-            @foreach (var col in Model.lisGridColumns)
-            {
-                <kbd style="margin-left:10px;background-color:gray;font-size:80%;">
-                    @(col.Header)
-                </kbd>
-            }
-        }
-
-        
-    </div>
+   
 
     <div class="col-auto">
         <select id="cbxPivotEngine" class="form-select form-select-sm" onchange="pivot_engine_change(this)" title="@_f.tra("Způsob zobrazení součtů")">
@@ -207,9 +195,8 @@
 
 
     <div class="col-auto">
-        <button id="cmdClear" type="button" class="btn btn-sm btn-danger" onclick="clear_localstorage()" style="display:none;" title="@_f.tra("Nahodit vzhled do výchozího stavu")">
-            <myicon symbol="clear"></myicon>
-            
+        <button id="cmdClear" type="button" class="btn btn-sm btn-warning" onclick="clear_localstorage()" style="display:none;" title="@_f.tra("Nahodit vzhled do výchozího stavu")">
+            @_f.tra("Vyčistit")
 
         </button>
     </div>
@@ -337,7 +324,7 @@
 
       
         <div style="padding:6px;">
-            <a class="btn btn btn-outline-info" href="javascript:switch2oldversion()">@_f.tra("Přepnout do rozhraní")<span class="badge-light ms-3">BigData</span></a>
+            <a class="btn btn btn-outline-info" href="javascript:switch2oldversion()">@_f.tra("Přepnout do rozhraní")<span class="badge-light ms-3">Staré SOUČTY</span></a>
         </div>
 
 
