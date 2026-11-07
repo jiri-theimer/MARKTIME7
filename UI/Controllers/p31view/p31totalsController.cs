@@ -318,6 +318,73 @@ namespace UI.Controllers.p31view
             return Content(Views.Shared.Components.myPivot.myPivotData.ToJson(dt, mq.explicit_columns.ToList(), "RowsCount"), "application/json", Encoding.UTF8);
         }
 
+        /// <summary>Maximální počet úkonů zobrazitelných z jedné buňky pivotu.</summary>
+        public const int DrillMaxRows = 20000;
+
+        /// <summary>
+        /// Drill-down z buňky MARKTIME pivotu: stejné filtry jako PivotData + hodnoty dimenzí buňky + filtry pivotu.
+        /// ID úkonů uloží do p85TempBox a vrátí guid pro okno Drill (grid úkonů).
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> DrillDown(string master_entity, int master_pid, int j79id, string selected_entity, string selected_pids, string guid_pids)
+        {
+            //tělo čteme sami přes System.Text.Json – aplikace má pro [FromBody] nastavený Newtonsoft (kvůli Telerik reportingu), který JsonElement neumí
+            Views.Shared.Components.myPivot.myPivotDrill.Input d;
+            try
+            {
+                using var reader = new StreamReader(Request.Body, Encoding.UTF8);
+                d = System.Text.Json.JsonSerializer.Deserialize<Views.Shared.Components.myPivot.myPivotDrill.Input>(await reader.ReadToEndAsync());
+            }
+            catch
+            {
+                return Json(new { error = "Neplatný vstup." });
+            }
+            if (d == null) return Json(new { error = "Neplatný vstup." });
+
+            var v = LoadModel(master_entity, master_pid, j79id, selected_entity, selected_pids, guid_pids);
+            var mq = v == null ? null : BuildQuery(v);
+            if (mq == null) return Json(new { error = Factory.tra("Nepodařilo se načíst šablonu statistiky.") });
+
+            var cols = mq.explicit_columns.ToList();
+            string where = Views.Shared.Components.myPivot.myPivotDrill.BuildWhere(d?.conds, cols, out string err);
+            if (err != null) return Json(new { error = err });
+            if (!string.IsNullOrEmpty(where))
+            {
+                mq.explicit_sqlwhere = string.IsNullOrEmpty(mq.explicit_sqlwhere) ? where : mq.explicit_sqlwhere + " AND " + where;
+            }
+
+            //jeden řádek = jeden úkon
+            mq.explicit_sqlgroupby = "a.p31ID";
+            var dt = Factory.gridBL.GetGroupByList(mq, $"TOP ({DrillMaxRows + 1}) a.p31ID AS drillpid");
+            if (dt.Rows.Count == 0) return Json(new { error = Factory.tra("Buňka neobsahuje žádné úkony.") });
+            if (dt.Rows.Count > DrillMaxRows)
+            {
+                return Json(new { error = string.Format(Factory.tra("Buňka obsahuje více než {0} úkonů. Zvolte podrobnější buňku nebo zužte filtr."), DrillMaxRows.ToString("N0")) });
+            }
+
+            var pids = dt.AsEnumerable().Select(r => Convert.ToInt32(r["drillpid"])).ToList();
+            string guid = BO.Code.Bas.GetGuid();
+            foreach (var chunk in pids.Chunk(2000))
+            {
+                Factory.db.RunSql("INSERT INTO p85TempBox(p85GUID,p85Prefix,p85DataPID) SELECT @guid,'p31',p31ID FROM p31Worksheet WHERE p31ID IN (" + string.Join(",", chunk) + ")", new { guid = guid });
+            }
+            return Json(new { guid = guid, count = pids.Count });
+        }
+
+        /// <summary>Okno se zdrojovými úkony buňky pivotu (guid z DrillDown).</summary>
+        public IActionResult Drill(string guid, string label, int count)
+        {
+            if (string.IsNullOrEmpty(guid) || guid.Length > 50 || !guid.All(c => char.IsLetterOrDigit(c) || c == '-'))
+            {
+                return this.StopPage(true, "Chybí vstupní parametr.");
+            }
+            string strMyQueryInline = "MyRecordsDisponible|bool|1|p85guid|string|" + guid;
+            var v = new p31TotalsDrillViewModel() { Label = label, Count = count };
+            v.gridinput = new Views.Shared.Components.myGrid.myGridInput() { entity = "p31Worksheet", master_entity = "p31totals", myqueryinline = strMyQueryInline };
+            v.gridinput.query = new BO.InitMyQuery(Factory.CurrentUser).Load("p31", null, 0, strMyQueryInline);
+            return View(v);
+        }
+
         public IActionResult LoadDatasource(string login,int j79id)
         {
             login = Factory.CurrentUser.j02Login;   //jen data přihlášeného uživatele (CSV se generuje pod jeho loginem)

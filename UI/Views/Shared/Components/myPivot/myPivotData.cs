@@ -26,15 +26,7 @@ namespace UI.Views.Shared.Components.myPivot
                 w.WriteStartObject();
                 w.WriteNumber("n", n);
 
-                // jedinečné názvy polí (WebDataRocks i pivot je identifikují hlavičkou)
-                var names = new List<string>();
-                foreach (var c in cols)
-                {
-                    string name = string.IsNullOrWhiteSpace(c.Header) ? c.UniqueName : c.Header.Trim();
-                    string unique = name; int k = 2;
-                    while (names.Contains(unique, StringComparer.OrdinalIgnoreCase)) unique = $"{name} ({k++})";
-                    names.Add(unique);
-                }
+                var names = FieldNames(cols);
 
                 w.WriteStartArray("fields");
                 for (int x = 0; x < cols.Count; x++)
@@ -106,7 +98,21 @@ namespace UI.Views.Shared.Components.myPivot
             return Encoding.UTF8.GetString(ms.ToArray());
         }
 
-        private static string TypeOf(string fieldType) => fieldType switch
+        /// <summary>Jedinečné názvy polí (WebDataRocks i pivot je identifikují hlavičkou) – stejné pořadí jako cols.</summary>
+        public static List<string> FieldNames(List<BO.TheGridColumn> cols)
+        {
+            var names = new List<string>();
+            foreach (var c in cols)
+            {
+                string name = string.IsNullOrWhiteSpace(c.Header) ? c.UniqueName : c.Header.Trim();
+                string unique = name; int k = 2;
+                while (names.Contains(unique, StringComparer.OrdinalIgnoreCase)) unique = $"{name} ({k++})";
+                names.Add(unique);
+            }
+            return names;
+        }
+
+        public static string TypeOf(string fieldType) => fieldType switch
         {
             "num" or "num0" or "num3" or "num4" or "num5" or "int" => "number",
             "date" or "datetime" or "datetimesec" => "date",

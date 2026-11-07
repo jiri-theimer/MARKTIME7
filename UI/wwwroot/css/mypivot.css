@@ -43,6 +43,8 @@
 .mtp-table td { text-align: right; font-variant-numeric: tabular-nums; }
 .mtp-table td.mtp-rl { text-align: left; position: sticky; left: 0; background: #fff; z-index: 1; max-width: 420px; overflow: hidden; text-overflow: ellipsis; }
 .mtp-table tbody tr:hover td { background: #f3f8ff; }
+.mtp-table td.mtp-rl .mtp-di { position: absolute; left: 4px; top: 50%; margin-top: 0; transform: translateY(-50%); font-size: 18px; line-height: 1; cursor: pointer; opacity: .55; }
+.mtp-table td.mtp-rl .mtp-di:hover { opacity: 1; }
 .mtp-table tr.mtp-subr td { font-weight: 600; background: #fafafa; }
 .mtp-table tr.mtp-gtr td { font-weight: 700; background: #eaeaea; position: sticky; bottom: 0; }
 .mtp-table tr.mtp-gtr td.mtp-rl { z-index: 2; }

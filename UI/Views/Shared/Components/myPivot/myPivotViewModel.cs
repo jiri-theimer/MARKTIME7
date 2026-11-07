@@ -17,6 +17,8 @@
         public string Title { get; set; }
         /// <summary>Název JS funkce volané po změně rozložení: function(report) – např. uložení do localStorage.</summary>
         public string OnReportChange { get; set; }
+        /// <summary>Název JS funkce volané kliknutím na hodnotu: function({conds, label}) – zobrazení zdrojových záznamů buňky (null = vypnuto).</summary>
+        public string OnDrill { get; set; }
         /// <summary>Výška tabulky v px (0 = dopočítat do konce okna).</summary>
         public int Height { get; set; }
     }

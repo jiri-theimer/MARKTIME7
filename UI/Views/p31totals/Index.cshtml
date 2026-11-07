@@ -355,6 +355,9 @@
         + $"&selected_entity={Uri.EscapeDataString(_q["selected_entity"].ToString())}"
         + (string.IsNullOrEmpty(_q["guid_pids"]) ? $"&selected_pids={Uri.EscapeDataString(_q["selected_pids"].ToString())}" : $"&guid_pids={Uri.EscapeDataString(_q["guid_pids"].ToString())}");
 
+    <script type="text/javascript">
+        var _mt_drill_url = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(_dataUrl.Replace("/p31totals/PivotData?", "/p31totals/DrillDown?")));
+    </script>
     <div style="margin-top:6px;">
         @await Component.InvokeAsync("myPivot", new UI.Views.Shared.Components.myPivot.myPivotViewModel()
         {
@@ -364,7 +367,8 @@
             ReportJson = Model.SelectedTemplate?.j79WebDataRocksReport,
             StorageKey = "webdatarocks_layout-" + Model.SelectedJ79ID,
             Title = Model.SelectedTemplate.j79IsSystem ? _f.tra("Součty") : Model.SelectedTemplate.j79Name,
-            OnReportChange = "mt_report_change"
+            OnReportChange = "mt_report_change",
+            OnDrill = "mt_drill"
         })
     </div>
 }
@@ -710,6 +714,14 @@ else
     function mt_report_change(report) {
         $("#cmdSaveChangesShared").css("display", "block");
         $("#cmdClear").css("display", "block");
+    }
+
+    // MARKTIME pivot: kliknutí na hodnotu → okno se zdrojovými úkony buňky
+    function mt_drill(info) {
+        $.ajax({ url: _mt_drill_url, type: "POST", contentType: "application/json", data: JSON.stringify(info) }).done(function (r) {
+            if (r.error) { _notify_message(r.error, "warning"); return; }
+            _window_open("/p31totals/Drill?guid=" + r.guid + "&count=" + r.count + "&label=" + encodeURIComponent(info.label), 3);
+        }).fail(function () { _notify_message(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(_f.tra("Zdrojové úkony se nepodařilo načíst."))), "error"); });
     }
 
     function switch2oldversion()

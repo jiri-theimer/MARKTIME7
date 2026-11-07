@@ -1,0 +1,39 @@
+﻿@model UI.Models.p31view.p31TotalsDrillViewModel
+@inject BL.Factory _f
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    string _label = Model.Label;
+    int _count = Model.Count;
+}
+
+@addTagHelper *, UI
+
+<div class="input-group" style="padding: 3px 8px;background-color: #2D89EF;color:white;">
+    <div style="flex:1;">
+        <span class="material-icons-outlined-btn" style="color:white;">functions</span>
+        @_f.tra("Zdrojové úkony")@(string.IsNullOrEmpty(_label) ? "" : ": " + _label)
+        <span class="badge text-bg-light ms-2">@_count.ToString("N0")</span>
+    </div>
+</div>
+
+<div class="bg-light input-group" style="padding-left: 10px;padding-top:2px;">
+    @if (_f.CurrentUser.TestPermission(BO.PermValEnum.GR_GridColumnDesigner))
+    {
+        <button type="button" class="btn btn-light" onclick="navrhar_sloupcu()"><span class="material-icons-outlined-btn">view_column</span>@_f.tra("Sloupce")</button>
+    }
+    <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
+</div>
+
+<div id="divMyGrid">
+    @await Component.InvokeAsync("myGrid", Model.gridinput)
+</div>
+
+<script type="text/javascript">
+    function hardrefresh(pid, flag) {
+        location.replace(window.location.href);
+    }
+
+    function navrhar_sloupcu() {
+        _window_open("/TheGridDesigner?j72id=" + _thegrid.j72id + "&pathname=" + location.pathname, 2);
+    }
+</script>

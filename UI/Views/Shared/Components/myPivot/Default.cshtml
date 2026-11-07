@@ -37,6 +37,7 @@
             report: report,
             exportUrl: "/myPivot/ExportExcel",
             title: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Title ?? "")),
+            onDrill: @Html.Raw(string.IsNullOrEmpty(Model.OnDrill) ? "null" : Model.OnDrill),
             onReportChange: function (r) {
                 if (storageKey) { try { localStorage.setItem(storageKey, JSON.stringify(r)); } catch (e) { } }
                 if (onChange) onChange(r);
@@ -61,6 +62,7 @@
                 selectNone = _f.tra("Zrušit výběr"),
                 cancel = _f.tra("Zrušit"),
                 filterMore = _f.tra("Zobrazena jen část hodnot – upřesněte hledání."),
+                drill = _f.tra("Zobrazit zdrojové záznamy řádku"),
                 total = _f.tra("Celkem"),
                 grandTotal = _f.tra("Celkový součet"),
                 sortByValue = _f.tra("Seřadit řádky podle této hodnoty"),

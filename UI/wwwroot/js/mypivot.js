@@ -407,6 +407,7 @@
         }
         this._agg = { slot: slot, CN: CN, M: M, cnt: sCnt, sum: sSum, n: sN, min: sMin, max: sMax, set: sSet };
         this._rowRoot = rRoot; this._colRoot = cRoot; this._rowF = rowF; this._colF = colF;
+        this._rNodes = rNodes; this._cNodes = cNodes;
 
         // rozbalení z uloženého reportu (tuple "pole.hodnota")
         if (s.pendingExp) {
@@ -797,7 +798,9 @@
             lab = tg + esc(this._label(this._rowF[nd.level - 1], nd.code));
             if (row.exp) cls = "mtp-subr";
         }
-        var h = ['<tr class="' + cls + '"><td class="mtp-rl" style="padding-left:' + (6 + (row.grand ? 0 : (nd.level - 1) * 16)) + 'px">' + (row.grand ? esc(lab) : lab) + "</td>"];
+        var drill = !printMode && this.o.onDrill;
+        var icon = drill ? '<span class="mtp-di material-icons-outlined-btn" title="' + esc(this.txt.drill) + '">list_alt</span>' : "";
+        var h = ['<tr class="' + cls + '"' + (printMode ? "" : ' data-rn="' + nd.id + '"') + '><td class="mtp-rl" style="padding-left:' + ((drill ? 28 : 6) + (row.grand ? 0 : (nd.level - 1) * 16)) + 'px">' + icon + (row.grand ? esc(lab) : lab) + "</td>"];
         for (var i = 0; i < cols.length; i++) {
             var e = cols[i], ccls = e.grand ? "mtp-gtc" : (e.sub ? "mtp-subc" : "");
             for (var m = 0; m < M; m++) h.push('<td class="' + ccls + '">' + this._fmt(this._val(nd, e.n, m), m) + "</td>");
@@ -812,9 +815,13 @@
         var headH = this.$thead.offsetHeight || 0;
         var from = Math.max(0, Math.floor((top - headH) / ROW_H) - 10), to = Math.min(total, from + Math.ceil(hgt / ROW_H) + 20);
         var h = [];
+        // řádek celkového součtu se vykresluje vždy (přilepený dole), ostatní jen ve viditelné oblasti
+        var grand = total && this.vis[total - 1].grand ? this.vis[total - 1] : null, last = grand ? total - 1 : total;
+        to = Math.min(to, last);
         if (from > 0) h.push('<tr class="mtp-sp" style="height:' + from * ROW_H + 'px"><td colspan="999"></td></tr>');
         for (var i = from; i < to; i++) h.push(this._rowHtml(this.vis[i], this.visCols, false));
-        if (to < total) h.push('<tr class="mtp-sp" style="height:' + (total - to) * ROW_H + 'px"><td colspan="999"></td></tr>');
+        if (to < last) h.push('<tr class="mtp-sp" style="height:' + (last - to) * ROW_H + 'px"><td colspan="999"></td></tr>');
+        if (grand) h.push(this._rowHtml(grand, this.visCols, false));
         this.$tbody.innerHTML = h.join("");
     };
 
@@ -822,9 +829,13 @@
         var tg = e.target.closest(".mtp-tg"), s = this.s;
         if (tg) {
             var rid = tg.getAttribute("data-r"), cid = tg.getAttribute("data-c"), me = this;
-            var find = function (rootNode, id) { var res = null; me._walk(rootNode, function (n) { if (n.id === id) res = n; }); return res; };
-            if (rid != null) this._toggle(find(this._rowRoot, +rid), true);
-            if (cid != null) this._toggle(find(this._colRoot, +cid), false);
+            if (rid != null) this._toggle(this._rNodes[+rid], true);
+            if (cid != null) this._toggle(this._cNodes[+cid], false);
+            return;
+        }
+        var di = e.target.closest(".mtp-di");
+        if (di && this.o.onDrill) {
+            this._drill(this._rNodes[+di.closest("tr").getAttribute("data-rn")], this._colRoot);   // řádek přes všechny sloupce
             return;
         }
         var vs = e.target.closest("[data-vs]");
@@ -846,6 +857,43 @@
         }
         this._layout(); this._renderHead(); this._renderBody();
         if (this.o.onReportChange) this.o.onReportChange(this.getReport());
+    };
+
+    // =================================================================== zdrojové záznamy buňky (drill-down)
+
+    // podmínka pro server: pole, hodnoty (u seskupeného data rozsahy [od, do)), prázdná hodnota
+    P._cond = function (f, codes, mode) {
+        var c = { f: f.name, mode: mode, empty: false, values: [], ranges: [] };
+        codes.forEach(function (code) {
+            if (code < 0) { c.empty = true; return; }
+            var v = f.dict[code];
+            if (f.type !== "dategroup") { c.values.push(v); return; }
+            var y = +v.substr(0, 4), m1, m2;
+            if (f.gran === "year") { m1 = 0; m2 = 12; }
+            else if (f.gran === "quarter") { m1 = (+v.substr(6) - 1) * 3; m2 = m1 + 3; }
+            else { m1 = +v.substr(5, 2) - 1; m2 = m1 + 1; }
+            var iso = function (yy, mm) { yy += Math.floor(mm / 12); mm = mm % 12; return yy + "-" + String(mm + 1).padStart(2, "0") + "-01"; };
+            c.ranges.push([iso(y, m1), iso(y, m2)]);
+        });
+        return c;
+    };
+
+    P._drill = function (rn, cn) {
+        if (!rn || !cn) return;
+        var me = this, s = this.s, conds = [], label = [];
+        [[rn, this._rowF], [cn, this._colF]].forEach(function (x) {
+            var lab = [];
+            for (var nd = x[0]; nd && nd.level > 0; nd = nd.parent) {
+                var f = x[1][nd.level - 1];
+                conds.push(me._cond(f, [nd.code], "in"));
+                lab.unshift(f.name + ": " + me._label(f, nd.code));
+            }
+            label = label.concat(lab);
+        });
+        Object.keys(s.excl).forEach(function (k) {
+            if (s.excl[k] && s.excl[k].size) conds.push(me._cond(me._fv(+k), Array.from(s.excl[k]), "notin"));
+        });
+        this.o.onDrill({ conds: conds, label: label.join(" · ") || this.txt.grandTotal });
     };
 
     P.expandAll = function () { this.s.expandAll = true; this.s.expRows.clear(); this.s.expCols.clear(); this._changed(); };
