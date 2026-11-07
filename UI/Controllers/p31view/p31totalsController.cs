@@ -33,17 +33,13 @@ namespace UI.Controllers.p31view
             {
                 return this.StopPage(false, "Nepodařilo se založit výchozí šablonu statistiky.");
             }
-            v.PivotEngine = Factory.CBL.LoadUserParam("p31totals-pivotengine", "wdr") == "mt" ? "mt" : "wdr";
 
             if (caller == "grid" && !string.IsNullOrEmpty(master_entity) && master_pid > 0)
             {
                 Factory.CBL.SaveLastCallingRecPid(master_entity, master_pid, "grid", true, false, null);   //uložit info o naposledy vybraném záznamu v gridu
             }
 
-            if (v.PivotEngine == "wdr")
-            {
-                GenerateDataSource(v);      //CSV pro WebDataRocks; MARKTIME pivot si data načte přes PivotData
-            }
+            //data si Pivot-Explorer načte zvlášť přes PivotData
 
             return View(v);
         }
@@ -104,7 +100,6 @@ namespace UI.Controllers.p31view
             }
 
             
-            v.ChartType = v.SelectedTemplate.j79Chart;
 
             v.TheGridQueryButton = new TheGridQueryViewModel() { j72id = Factory.CBL.LoadUserParamInt("p31totals-j72id"),paramkey= "p31totals-j72id",prefix="p31" };
             if (v.TheGridQueryButton.j72id > 0)
@@ -248,45 +243,6 @@ namespace UI.Controllers.p31view
             return mq;
         }
 
-        private void GenerateDataSource(p31TotalsViewModel v)
-        {
-            var mq = BuildQuery(v);
-            if (mq == null)
-            {
-                return;
-            }
-
-            var dt = Factory.gridBL.GetGroupByList(mq);
-            
-            foreach(var col in mq.explicit_columns.Where(p => p.FieldType == "num"))
-            {
-                int intDataRows = dt.Rows.Count;
-                for (int i= 0;i < intDataRows; i++)
-                {
-                    if (dt.Rows[i][col.UniqueName] == System.DBNull.Value)
-                    {
-                        dt.Rows[i][col.UniqueName] = 0.00;
-                    }
-                }
-            }
-            
-            var intRows = dt.Rows.Count;
-            
-            var basDataExport = new Code.dataExport();
-            var strFullPath = $"{Factory.TempFolder}\\WebDataRocks-{Factory.CurrentUser.j02Login}-{v.SelectedJ79ID}.csv";
-            
-            basDataExport.ToCSV(dt, strFullPath, mq, ";", true, true);
-
-            v.DataSourceLengthBytes = (int)BO.Code.File.GetFileInfo(strFullPath).Length;
-            v.DataSourceLengthMegaBytes = BO.Code.File.GetFileInfo(strFullPath).Length / 1024d / 1024d;
-            if (v.DataSourceLengthMegaBytes > 1d)
-            {
-                
-                this.AddMessageTranslated($"Maximální limit datového zdroje je 1MB.<hr>Nyní je jeho velikost: {BO.Code.Bas.FormatFileSize(v.DataSourceLengthBytes)}.<hr>Velikost datového zdroje snížíte přes filtrování dat (především časové období) a změnou okruhu sloupců.");
-            } 
-            
-            
-        }
 
       
         
@@ -385,24 +341,6 @@ namespace UI.Controllers.p31view
             return View(v);
         }
 
-        public IActionResult LoadDatasource(string login,int j79id)
-        {
-            login = Factory.CurrentUser.j02Login;   //jen data přihlášeného uživatele (CSV se generuje pod jeho loginem)
-            var strFullPath = $"{Factory.TempFolder}\\WebDataRocks-{login}-{j79id}.csv";
-
-            if (!System.IO.File.Exists(strFullPath))
-            {
-                return null;
-            }
-
-            //var bytes = System.IO.File.ReadAllBytes(v.DataSourceCsvPath);
-            //var s = System.IO.File.ReadAllText(strFullPath, Encoding.UTF8);
-
-            return Content(System.IO.File.ReadAllText(strFullPath, Encoding.UTF8), "text/csv", Encoding.UTF8);
-
-            
-            //return File(bytes, "text/csv; charset=utf-8");
-        }
 
         public int SaveTabQuery(int j79id, string tabquery)
         {
@@ -415,14 +353,6 @@ namespace UI.Controllers.p31view
             var rec = Factory.j79TotalsTemplateBL.Load(j79id);
             rec.j79StateQuery = statequery;
             return Factory.j79TotalsTemplateBL.Save(rec,null,null);
-        }
-        public int ChangeChart(int j79id,int charttype)
-        {
-            var rec = Factory.j79TotalsTemplateBL.Load(j79id);
-            rec.j79Chart = charttype;
-          
-            return Factory.j79TotalsTemplateBL.Save(rec, null, null);
-
         }
         public int SaveSettings(int j79id, string j02ids, string j07ids, string j11ids, int j72id,string addquery)
         {

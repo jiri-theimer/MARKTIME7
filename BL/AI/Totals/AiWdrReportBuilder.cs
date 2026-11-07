@@ -3,13 +3,13 @@
 namespace BL.AI.Totals
 {
     /// <summary>
-    /// Sestaví JSON report WebDataRocks (j79WebDataRocksReport) z návrhu.
-    /// Pole WebDataRocks se jmenují podle hlaviček CSV, které generuje p31totalsController (col.Header z ParseTheGridColumns),
-    /// proto se hlavičky berou ze stejné metody.
+    /// Sestaví rozložení Pivot-Exploreru (j79WebDataRocksReport – formát reportu WebDataRocks) z návrhu.
+    /// Pole se jmenují podle hlaviček sloupců (col.Header z ParseTheGridColumns), stejně jako v myPivotData,
+    /// proto se hlavičky berou ze stejné metody. Datový zdroj se neukládá – data načítá Pivot-Explorer přes p31totals/PivotData.
     /// </summary>
     public static class AiWdrReportBuilder
     {
-        public static string Build(BO.AI.AiTotalsProposal p, Dictionary<string, string> headerByKey, string csvUrl)
+        public static string Build(BO.AI.AiTotalsProposal p, Dictionary<string, string> headerByKey)
         {
             string H(string key) => headerByKey.TryGetValue(key, out var h) ? h : key;
 
@@ -26,7 +26,6 @@ namespace BL.AI.Totals
 
             var report = new JsonObject
             {
-                ["dataSource"] = new JsonObject { ["filename"] = csvUrl, ["delimiter"] = ";" },
                 ["slice"] = new JsonObject { ["rows"] = rows, ["columns"] = columns, ["measures"] = measures },
                 ["options"] = new JsonObject
                 {

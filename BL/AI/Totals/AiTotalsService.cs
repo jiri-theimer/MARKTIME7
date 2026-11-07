@@ -343,8 +343,7 @@ namespace BL.AI.Totals
                 headerByKey[c.UniqueName] = h;
             }
             rec = F.j79TotalsTemplateBL.Load(id);
-            rec.j79WebDataRocksReport = AiWdrReportBuilder.Build(p, headerByKey,
-                $"/p31totals/LoadDatasource?login={F.CurrentUser.j02Login}&j79id={id}");
+            rec.j79WebDataRocksReport = AiWdrReportBuilder.Build(p, headerByKey);
             F.j79TotalsTemplateBL.Save(rec, null, null);
 
             // období – stejné klíče jako myPeriodViewModel (UserParamKey "p31totals-period-root")

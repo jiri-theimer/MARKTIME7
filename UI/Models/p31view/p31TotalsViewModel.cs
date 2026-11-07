@@ -29,15 +29,6 @@ namespace UI.Models.p31view
         public bool IsAllowEditTemplate { get; set; }
         public bool IsShared { get; set; }
 
-        public string DataSourceCsvPath { get; set; }
-        public double DataSourceLengthMegaBytes { get; set; }
-        public int DataSourceLengthBytes { get; set; }
-
-      
-        public int ChartType { get; set; }
-
-        /// <summary>Zobrazení součtů: "wdr" = WebDataRocks, "mt" = MARKTIME pivot (myPivot). Uživatelský parametr p31totals-pivotengine.</summary>
-        public string PivotEngine { get; set; }
 
     }
 }
