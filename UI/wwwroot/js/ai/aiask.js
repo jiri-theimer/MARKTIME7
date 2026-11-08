@@ -129,7 +129,7 @@ function ask_render_table(t) {
             //výpis: ikona karty záznamu v prvním sloupci
             if (canCard) {
                 var $c0 = $("<td>").addClass("ai-rec-col");
-                if (t.ids[ri]) $c0.append(ask_rec_icon(t.entity, t.ids[ri]));
+                if (t.ids[ri]) $c0.append(ask_rec_icon(t.entity, t.ids[ri], false));
                 $r.append($c0);
             }
             t.columns.forEach(function (c, i) {
@@ -140,9 +140,9 @@ function ask_render_table(t) {
                 $r.append($td);
             });
             if (canDrillRow) {
-                $r.addClass("ai-click-row").attr("title", _ask_txt.drillRow).on("click", function () { ask_drill(t, row); });
+                $r.addClass("ai-click-row").attr("title", _ask_txt.drillRow).on("click", function (e) { if (!ask_on_icon(e)) ask_drill(t, row); });
             } else if (canCard && t.ids[ri]) {
-                $r.addClass("ai-click-row").attr("title", _ask_txt.cardRow).on("click", function () { ask_card(t.entity, t.ids[ri]); });
+                $r.addClass("ai-click-row").attr("title", _ask_txt.cardRow).on("click", function (e) { if (!ask_on_icon(e)) ask_card(t.entity, t.ids[ri]); });
             }
             $body.append($r);
         });
@@ -187,12 +187,23 @@ function ask_render_table(t) {
     return $box;
 }
 
-// ikona „otevřít kartu záznamu“ (klik nespustí akci řádku – drill / karta)
-function ask_rec_icon(prefix, pid) {
-    return $("<a>").attr("href", "#").addClass("ai-rec").attr("title", prefix === "p31" ? _ask_txt.cardP31 : _ask_txt.cardRec)
+// ☰ kontextové menu záznamu (stejné jako v gridu – akce a oprávnění řeší server) + ↗ otevřít kartu
+// klik na ikony nespustí akci řádku (drill / karta) – hlídá ask_on_icon
+// withOpen = false: řádek sám otevírá stránku záznamu (výpis) → ↗ by byla zbytečná
+function ask_rec_icon(prefix, pid, withOpen) {
+    var $g = $("<span>").addClass("ai-rec-g");
+    $("<a>").attr("href", "javascript:void(0)").addClass("ai-rec ai-rec-cm").attr("title", _ask_txt.cardMenu).text("☰")
+        .on("click", function (e) { _cm(e, prefix, pid); })       //bez stopPropagation – menu zobrazí plugin contextmenu.js v obsluze kliknutí na document
+        .appendTo($g);
+    if (withOpen === false) return $g;
+    $("<a>").attr("href", "#").addClass("ai-rec").attr("title", prefix === "p31" ? _ask_txt.cardP31 : _ask_txt.cardRec)
         .append($("<span>").addClass("material-icons-outlined-nosize").text(prefix === "p31" ? "edit_note" : "open_in_new"))
-        .on("click", function (e) { e.preventDefault(); e.stopPropagation(); ask_card(prefix, pid); });
+        .on("click", function (e) { e.preventDefault(); ask_card(prefix, pid); })
+        .appendTo($g);
+    return $g;
 }
+
+function ask_on_icon(e) { return $(e.target).closest(".ai-rec-g").length > 0; }
 
 // karta záznamu: úkon jako formulář v okně, ostatní entity jako stránka záznamu v nové záložce (chat zůstane otevřený)
 function ask_card(prefix, pid) {
