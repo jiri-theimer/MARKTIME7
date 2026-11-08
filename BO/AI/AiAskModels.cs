@@ -76,6 +76,8 @@ namespace BO.AI
         [JsonPropertyName("groups")] public int Groups { get; set; }
         /// <summary>Výpis: ID záznamu pro každý řádek (otevření karty); agregace: null.</summary>
         [JsonPropertyName("ids")] public List<int> Ids { get; set; }
+        /// <summary>Agregace: pro každý řádek ID záznamu po sloupcích (0 = bez odkazu); sloupec s odkazem má Link = prefix. Jinak null.</summary>
+        [JsonPropertyName("linkIds")] public List<int[]> LinkIds { get; set; }
         [JsonPropertyName("truncated")] public bool Truncated { get; set; }
         /// <summary>p85GUID uloženého zadání – Pivot-Explorer a zdrojové záznamy.</summary>
         [JsonPropertyName("guid")] public string Guid { get; set; }
@@ -91,5 +93,7 @@ namespace BO.AI
         [JsonPropertyName("type")] public string Type { get; set; }
         [JsonPropertyName("measure")] public bool Measure { get; set; }
         [JsonPropertyName("decimals")] public int Decimals { get; set; }
+        /// <summary>Prefix entity, jejíž kartu lze ze sloupce otevřít (p41, p28…); null = bez odkazu.</summary>
+        [JsonPropertyName("link")] public string Link { get; set; }
     }
 }

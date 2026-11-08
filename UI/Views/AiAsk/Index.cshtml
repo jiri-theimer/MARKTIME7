@@ -2,9 +2,19 @@
 @inject BL.Factory _f
 @{
     Layout = _f.CurrentUser.GetLayoutPerDisplay();
+
+    //příklady dotazů jen k datům, na která má uživatel oprávnění (moduly role)
+    var _u = _f.CurrentUser;
+    var _examples = new List<string> { _f.tra("Co mě čeká?") };
+    if (_u.j04IsModule_p31) _examples.Add(_f.tra("Kolik hodin jsme minulý měsíc vykázali podle klientů?"));
+    if (_u.j04IsModule_p31) _examples.Add(_f.tra("Ukaž moje včerejší úkony s popisem"));
+    if (_u.j04IsModule_p31 && _u.j04IsModule_p41) _examples.Add(_f.tra("Top 10 projektů podle nevyfakturovaných hodin"));
+    if (_u.j04IsModule_p91) _examples.Add(_f.tra("Neuhrazené faktury po splatnosti"));
+    if (!_u.j04IsModule_p31 && _u.j04IsModule_p56) _examples.Add(_f.tra("Moje úkoly po termínu"));
     var chatSettings = new UI.Models.AI.AiChatSettings
     {
-        Intro = _f.tra("Zeptejte se na svá data v MARKTIME. Např.: „Kolik hodin jsme minulý měsíc vykázali podle klientů?“, „Ukaž moje včerejší úkony s popisem“, „Top 10 projektů podle nevyfakturovaných hodin“ nebo „Neuhrazené faktury po splatnosti“."),
+        Intro = _f.tra("Zeptejte se na svá data v MARKTIME. Napište dotaz vlastními slovy, nebo klikněte na příklad:"),
+        Examples = _examples,
         Thinking = _f.tra("Hledám v datech…"),
         Feature = Model.Feature
     };
@@ -39,6 +49,8 @@
         drillTitle = _f.tra("Všechny úkony výsledku v gridu"),
         drillRow = _f.tra("Kliknutím na řádek zobrazíte jeho úkony"),
         cardRow = _f.tra("Kliknutím otevřete kartu záznamu"),
+        cardRec = _f.tra("Otevřít stránku záznamu (nová záložka)"),
+        cardP31 = _f.tra("Otevřít úkon"),
         drillError = _f.tra("Zdrojové úkony se nepodařilo načíst."),
         empty = _f.tra("Nic nenalezeno.")
     }));

@@ -74,7 +74,7 @@
         <a href="/Home/Bells?view=hidden" class="@(Model.ViewMode == "hidden" ? "bl-on" : null)">@_f.tra("Skryté")</a>
         <a href="/Home/Bells?view=showall" class="@(Model.ViewMode == "showall" ? "bl-on" : null)">@_f.tra("Vše")</a>
     </div>
-    <a class="btn btn-sm ai-btn bl-ai" href="/AiAsk?q=@(Uri.EscapeDataString(_f.tra("Co mě čeká tento a příští týden? Termíny úkolů, projektů a události, kde jsem řešitel.")))" target="_top" title="@_f.tra("Zeptej se MARKTIME")">
+    <a class="btn btn-sm ai-btn bl-ai" href="/AiAsk?q=@(Uri.EscapeDataString(_f.tra("Co mě čeká?")))" target="_top" title="@_f.tra("Zeptej se MARKTIME")">
         <span class="material-icons-outlined-btn">auto_awesome</span> @_f.tra("Zeptat se AI")
     </a>
     <button id="cmdClose" onclick="_window_close()" class="btn btn-light btn-sm"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>

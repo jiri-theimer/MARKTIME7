@@ -10,7 +10,18 @@
 
 <div class="ai-chat-col">
     <div id="ai_chat" class="ai-chat" data-feature="@Model.Feature">
-        <div class="ai-msg ai-assistant">@Model.Intro</div>
+        <div class="ai-msg ai-assistant">
+            @Model.Intro
+            @if (Model.Examples != null && Model.Examples.Count > 0)
+            {
+                <div class="ai-examples">
+                    @foreach (var ex in Model.Examples)
+                    {
+                        <button type="button" class="ai-example" data-q="@ex">@ex</button>
+                    }
+                </div>
+            }
+        </div>
     </div>
     <div class="ai-input">
         <div id="ai_history" class="ai-history" style="display:none;"></div>

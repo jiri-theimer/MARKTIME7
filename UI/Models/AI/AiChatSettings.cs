@@ -10,5 +10,7 @@
         public string Feature { get; set; }
         /// <summary>Text zobrazený během čekání na odpověď.</summary>
         public string Thinking { get; set; }
+        /// <summary>Příklady dotazů pod úvodní zprávou – klik dotaz rovnou položí.</summary>
+        public List<string> Examples { get; set; }
     }
 }

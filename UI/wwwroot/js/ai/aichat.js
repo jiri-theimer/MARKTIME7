@@ -36,6 +36,8 @@ function AiChat(opt) {
         }
     });
     self.$historyBtn.on("click", function (e) { e.stopPropagation(); self.toggleHistory(); });
+    //příklady dotazů v úvodní zprávě (_AiChat.cshtml, AiChatSettings.Examples) – klik dotaz položí
+    self.$chat.on("click", ".ai-example", function () { self.send($(this).data("q")); });
     $(document).on("click", function () { self.$history.hide(); });
     self.loadHistory();
     self.$prompt.focus();

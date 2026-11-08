@@ -18,3 +18,10 @@
 .ai-table td.ai-text { max-width: 420px; white-space: pre-wrap; }
 .ai-click-row { cursor: pointer; }
 .ai-result-buttons { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+
+/* odkaz na kartu záznamu v tabulkách výsledků (výpis: první sloupec, agregace: u dimenze) */
+.ai-table .ai-rec-col { width: 26px; padding-left: 4px; padding-right: 0; }
+.ai-rec { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; margin-right: 6px; border-radius: 4px; color: #8a939c; text-decoration: none; vertical-align: -4px; }
+.ai-rec .material-icons-outlined-nosize { font-size: 16px; }
+.ai-rec:hover { background: var(--oznaceno, #e7f1ff); color: var(--pozadi, #0b4b92); }
+tr:hover .ai-rec { color: var(--pozadi, #0b4b92); }

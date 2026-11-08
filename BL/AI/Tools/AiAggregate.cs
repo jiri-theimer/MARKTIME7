@@ -38,7 +38,14 @@ namespace BL.AI.Tools
             public List<BO.TheGridColumn> Display => Dims.Concat(Measures).ToList();
             public bool HasCount { get; set; }
             public string GroupBy { get; set; }
+            /// <summary>Dimenze s vazbou na záznam entity: index dimenze, prefix (p41, p28…) a SQL výraz ID záznamu.
+            /// Do výsledku jde MIN(ID) a COUNT(DISTINCT ID) – když skupina odpovídá právě jednomu záznamu, řádek dostane odkaz na kartu.
+            /// Seskupení (GROUP BY) se tím nemění.</summary>
+            public List<(int Dim, string Prefix, string Expr)> Links { get; } = new();
         }
+
+        /// <summary>Entity, jejichž záznam lze otevřít jako stránku (Record/RecPage) z tabulky AI.</summary>
+        public static readonly HashSet<string> LinkablePrefixes = new() { "p41", "p28", "p56", "p91", "p90", "o23", "j02", "o22" };
 
         /// <summary>Sestavený dotaz výpisu záznamů.</summary>
         public class ListPlan
@@ -174,6 +181,17 @@ namespace BL.AI.Tools
             plan.GroupBy = plan.Dims.Count == 0 ? $"a.{mq.PrefixDb}ID*0" : string.Join(",", plan.Dims.Select(p => p.getFinalSqlSyntax_GROUPBY()).Distinct());
             mq.explicit_sqlgroupby = plan.GroupBy;
             plan.Query = mq;
+
+            //odkazy na karty záznamů dimenzí (projekt, klient, úkol…)
+            for (int i = 0; i < plan.Dims.Count; i++)
+            {
+                var c = plan.Dims[i];
+                if (string.IsNullOrEmpty(c.Prefix)) continue;
+                string pfx = BO.Code.Entity.GetPrefixDb(c.Prefix);
+                if (pfx == null || !LinkablePrefixes.Contains(pfx)) continue;
+                string expr = c.RelName != null ? $"{c.RelName}.{pfx}ID" : (pfx == mq.PrefixDb ? $"a.{pfx}ID" : null);
+                if (expr != null) plan.Links.Add((i, pfx, expr));
+            }
             return plan;
         }
 
@@ -208,6 +226,23 @@ namespace BL.AI.Tools
             var sel = new List<string>();
             foreach (var c in p.Display) sel.Add(c.getFinalSqlSyntax_GROUPBY_SELECT());
             if (sel.Count == 0) sel.Add("NULL AS ai_none");
+            if (p.Links.Count > 0)
+            {
+                var withLinks = new List<string>(sel);
+                for (int k = 0; k < p.Links.Count; k++)
+                {
+                    withLinks.Add($"MIN({p.Links[k].Expr}) AS ai_lk{k}");
+                    withLinks.Add($"COUNT(DISTINCT {p.Links[k].Expr}) AS ai_ln{k}");
+                }
+                try
+                {
+                    return _f.gridBL.GetGroupByList(p.Query, $"TOP ({maxGroups + 1}) " + string.Join(",", withLinks));
+                }
+                catch
+                {
+                    p.Links.Clear();        //odkazy jsou jen doplněk – při chybě dotaz bez nich
+                }
+            }
             return _f.gridBL.GetGroupByList(p.Query, $"TOP ({maxGroups + 1}) " + string.Join(",", sel));
         }
 
@@ -237,7 +272,12 @@ namespace BL.AI.Tools
                 t.Columns.Add(new AiAskColumn { Name = names[i], Type = TypeOf(display[i].FieldType), Measure = display[i].IsShowTotals, Decimals = Decimals(display[i].FieldType) });
             if (p.HasCount) t.Columns.Add(new AiAskColumn { Name = names[^1], Type = "number", Measure = true, Decimals = 0 });
 
+            //sloupce s odkazem na kartu záznamu
+            var links = p.Links.Where(l => dt.Columns.Contains($"ai_lk{p.Links.IndexOf(l)}")).ToList();
+            foreach (var l in links) t.Columns[l.Dim].Link = l.Prefix;
+
             var rows = new List<object[]>();
+            var rowLinks = new Dictionary<object[], int[]>();
             int rc = dt.Columns.IndexOf("RowsCount");
             foreach (DataRow r in dt.Rows)
             {
@@ -248,6 +288,17 @@ namespace BL.AI.Tools
                     v[i] = display[i].IsShowTotals ? Num(o, t.Columns[i].Decimals) : Text(o, t.Columns[i].Type);
                 }
                 if (p.HasCount) v[^1] = rc < 0 || r[rc] == DBNull.Value ? 0L : Convert.ToInt64(r[rc]);
+                if (links.Count > 0)
+                {
+                    var ids = new int[t.Columns.Count];
+                    foreach (var l in links)
+                    {
+                        int k = p.Links.IndexOf(l);
+                        object id = r[$"ai_lk{k}"], n = r[$"ai_ln{k}"];
+                        if (id != DBNull.Value && n != DBNull.Value && Convert.ToInt32(n) == 1) ids[l.Dim] = Convert.ToInt32(id);
+                    }
+                    rowLinks[v] = ids;
+                }
                 rows.Add(v);
             }
 
@@ -279,6 +330,7 @@ namespace BL.AI.Tools
             t.Groups = rows.Count;
             t.Truncated = rows.Count > s.Limit;
             t.Rows = rows.Take(s.Limit).ToList();
+            if (rowLinks.Count > 0) t.LinkIds = t.Rows.Select(x => rowLinks.TryGetValue(x, out var ids) ? ids : null).ToList();
             return t;
         }
 

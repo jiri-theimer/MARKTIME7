@@ -31,6 +31,15 @@ $(function () {
     });
 
     ask_restore();
+
+    //?q=… (např. z okna upozornění) → položit dotaz a parametr z adresy odstranit, aby se po reloadu neopakoval
+    try {
+        var q = new URLSearchParams(location.search).get("q");
+        if (q) {
+            history.replaceState(null, "", location.pathname);
+            _ask_chat.send(q);
+        }
+    } catch (e) { }
 });
 
 // ------------------------------------------------------------------ sessionStorage
@@ -107,17 +116,28 @@ function ask_render_table(t) {
     } else {
         var $wrap = $("<div>").addClass("ai-result-scroll");
         var $tab = $("<table>").addClass("table table-sm table-hover ai-table");
+        var canCard = isList && t.ids && t.ids.length;
         var $tr = $("<tr>");
+        if (canCard) $tr.append($("<th>").addClass("ai-rec-col"));
         t.columns.forEach(function (c) { $tr.append($("<th>").addClass(c.type === "number" ? "ai-num" : "").text(c.name)); });
         $tab.append($("<thead>").append($tr));
 
         var $body = $("<tbody>");
         var canDrillRow = !isList && t.canDrill && dims > 0;
-        var canCard = isList && t.ids && t.ids.length;
         t.rows.forEach(function (row, ri) {
             var $r = $("<tr>");
+            //výpis: ikona karty záznamu v prvním sloupci
+            if (canCard) {
+                var $c0 = $("<td>").addClass("ai-rec-col");
+                if (t.ids[ri]) $c0.append(ask_rec_icon(t.entity, t.ids[ri]));
+                $r.append($c0);
+            }
             t.columns.forEach(function (c, i) {
-                $r.append($("<td>").addClass(c.type === "number" ? "ai-num" : (c.type === "string" ? "ai-text" : "")).text(ask_cell(c, row[i])));
+                var $td = $("<td>").addClass(c.type === "number" ? "ai-num" : (c.type === "string" ? "ai-text" : "")).text(ask_cell(c, row[i]));
+                //agregace: ikona karty u dimenze, která odpovídá jednomu záznamu (projekt, klient…)
+                var lid = c.link && t.linkIds && t.linkIds[ri] ? t.linkIds[ri][i] : 0;
+                if (lid) $td.prepend(ask_rec_icon(c.link, lid));
+                $r.append($td);
             });
             if (canDrillRow) {
                 $r.addClass("ai-click-row").attr("title", _ask_txt.drillRow).on("click", function () { ask_drill(t, row); });
@@ -165,6 +185,13 @@ function ask_render_table(t) {
     }
     if ($btns.children().length) $box.append($btns);
     return $box;
+}
+
+// ikona „otevřít kartu záznamu“ (klik nespustí akci řádku – drill / karta)
+function ask_rec_icon(prefix, pid) {
+    return $("<a>").attr("href", "#").addClass("ai-rec").attr("title", prefix === "p31" ? _ask_txt.cardP31 : _ask_txt.cardRec)
+        .append($("<span>").addClass("material-icons-outlined-nosize").text(prefix === "p31" ? "edit_note" : "open_in_new"))
+        .on("click", function (e) { e.preventDefault(); e.stopPropagation(); ask_card(prefix, pid); });
 }
 
 // karta záznamu: úkon jako formulář v okně, ostatní entity jako stránka záznamu v nové záložce (chat zůstane otevřený)

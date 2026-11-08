@@ -18,3 +18,8 @@
 .ai-thumb:hover, .ai-thumb-on { opacity: 1; }
 .ai-rating-note { display: flex; gap: 4px; margin-top: 4px; }
 .ai-rated { color: #6c757d; }
+
+/* příklady dotazů v úvodní zprávě */
+.ai-examples { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.ai-example { border: 1px solid #c9d3dd; border-radius: 14px; background: #fff; color: #1f2328; padding: 3px 12px; font-size: .85rem; line-height: 1.4; text-align: left; cursor: pointer; }
+.ai-example:hover { border-color: var(--pozadi, #0b4b92); color: var(--pozadi, #0b4b92); background: #f6f9fc; }
