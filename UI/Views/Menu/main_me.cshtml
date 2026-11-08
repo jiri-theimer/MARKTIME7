@@ -21,17 +21,27 @@
 @* osobní menu (offcanvas vpravo v _Layout) – vzhled mme-* v site.css *@
 <div id="divMenuContainerMe" class="mme">
 
-    <div class="mme-user">
-        <div class="mme-avatar" aria-hidden="true">@_initials</div>
-        <div class="mme-user-txt">
-            <div class="mme-user-name">@_u.FullNameAsc</div>
-            <div class="mme-user-login">@_u.j02Login</div>
+    @if (_profile)
+    {
+        <a id="linkMyProfile" class="mme-user mme-user-link" href="/Home/MyProfile" title="@_f.tra("Můj profil")">
+            <div class="mme-avatar" aria-hidden="true">@_initials</div>
+            <div class="mme-user-txt">
+                <div class="mme-user-name">@_u.FullNameAsc</div>
+                <div class="mme-user-login">@_u.j02Login · @_f.tra("Můj profil")</div>
+            </div>
+            <span class="mme-user-go" aria-hidden="true">›</span>
+        </a>
+    }
+    else
+    {
+        <div class="mme-user">
+            <div class="mme-avatar" aria-hidden="true">@_initials</div>
+            <div class="mme-user-txt">
+                <div class="mme-user-name">@_u.FullNameAsc</div>
+                <div class="mme-user-login">@_u.j02Login</div>
+            </div>
         </div>
-        @if (_profile)
-        {
-            <a id="linkMyProfile" class="btn btn-sm bog" href="/Home/MyProfile">@_f.tra("Můj profil")</a>
-        }
-    </div>
+    }
 
     @if (_profile)
     {
@@ -174,7 +184,7 @@
 
     (function () {
         var url = window.location.pathname;
-        if (url.indexOf("MyProfile") > 0) $("#linkMyProfile").addClass("active");
+        if (url.indexOf("MyProfile") > 0) $("#linkMyProfile").addClass("mme-active");
         if (url.indexOf("ChangePassword") > 0) $("#linkPWD").addClass("mme-active");
         if (url.indexOf("About") > 0) $("#linkAbout").addClass("mme-active");
         if (location.href.indexOf("FlatView?prefix=x40") > 0) $("#linkMyOutbox").addClass("mme-active");

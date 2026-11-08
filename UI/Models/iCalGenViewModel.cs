@@ -6,6 +6,7 @@ namespace UI.Models
     {
         public string PersonNameFormat { get; set; }
         public bool IsMe { get; set; }
+        public string Who { get; set; }      //me | user | team – volba „čí kalendář“ (UI); IsMe/j02ID/j11ID se z ní dopočítají
         public bool IsP31 { get; set; }
         public bool IsO22 { get; set; }
         public bool IsP56 { get; set; }

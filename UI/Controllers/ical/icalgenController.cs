@@ -52,6 +52,7 @@ namespace UI.Controllers.ical
             }
             v.d1 = Factory.CBL.LoadUserParamDate("ical-d1");
             v.d2 = Factory.CBL.LoadUserParamDate("ical-d2");
+            v.Who = v.IsMe ? "me" : (v.j11ID > 0 ? "team" : "user");
 
             handle_complete_url(v);
             return View(v);
@@ -65,10 +66,52 @@ namespace UI.Controllers.ical
 
         }
 
+        //AJAX z konfigurátoru: uloží nastavení a vrátí URL + upozornění (bez reloadu stránky)
+        [HttpPost]
+        public IActionResult BuildUrl(iCalGenViewModel v)
+        {
+            var msg = new List<string>();
+            apply_who(v);
+            if (!v.IsP31 && !v.IsO22 && !v.IsP56)
+            {
+                msg.Add(Factory.tra("Zaškrtněte alespoň jeden typ záznamů, který se má v kalendáři zobrazovat."));
+            }
+            if (v.IsP31 && string.IsNullOrEmpty(v.p32IDs) && v.p61ID == 0)
+            {
+                msg.Add(Factory.tra("Pro časové úkony vyberte alespoň jednu aktivitu nebo klastr aktivit – jinak se úkony do kalendáře nedostanou."));
+            }
+            if (v.Who == "user" && v.j02ID == 0)
+            {
+                msg.Add(Factory.tra("Vyberte uživatele."));
+            }
+            if (v.Who == "team" && v.j11ID == 0)
+            {
+                msg.Add(Factory.tra("Vyberte tým."));
+            }
+            if ((v.d1 == null) != (v.d2 == null))
+            {
+                msg.Add(Factory.tra("Vyplňte obě data období, nebo žádné."));
+            }
+            handle_complete_url(v);
+            return Json(new { url = v.FinalUrl, messages = msg });
+        }
+
+        //„čí kalendář“: me = přihlášený uživatel, user = vybraný uživatel, team = vybraný tým (uživatel a tým se vylučují)
+        private void apply_who(iCalGenViewModel v)
+        {
+            switch (v.Who)
+            {
+                case "me": v.IsMe = true; break;
+                case "user": v.IsMe = false; v.j11ID = 0; break;
+                case "team": v.IsMe = false; v.j02ID = 0; break;
+            }
+        }
+
         [HttpPost]        
         public IActionResult Index(iCalGenViewModel v)
         {
             RefreshState(v);
+            apply_who(v);
             if (v.j02ID > 0 && v.j11ID>0)
             {
                 this.AddMessage("Není možné vyplnit uživatele i tým dohromady.");
@@ -94,19 +137,6 @@ namespace UI.Controllers.ical
 
         private void handle_complete_url(iCalGenViewModel v)
         {
-            if (!v.IsP31 && !v.IsO22 && !v.IsP56)
-            {
-                v.FinalUrl = null;
-                return;
-            }
-            //if (!v.IsMe && v.j02ID==0 && v.j11ID==0)
-            //{
-            //    v.FinalUrl = null;
-            //    return;
-            //}
-            string strKey = new BO.Code.Cls.Crypto().EasyEncrypt(Factory.CurrentUser.j02Login);
-            v.FinalUrl = $"{Factory.Lic.x01AppHost}/ical?key={strKey}";
-
             Factory.CBL.SetUserParam("ical-PersonNameFormat", v.PersonNameFormat);
             Factory.CBL.SetUserParam("ical-me", v.IsMe.ToString());
 
@@ -139,14 +169,19 @@ namespace UI.Controllers.ical
             
             
             
-            if (v.d1 != null)
+            //prázdné datum se musí uložit taky, jinak by jednou zadané období nešlo zrušit
+            Factory.CBL.SetUserParam("ical-d1", v.d1 == null ? "" : v.d1.Value.ToString("dd.MM.yyyy"));
+            Factory.CBL.SetUserParam("ical-d2", v.d2 == null ? "" : v.d2.Value.ToString("dd.MM.yyyy"));
+
+            if (!v.IsP31 && !v.IsO22 && !v.IsP56)
             {
-                Factory.CBL.SetUserParam("ical-d1", v.d1.Value.ToString("dd.MM.yyyy"));
+                v.FinalUrl = null;
+                return;
             }
-            if (v.d2 != null)
-            {
-                Factory.CBL.SetUserParam("ical-d2", v.d2.Value.ToString("dd.MM.yyyy"));
-            }
+
+            //formát URL beze změny – existující odběry v kalendářích musí fungovat dál
+            string strKey = new BO.Code.Cls.Crypto().EasyEncrypt(Factory.CurrentUser.j02Login);
+            v.FinalUrl = $"{Factory.Lic.x01AppHost}/ical?key={strKey}";
 
             if (v.IsMe)
             {
@@ -171,19 +206,20 @@ namespace UI.Controllers.ical
             {
                 v.FinalUrl += $"&p41id={v.p41ID}";
             }
-            if (!string.IsNullOrEmpty(v.p32IDs))
+            //parametry jen u zapnutých sekcí (skryté hodnoty vypnuté sekce se do URL nesmí dostat)
+            if (v.IsP31 && !string.IsNullOrEmpty(v.p32IDs))
             {
-                v.FinalUrl += $"&p32ids={v.p32IDs}";
+                v.FinalUrl += $"&p32ids={string.Join(",", BO.Code.Bas.ConvertString2ListInt(v.p32IDs))}";
             }
-            if (v.p61ID > 0)
+            if (v.IsP31 && v.p61ID > 0)
             {
                 v.FinalUrl += $"&p61id={v.p61ID}";
             }
-            if (v.x67ID_p56>0)
+            if (v.IsP56 && v.x67ID_p56>0)
             {
                 v.FinalUrl += $"&x67id_p56={v.x67ID_p56}";
             }
-            if (v.x67ID_o22>0)
+            if (v.IsO22 && v.x67ID_o22>0)
             {
                 v.FinalUrl += $"&x67id_o22={v.x67ID_o22}";
             }
@@ -191,7 +227,7 @@ namespace UI.Controllers.ical
             {
                 v.FinalUrl += "&d1=" + BO.Code.Bas.ObjectDate2String(v.d1, "dd.MM.yyyy") + "&d2=" + BO.Code.Bas.ObjectDate2String(v.d2, "dd.MM.yyyy");
             }
-            v.FinalUrl += "&person_name_format=" + v.PersonNameFormat;
+            v.FinalUrl += "&person_name_format=" + System.Net.WebUtility.UrlEncode(v.PersonNameFormat);
             v.FinalUrl += "&n=marktime_icalendar.ics";
         }
     }

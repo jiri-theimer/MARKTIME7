@@ -2,242 +2,261 @@
 @inject BL.Factory _f
 
 @{
-    Model.PageTitle = _f.tra("Konfigurátor iCal kalendáře");
+    Model.PageTitle = _f.tra("Kalendář v Google / Outlook");
     Layout = "~/Views/Shared/_LayoutModal.cshtml";
-    Model.PageSymbol = "calendar_today";
+    Model.PageSymbol = "calendar_add_on";
 }
 
 @addTagHelper *, UI
 
+<link rel="stylesheet" href="~/css/icalgen.css" asp-append-version="true" />
 
-<div class="bg-light" style="padding:10px;">
-
-    <button id="cmdSendGoogle" type="button" class="btn btn-light" onclick="sendmail('google')"><span class="material-icons-outlined-btn">email</span>@_f.tra("Pokyny pro Google kalendář")</button>
-
-    <button id="cmdSendOutlook" type="button" class="btn btn-light" onclick="sendmail('outlook')"><span class="material-icons-outlined-btn">email</span>@_f.tra("Pokyny pro Outlook kalendář")</button>
-
+<div class="bg-light ic-toolbar">
     <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
-
-
 </div>
 
-
 <form id="form1" asp-controller="icalgen" asp-action="Index" method="POST">
-    <div class="modal_record_container">
+    <div class="modal_record_container ic">
 
-        <div style="width:100%;background-color:lightblue;font-weight:bold;color:navy;">
-            <div style="padding:12px;">
-                Rozsah dat pro export
-            </div>
-        </div>
+        <p class="ic-intro">
+            @_f.tra("Záznamy z MARKTIME uvidíte přímo ve svém kalendáři (Google, Outlook, Apple). Nastavte, co se má zobrazovat, zkopírujte odkaz a přidejte ho do kalendáře jako odebíraný kalendář. Kalendář se pak sám pravidelně aktualizuje.")
+        </p>
 
-        <div class="input-group">
-            <div>
-                <input type="checkbox" id="chkJ02" asp-for="IsMe" onchange="refresh_cal_url()" />
-                <label class="col-form-label" for="chkJ02">@_f.tra("Pouze můj kalendář")</label>
-            </div>
-            <div style="width:350px;margin-left:20px;">
-                <select asp-for="PersonNameFormat" onchange="refresh_cal_url()" class="form-select">
-                    <option value="inicialy">Do názvů uvádět iniciály uživatelů</option>
-                    <option value="jmeno">Do názvů uvádět plné jméno uživatelů</option>
-                    <option value="nic">Do názvů neuvádět uživatele</option>
-                </select>
-            </div>
-        </div>
+        <div class="ic-layout">
+            <div class="ic-settings">
 
-        
+                @* ---------------------------------------------------- 1. co *@
+                <section class="ic-card">
+                    <h2><span class="ic-step">1</span>@_f.tra("Co se má v kalendáři zobrazovat")</h2>
 
-        @if (!Model.IsMe)
-        {
-            <div class="row my-2">
-                <label class="col-sm-1 col-md-1 col-form-label">@_f.tra("Uživatel"):</label>
-                <div class="col-sm-4 col-md-4">
-                    <mycombo entity="j02User" asp-for="@(Model.j02ID)" selectedtext="@Model.ComboJ02ID" view-flag="1" event_after_changevalue="refresh_cal_url"></mycombo>
-                </div>
-                <div class="col-auto">
-                    nebo Tým:
-                </div>
-                <div class="col-sm-3 col-md-3">
-                    <mycombo entity="j11Team" asp-for="j11ID" selectedtext="@Model.ComboJ11ID" view-flag="2" event_after_changevalue="refresh_cal_url"></mycombo>
-                </div>
-
-            </div>
-        }
-
-
-        <div class="my-2">
-            <mycombo entity="le5" search-result-width="700" asp-for="p41ID" selectedtext="@Model.Project" view-flag="1" placeholder="@_f.tra("Všechny projekty")" event_after_changevalue="refresh_cal_url"></mycombo>
-
-        </div>
-
-
-
-        <div class="row my-2">
-            <label class="col-sm-2 col-md-2 col-form-label">@_f.tra("Časové období"):</label>
-            <div class="col-sm-4 col-md-3">
-                <mydate asp-for="d1" include-time="false"></mydate>
-            </div>
-            <div class="col-auto">
-                -
-            </div>
-            <div class="col-sm-4 col-md-3">
-                <mydate asp-for="d2" include-time="false"></mydate>
-            </div>
-          
-        </div>
-
-        @if (_f.CurrentUser.j04IsModule_p31)
-        {
-            <div class="card">
-                <div class="card-header">
-                    <input type="checkbox" id="chkP31" asp-for="IsP31" onchange="refresh_cal_url()" />
-                    <label class="col-form-label" for="chkP31">@_f.tra("Časové úkony")</label>
-                </div>
-                <div class="card-body">
-                    @if (Model.IsP31)
+                    @if (_f.CurrentUser.j04IsModule_p31)
                     {
-                        <div class="my-2">
-
-                            <mycombochecklist asp-for="p32IDs" entity="p32Activity" placeholder="@_f.tra("Výběr aktivit")" selectedtext="@Model.p32Names" event_after_changevalue="refresh_cal_url" myqueryinline="p33id|int|1"></mycombochecklist>
-
-                        </div>
-                        <div class="row my-2">
-                            <label class="col-sm-2 col-md-2 col-form-label">@_f.tra("Klastr aktivit"):</label>
-                            <div class="col-sm-4 col-md-3">
-                                <mydropdown asp-for="p61ID" datasource="@Model.lisP61" textfield="p61Name" firstemptyrowtext="" firstemptyrowvalue="0" isfirstemptyrow="true" valuefield="pid" event_after_changevalue="refresh_cal_url"></mydropdown>
+                        <div class="ic-type">
+                            <label class="ic-type-head">
+                                <input type="checkbox" class="form-check-input" asp-for="IsP31" />
+                                <span class="material-icons-outlined-nosize">schedule</span>
+                                <span><b>@_f.tra("Časové úkony")</b><small>@_f.tra("Vykázané hodiny jako události v kalendáři.")</small></span>
+                            </label>
+                            <div class="ic-type-body" data-for="IsP31">
+                                <div class="ic-field">
+                                    <label>@_f.tra("Aktivity")</label>
+                                    <mycombochecklist asp-for="p32IDs" entity="p32Activity" placeholder="@_f.tra("Výběr aktivit")" selectedtext="@Model.p32Names" event_after_changevalue="refresh_cal_url" myqueryinline="p33id|int|1"></mycombochecklist>
+                                </div>
+                                <div class="ic-field">
+                                    <label for="p61ID">@_f.tra("nebo klastr aktivit")</label>
+                                    <mydropdown asp-for="p61ID" datasource="@Model.lisP61" textfield="p61Name" firstemptyrowtext="" firstemptyrowvalue="0" isfirstemptyrow="true" valuefield="pid" event_after_changevalue="refresh_cal_url"></mydropdown>
+                                </div>
                             </div>
-
                         </div>
                     }
-                </div>
-            </div>
-            
-            
-        }
-        
-        
 
-       
-        <div class="card my-2">
-            <div class="card-header">
-                <input type="checkbox" id="chkP56" asp-for="IsP56" onchange="refresh_cal_url()" />
-                <label class="col-form-label" for="chkP56">@_f.tra("Úkoly")</label>
-            </div>
-            <div class="card-body">
-                @if (Model.IsP56)
-                {
-                    <div class="row my-2">
-                        <label class="col-sm-3 col-md-2 col-form-label">@_f.tra("Role v úkolu"):</label>
-                        <div class="col-sm-3 col-md-2">
-                            <mydropdown asp-for="x67ID_p56" datasource="@Model.lisX67_p56" textfield="x67Name" valuefield="pid" event_after_changevalue="refresh_cal_url"></mydropdown>
-                        </div>
-                        <div class="col-sm-3 col-md-2" style="display:none;">
-                            <input type="checkbox" id="chkP56ATTENDEE" asp-for="IsP56ATTENDEE" onchange="refresh_cal_url()" />
-                            <label class="col-form-label" for="chkP56ATTENDEE">@_f.tra("U úkolu vyplňovat účastníky")</label>
+                    <div class="ic-type">
+                        <label class="ic-type-head">
+                            <input type="checkbox" class="form-check-input" asp-for="IsP56" />
+                            <span class="material-icons-outlined-nosize">task_alt</span>
+                            <span><b>@_f.tra("Úkoly")</b><small>@_f.tra("Úkoly s termínem.")</small></span>
+                        </label>
+                        <div class="ic-type-body" data-for="IsP56">
+                            <div class="ic-field">
+                                <label for="x67ID_p56">@_f.tra("Role v úkolu")</label>
+                                <mydropdown asp-for="x67ID_p56" datasource="@Model.lisX67_p56" textfield="x67Name" valuefield="pid" event_after_changevalue="refresh_cal_url"></mydropdown>
+                            </div>
+                            <input type="hidden" asp-for="IsP56ATTENDEE" />
                         </div>
                     </div>
-                }
-            </div>
-        </div>
-       
-        <div class="card">
-            <div class="card-header">
-                <input type="checkbox" id="chkO22" asp-for="IsO22" onchange="refresh_cal_url()" />
-                <label class="col-form-label" for="chkO22">@_f.tra("Události/termíny/lhůty")</label>
 
-            </div>
-            <div class="card-body">
-                @if (Model.IsO22)
-                {
-                    <div class="row my-2">
-                        <label class="col-sm-3 col-md-2 col-form-label">@_f.tra("Role v záznamu"):</label>
-                        <div class="col-sm-4 col-md-3">
-                            <mydropdown asp-for="x67ID_o22" datasource="@Model.lisX67_o22" textfield="x67Name" valuefield="pid" event_after_changevalue="refresh_cal_url"></mydropdown>
+                    <div class="ic-type">
+                        <label class="ic-type-head">
+                            <input type="checkbox" class="form-check-input" asp-for="IsO22" />
+                            <span class="material-icons-outlined-nosize">event</span>
+                            <span><b>@_f.tra("Události, termíny a lhůty")</b><small>@_f.tra("Jednání, soudní termíny, lhůty apod.")</small></span>
+                        </label>
+                        <div class="ic-type-body" data-for="IsO22">
+                            <div class="ic-field">
+                                <label for="x67ID_o22">@_f.tra("Role v záznamu")</label>
+                                <mydropdown asp-for="x67ID_o22" datasource="@Model.lisX67_o22" textfield="x67Name" valuefield="pid" event_after_changevalue="refresh_cal_url"></mydropdown>
+                            </div>
                         </div>
-
                     </div>
-                }
+                </section>
+
+                @* ---------------------------------------------------- 2. čí *@
+                <section class="ic-card">
+                    <h2><span class="ic-step">2</span>@_f.tra("Čí záznamy")</h2>
+                    <input type="hidden" asp-for="IsMe" />
+                    <div class="ic-seg" role="radiogroup">
+                        <label><input type="radio" name="Who" value="me" @(Model.Who == "me" ? "checked" : null) /> @_f.tra("Jen moje")</label>
+                        <label><input type="radio" name="Who" value="user" @(Model.Who == "user" ? "checked" : null) /> @_f.tra("Jiného uživatele")</label>
+                        <label><input type="radio" name="Who" value="team" @(Model.Who == "team" ? "checked" : null) /> @_f.tra("Celého týmu")</label>
+                    </div>
+                    <div class="ic-field ic-who" data-who="user">
+                        <mycombo entity="j02User" asp-for="@(Model.j02ID)" selectedtext="@Model.ComboJ02ID" view-flag="1" placeholder="@_f.tra("Vyberte uživatele")" event_after_changevalue="refresh_cal_url"></mycombo>
+                    </div>
+                    <div class="ic-field ic-who" data-who="team">
+                        <mycombo entity="j11Team" asp-for="j11ID" selectedtext="@Model.ComboJ11ID" view-flag="2" placeholder="@_f.tra("Vyberte tým")" event_after_changevalue="refresh_cal_url"></mycombo>
+                    </div>
+                    <div class="ic-field">
+                        <label for="PersonNameFormat">@_f.tra("Jméno v názvu události")</label>
+                        <select asp-for="PersonNameFormat" class="form-select">
+                            <option value="inicialy">@_f.tra("Iniciály uživatele")</option>
+                            <option value="jmeno">@_f.tra("Celé jméno uživatele")</option>
+                            <option value="nic">@_f.tra("Neuvádět")</option>
+                        </select>
+                    </div>
+                </section>
+
+                @* ---------------------------------------------------- 3. filtry *@
+                <section class="ic-card">
+                    <h2><span class="ic-step">3</span>@_f.tra("Zúžení (nepovinné)")</h2>
+                    <div class="ic-field">
+                        <label>@_f.tra("Projekt")</label>
+                        <mycombo entity="le5" search-result-width="700" asp-for="p41ID" selectedtext="@Model.Project" view-flag="1" placeholder="@_f.tra("Všechny projekty")" event_after_changevalue="refresh_cal_url"></mycombo>
+                    </div>
+                    <div class="ic-field">
+                        <label>@_f.tra("Pevné období")</label>
+                        <div class="ic-dates">
+                            <mydate asp-for="d1" include-time="false"></mydate>
+                            <span>–</span>
+                            <mydate asp-for="d2" include-time="false"></mydate>
+                        </div>
+                        <small>@_f.tra("Doporučujeme nechat prázdné: kalendář pak vždy ukazuje posledních 12 měsíců a příštích 12 měsíců a posouvá se sám.")</small>
+                    </div>
+                </section>
             </div>
+
+            @* ---------------------------------------------------- výsledek *@
+            <aside class="ic-result">
+                <section class="ic-card ic-card-result">
+                    <h2><span class="ic-step">4</span>@_f.tra("Odkaz do kalendáře")</h2>
+
+                    <div id="divMessages" class="ic-messages"></div>
+
+                    <div id="divUrl" class="ic-url" style="@(Model.FinalUrl == null ? "display:none;" : null)">
+                        <div class="input-group">
+                            <input asp-for="FinalUrl" class="form-control" readonly onclick="this.select()" />
+                            <button type="button" id="cmdCopy" class="btn btn-success" onclick="copy2clipboard()"><span class="material-icons-outlined-btn">content_copy</span> @_f.tra("Kopírovat")</button>
+                        </div>
+                        <div class="ic-saved" id="divSaved">@_f.tra("Nastavení je uložené. Odkaz se mění podle voleb vlevo – po změně ho v kalendáři přidejte znovu.")</div>
+                    </div>
+
+                    <div class="ic-warn">
+                        <span class="material-icons-outlined-nosize">lock</span>
+                        <span>@_f.tra("Odkaz funguje bez přihlášení. Nesdílejte ho s nikým, kdo nemá vidět vaše data.")</span>
+                    </div>
+
+                    <div class="ic-howto">
+                        <div class="ic-tabs" role="tablist">
+                            <button type="button" class="ic-tab ic-tab-on" data-tab="google">Google</button>
+                            <button type="button" class="ic-tab" data-tab="outlook">Outlook</button>
+                            <button type="button" class="ic-tab" data-tab="apple">Apple</button>
+                        </div>
+                        <ol class="ic-steps" data-tab="google">
+                            <li>@_f.tra("Otevřete Google Kalendář na počítači (calendar.google.com).")</li>
+                            <li>@_f.tra("Vlevo u položky Další kalendáře klikněte na + a zvolte Z adresy URL.")</li>
+                            <li>@_f.tra("Vložte zkopírovaný odkaz a klikněte na Přidat kalendář.")</li>
+                            <li class="ic-note">@_f.tra("Google obnovuje odebírané kalendáře jednou za několik hodin, nové záznamy se proto neobjeví hned.")</li>
+                        </ol>
+                        <ol class="ic-steps" data-tab="outlook" style="display:none;">
+                            <li>@_f.tra("Outlook na webu / nový Outlook: Kalendář → Přidat kalendář → Přihlásit se k odběru z webu.")</li>
+                            <li>@_f.tra("Klasický Outlook: Kalendář → Přidat kalendář → Z internetu.")</li>
+                            <li>@_f.tra("Vložte zkopírovaný odkaz, pojmenujte kalendář (např. MARKTIME) a potvrďte.")</li>
+                        </ol>
+                        <ol class="ic-steps" data-tab="apple" style="display:none;">
+                            <li>@_f.tra("Mac: aplikace Kalendář → Soubor → Nový odebíraný kalendář.")</li>
+                            <li>@_f.tra("iPhone: Nastavení → Kalendář → Účty → Přidat účet → Jiný → Přidat odebíraný kalendář.")</li>
+                            <li>@_f.tra("Vložte zkopírovaný odkaz a potvrďte.")</li>
+                        </ol>
+                        <div class="ic-mail">
+                            <span>@_f.tra("Poslat pokyny e-mailem"):</span>
+                            <button id="cmdSendGoogle" type="button" class="btn btn-sm bog" onclick="sendmail('google')">Google</button>
+                            <button id="cmdSendOutlook" type="button" class="btn btn-sm bog" onclick="sendmail('outlook')">Outlook</button>
+                        </div>
+                    </div>
+                </section>
+            </aside>
         </div>
-        
-
-       
-       
-
-        <p></p>
-        @if(Model.FinalUrl != null)
-        {
-            <div style="width:100%;background-color:lightgreen;margin-top:13px;font-weight:bold;color:navy;">
-                <div style="padding:12px;">
-                    Zkopírujte si iCalendar URL do cílového kalendáře
-
-                    <button type="button" id="cmdCopy" onclick="copy2clipboard()" class="btn btn-light" title="Zkopírovat do schránky"><span class="material-icons-outlined-btn">content_copy</span></button>
-
-                    <button type="button" id="cmdRefresh" onclick="refresh_cal_url()" class="btn btn-light" title="Občerstvit" style="margin-left:30px;"><span class="material-icons-outlined-btn">refresh</span></button>
-                </div>
-            </div>
-
-            <input asp-for="FinalUrl" value="@Model.FinalUrl" class="form-control" style="font-weight:bold;color:red;" placeholder="iCalendar URL" />
-
-            
-        }
-        else
-        {
-            <code>Žádná data.</code>
-        }
-
-
-        
-
     </div>
 </form>
 
-
-
 <script type="text/javascript">
+    var _ic_txt = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(new { copied = _f.tra("Odkaz zkopírován"), working = _f.tra("Aktualizuji…"), err = _f.tra("Nastavení se nepodařilo uložit.") }));
+    var _ic_timer = null, _ic_xhr = null;
 
     $(document).ready(function () {
+        ic_sections();
+        ic_who();
 
+        //každá změna ve formuláři → uložit nastavení a přepočítat odkaz (bez reloadu)
+        $("#form1").on("change", "input, select", function (e) {
+            if (e.target.id === "FinalUrl") return;
+            if (e.target.name === "Who") ic_who();
+            if (/^Is(P31|P56|O22)$/.test(e.target.id)) ic_sections();
+            refresh_cal_url();
+        });
+        $("#form1").on("submit", function (e) { e.preventDefault(); refresh_cal_url(); });
 
+        $(".ic-tab").on("click", function () {
+            var t = $(this).data("tab");
+            $(".ic-tab").removeClass("ic-tab-on");
+            $(this).addClass("ic-tab-on");
+            $(".ic-steps").hide().filter("[data-tab='" + t + "']").show();
+        });
 
-
-
-
+        refresh_cal_url(true);
     });
 
+    function ic_sections() {        //podrobnosti jen u zapnutých typů záznamů
+        $(".ic-type-body").each(function () {
+            var on = $("#" + $(this).data("for")).prop("checked");
+            $(this).toggle(on);
+            $(this).closest(".ic-type").toggleClass("ic-type-on", on);
+        });
+    }
 
+    function ic_who() {
+        var who = $("input[name=Who]:checked").val() || "me";
+        $("#IsMe").val(who === "me" ? "true" : "false");
+        $(".ic-who").each(function () { $(this).toggle($(this).data("who") === who); });
+    }
 
-
-    function refresh_cal_url(pid) {
-        _submit();
+    //volá se i z mycombo / mycombochecklist / mydropdown (event_after_changevalue)
+    function refresh_cal_url(initial) {
+        clearTimeout(_ic_timer);
+        _ic_timer = setTimeout(function () {
+            if (_ic_xhr) _ic_xhr.abort();
+            if (initial !== true) $("#divSaved").text(_ic_txt.working);
+            _ic_xhr = $.post(_ep("/icalgen/BuildUrl"), $("#form1").serialize(), function (data) {
+                var $m = $("#divMessages").empty();
+                (data.messages || []).forEach(function (s) { $("<div>").addClass("ic-msg").text(s).appendTo($m); });
+                if (data.url) {
+                    $("#FinalUrl").val(data.url);
+                    $("#divUrl").show();
+                } else {
+                    $("#divUrl").hide();
+                }
+                $("#divSaved").text(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(_f.tra("Nastavení je uložené. Odkaz se mění podle voleb vlevo – po změně ho v kalendáři přidejte znovu."))));
+            }).fail(function (x) {
+                if (x.statusText !== "abort") _notify_message(_ic_txt.err, "error");
+            });
+        }, 250);
     }
 
     function copy2clipboard() {
-        // Get the text field
-        var copyText = document.getElementById("FinalUrl");
-
-        // Select the text field
-        copyText.select();
-        copyText.setSelectionRange(0, 99999); // For mobile devices
-
-        // Copy the text inside the text field
-        navigator.clipboard.writeText(copyText.value);
-
-        // Alert the copied text
-        _notify_message("Zkopírováno", "info");
-
+        var el = document.getElementById("FinalUrl");
+        el.select();
+        el.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(el.value);
+        _notify_message(_ic_txt.copied, "info");
+        $("#cmdCopy").addClass("ic-copied");
+        setTimeout(function () { $("#cmdCopy").removeClass("ic-copied"); }, 1500);
     }
 
-
-    function sendmail(kostra)
-    {
-        var s=encodeURIComponent($("#FinalUrl").val());
-        
-        _window_open("/Mail/SendMail?kostra="+kostra+"&mailsubject="+s);
+    function sendmail(kostra) {
+        var s = encodeURIComponent($("#FinalUrl").val());
+        _window_open("/Mail/SendMail?kostra=" + kostra + "&mailsubject=" + s);
     }
-    
-    function hardrefresh(pid, flag)
-    {
+
+    function hardrefresh(pid, flag) {
         //nic
     }
 </script>

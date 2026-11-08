@@ -2080,6 +2080,11 @@ mark.mtc-mark { background: #ffe58f; color: inherit; padding: 0; border-radius: 
 .mme-user-txt { flex: 1 1 auto; min-width: 0; }
 .mme-user-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mme-user-login { font-size: .8rem; color: #6c757d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mme-user-link { color: inherit; text-decoration: none; cursor: pointer; }
+.mme-user-link:hover, .mme-user-link.mme-active { background-color: var(--oznaceno, #e9ecef); color: var(--popredi, #000); }
+.mme-user-link:hover .mme-user-login, .mme-user-link.mme-active .mme-user-login { color: inherit; opacity: .8; }
+.mme-user-go { font-size: 1.6rem; line-height: 1; opacity: .5; }
+.mme-user-link:hover .mme-user-go { opacity: 1; }
 
 .mme-settings { display: flex; flex-direction: column; gap: 6px; margin: 0 16px 6px; padding: 10px 12px; border-radius: 8px; background: #f6f7f9; }
 .mme-set { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0; }
