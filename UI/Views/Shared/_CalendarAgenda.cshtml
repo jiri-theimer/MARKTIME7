@@ -33,6 +33,7 @@
     {
         bolRenderP11 = true;
     }
+    string H(string t) => System.Net.WebUtility.HtmlEncode(t ?? "");
 }
 
 
@@ -141,9 +142,9 @@
 
             if (d == DateTime.Today)
             {
-                strCisloDne += "<span class='material-icons-outlined' style='color:lime;'>star</span>";
+                strCisloDne = "<span class='cislodne-today'>" + strCisloDne + "</span>";
             }
-            if (bolHoliday) strCisloDne += "🍷";
+
             strCisloDne += "<br>" + BO.Code.Bas.ObjectDate2String(d, "dddd");
 
             if (intLastM != d.Month || d.DayOfWeek == DayOfWeek.Monday)
@@ -152,7 +153,7 @@
             }
             if (bolHoliday)
             {
-                strCisloDne += "<br><small>" + BO.Code.Bas.OM2(Model.lisC26.First(p => p.c26Date == d).c26Name, 15) + "</small>";
+                strCisloDne += "<br><small class='cal-holiday'>" + H(BO.Code.Bas.OM2(Model.lisC26.First(p => p.c26Date == d).c26Name, 15)) + "</small>";
             }
             @Html.Raw($"<td class='{strClass}' style='border-right:solid 1px #DCDCDC;'>")
             
@@ -248,9 +249,9 @@
                     strStyle = null;
                     if (recP31.p32Color != null)
                     {
-                        strStyle = "style='background-color:" + recP31.p32Color + "';";
+                        strStyle = "style='background-color:" + recP31.p32Color + ";--c:" + recP31.p32Color + "'";
                     }
-                    @Html.Raw($"<div {strStyle}>")
+                    @Html.Raw($"<div class='cal-row cal-p31{(recP31.p32Color != null ? " cal-colored" : "")}' {strStyle}>")
                     strStyle = null;
 
                     switch (recP31.p33ID)
@@ -302,22 +303,22 @@
                     @Html.Raw(strHodiny + UI.Code.TheGridRowSymbol.p31_symbol(recP31))
                    if (recP31.p32AbsenceFlag>0)
                    {
-                       @Html.Raw(BO.Code.Bas.OM2(recP31.p32Name, 20))
+                       @Html.Raw(H(BO.Code.Bas.OM2(recP31.p32Name, 20)))
                     
                    }
                    else
                    {
-                        @Html.Raw(BO.Code.Bas.OM2(recP31.p41Name, 15))
+                        @Html.Raw(H(BO.Code.Bas.OM2(recP31.p41Name, 15)))
                         if (recP31.p28ID_Client > 0)
                         {
-                            @Html.Raw(" (" + BO.Code.Bas.OM2(recP31.ClientName, 15) + ")")
+                            @Html.Raw("<span class='cal-client'> (" + H(BO.Code.Bas.OM2(recP31.ClientName, 15)) + ")</span>")
                         }
                    }
                     
                     @Html.Raw("</a>")
                     
 
-                    @Html.Raw($"<span class='mt_scheduler-p31text'>{BO.Code.Bas.OM2(recP31.p31Text, 100)}</span>")
+                    @Html.Raw($"<span class='mt_scheduler-p31text'>{H(BO.Code.Bas.OM2(recP31.p31Text, 100))}</span>")
                     
 
                     @Html.Raw("</div>")
@@ -332,10 +333,10 @@
                 {
                     strClass = "p31_rec_link";
                     strTitle = $"{recP56.p57Name}: {recP56.ProjectWithClient}";
-                    @Html.Raw("<div style='white-space: nowrap;'>")
+                    @Html.Raw("<div class='cal-row cal-p56' style='white-space: nowrap;'>")
                     @Html.Raw($"<a class='cm' onclick='reccmp56(event,{recP56.pid})'>&#9776;</a>")
                     @Html.Raw($"<span class='material-icons-outlined' style='color:{recP56.ForeColor};'>task</span>")
-                    @Html.Raw($"<a class='{strClass}' title='{strTitle}' onclick=\"_zoom(event,'p56',{recP56.pid})\">{BO.Code.Bas.OM2(recP56.p56Name,25)}")
+                    @Html.Raw($"<a class='{strClass}' title='{H(strTitle)}' onclick=\"_zoom(event,'p56',{recP56.pid})\">{H(BO.Code.Bas.OM2(recP56.p56Name,25))}")
                     @Html.Raw("</a>")
                     @Html.Raw("</div>")
                 }
@@ -348,10 +349,10 @@
                 {
                     strClass = "p31_rec_link";
                     strTitle = $"{recO22.o21Name}: {recO22.ProjectWithClient}";
-                    @Html.Raw("<div style='white-space: nowrap;'>")
+                    @Html.Raw("<div class='cal-row cal-o22' style='white-space: nowrap;'>")
                     @Html.Raw($"<a class='cm' onclick='reccmo22(event,{recO22.pid})'>&#9776;</a>")
                     @Html.Raw($"<span class='material-icons-outlined' style='color:{recO22.ForeColor};'>event</span>")
-                    @Html.Raw($"<a class='{strClass}' title='{strTitle}' onclick=\"_zoom(event,'o22',{recO22.pid})\">{BO.Code.Bas.OM2(recO22.o22Name,25)}")
+                    @Html.Raw($"<a class='{strClass}' title='{H(strTitle)}' onclick=\"_zoom(event,'o22',{recO22.pid})\">{H(BO.Code.Bas.OM2(recO22.o22Name,25))}")
                     @Html.Raw("</a>")
                     @Html.Raw("</div>")
                 }

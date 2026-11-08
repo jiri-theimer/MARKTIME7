@@ -58,6 +58,7 @@
         }
     }
     hhmm_slots.Add((Model.h1 + 1).ToString() + ":00");
+    string H(string t) => System.Net.WebUtility.HtmlEncode(t ?? "");
 
                     <div class="input-group" style="border-bottom:solid 1px black;margin-bottom:2px;">
                         <div style="margin-left:55px;">
@@ -107,9 +108,16 @@
                             </select>
                         </div>
                         <div style="margin-left:10px;">
-                            <strong id="selectable_log"></strong>
+                            <strong id="selectable_log" class="cal-sel-log"></strong>
                         </div>
                     </div>
+                    @if (_f.CurrentUser.j04IsModule_p31)
+                    {
+                        <div class="cal-day-hint">
+                            <span class="material-icons-outlined-nosize">touch_app</span>
+                            @_f.tra("Tažením myší po časové ose vyberte čas od–do – otevře se nový úkon s vyplněným časem. Kliknutím na jeden slot vykážete úkon od daného času.")
+                        </div>
+                    }
 
 
     @if (qryP31NoTime.Count() > 0)
@@ -159,18 +167,19 @@
     @Html.Raw($"<a class='{strClass}' onclick='p31_rec({recP31.pid})'>")
 
 
+
             strHodiny = "<span class='bunka_hodiny'>" + strHodiny + "</span>";
     @Html.Raw(strHodiny + UI.Code.TheGridRowSymbol.p31_symbol(recP31))
 
-    @Html.Raw(BO.Code.Bas.OM2(recP31.p41Name, 15))
+    @Html.Raw(H(BO.Code.Bas.OM2(recP31.p41Name, 15)))
             if (recP31.p28ID_Client > 0)
             {
-    @Html.Raw(" (" + BO.Code.Bas.OM2(recP31.ClientName, 15) + ")")
+    @Html.Raw(" (" + H(BO.Code.Bas.OM2(recP31.ClientName, 15)) + ")")
             }
     @Html.Raw("</a>")
 
 
-    @Html.Raw($"<span class='mt_scheduler-p31text'>{BO.Code.Bas.OM2(recP31.p31Text, 100)}</span>")
+    @Html.Raw($"<span class='mt_scheduler-p31text'>{H(BO.Code.Bas.OM2(recP31.p31Text, 100))}</span>")
 
 
     @Html.Raw("</div>")
@@ -250,15 +259,15 @@
 
             strLink += UI.Code.TheGridRowSymbol.p31_symbol(c);
 
-            string strProject = BO.Code.Bas.OM2(c.p41Name, 15);
+            string strProject = H(BO.Code.Bas.OM2(c.p41Name, 15));
             if (c.p28ID_Client > 0)
             {
-                strProject += " (" + BO.Code.Bas.OM2(c.ClientName, 15) + ")";
+                strProject += " (" + H(BO.Code.Bas.OM2(c.ClientName, 15)) + ")";
             }
-            string strText = c.p31Text != null ? BO.Code.Bas.OM2(c.p31Text, 300) : c.p32Name;
+            string strText = H(c.p31Text != null ? BO.Code.Bas.OM2(c.p31Text, 300) : c.p32Name);
+            string strSlotCss = c.p32IsBillable ? "data_slot cal-slot-b" : "data_slot cal-slot-nb";
 
-
-    @Html.Raw($"<div class='data_slot' style='grid-row:{(intStartIndex + 1)}/span {intSpanRows};'>{strRCM}<a class='exactdayp31reclink' onclick='p31_rec({c.pid})'>{strLink} {strProject}</a><i style='padding-left:20px;'>{strText}</i></div>")
+    @Html.Raw($"<div class='{strSlotCss}' style='grid-row:{(intStartIndex + 1)}/span {intSpanRows};{(c.p32Color != null ? "--c:" + c.p32Color : "")}'>{strRCM}<a class='exactdayp31reclink' onclick='p31_rec({c.pid})'>{strLink} {strProject}</a><i style='padding-left:20px;'>{strText}</i></div>")
 
         }
     }
@@ -339,6 +348,7 @@
                     return;
                 }
 
+                $("#selectable_log").removeClass("cal-sel-on").text("");
                 if (sels.length == 0) return;
 
                 var arr = [];
@@ -374,7 +384,7 @@
                 ts = arr[arr.length - 1].split(" - ");
                 if (ts.length <= 1) return;
                 var t2 = ts[1];
-                $("#selectable_log").text(t1 + " - " + t2);
+                $("#selectable_log").text(t1 + " – " + t2).addClass("cal-sel-on");
 
             }
         })

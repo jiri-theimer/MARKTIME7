@@ -30,11 +30,12 @@
         bolRenderP11 = true;
     }
     BO.p31WorksheetTimelineDay _recFirst = null;
+    string H(string t) => System.Net.WebUtility.HtmlEncode(t ?? "");      //texty záznamů do HTML (název projektu, klienta…)
 }
 
 
 
-<table border="0" id="mt_scheduler_calendar" >
+<table border="0" id="mt_scheduler_calendar" class="cal-month@(Model.CurrentView == UI.Models.p31view.CalendarViewEnum.Week ? " cal-week" : "")">
     @{
         strStyle = "14%";
         if (!Model.ShowWeekend) strStyle = "20%";
@@ -117,26 +118,20 @@
             }
             if (d == datFirstDayOfMonth || d == datLastDayOfMonth)
             {
-                @Html.Raw("<div class='mt_scheduler-day-header' style='background-color:khaki;'>");
+                @Html.Raw("<div class='mt_scheduler-day-header mt-edge' style='background-color:khaki;'>");
             }
             else
             {
                 @Html.Raw("<div class='mt_scheduler-day-header'>");
             }
 
-            if (d == DateTime.Today)
-            {
-                strCisloDne += "<span class='material-icons-outlined' style='color:lime;'>star</span>";
-            }
-
-            
-            //@Html.Raw($"<span class='cislodne' title='{strDatum}'>{strCisloDne}</span>")
-            @Html.Raw($"<a href=\"javascript:sd('{strDatum}')\" class='cislodne' title='{strDatum}'>{strCisloDne}</a>")
+            //dnešek: číslo dne v barevném kolečku (cislodne-today v calendar.css)
+            @Html.Raw($"<a href=\"javascript:sd('{strDatum}')\" class='cislodne{(d == DateTime.Today ? " cislodne-today" : "")}' title='{strDatum}'>{strCisloDne}</a>")
             
 
             if (bolHoliday)
             {
-                @Html.Raw($"<span title='{Model.lisC26.First(p => p.c26Date == d).c26Name}'>🍷{BO.Code.Bas.OM2(Model.lisC26.First(p => p.c26Date == d).c26Name, 15)}</span>")
+                @Html.Raw($"<span class='cal-holiday' title='{H(Model.lisC26.First(p => p.c26Date == d).c26Name)}'>{H(BO.Code.Bas.OM2(Model.lisC26.First(p => p.c26Date == d).c26Name, 15))}</span>")
             }
 
             if (bolRenderP11)
@@ -215,9 +210,9 @@
                         strTitle = recP31.p32Name + ": " + BO.Code.Bas.OM2(recP31.p31Text, 20);
                         strStyle = "white-space: nowrap;";
                         if (recP31.p32Color !=null){
-                            strStyle += "background-color:" + recP31.p32Color;
+                            strStyle += "background-color:" + recP31.p32Color + ";--c:" + recP31.p32Color;     //--c: barva aktivity pro calendar.css (inline barva zůstává kvůli e-mailu)
                         }
-                        @Html.Raw($"<div style='{strStyle}'>")
+                        @Html.Raw($"<div class='cal-row cal-p31{(recP31.p32Color != null ? " cal-colored" : "")}' style='{strStyle}'>")
 
                         switch (recP31.p33ID)
                         {
@@ -253,20 +248,20 @@
                         }
                         @Html.Raw($"<a class='cm' onclick='reccm(event,{recP31.pid})'>&#9776;</a>")
 
-                        @Html.Raw($"<a class='{strClass}' title='{strTitle}' onclick='p31_rec({recP31.pid})'>")
+                        @Html.Raw($"<a class='{strClass}' title='{H(strTitle)}' onclick='p31_rec({recP31.pid})'>")
 
                         strHodiny = "<span class='bunka_hodiny'>" + strHodiny + "</span>";
 
                         @Html.Raw(strHodiny + UI.Code.TheGridRowSymbol.p31_symbol(recP31))
                         if(recP31.p32AbsenceFlag>0)
                         {
-                            @Html.Raw(BO.Code.Bas.OM2(recP31.p32Name, 20))
+                            @Html.Raw(H(BO.Code.Bas.OM2(recP31.p32Name, 20)))
                         }else
                         {
-                            @Html.Raw(BO.Code.Bas.OM2(recP31.p41Name, 15))
+                            @Html.Raw(H(BO.Code.Bas.OM2(recP31.p41Name, 15)))
                             if (recP31.p28ID_Client > 0)
                             {
-                                @Html.Raw(" (" + BO.Code.Bas.OM2(recP31.ClientName, 10) + ")")
+                                @Html.Raw("<span class='cal-client'> (" + H(BO.Code.Bas.OM2(recP31.ClientName, 10)) + ")</span>")
                             }
                         }
                         
@@ -286,11 +281,10 @@
                 {
                     strClass = "p31_rec_link";
                     strTitle = $"{recP56.p57Name}: {recP56.ProjectWithClient}";
-                    @Html.Raw("<div style='white-space: nowrap;'>")
+                    @Html.Raw("<div class='cal-row cal-p56' style='white-space: nowrap;'>")
                     @Html.Raw($"<a class='cm' onclick='reccmp56(event,{recP56.pid})'>&#9776;</a>")
-                    //@Html.Raw($"<span class='material-icons-outlined' style='color:{recP56.b02Color};'>task</span>")
                     @Html.Raw($"<span class='material-icons-outlined' style='color:{recP56.b02Color};'>task</span>")
-                    @Html.Raw($"<a class='{strClass}' title='{strTitle}' onclick=\"_zoom(event,'p56',{recP56.pid})\">{BO.Code.Bas.OM2(recP56.p56Name,25)}")
+                    @Html.Raw($"<a class='{strClass}' title='{H(strTitle)}' onclick=\"_zoom(event,'p56',{recP56.pid})\">{H(BO.Code.Bas.OM2(recP56.p56Name,25))}")
                     @Html.Raw("</a>")
                     @Html.Raw("</div>")
                 }
@@ -302,10 +296,10 @@
                 {
                     strClass = "p31_rec_link";
                     strTitle = $"{recO22.o21Name}: {recO22.ProjectWithClient}";
-                    @Html.Raw("<div style='white-space: nowrap;'>")
+                    @Html.Raw("<div class='cal-row cal-o22' style='white-space: nowrap;'>")
                     @Html.Raw($"<a class='cm' onclick='reccmo22(event,{recO22.pid})'>&#9776;</a>")
                     @Html.Raw($"<span class='material-icons-outlined' style='color:{recO22.ForeColor};'>event</span>")
-                    @Html.Raw($"<a class='{strClass}' title='{strTitle}' onclick=\"_zoom(event,'o22',{recO22.pid})\">{BO.Code.Bas.OM2(recO22.o22Name,25)}")
+                    @Html.Raw($"<a class='{strClass}' title='{H(strTitle)}' onclick=\"_zoom(event,'o22',{recO22.pid})\">{(recO22.o21TypeFlag == BO.o21TypeFlagEnum.Udalost && recO22.o22PlanFrom != null && recO22.o22PlanFrom.Value.Date == d && recO22.o22PlanFrom.Value.TimeOfDay.TotalMinutes > 0 ? "<span class='cal-time'>" + recO22.o22PlanFrom.Value.ToString("H:mm") + "</span> " : "")}{H(BO.Code.Bas.OM2(recO22.o22Name,25))}")
                     @Html.Raw("</a>")
                     @Html.Raw("</div>")
                 }

@@ -147,13 +147,11 @@
                     }
 
                     <th class="@strClass" title="@strTitle">
-                        @BO.Code.Bas.ObjectDate2String(d, "dd")
-                        <br />
-                        @BO.Code.Bas.ObjectDate2String(d, "ddd")
-
+                        <span class="dl-dnum">@BO.Code.Bas.ObjectDate2String(d, "dd")</span>
+                        <span class="dl-dname">@BO.Code.Bas.ObjectDate2String(d, "ddd")</span>
                         @if (Model.lisC26.Any(p => p.c26Date == d))
                         {
-                            <span title="@(Model.lisC26.First(p => p.c26Date == d).c26Name)">🍷</span>
+                            <span class="dl-hol" title="@(Model.lisC26.First(p => p.c26Date == d).c26Name)"></span>
                         }
                     </th>
                 }
@@ -293,7 +291,7 @@
                             {
                                 @foreach (var recP56 in Model.lisP56.Where(p => (p.j02ID == recJ02.pid || p.x69IsAllUsers || (p.j11ID > 0 && recJ02.j02Cache_j11IDs != null && ("," + recJ02.j02Cache_j11IDs + ",").Contains(p.j11ID.ToString()))) && Convert.ToDateTime(p.p56PlanUntil) >= d && Convert.ToDateTime(p.p56PlanUntil) < d.AddDays(1)))
                                 {
-                                    <div style="white-space: nowrap;" title="@recP56.p56Name">
+                                    <div class="dl-item" style="white-space: nowrap;" title="@recP56.p56Name">
                                         <a class="cm" onclick="reccmp56(event,@(recP56.pid))">&#9776;</a>
                                         <span class="material-icons-outlined" style="color:@recP56.ForeColor">task</span>
                                         <div style="font-size:70%;width:42px;overflow: hidden;"><a href="#" onclick="_zoom(event,'p56',@(recP56.pid))">@recP56.p56Name</a></div>
@@ -304,7 +302,7 @@
                             {
                                 @foreach (var recO22 in Model.lisO22_Udalosti.Where(p => (p.j02ID == recJ02.pid || p.x69IsAllUsers) && p.o22PlanFrom.Value < d.AddDays(1) && p.o22PlanUntil.Value >= d))
                                 {
-                                    <div style="white-space: nowrap;" title="@recO22.o22Name">
+                                    <div class="dl-item" style="white-space: nowrap;" title="@recO22.o22Name">
                                         <a class="cm" onclick="reccmo22(event,@(recO22.pid))">&#9776;</a>
                                         <span class="material-icons-outlined" style="color:@recO22.ForeColor">event</span>
 
@@ -313,7 +311,7 @@
                                 }
                                 @foreach (var recO22 in Model.lisO22_MimoUdalosti.Where(p => (p.j02ID == recJ02.pid || p.x69IsAllUsers || (p.j11ID > 0 && recJ02.j02Cache_j11IDs != null && ("," + recJ02.j02Cache_j11IDs + ",").Contains(p.j11ID.ToString()))) && Convert.ToDateTime(p.o22PlanUntil) >= d && Convert.ToDateTime(p.o22PlanUntil) < d.AddDays(1)))
                                 {
-                                    <div style="white-space: nowrap;" title="@recO22.o22Name">
+                                    <div class="dl-item" style="white-space: nowrap;" title="@recO22.o22Name">
                                         <a class="cm" onclick="reccmo22(event,@(recO22.pid))">&#9776;</a>
                                         <span class="material-icons-outlined" style="color:@recO22.ForeColor">event</span>
 
@@ -513,7 +511,7 @@
 <div id="zoomwin" style="position:absolute;top:0px;left:0px;z-index:1000;display:none;"></div>
 
 
-<table id="calmenu1" class="calmenu">
+<table id="calmenu1" class="calmenu dl-calmenu">
     <tr>
         <td>
             <a id="cmdNew" class="calmenu_btn" onclick="calmenu_init_content()" title="Nový"><span class="material-icons-outlined-btn">add_circle_outline</span></a>
@@ -521,7 +519,7 @@
     </tr>
     <tr>
         <td>
-            <div id="divCal" style="display:none;padding:8px;">
+            <div id="divCal" class="dl-pop" style="display:none;">
                 <div class="row">
                     @if (_f.CurrentUser.j04IsModule_p31)
                     {
@@ -548,8 +546,8 @@
 
                 @if (_f.CurrentUser.j04IsModule_p31)
                 {
-                    <hr />
-                    <strong>Nepřítomnost:</strong>
+                    <div class="dl-pop-sep"></div>
+                    <strong>@_f.tra("Nepřítomnost"):</strong>
                     @foreach (var c in Model.lisP32FUT)
                     {
 
@@ -572,10 +570,10 @@
                     }
                 }
 
+                <div class="dl-pop-sep"></div>
+                <strong>@_f.tra("Barva dne"):</strong>
                 <br />
-                <strong>Barva dne:</strong>
-                <br />
-                <a style="padding-left:14px;padding-bottom:4px;" href="javascript:c24c(0)">Bez barvy</a>
+                <a style="padding-left:14px;padding-bottom:4px;" href="javascript:c24c(0)">@_f.tra("Bez barvy")</a>
                 @foreach (var c in Model.lisC24)
                 {
                     <br />

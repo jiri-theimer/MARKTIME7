@@ -50,15 +50,15 @@
     double dblSum_Prescas = 0;
     double dblSum_Nepritomnost = 0;
 
-
-
+    string H(string t) => System.Net.WebUtility.HtmlEncode(t ?? "");
+    string _strDnes = _f.tra("dnes");
 }
 
 @addTagHelper *, UI
 
 @section header_content {
 
-    <link rel="stylesheet" href="~/css/calendar.css" />
+    <link rel="stylesheet" href="~/css/calendar.css" asp-append-version="true" />
     <link href="~/lib/autocomplete/jquery.autocomplete.css" rel="stylesheet" type="text/css" />
 
     <style type="text/css">
@@ -94,7 +94,7 @@
 <div id="calmenu1" class="calmenu nonmobile">
     <a class="calmenu_btn" id="cmdNew" onclick="calmenu_init_content()" title="Menu pro vybraný den"><span class="material-icons-outlined-btn">add_circle_outline</span></a>
 
-    <div id="divCal" style="display:none;background-color:#E8E8E8;padding:8px;border:solid 1px silver;border-radius:6px;margin-top:-60px;margin-left:20px;">
+    <div id="divCal" class="abs-pop" style="display:none;">
 
         <table class="nonmobile" style="min-width:700px;">
 
@@ -129,6 +129,8 @@
 
 
 
+        <div class="abs-pop-sep"></div>
+        <strong>@_f.tra("Nepřítomnost"):</strong>
         @foreach (var c in Model.lisP32FUT.Take(10))
         {
 
@@ -149,9 +151,10 @@
             }
         }
 
-        <strong>Barva dne:</strong>
+        <div class="abs-pop-sep"></div>
+        <strong>@_f.tra("Barva dne"):</strong>
 
-        <a style="padding-left:14px;padding-bottom:4px;" href="javascript:c24c(0)">Bez barvy</a>
+        <a style="padding-left:14px;padding-bottom:4px;" href="javascript:c24c(0)">@_f.tra("Bez barvy")</a>
         @foreach (var c in Model.lisC24)
         {
 
@@ -229,7 +232,7 @@
 
 <div class="tableFixHead" id="divTabContainer" style="border-top:solid 1px silver;">
 
-    <table class="table-bordered table-hover tab1 table">
+    <table class="table-bordered table-hover tab1 table abs-table">
         <colgroup>
             <col width="120" />
             <col width="70" />
@@ -254,59 +257,24 @@
         <thead>
             <tr>
 
-                <th>
-                    Datum
-                </th>
-                <th>
-                    Příchod
-                </th>
-                <th>
-                    Odchod
-                </th>
-                <th>
-                    Přestávky
-                </th>
-                <th>
-                    <myicon symbol="functions"></myicon>
-                    <br />
-                    Přestávka
-                </th>
-                <th title="Doba bez přestávek">
-                    V práci
-                </th>
-                <th title="Doba včetně přestávek">
-                    V práci vč.přestávek
-                </th>
-                <th>
-                    Fond
-                </th>
-                <th>
-                    Přesčas
-                </th>
-                <th>
-                    <myicon symbol="functions"></myicon>
-                    <br />
-                    Nepřítomnost
-                </th>
+                <th class="abs-th-date">@_f.tra("Datum")</th>
+                <th>@_f.tra("Příchod")</th>
+                <th>@_f.tra("Odchod")</th>
+                <th>@_f.tra("Přestávky")</th>
+                <th title="@_f.tra("Součet přestávek")"><span class="abs-sum">Σ</span>@_f.tra("Přestávka")</th>
+                <th title="@_f.tra("Doba bez přestávek")">@_f.tra("V práci")</th>
+                <th title="@_f.tra("Doba včetně přestávek")">@_f.tra("V práci vč. přestávek")</th>
+                <th>@_f.tra("Fond")</th>
+                <th>@_f.tra("Přesčas")</th>
+                <th title="@_f.tra("Součet nepřítomnosti")"><span class="abs-sum">Σ</span>@_f.tra("Nepřítomnost")</th>
                 @foreach (var c in Model.lisP32FUT_OsaX)
                 {
-                    <th style="background-color:@(c.p32Color)">
-                        @(c.p32Name)
-                    </th>
+                    <th class="abs-th-fut" style="background-color:@(c.p32Color);--c:@(c.p32Color)">@(c.p32Name)</th>
                 }
 
-                <th title="Celkově vykázané hodiny">
-                    <myicon symbol="functions"></myicon>
-                    <br />Vykázáno
-                </th>
-                <th title="Vykázané hodiny na fakturovatelné aktivity">
-                    <span style="background-color:green;color:white;border-radius:4px;padding:2px;">FA</span>
-                    <br /> Vykázáno
-                </th>
-                <th title="Vykázané hodiny na nefakturovatelné aktivity">
-                    <span style="background-color:red;color:white;border-radius:4px;padding:2px;">NEFA</span>
-                    <br />Vykázáno
-                </th>
+                <th title="@_f.tra("Celkově vykázané hodiny")"><span class="abs-sum">Σ</span>@_f.tra("Vykázáno")</th>
+                <th title="@_f.tra("Vykázané hodiny na fakturovatelné aktivity")"><span class="abs-fa" style="background-color:green;color:white;">FA</span>@_f.tra("Vykázáno")</th>
+                <th title="@_f.tra("Vykázané hodiny na nefakturovatelné aktivity")"><span class="abs-fa" style="background-color:red;color:white;">NEFA</span>@_f.tra("Vykázáno")</th>
 
                 <th></th>
             </tr>
@@ -347,18 +315,12 @@
                     @Html.Raw($"<tr class='agenda_row_licha {strClass}' data-d='{strDatum}' onmouseover='showcalmenu(event,this,\"{strDatum}\")'>")
                 }
 
-                //if (bolHoliday) strCisloDne += "🍷";
-                strCisloDne += " " + BO.Code.Bas.ObjectDate2String(d, "dddd");
-
-                if (d == DateTime.Today)
-                {
-                    strCisloDne += "<span class='material-icons-outlined' style='color:lime;'>star</span>";
-                }
-
+                //den: číslo (dnes v kolečku) + název dne, svátek jako štítek
+                strCisloDne = $"<span class='abs-dnum{(d == DateTime.Today ? " cislodne-today" : "")}' title='{(d == DateTime.Today ? _strDnes : "")}'>{strCisloDne}</span><span class='abs-dname'>{BO.Code.Bas.ObjectDate2String(d, "dddd")}</span>";
 
                 if (bolHoliday)
                 {
-                    strCisloDne += "<br>🍷<small>" + BO.Code.Bas.OM2(Model.lisC26.First(p => p.c26Date == d).c26Name, 15) + "</small>";
+                    strCisloDne += "<span class='cal-holiday abs-holiday'>" + H(BO.Code.Bas.OM2(Model.lisC26.First(p => p.c26Date == d).c26Name, 15)) + "</span>";
                 }
                 if (Model.lisC23.Any(p => p.c23Date == d))
                 {
@@ -385,7 +347,7 @@
                 {
                     Model.jump2row = x;
                 }
-                @Html.Raw($"<a style='color:navy;' id='jump2row{x}'>{strCisloDne}</a>")
+                @Html.Raw($"<a class='abs-day' id='jump2row{x}'>{strCisloDne}</a>")
 
                 @Html.Raw("</div>")
 
@@ -552,9 +514,9 @@
 
             }
         </tbody>
-        <tfoot>
+        <tfoot class="abs-foot">
             <tr>
-                <td><myicon symbol="functions"></myicon></td>
+                <td class="abs-foot-lab">Σ @_f.tra("Celkem")</td>
                 <td></td>
                 <td></td>
                 <td></td>
