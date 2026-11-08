@@ -55,7 +55,7 @@ namespace UI.Views.Shared.TagHelpers
             string strSelectedValues = this.For.Model as string;
             if (this.dropdown_height == null)
             {
-                this.dropdown_height = "220px";
+                this.dropdown_height = "320px";
             }
             
 
@@ -70,42 +70,6 @@ namespace UI.Views.Shared.TagHelpers
 
 
 
-            sb($"<div id='divDropdownContainer{strControlID}' class='dropdown' style='max-width:300px;'>");
-
-
-            //string strTitle = "";
-            //if (this.SelectedText.Model != null)
-            //{
-            //    strTitle=Convert.ToString(this.SelectedText.Model).Replace(",", "★");
-            //}
-
-
-            
-            //sb("<div class='input-group-append'>");
-            sb(string.Format("<button type='button' id='cmdCombo{0}' class='btn dropdown-toggle form-control' data-bs-toggle='dropdown' aria-expanded='false' style='border: solid 1px #C8C8C8; border-radius: 3px;width:100%;text-align:left;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;'>", strControlID));
-            if (this.PlaceholderIcon != null)
-            {
-                sb($"<span class='material-icons-outlined-nosize'>{this.PlaceholderIcon}</span>");
-            }
-            
-            if (this.PlaceHolder != null)
-            {
-                sb(this.PlaceHolder);
-
-            }
-            sb("</button>");
-
-            sb(string.Format("<div id='divDropdown{0}' class='dropdown-menu' aria-labelledby='cmdCombo{0}' style='width:100%;min-width:180px;' tabindex='-1'>", strControlID));
-            sb(string.Format("<div id='divData{0}' style='height:{1};overflow:auto;width:100%;min-width:180px;'>", strControlID,this.dropdown_height));
-            sb("</div>");           
-            sb("</div>");
-            
-            sb("");            
-            sb("");
-
-            
-            sb("</div>");
-
             string aliasid = this.SelectedText.Name;
             string aliasname = this.SelectedText.Name;
             if (this.elementidprefix != null)
@@ -114,35 +78,47 @@ namespace UI.Views.Shared.TagHelpers
                 aliasname = this.elementidprefix + aliasname;
             }
             aliasid = aliasid.Replace(".", "_").Replace("[", "_").Replace("]", "_");
-           
-            sb($"<input type='hidden' id='{aliasid}' name='{aliasname}' value='{this.SelectedText.Model}'/>");
 
-            
+            //vzhled: třídy mcl-* (site.css); ID prvků zůstávají (cmdCombo*, divDropdown*, divData*, skryté hodnoty)
+            sb($"<div id='divDropdownContainer{strControlID}' class='dropdown mcl' style='max-width:300px;'>");
+            sb($"<button type='button' id='cmdCombo{strControlID}' class='form-control mcl-button dropdown-toggle' data-bs-toggle='dropdown' data-bs-auto-close='outside' aria-expanded='false'>");
+            if (this.PlaceholderIcon != null)
+            {
+                sb($"<span class='material-icons-outlined-nosize'>{Html(this.PlaceholderIcon)}</span>");
+            }
+            sb($"<span class='mcl-text'>{Html(this.PlaceHolder)}</span><span class='mcl-badge' style='display:none;'></span>");
+            sb("</button>");
+
+            sb($"<div id='divDropdown{strControlID}' class='dropdown-menu mcl-menu p-0' aria-labelledby='cmdCombo{strControlID}' tabindex='-1'>");
+            sb("<div class='mcl-tools'>");
+            sb("<input type='search' class='form-control form-control-sm mcl-search' placeholder='Hledat…' autocomplete='off' />");
+            sb("<div class='mcl-tools-row'>");
+            sb("<button type='button' class='btn btn-sm btn-light mcl-all' title='Zaškrtnout vše zobrazené'>Vše</button>");
+            sb("<button type='button' class='btn btn-sm btn-light mcl-none' title='Odškrtnout vše zobrazené'>Nic</button>");
+            sb("<label class='mcl-onlysel'><input type='checkbox' class='mcl-onlysel-chk' /> jen vybrané</label>");
+            sb("<span class='mcl-count'></span>");
+            sb("</div></div>");
+            sb($"<div id='divData{strControlID}' class='mcl-data' style='max-height:{Html(this.dropdown_height)};'></div>");
+            sb("</div>");   //dropdown-menu
+            sb("</div>");   //dropdown
+
+            sb($"<input type='hidden' id='{aliasid}' name='{Html(aliasname)}' value='{Html(this.SelectedText.Model?.ToString())}'/>");
 
             sb("<script type='text/javascript'>");
-            sb("");
-            _sb.Append($"var c{strControlID}=");
-            _sb.Append("{");
-            
-            _sb.Append($"controlid: '{strControlID}',posturl: '/TheCombo/GetHtml4Checkboxlist',entity:'{this.Entity}',masterprefix:'{this.masterprefix}',masterpid:{this.masterpid},selectedvalues:'{strSelectedValues}',myqueryinline:'{this.myqueryinline}',on_after_change:'{this.Event_After_ChangeValue}',placeholder:'{this.PlaceHolder}',aliasid:'{aliasid}'");
-
+            _sb.Append($"var c{strControlID}={{");
+            _sb.Append($"controlid: '{strControlID}',posturl: '/TheCombo/GetHtml4Checkboxlist',entity:'{Js(this.Entity)}',masterprefix:'{Js(this.masterprefix)}',masterpid:{this.masterpid},selectedvalues:'{Js(strSelectedValues)}',myqueryinline:'{Js(this.myqueryinline)}',on_after_change:'{Js(this.Event_After_ChangeValue)}',placeholder:'{Js(this.PlaceHolder)}',aliasid:'{aliasid}'");
             _sb.Append("};");
-
             sb("");
             sb($"mycombochecklist_init(c{strControlID});");
-
-            
-            sb("");
             sb("</script>");
 
-
-            sb($"<input type='hidden' id='{strControlID}' name='{strControlName}' value=\"{strSelectedValues}\" />");
-
-
-
+            sb($"<input type='hidden' id='{strControlID}' name='{Html(strControlName)}' value=\"{Html(strSelectedValues)}\" />");
 
             output.Content.AppendHtml(_sb.ToString());
         }
+
+        private static string Html(string s) => System.Net.WebUtility.HtmlEncode(s ?? "");
+        private static string Js(string s) => System.Web.HttpUtility.JavaScriptStringEncode(s ?? "");
 
         private void sb(string s)
         {

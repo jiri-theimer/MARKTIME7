@@ -135,24 +135,24 @@ namespace UI.Controllers
             var intRows = dt.Rows.Count;
 
             var s = new System.Text.StringBuilder();
-            
 
+            //informační lišta nabídky (počet záznamů, filtr sešitu, založit nový) – vzhled mtc-bar v site.css
+            s.Append("<div class='mtc-bar'>");
             if (mq.TopRecordsOnly > 0)
             {
                 if (intRows >= mq.TopRecordsOnly)
                 {
-                    s.AppendLine(string.Format("<small style='margin-left:10px;'>{0} {1} {2}. {3}</small>", Factory.tra("Zobrazeno prvních"), intRows, Factory.tra("záznamů"), Factory.tra("Zpřesněte filtrovací podmínku.")));
+                    s.Append($"<span class='mtc-count'>{Factory.tra("Zobrazeno prvních")} {intRows} {Factory.tra("záznamů")}. {Factory.tra("Zpřesněte filtrovací podmínku.")}</span>");
                 }
                 else
                 {
-                    s.AppendLine(string.Format("<small style='margin-left:10px;'>{0}: {1}.</small>", Factory.tra("Počet záznamů"), intRows));
+                    s.Append($"<span class='mtc-count'>{Factory.tra("Počet záznamů")}: {intRows}</span>");
                 }
-
             }
 
             if (mq.Prefix == "p28" && Factory.CurrentUser.TestPermission(BO.PermValEnum.GR_p28_Creator))
             {
-                s.Append("<a style='float:right;' tabindex='-1' href=\"javascript: _window_open('/p28/Record?pid=0')\">Založit nový kontakt</a>");
+                s.Append($"<a class='mtc-new' tabindex='-1' href=\"javascript: _window_open('/p28/Record?pid=0')\">+ {Factory.tra("Založit nový kontakt")}</a>");
             }
             if (mq.Prefix == "p41")
             {
@@ -164,8 +164,8 @@ namespace UI.Controllers
                     {                        
                         if (!Factory.CurrentUser.IsHes(524288))
                         {
-                            s.Append($"<span style='margin-left:100px;'>Projekty pro sešit </span><span class='badge-light'>{recP34.p34Name}</span>");
-                            s.Append($"<a href='javascript:zrusit_p34id_for_p31_entry()' tabindex='-1'>Zrušit filtrování podle sešitu</button>");
+                            s.Append($"<span class='mtc-count'>{Factory.tra("Projekty pro sešit")} <span class='badge-light'>{System.Net.WebUtility.HtmlEncode(recP34.p34Name)}</span></span>");
+                            s.Append($"<a class='mtc-link' href='javascript:zrusit_p34id_for_p31_entry()' tabindex='-1'>{Factory.tra("Zrušit filtrování podle sešitu")}</a>");
                         }
                         
                     }
@@ -177,18 +177,19 @@ namespace UI.Controllers
             if ((mq.Prefix == "p41" || mq.Prefix == "le5") && Factory.CurrentUser.TestPermission(BO.PermValEnum.GR_p41_Creator))
             {
 
-                s.Append("<a style='float:right;' tabindex='-1' href=\"javascript: _window_open('/p41/Record?pid=0')\">Založit nový</a>");
+                s.Append($"<a class='mtc-new' tabindex='-1' href=\"javascript: _window_open('/p41/Record?pid=0')\">+ {Factory.tra("Založit nový")}</a>");
             }
             if (mq.Prefix == "p56" && Factory.CurrentUser.j04IsModule_p56)
             {
-                s.Append("<a style='float:right;' tabindex='-1' href=\"javascript: _window_open('/p56/Record?pid=0')\">Založit nový úkol</a>");
+                s.Append($"<a class='mtc-new' tabindex='-1' href=\"javascript: _window_open('/p56/Record?pid=0')\">+ {Factory.tra("Založit nový úkol")}</a>");
             }
+            s.Append("</div>");
 
 
 
             s.Append(string.Format("<table id='{0}' class='table table-thecombo'>", tableid));
 
-            s.Append("<thead><tr style='font-weight:normal;'>");
+            s.Append("<thead><tr>");
             foreach (var col in cols)
             {
                 switch (Factory.CurrentUser.j02LangIndex)
@@ -214,7 +215,7 @@ namespace UI.Controllers
             {
                 if (strGroupByField !=null && dt.Rows[i][strGroupByField] !=System.DBNull.Value && !Equals(lastGroupByVal, dt.Rows[i][strGroupByField]))
                 {
-                    s.Append($"<tr data-skip='true' data-v='0' style='background-color:silver;'><td colspan=10>{dt.Rows[i][strGroupByField]}</td></tr>");
+                    s.Append($"<tr class='mtc-group' data-skip='true' data-v='0'><td colspan=10>{dt.Rows[i][strGroupByField]}</td></tr>");
                 }
                    
 
@@ -242,7 +243,7 @@ namespace UI.Controllers
                 {
                     if (col.NormalizedTypeName == "num")
                     {
-                        s.Append(string.Format("<td style='text-align:right;'>{0}</td>", BO.Code.Bas.ParseCellValueFromDb(dt.Rows[i], col)));
+                        s.Append(string.Format("<td class='mtc-num'>{0}</td>", BO.Code.Bas.ParseCellValueFromDb(dt.Rows[i], col)));
                     }
                     else
                     {
@@ -314,57 +315,25 @@ namespace UI.Controllers
 
             var sb = new System.Text.StringBuilder();
 
-            if (intRows > 20)
-            {
-                sb.AppendLine(string.Format("<button type='button' id='cmdCheckAll{0}' class='mycontrols_checkall btn btn-sm btn-light' style='font-size:80%;'>" + Factory.tra("Zaškrtnout vše") + "</button>", controlid));
-                sb.AppendLine(string.Format("<button type='button' id='cmdUnCheckAll{0}' class='mycontrols_uncheckall btn btn-sm btn-light' style='font-size:80%;'>" + Factory.tra("Odškrtnout vše") + "</button>", controlid));
-
-            }
-
-            sb.AppendLine("<ul style='list-style:none;padding-left:0px;'>");
-
-
+            //seznam položek – hledání, Vše/Nic a počet řeší mycombochecklist_init (mycontrols.js), vzhled mcl-* v site.css
+            sb.AppendLine("<div class='mcl-list'>");
             for (int i = 0; i < intRows; i++)
             {
                 intValue = Convert.ToInt32(dt.Rows[i]["pid"]);
                 strText = Convert.ToString(dt.Rows[i][strTextField]);
-                strChecked = "";
                 if (strGroupField != null)
                 {
-                    if (dt.Rows[i][strGroupField] == null)
-                    {
-                        strGroup = null;
-                    }
-                    else
-                    {
-                        strGroup = Convert.ToString(dt.Rows[i][strGroupField]);
-                    }
+                    strGroup = dt.Rows[i][strGroupField] == null ? null : Convert.ToString(dt.Rows[i][strGroupField]);
                     if (strGroup != strLastGroup)
                     {
-                        sb.AppendLine("<li>");
-                        sb.AppendLine("<div style='font-weight:bold;background-color:#ADD8E6;'><span style='padding-left:10px;'>" + strGroup + "</span></div>");
-                        sb.AppendLine("</li>");
+                        sb.AppendLine($"<div class='mcl-group'>{System.Net.WebUtility.HtmlEncode(strGroup)}</div>");
                     }
-
+                    strLastGroup = strGroup;
                 }
-                if (selpids != null && selpids.Where(p => p == intValue).Count() > 0)
-                {
-                    strChecked = "checked";
-                }
-
-                sb.AppendLine("<li>");
-                sb.Append(string.Format("<input type='checkbox' id='chk{0}_{1}' name='chk{0}' value='{1}' {2} />", controlid, intValue, strChecked));
-                sb.Append(string.Format("<label for='chk{0}_{1}' style='min-width:160px;'>{2}</label>", controlid, intValue, strText));
-
-                sb.AppendLine("</li>");
+                strChecked = (selpids != null && selpids.Contains(intValue)) ? " checked" : "";
+                sb.Append($"<label class='mcl-item' for='chk{controlid}_{intValue}'><input type='checkbox' id='chk{controlid}_{intValue}' name='chk{controlid}' value='{intValue}'{strChecked} /><span>{System.Net.WebUtility.HtmlEncode(strText)}</span></label>");
             }
-
-
-
-            sb.AppendLine("</ul>");
-
-            sb.AppendLine(string.Format("<button type='button' id='cmdCheckAll{0}' class='mycontrols_checkall btn btn-sm btn-light' style='font-size:80%;'>" + Factory.tra("Zaškrtnout vše") + "</button>", controlid));
-            sb.AppendLine(string.Format("<button type='button' id='cmdUnCheckAll{0}' class='mycontrols_uncheckall btn btn-sm btn-light' style='font-size:80%;'>" + Factory.tra("Odškrtnout vše") + "</button>", controlid));
+            sb.AppendLine("</div>");
 
             return sb.ToString();
         }

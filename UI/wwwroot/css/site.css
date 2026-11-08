@@ -885,14 +885,7 @@ a.reczoom {
 
 
 
-table.table-thecombo {
-    background-color: #E6F0FF;
-}
-
-    table.table-thecombo tbody tr:hover {
-        background-color: var(--pozadi);
-        color: var(--popredi);
-    }
+/* tabulka nabídky mycombo / mySearch – viz blok „mycombo“ na konci souboru */
 
 
 div.info_record_container {
@@ -1194,10 +1187,6 @@ span.flat_tab_sum {
 
 
 
-.combo_selrow {
-    background-color: var(--pozadi);
-    color: var(--popredi);
-}
 
 input.record_name {
     background-color: oldlace;
@@ -2002,3 +1991,62 @@ a.att {
 .skin-advanced summary { cursor: pointer; color: #6c757d; font-size: 90%; }
 .skin-advanced-body { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; padding: 8px 0; }
 .skin-look { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid #eee; }
+
+
+/* ------------------------------------------------------------------
+   mycombo (výběr záznamu) a mySearch – nabídka. Třídy mtc-* generuje myComboTagHelper / TheComboController.
+   ------------------------------------------------------------------ */
+.mtc { position: relative; }
+.mtc-input { padding-right: 54px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mtc-clear, .mtc-pop {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    width: 24px; height: 24px; padding: 0; border: 0; border-radius: 4px;
+    background: transparent; color: #6c757d; line-height: 1; font-size: 17px;
+    display: flex; align-items: center; justify-content: center;
+}
+.mtc-clear { right: 27px; }
+.mtc-pop { right: 3px; }
+.mtc-pop.dropdown-toggle::after { margin: 0; }
+.mtc-clear:hover, .mtc-pop:hover { background: #eef1f4; color: #212529; }
+.mtc-menu { border: 1px solid #d0d7de; border-radius: 8px; box-shadow: 0 10px 28px rgba(16,24,40,.16); overflow: hidden; min-width: 260px; }
+.mtc-data { overflow: auto; background: #fff; }
+.mtc-bar { display: flex; flex-wrap: wrap; gap: 2px 12px; align-items: center; padding: 4px 10px; background: #f7f8fa; border-bottom: 1px solid #eef0f3; font-size: 85%; color: #59636e; }
+.mtc-bar:empty { display: none; }
+.mtc-new { margin-left: auto; font-weight: 600; text-decoration: none; }
+.mtc-link { text-decoration: none; }
+.mtc-status { padding: 10px 12px; color: #59636e; }
+
+table.table-thecombo { background-color: #fff; margin: 0; }
+    table.table-thecombo thead th { position: sticky; top: 0; z-index: 1; background: #f7f8fa; color: #59636e; font-weight: 600; font-size: 90%; white-space: nowrap; padding: 4px 8px; border-bottom: 1px solid #e3e6ea; }
+    table.table-thecombo td { padding: 3px 8px; border-color: #f1f3f5; }
+    table.table-thecombo tbody tr.txz, table.table-thecombo tbody tr.txs { cursor: pointer; }
+    table.table-thecombo tbody tr:hover { background-color: color-mix(in srgb, var(--oznaceno, #4169e1) 10%, #ffffff); color: inherit; }
+
+.combo_selrow, table.table-thecombo tbody tr.combo_selrow { background-color: color-mix(in srgb, var(--oznaceno, #4169e1) 22%, #ffffff); color: inherit; }
+    table.table-thecombo tbody tr.combo_selrow > td:first-child { box-shadow: inset 3px 0 0 var(--pozadi, #0b4b92); }
+.mtc-num { text-align: right; font-variant-numeric: tabular-nums; }
+tr.mtc-group td { background: #eef1f4; font-weight: 600; color: #59636e; font-size: 85%; }
+mark.mtc-mark { background: #ffe58f; color: inherit; padding: 0; border-radius: 2px; }
+/* mycombochecklist – výběr více položek. Třídy mcl-* generuje myComboCheckListTagHelper / TheComboController.GetHtml4Checkboxlist */
+.mcl-button { position: relative; display: flex; align-items: center; gap: 4px; text-align: left; white-space: nowrap; overflow: hidden; padding-right: 22px; }
+.mcl-button .mcl-text { flex: 1 1 auto; overflow: hidden; text-overflow: ellipsis; color: #6c757d; }
+.mcl-button .mcl-text.mcl-has { color: inherit; }
+.mcl-button .mcl-badge { flex: 0 0 auto; background: var(--pozadi, #0d6efd); color: var(--popredi, #fff); border-radius: 9px; font-size: 75%; line-height: 1; padding: 3px 6px; }
+.mcl-button.dropdown-toggle::after { position: absolute; right: 8px; top: 50%; margin-top: -2px; }
+.mcl-menu { min-width: 100%; width: max-content; max-width: min(420px, 95vw); overflow: hidden; }
+.mcl-tools { padding: 6px; border-bottom: 1px solid #e3e6ea; background: #f8f9fa; }
+.mcl-tools-row { display: flex; align-items: center; gap: 4px; margin-top: 4px; font-size: 85%; }
+.mcl-tools-row .btn { padding: 0 8px; font-size: inherit; }
+.mcl-onlysel { margin: 0 0 0 4px; white-space: nowrap; cursor: pointer; color: #59636e; }
+.mcl-onlysel input { vertical-align: -2px; }
+.mcl-count { margin-left: auto; padding-left: 8px; color: #59636e; white-space: nowrap; }
+.mcl-data { overflow-y: auto; overscroll-behavior: contain; }
+.mcl-list { padding: 2px 0; }
+.mcl-item { display: flex; align-items: flex-start; gap: 6px; margin: 0; padding: 2px 10px; cursor: pointer; }
+.mcl-item:hover { background: #f1f3f5; }
+.mcl-item input { margin-top: 3px; flex: 0 0 auto; }
+.mcl-item:has(input:checked) { background: color-mix(in srgb, var(--oznaceno, #cfe2ff) 45%, transparent); }
+.mcl-item input:focus-visible { outline: 2px solid var(--pozadi, #0d6efd); outline-offset: 1px; }
+.mcl-group { padding: 4px 10px 2px; font-weight: 600; font-size: 85%; color: #59636e; background: #eef1f4; }
+.mcl-empty { padding: 8px 10px; color: #6c757d; font-style: italic; }
+
