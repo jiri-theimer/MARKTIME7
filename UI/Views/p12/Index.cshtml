@@ -50,6 +50,8 @@
     double dblSum_Prestavka = 0;
     double dblSum_Prescas = 0;
     double dblSum_Nepritomnost = 0;
+    string H(string t) => System.Net.WebUtility.HtmlEncode(t ?? "");
+    string _strDnes = _f.tra("dnes");
 
 
 
@@ -59,7 +61,7 @@
 
 @section header_content {
 
-    <link rel="stylesheet" href="~/css/calendar.css" />
+    <link rel="stylesheet" href="~/css/calendar.css" asp-append-version="true" />
     <link href="~/lib/autocomplete/jquery.autocomplete.css" rel="stylesheet" type="text/css" />
 
     <style type="text/css">
@@ -90,8 +92,12 @@
             -ms-user-select: none; /* pro starší Edge/IE */
         }
 
-        .tabrow_selected_bycheck {
+        .tabrow_selected_bycheck, .tabrow_selected_bydrag {
             background-color: lightskyblue;
+        }
+
+        table.abs-table tbody tr.tabrow_selected_bycheck td, table.abs-table tbody tr.tabrow_selected_bydrag td {
+            background-color: color-mix(in srgb, #87cefa 55%, #ffffff) !important;
         }
 
     </style>
@@ -156,68 +162,32 @@
 
 <div class="tableFixHead" id="divTabContainer" style="border-top:solid 1px silver;">
 
-    <table id="tab1" class="table-bordered table-hover tab1 table" style="table-layout:fixed;non-sele">
+    <table id="tab1" class="table-bordered table-hover tab1 table abs-table" style="table-layout:fixed;">
 
         <thead>
             <tr>
 
-                <th style="width:120px;z-index:999;background-color:white">
-                    Datum
-                </th>
+                <th class="abs-th-date" style="width:120px;z-index:999;">@_f.tra("Datum")</th>
                 <th style="width:30px">
-                    <input type="checkbox" id="chkCheckAll" tabindex='-1' onchange="checkall()" title="Zaškrtnout/odškrtnout celý měsíc" />
+                    <input type="checkbox" id="chkCheckAll" tabindex='-1' onchange="checkall()" title="@_f.tra("Zaškrtnout/odškrtnout celý měsíc")" />
                 </th>
-
-                <th style="width:70px">
-                    Příchod
-                </th>
-                <th style="width:70px">
-                    Odchod
-                </th>
-                <th style="width:100px">
-                    Přestávky
-                </th>
-                <th style="width:70px">
-                    <myicon symbol="functions"></myicon>
-                    <br />
-                    Přestávka
-                </th>
-                <th title="Doba bez přestávek" style="width:70px">
-                    V práci
-                </th>
-                <th title="Doba včetně přestávek" style="width:70px">
-                    V práci vč.přestávek
-                </th>
-                <th style="width:70px">
-                    Fond
-                </th>
-                <th style="width:70px">
-                    Přesčas
-                </th>
-                <th style="width:70px">
-                    <myicon symbol="functions"></myicon>
-                    <br />
-                    Nepřítomnost
-                </th>
+                <th style="width:70px">@_f.tra("Příchod")</th>
+                <th style="width:70px">@_f.tra("Odchod")</th>
+                <th style="width:100px">@_f.tra("Přestávky")</th>
+                <th style="width:70px" title="@_f.tra("Součet přestávek")"><span class="abs-sum">Σ</span>@_f.tra("Přestávka")</th>
+                <th style="width:70px" title="@_f.tra("Doba bez přestávek")">@_f.tra("V práci")</th>
+                <th style="width:70px" title="@_f.tra("Doba včetně přestávek")">@_f.tra("V práci vč. přestávek")</th>
+                <th style="width:70px">@_f.tra("Fond")</th>
+                <th style="width:70px">@_f.tra("Přesčas")</th>
+                <th style="width:70px" title="@_f.tra("Součet nepřítomnosti")"><span class="abs-sum">Σ</span>@_f.tra("Nepřítomnost")</th>
                 @foreach (var c in Model.lisP32FUT_OsaX)
                 {
-                    <th style="width:90px;background-color:@(c.p32Color)">
-                        @(c.p32Name)
-                    </th>
+                    <th class="abs-th-fut" style="width:90px;background-color:@(c.p32Color);--c:@(c.p32Color)">@(c.p32Name)</th>
                 }
 
-                <th title="Celkově vykázané hodiny" style="width:70px">
-                    <myicon symbol="functions"></myicon>
-                    <br />Vykázáno
-                </th>
-                <th title="Vykázané hodiny na fakturovatelné aktivity" style="width:70px">
-                    <span style="background-color:green;color:white;border-radius:4px;padding:2px;">FA</span>
-                    <br /> Vykázáno
-                </th>
-                <th title="Vykázané hodiny na nefakturovatelné aktivity" style="width:70px">
-                    <span style="background-color:red;color:white;border-radius:4px;padding:2px;">NEFA</span>
-                    <br />Vykázáno
-                </th>
+                <th style="width:70px" title="@_f.tra("Celkově vykázané hodiny")"><span class="abs-sum">Σ</span>@_f.tra("Vykázáno")</th>
+                <th style="width:70px" title="@_f.tra("Vykázané hodiny na fakturovatelné aktivity")"><span class="abs-fa" style="background-color:green;color:white;">FA</span>@_f.tra("Vykázáno")</th>
+                <th style="width:70px" title="@_f.tra("Vykázané hodiny na nefakturovatelné aktivity")"><span class="abs-fa" style="background-color:red;color:white;">NEFA</span>@_f.tra("Vykázáno")</th>
 
                 <th></th>
             </tr>
@@ -256,17 +226,13 @@
                 }
 
 
-                strCisloDne += " " + BO.Code.Bas.ObjectDate2String(d, "dddd");
-
-                if (d == DateTime.Today)
-                {
-                    strCisloDne += "<span class='material-icons-outlined' style='color:lime;'>star</span>";
-                }
+                //den: číslo (dnes v kolečku) + název dne, svátek jako štítek
+                strCisloDne = $"<span class='abs-dnum{(d == DateTime.Today ? " cislodne-today" : "")}' title='{(d == DateTime.Today ? _strDnes : "")}'>{strCisloDne}</span><span class='abs-dname'>{BO.Code.Bas.ObjectDate2String(d, "dddd")}</span>";
 
 
                 if (bolHoliday)
                 {
-                    strCisloDne += "<br>🍷<small>" + BO.Code.Bas.OM2(Model.lisC26.First(p => p.c26Date == d).c26Name, 15) + "</small>";
+                    strCisloDne += "<span class='cal-holiday abs-holiday'>" + H(BO.Code.Bas.OM2(Model.lisC26.First(p => p.c26Date == d).c26Name, 15)) + "</span>";
                 }
                 if (Model.lisC23.Any(p => p.c23Date == d))
                 {
@@ -292,7 +258,7 @@
                 {
                     Model.jump2row = x;
                 }
-                @Html.Raw($"<a style='color:navy;' id='jump2row{x}'>{strCisloDne}</a>")
+                @Html.Raw($"<a class='abs-day' id='jump2row{x}'>{strCisloDne}</a>")
 
                 @Html.Raw("</div>")
 
@@ -471,15 +437,13 @@
 
             }
         </tbody>
-        <tfoot>
+        <tfoot class="abs-foot">
             <tr>
-                <td><myicon symbol="functions"></myicon></td>
+                <td class="abs-foot-lab">Σ @_f.tra("Celkem")</td>
                 <td></td>
                 <td></td>
                 <td></td>
-                <td>
-                    @Model.FT(dblSum_Prestavka)
-                </td>
+                <td></td>
                 <td>@Model.FT(dblSum_Prestavka)</td>
                 <td>
                     @Model.FT(dblSum_VPraci)
