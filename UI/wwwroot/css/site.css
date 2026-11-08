@@ -2073,4 +2073,36 @@ mark.mtc-mark { background: #ffe58f; color: inherit; padding: 0; border-radius: 
 .mst-count { margin-left: auto; color: #59636e; }
 .mst-empty { padding: 8px 10px; color: #6c757d; font-style: italic; }
 
+/* osobní menu (Views/Menu/main_me.cshtml, offcanvas vpravo). Třídy mme-* */
+.mme { display: flex; flex-direction: column; padding: 0 0 8px; border-top: 1px solid #e3e6ea; }
+.mme-user { display: flex; align-items: center; gap: 10px; padding: 14px 16px; }
+.mme-avatar { flex: 0 0 40px; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; text-transform: uppercase; background: var(--pozadi, #0b4b92); color: var(--popredi, #fff); }
+.mme-user-txt { flex: 1 1 auto; min-width: 0; }
+.mme-user-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mme-user-login { font-size: .8rem; color: #6c757d; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
+.mme-settings { display: flex; flex-direction: column; gap: 6px; margin: 0 16px 6px; padding: 10px 12px; border-radius: 8px; background: #f6f7f9; }
+.mme-set { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0; }
+.mme-set > span { font-size: .85rem; color: #59636e; }
+.mme-seg { display: inline-flex; padding: 2px; border-radius: 7px; background: #e6e9ed; }
+.mme-seg > a, .mme-seg > label { display: inline-flex; align-items: center; gap: 4px; min-width: 30px; justify-content: center; margin: 0; padding: 2px 9px; border-radius: 5px; color: #3d444d; text-decoration: none; font-size: .85rem; line-height: 1.5; cursor: pointer; }
+.mme-seg > a:hover, .mme-seg > label:hover { color: #000; }
+.mme-seg .mme-on { background: #fff; color: #000; box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+.mme-lang input { position: absolute; opacity: 0; pointer-events: none; }
+.mme-lang label:focus-within { outline: 2px solid var(--pozadi, #0b4b92); }
+
+.mme-list { display: flex; flex-direction: column; padding: 6px 8px; border-top: 1px solid #eef0f2; }
+.mme-item { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 6px; color: #212529; text-decoration: none; }
+.mme-item:hover, .mme-item.mme-open { background-color: var(--oznaceno, #e9ecef); color: var(--popredi, #000); }
+.mme-item.mme-active { font-weight: 600; }
+.mme-item > span:first-of-type { flex: 1 1 auto; }
+.mme-badge { min-width: 20px; padding: 0 6px; border-radius: 10px; background: #fd7e14; color: #fff; font-size: .75rem; line-height: 20px; text-align: center; }
+.mme-dot { width: 8px; height: 8px; border-radius: 50%; background: #fd7e14; }
+.mme-chev { font-size: .8rem; opacity: .6; }
+.mme-mobile { display: flex; align-items: center; gap: 12px; margin: 2px 8px 6px 36px; }
+.mme-mobile img { border: 1px solid #e3e6ea; border-radius: 6px; image-rendering: pixelated; }
+.mme-mobile small { display: block; color: #6c757d; }
+
+.mme-bottom { padding: 6px 8px 0; border-top: 1px solid #eef0f2; }
+.mme-logout { color: #c1272d; }
+.mme-logout:hover { background: #fdecec; color: #a11d22; }

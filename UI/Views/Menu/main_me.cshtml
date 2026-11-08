@@ -8,292 +8,199 @@
     var cmenu = new UI.Menu.TheMenuSupport(_f);
     var _myfileboxulr = cmenu.GetMainmenuEntityUrl("o27");
 
+    var _u = _f.CurrentUser;
+    string _initials = ((_u.j02FirstName ?? "").Trim().Length > 0 ? _u.j02FirstName.Trim().Substring(0, 1) : "")
+                     + ((_u.j02LastName ?? "").Trim().Length > 0 ? _u.j02LastName.Trim().Substring(0, 1) : "");
+    if (_initials == "") { _initials = "?"; }
+    bool _profile = _u.TestPermission(BO.PermValEnum.GR_MyProfile);
+    const string _mobileUrl = "https://mobile.marktime.net";
 }
 
 @addTagHelper *, UI
 
-<style type="text/css">
-    #divMenuContainerMe .nav-link {
-        color: black;
-    }
+@* osobní menu (offcanvas vpravo v _Layout) – vzhled mme-* v site.css *@
+<div id="divMenuContainerMe" class="mme">
 
-        #divMenuContainerMe .nav-link:hover {
-            background-color: var(--oznaceno);
-            color: var(--popredi) !important;
-        }
-
-    .nav-link {
-        padding: 5px;
-    }
-
-</style>
-
-
-<div id="divMenuContainerMe" style="border-top:solid 1px silver;">
-
-    <div style="padding:10px;">
-
-       
-        @if (_f.CurrentUser.TestPermission(BO.PermValEnum.GR_MyProfile))
+    <div class="mme-user">
+        <div class="mme-avatar" aria-hidden="true">@_initials</div>
+        <div class="mme-user-txt">
+            <div class="mme-user-name">@_u.FullNameAsc</div>
+            <div class="mme-user-login">@_u.j02Login</div>
+        </div>
+        @if (_profile)
         {
+            <a id="linkMyProfile" class="btn btn-sm bog" href="/Home/MyProfile">@_f.tra("Můj profil")</a>
+        }
+    </div>
 
-            <div class="input-group">
-                <div>
-                    <a id="linkMyProfile" class="nav-link" href="/Home/MyProfile">
-                        <myicon symbol="person"></myicon>
-                        @_f.tra("Můj profil")
-                    </a>
-                </div>
-                <div style="padding:6px;margin-left:150px">
-                    <a href="javascript:save_fontsize(1)" class="btn btn-light @(_f.CurrentUser.j02FontSizeFlag == 1 ? "active" : null)" style="font-size:80%;" title="@(_f.tra("Malé písmo"))">A</a>
-
-                </div>
-                <div style="padding:6px;">
-                    <a href="javascript:save_fontsize(2)" class="btn btn-light @(_f.CurrentUser.j02FontSizeFlag == 2 ? "active" : null)" style="font-weight:bold;" title="@(_f.tra("Výchozí velikost písma"))">A</a>
-                </div>
-                <div style="padding:6px;">
-                    <a href="javascript:save_fontsize(3)" class="btn btn-light @(_f.CurrentUser.j02FontSizeFlag == 3 ? "active" : null)" style="font-size:150%;font-weight:bold" title="@(_f.tra("Velké písmo"))">A</a>
+    @if (_profile)
+    {
+        <div class="mme-settings">
+            <div class="mme-set">
+                <span>@_f.tra("Písmo")</span>
+                <div class="mme-seg" role="group">
+                    <a href="javascript:save_fontsize(1)" class="@(_u.j02FontSizeFlag == 1 ? "mme-on" : null)" style="font-size:80%;" title="@(_f.tra("Malé písmo"))">A</a>
+                    <a href="javascript:save_fontsize(2)" class="@(_u.j02FontSizeFlag == 2 ? "mme-on" : null)" style="font-weight:600;" title="@(_f.tra("Výchozí velikost písma"))">A</a>
+                    <a href="javascript:save_fontsize(3)" class="@(_u.j02FontSizeFlag == 3 ? "mme-on" : null)" style="font-size:130%;font-weight:600;" title="@(_f.tra("Velké písmo"))">A</a>
                 </div>
             </div>
 
-           
-            <form asp-controller="Culture" asp-action="SaveLang" method="post" class="d-inline">
-                <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+            <div class="mme-set">
+                <span>@_f.tra("Vzhled")</span>
+                <div class="mme-seg" role="group">
+                    <a href="javascript:mme_look('modern')" class="@(UI.Code.UiLook.IsModern(_f) ? "mme-on" : null)">@_f.tra("Moderní")</a>
+                    <a href="javascript:mme_look('classic')" class="@(UI.Code.UiLook.IsModern(_f) ? null : "mme-on")">@_f.tra("Klasický")</a>
+                </div>
+            </div>
 
-                <div class="d-flex gap-3">
-
-                    <div class="form-check">
-                        <input class="form-check-input"
-                               type="radio"
-                               name="culture"
-                               value="cs-CZ"
-                               id="lang-cs"
-                               onchange="this.form.submit()"
-                        @( _culture == "cs-CZ" ? "checked" : null )>
-                        <label class="form-check-label" for="lang-cs">
-                            <img src="/images/small_czechrepublic.gif" width="18" class="me-1" />
-                            Čeština
-                        </label>
-                    </div>
-
-                    <div class="form-check">
-                        <input class="form-check-input"
-                               type="radio"
-                               name="culture"
-                               value="en-US"
-                               id="lang-en"
-                               onchange="this.form.submit()"
-                        @( _culture == "en-US" ? "checked" : null )>
-                        <label class="form-check-label" for="lang-en">
-                            <img src="/images/small_uk.gif" width="18" class="me-1" />
-                            English
-                        </label>
-                    </div>
-
-                    <div class="form-check">
-                        <input class="form-check-input"
-                               type="radio"
-                               name="culture"
-                               value="sk-SK"
-                               id="lang-sk"
-                               onchange="this.form.submit()"
-                        @( _culture == "sk-SK" ? "checked" : null )>
-                        <label class="form-check-label" for="lang-sk">
-                            <img src="/images/small_slovakia.gif" width="18" class="me-1" />
-                            Slovenčina
-                        </label>
-                    </div>
-
+            <form id="formMeLang" asp-controller="Culture" asp-action="SaveLang" method="post" class="mme-set">
+                <input type="hidden" name="returnUrl" id="mmeReturnUrl" value="" />
+                <span>@_f.tra("Jazyk")</span>
+                <div class="mme-seg mme-lang" role="radiogroup">
+                    <label class="@(_culture == "cs-CZ" ? "mme-on" : null)" title="Čeština">
+                        <input type="radio" name="culture" value="cs-CZ" onchange="mme_lang(this)" @(_culture == "cs-CZ" ? "checked" : null)>
+                        <img src="/images/small_czechrepublic.gif" width="18" alt="" /> CZ
+                    </label>
+                    <label class="@(_culture == "en-US" ? "mme-on" : null)" title="English">
+                        <input type="radio" name="culture" value="en-US" onchange="mme_lang(this)" @(_culture == "en-US" ? "checked" : null)>
+                        <img src="/images/small_uk.gif" width="18" alt="" /> EN
+                    </label>
+                    <label class="@(_culture == "sk-SK" ? "mme-on" : null)" title="Slovenčina">
+                        <input type="radio" name="culture" value="sk-SK" onchange="mme_lang(this)" @(_culture == "sk-SK" ? "checked" : null)>
+                        <img src="/images/small_slovakia.gif" width="18" alt="" /> SK
+                    </label>
                 </div>
             </form>
+        </div>
 
-
-            
-            <hr />
-
-            @if (_f.CurrentUser.TestPermission(BO.PermValEnum.GR_x31_Personal))
+        <nav class="mme-list">
+            <a class="mme-item" href="javascript:_bells()">
+                <myicon symbol="notifications_active"></myicon>
+                <span>@_f.tra("Upozornění")</span>
+                @if (_u.BellsCount > 0)
+                {
+                    <span class="mme-badge">@_u.BellsCount</span>
+                }
+            </a>
+            <a class="mme-item" href="javascript:_window_open('/Mail/SendMail',3)">
+                <myicon symbol="edit_note"></myicon>
+                <span>@_f.tra("Odeslat zprávu")</span>
+            </a>
+            <a id="linkMyOutbox" class="mme-item" href="/TheGrid/FlatView?prefix=x40">
+                <myicon symbol="outbox"></myicon>
+                <span>@_f.tra("Můj OUTBOX")</span>
+            </a>
+            @if (_u.j04IsModule_o27)
             {
-                <a id="linkPersonalReport" class="nav-link" href="javascript:report()">
-                    <myicon symbol="print"></myicon>
-                    @_f.tra("Osobní tisková sestava")
+                <a id="linkMyFilebox" class="mme-item" href="@(_myfileboxulr)">
+                    <myicon symbol="attachment"></myicon>
+                    <span>@_f.tra("Můj FILEBOX")</span>
                 </a>
-                <p></p>
             }
-
-            @if (_f.CurrentUser.j02LiveChatTimestamp == null)
+            @if (_u.TestPermission(BO.PermValEnum.GR_x31_Personal))
             {
-                <a id="linkSmartSupp" class="nav-link" href="javascript:_livechat(true)">
+                <a id="linkPersonalReport" class="mme-item" href="javascript:report()">
+                    <myicon symbol="print"></myicon>
+                    <span>@_f.tra("Osobní tisková sestava")</span>
+                </a>
+            }
+            <a class="mme-item" href="javascript:_window_open('/icalgen/Index',2)">
+                <myicon symbol="calendar_add_on"></myicon>
+                <span>@_f.tra("Integrace s Google/Outlook kalendářem")</span>
+            </a>
+        </nav>
+    }
+
+    <nav class="mme-list">
+        <a class="mme-item" id="linkPWD" href="/Home/ChangePassword">
+            <myicon symbol="password"></myicon>
+            <span>@_f.tra("Změnit přístupové heslo")</span>
+        </a>
+        <a class="mme-item" href="javascript:mme_toggle_mobile()" aria-expanded="false" id="linkMobileApp">
+            <myicon symbol="smartphone"></myicon>
+            <span>@_f.tra("Mobilní aplikace")</span>
+            <span class="mme-chev">▾</span>
+        </a>
+        <div id="mmeMobile" class="mme-mobile" style="display:none;">
+            <img src="@UI.Code.basQRCoder.GetUrlQrDataUri(_mobileUrl)" width="96" height="96" alt="QR: @_mobileUrl" />
+            <div>
+                <small>@_f.tra("Naskenujte telefonem, nebo otevřete:")</small>
+                <a href="@_mobileUrl" target="_blank" rel="noopener">mobile.marktime.net</a>
+            </div>
+        </div>
+        @if (_profile)
+        {
+            @if (_u.j02LiveChatTimestamp == null)
+            {
+                <a id="linkSmartSupp" class="mme-item" href="javascript:_livechat(true)">
                     <myicon symbol="headset_mic"></myicon>
-                    Zapnout live chat s MARKTIME podporou
+                    <span>@_f.tra("Zapnout live chat s podporou")</span>
                 </a>
             }
             else
             {
-                <a id="linkSmartSupp" class="nav-link" href="javascript:_livechat(false)">
+                <a id="linkSmartSupp" class="mme-item" href="javascript:_livechat(false)">
                     <myicon symbol="headset_off"></myicon>
-                    Vypnout live chat s podporou
+                    <span>@_f.tra("Vypnout live chat s podporou")</span>
                 </a>
             }
-
-
-            <p></p>
-
-            <a class="nav-link" href="javascript:_window_open('/Mail/SendMail',3)">
-                <myicon symbol="email"></myicon>
-                @_f.tra("Odeslat zprávu")
-            </a>
-            <p></p>
-
-            <a class="nav-link" href="/TheGrid/FlatView?prefix=x40">
-                <myicon symbol="email"></myicon>
-                @_f.tra("Můj OUTBOX")
-            </a>
-            @if (_f.CurrentUser.j04IsModule_o27)
-            {
-                <a class="nav-link" href="@(_myfileboxulr)">
-                    <myicon symbol="attachment"></myicon>
-                    @_f.tra("Můj FILEBOX")
-                </a>
-            }
-            <a class="nav-link" href="javascript:_window_open('/icalgen/Index',2)">
-                <myicon symbol="calendar_add_on"></myicon>
-                @_f.tra("Integrace s Google/Outlook kalendářem")
-            </a>
-            <a class="nav-link" href="javascript:_bells()">
-                <myicon symbol="notifications_active"></myicon>
-                @if (_f.CurrentUser.BellsCount > 0)
-                {
-
-                    <small style="color:orange;">@(_f.CurrentUser.BellsCount)</small>
-                }
-
-                @_f.tra("Upozornění")
-            </a>
-
-            <p></p>
-
-            
-
-            <p></p>
         }
+        <a id="linkNews" class="mme-item" href="javascript:_news()">
+            <myicon symbol="campaign"></myicon>
+            <span>@_f.tra("Novinky | Blog")</span>
+            @if (_u.j02LastReadNews_Timestamp == null)
+            {
+                <span class="mme-dot" title="@_f.tra("Nepřečtené novinky")"></span>
+            }
+        </a>
+        <a id="linkAbout" class="mme-item" href="/Home/About">
+            <myicon symbol="info"></myicon>
+            <span>@_f.tra("O aplikaci")</span>
+        </a>
+    </nav>
 
-        <p></p>
-        <hr />
-        <div>
-
-            <a class="nav-link" id="linkPWD" href="/Home/ChangePassword">
-                <myicon symbol="password"></myicon>
-                @_f.tra("Změnit přístupové heslo")
-            </a>
-
-        </div>
-
-
-        <p></p>
-        <hr />
-        <div class="row">
-
-            <div class="col-auto">
-
-                
-                <a class="nav-link" data-bs-toggle="modal" data-bs-target="#exampleModal" href="#">
-                    <myicon symbol="smartphone"></myicon>
-                    Mobilní appka
-                </a>
-
-                <a id="linkNews" class="nav-link nav-news-link" href="javascript:_news()" title="Novinky | Blog">
-                    <span class="nav-news-text">@_f.tra("novinky")</span>
-                    <span class="nav-news-dot" aria-hidden="true"></span>
-                </a>
-
-                
-            </div>
-            <div class="col-auto">
-
-                <a id="linkAbout" class="nav-link" href="/Home/About">
-                    <myicon symbol="info"></myicon>
-                    @_f.tra("O aplikaci")
-                </a>
-            </div>
-
-        </div>
-
-        <p></p>
-        <hr />
-        <div>
-            <a style="letter-spacing: 5px;color:red;" class="nav-link" href="/Home/Logout">
-                <myicon symbol="logout"></myicon>
-                @_f.tra("Odhlásit se")
-            </a>
-        </div>
+    <div class="mme-bottom">
+        <a class="mme-item mme-logout" href="/Home/Logout">
+            <myicon symbol="logout"></myicon>
+            <span>@_f.tra("Odhlásit se")</span>
+        </a>
     </div>
-
-
-
-
-
-
-
-
-
 </div>
-
-
 
 <script type="text/javascript">
     _adjust_divheight_small_display("divMenuContainerMe");
 
+    var _j02id_local = "@_u.pid";
 
-    var _j02id_local = "@_f.CurrentUser.pid";
-
-    $("#linkLang@(_f.CurrentUser.j02LangIndex)").addClass("active");
-
-    var url = window.location.pathname;
-    if (url.indexOf("ChangePassword") > 0) {
-        $("#linkChangePassword").addClass("active");
-    }
-    if (url.indexOf("MyProfile") > 0) {
-        $("#linkMyProfile").addClass("active");
-
-    }
-    if (url.indexOf("OpenAI") > 0) {
-        $("#linkChatGPT").addClass("active");
-    }
-
-    if (url.indexOf("About") > 0) {
-        $("#linkAbout").addClass("active");
-    }
-
-    if (url.indexOf("Widgets") > 0) {
-        $("#linkWidgets").addClass("active");
-    }
-    if (url.indexOf("ChangePassword") > 0) {
-        $("#linkPWD").addClass("active");
-    }
-
-    if (location.href.indexOf("FlatView?prefix=x40") > 0) {
-        $("#linkMyOutbox").addClass("active");
-    }
-
-    //var matka = document.getElementById("divMenuContainerMe").parentElement;
-    //var offset = $(matka).offset();
-
-    //var new_left = _device.availWidth - ($(matka).width() + offset.left) - 22;
-
-    //$(matka).css("left", new_left);
-    //$(matka).css("position", "absolute");
-
-    
+    (function () {
+        var url = window.location.pathname;
+        if (url.indexOf("MyProfile") > 0) $("#linkMyProfile").addClass("active");
+        if (url.indexOf("ChangePassword") > 0) $("#linkPWD").addClass("mme-active");
+        if (url.indexOf("About") > 0) $("#linkAbout").addClass("mme-active");
+        if (location.href.indexOf("FlatView?prefix=x40") > 0) $("#linkMyOutbox").addClass("mme-active");
+    })();
 
     function report() {
         _window_open("/ReportsClient/ReportContext?pid=" + _j02id_local + "&prefix=j02");
     }
 
-
     function save_fontsize(fontsize) {
-        $.post("/Home/SaveCurrentUserFontSize", { fontsize: fontsize }, function (data) {
+        $.post("/Home/SaveCurrentUserFontSize", { fontsize: fontsize }, function () {
             location.replace(window.location.href);
         });
+    }
 
+    function mme_look(look) {     //stejný parametr jako přepínač v Můj profil
+        $.post(_ep("/Common/SetUserParam"), { key: "ui-look", value: look }, function () { location.reload(); });
+    }
+
+    function mme_lang(rb) {       //po změně jazyka zpět na aktuální stránku (menu je načtené AJAXem, Request.Path by byl /Menu/main_me)
+        $("#mmeReturnUrl").val(location.pathname + location.search);
+        rb.form.submit();
+    }
+
+    function mme_toggle_mobile() {
+        var $p = $("#mmeMobile").toggle();
+        $("#linkMobileApp").attr("aria-expanded", $p.is(":visible")).toggleClass("mme-open", $p.is(":visible"));
     }
 </script>

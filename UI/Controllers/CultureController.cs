@@ -6,7 +6,7 @@ namespace UI.Controllers
     public class CultureController : BaseController
     {
         [HttpPost]
-        public IActionResult SaveLang(string culture)
+        public IActionResult SaveLang(string culture, string returnUrl)
         {
             var allowed = new HashSet<string> { "cs-CZ", "en-US", "sk-SK" };
             if (!allowed.Contains(culture)) culture = "cs-CZ";
@@ -36,6 +36,10 @@ namespace UI.Controllers
             }
             Factory.j02UserBL.Save(rec, null);
 
+            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl) && !returnUrl.StartsWith("/Menu/", StringComparison.OrdinalIgnoreCase))
+            {
+                return LocalRedirect(returnUrl);     //zpět na stránku, odkud uživatel jazyk přepnul
+            }
             return RedirectToAction("Index","Home");
         }
 
