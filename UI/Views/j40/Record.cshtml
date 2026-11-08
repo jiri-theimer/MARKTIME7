@@ -2,199 +2,287 @@
 @inject BL.Factory _f
 
 @{
-
     Layout = "~/Views/Shared/_LayoutRecord.cshtml";
     if (Model.Rec == null) return;
     Model.PageTitle = _f.tra("Poštovní účet");
     Model.PageSymbol = "email";
+
+    bool _smtp = Model.Rec.j40UsageFlag == BO.MailUsageFlag.SmtpGlobal || Model.Rec.j40UsageFlag == BO.MailUsageFlag.SmtpPrivate;
+    bool _imap = !_smtp;
+    string _pwdPlaceholder = Model.rec_pid > 0 ? _f.tra("Ponechte prázdné, pokud heslo neměníte") : "";
 }
 @addTagHelper *, UI
+@section header_content
+{
+    <link rel="stylesheet" href="~/css/j40.css" asp-append-version="true" />
+}
 
+<div class="modal_record_container ma">
 
-
-
-<div class="modal_record_container">
-    <div class="row">
-        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Typ účtu"):</label>
-        <div class="col-sm-8 col-md-7">
-            <select asp-for="Rec.j40UsageFlag" class="form-select" onchange="_postback()">
-                <option value="1">@_f.tra("Privátní SMTP účet pro odesílání zpráv") (OUTBOX)</option>                
-                <option value="2">@_f.tra("Sdílený SMTP účet pro odesílání zpráv") (OUTBOX)</option>
-                <option value="3">@_f.tra("Privání IMAP účet pro došlou poštu") (INBOX)</option>
-                <option value="4">@_f.tra("Sdílený IMAP účet pro došlou poštu") (INBOX)</option>
-            </select>
+    <section class="ma-card">
+        <div class="ma-grid">
+            <div class="ma-field ma-wide">
+                <label for="Rec_j40UsageFlag">@_f.tra("Typ účtu")</label>
+                <select asp-for="Rec.j40UsageFlag" class="form-select" onchange="_postback()">
+                    <option value="1">@_f.tra("Odesílání pošty (SMTP) – jen pro vlastníka účtu")</option>
+                    <option value="2">@_f.tra("Odesílání pošty (SMTP) – sdílený pro všechny")</option>
+                    <option value="3">@_f.tra("Došlá pošta (IMAP) – jen pro vlastníka účtu")</option>
+                    <option value="4">@_f.tra("Došlá pošta (IMAP) – sdílený pro všechny")</option>
+                </select>
+            </div>
+            <div class="ma-field">
+                <label for="Rec_j40Name">@_f.tra("Název účtu")</label>
+                <input class="form-control" asp-for="Rec.j40Name" placeholder="@_f.tra("např. Kancelář – Office 365")" />
+            </div>
+            <div class="ma-field ma-narrow">
+                <label>@_f.tra("Pořadí")</label>
+                <mynumber asp-for="@Model.Rec.j40Ordinary" decimal-digits="0"></mynumber>
+            </div>
         </div>
-        <label class="col-sm-1 col-md-1 col-form-label">@_f.tra("Pořadí"):</label>
+    </section>
 
-        <div class="col-sm-2 col-md-2">
-            <mynumber asp-for="@Model.Rec.j40Ordinary" decimal-digits="0"></mynumber>
-        </div>
+    @* ------------------------------------------------ rychlé nastavení *@
+    <div class="ma-presets">
+        <span>@_f.tra("Vyplnit nastavení pro"):</span>
+        <button type="button" class="btn btn-sm bog" onclick="ma_preset('o365')"><span class="material-icons-outlined-btn">business</span> Microsoft 365 / Office 365</button>
+        <button type="button" class="btn btn-sm bog" onclick="ma_preset('gmail')">Gmail / Google Workspace</button>
+        <button type="button" class="btn btn-sm bog" onclick="ma_preset('seznam')">Seznam.cz</button>
     </div>
 
-   @if(Model.Rec.j40UsageFlag==BO.MailUsageFlag.SmtpGlobal || Model.Rec.j40UsageFlag==BO.MailUsageFlag.SmtpPrivate)
-   {
-        <div class="row my-2">
-            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Smtp server"):</label>
-            <div class="col-sm-8 col-md-7">
-                <input class="form-control" asp-for="Rec.j40SmtpHost" />
+    <div class="ma-layout">
+        <div>
+            <section class="ma-card">
+                <h2><span class="material-icons-outlined-nosize">dns</span>@(_smtp ? _f.tra("Server pro odesílání (SMTP)") : _f.tra("Server pro došlou poštu (IMAP)"))</h2>
 
-            </div>
-            <label class="col-sm-1 col-md-1 col-form-label">@_f.tra("Port"):</label>
-            <div class="col-sm-2 col-md-2">
-                <mynumber asp-for="@Model.Rec.j40SmtpPort" decimal-digits="0"></mynumber>
-            </div>
-        </div>
-        <div class="row my-2">
-            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("E-mail odesílatele"):</label>
-            <div class="col-sm-11 col-md-10">
-                <input class="form-control" asp-for="Rec.j40SmtpEmail" />
+                @if (_smtp)
+                {
+                    <div class="ma-grid">
+                        <div class="ma-field ma-wide">
+                            <label for="Rec_j40SmtpHost">@_f.tra("Server")</label>
+                            <input class="form-control" asp-for="Rec.j40SmtpHost" placeholder="smtp.example.com" autocomplete="off" spellcheck="false" />
+                        </div>
+                        <div class="ma-field ma-narrow">
+                            <label>@_f.tra("Port")</label>
+                            <mynumber asp-for="@Model.Rec.j40SmtpPort" decimal-digits="0"></mynumber>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="ma-grid">
+                        <div class="ma-field ma-wide">
+                            <label for="Rec_j40ImapHost">@_f.tra("Server")</label>
+                            <input class="form-control" asp-for="Rec.j40ImapHost" placeholder="imap.example.com" autocomplete="off" spellcheck="false" />
+                        </div>
+                        <div class="ma-field ma-narrow">
+                            <label>@_f.tra("Port")</label>
+                            <mynumber asp-for="@Model.Rec.j40ImapPort" decimal-digits="0"></mynumber>
+                        </div>
+                    </div>
+                }
 
-            </div>
-        </div>
-        <div class="row my-2">
-            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Jméno odesílatele"):</label>
-            <div class="col-sm-11 col-md-10">
-                <input class="form-control" asp-for="Rec.j40SmtpName" />
-
-            </div>
-        </div>
-        
-
-        <div class="my-2">
-            <input asp-for="@Model.Rec.j40SmtpUsePersonalReply" />
-            <label for="Rec_j40SmtpUsePersonalReply">@_f.tra("Jako REPLY uvádět adresu a jméno z osobního profilu uživatele")</label>
-        </div>
-
-        <div class="my-2">
-            <input asp-for="@Model.Rec.j40SmtpUseDefaultCredentials" />
-            <label for="Rec_j40SmtpUseDefaultCredentials">@_f.tra("Smtp účet nevyžaduje autentifikaci")</label>
-        </div>
-        <div id="credentials">
-            <div class="row" style="margin-top:10px;">
-                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Smtp login"):</label>
-                <div class="col-sm-11 col-md-10">
-                    <input class="form-control" asp-for="Rec.j40SmtpLogin" autocomplete="off" />
-
+                <div class="ma-grid">
+                    <div class="ma-field">
+                        <label for="Rec_j40SslModeFlag">@_f.tra("Šifrování spojení")</label>
+                        <select asp-for="Rec.j40SslModeFlag" class="form-select">
+                            <option value="0">@_f.tra("Bez šifrování při připojení")</option>
+                            <option value="1">@_f.tra("SSL/TLS od začátku (Implicit) – obvykle port 465 / 993")</option>
+                            <option value="2">@_f.tra("STARTTLS (Explicit) – obvykle port 587 / 143")</option>
+                        </select>
+                    </div>
                 </div>
-            </div>
-            <div class="row my-2">
-                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Smtp heslo"):</label>
-                <div class="col-sm-11 col-md-10">
-                    <input class="form-control" type="text" asp-for="Rec.j40SmtpPassword" autocomplete="off" placeholder="@_f.tra("Heslo zadávejte pouze pokud ho měníte nebo pro nový účet.")" />
-
+                <div class="ma-check">
+                    @if (_smtp)
+                    {
+                        <input asp-for="@Model.Rec.j40SmtpEnableSsl" />
+                        <label for="Rec_j40SmtpEnableSsl">@_f.tra("Po připojení vynutit zabezpečení (TLS), pokud spojení ještě není šifrované")</label>
+                    }
+                    else
+                    {
+                        <input asp-for="@Model.Rec.j40ImapEnableSsl" />
+                        <label for="Rec_j40ImapEnableSsl">@_f.tra("Po připojení vynutit zabezpečení (TLS), pokud spojení ještě není šifrované")</label>
+                    }
                 </div>
-            </div>
+            </section>
+
+            <section class="ma-card">
+                <h2><span class="material-icons-outlined-nosize">key</span>@_f.tra("Přihlášení")</h2>
+                @if (_smtp)
+                {
+                    <div class="ma-check">
+                        <input asp-for="@Model.Rec.j40SmtpUseDefaultCredentials" />
+                        <label for="Rec_j40SmtpUseDefaultCredentials">@_f.tra("Server nevyžaduje přihlášení (relay bez hesla)")</label>
+                    </div>
+                    <div id="credentials">
+                        <div class="ma-field">
+                            <label for="Rec_j40SmtpLogin">@_f.tra("Login")</label>
+                            <input class="form-control" asp-for="Rec.j40SmtpLogin" autocomplete="off" spellcheck="false" />
+                        </div>
+                        <div class="ma-field">
+                            <label for="Rec_j40SmtpPassword">@_f.tra("Heslo")</label>
+                            <div class="ma-pwd">
+                                <input class="form-control" type="password" asp-for="Rec.j40SmtpPassword" autocomplete="new-password" placeholder="@_pwdPlaceholder" />
+                                <button type="button" class="ma-eye" tabindex="-1" data-for="Rec_j40SmtpPassword" title="@_f.tra("Zobrazit heslo")"><span class="material-icons-outlined-nosize">visibility</span></button>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="ma-field">
+                        <label for="Rec_j40ImapLogin">@_f.tra("Login")</label>
+                        <input class="form-control" asp-for="Rec.j40ImapLogin" autocomplete="off" spellcheck="false" />
+                    </div>
+                    <div class="ma-field">
+                        <label for="Rec_j40ImapPassword">@_f.tra("Heslo")</label>
+                        <div class="ma-pwd">
+                            <input class="form-control" type="password" asp-for="Rec.j40ImapPassword" autocomplete="new-password" placeholder="@_pwdPlaceholder" />
+                            <button type="button" class="ma-eye" tabindex="-1" data-for="Rec_j40ImapPassword" title="@_f.tra("Zobrazit heslo")"><span class="material-icons-outlined-nosize">visibility</span></button>
+                        </div>
+                    </div>
+                }
+            </section>
+
+            @if (_smtp)
+            {
+                <section class="ma-card">
+                    <h2><span class="material-icons-outlined-nosize">badge</span>@_f.tra("Odesílatel")</h2>
+                    <div class="ma-grid">
+                        <div class="ma-field">
+                            <label for="Rec_j40SmtpEmail">@_f.tra("E-mail odesílatele")</label>
+                            <input class="form-control" asp-for="Rec.j40SmtpEmail" type="email" spellcheck="false" />
+                        </div>
+                        <div class="ma-field">
+                            <label for="Rec_j40SmtpName">@_f.tra("Jméno odesílatele")</label>
+                            <input class="form-control" asp-for="Rec.j40SmtpName" />
+                        </div>
+                    </div>
+                    <div class="ma-check">
+                        <input asp-for="@Model.Rec.j40SmtpUsePersonalReply" />
+                        <label for="Rec_j40SmtpUsePersonalReply">@_f.tra("Odpovědi (Reply-To) směrovat na e-mail a jméno z profilu uživatele, který zprávu odeslal")</label>
+                    </div>
+                </section>
+            }
+
+            <section class="ma-card">
+                <div class="ma-field">
+                    <label>@_f.tra("Vlastník účtu")</label>
+                    <mycombo entity="j02User" asp-for="Rec.j02ID" selectedtext="@Model.ComboPerson" filter-flag="1"></mycombo>
+                </div>
+            </section>
         </div>
-        <div class="my-2">
-            <input asp-for="@Model.Rec.j40SmtpEnableSsl" />
-            <label for="Rec_j40SmtpEnableSsl">@_f.tra("Podpora TLS/SSL")</label>
-        </div>
-   }
 
-   @if(Model.Rec.j40UsageFlag==BO.MailUsageFlag.ImapPrivate || Model.Rec.j40UsageFlag==BO.MailUsageFlag.ImapGlobal)
-   {
-        <div class="row my-2">
-            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("IMAP server"):</label>
-            <div class="col-sm-8 col-md-7">
-                <input class="form-control" asp-for="Rec.j40ImapHost" />
+        @* ------------------------------------------------ test + tipy *@
+        <aside class="ma-side">
+            <section class="ma-card ma-test">
+                <h2><span class="material-icons-outlined-nosize">network_check</span>@_f.tra("Test připojení")</h2>
+                <p>@_f.tra("Ověří spojení se serverem, šifrování a přihlášení podle hodnot ve formuláři – i neuložených. Nic se neodešle ani neuloží.")</p>
+                <button type="button" id="cmdTest" class="btn btn-primary" onclick="ma_test()"><span class="material-icons-outlined-btn">play_arrow</span> @_f.tra("Otestovat připojení")</button>
+                <div id="divTestResult" class="ma-result" style="display:none;"></div>
+            </section>
 
-            </div>
-            <label class="col-sm-1 col-md-1 col-form-label">@_f.tra("Port"):</label>
-            <div class="col-sm-2 col-md-2">
-                <mynumber asp-for="@Model.Rec.j40ImapPort" decimal-digits="0"></mynumber>
-            </div>
-        </div>
-    
-
-        <div class="row my-2">
-            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("IMAP login"):</label>
-            <div class="col-sm-11 col-md-10">
-                <input class="form-control" asp-for="Rec.j40ImapLogin" autocomplete="off" />
-
-            </div>
-        </div>
-        <div class="row my-2">
-            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("IMAP heslo"):</label>
-            <div class="col-sm-11 col-md-10">
-                <input class="form-control" type="text" asp-for="Rec.j40ImapPassword" autocomplete="off" placeholder="@_f.tra("Heslo zadávejte pouze pokud ho měníte nebo pro nový účet.")" />
-
-            </div>
-        </div>
-
-        <div class="my-2">
-            <input asp-for="@Model.Rec.j40ImapEnableSsl" />
-            <label for="Rec_j40ImapEnableSsl">@_f.tra("Podpora SSL")</label>
-        </div>
-   }
-
-
-    <div class="row my-2">
-        <label class="col-sm-1 col-md-2 col-form-label">SSL Mode:</label>
-
-        <div class="col-sm-5 col-md-4">
-            <select asp-for="Rec.j40SslModeFlag" class="form-select">
-                <option value="0"></option>
-                <option value="1">SSL Implicit</option>
-                <option value="2">SSL Explicit</option>
-
-            </select>
-        </div>
+            <section class="ma-card ma-tip" id="tip_o365">
+                <h2><span class="material-icons-outlined-nosize">lightbulb</span>@_f.tra("Tip: Microsoft 365 / Office 365")</h2>
+                @if (_smtp)
+                {
+                    <dl class="ma-dl">
+                        <dt>@_f.tra("Server")</dt><dd><code>smtp.office365.com</code></dd>
+                        <dt>@_f.tra("Port")</dt><dd><code>587</code></dd>
+                        <dt>@_f.tra("Šifrování")</dt><dd>STARTTLS (Explicit)</dd>
+                        <dt>@_f.tra("Login")</dt><dd>@_f.tra("celá e-mailová adresa schránky")</dd>
+                        <dt>@_f.tra("E-mail odesílatele")</dt><dd>@_f.tra("stejná adresa jako login (nebo adresa, pro kterou má schránka právo Odeslat jako)")</dd>
+                    </dl>
+                    <ul class="ma-notes">
+                        <li>@_f.tra("Ve schránce musí být povolené „Ověřený SMTP“ (Authenticated SMTP): Centrum pro správu Microsoft 365 → Uživatelé → uživatel → Pošta → Spravovat e-mailové aplikace.")</li>
+                        <li>@_f.tra("Má-li účet vícefaktorové ověření nebo zapnuté výchozí zabezpečení (Security defaults), přihlášení heslem přes SMTP neprojde – použijte samostatnou schránku jen pro odesílání.")</li>
+                        <li class="ma-warn">@_f.tra("Microsoft na konci prosince 2026 vypíná přihlášení heslem pro SMTP (Basic Auth) ve výchozím stavu u všech tenantů. Administrátor ho může znovu povolit; úplné ukončení Microsoft oznámí v průběhu roku 2027.")</li>
+                        <li>@_f.tra("Chyba 5.7.139 / 535 = SMTP přihlášení je v tenantu nebo schránce zakázané. Chyba 5.7.60 = schránka nemá právo odesílat za adresu odesílatele.")</li>
+                    </ul>
+                }
+                else
+                {
+                    <dl class="ma-dl">
+                        <dt>@_f.tra("Server")</dt><dd><code>outlook.office365.com</code></dd>
+                        <dt>@_f.tra("Port")</dt><dd><code>993</code></dd>
+                        <dt>@_f.tra("Šifrování")</dt><dd>SSL/TLS (Implicit)</dd>
+                    </dl>
+                    <ul class="ma-notes">
+                        <li class="ma-warn">@_f.tra("Microsoft 365 přihlášení heslem přes IMAP (Basic Auth) nepodporuje už od roku 2022 – IMAP účet s heslem se k Office 365 nepřipojí.")</li>
+                    </ul>
+                }
+            </section>
+        </aside>
     </div>
-   
-    <div class="row my-2">
-        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název/Popis"):</label>
-        <div class="col-sm-11 col-md-10">
-            <input class="form-control" asp-for="Rec.j40Name" />
-
-        </div>
-       
-    </div>
-    
-    <div class="row" style="margin-top:100px;">
-        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Vlastník účtu"):</label>
-        <div class="col-sm-11 col-md-10">
-            <mycombo entity="j02User" asp-for="Rec.j02ID" selectedtext="@Model.ComboPerson" filter-flag="1"></mycombo>
-        </div>
-    </div>
-
-
-
-
-
-
 </div>
 
-
-
-
-
-
 <script type="text/javascript">
+    var _ma_smtp = @(_smtp ? "true" : "false");
+    var _ma_txt = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(new { testing = _f.tra("Testuji…"), test = _f.tra("Otestovat připojení"), filled = _f.tra("Nastavení vyplněno – doplňte login a heslo."), err = _f.tra("Test se nepodařilo spustit.") }));
+
+    //rychlé nastavení: [smtp host, port, ssl mode, imap host, port, ssl mode]
+    var _ma_presets = {
+        o365: { smtp: ["smtp.office365.com", 587, 2], imap: ["outlook.office365.com", 993, 1] },
+        gmail: { smtp: ["smtp.gmail.com", 587, 2], imap: ["imap.gmail.com", 993, 1] },
+        seznam: { smtp: ["smtp.seznam.cz", 465, 1], imap: ["imap.seznam.cz", 993, 1] }
+    };
+
     $(document).ready(function () {
         handle_ucet_state();
+        $("#Rec_j40SmtpUseDefaultCredentials").on("click", handle_ucet_state);
 
+        $(".ma-eye").on("click", function () {
+            var $p = $("#" + $(this).data("for"));
+            var show = $p.attr("type") === "password";
+            $p.attr("type", show ? "text" : "password");
+            $(this).toggleClass("ma-eye-on", show).find("span").text(show ? "visibility_off" : "visibility");
+        });
 
+        //po změně hodnot výsledek testu zešedne (už neplatí)
+        $("#form1").on("input change", "input, select", function () { $("#divTestResult").addClass("ma-stale"); });
     });
-
-
-    $("#Rec_j40SmtpUseDefaultCredentials").on("click", function () {
-        handle_ucet_state();
-    });
-
 
     function handle_ucet_state() {
-
-        if ($("#Rec_j40SmtpUseDefaultCredentials").prop("checked") == true) {
-            $("#credentials").css("display", "none");
-
-        } else {
-            $("#credentials").css("display", "block");
-        }
+        $("#credentials").toggle(!$("#Rec_j40SmtpUseDefaultCredentials").prop("checked"));
     }
 
-    
+    function ma_set_number(id, val) {      //mynumber: viditelné pole + skrytá hodnota
+        $("#" + id).val(val);
+        $("input[for-id='" + id + "'], #" + id + "helper, #" + id + "_helper").val(val);
+    }
 
+    function ma_preset(key) {
+        var p = _ma_presets[key][_ma_smtp ? "smtp" : "imap"];
+        if (_ma_smtp) {
+            $("#Rec_j40SmtpHost").val(p[0]);
+            ma_set_number("Rec_j40SmtpPort", p[1]);
+            $("#Rec_j40SmtpUseDefaultCredentials").prop("checked", false);
+            $("#Rec_j40SmtpEnableSsl").prop("checked", false);
+            handle_ucet_state();
+        } else {
+            $("#Rec_j40ImapHost").val(p[0]);
+            ma_set_number("Rec_j40ImapPort", p[1]);
+            $("#Rec_j40ImapEnableSsl").prop("checked", false);
+        }
+        $("#Rec_j40SslModeFlag").val(p[2]);
+        if ($("#Rec_j40Name").val() === "") {
+            $("#Rec_j40Name").val({ o365: "Microsoft 365", gmail: "Gmail", seznam: "Seznam.cz" }[key]);
+        }
+        _notify_message(_ma_txt.filled, "info");
+        $(_ma_smtp ? "#Rec_j40SmtpLogin" : "#Rec_j40ImapLogin").focus();
+        $("#divTestResult").addClass("ma-stale");
+    }
+
+    function ma_test() {
+        var $b = $("#cmdTest").prop("disabled", true);
+        $b.html("<span class='material-icons-outlined-btn ma-spin'>sync</span> " + $("<div>").text(_ma_txt.testing).html());
+        $.post(_ep("/j40/TestConnection"), $("#form1").serialize(), function (data) {
+            var $r = $("#divTestResult").removeClass("ma-ok ma-bad ma-stale").addClass(data.ok ? "ma-ok" : "ma-bad").empty().show();
+            (data.steps || []).forEach(function (s) { $("<div class='ma-step'>").text("✓ " + s).appendTo($r); });
+            $("<div class='ma-msg'>").text((data.ok ? "✓ " : "✕ ") + (data.message || "")).appendTo($r);
+        }).fail(function () {
+            $("#divTestResult").removeClass("ma-ok ma-stale").addClass("ma-bad").text(_ma_txt.err).show();
+        }).always(function () {
+            $b.prop("disabled", false).html("<span class='material-icons-outlined-btn'>play_arrow</span> " + $("<div>").text(_ma_txt.test).html());
+        });
+    }
 </script>
-
-
-

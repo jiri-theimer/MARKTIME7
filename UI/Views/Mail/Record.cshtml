@@ -4,244 +4,227 @@
 @{
     Model.PageTitle = _f.tra("Poštovní zpráva");
     Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageSymbol = "mail";
 
-    var recJ02 = _f.j02UserBL.Load(_f.CurrentUser.pid);
-    var _podpis = BO.Code.Bas.Text2Html(recJ02.j02EmailSignature);
+    var r = Model.Rec;
+    string _stateCss = r.x40Status switch
+    {
+        BO.x40StateENUM.IsProceeded => "mr-ok",
+        BO.x40StateENUM.IsError => "mr-bad",
+        BO.x40StateENUM.InQueque => "mr-wait",
+        _ => "mr-neutral"
+    };
+
+    //tělo zprávy: přednostně z eml (přesně to, co odešlo – kostra, podpis, tabulka), jinak z databáze
+    string _html = null;
+    string _text = null;
+    bool _fromEml = false;
+    if (Model.Mail != null)
+    {
+        if (Model.Mail.HasBodyHtml) { _html = Model.Mail.BodyHtml; _fromEml = true; }
+        else if (Model.Mail.HasBodyText) { _text = Model.Mail.BodyText; _fromEml = true; }
+    }
+    if (!_fromEml)
+    {
+        if (r.x40IsHtmlBody) { _html = r.x40Body; } else { _text = r.x40Body; }
+    }
+    //do iframe: odkazy do nového okna, bez skriptů (sandbox), základní písmo
+    string _srcdoc = _html == null ? null : "<!doctype html><html><head><meta charset='utf-8'><base target='_blank'><style>body{font-family:Segoe UI,Arial,sans-serif;font-size:14px;margin:12px;color:#212529;word-wrap:break-word}img{max-width:100%;height:auto}</style></head><body>" + _html + "</body></html>";
+
+    string _recAlias = (r.x40RecordEntity != null && r.x40RecordPid > 0) ? _f.CBL.GetObjectAlias(r.x40RecordEntity, r.x40RecordPid) : null;
+    int _attCount = Model.Mail != null ? Model.Mail.Attachments.Count : 0;
 }
 
 @addTagHelper *, UI
+@section header_content
+{
+    <link rel="stylesheet" href="~/css/sendmail.css" asp-append-version="true" />
+}
 
-
-<div class="input-group bg-light" style="padding:10px;">
-
-    @if (Model.Rec.x40Status != BO.x40StateENUM.InQueque && Model.IsEmlFileExists)
-    {
-        <div style="margin-left:10px;">
-            <button type="button" class="btn btn-primary" onclick="eml()">@_f.tra("Otevřít poštovní zprávu [eml]") (@(BO.Code.Bas.FormatFileSize(Model.Rec.x40EmlFileSize)))</button>
-        </div>
-    }
+<div class="bg-light sm-toolbar">
     @if (Model.IsEmlFileExists)
     {
-        <div>
-            <button type="button" class="btn btn-light" onclick="clone()">@_f.tra("Zkopírovat do nové zprávy")</button>
-        </div>
+        <button type="button" class="btn btn-primary" onclick="clone()"><span class="material-icons-outlined-btn">forward_to_inbox</span>@_f.tra("Zkopírovat do nové zprávy")</button>
     }
-
+    @if (r.x40Status != BO.x40StateENUM.InQueque && Model.IsEmlFileExists)
+    {
+        <button type="button" class="btn btn-light" onclick="eml()" title="@_f.tra("Otevřít v poštovním programu")"><span class="material-icons-outlined-btn">download</span>.eml (@(BO.Code.Bas.FormatFileSize(r.x40EmlFileSize)))</button>
+    }
+    <button type="button" class="btn btn-light" onclick="logfile()"><span class="material-icons-outlined-btn">receipt_long</span>@_f.tra("SMTP log")</button>
     @if (_f.CurrentUser.IsAdmin)
     {
-        <div>
-            <button type="button" class="btn btn-danger" onclick="delete_record()">@_f.tra("Odstranit zprávu")</button>
-        </div>
+        <button type="button" id="cmdDelete" class="btn btn-outline-danger"><span class="material-icons-outlined-btn">delete</span><span>@_f.tra("Odstranit")</span></button>
     }
-
-    <div>
-        <button type="button" class="btn btn-light" onclick="logfile()">@_f.tra("SMTP log file")</button>
-    </div>
-    <div style="margin-left:10px;">
-        <button type="button" class="btn btn-light" onclick="_window_close()">@_f.tra("Zavřít")</button>
-    </div>
+    <button type="button" class="btn btn-light ms-auto" onclick="_window_close()"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
 </div>
 
+<div class="modal_record_container sm mr">
 
-<div class="modal_record_container">
-
-    <div class="row">
-        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Čas"):</label>
-        <div class="col-sm-11 col-md-10">
-            <span class="form-control bg-light">
-                @Model.Rec.x40DatetimeProcessed
-                <kbd style="margin-left:40px;">@_f.tra(Model.Rec.StatusAlias)</kbd>
-
-            </span>
-
-        </div>
-
-    </div>
-    @if (Model.Rec.x40ErrorMessage != null)
+    @if (r.x40ErrorMessage != null)
     {
-        <div class="row my-2">
-            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Chyba"):</label>
-            <div class="col-sm-11 col-md-10">
-                <code>
-                    @Model.Rec.x40ErrorMessage
-                </code>
-
+        <div class="mr-error">
+            <span class="material-icons-outlined-nosize">error</span>
+            <div>
+                <b>@_f.tra("Zprávu se nepodařilo odeslat")</b>
+                <code>@r.x40ErrorMessage</code>
             </div>
-
         </div>
     }
 
-    <div class="row my-2">
-        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Odesílatel"):</label>
-        <div class="col-sm-11 col-md-10">
-
-            <span class="form-control bg-light">@Html.Raw(Model.Rec.x40SenderName + " <" + Model.Rec.x40SenderAddress + ">")</span>
-        </div>
-    </div>
-
-    <div class="row my-2">
-        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Komu (To)"):</label>
-        <div class="col-sm-11 col-md-10">
-            <span class="form-control bg-light">@Model.Rec.x40Recipient</span>
-
+    <div class="sm-head mr-head">
+        <div class="mr-subject-row">
+            <h1 class="mr-subject">@(string.IsNullOrWhiteSpace(r.x40Subject) ? _f.tra("(bez předmětu)") : r.x40Subject)</h1>
+            <span class="mr-state @_stateCss">@_f.tra(r.StatusAlias)</span>
         </div>
 
-    </div>
-    @if (Model.Rec.x40CC != null)
-    {
-        <div class="row my-2">
-            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Kopie (Cc)"):</label>
-            <div class="col-sm-11 col-md-10">
-                <span class="form-control bg-light">@Model.Rec.x40CC</span>
-            </div>
-
-        </div>
-    }
-    @if (Model.Rec.x40BCC != null)
-    {
-        <div class="row my-2">
-            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Skrytá kopie (Bcc)"):</label>
-            <div class="col-sm-11 col-md-10">
-                <span class="form-control bg-light">@Model.Rec.x40BCC</span>
-
-            </div>
-
-        </div>
-    }
-
-    <div class="row my-2">
-        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Předmět zprávy"):</label>
-        <div class="col-sm-11 col-md-10">
-            <span class="form-control bg-light">@Model.Rec.x40Subject</span>
-
-        </div>
-
-    </div>
-
-
-    @if (Model.Mail != null && Model.Mail.Attachments.Count() > 0)
-    {
-        <div class="row my-2">
-            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Přílohy"):</label>
-            <div class="col-sm-11 col-md-10">
-                @foreach (var item in Model.Mail.Attachments)
+        <div class="sm-row">
+            <label class="sm-lab">@_f.tra("Od")</label>
+            <div class="sm-val">
+                <span class="mr-person"><b>@r.x40SenderName</b> <span class="mr-addr">&lt;@r.x40SenderAddress&gt;</span></span>
+                @if (Model.Creator != null)
                 {
-                    <div>
-                        <strong>@(item.FileName)</strong>
-
-                    </div>
+                    <span class="mr-meta">· @_f.tra("odeslal") @Model.Creator.FullNameAsc</span>
                 }
-
-
-
-
-
-            </div>
-
-        </div>
-        <div class="row my-2">
-            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Velikost zprávy"):</label>
-            <div class="col-sm-11 col-md-10">
-
-                <span class="form-control bg-light">@(BO.Code.Bas.FormatFileSize(Model.Rec.x40EmlFileSize))</span>
-            </div>
-
-        </div>
-
-
-    }
-
-
-
-    <div style="width:100%;background-color:lightblue;margin-top:13px;font-weight:bold;color:navy;">
-        <div style="padding:12px;">
-            <span>Text zprávy:</span>
-        </div>
-    </div>
-    
-
-    @if (Model.Rec.x40IsHtmlBody)
-    {
-        @Html.Raw(Model.Rec.x40Body)
-
-    }
-    else
-    {
-        <textarea asp-for="Rec.x40Body" class="form-control" placeholder="@_f.tra("Text zprávy")" style="height:200px;"></textarea>
-    }
-
-
-    @if (Model.lisGridColumns != null && Model.lisGridColumns.Count() > 0)
-    {
-        <div style="width:100%;background-color:lightblue;margin-top:13px;font-weight:bold;color:navy;">
-            <div style="padding:12px;">
-                <span>Pod textem zprávy bude tabulka s vybranými poli:</span>
             </div>
         </div>
-        
-        <div class="card-body">
-            <table class="table table-hover">
-                @foreach (var col in Model.lisGridColumns)
+        <div class="sm-row">
+            <label class="sm-lab">@_f.tra("Komu")</label>
+            <div class="sm-val mr-list">@r.x40Recipient</div>
+        </div>
+        @if (!string.IsNullOrEmpty(r.x40CC))
+        {
+            <div class="sm-row">
+                <label class="sm-lab">@_f.tra("Kopie")</label>
+                <div class="sm-val mr-list">@r.x40CC</div>
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(r.x40BCC))
+        {
+            <div class="sm-row">
+                <label class="sm-lab">@_f.tra("Skrytá kopie")</label>
+                <div class="sm-val mr-list">@r.x40BCC</div>
+            </div>
+        }
+        <div class="sm-row">
+            <label class="sm-lab">@_f.tra("Odesláno")</label>
+            <div class="sm-val">
+                @(r.x40DatetimeProcessed == null ? "–" : r.x40DatetimeProcessed.Value.ToString("d.M.yyyy HH:mm"))
+                @if (_recAlias != null)
                 {
-                    <tr>
-                        <td class="tdlab">
-                            @(col.Header):
-                        </td>
-                        <td class="tdval">
-                            @(Html.Raw(col.Rezerva))
-
-                        </td>
-                    </tr>
+                    <span class="mr-meta">· @_f.tra("k záznamu") <a href="/Record/RecPage?prefix=@(r.x40RecordEntity.Substring(0, 3))&pid=@(r.x40RecordPid)" target="_blank" rel="noopener">@_recAlias</a></span>
                 }
-            </table>
-        </div>
-    }
-
-    @if (Model.Rec.x40IsUserSignature)
-    {
-        <div style="width:100%;background-color:lightblue;margin-top:13px;font-weight:bold;color:navy;">
-            <div style="padding:12px;">
-                <span>Podpis odesílatele:</span>
             </div>
         </div>
-        
-        
-        @Html.Raw(_podpis)
 
+        @if (_attCount > 0)
+        {
+            <div class="sm-row">
+                <label class="sm-lab"><span class="material-icons-outlined-nosize">attach_file</span></label>
+                <div class="sm-val mr-atts">
+                    @for (int i = 0; i < _attCount; i++)
+                    {
+                        var att = Model.Mail.Attachments[i];
+                        string name = string.IsNullOrWhiteSpace(att.FileName) ? _f.tra("příloha") + " " + (i + 1) : att.FileName.Trim();
+                        <a class="mr-att" href="/Mail/DownloadAttachment?guid=@(r.x40MessageGuid)&index=@i" title="@_f.tra("Stáhnout")">
+                            <span class="material-icons-outlined-nosize">description</span>@name
+                        </a>
+                    }
+                </div>
+            </div>
+        }
+    </div>
 
-    }
-</div>
+    <div class="mr-body">
+        @if (_srcdoc != null)
+        {
+            <iframe id="fraBody" class="mr-frame" sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox" srcdoc="@_srcdoc" title="@_f.tra("Text zprávy")"></iframe>
+        }
+        else if (!string.IsNullOrEmpty(_text))
+        {
+            <pre class="mr-text">@_text</pre>
+        }
+        else
+        {
+            <div class="sm-muted p-3">@_f.tra("Zpráva nemá žádný text.")</div>
+        }
+    </div>
 
+    @if (!_fromEml)
+    {
+        @* bez eml: tabulku a podpis skládáme z databáze (jak by vypadaly při odeslání) *@
+        <div class="mr-note">
+            <span class="material-icons-outlined-nosize">info</span>
+            @(r.x40Status == BO.x40StateENUM.InQueque ? _f.tra("Zpráva čeká na odeslání – zobrazen text před odesláním.") : _f.tra("Soubor odeslané zprávy (.eml) není k dispozici – zobrazen text uložený v databázi."))
+        </div>
 
+        @if (Model.lisGridColumns != null && Model.lisGridColumns.Count() > 0)
+        {
+            <div class="sm-grid mb-2">
+                <div class="sm-section-head"><span class="material-icons-outlined-nosize">table_rows</span>@_f.tra("Tabulka pod textem zprávy")</div>
+                <table class="table table-sm sm-grid-table">
+                    @foreach (var col in Model.lisGridColumns)
+                    {
+                        <tr>
+                            <td class="tdlab">@(col.Header)</td>
+                            <td class="tdval">@(Html.Raw(col.Rezerva))</td>
+                        </tr>
+                    }
+                </table>
+            </div>
+        }
 
-<script type="text/javascript">
-    $(document).ready(function () {
-
-
-    });
-
-
-    function eml() {
-        location.replace("/Mail/DownloadEmlFile?guid=@Model.Rec.x40MessageGuid");
-    }
-    function logfile() {
-        location.replace("/Mail/DownloadSmtpLog?guid=@Model.Rec.x40MessageGuid");
-    }
-
-    function clone() {
-        location.replace("/Mail/Sendmail?x40id=@Model.Rec.pid");
-    }
-
-    function delete_record() {
-        var pid = "@(Model.Rec.pid)";
-
-        if (confirm("Opravdu odstranit tuto zprávu?")) {
-            $.post("/Mail/Delete", { x40id: pid }, function (data) {
-                window.parent.hardrefresh("0");
-                _window_close();
-            });
-
+        @if (r.x40IsUserSignature && Model.Creator != null && !string.IsNullOrWhiteSpace(Model.Creator.j02EmailSignature))
+        {
+            <div class="sm-signature">@Html.Raw(BO.Code.Bas.Text2Html(Model.Creator.j02EmailSignature))</div>
         }
     }
+</div>
 
+<script type="text/javascript">
+    var _mr_txt = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(new { sure = _f.tra("Opravdu? Klikněte znovu") }));
+
+    $(document).ready(function () {
+        //výška iframe podle obsahu (sandbox bez skriptů, ale stejný původ → lze změřit)
+        var fr = document.getElementById("fraBody");
+        if (fr) {
+            var fit = function () {
+                try {
+                    var d = fr.contentDocument;
+                    if (d && d.body) fr.style.height = Math.max(120, d.documentElement.scrollHeight + 4) + "px";
+                } catch (e) { }
+            };
+            fr.addEventListener("load", function () {
+                fit();
+                try { Array.prototype.forEach.call(fr.contentDocument.images, function (img) { img.addEventListener("load", fit); }); } catch (e) { }
+            });
+            $(window).on("resize", fit);
+        }
+
+        //odstranění: první klik se zeptá v tlačítku, druhý provede (bez confirm dialogu)
+        var $d = $("#cmdDelete"), timer = null;
+        $d.on("click", function () {
+            if ($d.data("armed")) {
+                clearTimeout(timer);
+                $d.prop("disabled", true);
+                $.post("/Mail/Delete", { x40id: "@(r.pid)" }, function () {
+                    if (window.parent && window.parent.hardrefresh) window.parent.hardrefresh("0");
+                    _window_close();
+                });
+                return;
+            }
+            var html = $d.html();
+            $d.data("armed", true).removeClass("btn-outline-danger").addClass("btn-danger").find("span").last().text(_mr_txt.sure);
+            timer = setTimeout(function () { $d.data("armed", false).removeClass("btn-danger").addClass("btn-outline-danger").html(html); }, 4000);
+        });
+    });
+
+    function eml() {
+        location.replace("/Mail/DownloadEmlFile?guid=@r.x40MessageGuid");
+    }
+    function logfile() {
+        window.open("/Mail/DownloadSmtpLog?guid=@r.x40MessageGuid", "_blank");
+    }
+    function clone() {
+        location.replace("/Mail/Sendmail?x40id=@r.pid");
+    }
 </script>

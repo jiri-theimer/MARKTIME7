@@ -46,6 +46,37 @@ namespace UI.Controllers
             }
             return View(v);
         }
+        //test připojení z formuláře (i neuložené hodnoty); prázdné heslo = použít uložené heslo účtu
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult TestConnection(j40Record v)
+        {
+            var c = v.Rec ?? new BO.j40MailAccount();
+            bool bolImap = c.j40UsageFlag == BO.MailUsageFlag.ImapPrivate || c.j40UsageFlag == BO.MailUsageFlag.ImapGlobal;
+            string strPassword = bolImap ? c.j40ImapPassword : c.j40SmtpPassword;
+
+            if (string.IsNullOrEmpty(strPassword) && v.rec_pid > 0)
+            {
+                var saved = Factory.j40MailAccountBL.Load(v.rec_pid);
+                if (saved != null)
+                {
+                    if (saved.j02ID != Factory.CurrentUser.pid && !Factory.CurrentUser.IsAdmin && saved.j40UsageFlag != BO.MailUsageFlag.SmtpGlobal && saved.j40UsageFlag != BO.MailUsageFlag.ImapGlobal)
+                    {
+                        return Json(new { ok = false, message = Factory.tra("K tomuto účtu nemáte přístup."), steps = new string[0] });
+                    }
+                    string strEnc = bolImap ? saved.j40ImapPassword : saved.j40SmtpPassword;
+                    if (!string.IsNullOrEmpty(strEnc))
+                    {
+                        strPassword = new BO.Code.Cls.Crypto().Decrypt(strEnc);
+                    }
+                }
+            }
+
+            var steps = new List<string>();
+            var res = Factory.j40MailAccountBL.TestConnection(c, strPassword, steps);
+            return Json(new { ok = res.Flag == BO.ResultEnum.Success, message = res.Message, steps = steps });
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Record(j40Record v)

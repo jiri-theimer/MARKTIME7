@@ -1,0 +1,45 @@
+﻿/* Poštovní účet (Views/j40/Record.cshtml) – třídy ma-* */
+.ma { max-width: 1100px; }
+.ma-card { padding: 12px 14px; margin-bottom: 12px; border: 1px solid #e3e6ea; border-radius: 10px; background: #fff; }
+.ma-card h2 { display: flex; align-items: center; gap: 6px; font-size: .95rem; font-weight: 600; margin: 0 0 10px; }
+.ma-card h2 .material-icons-outlined-nosize { font-size: 19px; color: var(--pozadi, #0b4b92); }
+.ma-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+.ma-grid > .ma-field { flex: 1 1 220px; }
+.ma-grid > .ma-wide { flex: 3 1 300px; }
+.ma-grid > .ma-narrow { flex: 0 0 110px; }
+.ma-field { margin-bottom: 10px; }
+.ma-field > label { display: block; font-size: .85rem; font-weight: 500; color: #3d444d; margin-bottom: 3px; }
+.ma-check { display: flex; align-items: flex-start; gap: 6px; margin-bottom: 8px; font-size: .875rem; }
+.ma-check input { margin-top: 3px; }
+.ma-check label { margin: 0; }
+.ma-pwd { position: relative; }
+.ma-pwd .form-control { padding-right: 38px; }
+.ma-eye { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); border: 0; background: transparent; color: #8a939c; padding: 2px 6px; line-height: 0; border-radius: 6px; }
+.ma-eye:hover, .ma-eye-on { color: var(--pozadi, #0b4b92); }
+
+.ma-presets { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: -2px 0 12px; font-size: .85rem; color: #59636e; }
+.ma-layout { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(300px, 1fr); gap: 12px; align-items: start; }
+.ma-side { position: sticky; top: 8px; }
+
+.ma-test p { font-size: .85rem; color: #59636e; margin-bottom: 10px; }
+.ma-result { margin-top: 10px; padding: 8px 10px; border-radius: 8px; font-size: .85rem; word-break: break-word; }
+.ma-result.ma-ok { background: #e9f7ef; color: #17663a; }
+.ma-result.ma-bad { background: #fdecec; color: #a61b1b; }
+.ma-result.ma-stale { opacity: .5; }
+.ma-step { color: #17663a; }
+.ma-msg { font-weight: 600; margin-top: 2px; }
+.ma-spin { animation: ma-spin 1s linear infinite; }
+@keyframes ma-spin { to { transform: rotate(360deg); } }
+
+.ma-tip { background: #f8fbfe; border-color: #cfe0f0; }
+.ma-dl { display: grid; grid-template-columns: auto 1fr; gap: 3px 10px; margin: 0 0 8px; font-size: .85rem; }
+.ma-dl dt { font-weight: normal; color: #6c757d; }
+.ma-dl dd { margin: 0; }
+.ma-notes { padding-left: 18px; margin: 0; font-size: .8rem; color: #3d444d; }
+.ma-notes li { margin-bottom: 4px; }
+.ma-notes .ma-warn { color: #8a5300; }
+
+@media (max-width: 900px) {
+    .ma-layout { grid-template-columns: 1fr; }
+    .ma-side { position: static; }
+}

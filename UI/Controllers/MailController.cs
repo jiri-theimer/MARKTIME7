@@ -567,6 +567,10 @@ namespace UI.Controllers
             {
                 return RecNotFound(v);
             }
+            if (v.Rec.j02ID_Creator > 0)
+            {
+                v.Creator = Factory.j02UserBL.Load(v.Rec.j02ID_Creator);     //podpis odesílatele (ne přihlášeného uživatele) pro náhled bez eml
+            }
             var strEmlPath = $"{Factory.UploadFolder}\\{v.Rec.x40EmlFolder}\\{v.Rec.x40MessageGuid}.eml";
             v.IsEmlFileExists = System.IO.File.Exists(strEmlPath);
             if (v.IsEmlFileExists)
@@ -678,6 +682,34 @@ namespace UI.Controllers
 
 
 
+        }
+
+        //stažení jedné přílohy odeslané zprávy (z eml souboru); index = pořadí přílohy ve zprávě
+        public ActionResult DownloadAttachment(string guid, int index)
+        {
+            var rec = Factory.MailBL.LoadMessageByGuid(guid);
+            if (rec == null)
+            {
+                return this.NotFound(new UI.Models.Mail.x40RecMessage());
+            }
+            var mail = Factory.MailBL.LoadMailMessageByPid(rec.pid);
+            if (mail == null || index < 0 || index >= mail.Attachments.Count)
+            {
+                return NotFound("Příloha nebyla nalezena | Attachment not found.");
+            }
+            var att = mail.Attachments[index];
+            string strName = string.IsNullOrWhiteSpace(att.FileName) ? $"priloha{index + 1}" : att.FileName.Trim();
+            string strTemp = $"{Factory.TempFolder}\\{rec.x40MessageGuid}_{index}_{Guid.NewGuid():N}";
+            att.Save(strTemp);
+            var bytes = System.IO.File.ReadAllBytes(strTemp);
+            try { System.IO.File.Delete(strTemp); } catch { }
+
+            var provider = new Microsoft.AspNetCore.StaticFiles.FileExtensionContentTypeProvider();
+            if (!provider.TryGetContentType(strName, out string strContentType))
+            {
+                strContentType = "application/octet-stream";
+            }
+            return File(bytes, strContentType, strName);
         }
 
         public ActionResult DownloadSmtpLog(string guid)

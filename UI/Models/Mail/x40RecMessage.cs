@@ -12,5 +12,7 @@ namespace UI.Models.Mail
         
         public IEnumerable<BO.TheGridColumn> lisGridColumns { get; set; }
 
+        public BO.j02User Creator { get; set; }     //kdo zprávu odeslal
+
     }
 }

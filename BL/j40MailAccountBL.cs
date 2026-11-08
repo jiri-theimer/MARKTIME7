@@ -9,6 +9,8 @@ namespace BL
         public IEnumerable<BO.j40MailAccount> GetList(BO.myQueryJ40 mq);
         public int Save(BO.j40MailAccount rec);
         public bool UpdateFolders(int j40id, string strFoldersInLine);
+        public BO.Result TestConnection(BO.j40MailAccount rec, string strPlainPassword, List<string> steps);
+
 
     }
     class j40MailAccountBL : BaseBL, Ij40MailAccountBL
@@ -137,5 +139,95 @@ namespace BL
             return true;
         }
 
+        //test připojení k poštovnímu serveru podle (i neuloženého) nastavení účtu – stejný postup jako odesílání (MailBL) / čtení IMAP (o27AttachmentBL)
+        //steps = průběh pro uživatele; nic se neodesílá ani neukládá
+        public BO.Result TestConnection(BO.j40MailAccount rec, string strPlainPassword, List<string> steps)
+        {
+            Rebex.Licensing.Key = "==FmUGVeH5TmvcatEzt0Z4rBvjoahsK0e0albLXKX2bgBB+JxAEBiGKcZlB73B+U5q3G5YP==";
+            bool bolImap = rec.j40UsageFlag == BO.MailUsageFlag.ImapPrivate || rec.j40UsageFlag == BO.MailUsageFlag.ImapGlobal;
+            string strHost = bolImap ? rec.j40ImapHost : rec.j40SmtpHost;
+            int intPort = bolImap ? rec.j40ImapPort : rec.j40SmtpPort;
+            bool bolSecure = bolImap ? rec.j40ImapEnableSsl : rec.j40SmtpEnableSsl;
+            string strLogin = bolImap ? rec.j40ImapLogin : rec.j40SmtpLogin;
+            bool bolAuth = bolImap || !rec.j40SmtpUseDefaultCredentials;
+
+            if (string.IsNullOrWhiteSpace(strHost))
+            {
+                return new BO.Result(true, _mother.tra("Chybí adresa serveru."));
+            }
+            strHost = strHost.Trim();
+            if (strHost.ToLower() == "smtp.mycorecloud.net" && !bolImap)
+            {
+                strLogin = _mother.App.DefaultSmtpSetting.Username;
+                strPlainPassword = _mother.App.DefaultSmtpSetting.Password;
+            }
+            if (bolAuth && (string.IsNullOrEmpty(strLogin) || string.IsNullOrEmpty(strPlainPassword)))
+            {
+                return new BO.Result(true, _mother.tra("Vyplňte login a heslo."));
+            }
+
+            Rebex.Net.SslMode mode = rec.j40SslModeFlag == BO.SslModelFlagEnum.Implicit ? Rebex.Net.SslMode.Implicit : (rec.j40SslModeFlag == BO.SslModelFlagEnum.Explicit ? Rebex.Net.SslMode.Explicit : Rebex.Net.SslMode.None);
+            string strWhere = intPort > 0 ? $"{strHost}:{intPort}" : strHost;
+
+            if (bolImap)
+            {
+                var client = new Rebex.Net.Imap();
+                client.Timeout = 15000;
+                try
+                {
+                    if (intPort > 0) client.Connect(strHost, intPort, mode); else client.Connect(strHost, mode);
+                    steps.Add(_mother.tra("Spojení se serverem") + $" {strWhere}" + (client.IsSecured ? " (" + _mother.tra("šifrované") + ")" : ""));
+                    if (bolSecure && !client.IsSecured)
+                    {
+                        client.Secure();
+                        steps.Add(_mother.tra("Zabezpečení spojení (TLS)"));
+                    }
+                    client.Login(strLogin, strPlainPassword);
+                    steps.Add(_mother.tra("Přihlášení") + $" ({strLogin})");
+                    client.SelectFolder("Inbox");
+                    steps.Add(_mother.tra("Otevření složky Inbox"));
+                    client.Disconnect();
+                    return new BO.Result(false, _mother.tra("Připojení k IMAP serveru funguje."));
+                }
+                catch (Exception e)
+                {
+                    return new BO.Result(true, e.Message);
+                }
+                finally
+                {
+                    client.Dispose();
+                }
+            }
+            else
+            {
+                var client = new Rebex.Net.Smtp();
+                client.Timeout = 15000;
+                try
+                {
+                    if (intPort > 0) client.Connect(strHost, intPort, mode); else client.Connect(strHost, mode);
+                    steps.Add(_mother.tra("Spojení se serverem") + $" {strWhere}" + (client.IsSecured ? " (" + _mother.tra("šifrované") + ")" : ""));
+                    if (bolSecure && !client.IsSecured)
+                    {
+                        client.Secure();
+                        steps.Add(_mother.tra("Zabezpečení spojení (TLS)"));
+                    }
+                    if (bolAuth)
+                    {
+                        client.Login(strLogin, strPlainPassword);
+                        steps.Add(_mother.tra("Přihlášení") + $" ({strLogin})");
+                    }
+                    client.Disconnect();
+                    return new BO.Result(false, _mother.tra("Připojení k SMTP serveru funguje. Zprávy půjde odesílat."));
+                }
+                catch (Exception e)
+                {
+                    return new BO.Result(true, e.Message);
+                }
+                finally
+                {
+                    client.Dispose();
+                }
+            }
+        }
     }
 }
