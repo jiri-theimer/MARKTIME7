@@ -1,5 +1,5 @@
 ﻿
+/* velké písmo: 14 px (dříve 1rem = 16 px – příliš velký skok oproti výchozím 12 px, rozbíjelo rozložení) */
 html {
-    font-size: 1rem;
+    font-size: 0.875rem;
 }
-
