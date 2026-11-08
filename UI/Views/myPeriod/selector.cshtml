@@ -16,212 +16,206 @@
     }
 
     var lisX21 = _f.FBL.GetListX21(_f.CurrentUser.pid);
-    foreach (var rec in lisX21)
+
+    //mřížka: řádky = délka období, sloupce = minulost / současnost / budoucnost
+    var _rows = new List<(string label, int[] past, int[] now, int[] future)>()
     {
-        var c = new BO.ThePeriod() { IsUserPeriod = true, pid = rec.pid, PeriodName = rec.x21Name, d1 = rec.ValidFrom, d2 = rec.ValidUntil };
-        _lisPeriods.Insert(2, c);
+        (_f.tra("Den"), new[] { 11 }, new[] { 10 }, new[] { 12 }),
+        (_f.tra("Týden"), new[] { 21 }, new[] { 20 }, new[] { 22, 23, 24 }),
+        (_f.tra("Měsíc"), new[] { 33, 31 }, new[] { 30 }, new[] { 32 }),
+        (_f.tra("Kvartál"), new[] { 41 }, new[] { 40 }, new[] { 42 }),
+        (_f.tra("Rok"), new[] { 51 }, new[] { 50 }, new[] { 52 }),
+        (_f.tra("Souhrnně"), new[] { 34, 35, 36 }, new[] { 37 }, new int[] { })
+    };
+    var _used = _rows.SelectMany(r => r.past.Concat(r.now).Concat(r.future)).ToHashSet();
+    var _others = _lisPeriods.Where(p => p.pid > 1 && p.pid <= 60 && !_used.Contains(p.pid)).ToList();   //případná další období z palety
 
-    }
-
-    
-
-
-
+    BO.ThePeriod P(int pid) => _lisPeriods.FirstOrDefault(p => p.pid == pid);
+    string fieldtra(string s) => _f.tra(s);
 }
 
 @addTagHelper *, UI
 
-<div id="myPeriodSelector" class="dynamicmenu_container" style="min-width:600px;">
-   
-    <input type="hidden" asp-for="PeriodValue" />
-    <div class="row">
-        <div class="col-auto">
-            <ul id="ulPeriods" style="list-style:none;">
-                @foreach (var c in _lisPeriods.OrderBy(p => p.OrdinaryIndex))
-                {
-                    <li>
-                        <button type="button" onclick="change_period(@c.pid)" class="period_button_in_list @(c.pid==Model.PeriodValue ? "active": null)" style="background-color:@(c.Color);">
-                            @c.Header
-                        </button>
-                    </li>
-
-                }
-            </ul>
-        </div>
-        <div class="col-auto">
-
-            @if (Model.PeriodValue > 0)
+@functions {
+    //jedno období jako štítek: název + rozsah
+    void chip(BO.ThePeriod c, int curvalue, string cls)
+    {
+        if (c == null) return;
+        <button type="button" onclick="change_period(@c.pid)" class="mp-chip @cls @(c.pid == curvalue ? "active" : null)" title="@(c.d1 != null ? BO.Code.Bas.ObjectDate2String(c.d1, "d.M.yyyy") + " – " + BO.Code.Bas.ObjectDate2String(c.d2, "d.M.yyyy") : null)">
+            <span class="mp-chip-name">@c.PeriodName</span>
+            @if (!string.IsNullOrEmpty(c.PeriodInterval))
             {
-                
-                <div style="margin-bottom:5px;">
-                    <button type="button" id="cmdClearPeriod" class="btn btn-outline-danger">@_f.tra("Zrušit nastavený filtr období")</button>
-                </div>
-
+                <span class="mp-chip-int">@c.PeriodInterval</span>
             }
-            
-            <table style="min-height:40px;">
-                
-                
-                <tr>
-                    <td>
-                        <div id="div_d1helper" style="max-width:115px;">
-                            <mydate asp-for="@Model.d1"></mydate>
-                        </div>
-                    </td>
-                    <td>
-                        <div id="div_d2helper" style="max-width:115px;">
-                            <mydate asp-for="@Model.d2"></mydate>
-                        </div>
-                    </td>
-                    <td>
-                        <div id="div_cmdRefreshPeriod" style="margin-left:2px;">
-                            <button type="button" id="cmdRefreshPeriod" class="btn btn-success" title="@_f.tra("Občerstvit")"><span class="material-icons-outlined-btn">refresh</span></button>
-                        </div>
-                    </td>
-                </tr>
-            </table>
+        </button>
+    }
+}
 
-            
+<div id="myPeriodSelector" class="dynamicmenu_container mp-sel">
 
-            <div id="div_periodfield" class="input-group" style="padding-top:20px;">
-                @if (Model.prefix != null)
+    <input type="hidden" asp-for="PeriodValue" />
+
+    <div class="mp-top">
+        @if (Model.prefix != null)
+        {
+            <label for="PeriodField" class="mp-top-lab">@_f.tra("Filtrovat podle")</label>
+            <select id="PeriodField" asp-for="@Model.PeriodField" class="form-select form-select-sm mp-fieldsel">
+                @switch (Model.prefix)
                 {
-                    <div>
-                        <select id="PeriodField" asp-for="@Model.PeriodField" class="form-select form-select-sm" style="max-width:200px;">
-                            @switch (Model.prefix)
-                            {
-                                case "p11":
-                                    <option value="p11Date">Datum docházky</option>                                    
-                                    break;
-                                case "b05":
-                                    <option value="b05DateInsert">Čas záznamu</option>
-                                    <option value="b05Date">Datum</option>
-                                    break;
-                                case "j02":
-                                    <option value="p31Date">Datum úkonu</option>
-                                    <option value="p91Date">Datum vyúčtování</option>
-                                    <option value="p91DateSupply">DUZP vyúčtování</option>
-                                    
-                                    <option value="j02DateInsert">Čas založení uživatele</option>
-                                    break;
-                                case "p31":
-                                    <option value="p31Date">Datum úkonu</option>
-                                    <option value="p91Date">Datum vyúčtování</option>
-                                    <option value="p91DateSupply">DUZP vyúčtování</option>
-                                    <option value="p91DateBilled">Úhrada vyúčtování</option>
-                                    <option value="p31Approved_When">Čas schválení úkonu</option>
-                                    
-                                    <option value="p31DateInsert">Čas založení úkonu</option>
-                                    
-                                    break;
-                                case "p28":
-                                    <option value="p31Date">Datum úkonu</option>
-                                    <option value="p91Date">Datum vyúčtování</option>
-                                    <option value="p91DateSupply">DUZP vyúčtování</option>
-                                    
-                                    <option value="p28DateInsert">Čas založení kontaktu</option>
-                                    break;
-                                case "p41":
-                                case "le1":
-                                case "le2":
-                                case "le3":
-                                case "le4":
-                                case "le5":
-                                    <option value="p31Date">Datum úkonu</option>
-                                    <option value="p41PlanFrom">Plán zahájení</option>
-                                    <option value="p41PlanUntil">Plán dokončení</option>
-                                    <option value="p91Date">Datum vyúčtování</option>
-                                    <option value="p91DateSupply">DUZP vyúčtování</option>
-                                    
-                                    <option value="p41DateInsert">Čas založení projektu</option>
-                                    break;
-                                case "p56":
-                                    <option value="p31Date">Datum úkonu</option>
-                                    <option value="p56PlanFrom">Plán zahájení úkolu</option>
-                                    <option value="p56PlanUntil">Plán dokončení úkolu</option>
-                                    <option value="p91Date">Datum vyúčtování</option>
-                                    <option value="p91DateSupply">DUZP vyúčtování</option>
-                                    
-                                    <option value="p56DateInsert">Čas založení úkolu</option>
-                                    break;
-                                case "o22":
-                                    <option value="o22PlanFrom">Začátek</option>
-                                    <option value="o22PlanUntil">Konec</option>
-                                    <option value="o22DateInsert">Čas založení termínu</option>
-                                    break;
-                                case "p90":
-                                    <option value="p90Date">Datum zálohy</option>
-                                    <option value="p90DateMaturity">Datum splatnosti</option>
-                                    <option value="p90DateInsert">Čas založení zálohy</option>
-                                    break;
-                                case "p91":
-                                    <option value="p91Date">Datum vyúčtování</option>
-                                    <option value="p91DateSupply">Datum zdanitelného plnění</option>
-                                    <option value="p91DateMaturity">Datum splatnosti</option>
-                                    
-                                    <option value="p91DateInsert">Čas vygenerování vyúčtování</option>
-                                    break;
-                                case "p84":
-                                    <option value="p84Date">Datum upomínky</option>
-                                    <option value="p91DateMaturity">Splatnost faktury</option>
-                                    <option value="p91DateSupply">DUZP faktury</option>
-                                    
-                                    break;
-                                case "p78":
-                                    <option value="p78Date">Datum upomínky</option>
-                                   
-                                    break;
-                                case "o23":
-                                    <option value="o23DateInsert">Čas založení dokumentu</option>
-                                    break;
-                                case "p39":
-                                    <option value="p39Date">Datum úkonu</option>
-                                    <option value="p39DateCreate">Datum generování</option>
-                                    break;
-                                case "p40":
-                                    <option value="p39Date">Datum úkonu</option>
-                                    <option value="p39DateCreate">Datum generování</option>
-                                    break;
-                                case "o43":
-                                    <option value="o43DateMessage">Datum zprávy</option>
-                                    <option value="o43DateInsert">Datum importu</option>
-                                    break;
-                                case "p49":
-                                case "fp1":
-                                case "fp2":
-                                case "fp3":
-                                    <option value="p49Date">Datum plánu</option>
-                                    break;
-
-                            }
-                        </select>
-                    </div>
+                    case "p11":
+                        <option value="p11Date">@fieldtra("Datum docházky")</option>
+                        break;
+                    case "b05":
+                        <option value="b05DateInsert">@fieldtra("Čas záznamu")</option>
+                        <option value="b05Date">@fieldtra("Datum")</option>
+                        break;
+                    case "j02":
+                        <option value="p31Date">@fieldtra("Datum úkonu")</option>
+                        <option value="p91Date">@fieldtra("Datum vyúčtování")</option>
+                        <option value="p91DateSupply">@fieldtra("DUZP vyúčtování")</option>
+                        <option value="j02DateInsert">@fieldtra("Čas založení uživatele")</option>
+                        break;
+                    case "p31":
+                        <option value="p31Date">@fieldtra("Datum úkonu")</option>
+                        <option value="p91Date">@fieldtra("Datum vyúčtování")</option>
+                        <option value="p91DateSupply">@fieldtra("DUZP vyúčtování")</option>
+                        <option value="p91DateBilled">@fieldtra("Úhrada vyúčtování")</option>
+                        <option value="p31Approved_When">@fieldtra("Čas schválení úkonu")</option>
+                        <option value="p31DateInsert">@fieldtra("Čas založení úkonu")</option>
+                        break;
+                    case "p28":
+                        <option value="p31Date">@fieldtra("Datum úkonu")</option>
+                        <option value="p91Date">@fieldtra("Datum vyúčtování")</option>
+                        <option value="p91DateSupply">@fieldtra("DUZP vyúčtování")</option>
+                        <option value="p28DateInsert">@fieldtra("Čas založení kontaktu")</option>
+                        break;
+                    case "p41":
+                    case "le1":
+                    case "le2":
+                    case "le3":
+                    case "le4":
+                    case "le5":
+                        <option value="p31Date">@fieldtra("Datum úkonu")</option>
+                        <option value="p41PlanFrom">@fieldtra("Plán zahájení")</option>
+                        <option value="p41PlanUntil">@fieldtra("Plán dokončení")</option>
+                        <option value="p91Date">@fieldtra("Datum vyúčtování")</option>
+                        <option value="p91DateSupply">@fieldtra("DUZP vyúčtování")</option>
+                        <option value="p41DateInsert">@fieldtra("Čas založení projektu")</option>
+                        break;
+                    case "p56":
+                        <option value="p31Date">@fieldtra("Datum úkonu")</option>
+                        <option value="p56PlanFrom">@fieldtra("Plán zahájení úkolu")</option>
+                        <option value="p56PlanUntil">@fieldtra("Plán dokončení úkolu")</option>
+                        <option value="p91Date">@fieldtra("Datum vyúčtování")</option>
+                        <option value="p91DateSupply">@fieldtra("DUZP vyúčtování")</option>
+                        <option value="p56DateInsert">@fieldtra("Čas založení úkolu")</option>
+                        break;
+                    case "o22":
+                        <option value="o22PlanFrom">@fieldtra("Začátek")</option>
+                        <option value="o22PlanUntil">@fieldtra("Konec")</option>
+                        <option value="o22DateInsert">@fieldtra("Čas založení termínu")</option>
+                        break;
+                    case "p90":
+                        <option value="p90Date">@fieldtra("Datum zálohy")</option>
+                        <option value="p90DateMaturity">@fieldtra("Datum splatnosti")</option>
+                        <option value="p90DateInsert">@fieldtra("Čas založení zálohy")</option>
+                        break;
+                    case "p91":
+                        <option value="p91Date">@fieldtra("Datum vyúčtování")</option>
+                        <option value="p91DateSupply">@fieldtra("Datum zdanitelného plnění")</option>
+                        <option value="p91DateMaturity">@fieldtra("Datum splatnosti")</option>
+                        <option value="p91DateInsert">@fieldtra("Čas vygenerování vyúčtování")</option>
+                        break;
+                    case "p84":
+                        <option value="p84Date">@fieldtra("Datum upomínky")</option>
+                        <option value="p91DateMaturity">@fieldtra("Splatnost faktury")</option>
+                        <option value="p91DateSupply">@fieldtra("DUZP faktury")</option>
+                        break;
+                    case "p78":
+                        <option value="p78Date">@fieldtra("Datum upomínky")</option>
+                        break;
+                    case "o23":
+                        <option value="o23DateInsert">@fieldtra("Čas založení dokumentu")</option>
+                        break;
+                    case "p39":
+                    case "p40":
+                        <option value="p39Date">@fieldtra("Datum úkonu")</option>
+                        <option value="p39DateCreate">@fieldtra("Datum generování")</option>
+                        break;
+                    case "o43":
+                        <option value="o43DateMessage">@fieldtra("Datum zprávy")</option>
+                        <option value="o43DateInsert">@fieldtra("Datum importu")</option>
+                        break;
+                    case "p49":
+                    case "fp1":
+                    case "fp2":
+                    case "fp3":
+                        <option value="p49Date">@fieldtra("Datum plánu")</option>
+                        break;
                 }
+            </select>
+        }
+        <span class="mp-top-space"></span>
+        @if (Model.PeriodValue > 0)
+        {
+            <button type="button" id="cmdClearPeriod" class="btn btn-sm btn-outline-danger"><span class="material-icons-outlined-nosize">filter_alt_off</span> @_f.tra("Nefiltrovat období")</button>
+        }
+    </div>
 
-                
+    <div class="mp-grid">
+        <div class="mp-gh"></div>
+        <div class="mp-gh mp-past">@_f.tra("Minulé")</div>
+        <div class="mp-gh mp-now">@_f.tra("Aktuální")</div>
+        <div class="mp-gh mp-future">@_f.tra("Budoucí")</div>
+
+        @foreach (var r in _rows)
+        {
+            <div class="mp-rl">@r.label</div>
+            <div class="mp-cell">@foreach (var pid in r.past) { chip(P(pid), Model.PeriodValue, "mp-past"); }</div>
+            <div class="mp-cell">@foreach (var pid in r.now) { chip(P(pid), Model.PeriodValue, "mp-now"); }</div>
+            <div class="mp-cell">@foreach (var pid in r.future) { chip(P(pid), Model.PeriodValue, "mp-future"); }</div>
+        }
+        @if (_others.Count > 0)
+        {
+            <div class="mp-rl">@_f.tra("Další")</div>
+            <div class="mp-cell mp-span3">@foreach (var c in _others) { chip(c, Model.PeriodValue, c.OrdinaryIndex == 2 ? "mp-past" : (c.OrdinaryIndex == 10 ? "mp-future" : "mp-now")); }</div>
+        }
+    </div>
+
+    <div class="mp-sec">
+        <div class="mp-sec-h">@_f.tra("Vlastní rozsah")</div>
+        <div class="mp-range-row @(Model.PeriodValue == 1 ? "active" : null)">
+            <div id="div_d1helper" class="mp-date">
+                <mydate asp-for="@Model.d1"></mydate>
             </div>
-
-
-            <div style="padding-top:10px;">
-                <button type="button" class="btn btn-sm bog" onclick="customperiods()">@_f.tra("Přidat vlastní časová období")</button>
+            <span class="mp-dash">–</span>
+            <div id="div_d2helper" class="mp-date">
+                <mydate asp-for="@Model.d2"></mydate>
+            </div>
+            <div id="div_cmdRefreshPeriod">
+                <button type="button" id="cmdRefreshPeriod" class="btn btn-sm btn-success" title="@_f.tra("Použít rozsah")"><span class="material-icons-outlined-btn">check</span> @_f.tra("Použít")</button>
             </div>
         </div>
     </div>
-   
 
-    
+    <div class="mp-sec">
+        <div class="mp-sec-h">@_f.tra("Moje období")</div>
+        <div class="mp-cell">
+            @foreach (var rec in lisX21)
+            {
+                <button type="button" onclick="change_period(@rec.pid)" class="mp-chip mp-user @(rec.pid == Model.PeriodValue ? "active" : null)">
+                    <span class="mp-chip-name">@rec.x21Name</span>
+                    <span class="mp-chip-int">@BO.Code.Bas.ObjectDate2String(rec.x21ValidFrom, "d.M.yyyy") – @BO.Code.Bas.ObjectDate2String(rec.x21ValidUntil, "d.M.yyyy")</span>
+                </button>
+            }
+            <button type="button" class="btn btn-sm bog mp-add" onclick="customperiods()"><span class="material-icons-outlined-nosize">edit_calendar</span> @(lisX21.Any() ? _f.tra("Upravit moje období") : _f.tra("Přidat vlastní časová období"))</button>
+        </div>
+    </div>
 
 </div>
 
 
 <script type="text/javascript">
-    if (_device.innerHeight <= 400) {
-        $("#ulPeriods").css("columns", "5");
-    }
-    if (_device.innerHeight <= 300) {
-        $("#ulPeriods").css("columns", "6");
-    }
-
     _adjust_divheight_small_display("myPeriodSelector");
 
     $("#myPeriodSelector").on("click.bs.dropdown", function (e) {
@@ -230,21 +224,16 @@
 
     var _userparamkey = "@(Model.UserParamKey)";
 
-    $("#d1helper").on("change", function () {
+    $("#d1helper, #d2helper").on("change", function () {   //změna data = vlastní rozsah, tlačítko Použít zvýraznit
         $("#PeriodValue").val("1");
-        $("#cmdRefreshPeriod").css("background-color", "red");
-
-    })
-    $("#d2helper").on("change", function () {
-        $("#PeriodValue").val("1");
-        $("#cmdRefreshPeriod").css("background-color", "red");
+        $("#cmdRefreshPeriod").addClass("mp-pending");
     })
 
 
 
     $("#PeriodValue").on("change", function () {
         if ($(this).val() == "1") {
-            $("#cmdRefreshPeriod").css("color", "red");
+            $("#cmdRefreshPeriod").addClass("mp-pending");
             handle_showhide();
             return;
         }
@@ -271,9 +260,10 @@
 
     $("#cmdRefreshPeriod").on("click", function () {
         if ($("#d1helper").val() == "" || $("#d2helper").val() == "") {
-            _notify_message("Chybí vyplnit datum.");
+            _notify_message("@_f.tra("Chybí vyplnit datum.")");
             return;
         }
+        $("#PeriodValue").val("1");
         var k = [];
         var v = [];
         k.push(_userparamkey + "-value");
@@ -297,26 +287,15 @@
 
 
     function handle_showhide() {
-        if ($("#PeriodValue").val() == "0") {
-            //$("#div_periodfield").css("display", "none");
-            $("#div_d1helper").css("display", "none");
-            $("#div_d2helper").css("display", "none");
-            $("#div_cmdRefreshPeriod").css("display", "none");
-
-        } else {
-            //$("#div_periodfield").css("display", "block");
-            $("#div_d1helper").css("display", "block");
-            $("#div_d2helper").css("display", "block");
-            $("#div_cmdRefreshPeriod").css("display", "block");
-        }
+        //vlastní rozsah je vidět vždy (dřív se schovával, dokud nebylo zvoleno „Časové období ručně“)
     }
 
     function change_period(periodvalue)
     {
         $("#PeriodValue").val(periodvalue);
         if (periodvalue == "1") {
-            $("#cmdRefreshPeriod").css("background-color", "red");
-            handle_showhide();
+            $("#cmdRefreshPeriod").addClass("mp-pending");
+            $("#d1helper").focus();
             return;
         }
         $.post("/Common/SetUserParam", { key: _userparamkey + "-value", value: periodvalue }, function (data) {

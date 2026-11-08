@@ -1,0 +1,291 @@
+﻿/* =====================================================================================
+   myPeriod – filtr časového období (MARKTIME 8)
+   Tlačítko v liště: kompaktní dvouřádkový popisek (pole data / období).
+   Výběr: mřížka Minulé | Aktuální | Budoucí × Den / Týden / Měsíc / Kvartál / Rok / Souhrnně,
+   pod ní vlastní rozsah a uživatelská období (x21).
+   ===================================================================================== */
+
+/* ---------- tlačítko v liště ---------- */
+#cmdPeriodMore.mp-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    max-width: 240px;
+    /* stejná výška jako ostatní tlačítka v liště (výpočet výšky .btn z Bootstrapu); dvouřádkový popisek se vejde bez svislého paddingu */
+    height: calc(var(--bs-btn-font-size, 1rem) * var(--bs-btn-line-height, 1.5) + 2 * var(--bs-btn-padding-y, .375rem) + 2 * var(--bs-btn-border-width, 1px));
+    padding-top: 0;
+    padding-bottom: 0;
+    text-align: left;
+    line-height: 1.1;
+}
+
+    #cmdPeriodMore.mp-btn .mp-ico {
+        font-size: 18px;
+        opacity: .75;
+    }
+
+.mp-lab {
+    display: inline-flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+}
+
+    .mp-lab > span {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+/* nefiltrováno: jediný řádek „Časové období“ */
+#cmdPeriodMore:not(.mp-on) .mp-field {
+    font-size: inherit;
+    opacity: 1;
+}
+
+#cmdPeriodMore.mp-on .mp-field {
+    font-size: .68rem;
+    opacity: .8;
+}
+
+#cmdPeriodMore.mp-on .mp-val {
+    font-weight: 600;
+    font-size: .8rem;
+}
+
+.mp-range {
+    font-weight: normal;
+    font-size: .72rem;
+    opacity: .85;
+    margin-left: 3px;
+}
+
+/* zapnutý filtr: místo plné červené jemné podbarvení s červeným proužkem (signál „filtruje se“ zůstává) */
+#cmdPeriodMore.mp-btn.filtered {
+    background-color: #fdecec !important;
+    color: #9b1c27 !important;
+    border-color: #f1aeb5 !important;
+    box-shadow: inset 3px 0 0 #dc3545;
+}
+
+    #cmdPeriodMore.mp-btn.filtered:hover {
+        background-color: #fbdcdc !important;
+    }
+
+/* ---------- výběr ---------- */
+.mp-menu {
+    padding: 0;
+}
+
+#myPeriodSelector.mp-sel {
+    width: 600px;
+    max-width: calc(100vw - 24px);
+    padding: 10px 12px 12px;
+    font-size: .85rem;
+}
+
+.mp-top {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding-bottom: 8px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #eef0f2;
+}
+
+.mp-top-lab {
+    color: #59636e;
+    font-size: .8rem;
+}
+
+.mp-fieldsel {
+    width: auto;
+    max-width: 240px;
+}
+
+.mp-top-space {
+    flex: 1 1 auto;
+}
+
+/* mřížka */
+.mp-grid {
+    display: grid;
+    grid-template-columns: 74px repeat(3, minmax(0, 1fr));
+    gap: 4px 6px;
+    align-items: start;
+}
+
+.mp-gh {
+    font-size: .72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    padding: 2px 6px 4px;
+    border-bottom: 2px solid transparent;
+}
+
+    .mp-gh.mp-past {
+        color: #6c757d;
+        border-bottom-color: #ced4da;
+    }
+
+    .mp-gh.mp-now {
+        color: var(--pozadi, #0b4b92);
+        border-bottom-color: var(--pozadi, #0b4b92);
+    }
+
+    .mp-gh.mp-future {
+        color: #1c6fc4;
+        border-bottom-color: #9ec5fe;
+    }
+
+.mp-rl {
+    padding-top: 6px;
+    color: #59636e;
+    font-size: .78rem;
+    font-weight: 600;
+}
+
+.mp-cell {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    min-width: 0;
+}
+
+.mp-span3 {
+    grid-column: span 3;
+}
+
+/* štítek období */
+.mp-chip {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 0;
+    max-width: 100%;
+    padding: 3px 8px;
+    border: 1px solid #dfe3e8;
+    border-radius: 8px;
+    background: #fff;
+    color: #1f2328;
+    text-align: left;
+    line-height: 1.2;
+    cursor: pointer;
+}
+
+    .mp-chip:hover {
+        border-color: var(--pozadi, #0b4b92);
+    }
+
+.mp-chip-name {
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.mp-chip-int {
+    font-size: .72rem;
+    color: #6c757d;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+/* minulost šedě, současnost bíle s barvou motivu, budoucnost modře, vlastní zeleně */
+.mp-chip.mp-past {
+    background: #f4f5f7;
+}
+
+.mp-chip.mp-now {
+    background: #fff;
+    border-color: color-mix(in srgb, var(--pozadi, #0b4b92) 35%, #ffffff);
+}
+
+.mp-chip.mp-future {
+    background: #eef5ff;
+    border-color: #cfe2ff;
+}
+
+.mp-chip.mp-user {
+    background: #e9f7ee;
+    border-color: #b7e4c7;
+}
+
+.mp-chip.active {
+    background: var(--oznaceno, #4169e1);
+    border-color: var(--oznaceno, #4169e1);
+    color: var(--popredi, #fff);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--oznaceno, #4169e1) 30%, transparent);
+}
+
+    .mp-chip.active .mp-chip-int {
+        color: inherit;
+        opacity: .85;
+    }
+
+/* vlastní rozsah, moje období */
+.mp-sec {
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid #eef0f2;
+}
+
+.mp-sec-h {
+    margin-bottom: 4px;
+    color: #59636e;
+    font-size: .72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.mp-range-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+    .mp-range-row.active .mp-date input {
+        border-color: var(--oznaceno, #4169e1);
+    }
+
+.mp-date {
+    max-width: 135px;
+}
+
+.mp-dash {
+    color: #8a939c;
+}
+
+#cmdRefreshPeriod.mp-pending {
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, .35);
+}
+
+.mp-add {
+    align-self: center;
+}
+
+/* úzké okno / spodní panel: mřížka pod sebe (řádek = popisek + tři buňky) */
+@media (max-width: 560px) {
+    .mp-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .mp-grid > .mp-gh:first-child {
+        display: none;
+    }
+
+    .mp-rl {
+        grid-column: 1 / -1;
+        padding-top: 4px;
+    }
+
+    .mp-span3 {
+        grid-column: 1 / -1;
+    }
+
+    .mp-chip-int {
+        white-space: normal;
+    }
+}

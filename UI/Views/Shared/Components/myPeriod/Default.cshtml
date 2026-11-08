@@ -6,16 +6,32 @@
 
 
 
-<div class="dropdown" style="margin-left:8px;">
-    <button type="button" id="cmdPeriodMore" class="btn dropdown-toggle bog @(Model.PeriodValue>0 ? "filtered": null)" role="button" data-bs-toggle="dropdown" aria-expanded="false" tabindex="-1">
-        <span class="material-icons-outlined-nosize">filter_alt</span>
-        <span id="span1">@(Model.PeriodFieldAlias) </span>
-        <span id="span2"> * @(Model.PeriodAlias)</span>
+@{
+    //kompaktní tlačítko: nahoře pole data (malým písmem), dole období; PeriodAlias = "Název: rozsah" nebo jen "rozsah"
+    string _mpName = Model.PeriodAlias ?? "";
+    string _mpRange = "";
+    int _mpi = _mpName.IndexOf(": ");
+    if (_mpi > 0)
+    {
+        _mpRange = _mpName.Substring(_mpi + 2);
+        _mpName = _mpName.Substring(0, _mpi);
+    }
+    string _mpTitle = Model.PeriodValue > 0 ? $"{Model.PeriodFieldAlias}: {Model.PeriodAlias}" : _f.tra("Filtr časového období");
+}
+<link rel="stylesheet" href="~/css/myperiod.css" asp-append-version="true" />
+
+<div class="dropdown mp-dropdown" style="margin-left:8px;">
+    <button type="button" id="cmdPeriodMore" class="btn dropdown-toggle bog mp-btn @(Model.PeriodValue>0 ? "filtered mp-on": null)" role="button" data-bs-toggle="dropdown" aria-expanded="false" tabindex="-1" title="@_mpTitle">
+        <span class="material-icons-outlined-nosize mp-ico">date_range</span>
+        <span class="mp-lab">
+            <span id="span1" class="mp-field">@(Model.PeriodFieldAlias)</span>
+            <span id="span2" class="mp-val">@_mpName @if (_mpRange != "") {<small class="mp-range">@_mpRange</small>}</span>
+        </span>
     </button>
     
     
-    <div id="divPeriodMore" class="dropdown-menu">
-        loading...
+    <div id="divPeriodMore" class="dropdown-menu mp-menu">
+        @_f.tra("Načítám...")
     </div>
 </div>
 
