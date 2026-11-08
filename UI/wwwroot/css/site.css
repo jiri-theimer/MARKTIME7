@@ -2116,3 +2116,76 @@ mark.mtc-mark { background: #ffe58f; color: inherit; padding: 0; border-radius: 
 .nav-bell { position: relative; padding-right: 10px !important; }
 .nav-bell .material-icons-outlined-btn { color: inherit; }
 .nav-bell-count { position: absolute; top: 2px; right: 0; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: #e5484d; color: #fff; font-size: 10px; font-weight: 600; line-height: 16px; text-align: center; box-shadow: 0 0 0 2px var(--pozadi, #0b4b92); }
+
+/* hlavní menu (Views/Menu/main_home.cshtml) – třídy hm-* */
+.hm { padding: 4px 2px 10px; }
+.hm-top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin-bottom: 10px; }
+.hm-search { position: relative; flex: 0 1 280px; }
+.hm-search .material-icons-outlined-nosize { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); font-size: 18px; color: #8a939c; }
+.hm-search .form-control { padding-left: 30px; }
+.hm-hint { display: flex; align-items: center; gap: 6px; flex: 1 1 300px; font-size: .8rem; color: #59636e; }
+.hm-hint .material-icons-outlined-nosize { font-size: 16px; color: var(--pozadi, #0b4b92); transform: rotate(35deg); }
+.hm-hint-n { padding: 0 8px; border-radius: 10px; background: #eef1f4; color: #3d444d; }
+
+.hm-quick { display: flex; flex-wrap: wrap; gap: 4px 12px; padding: 8px 10px; margin-bottom: 10px; border-radius: 10px; background: #f5f8ff; border: 1px solid #e3e9f5; }
+.hm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px; }
+.hm-sec { padding: 8px 8px 6px; border: 1px solid #e3e6ea; border-radius: 10px; background: #fff; }
+.hm-sec-head { display: flex; align-items: center; gap: 6px; padding: 0 4px 4px; margin-bottom: 2px; border-bottom: 1px solid #f0f2f4; }
+.hm-sec-head .material-icons-outlined-btn { color: var(--pozadi, #0b4b92); }
+.hm-sec-title { font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: #59636e; }
+
+.hm-item { display: flex; align-items: center; gap: 2px; border-radius: 6px; }
+.hm-item:hover { background: #f3f5f7; }
+.hm-link { flex: 1 1 auto; display: flex; align-items: center; gap: 8px; min-width: 0; padding: 4px 6px; border-radius: 6px; color: #1f2328; text-decoration: none; font-size: .9rem; }
+.hm-link > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hm-link .material-icons-outlined-btn { color: #6c757d; }
+.hm-link:hover { color: #000; }
+.hm-main .hm-link { font-weight: 600; }
+.hm .hm-link.active { background-color: var(--oznaceno) !important; color: var(--popredi) !important; }
+.hm .hm-link.active .material-icons-outlined-btn { color: inherit; }
+.hm-badge { margin-left: 4px; padding: 0 5px; border-radius: 4px; background: #8ecdf5; color: #fff; font-size: .72rem; font-weight: 500; }
+
+/* špendlík: vždy jemně viditelný, výrazný při najetí; připnutý = barva skinu */
+.hm-pin { flex: 0 0 auto; width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; padding: 0; border: 0; border-radius: 50%; background: transparent; color: #adb5bd; opacity: .45; cursor: pointer; transition: opacity .12s, background-color .12s; }
+.hm-pin .material-icons-outlined-nosize { font-size: 17px; transform: rotate(35deg); }
+.hm-item:hover .hm-pin { opacity: 1; color: #59636e; }
+.hm-pin:hover { background: #e2e6ea; color: #1f2328 !important; }
+.hm-pin.hm-pinned { opacity: 1; color: var(--pozadi, #0b4b92); }
+.hm-pin.hm-pinned .material-icons-outlined-nosize { transform: none; font-variation-settings: "FILL" 1; }
+.hm-pin.hm-pinned:hover { background: #fdecec; color: #b02a37 !important; }
+.hm-clear { opacity: .35; }
+.hm-clear:hover { background: #fdecec; color: #b02a37 !important; }
+
+.hm-hide { display: none !important; }
+.hm-empty { padding: 24px; text-align: center; color: #6c757d; }
+
+@media (max-width: 600px) {
+    .hm-grid { grid-template-columns: 1fr; }
+    .hm-hint { display: none; }
+    .hm-search { flex: 1 1 auto; }
+    .hm-pin { opacity: .8; }
+}
+
+/* menu Nový záznam (Views/Menu/main_new.cshtml) – třídy mn-* */
+.mn { padding: 4px 2px 8px; min-width: 320px; }
+.mn-row { display: flex; align-items: flex-start; gap: 8px; padding: 5px 6px; border-radius: 8px; }
+.mn-row:hover { background: #f5f7f9; }
+.mn-row + .mn-row { border-top: 1px solid #f0f2f4; }
+.mn-main { flex: 0 0 150px; display: flex; align-items: center; gap: 6px; padding: 3px 6px; font-size: .9rem; line-height: 1.25; border-radius: 6px; color: #1e7b34; font-weight: 600; text-decoration: none; }
+.mn-main::after { content: "+"; margin-left: auto; padding-left: 6px; font-weight: 700; opacity: .5; }
+.mn-main:hover { background-color: var(--oznaceno); color: var(--popredi) !important; }
+.mn-main:hover::after { opacity: 1; }
+.mn-subs { flex: 1 1 auto; display: flex; flex-wrap: wrap; gap: 4px; padding-top: 2px; min-width: 0; }
+.mn-sub { display: inline-flex; align-items: center; gap: 3px; max-width: 200px; padding: 0 8px; border: 1px solid #d8dde3; border-radius: 12px; background: #fff; color: #3d444d; font-size: .8rem; line-height: 1.5; text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mn-sub:hover { border-color: var(--pozadi, #0b4b92); background-color: var(--oznaceno); color: var(--popredi) !important; }
+.mn-tpl { border-style: dashed; }
+.mn-sub .material-icons-outlined-nosize, .mn-extra .material-icons-outlined-nosize { font-size: 15px; opacity: .7; }
+.mn-extra { display: inline-flex; align-items: center; gap: 3px; padding: 1px 6px; color: #59636e; font-size: .78rem; text-decoration: none; white-space: nowrap; }
+.mn-extra:hover { color: var(--pozadi, #0b4b92); text-decoration: underline; }
+.mn-sep { margin: 10px 8px 2px; font-size: .72rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: #8a939c; }
+
+@media (max-width: 600px) {
+    .mn { min-width: 0; }
+    .mn-row { flex-direction: column; gap: 4px; }
+    .mn-main { flex: none; width: 100%; }
+}

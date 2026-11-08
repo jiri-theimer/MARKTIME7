@@ -34,8 +34,16 @@
     //string _GridUrlP55 = cmenu.GetMainmenuEntityUrl("p55");
 
 
-    string _pripnout_tooltip = _f.tra("Připnout odkaz do MENU");
-    string _odepnout_tooltip = _f.tra("Odepnout odkaz z MENU");
+    string _pripnout_tooltip = _f.tra("Připnout odkaz do horní lišty");
+    string _odepnout_tooltip = _f.tra("Odepnout odkaz z horní lišty");
+
+    //špendlík: stav (připnuto / nepřipnuto) se vykreslí rovnou na serveru, klik obsluhuje skript dole
+    Microsoft.AspNetCore.Html.IHtmlContent Pin(string key)
+    {
+        bool on = _menulinks.Contains(key);
+        string t = System.Net.WebUtility.HtmlEncode(on ? _odepnout_tooltip : _pripnout_tooltip);
+        return new Microsoft.AspNetCore.Html.HtmlString($"<button type='button' data-key='{System.Net.WebUtility.HtmlEncode(key)}' class='pin hm-pin{(on ? " hm-pinned" : "")}' title='{t}' aria-label='{t}' aria-pressed='{(on ? "true" : "false")}'><span class='material-icons-outlined-nosize'>push_pin</span></button>");
+    }
 
     IEnumerable<BO.o17DocMenu> _lisO17 = null;
     if (_f.CurrentUser.j04IsModule_o23)
@@ -52,748 +60,396 @@
 
 @addTagHelper *, UI
 
-<style type="text/css">
+@* hlavní menu (vlevo nahoře) – vzhled hm-* v site.css; ID odkazů a data-key špendlíků beze změny *@
+<div id="divHomeMenu" class="hm" style="-webkit-transform: translate3d(0,0,0);">
 
-    .menu-section-title {
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: .05em;
-        color: #6b7280; /* neutral */
-        margin: 16px 0 8px;
-    }
+    <div class="hm-top">
+        <div class="hm-search">
+            <span class="material-icons-outlined-nosize">search</span>
+            <input type="search" id="hmSearch" class="form-control form-control-sm" placeholder="@_f.tra("Najít v menu…")" autocomplete="off" />
+        </div>
+        <div class="hm-hint">
+            <span class="material-icons-outlined-nosize">push_pin</span>
+            @_f.tra("Špendlíkem připnete odkaz do horní lišty – budete ho mít vždy po ruce.")
+            @if (_menulinks.Count > 0)
+            {
+                <span class="hm-hint-n">@string.Format(_f.tra("Připnuto: {0}"), _menulinks.Count)</span>
+            }
+        </div>
+    </div>
 
-
-
-    
-
-    a.locallink {
-        text-decoration: none;
-        font-weight: normal !important;
-        word-break: keep-all;
-        padding: 2px;
-    }
-
-        a.locallink:hover {
-            background-color: var(--oznaceno) !important;
-            color: var(--popredi) !important;
-            border-radius: 5px;
+    <div class="hm-quick">
+        @if (_f.CurrentUser.j02HomePageUrl != null && !_f.CurrentUser.j02HomePageUrl.Contains("Widgets"))
+        {
+            <div class="hm-item">
+                <a id="linkHome" class="locallink hm-link" href="@(_f.CurrentUser.j02HomePageUrl)">
+                    <span class="material-icons-outlined-btn">home</span><span>@_f.tra("Domovská stránka")</span>
+                </a>
+                <button type="button" class="hm-pin hm-clear" onclick="clear_home_page()" title="@_f.tra("Vyčistit paměť na domovskou stránku")"><span class="material-icons-outlined-nosize">close</span></button>
+            </div>
         }
-
-
-    a.locallink500 {
-        
-        font-weight: 500 !important;
-       
-    }
-
-       
-
-    button.pin {
-        visibility: hidden;
-        background-color: transparent !important;
-        border: none;
-        padding: 0px;
-        color: navy;
-        margin-top: 0px;
-        margin-bottom: 0px;
-    }
-
-
-        button.pin:hover {
-            background-color: var(--oznaceno) !important;
-            color: var(--popredi) !important;
+        @if (_f.CurrentUser.j04IsModule_Widgets)
+        {
+            <div class="hm-item">
+                <a id="linkDashboard" class="locallink hm-link" href="/Widgets/Index"><span class="material-icons-outlined-btn">dashboard</span><span>Dashboard</span></a>
+                @Pin("dashboard")
+            </div>
         }
+        @if (_f.CurrentUser.j04IsModule_p31 || _f.CurrentUser.j04IsModule_p56 || _f.CurrentUser.j04IsModule_p41)
+        {
+            <div class="hm-item">
+                <a id="linkCalendar" class="locallink hm-link" href="/p31calendar/Index"><span class="material-icons-outlined-btn">event</span><span>@_f.tra("Kalendář")</span></a>
+                @Pin("p31calendar")
+            </div>
+            <div class="hm-item">
+                <a id="linkDayline" class="locallink hm-link" href="/p31dayline/Index"><span class="material-icons-outlined-btn">apps</span><span>Dayline</span></a>
+                @Pin("p31dayline")
+            </div>
+        }
+    </div>
 
-
-    #divHomeMenu .active {
-        background-color: var(--oznaceno) !important;
-        color: var(--popredi) !important;
-        border: solid 1px var(--oznaceno) !important;
-        border-radius: 4px;
-    }
-</style>
-
-
-<div id="divHomeMenu" style="-webkit-transform: translate3d(0,0,0);">
-
-    <table class="table-hover table" id="tableMenu" style="border:solid 1px var(--oznaceno);">
-        <tr>
-
-
-            <td colspan="3" style="padding:20px;background-color:#f5f8ff">
-                <h6>
-                    @if (_f.CurrentUser.j02HomePageUrl != null && !_f.CurrentUser.j02HomePageUrl.Contains("Widgets"))
-                    {
-                        <a id="linkHome" class="locallink" href="@(_f.CurrentUser.j02HomePageUrl)">
-                            <span class="material-icons-outlined-btn">home</span>
-                            @_f.tra("Domovská stránka") (home)
-                        </a>
-                        <button type="button" class="btn btn-sm" onclick="clear_home_page()" title="@_f.tra("Vyčistit paměť na domovskou stránku")"><span class="material-icons-outlined-btn" style="color:red;">clear</span></button>
-
-
-
-                    }
-                    @if (_f.CurrentUser.j04IsModule_Widgets)
-                    {
-                        <a id="linkDashboard" class="locallink" href="/Widgets/Index">
-                            <span class="material-icons-outlined-btn">dashboard</span>
-                            Dashboard
-                        </a>
-                        <button type="button" data-key="dashboard" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
-                    }
-
-
-
-                    @if (_f.CurrentUser.j04IsModule_p31 || _f.CurrentUser.j04IsModule_p56 || _f.CurrentUser.j04IsModule_p41)
-                    {
-
-                        <a id="linkCalendar" class="locallink" href="/p31calendar/Index">
-                            <span class="material-icons-outlined-btn">event</span>
-                            @_f.tra("Kalendář")
-                        </a>
-                        <button type="button" data-key="p31calendar" class="pin btn btn-sm"><span class="material-icons-outlined">push_pin</span></button>
-
-                        <a id="linkDayline" class="locallink" href="/p31dayline/Index">
-                            <span class="material-icons-outlined-btn">apps</span>
-                            Dayline
-                        </a>
-                        <button type="button" data-key="p31dayline" class="pin btn btn-sm"><span class="material-icons-outlined">push_pin</span></button>
-                    }
-
-                </h6>
-            </td>
-        </tr>
+    <div class="hm-grid">
 
         @if (_f.CurrentUser.j04IsModule_p31)
         {
-            <tr>
-                <td>
-                    <span class="material-icons-outlined-btn">more_time</span>
-                    <span class="menu-section-title">
-                        ÚKONY
-                    </span>
-                    <h6>
-                        <a id="linkGridP31" class="locallink locallink500" href="/TheGrid/FlatView?prefix=p31">
-
-                            @_f.tra("Tabulka")
-                        </a>
-                        <button type="button" data-key="p31grid" class="pin btn btn-sm"><span class="material-icons-outlined">push_pin</span></button>
-
-
-                    </h6>
-                </td>
-                <td>
-                </td>
-
-                <td style="padding:20px;">
-                    <h6>
-                        <a id="linkTotals" class="locallink" href="/p31totals/Index">
-                            <span class="material-icons-outlined-btn">functions</span>
-                            Pivot-Explorer
-                        </a>
-                        <button type="button" data-key="p31totals" class="pin btn btn-sm"><span class="material-icons-outlined">push_pin</span></button>
-
-                        @if (_f.CurrentUser.IsApprovingPerson)
-                        {
-
-                            <a id="linkApproving" class="locallink" href="/TheGrid/ApproveView">
-                                <span class="material-icons-outlined-btn">approval</span>
-                                @_f.tra("Schvalování")<span style="margin-left:3px;padding-left:4px;padding-right:4px;border-radius:4px;background-color:lightskyblue;color:white;">All-in-one</span>
-                            </a>
-                            <button type="button" data-key="approving" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
-                        }
-
-
-                        @if (_f.CurrentUser.TestPermission(BO.PermValEnum.GR_p51_Admin))
-                        {
-                            <a id="linkCeniky" class="locallink" href="@cmenu.GetMainmenuEntityUrl("p51")">
-                                <span class="material-icons-outlined-btn">price_change</span>
-                                @_f.tra("Ceníky")
-                            </a>
-                            <button type="button" data-key="p51" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
-                        }
-                        @if (_f.CurrentUser.IsRatesAccess && _f.CurrentUser.TestPermission(BO.PermValEnum.GR_p41_Reader))
-                        {
-                            <a id="linkP40" class="locallink" href="@cmenu.GetMainmenuEntityUrl("p40")">
-                                <span class="material-icons-outlined-btn">repeat_on</span>
-                                @_f.tra("Opakované odměny/paušály")
-                            </a>
-                            <button type="button" data-key="p40" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
-                        }
-
-
-
-                        @if (_f.CurrentUser.j04IsModule_p11)
-                        {
-                            <p></p>
-                            <a id="linkAbsence" class="locallink" href="/Absence/Index">
-                                <span class="material-icons-outlined-btn">hourglass_top</span>
-                                @_f.tra("Docházka")
-                            </a>
-                            <button type="button" data-key="absence" class="pin btn btn-sm"><span class="material-icons-outlined">push_pin</span></button>
-
-                            <a id="linkP11" class="locallink" href="/TheGrid/FlatView?prefix=p11">
-                                <span class="material-icons-outlined-btn">hourglass_bottom</span>
-                                @_f.tra("Záznamy docházky")
-                            </a>
-                            <button type="button" data-key="p11" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
-
-
-
-                        }
-                        @if (_f.CurrentUser.IsMasterPerson || _f.CurrentUser.IsAdmin)
-                        {
-                            <a id="linkP12" class="locallink" href="/p12/Index">
-                                <span class="material-icons-outlined-btn">thumb_up</span>
-                                @_f.tra("Interní schvalování")
-                            </a>
-                            <button type="button" data-key="p12" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
-                        }
-
-                    </h6>
-                </td>
-            </tr>
+            <section class="hm-sec">
+                <div class="hm-sec-head">
+                    <span class="material-icons-outlined-btn">more_time</span><span class="hm-sec-title">@_f.tra("Úkony")</span>
+                </div>
+                <div class="hm-item hm-main">
+                    <a id="linkGridP31" class="locallink hm-link" href="/TheGrid/FlatView?prefix=p31"><span class="material-icons-outlined-btn">table_rows</span><span>@_f.tra("Tabulka")</span></a>
+                    @Pin("p31grid")
+                </div>
+                <div class="hm-item">
+                    <a id="linkTotals" class="locallink hm-link" href="/p31totals/Index"><span class="material-icons-outlined-btn">functions</span><span>Pivot-Explorer</span></a>
+                    @Pin("p31totals")
+                </div>
+                @if (_f.CurrentUser.IsApprovingPerson)
+                {
+                    <div class="hm-item">
+                        <a id="linkApproving" class="locallink hm-link" href="/TheGrid/ApproveView"><span class="material-icons-outlined-btn">approval</span><span>@_f.tra("Schvalování") <span class="hm-badge">All-in-one</span></span></a>
+                        @Pin("approving")
+                    </div>
+                }
+                @if (_f.CurrentUser.TestPermission(BO.PermValEnum.GR_p51_Admin))
+                {
+                    <div class="hm-item">
+                        <a id="linkCeniky" class="locallink hm-link" href="@cmenu.GetMainmenuEntityUrl("p51")"><span class="material-icons-outlined-btn">price_change</span><span>@_f.tra("Ceníky")</span></a>
+                        @Pin("p51")
+                    </div>
+                }
+                @if (_f.CurrentUser.IsRatesAccess && _f.CurrentUser.TestPermission(BO.PermValEnum.GR_p41_Reader))
+                {
+                    <div class="hm-item">
+                        <a id="linkP40" class="locallink hm-link" href="@cmenu.GetMainmenuEntityUrl("p40")"><span class="material-icons-outlined-btn">repeat_on</span><span>@_f.tra("Opakované odměny/paušály")</span></a>
+                        @Pin("p40")
+                    </div>
+                }
+                @if (_f.CurrentUser.j04IsModule_p11)
+                {
+                    <div class="hm-item">
+                        <a id="linkAbsence" class="locallink hm-link" href="/Absence/Index"><span class="material-icons-outlined-btn">hourglass_top</span><span>@_f.tra("Docházka")</span></a>
+                        @Pin("absence")
+                    </div>
+                    <div class="hm-item">
+                        <a id="linkP11" class="locallink hm-link" href="/TheGrid/FlatView?prefix=p11"><span class="material-icons-outlined-btn">hourglass_bottom</span><span>@_f.tra("Záznamy docházky")</span></a>
+                        @Pin("p11")
+                    </div>
+                }
+                @if (_f.CurrentUser.IsMasterPerson || _f.CurrentUser.IsAdmin)
+                {
+                    <div class="hm-item">
+                        <a id="linkP12" class="locallink hm-link" href="/p12/Index"><span class="material-icons-outlined-btn">thumb_up</span><span>@_f.tra("Interní schvalování")</span></a>
+                        @Pin("p12")
+                    </div>
+                }
+            </section>
         }
+
         @if (_f.CurrentUser.j04IsModule_p41)
         {
-            <tr>
-                <td>
-                    <span class="material-icons-outlined-btn">work_outline</span>
-                    <span class="menu-section-title">
-                        @_f.tra("PROJEKTY")
-                    </span>
-                    <h6>
-                        <a id="linkGridP41" class="locallink locallink500" href="@(cmenu.GetMainmenuEntityUrl("p41"))">
-
-                            @_f.tra("Tabulka")
-                        </a>
-                        <button type="button" data-key="p41" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
-                    </h6>
-
-
-
-                </td>
-                <td>
-                </td>
-                <td style="padding:20px;">
-                    <h6>
-                        <a id="linkTreePage" class="locallink" href="/TreePage/Index">
-                            <span class="material-icons-outlined-btn">account_tree</span>
-                            @_f.tra("STROM")
-                        </a>
-                        <button type="button" data-key="treepage" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
-
-                        <a id="linkKanbanP41" class="locallink" href="/Kanban/p41">
-                            <span class="material-icons-outlined-btn">view_kanban</span>
-                            KANBAN
-                        </a>
-                        <button type="button" data-key="kanban-p41" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
-
-                        @if (_f.CurrentUser.TestPermission(BO.PermValEnum.GR_p41_Reader))
-                        {
-                            <a id="linkP44" class="locallink" href="@cmenu.getGridUrl("p44")">
-                                <span class="material-icons-outlined-btn">copy_all</span>
-                                @_f.tra("Projektové šablony")
-                            </a>
-                        }
-
-                        @if (_f.CurrentUser.j04IsModule_r01)
-                        {
-                            <a id="linkCapacityTimeline" class="locallink" href="/captml/Index">
-                                <span class="material-icons-outlined-btn">online_prediction</span>
-                                Kapacitní plány
-                            </a>
-                            <button type="button" data-key="captml" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
-                        }
-                        @if (_f.CurrentUser.j04IsModule_p49)
-                        {
-                            <a id="linkP49" class="locallink" href="@cmenu.GetMainmenuEntityUrl("p49")">
-                                <span class="material-icons-outlined-btn">energy_savings_leaf</span>
-                                @_f.tra("Finanční plány (FP)")
-                            </a>
-                            <button type="button" data-key="p49" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
-
-                            <a id="linkFpView" class="locallink" href="/TheGrid/FpView">
-                                <span class="material-icons-outlined-btn">energy_savings_leaf</span>
-                                @_f.tra("FP statistiky")
-                            </a>
-                            <button type="button" data-key="fpview" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
-                        }
-
-                    </h6>
-                </td>
-            </tr>
-
-
-
+            <section class="hm-sec">
+                <div class="hm-sec-head">
+                    <span class="material-icons-outlined-btn">work_outline</span><span class="hm-sec-title">@_f.tra("Projekty")</span>
+                </div>
+                <div class="hm-item hm-main">
+                    <a id="linkGridP41" class="locallink hm-link" href="@(cmenu.GetMainmenuEntityUrl("p41"))"><span class="material-icons-outlined-btn">table_rows</span><span>@_f.tra("Tabulka")</span></a>
+                    @Pin("p41")
+                </div>
+                <div class="hm-item">
+                    <a id="linkTreePage" class="locallink hm-link" href="/TreePage/Index"><span class="material-icons-outlined-btn">account_tree</span><span>@_f.tra("Strom")</span></a>
+                    @Pin("treepage")
+                </div>
+                <div class="hm-item">
+                    <a id="linkKanbanP41" class="locallink hm-link" href="/Kanban/p41"><span class="material-icons-outlined-btn">view_kanban</span><span>Kanban</span></a>
+                    @Pin("kanban-p41")
+                </div>
+                @if (_f.CurrentUser.TestPermission(BO.PermValEnum.GR_p41_Reader))
+                {
+                    <div class="hm-item">
+                        <a id="linkP44" class="locallink hm-link" href="@cmenu.getGridUrl("p44")"><span class="material-icons-outlined-btn">copy_all</span><span>@_f.tra("Projektové šablony")</span></a>
+                    </div>
+                }
+                @if (_f.CurrentUser.j04IsModule_r01)
+                {
+                    <div class="hm-item">
+                        <a id="linkCapacityTimeline" class="locallink hm-link" href="/captml/Index"><span class="material-icons-outlined-btn">online_prediction</span><span>@_f.tra("Kapacitní plány")</span></a>
+                        @Pin("captml")
+                    </div>
+                }
+                @if (_f.CurrentUser.j04IsModule_p49)
+                {
+                    <div class="hm-item">
+                        <a id="linkP49" class="locallink hm-link" href="@cmenu.GetMainmenuEntityUrl("p49")"><span class="material-icons-outlined-btn">energy_savings_leaf</span><span>@_f.tra("Finanční plány (FP)")</span></a>
+                        @Pin("p49")
+                    </div>
+                    <div class="hm-item">
+                        <a id="linkFpView" class="locallink hm-link" href="/TheGrid/FpView"><span class="material-icons-outlined-btn">energy_savings_leaf</span><span>@_f.tra("FP statistiky")</span></a>
+                        @Pin("fpview")
+                    </div>
+                }
+            </section>
         }
 
         @if (_f.CurrentUser.j04IsModule_p56)
         {
-            <tr>
-                <td>
-                    <span class="material-icons-outlined-btn">task</span>
-                    <span class="menu-section-title">
-                        @_f.tra("ÚKOLY")
-                    </span>
-                    <h6>
-                        <a id="linkGridP56" class="locallink locallink500" href="@(cmenu.GetMainmenuEntityUrl("p56"))">
+            <section class="hm-sec">
+                <div class="hm-sec-head">
+                    <span class="material-icons-outlined-btn">task</span><span class="hm-sec-title">@_f.tra("Úkoly")</span>
+                </div>
+                <div class="hm-item hm-main">
+                    <a id="linkGridP56" class="locallink hm-link" href="@(cmenu.GetMainmenuEntityUrl("p56"))"><span class="material-icons-outlined-btn">table_rows</span><span>@_f.tra("Tabulka")</span></a>
+                    @Pin("p56")
+                </div>
+                <div class="hm-item">
+                    <a id="linkKanbanP56" class="locallink hm-link" href="/Kanban/p56"><span class="material-icons-outlined-btn">view_kanban</span><span>Kanban</span></a>
+                    @Pin("kanban-p56")
+                </div>
+                @if (_GridUrlP58 != null)
+                {
+                    <div class="hm-item">
+                        <a id="linkOpakovaneUkoly" class="locallink hm-link" href="@(_GridUrlP58)"><span class="material-icons-outlined-btn">published_with_changes</span><span>@_f.tra("Opakované úkoly")</span></a>
+                        @Pin("p58")
+                    </div>
+                }
+            </section>
 
-                            @_f.tra("Tabulka")
-                        </a>
-                        <button type="button" data-key="p56" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
-
-
-                    </h6>
-
-                </td>
-                <td style="width:20px;">
-                </td>
-
-                <td style="padding:20px;">
-                    <h6>
-                        <a id="linkKanbanP56" class="locallink" href="/Kanban/p56">
-                            <span class="material-icons-outlined-btn">view_kanban</span>
-                            KANBAN
-                        </a>
-                        <button type="button" data-key="kanban-p56" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
-
-
-                        @if (_GridUrlP58 != null)
-                        {
-
-                            <a id="linkOpakovaneUkoly" class="locallink" href="@(_GridUrlP58)">
-                                <span class="material-icons-outlined-btn">published_with_changes</span>
-                                Opakované úkoly
-                            </a>
-                            <button type="button" data-key="p58" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
-                        }
-                        @if (1==2)
-                        {
-                            <a id="linkTodolist" class="locallink">
-                                <span class="material-icons-outlined-btn">control_point_duplicate</span>
-                                Todo-list
-                            </a>
-                            <button type="button" data-key="p55" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
-                        }
-                        @if(1==2)
-                        {
-                            <a id="linkSablonyUkolu" class="locallink" href="/TheGrid/FlatView?prefix=p60">
-                            <span class="material-icons-outlined-btn">copy_all</span>
-                            Šablony úkolů
-                            </a>
-                        }
-                        
-
-                        <button type="button" data-key="p58" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
-
-                    </h6>
-                </td>
-            </tr>
-
-            <tr>
-                <td>
-                    <span class="material-icons-outlined-btn">today</span>
-                    <span class="menu-section-title">
-                        @_f.tra("TERMÍNY/LHůTY")
-                    </span>
-                    <h6>
-
-                        @if (_GridUrlO22 != null)
-                        {
-
-                            <a id="linkTerminy" class="locallink locallink500" href="@(_GridUrlO22)">
-
-                                Tabulka
-                            </a>
-                            <button type="button" data-key="o22" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
-
-                        }
-                    </h6>
-
-                </td>
-                <td style="width:20px;">
-                </td>
-
-                <td style="padding:20px;">
-                </td>
-            </tr>
+            @if (_GridUrlO22 != null)
+            {
+                <section class="hm-sec">
+                    <div class="hm-sec-head">
+                        <span class="material-icons-outlined-btn">today</span><span class="hm-sec-title">@_f.tra("Termíny a lhůty")</span>
+                    </div>
+                    <div class="hm-item hm-main">
+                        <a id="linkTerminy" class="locallink hm-link" href="@(_GridUrlO22)"><span class="material-icons-outlined-btn">table_rows</span><span>@_f.tra("Tabulka")</span></a>
+                        @Pin("o22")
+                    </div>
+                </section>
+            }
         }
+
         @if (_f.CurrentUser.j04IsModule_p28)
         {
-            <tr>
-                <td>
-                    <span class="material-icons-outlined-btn">contacts</span>
-                    <span class="menu-section-title">
-                        @_f.tra("KONTAKTY")
-                    </span>
-                    <h6>
-                        <a id="linkGridP28" class="locallink locallink500" href="@(cmenu.GetMainmenuEntityUrl("p28"))">
-
-                            @_f.tra("Tabulka")
-                        </a>
-                        <button type="button" data-key="p28" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
-
-                    </h6>
-
-                </td>
-                <td style="width:20px;">
-                </td>
-
-                <td style="padding:20px;">
-                    <h6>
-                        <a id="linkKanbanP28" class="locallink" href="/Kanban/p28">
-                            <span class="material-icons-outlined-btn">view_kanban</span>
-                            KANBAN
-                        </a>
-                        <button type="button" data-key="kanban-p28" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
-
-                        @if (_GridUrlP24 != null)
-                        {
-                            <a id="linkSkupinyKontaktu" class="locallink" href="@(_GridUrlP24)">
-                                <span class="material-icons-outlined-btn">contacts</span>
-                                Skupiny kontaktů
-                            </a>
-
-                        }
-                    </h6>
-                </td>
-            </tr>
+            <section class="hm-sec">
+                <div class="hm-sec-head">
+                    <span class="material-icons-outlined-btn">contacts</span><span class="hm-sec-title">@_f.tra("Kontakty")</span>
+                </div>
+                <div class="hm-item hm-main">
+                    <a id="linkGridP28" class="locallink hm-link" href="@(cmenu.GetMainmenuEntityUrl("p28"))"><span class="material-icons-outlined-btn">table_rows</span><span>@_f.tra("Tabulka")</span></a>
+                    @Pin("p28")
+                </div>
+                <div class="hm-item">
+                    <a id="linkKanbanP28" class="locallink hm-link" href="/Kanban/p28"><span class="material-icons-outlined-btn">view_kanban</span><span>Kanban</span></a>
+                    @Pin("kanban-p28")
+                </div>
+                @if (_GridUrlP24 != null)
+                {
+                    <div class="hm-item">
+                        <a id="linkSkupinyKontaktu" class="locallink hm-link" href="@(_GridUrlP24)"><span class="material-icons-outlined-btn">group_work</span><span>@_f.tra("Skupiny kontaktů")</span></a>
+                    </div>
+                }
+            </section>
         }
+
         @if (_f.CurrentUser.j04IsModule_j02)
         {
-            <tr>
-                <td>
-                    <span class="material-icons-outlined-btn">face</span>
-                    <span class="menu-section-title">
-                        @_f.tra("UŽIVATELÉ")
-                    </span>
-
-                    <h6>
-                        <a id="linkGridJ02" class="locallink locallink500" href="@(cmenu.GetMainmenuEntityUrl("j02"))">
-
-                            @_f.tra("Tabulka")
-                        </a>
-                        <button type="button" data-key="j02" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
-                    </h6>
-                </td>
-                <td>
-                </td>
-
-                <td></td>
-            </tr>
+            <section class="hm-sec">
+                <div class="hm-sec-head">
+                    <span class="material-icons-outlined-btn">face</span><span class="hm-sec-title">@_f.tra("Uživatelé")</span>
+                </div>
+                <div class="hm-item hm-main">
+                    <a id="linkGridJ02" class="locallink hm-link" href="@(cmenu.GetMainmenuEntityUrl("j02"))"><span class="material-icons-outlined-btn">table_rows</span><span>@_f.tra("Tabulka")</span></a>
+                    @Pin("j02")
+                </div>
+            </section>
         }
 
         @if (_f.CurrentUser.j04IsModule_p91)
         {
-            <tr>
-                <td>
-                    <span class="material-icons-outlined-btn">receipt_long</span>
-                    <span class="menu-section-title">
-                        @_f.tra("VYÚČTOVÁNÍ")
-                    </span>
-                    <h6>
-
-                        <a id="linkGridP91" class="locallink locallink500" href="@(cmenu.GetMainmenuEntityUrl("p91"))">
-
-                            @_f.tra("Tabulka")
-                        </a>
-                        <button type="button" data-key="p91" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
-
-                    </h6>
-                </td>
-                <td>
-                </td>
-
-                <td style="padding:20px;">
-                    <h6>
-                        @if (_f.CurrentUser.TestPermission(BO.PermValEnum.GR_P91_Owner))
-                        {
-                            <a id="linkP75" class="locallink" href="@cmenu.GetMainmenuEntityUrl("p75")">
-                                <span class="material-icons-outlined-btn">repeat_on</span>
-                                @_f.tra("Opakovaná vyúčtování")
-                            </a>
-                            <button type="button" data-key="p75" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
-                        }
-                        @if (_f.CurrentUser.j04IsModule_p90)
-                        {
-
-                            <a id="linkP90" class="locallink" href="@(cmenu.GetMainmenuEntityUrl("p90"))">
-                                <span class="material-icons-outlined-btn">receipt</span>
-                                @_f.tra("Zálohy")
-                            </a>
-                            <button type="button" data-key="p90" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
-                        }
-
-                        <a id="linkP84" class="locallink" href="@(cmenu.GetMainmenuEntityUrl("p84"))">
-                            <span class="material-icons-outlined-btn">gavel</span>
-                            @_f.tra("Upomínky")
-                        </a>
-                        <button type="button" data-key="p84" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
-
-                        <a id="linkP78" class="locallink" href="@(cmenu.GetMainmenuEntityUrl("p78"))">
-                            
-                            <span class="material-icons-outlined-btn rotate-60">gavel</span>
-                            
-                            @_f.tra("Hromadné upomínky")
-                        </a>
-                        <button type="button" data-key="p78" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
-
-
-                        @if (_f.CurrentUser.TestPermission(BO.PermValEnum.GR_P91_Owner))
-                        {
-                            <a id="linkBanka" class="locallink" href="/BankaImport/Index">
-                                <span class="material-icons-outlined-btn">sync</span>
-                                @_f.tra("Import bank.výpisů")
-                            </a>
-
-                            <a class="locallink" href="/p91MultiReport">
-                                <span class="material-icons-outlined-btn">picture_as_pdf</span>
-                                Rekonstrukční report
-                            </a>
-                        }
-                    </h6>
-                </td>
-            </tr>
+            <section class="hm-sec">
+                <div class="hm-sec-head">
+                    <span class="material-icons-outlined-btn">receipt_long</span><span class="hm-sec-title">@_f.tra("Vyúčtování")</span>
+                </div>
+                <div class="hm-item hm-main">
+                    <a id="linkGridP91" class="locallink hm-link" href="@(cmenu.GetMainmenuEntityUrl("p91"))"><span class="material-icons-outlined-btn">table_rows</span><span>@_f.tra("Tabulka")</span></a>
+                    @Pin("p91")
+                </div>
+                @if (_f.CurrentUser.TestPermission(BO.PermValEnum.GR_P91_Owner))
+                {
+                    <div class="hm-item">
+                        <a id="linkP75" class="locallink hm-link" href="@cmenu.GetMainmenuEntityUrl("p75")"><span class="material-icons-outlined-btn">repeat_on</span><span>@_f.tra("Opakovaná vyúčtování")</span></a>
+                        @Pin("p75")
+                    </div>
+                }
+                @if (_f.CurrentUser.j04IsModule_p90)
+                {
+                    <div class="hm-item">
+                        <a id="linkP90" class="locallink hm-link" href="@(cmenu.GetMainmenuEntityUrl("p90"))"><span class="material-icons-outlined-btn">receipt</span><span>@_f.tra("Zálohy")</span></a>
+                        @Pin("p90")
+                    </div>
+                }
+                <div class="hm-item">
+                    <a id="linkP84" class="locallink hm-link" href="@(cmenu.GetMainmenuEntityUrl("p84"))"><span class="material-icons-outlined-btn">gavel</span><span>@_f.tra("Upomínky")</span></a>
+                    @Pin("p84")
+                </div>
+                <div class="hm-item">
+                    <a id="linkP78" class="locallink hm-link" href="@(cmenu.GetMainmenuEntityUrl("p78"))"><span class="material-icons-outlined-btn rotate-60">gavel</span><span>@_f.tra("Hromadné upomínky")</span></a>
+                    @Pin("p78")
+                </div>
+                @if (_f.CurrentUser.TestPermission(BO.PermValEnum.GR_P91_Owner))
+                {
+                    <div class="hm-item">
+                        <a id="linkBanka" class="locallink hm-link" href="/BankaImport/Index"><span class="material-icons-outlined-btn">sync</span><span>@_f.tra("Import bank.výpisů")</span></a>
+                    </div>
+                    <div class="hm-item">
+                        <a class="locallink hm-link" href="/p91MultiReport"><span class="material-icons-outlined-btn">picture_as_pdf</span><span>@_f.tra("Rekonstrukční report")</span></a>
+                    </div>
+                }
+            </section>
         }
 
         @if (_f.CurrentUser.j04IsModule_o23)
         {
-            <tr>
-                <td>
-                    <span class="material-icons-outlined-btn">file_present</span>
-                    <span class="menu-section-title">
-                        @_f.tra("DOKUMENTY")
-                    </span>
-                    <h6>
-                        <a id="lisO23" class="locallink locallink500" href="@(cmenu.GetMainmenuEntityUrl("o23"))">
-                            @_f.tra("Tabulka")
-                        </a>
-                        <button type="button" data-key="o23" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
-
-
-                        
-                    </h6>
-                </td>
-                <td>
-                </td>
-                <td style="padding:20px;" title="Odkazy z Menu dokumentů">
-                    @if (_lisO17 != null && _lisO17.Count() > 1)
+            <section class="hm-sec">
+                <div class="hm-sec-head">
+                    <span class="material-icons-outlined-btn">file_present</span><span class="hm-sec-title">@_f.tra("Dokumenty")</span>
+                </div>
+                <div class="hm-item hm-main">
+                    <a id="lisO23" class="locallink hm-link" href="@(cmenu.GetMainmenuEntityUrl("o23"))"><span class="material-icons-outlined-btn">table_rows</span><span>@_f.tra("Tabulka")</span></a>
+                    @Pin("o23")
+                </div>
+                @if (_lisO17 != null && _lisO17.Count() > 1)
+                {
+                    @foreach (var recO17 in _lisO17)
                     {
-                        @foreach (var recO17 in _lisO17)
-                        {
-                            <a id="linkO23@(recO17.pid)" class="locallink" href="@(cmenu.GetMainmenuEntityUrl("o23") + "&rez=" + recO17.pid.ToString())">
-                                <span class="material-icons-outlined-btn">file_present</span>
-                                @recO17.o17Name
-                            </a>
-                            <button type="button" data-key="rez-@(recO17.pid)" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
-                        }
+                        <div class="hm-item">
+                            <a id="linkO23@(recO17.pid)" class="locallink hm-link" href="@(cmenu.GetMainmenuEntityUrl("o23") + "&rez=" + recO17.pid.ToString())"><span class="material-icons-outlined-btn">file_present</span><span>@recO17.o17Name</span></a>
+                            @Pin("rez-" + recO17.pid.ToString())
+                        </div>
                     }
-
-                    
-                </td>
-            </tr>
+                }
+            </section>
         }
 
-        <tr id="trRuzne">
-            <td>
-                <span class="material-icons-outlined-btn">more_vert</span>
-                <span class="menu-section-title">
-                    @_f.tra("Různé")
-                </span>
-                <h6>
-                </h6>
-            </td>
-
-            <td></td>
-            <td style="padding:20px;">
-                <h6>
-                    @if (_f.CurrentUser.j04IsModule_o27)
-                    {
-                        <a id="linkGridO27" class="locallink" href="@(cmenu.GetMainmenuEntityUrl("o27"))">
-                            <span class="material-icons-outlined-btn">attachment</span>
-                            FILEBOX
-                        </a>
-                        <button type="button" data-key="o27" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
-                    }
-                    @if (_f.CurrentUser.j04IsModule_x31)
-                    {
-
-                        <a id="linkX31" class="locallink" href="/ReportsClient/ReportNoContextFramework">
-                            <span class="material-icons-outlined-btn">print</span>
-                            @_f.tra("Pevné tiskové sestavy")
-                        </a>
-                        <button type="button" data-key="x31" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
-                    }
-                    @if (_GridUrlB05 != null)
-                    {
-                        <a id="linkPoznamky" class="locallink" href="@(_GridUrlB05)">
-                            <span class="material-icons-outlined-btn">rate_review</span>
-                            @_f.tra("Poznámky"), workflow historie
-                        </a>
-                        <button type="button" data-key="b05" class="pin btn btn-sm"><span class="material-icons-outlined-btn">speaker_notes</span></button>
-                    }
-
-                   
-                    @if (1==2 && _GridUrlP15 != null)
-                    {
-
-                        <a id="linkP15" class="locallink" href="@(_GridUrlP15)">
-                            <span class="material-icons-outlined-btn">location_on</span>
-                            Lokality
-                        </a>
-                        <button type="button" data-key="p15" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
-                    }
-
-
-                </h6>
-            </td>
-        </tr>
+        @if (_f.CurrentUser.j04IsModule_o27 || _f.CurrentUser.j04IsModule_x31 || _GridUrlB05 != null)
+        {
+            <section class="hm-sec" id="trRuzne">
+                <div class="hm-sec-head">
+                    <span class="material-icons-outlined-btn">more_horiz</span><span class="hm-sec-title">@_f.tra("Různé")</span>
+                </div>
+                @if (_f.CurrentUser.j04IsModule_o27)
+                {
+                    <div class="hm-item">
+                        <a id="linkGridO27" class="locallink hm-link" href="@(cmenu.GetMainmenuEntityUrl("o27"))"><span class="material-icons-outlined-btn">attachment</span><span>FILEBOX</span></a>
+                        @Pin("o27")
+                    </div>
+                }
+                @if (_f.CurrentUser.j04IsModule_x31)
+                {
+                    <div class="hm-item">
+                        <a id="linkX31" class="locallink hm-link" href="/ReportsClient/ReportNoContextFramework"><span class="material-icons-outlined-btn">print</span><span>@_f.tra("Pevné tiskové sestavy")</span></a>
+                        @Pin("x31")
+                    </div>
+                }
+                @if (_GridUrlB05 != null)
+                {
+                    <div class="hm-item">
+                        <a id="linkPoznamky" class="locallink hm-link" href="@(_GridUrlB05)"><span class="material-icons-outlined-btn">rate_review</span><span>@_f.tra("Poznámky, workflow historie")</span></a>
+                        @Pin("b05")
+                    </div>
+                }
+            </section>
+        }
 
         @if (_f.CurrentUser.IsAdmin)
         {
-            <tr>
-                <td>
-                    <span class="material-icons-outlined-btn">settings</span>
-                    <span class="menu-section-title">
-                        @_f.tra("Administrace").ToUpper()
-                    </span>
-                    
-                    <h6>
-                        <a id="linkAdmin" class="locallink locallink500" href="/Admin/Index">
-
-                            Admin Home
-                        </a>
-                        <button type="button" data-key="admin" class="pin btn btn-sm"><span class="material-icons-outlined-btn">push_pin</span></button>
-
-                    </h6>
-                </td>
-
-                <td></td>
-                <td style="padding:10px;">
-                    <h6>
-                        <a id="linkAdminOutbox" class="locallink" href="/Admin/Page?area=mails&prefix=x40">
-                            <span class="material-icons-outlined-btn">outbox</span>
-                            OUTBOX
-                        </a>
-
-                        <a id="linkStitky" class="locallink" href="@(cmenu.GetMainmenuEntityUrl("o51"))">
-                            <span class="material-icons-outlined-btn">local_offer</span>
-                            @_f.tra("Položky štítků")
-                        </a>
-
-                        <a id="linkO53" class="locallink" href="/TheGrid/FlatView?prefix=o53">
-                            <span class="material-icons-outlined-btn">local_offer</span>
-                            Skupiny štítků
-                        </a>
-
-
-                        <a id="linkWorkflow" class="locallink" href="/workflow_designer/Index">
-                            <span class="material-icons-outlined-btn">schema</span>
-                            @_f.tra("Návrhář workflow šablon")
-                        </a>
-
-
-                        <a id="linkAdminOneWebPage" class="locallink" href="/AdminOneWebpage/Index" style="display:none;">
-                            <span class="material-icons-outlined-btn">language</span>
-                            @_f.tra("Návrhář stránek záznamů")
-                        </a>
-
-                    </h6>
-                </td>
-            </tr>
+            <section class="hm-sec hm-sec-admin">
+                <div class="hm-sec-head">
+                    <span class="material-icons-outlined-btn">settings</span><span class="hm-sec-title">@_f.tra("Administrace")</span>
+                </div>
+                <div class="hm-item hm-main">
+                    <a id="linkAdmin" class="locallink hm-link" href="/Admin/Index"><span class="material-icons-outlined-btn">admin_panel_settings</span><span>Admin Home</span></a>
+                    @Pin("admin")
+                </div>
+                <div class="hm-item">
+                    <a id="linkAdminOutbox" class="locallink hm-link" href="/Admin/Page?area=mails&prefix=x40"><span class="material-icons-outlined-btn">outbox</span><span>OUTBOX</span></a>
+                </div>
+                <div class="hm-item">
+                    <a id="linkStitky" class="locallink hm-link" href="@(cmenu.GetMainmenuEntityUrl("o51"))"><span class="material-icons-outlined-btn">local_offer</span><span>@_f.tra("Položky štítků")</span></a>
+                </div>
+                <div class="hm-item">
+                    <a id="linkO53" class="locallink hm-link" href="/TheGrid/FlatView?prefix=o53"><span class="material-icons-outlined-btn">sell</span><span>@_f.tra("Skupiny štítků")</span></a>
+                </div>
+                <div class="hm-item">
+                    <a id="linkWorkflow" class="locallink hm-link" href="/workflow_designer/Index"><span class="material-icons-outlined-btn">schema</span><span>@_f.tra("Návrhář workflow šablon")</span></a>
+                </div>
+            </section>
         }
+    </div>
 
-    </table>
-
-
-
-
-
-
-
-
-
-
-
+    <div class="hm-empty" id="hmEmpty" style="display:none;">@_f.tra("Nic nenalezeno.")</div>
 </div>
 
 <script type="text/javascript">
-    var _pripnout_tooltip = "@_pripnout_tooltip";
-    var _odepnout_tooltip = "@_odepnout_tooltip";
-    var _menukeys = "@(_f.CurrentUser.j02MyMenuLinks)";
-    var _arr = _menukeys.split("|");
-
-
+    var _pripnout_tooltip = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(_pripnout_tooltip));
+    var _odepnout_tooltip = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(_odepnout_tooltip));
 
     $(document).ready(function () {
         _adjust_divheight_small_display("divHomeMenu");
-
-        var intRows = document.getElementById("tableMenu").rows.length;
-
-        $(".locallink").mouseover(function (e) {
-            $(this).next(".pin").css("visibility", "visible");
-        });
-        $(".locallink").mouseout(function (e) {
-
-            $(this).next(".pin").css("visibility", "hidden");
-        });
-
-        $(".pin").mouseover(function (e) {
-            var c = $(this).prev(".locallink");
-
-            $(this).css("visibility", "visible");
-        });
-        $(".pin").mouseout(function (e) {
-
-            $(this).css("visibility", "hidden");
-        });
-
-        $(".pin").click(function (e) {
-            var c = $(this).prev(".locallink");
-        });
 
         if (location.href.toLowerCase().indexOf("/home/index") > 0) {
             $("#linkSaveAsHomePage").css("display", "none");
         }
 
-        var ruzne = $("#trRuzne .locallink");
-        if (ruzne.length == 0) {
-            $("#trRuzne").css("display", "none");
-        }
-
-        $(".pin").each(function () {
-
-            var menukey = $(this).attr("data-key");
-
-
-            if (_menukeys.indexOf(menukey) > -1) {
-                $(this).prop("title", _odepnout_tooltip);
-
-                $(this).html("<span class='material-icons-outlined' style='color:red;'>clear</span>");
-
-                $(this).click(function () {
-                    remove_from_menu($(this));
-                });
-            }
-            else {
-                $(this).prop("title", _pripnout_tooltip);
-
-                $(this).html("<span class='material-icons-outlined'>push_pin</span>");
-
-                $(this).click(function () {
-                    append_to_menu($(this));
-                });
-            }
-
-
-
+        //špendlík: stav vykreslil server (hm-pinned), klik připne / odepne a načte stránku znovu
+        $(".hm .pin").on("click", function (e) {
+            e.preventDefault();
+            if ($(this).hasClass("hm-pinned")) remove_from_menu(this); else append_to_menu(this);
         });
 
+        //hledání v menu (bez ohledu na diakritiku), Enter otevře první nalezený odkaz
+        var norm = function (s) { return (s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); };
+        $(".hm-item").each(function () {
+            var sec = $(this).closest(".hm-sec").find(".hm-sec-title").text();
+            $(this).data("hay", norm($(this).find(".hm-link").text() + " " + sec));
+        });
+        $("#hmSearch").on("input", function () {
+            var words = norm(this.value).split(/\s+/).filter(function (w) { return w; });
+            $(".hm-item").each(function () {
+                var hay = $(this).data("hay"), ok = words.every(function (w) { return hay.indexOf(w) >= 0; });
+                $(this).toggleClass("hm-hide", !ok);
+            });
+            $(".hm-sec").each(function () { $(this).toggleClass("hm-hide", $(this).find(".hm-item:not(.hm-hide)").length === 0); });
+            $(".hm-quick").toggleClass("hm-hide", $(".hm-quick .hm-item:not(.hm-hide)").length === 0);
+            $("#hmEmpty").toggle($(".hm-item:not(.hm-hide)").length === 0);
+        }).on("keydown", function (e) {
+            if (e.key === "Enter") {
+                var a = $(".hm-item:not(.hm-hide) .hm-link").get(0);
+                if (a) { e.preventDefault(); a.click(); }
+            }
+        });
+        if (_device.type !== "Phone") setTimeout(function () { $("#hmSearch").trigger("focus"); }, 50);
     });
-
-
-
 
     var url = window.location.pathname + window.location.search;
     var urllower = url.toLowerCase();
@@ -962,6 +618,7 @@
 
 
     function append_to_menu(cmd) {
+        $(cmd).prop("disabled", true);
         var menukey = $(cmd).attr("data-key");
 
         $.post("/Home/AppendMenuLink", { menukey: menukey }, function (data) {
@@ -972,6 +629,7 @@
         });
     }
     function remove_from_menu(cmd) {
+        $(cmd).prop("disabled", true);
         var menukey = $(cmd).attr("data-key");
 
         $.post("/Home/RemoveMenuLink", { menukey: menukey }, function (data) {
