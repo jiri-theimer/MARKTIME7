@@ -259,6 +259,8 @@ namespace UI.Views.Shared.Components.myGrid
 
             }
 
+            ret.groupfield = (TheGridGroupByCol == null ? "" : TheGridGroupByCol.UniqueName);
+
             System.Data.DataTable dtFooter = null;
             int intVirtualRowsCount = 0; bool bolSqlFooterFailed = false;
 
@@ -507,7 +509,7 @@ namespace UI.Views.Shared.Components.myGrid
             }
             if (intEndIndex >= 1000)
             {
-                _s.Append($"<tr><td colspan='{_grid.Columns.Count()}'>Omezovač maximálního počtu řádků: 1000</td></tr>");
+                _s.Append($"<tr><td colspan='{_grid.Columns.Count() + 3}'>Omezovač maximálního počtu řádků: 1000</td></tr>");
             }
         }
 
@@ -1005,7 +1007,7 @@ namespace UI.Views.Shared.Components.myGrid
             }
 
             _s.Append("<tr id='tabgrid1_tr_totals'>");
-            _s.Append($"<th class='th0' title='{_Factory.tra("Celkový počet záznamů")}' style='width:60px;'><span id='tabgrid1_rows' class='badge bg-primary'>{strVal}</span></th>");
+            _s.Append($"<th class='th0' colspan='3' title='{_Factory.tra("Celkový počet záznamů")}'><span id='tabgrid1_rows' class='badge bg-primary'>{strVal}</span></th>");
             if (this.gridinput.reczoomflag > 0)
             {
                 _s.Append("<th></th>");

@@ -67,13 +67,9 @@ function tg_init(c) {
     
     
   
-    $("#container_grid").scroll(function () {
-        $("#container_vScroll").width($("#container_grid").width() + $("#container_grid").scrollLeft());
-    });
+    //jedna tabulka se sticky hlavičkou a patičkou: vodorovný i svislý posun řeší #container_vScroll, žádná synchronizace šířek
 
-    
-
-    $("#tabgrid0 .sortcolumn").on("click", function () {
+    $("#tabgrid1_thead .sortcolumn").on("click", function () {
         
         if (_tg_last_resizer_when != null && _tg_last_resizer_when+1000 > Date.now())
         {
@@ -95,9 +91,20 @@ function tg_init(c) {
     
     tg_adjust_parts_width();
 
-    var basewidth = $("#tabgrid0").width();
-    $("#tabgrid1").width(basewidth);
-    $("#tabgrid2").width(basewidth);
+    //změna velikosti okna: přepočítat výšku posuvného boxu (dřív chybělo – na malém rozlišení grid přetékal)
+    var _tg_resize_timer = null;
+    $(window).on("resize.thegrid", function () {
+        clearTimeout(_tg_resize_timer);
+        _tg_resize_timer = setTimeout(function () {
+            var pe = document.getElementById("container_grid");
+            if (!pe) return;
+            if (pe.parentNode.id === "splitter_panel1") {
+                tg_adjust_for_screen("splitter_panel1");
+            } else {
+                tg_adjust_for_screen();
+            }
+        }, 150);
+    });
 
     tg_setup_selectable();  //inicializace selectable
 
@@ -106,6 +113,7 @@ function tg_init(c) {
     {
         tg_init_grouprow_dblclick();
     }
+    tg_mark_groupcol();
 
     
    
@@ -199,11 +207,7 @@ function tg_init(c) {
 
     
     $(".query_th").mouseover(function () {
-        var btn = $(this).find(".query_button");
-        var offset = $(this).offset();
-        
-        $(btn).css("top", offset.top+3);
-        $(btn).css("left", offset.left + $(this).width() - $(btn).width()-4);
+        var btn = $(this).find(".query_button");   //pozice tlačítka je v CSS (vpravo v buňce), hlavička je sticky
         $(btn).css("visibility", "visible");
 
        // $("#cmdFilterClear").css("display", "block");
@@ -237,7 +241,7 @@ function tg_post_data() {
 
 function tg_refresh_sorter(sortfield, sortdir) {
     
-    $("#tabgrid0 .sortcolumn").each(function () {
+    $("#tabgrid1_thead .sortcolumn").each(function () {
         //$(this).text(this.title);
         $(this).text($(this).attr("data-header"));
     });
@@ -308,12 +312,6 @@ function refresh_environment_after_post(strOper, data) {
     
     tg_adjust_parts_width();
 
-    var basewidth = $("#tabgrid0").width();
-    $("#tabgrid1").width(basewidth);
-    $("#tabgrid2").width(basewidth);
-
-    
-
     _tg_tablerows = $("#tabgrid1_tbody").find("tr");
     tg_setup_selectable();
 
@@ -346,6 +344,11 @@ function refresh_environment_after_post(strOper, data) {
         _init_qtip_onpage();    //v gridu reczoom íčko
     }
     
+    if (typeof data.groupfield !== "undefined" && data.groupfield !== null) {
+        _tg_current_groupfield = data.groupfield;   //po vypnutí souhrnů přijde prázdné
+    }
+    tg_mark_groupcol();
+
     _tg_operatorflag = data.operatorflag;    
     tg_refresh_operatorflag();
 
@@ -355,15 +358,10 @@ function refresh_environment_after_post(strOper, data) {
 }
 
 function tg_adjust_parts_width() {
-
-    $("#container_vScroll").width($("#container_grid").width() + $("#container_grid").scrollLeft());
-    if ($("#container_vScroll").width() == 0)
+    //jedna tabulka: šířky se už nesrovnávají; funkce zůstává kvůli volání z jiných stránek
+    if ($("#container_grid").width() == 0)
     {        
         $("#container_grid").css("width", _device.availWidth-50);
-        
-        
-        
-        
     }
     
 }
@@ -389,7 +387,7 @@ function tg_setup_selectable() {
         }
         
         var pid = this.id.replace("r", "");
-        _tg_rowindex = this.rowIndex;
+        _tg_rowindex = this.sectionRowIndex;   //pořadí v tbody (rowIndex by počítal i 2 řádky hlavičky v téže tabulce)
         
         _tg_current_pid = pid;
 
@@ -434,8 +432,8 @@ function tg_setup_selectable() {
             _tg_drag_is_active = true;
             _tg_drag_tbodyrows = $("#tabgrid1_tbody").find("tr");
             first_y = e.pageY;
-            first_rowindex = this.rowIndex;
-            last_rowindex = this.rowIndex;
+            first_rowindex = this.sectionRowIndex;
+            last_rowindex = this.sectionRowIndex;
 
             $("#tabgrid1_tbody").find("tr.selrow").removeClass("selrow");
             $("#tabgrid1_tbody").find("tr.highlight").removeClass("highlight");
@@ -445,7 +443,7 @@ function tg_setup_selectable() {
             
 
         }
-        last_y = e.pageY, last_rowindex = this.rowIndex;
+        last_y = e.pageY, last_rowindex = this.sectionRowIndex;
 
         if (this.classList.contains("highlight") === false) {
             this.classList.add("highlight");
@@ -548,7 +546,7 @@ function tg_setup_selectable() {
 
 function tg_setup_checkbox_handler() {
     if (!_tg_is_enable_selecting) return;   //není zapnuto označování záznamů
-    $("#tabgrid1").on("change", "input:checkbox", function () {
+    $("#tabgrid1_tbody").on("change", "input:checkbox", function () {   //jen řádky, ne „vybrat vše“ v hlavičce
 
         var tr_row = this.parentNode.parentNode;
         if (this.checked === true) {
@@ -561,7 +559,7 @@ function tg_setup_checkbox_handler() {
 
     });
 
-    $("#tabgrid1").on("click", ".td0", function (e) {
+    $("#tabgrid1_tbody").on("click", ".td0", function (e) {
         
         if (e.target.tagName === "INPUT") {
             return; //kliknutí na checkbox řeší jiná událost
@@ -1176,84 +1174,29 @@ function tg_cm(e) {     //vyvolání kontextového menu k vybranému záznamu
 
 function tg_adjust_for_screen(strParentElementID)
 {
-    
-    if (!document.getElementById("tabgrid0")) return;
+    //výška posuvného boxu #container_vScroll (v něm je celá tabulka vč. sticky hlavičky, součtů a obou posuvníků)
+    if (!document.getElementById("tabgrid1") || !document.getElementById("container_vScroll")) return;
 
-    
-    
-    var w0 = 0;
+    var hPager = $("#divPagerContainer").outerHeight() || 0;
+    var h;
+
     if (typeof strParentElementID !== "undefined") {
-        //výška gridu bude odvozená podle nadřízeného elementu strParentElementID
+        //výška gridu bude odvozená podle nadřízeného elementu strParentElementID (splitter)
         var parentElement = document.getElementById(strParentElementID);
-        var hh = $(parentElement).height() - $("#tabgrid0").height() - $("#tabgrid2").height() - $("#divPagerContainer").height() - 2;
-
-        if ($("#tabgrid2").height() <= 2) {
-            hh = hh - 35;   //rezerva pro tfoot s TOTALS            
-        } else {
-            //hh = hh - $("#tabgrid1_tfoot").height();
-        }
-
-
-        w0 = $(parentElement).width();
-
-        if ($("#tabgrid0").width() > w0) {
-                   
-        }
-
-        var div = document.getElementById("container_grid");
-        var hasHorizontalScrollbar = div.scrollWidth > div.clientWidth;
-        if (hasHorizontalScrollbar)
-        {
-            hh = hh - 20;   //je vidět horizontální scrollbara, ubereme výšku, aby byla vidět, 20: odhad výšky scrollbary     
-        }
-
-        $("#container_vScroll").css("height", hh + "px");
-
-        
-
+        var hOver = $("#container_grid").offset().top - $(parentElement).offset().top;   //co je v panelu nad gridem
+        if (!(hOver > 0)) hOver = 0;
+        h = $(parentElement).height() - hOver - hPager - 2;
     }
     else
     {
-        //režim 1 panelu, bez splitter
-        var div_horizontal = $("#container_grid");
-        var offset = $(div_horizontal).offset();
-        var h_vertical = _device.innerHeight - offset.top - $("#tabgrid0").height() - $("#tabgrid2").height() - $("#divPagerContainer").height();
-
-        //w0 = document.getElementById("container_grid").scrollWidth; //nefunguje přes jquery
-        var w_tbody = document.getElementById("tabgrid1_tbody").scrollWidth;
-        
-        //var w1 = $(div_horizontal).width();
-        
-        if (w_tbody+20 > _device.innerWidth)
-        {
-            
-            h_vertical = h_vertical - 20;   //je vidět horizontální scrollbara, ubereme výšku, aby byla vidět
-           
-        }
-        if ($("#tabgrid1_tfoot").height() <= 2) {
-            h_vertical = h_vertical - 35;   //rezerva pro tfoot s TOTALS
-        }
-        
-        h_vertical = parseInt(h_vertical) - 4;  //ty 4 nevím proč
-        
-        $("#container_vScroll").css("height", h_vertical + "px");
+        //režim 1 panelu, bez splitteru: do spodního okraje okna
+        var top = $("#container_grid").offset().top;
+        h = window.innerHeight - top - hPager - 4;
         $(document.body).css("overflow-y", "hidden");
-
     }
 
-    $("#container_vScroll").width($("#container_grid").width() + $("#container_grid").scrollLeft());
-
-
-    //$("#container_grid").css("overflow-x", "auto");
-    
-    
-
-    //var basewidth = $("#tabgrid0").width();
-    //$("#tabgrid1").width(basewidth);
-    //$("#tabgrid2").width(basewidth);
-
-
-
+    if (h < 120) h = 120;   //velmi malé okno: grid nesmí zmizet
+    $("#container_vScroll").css("height", parseInt(h) + "px");
 }
 
 
@@ -1483,6 +1426,13 @@ function tg_div_close_synthetic_divs() {
 
 
 
+function tg_mark_groupcol() {     //zvýraznění sloupce se zapnutými souhrny v hlavičce
+    $("#tabgrid1_thead th.th-grouped").removeClass("th-grouped");
+    if (_tg_current_groupfield != null && _tg_current_groupfield != "") {
+        $("#th_" + _tg_current_groupfield).addClass("th-grouped");
+    }
+}
+
 function tg_groupbycolumn_mouseover(th) {
     if (!document.getElementById("cmdGridColumnGroupBy")) {
         return;
@@ -1560,12 +1510,11 @@ function tg_init_grouprow_dblclick()
 
 function tg_scrollinto_row(row)
 {
-    $("#container_vScroll").animate(
-        {
-            scrollTop: $(row).offset().top - $("#container_vScroll").offset().top,
-        },
-        500
-    );
+    //řádek pod sticky hlavičku (ne za ni); počítá s aktuálním posunem boxu
+    var box = $("#container_vScroll");
+    var hHead = $("#tabgrid1_thead").outerHeight() || 0;
+    var y = box.scrollTop() + $(row).offset().top - box.offset().top - hHead;
+    box.animate({ scrollTop: y < 0 ? 0 : y }, 500);
 
 
     //dřív to bylo takhle:

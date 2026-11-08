@@ -1,8 +1,7 @@
 ﻿
 
 #container_grid {
-    overflow-y: hidden;
-    overflow-x:auto;
+    overflow: hidden;   /* posouvá se jen vnitřní #container_vScroll (oba směry) */
     width: 99.99%;
     
     border-right: solid 1px #CCCCCC;
@@ -32,7 +31,7 @@ table.tabgrid_manual {
     border: solid 1px #CCCCCC;
 }
 
-#tabgrid1 tr {
+#tabgrid1_tbody tr {
     line-height: 1rem;
 }
 
@@ -65,7 +64,7 @@ table.tabgrid_manual {
 }
 
 
-#tabgrid1 tr:hover {
+#tabgrid1_tbody tr:hover {
     background-color: #F5F5F5;
 }
 
@@ -73,8 +72,7 @@ table.tabgrid_manual {
 
 
 #container_vScroll {
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: auto;
     height:10px;    /*výška na úvod před načtením dat do gridu*/
     
 }
@@ -247,7 +245,7 @@ td.td0 {
 }
 
 
-#tabgrid2 th.tdn {
+#tabgrid1_tfoot th.tdn {
     text-align: right;
 }
 
@@ -256,7 +254,7 @@ td.td0 {
     padding-right: 18px !important;
 }
 
-#tabgrid2 th.tdn_lastcol {
+#tabgrid1_tfoot th.tdn_lastcol {
     text-align: right;
     padding-right: 18px !important;
 }
@@ -441,8 +439,8 @@ button.tgp {
 }
 
 #container_vScroll {
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 
@@ -522,3 +520,86 @@ a.groupvallink {
     background-color: silver; /*barevný zázname*/
     
 }
+
+
+/* =====================================================================================
+   Jedna tabulka se sticky hlavičkou a součty (MARKTIME 8)
+   Celá tabulka je v posuvném boxu #container_vScroll: hlavička (thead) drží nahoře, součty (tfoot) dole,
+   oba posuvníky jsou na okraji boxu. Šířky sloupců určuje první řádek hlavičky (table-layout: fixed).
+   border-collapse: separate – u „collapse“ se rámečky sticky buněk při posunu ztrácejí.
+   ===================================================================================== */
+table.tg-one {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+    table.tg-one td {
+        border-width: 0 0 1px 1px;  /* barvu a styl dávají původní pravidla (.tabgrid_* td, modern.css) */
+    }
+
+    #tabgrid1.tg-one tr > :first-child {
+        border-left-width: 0;   /* levý okraj kreslí rámeček tabulky */
+    }
+
+#tabgrid1_thead {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+}
+
+    #tabgrid1_thead tr:last-child th {
+        border-bottom: solid 1px #CCCCCC;
+    }
+
+#tabgrid1_tfoot {
+    position: sticky;
+    bottom: 0;
+    z-index: 3;
+}
+
+    #tabgrid1_tfoot th {
+        border-top: solid 1px #CCCCCC;
+    }
+
+/* tlačítko filtru: vpravo v buňce filtrovacího řádku (dřív se počítalo skriptem z pozice na stránce) */
+#tr_header_query th {
+    position: relative;
+}
+
+#tr_header_query button.query_button {
+    top: 2px;
+    right: 3px;
+    left: auto;
+    float: none;
+}
+
+/* plovoucí tlačítka nad hlavičkou (souhrny podle sloupce) musí být nad sticky hlavičkou (z-index 3) */
+#cmdGridColumnGroupBy {
+    z-index: 20;
+}
+
+/* hlavička nemá převzít výšku řádků těla */
+#tabgrid1_thead tr, #tabgrid1_tfoot tr {
+    line-height: normal;
+}
+
+/* sloupec se zapnutými souhrny: podbarvená hlavička, proužek dole a štítek Σ (tg_mark_groupcol) */
+#tabgrid1_thead th.th-grouped {
+    background-color: color-mix(in srgb, var(--oznaceno, #4169e1) 18%, #ffffff);
+    color: #1f2328;
+    font-weight: 600;
+    box-shadow: inset 0 -3px 0 var(--pozadi, #0b4b92);
+}
+
+    #tabgrid1_thead th.th-grouped::after {
+        content: "Σ";
+        display: inline-block;
+        margin-left: 4px;
+        padding: 0 5px;
+        border-radius: 8px;
+        background-color: var(--pozadi, #0b4b92);
+        color: var(--popredi, #ffffff);
+        font-size: .75rem;
+        font-weight: 700;
+        line-height: 1.3;
+    }

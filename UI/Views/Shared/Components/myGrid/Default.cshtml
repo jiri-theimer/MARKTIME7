@@ -26,12 +26,18 @@
     
 
 }
-<div id="container_grid">
-    <table id="tabgrid0" class="@_tabclass">
+@*
+    Jedna tabulka (MARKTIME 8): hlavička (thead) a součty (tfoot) jsou „sticky“ uvnitř jednoho posuvného boxu #container_vScroll.
+    Šířky sloupců určuje první řádek hlavičky (table-layout: fixed), tělo i patička je přebírají – nic se nesrovnává skriptem.
+    Úvodní buňka th0 má colspan=3 (v těle jsou tři buňky td0/td1/td2 po 20 px).
+*@
+<div id="container_grid" class="tg-one-wrap">
+    <div id="container_vScroll">
+    <table id="tabgrid1" class="@_tabclass tg-one">
         <thead id="tabgrid1_thead">
             <tr id="tr_header_headline">
                 
-                <th class="th0" style="width:60px;">
+                <th class="th0" colspan="3" style="width:60px;">
                     @if (Model.GridInput.is_enable_selecting)
                     {
                         <input type="checkbox" id="chkSelectAll" onclick="tg_select_all_toggle()" />
@@ -85,7 +91,7 @@
             {
                 <tr id="tr_header_query">
 
-                    <th class="th0" style="width:60px;">
+                    <th class="th0" colspan="3">
                         <button id="cmdDestroyFilter" type="button" class="btn btn-danger py-0 px-2" onclick="tg_filter_clear()" style="display:none;" title="@_f.tra("Vyčistit sloupcový filtr")">
                             &#128473;
                         </button>
@@ -156,19 +162,10 @@
 
 
         </thead>
+        <tbody id="tabgrid1_tbody">@Html.Raw(Model.firstdata.body)</tbody>
+        <tfoot id="tabgrid1_tfoot">@Html.Raw(Model.firstdata.foot)</tfoot>
     </table>
-    <div id="container_vScroll">
-        <table id="tabgrid1" class="@_tabclass">
-            <tbody id="tabgrid1_tbody">@Html.Raw(Model.firstdata.body)</tbody>
-
-
-        </table>
     </div>
-    <table id="tabgrid2" class="@_tabclass">
-        <thead id="tabgrid1_tfoot">
-            @Html.Raw(Model.firstdata.foot)
-        </thead>
-    </table>
     <div id="divPagerContainer">
         <div id="divPager">@Html.Raw(Model.firstdata.pager)</div>
 
@@ -334,16 +331,7 @@
 
 
         if (tabclass == "tabgrid_fixed") {
-            $("#tabgrid0").width(tabwidth);
             $("#tabgrid1").width(tabwidth);
-            $("#tabgrid2").width(tabwidth);
-
-        }
-        
-        if (tabclass == "tabgrid_autoxxx"){
-            var width1 = $("#tabgrid1").width();    //strašná vojebávka
-            $("#tabgrid0").width(width1);
-            $("#tabgrid2").width(width1);
         }
         
 

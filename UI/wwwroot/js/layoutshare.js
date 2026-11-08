@@ -353,27 +353,8 @@ function tg_init_resizer(j72id,j02id)
                     
                     var w=$el.width();
                     
-                    var tab0 = document.getElementById("tabgrid0");
+                    //jedna tabulka: šířku sloupce určuje buňka hlavičky, tělo a součty ji přebírají samy
 
-                    
-
-                    var tab1 = document.getElementById("tabgrid1");
-                    var tab2 = document.getElementById("tabgrid2");
-                    
-                    for (var i = 1; i < tab0.rows[0].cells.length; i++) {
-                        var td = tab0.rows[0].cells.item(i);
-                        var ww = $(td).width();
-
-                        $(tab1.rows[0].cells.item(i + 2)).width(ww);
-
-                        if (tab2.rows.length > 0)
-                        {
-                            $(tab2.rows[0].cells.item(i)).width(ww);
-                        }
-                        
-                    }
-
-                    
                     w = parseInt($el.width());
 
                     $.post(_ep("/Common/SaveResizedColumn"), { j72id: j72id, j02id: j02id, colid: id,colwidth: w }, function (data) {

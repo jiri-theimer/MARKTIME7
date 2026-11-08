@@ -10,6 +10,7 @@
         public string message { get; set; }
         public int operatorflag { get; set; }
         public int virtualrowscount { get; set; }
+        public string groupfield { get; set; }  //sloupec se zapnutými souhrny (prázdné = bez souhrnů) – zvýraznění v hlavičce
 
         
     }
