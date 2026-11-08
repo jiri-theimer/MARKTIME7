@@ -1,204 +1,183 @@
-﻿@model BaseViewModel
+﻿@model UI.Models.Home.BellsViewModel
 @inject BL.Factory _f
 
 @{
-    Model.PageTitle = _f.tra("Nezapomeň!");
+    Model.PageTitle = _f.tra("Co na mě čeká");
     Model.PageSymbol = "notifications_active";
     Layout = "~/Views/Shared/_LayoutModal.cshtml";
 
-    int intSkrytPid = BO.Code.Bas.InInt(UI.Code.basUI.GetQueryValue(Context, "skryt"));
-    if (intSkrytPid > 0)
+    var _now = DateTime.Now;
+    var _today = DateTime.Today;
+    int _dow = ((int)_today.DayOfWeek + 6) % 7;                 //po=0
+    var _weekEnd = _today.AddDays(7 - _dow);                    //pondělí příštího týdne
+
+    //skupiny podle času (pořadí zobrazení)
+    string Bucket(DateTime d)
     {
-        _f.FBL.SetHidden_j97(intSkrytPid, true);
+        if (d < _now && d < _today.AddDays(-7)) return "older";
+        if (d < _now) return "overdue";
+        if (d < _today.AddDays(1)) return "today";
+        if (d < _today.AddDays(2)) return "tomorrow";
+        if (d < _weekEnd) return "week";
+        return "later";
     }
-    int intZobrazitPid = BO.Code.Bas.InInt(UI.Code.basUI.GetQueryValue(Context, "zobrazit"));
-    if (intZobrazitPid > 0)
+    var _buckets = new (string key, string title, string css)[] {
+        ("overdue", _f.tra("Po termínu (posledních 7 dní)"), "bl-g-overdue"),
+        ("today", _f.tra("Dnes"), "bl-g-today"),
+        ("tomorrow", _f.tra("Zítra"), ""),
+        ("week", _f.tra("Tento týden"), ""),
+        ("later", _f.tra("Později"), ""),
+        ("older", _f.tra("Starší"), "bl-g-older")
+    };
+
+    //typ upozornění → ikona + popisek
+    (string icon, string label) Kind(BO.j97BellsLog c)
     {
-        _f.FBL.SetHidden_j97(intZobrazitPid, false);
+        switch (c.j97UserInsert)
+        {
+            case "p41PlanUntil-j02id": case "p41PlanUntil-j11id": return ("work_outline", _f.tra("Termín projektu"));
+            case "p56PlanUntil-j02id": case "p56PlanUntil-j11id": return ("task_alt", _f.tra("Termín úkolu"));
+            case "o22PlanUntil-j02id": case "o22PlanUntil-j11id": return ("event", _f.tra("Termín"));
+            case "o24-j02id": case "o24-j11id": case "o24-x67id": return ("alarm", _f.tra("Připomenutí"));
+        }
+        if (c.j97RecordEntity == "p40") return ("sync_problem", _f.tra("Skluz generování"));
+        return ("notifications", BO.Code.Entity.GetAlias(c.j97RecordEntity));
     }
 
-    bool _bolShowAll = false;
-    string _strView = UI.Code.basUI.GetQueryValue(Context, "view");
-    if (_strView == "showall")
+    string Rel(DateTime d)
     {
-        _bolShowAll = true;
+        var span = d - _now;
+        var a = span.Duration();
+        string s = a.TotalMinutes < 60 ? $"{Math.Max(1, (int)a.TotalMinutes)} min" : (a.TotalHours < 24 ? $"{(int)a.TotalHours} h" : $"{(int)Math.Round(a.TotalDays)} " + _f.tra("dní"));
+        return span.TotalSeconds >= 0 ? _f.tra("za") + " " + s : _f.tra("před") + " " + s;
     }
 
-    var _lis = _f.FBL.GetList_j97(_f.CurrentUser.pid, (_bolShowAll ? null : false));
+    string RecUrl(BO.j97BellsLog c)
+    {
+        string prefix = c.j97RecordEntity == "dd2" ? "o23" : c.j97RecordEntity;
+        if (prefix == "p31") return $"/TheGrid/FlatView?prefix=p31&myqueryinline=pids|list_int|{c.j97RecordPid}";
+        return $"/Record/RecPage?prefix={prefix}&pid={c.j97RecordPid}";
+    }
+
+    int _overdueActive = Model.Items.Count(p => !p.j97IsHidden && Bucket(p.j97Date) == "overdue");
+    int _olderActive = Model.Items.Count(p => !p.j97IsHidden && Bucket(p.j97Date) == "older");
 }
 
+@section header_content
+{
+    <link rel="stylesheet" href="~/css/bells.css" asp-append-version="true" />
+}
 
-
-<div class="bg-light" style="padding:5px;border-bottom:solid 1px silver;border-top:solid 1px silver;">
-
-    <select id="cbxView" onchange="refresh(this)">
-        <option value="">@_f.tra("Nezobrazovat skryté položky")</option>
-        <option value="showall">@_f.tra("Zobrazovat i skryté položky")</option>
-    </select>
-    <button id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
-
+<div class="bg-light bl-toolbar">
+    <div class="bl-seg" role="tablist">
+        <a href="/Home/Bells" class="@(Model.ViewMode == "" ? "bl-on" : null)">@_f.tra("Aktivní") <span class="bl-n" id="bl_active_n">@Model.ActiveCount</span></a>
+        <a href="/Home/Bells?view=hidden" class="@(Model.ViewMode == "hidden" ? "bl-on" : null)">@_f.tra("Skryté")</a>
+        <a href="/Home/Bells?view=showall" class="@(Model.ViewMode == "showall" ? "bl-on" : null)">@_f.tra("Vše")</a>
+    </div>
+    <a class="btn btn-sm ai-btn bl-ai" href="/AiAsk?q=@(Uri.EscapeDataString(_f.tra("Co mě čeká tento a příští týden? Termíny úkolů, projektů a události, kde jsem řešitel.")))" target="_top" title="@_f.tra("Zeptej se MARKTIME")">
+        <span class="material-icons-outlined-btn">auto_awesome</span> @_f.tra("Zeptat se AI")
+    </a>
+    <button id="cmdClose" onclick="_window_close()" class="btn btn-light btn-sm"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
 </div>
 
-<form id="form1" asp-controller="Home" asp-action="Bells" method="POST">
-    <div class="modal_record_container">
+<div class="modal_record_container bl">
 
-        @if (_lis.Count() == 0)
-        {
-            <div>
-                <img src="/images/pandulak/16452374_s.jpg" width="100" height="133" />
-            </div>            
-            <code>Ani jedno upozornění.</code>
-        }
-
-        <table class="table table-sm table-hover">
-            <tr>
-                <th style="width:30px;">
-
-                </th>
-                <th style="width:150px;">
-                   
-                </th>
-                <th style="width:20px;">
-
-                </th>
-                <th style="width:150px;">
-                    
-                </th>
-                <th style="width:200px;">
-
-                </th>
-                <th>
-
-                </th>
-                <th>
-
-                </th>
-                
-            </tr>
-            @foreach(var c in _lis)
+    @if (Model.Items.Count == 0)
+    {
+        <div class="bl-empty">
+            <span class="material-icons-outlined-nosize">notifications_none</span>
+            <b>@(Model.ViewMode == "hidden" ? _f.tra("Žádná skrytá upozornění.") : _f.tra("Nic na vás nečeká."))</b>
+            @if (Model.ViewMode == "")
             {
-                @if (c.j97RecordEntity == "dd2") c.j97RecordEntity = "o23";
-                <tr>
-                    <td>
-                        @if (!c.j97IsHidden)
-                        {
-                            <button type="button" class="btn btn-sm btn-light" title="Skrýt" onclick="skryt(@(c.pid))">
-                                <span class="material-icons-outlined-btn">visibility_off</span>
-                            </button>
-                        }
-                        else
-                        {
-                            <button type="button" class="btn btn-sm btn-light" title="Zviditelnit" onclick="zobrazit(@(c.pid))">
-                                <span class="material-icons-outlined-btn">visibility</span>
-                            </button>
-                        }
-                    </td>
-                    <td style="@(c.j97IsHidden ? "text-decoration:line-through" : null)">
-                        @if (c.j97Date > DateTime.Now)
-                        {
-                            <span style="color:green">
-                                @BO.Code.Bas.ObjectDateTime2String(c.j97Date)
-                            </span>
-                            <small style="color:forestgreen;">      
-                                [
-                                @BO.Code.Time.DurationFormatted(DateTime.Now, c.j97Date, true)
-                                ]
-                            </small>
-                        }
-                        else
-                        {
-                            <span style="color:silver">
-                                @BO.Code.Bas.ObjectDateTime2String(c.j97Date)
-                            </span>
-                            <small style="color:gray;">
-                                [-
-                                @BO.Code.Time.DurationFormatted(c.j97Date, DateTime.Now, true)
-                                ]
-                        
-                            </small>
-                        }
-                        
-                        
-                        
-                    </td>
-                    <td>
-                        @if (c.j97RecordEntity == "p31")
-                        {
-                            <a href="/TheGrid/FlatView?prefix=@(c.j97RecordEntity)&myqueryinline=pids|list_int|@(c.j97RecordPid)" target="_top">
-                                <span class="material-icons-outlined-btn">grid_view</span>
-                            </a>
-                        }
-                        else
-                        {
-                            <a href="/Record/RecPage?prefix=@(c.j97RecordEntity)&pid=@(c.j97RecordPid)" target="_top">
-                                <span class="material-icons-outlined-btn">maps_home_work</span>
-                            </a>
-                            
-                        }
-                        
-                    </td>
-                    <td>
-                        @(BO.Code.Entity.GetAlias(c.j97RecordEntity))
-                    </td>
-                    <td>
-                        @if (c.j97UserInsert == "p41PlanUntil-j02id" || c.j97UserInsert == "p41PlanUntil-j11id")
-                        {
-                            <code>Termín projektu</code>
-                        }
-                        @if (c.j97UserInsert == "p56PlanUntil-j02id" || c.j97UserInsert == "p56PlanUntil-j11id")
-                        {
-                            <code>Termín úkolu</code>
-                        }
-                        @if (c.j97UserInsert == "o22PlanUntil-j02id" || c.j97UserInsert == "o22PlanUntil-j11id")
-                        {
-                            <code>Termín</code>
-                        }
-                        @if (c.j97UserInsert == "o24-j02id" || c.j97UserInsert == "o24-j11id")
-                        {
-                            <code>Připomenutí</code>
-                        }
-                        @if (c.j97RecordEntity == "p40")
-                        {
-                            <code>Skluz generování</code>
-                        }
-                    </td>
-                    <td>
-                        @(c.j97Text)
-                        @if(c.j97AfterText != null)
-                        {
-                            <span class="badge-light">
-                                @c.j97AfterText
-                            </span>
-                        }
-                    </td>
-                    
-                </tr>
+                <small>@_f.tra("Upozornění na termíny úkolů, projektů, událostí a připomenutí se tu objeví samy.")</small>
             }
-        </table>
+        </div>
+    }
 
+    @if (Model.ViewMode == "" && (_overdueActive + _olderActive) > 1)
+    {
+        <div class="bl-bulk">
+            <span>@string.Format(_f.tra("{0} upozornění je po termínu."), _overdueActive + _olderActive)</span>
+            <button type="button" class="btn btn-sm bog" id="cmdHidePast"><span class="material-icons-outlined-btn">done_all</span> @_f.tra("Skrýt vše po termínu")</button>
+        </div>
+    }
 
-
-
-    </div>
-</form>
+    @foreach (var b in _buckets)
+    {
+        var items = Model.Items.Where(p => Bucket(p.j97Date) == b.key).OrderBy(p => b.key == "overdue" || b.key == "older" ? -p.j97Date.Ticks : p.j97Date.Ticks).ToList();
+        if (items.Count == 0) { continue; }
+        <section class="bl-group @b.css" data-bucket="@b.key">
+            <h2>@b.title <span class="bl-n">@items.Count</span></h2>
+            @foreach (var c in items)
+            {
+                var k = Kind(c);
+                <div class="bl-item @(c.j97IsHidden ? "bl-hidden" : null)" data-pid="@c.pid">
+                    <span class="bl-ico material-icons-outlined-nosize" title="@k.label">@k.icon</span>
+                    <div class="bl-main">
+                        <a class="bl-text" href="@RecUrl(c)" target="_top">@c.j97Text</a>
+                        <div class="bl-meta">
+                            <span class="bl-kind">@k.label</span>
+                            @if (!string.IsNullOrEmpty(c.j97AfterText))
+                            {
+                                <span class="bl-after">@c.j97AfterText</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="bl-when" title="@c.j97Date.ToString("d.M.yyyy HH:mm")">
+                        <b>@(c.j97Date.TimeOfDay.TotalMinutes == 0 || (c.j97Date.Hour == 23 && c.j97Date.Minute == 59) ? c.j97Date.ToString("d.M.") : c.j97Date.ToString("d.M. HH:mm"))</b>
+                        <small>@Rel(c.j97Date)</small>
+                    </div>
+                    <button type="button" class="bl-btn bl-hide" title="@_f.tra("Skrýt (mám vyřízeno)")"><span class="material-icons-outlined-nosize">check</span></button>
+                    <button type="button" class="bl-btn bl-show" title="@_f.tra("Znovu zobrazit")"><span class="material-icons-outlined-nosize">undo</span></button>
+                </div>
+            }
+        </section>
+    }
+</div>
 
 <script type="text/javascript">
+    var _bl_view = "@Model.ViewMode";
+
     $(document).ready(function () {
-        $("#cbxView").val("@(_strView)");
+        $(".bl").on("click", ".bl-hide", function () { bl_set([$(this).closest(".bl-item").data("pid")], true); });
+        $(".bl").on("click", ".bl-show", function () { bl_set([$(this).closest(".bl-item").data("pid")], false); });
+        $("#cmdHidePast").on("click", function () {
+            var pids = $(".bl-group[data-bucket=overdue] .bl-item:not(.bl-hidden), .bl-group[data-bucket=older] .bl-item:not(.bl-hidden)").map(function () { return $(this).data("pid"); }).get();
+            bl_set(pids, true);
+            $(this).closest(".bl-bulk").slideUp(150);
+        });
+    });
 
-    })
-
-
-    function skryt(pid) {
-        var showall = $("#cbxView").val();
-        location.replace("Bells?skryt=" + pid+"&view="+showall);
+    function bl_set(pids, hidden) {
+        if (!pids.length) return;
+        $.post(_ep("/Home/BellsSetHidden"), { pids: pids.join(","), hidden: hidden }, function (data) {
+            pids.forEach(function (pid) {
+                var $it = $(".bl-item[data-pid='" + pid + "']").toggleClass("bl-hidden", hidden);
+                //v pohledu Aktivní / Skryté položka odjede; ve Vše jen zešedne
+                if ((_bl_view === "" && hidden) || (_bl_view === "hidden" && !hidden)) {
+                    $it.addClass("bl-leaving");
+                    setTimeout(function () {
+                        var $g = $it.closest(".bl-group");
+                        $it.remove();
+                        var n = $g.find(".bl-item").length;
+                        if (n === 0) $g.slideUp(120); else $g.find("h2 .bl-n").text(n);
+                    }, 250);
+                }
+            });
+            $("#bl_active_n").text(data.count);
+            bl_update_bell(data.count);
+        });
     }
-    function zobrazit(pid) {
-        var showall = $("#cbxView").val();
-        location.replace("Bells?zobrazit=" + pid + "&view=" + showall);
-    }
-    function refresh(cbx) {
-        location.replace("Bells?view=" + $(cbx).val());
+
+    //zvoneček v liště hlavního okna (modal běží v iframe)
+    function bl_update_bell(count) {
+        try {
+            var doc = window.parent.document;
+            var bell = doc.getElementById("cmdBells");
+            if (!bell) return;
+            bell.style.display = count > 0 ? "" : "none";
+            var n = doc.getElementById("cmdBellsCount");
+            if (n) n.textContent = count > 99 ? "99+" : count;
+        } catch (e) { }
     }
 </script>
-

@@ -663,9 +663,24 @@ namespace UI.Controllers
            
         }
 
-        public IActionResult Bells()
+        public IActionResult Bells(string view)
         {
-            return View(new BaseViewModel());
+            var v = new BellsViewModel() { ViewMode = view ?? "" };
+            bool? hidden = v.ViewMode == "showall" ? null : (v.ViewMode == "hidden" ? true : false);
+            v.Items = Factory.FBL.GetList_j97(Factory.CurrentUser.pid, hidden).ToList();
+            v.ActiveCount = Factory.FBL.GetCount_j97(Factory.CurrentUser.pid);
+            return View(v);
+        }
+
+        //skrýt / zobrazit upozornění (AJAX z Bells); vrací nový počet aktivních pro zvoneček v liště
+        [HttpPost]
+        public IActionResult BellsSetHidden(string pids, bool hidden)
+        {
+            foreach (int pid in BO.Code.Bas.ConvertString2ListInt(pids).Where(p => p > 0))
+            {
+                Factory.FBL.SetHidden_j97(pid, hidden);
+            }
+            return Json(new { count = Factory.FBL.GetCount_j97(Factory.CurrentUser.pid) });
         }
 
        

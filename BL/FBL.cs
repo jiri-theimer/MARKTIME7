@@ -38,6 +38,7 @@ namespace BL
         public IEnumerable<BO.p31TotalByYear> GetListTotalsByYear(BL.p31TableEnum tab);
         public IEnumerable<BO.j97BellsLog> GetList_j97(int j02id, bool? ishidden);
         public bool SetHidden_j97(int j97id, bool bolHidden);
+        public int GetCount_j97(int j02id);
         public void RunRecovery_Permissions();
         public string BackupDatabase(string strDbName, string strDestFolder = null);
         public IEnumerable<BO.FieldBagParam> GetList_FieldBagParam(string prefix, int pid);
@@ -192,12 +193,19 @@ namespace BL
         }
         public bool SetHidden_j97(int j97id, bool bolHidden)
         {
-            if (_db.RunSql("UPDATE j97BellsLog set j97IsHidden=@b WHERE j97ID=@pid", new { b = bolHidden, pid = j97id }))
+            //jen vlastní upozornění přihlášeného uživatele (dříve šlo skrýt i cizí – stačilo znát j97ID)
+            if (_db.RunSql("UPDATE j97BellsLog set j97IsHidden=@b WHERE j97ID=@pid AND j02ID=@j02id", new { b = bolHidden, pid = j97id, j02id = _mother.CurrentUser.pid }))
             {
                 _db.RunSql("UPDATE j02User SET j02Cache_BellsCount = (select COUNT(j97ID) FROM j97BellsLog WHERE j02ID=@j02id AND j97IsHidden=0 AND j97Date>DATEADD(DAY,-100,GETDATE())) WHERE j02ID=@j02id", new { j02Id = _mother.CurrentUser.pid });
             }
 
             return true;
+        }
+
+        //počet aktivních (neskrytých) upozornění – stejná podmínka jako j02Cache_BellsCount
+        public int GetCount_j97(int j02id)
+        {
+            return _db.Load<BO.GetInteger>("SELECT COUNT(j97ID) as Value FROM j97BellsLog WHERE j02ID=@j02id AND j97IsHidden=0 AND j97Date>DATEADD(DAY,-100,GETDATE())", new { j02id = j02id })?.Value ?? 0;
         }
 
         public IEnumerable<BO.j91RobotLog> GetListRobotLast20()

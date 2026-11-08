@@ -556,14 +556,10 @@
                             </li>
                         }
                         <li>
-                            <a class="nav-link" href="javascript:_bells()">
-                                @if (_f.CurrentUser.BellsCount > 0)
-                                {
-                                    <span class="material-icons-outlined-btn" style="color:red;">notifications_active</span>
-                                    <small style="color:orange;">@(_f.CurrentUser.BellsCount)</small>
-                                }
-                               
-
+                            @* zvoneček: jen když něco čeká; počet aktualizuje i okno Bells (bl_update_bell) *@
+                            <a class="nav-link nav-bell" id="cmdBells" href="javascript:_bells()" title="@_f.tra("Co na mě čeká")" style="@(_f.CurrentUser.BellsCount > 0 ? null : "display:none;")">
+                                <span class="material-icons-outlined-btn">notifications_active</span>
+                                <span class="nav-bell-count" id="cmdBellsCount">@(_f.CurrentUser.BellsCount > 99 ? "99+" : _f.CurrentUser.BellsCount.ToString())</span>
                             </a>
                         </li>
                         @if (_f.CurrentUser.j04IsModule_p31)

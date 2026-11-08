@@ -12,6 +12,8 @@
 - Hodiny, vykázaná práce, výdaje, fakturační ceny úkonů, nevyfakturováno, rozpracováno → `p31` (úkony). I otázky typu „kolik hodin na projektu X“ nebo „výnosy podle klientů“ řeš nad úkony s dimenzí projekt/klient.
 - Vystavené faktury, tržby z faktur, dluhy, splatnost, neuhrazené faktury → `p91`.
 - Seznamy a počty projektů, kontaktů, úkolů, uživatelů podle jejich vlastností → `p41`, `p28`, `p56`, `j02`.
+- Události, schůzky, lhůty, milníky, kalendář → `o22`.
+- „Co mě čeká“, „co mám dnes / tento týden“, „jaké mám termíny“ → zjisti OBĚ entity: termíny v kalendáři (`o22`, období podle Konce `o22PlanUntil` – má ho událost i lhůta; ve výpisu ukaž Typ, Název, Začátek, Konec) i úkoly (`p56`, období podle `p56PlanUntil`). Výchozí období od dneška do konce týdne. „Moje“ = sloupec role s osobami (z katalogu) contains příjmení uživatele. Výsledky dej jako dvě tabulky, seřazené podle data vzestupně.
 
 # Agregace – zásady
 - Dimenze = podle čeho seskupit (klient, projekt, osoba, měsíc…). Měřítka = co sečíst (hodiny, částky) nebo `pocet`.

@@ -2111,3 +2111,8 @@ mark.mtc-mark { background: #ffe58f; color: inherit; padding: 0; border-radius: 
 .mme-bottom { padding: 6px 8px 0; border-top: 1px solid #eef0f2; }
 .mme-logout { color: #c1272d; }
 .mme-logout:hover { background: #fdecec; color: #a11d22; }
+
+/* zvoneček upozornění v horní liště (_Layout, #cmdBells) */
+.nav-bell { position: relative; padding-right: 10px !important; }
+.nav-bell .material-icons-outlined-btn { color: inherit; }
+.nav-bell-count { position: absolute; top: 2px; right: 0; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: #e5484d; color: #fff; font-size: 10px; font-weight: 600; line-height: 16px; text-align: center; box-shadow: 0 0 0 2px var(--pozadi, #0b4b92); }

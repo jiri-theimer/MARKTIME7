@@ -22,6 +22,7 @@ namespace BL.AI.Tools
             new() { Prefix = "p41", Module = u => u.j04IsModule_p41, About = "Projekty (zakázky): klient, typ, stav, plán, rozpočty a souhrnné hodnoty projektu." },
             new() { Prefix = "p28", Module = u => u.j04IsModule_p28, About = "Kontakty (klienti, dodavatelé, firmy i osoby)." },
             new() { Prefix = "p56", Module = u => u.j04IsModule_p56, About = "Úkoly: řešitel, termín, stav, projekt." },
+            new() { Prefix = "o22", Module = u => true, About = "Kalendář: události, lhůty a milníky (typ, název, začátek, konec, čas od–do, lokalita, projekt, klient; osoby v rolích). Pro otázky „co mě čeká“, „jaké mám termíny / schůzky / lhůty“." },
             new() { Prefix = "p91", Module = u => u.j04IsModule_p91, About = "Vyúčtování (vydané faktury): částky bez DPH / s DPH, dluh, splatnost, úhrada, klient, měna." },
             new() { Prefix = "p90", Module = u => u.j04IsModule_p90, About = "Zálohy (zálohové faktury): částky, úhrady, splatnost, klient." },
             new() { Prefix = "j02", Module = u => u.j04IsModule_j02, About = "Uživatelé (osoby, zaměstnanci): středisko, pozice, fond hodin." },
