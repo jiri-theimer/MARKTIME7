@@ -54,18 +54,10 @@ namespace UI.Controllers
                         strTrClass = "txz isclosed";
                     }
                     wl($"<tr class='{strTrClass}' data-v='{c.pid}' data-prefix='p28'>");
-                    wltd(c.p29Name);
-                    
-                    if (c.p28ShortName != null)
-                    {
-                        wltd($"{c.FullNameDesc} <code>{c.p28ShortName}</code>");
-                    }
-                    else
-                    {
-                        wltd(c.p28Name);
-                    }
-                    wltd(c.GetFullAddress(1));
-                    wltd(c.p28RegID);
+                    tdMain(c.p28ShortName != null ? c.FullNameDesc : c.p28Name, c.p28ShortName);
+                    tdSub(c.p29Name);
+                    td(c.GetFullAddress(1));
+                    td(c.p28RegID, "mtc-num");
                     wl("</tr>");
                     x++;
                 }
@@ -89,25 +81,17 @@ namespace UI.Controllers
                         strTrClass = "txz isclosed";
                     }
                     wl($"<tr class='{strTrClass}' data-v='{c.pid}' data-prefix='p41'>");
-                    wltd(c.p42Name);
                     if (c.p41ParentID > 0)
                     {
-                        wltd(c.p41TreePath);
+                        tdMain(c.p41TreePath, null);
                     }
                     else
                     {
-                        if (c.p41NameShort != null)
-                        {
-                            wltd($"{c.p41Name} <code>{c.p41NameShort}</code>");
-                        }
-                        else
-                        {
-                            wltd(c.p41Name);
-                        }
-                        
+                        tdMain(c.p41Name, c.p41NameShort);
                     }
-                    wltd(c.Client);
-                    wltd(c.p41Code);
+                    tdSub(c.p42Name);
+                    td(c.Client);
+                    td(c.p41Code, "mtc-num");
 
                     wl("</tr>");
                     x++;
@@ -134,10 +118,10 @@ namespace UI.Controllers
                         strTrClass = "txz isclosed";
                     }
                     wl($"<tr class='{strTrClass}' data-v='{c.pid}' data-prefix='p91'>");
-                    wltd($"{c.p91Code}");
-                    wltd(c.p91Client);
-                    wl($"<td style='text-align:right;'>{BO.Code.Bas.Number2String(c.p91Amount_WithoutVat)} {c.j27Code} <code style='margin-left:20px;'>{BO.Code.Bas.ObjectDate2String(c.p91DateSupply, "dd.MM.yyyy")}</code></td>");
-                    wltd(c.p92Name);
+                    tdMain(c.p91Code, null);
+                    tdSub(c.p92Name);
+                    td(c.p91Client);
+                    td($"{BO.Code.Bas.Number2String(c.p91Amount_WithoutVat)} {c.j27Code} · {BO.Code.Bas.ObjectDate2String(c.p91DateSupply, "d.M.yyyy")}", "mtc-num");
                     wl("</tr>");
                     x++;
                 }
@@ -161,10 +145,10 @@ namespace UI.Controllers
                         strTrClass = "txz isclosed";
                     }
                     wl($"<tr class='{strTrClass}' data-v='{c.pid}' data-prefix='p90'>");
-                    wltd($"{c.p90Code}");
-                    wltd(c.p28Name);
-                    wl($"<td style='text-align:right;'>{BO.Code.Bas.Number2String(c.p90Amount)} {c.j27Code}</td>");
-                    wltd(c.p89Name);
+                    tdMain(c.p90Code, null);
+                    tdSub(c.p89Name);
+                    td(c.p28Name);
+                    td($"{BO.Code.Bas.Number2String(c.p90Amount)} {c.j27Code}", "mtc-num");
                     wl("</tr>");
                     x++;
                 }
@@ -189,10 +173,10 @@ namespace UI.Controllers
                         strTrClass = "txz isclosed";
                     }
                     wl($"<tr class='{strTrClass}' data-v='{c.pid}' data-prefix='p56'>");
-                    wltd($"{c.p56Code}");
-                    wltd(c.p56Name);
-                    wltd($"{c.p41Name}");
-                    wltd(c.ProjectClient);
+                    tdMain(c.p56Name, null);
+                    tdSub(c.p56Code);
+                    td(c.p41Name);
+                    td(c.ProjectClient);
                     wl("</tr>");
                     x++;
                 }
@@ -215,10 +199,10 @@ namespace UI.Controllers
                         strTrClass = "txz isclosed";
                     }
                     wl($"<tr class='{strTrClass}' data-v='{c.pid}' data-prefix='o23'>");
-                    wltd($"{c.o23Code}");
-                    wltd(c.o23Name);
-                    wltd($"{c.o18Name}");
-                    wltd("");
+                    tdMain(c.o23Name, null);
+                    tdSub(c.o18Name);
+                    td(c.o23Code, "mtc-num");
+                    td("");
                     wl("</tr>");
                     x++;
                 }
@@ -229,8 +213,10 @@ namespace UI.Controllers
 
             if (!bolFound)
             {
-                wl("<p style='padding:10px;'><span class='material-icons-outlined-btn' style='color:red;'>search</span>");
-                wl($"<var>{Factory.tra("Ani jeden výsledek")}.</var></p>");
+                wl("<div class='ms-info'><span class='material-icons-outlined-nosize'>search_off</span><div>");
+                wl($"<b>{Factory.tra("Nic nenalezeno pro")} „{H(searchstring)}“</b>");
+                wl($"<small>{Factory.tra("Zkuste jiný tvar slova, část názvu, IČ nebo kód záznamu. Úkoly se hledají od 4 znaků.")}</small>");
+                wl("</div></div>");
             }
 
 
@@ -250,37 +236,53 @@ namespace UI.Controllers
             _sb.Append("</td>");
         }
 
+        //nadpis skupiny výsledků (mycombo.js řádky s data-skip přeskakuje), vzhled mtc-group / ms-* v site.css
         private void VysledkyNadpis(string strModule, int intPocet, int firstpid, string prefix)
         {
             if (intPocet > 0)
             {
-                if (prefix == "p41")
+                string strCount = intPocet >= _topRecsLimit ? $"{_topRecsLimit}+" : intPocet.ToString();
+                wl($"<tr class='mtc-group ms-group' data-v='{firstpid}' data-prefix='{prefix}' data-skip='1'><td colspan=4>");
+                string strIcon = prefix switch { "p28" => "contacts", "p41" => "work_outline", "p91" => "receipt_long", "p90" => "receipt", "p56" => "task_alt", "o23" => "file_present", _ => "search" };
+                wl($"<span class='material-icons-outlined-nosize ms-ico'>{strIcon}</span>{H(strModule)} <span class='ms-n'>{strCount}</span>");
+                if (intPocet >= _topRecsLimit)
                 {
-                    wl($"<tr style='background-color:lightblue;' data-v='{firstpid}' data-prefix='{prefix}' data-skip='1'><td colspan=4>");
-                }
-                else
-                {
-                    wl($"<tr class='bg{prefix}' data-v='{firstpid}' data-prefix='{prefix}' data-skip='1'><td colspan=4>");
-                }
-
-                if (intPocet == _topRecsLimit)
-                {
-                    wl($"<small>{strModule}: více než {_topRecsLimit} výsledků.</small>");
-                }
-                else
-                {
-                    wl($"<small>{strModule} <span class='badge-light'>{intPocet}x</span></small>");
+                    wl($" <span class='ms-more'>{Factory.tra("zobrazeno prvních")} {_topRecsLimit} – {Factory.tra("zpřesněte hledání")}</span>");
                 }
                 wl("</td></tr>");
             }
+        }
+
+        private static string H(string s) => System.Net.WebUtility.HtmlEncode(s ?? "");
+
+        //hlavní text výsledku (tučně) + zkratka
+        private void tdMain(string text, string code)
+        {
+            _sb.Append($"<td class='ms-main'>{H(text)}");
+            if (!string.IsNullOrEmpty(code)) _sb.Append($" <span class='ms-code'>{H(code)}</span>");
+            _sb.Append("</td>");
+        }
+        //typ / druh záznamu (šedě)
+        private void tdSub(string text)
+        {
+            _sb.Append($"<td class='ms-sub'>{H(text)}</td>");
+        }
+        private void td(string text, string css = null)
+        {
+            _sb.Append(css == null ? "<td>" : $"<td class='{css}'>");
+            _sb.Append(H(text));
+            _sb.Append("</td>");
         }
         private string RenderUvodniInfo()
         {
 
             
-            wl("<p style='padding:10px;'><span class='material-icons-outlined-btn'>search</span><var>Musíte zadat minimálně 3 znaky.</var></p>");
+            wl("<div class='ms-info'><span class='material-icons-outlined-nosize'>search</span><div>");
+            wl($"<b>{Factory.tra("Napište alespoň 3 znaky")}</b>");
+            wl($"<small>{Factory.tra("Hledá v názvech, zkratkách, kódech a IČ kontaktů, projektů, vyúčtování, záloh, úkolů a dokumentů. Kde hledat, nastavíte níže.")}</small>");
+            wl("</div></div>");
             
-            wl("<iframe frameborder=0 src='/Home/MySearchSetting' style='height:250px;'></iframe>");
+            wl("<iframe class='ms-setting' frameborder=0 src='/Home/MySearchSetting'></iframe>");
 
            
             

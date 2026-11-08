@@ -74,48 +74,20 @@ namespace UI.Views.Shared.TagHelpers
             sb(string.Format("<div id='divDropdownContainer{0}' class='dropdown'>", strControlID));
 
 
-            if (this.SearchTextboxWidth > 0)
-            {
-                sb($"<input type='text' id='cmdCombo{strControlID}' class='xbtn xdropdown-toggle form-control' autocomplete='off' data-bs-toggle='dropdown' aria-expanded='false' style='width:{this.SearchTextboxWidth}px;border: solid 1px #C8C8C8; border-radius: 3px;text-align:left;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;' placeholder='{this.PlaceHolder}'/>");
-
-            }
-            else
-            {
-                sb($"<input type='text' id='cmdCombo{strControlID}' class='xbtn xdropdown-toggle form-control' autocomplete='off' data-bs-toggle='dropdown' aria-expanded='false' style='width:100%;border: solid 1px #C8C8C8; border-radius: 3px;text-align:left;white-space: nowrap;overflow: hidden;text-overflow: ellipsis;' placeholder='{this.PlaceHolder}'/>");
-
-            }
-
-
-
-         
-
-          
+            //vzhled ms-* v site.css (pole v horní liště + nabídka výsledků)
+            string strWidth = this.SearchTextboxWidth > 0 ? $"{this.SearchTextboxWidth}px" : "100%";
+            sb($"<input type='search' id='cmdCombo{strControlID}' class='form-control ms-input' autocomplete='off' spellcheck='false' data-bs-toggle='dropdown' data-bs-auto-close='outside' aria-expanded='false' style='width:{strWidth};' placeholder='{System.Net.WebUtility.HtmlEncode(this.PlaceHolder)}'/>");
 
             if (this.SearchResultMarginLeft == 0)
             {
-                sb(string.Format("<div class='dropdown-menu p-0 m-0' aria-labelledby='cmdCombo{0}' style='width:100%;'>", strControlID));
-
+                sb($"<div class='dropdown-menu p-0 m-0 ms-menu' aria-labelledby='cmdCombo{strControlID}'>");
             }
             else
             {
-                sb($"<div class='dropdown-menu p-0 m-0' aria-labelledby='cmdCombo{strControlID}' style='width:100%;margin-left:{this.SearchResultMarginLeft}px !important;'>");
-
+                sb($"<div class='dropdown-menu p-0 m-0 ms-menu' aria-labelledby='cmdCombo{strControlID}' style='margin-left:{this.SearchResultMarginLeft}px !important;'>");
             }
-
-
-
-
-            sb("");
-
-            if (this.SearchResultWidth == 0)
-            {
-                sb($"<div id='divData{strControlID}' style='height:{this.ComboHeight}px;overflow:auto;background-color:#E6F0FF;z-index:500;'>");
-            }
-            else
-            {
-                sb($"<div id='divData{strControlID}' style='height:{this.ComboHeight}px;overflow:auto;background-color:#E6F0FF;z-index:500;border:solid 1px silver;width:{this.SearchResultWidth}px;'>");
-            }
-
+            string strResWidth = this.SearchResultWidth > 0 ? $"width:{this.SearchResultWidth}px;" : "";
+            sb($"<div id='divData{strControlID}' class='ms-data' style='max-height:{this.ComboHeight}px;{strResWidth}'>");
             sb("</div>");
 
 
@@ -148,7 +120,7 @@ namespace UI.Views.Shared.TagHelpers
             sb("<script type='text/javascript'>");
             _sb.Append(string.Format("var c{0}=", strControlID));
             _sb.Append("{");            
-            _sb.Append($"controlid: '{strControlID}',posturl: '/TheSearch/GetHtml4TheSearch',defvalue: '{_SelectedValue}',deftext: '{strSelectedText}',on_after_change: '{this.Event_After_ChangeValue}',viewflag: '1',placeholder: '{this.PlaceHolder}'");
+            _sb.Append($"controlid: '{strControlID}',posturl: '/TheSearch/GetHtml4TheSearch',defvalue: '{_SelectedValue}',deftext: '',on_after_change: '{System.Web.HttpUtility.JavaScriptStringEncode(this.Event_After_ChangeValue)}',viewflag: '1',placeholder: '{System.Web.HttpUtility.JavaScriptStringEncode(this.PlaceHolder)}'");
             _sb.Append("};");
             sb("");
             sb("");

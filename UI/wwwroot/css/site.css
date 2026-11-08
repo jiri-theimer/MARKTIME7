@@ -2189,3 +2189,23 @@ mark.mtc-mark { background: #ffe58f; color: inherit; padding: 0; border-radius: 
     .mn-row { flex-direction: column; gap: 4px; }
     .mn-main { flex: none; width: 100%; }
 }
+
+/* globální hledání v horní liště (mySearchTagHelper + TheSearchController) – třídy ms-* */
+.ms-input { height: 30px; padding: 2px 10px 2px 30px; border: 0; border-radius: 15px; background: rgba(255,255,255,.95) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%238a939c' d='M15.5 14h-.79l-.28-.27A6.47 6.47 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3E%3C/svg%3E") no-repeat 9px center / 16px; font-size: .9rem; }
+.ms-input:focus { background-color: #fff; box-shadow: 0 0 0 3px rgba(255,255,255,.35); }
+.ms-menu { border-radius: 10px; overflow: hidden; box-shadow: 0 10px 30px rgba(16,24,40,.18); border: 1px solid #dfe3e8; }
+.ms-data { overflow-y: auto; overscroll-behavior: contain; max-width: 95vw; background: #fff; }
+.ms-group td { padding: 6px 10px 4px !important; }
+.ms-group .ms-ico { font-size: 16px; vertical-align: -3px; margin-right: 6px; color: var(--pozadi, #0b4b92); }
+.ms-n { display: inline-block; min-width: 18px; padding: 0 6px; margin-left: 4px; border-radius: 9px; background: #dde3ea; color: #3d444d; font-size: .72rem; line-height: 17px; text-align: center; font-weight: 600; }
+.ms-more { margin-left: 6px; font-weight: normal; color: #8a5300; }
+.ms-main { font-weight: 500; color: #1f2328; }
+.ms-code { margin-left: 4px; padding: 0 5px; border-radius: 4px; background: #eef1f4; color: #59636e; font-size: .78rem; font-weight: normal; }
+.ms-sub { color: #6c757d; font-size: .82rem; white-space: nowrap; }
+.isclosed .ms-main { text-decoration: line-through; color: #8a939c; }
+.ms-info { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; color: #3d444d; }
+.ms-info .material-icons-outlined-nosize { font-size: 22px; color: #8a939c; }
+.ms-info b { display: block; font-weight: 600; }
+.ms-info small { display: block; color: #6c757d; margin-top: 2px; max-width: 560px; }
+.ms-setting { display: block; width: 100%; height: 230px; border-top: 1px solid #eef0f2; }
+@media (max-width: 760px) { .ms-input { width: 100% !important; } }
