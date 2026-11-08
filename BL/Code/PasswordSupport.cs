@@ -13,14 +13,16 @@ namespace BL.Code
         //Password Checker:
         const string _LOWER_CASE = "abcdefghijklmnopqursuvwxyz";
         const string _UPPER_CAES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        const string _NUMBERS = "123456789";
+        const string _NUMBERS = "0123456789";    //dříve bez 0 – heslo s jedinou číslicí 0 neprošlo
         const string _SPECIALS = @"!@.$_!&*()#.";
-        private bool RequireDigit { get; set; }
-        private bool RequireLowercase { get; set; }
-        private bool RequireUppercase { get; set; }
-        private bool RequireNonAlphanumeric { get; set; }
-        private int MinLength { get; set; }
-        private int MaxLength { get; set; }
+        //pravidla jen pro čtení – UI je zobrazuje u změny hesla (Home/ChangePassword)
+        public bool RequireDigit { get; private set; }
+        public bool RequireLowercase { get; private set; }
+        public bool RequireUppercase { get; private set; }
+        public bool RequireNonAlphanumeric { get; private set; }
+        public int MinLength { get; private set; }
+        public int MaxLength { get; private set; }
+        public static string SpecialChars => _SPECIALS;
 
 
         //Password Hasher:

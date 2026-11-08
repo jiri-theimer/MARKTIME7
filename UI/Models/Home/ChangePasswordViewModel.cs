@@ -10,5 +10,8 @@ namespace UI.Models.Home
         public string NewPassword { get; set; }
         public string CurrentPassword { get; set; }
         public string VerifyPassword { get; set; }
+
+        //pravidla hesla pro průběžnou kontrolu v prohlížeči (z appsettings PasswordChecker)
+        public BL.Code.PasswordSupport Rules { get; set; }
     }
 }

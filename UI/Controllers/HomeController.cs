@@ -91,22 +91,29 @@ namespace UI.Controllers
 
         public IActionResult ChangePassword()
         {
-            var v = new ChangePasswordViewModel();
-            if (Factory.CurrentUser.j02IsMustChangePassword)
-            {
-                this.AddMessage("Administrátor nastavil, že si musíte změnit přihlašovací heslo.", "info");
-            }
+            var v = new ChangePasswordViewModel() { Rules = new BL.Code.PasswordSupport() };
             return View(v);
         }
         [HttpPost]
         public IActionResult ChangePassword(ChangePasswordViewModel v)
         {
-            if (string.IsNullOrEmpty(v.NewPassword) || string.IsNullOrEmpty(v.VerifyPassword))
+            var cPwdSupp = new BL.Code.PasswordSupport();
+            v.Rules = cPwdSupp;
+            if (string.IsNullOrEmpty(v.CurrentPassword))
             {
-                this.AddMessageTranslated("???");
+                this.AddMessage("Zadejte současné heslo.");
                 return View(v);
             }
-            var cPwdSupp = new BL.Code.PasswordSupport();
+            if (string.IsNullOrEmpty(v.NewPassword) || string.IsNullOrEmpty(v.VerifyPassword))
+            {
+                this.AddMessage("Zadejte nové heslo a jeho ověření.");
+                return View(v);
+            }
+            if (v.NewPassword == v.CurrentPassword)
+            {
+                this.AddMessage("Nové heslo musí být jiné než současné.");
+                return View(v);
+            }
             var res = cPwdSupp.CheckPassword(v.NewPassword);
             if (res.Flag == BO.ResultEnum.Failed)
             {

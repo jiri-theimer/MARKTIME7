@@ -70,3 +70,28 @@
     .mp-maint { flex-direction: column; align-items: flex-start; }
     .mp-sb-group { width: auto; }
 }
+
+/* Změna hesla (Views/Home/ChangePassword.cshtml) – třídy cp-* */
+.cp { max-width: 460px; margin: 8px auto 24px; padding: 22px 24px; border: 1px solid #e3e6ea; border-radius: 12px; background: #fff; }
+.cp-title { display: flex; align-items: center; gap: 8px; font-size: 1.2rem; font-weight: 600; margin: 0; }
+.cp-title .material-icons-outlined-nosize { color: var(--pozadi, #0b4b92); }
+.cp-user { color: #6c757d; font-size: .875rem; margin: 2px 0 16px; }
+.cp-must { display: flex; gap: 8px; align-items: flex-start; padding: 8px 10px; margin-bottom: 16px; border-radius: 8px; background: #fff3cd; color: #664d03; font-size: .875rem; }
+.cp-field { margin-bottom: 14px; }
+.cp-field > label { display: block; font-size: .875rem; font-weight: 500; margin-bottom: 3px; }
+.cp-pwd { position: relative; }
+.cp-pwd .form-control { padding-right: 40px; }
+.cp-eye { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); border: 0; background: transparent; color: #8a939c; padding: 4px 6px; border-radius: 6px; line-height: 0; }
+.cp-eye:hover { color: #212529; background: #f1f3f5; }
+.cp-eye-on { color: var(--pozadi, #0b4b92); }
+.cp-rules { list-style: none; display: flex; flex-wrap: wrap; gap: 4px 6px; padding: 0; margin: 6px 0 0; font-size: .8rem; }
+.cp-rules li { padding: 1px 8px 1px 6px; border-radius: 10px; background: #f1f3f5; color: #59636e; }
+.cp-rules li::before { content: "○ "; }
+.cp-rules li.cp-ok { background: #e9f7ef; color: #17663a; }
+.cp-rules li.cp-ok::before { content: "✓ "; }
+.cp-rules code { font-size: .75rem; color: inherit; }
+.cp-match { min-height: 1.2em; margin-top: 4px; font-size: .8rem; }
+.cp-match-ok { color: #17663a; }
+.cp-match-bad { color: #b02a37; }
+.cp-caps { font-size: .8rem; color: #b25b00; margin: -6px 0 10px; }
+.cp-buttons { display: flex; gap: 8px; margin-top: 6px; }
