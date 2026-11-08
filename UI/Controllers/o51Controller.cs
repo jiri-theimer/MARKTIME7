@@ -265,6 +265,31 @@ namespace UI.Controllers
 
        
 
+        //štítky použitelné pro entitu – pro taghelper mystitky (výběr v rozbalovací nabídce)
+        public IActionResult GetApplicableTags(string entity)
+        {
+            if (string.IsNullOrEmpty(entity) || entity.Length < 3)
+            {
+                return Json(new object[0]);
+            }
+            string strPrefix = entity.Substring(0, 3);
+            string strPrefixDruhy = entity.Substring(0, 2) == "le" ? "p41" : "-1";
+
+            var lis = Factory.o51TagBL.GetList(new BO.myQueryO51())
+                .Where(p => p.o53Entities == null || p.o53Entities.Contains(strPrefix) || p.o53Entities.Contains(strPrefixDruhy))
+                .Select(p => new
+                {
+                    pid = p.pid,
+                    name = p.o51Name,
+                    g = p.o53ID,
+                    gname = p.o53Name,
+                    multi = p.o53IsMultiSelect,
+                    bg = p.o51IsColor ? p.o51BackColor : null,
+                    fg = p.o51IsColor ? p.o51ForeColor : null
+                });
+            return Json(lis);
+        }
+
         public string GetTagHtml(string o51ids)
         {
             if (String.IsNullOrEmpty(o51ids) == true)

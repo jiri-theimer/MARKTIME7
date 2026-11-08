@@ -5,207 +5,138 @@
     Model.PageTitle = _f.tra("Přihlášení");
     Layout = "~/Views/Shared/_LayoutAnonym.cshtml";
 
-    var _returnurl = @Context.Request.Query["returnurl"];
+    string _returnurl = Context.Request.Query["returnurl"];
 
     var _culture = System.Globalization.CultureInfo.CurrentUICulture.Name;
+
+    //odkaz na mobilní aplikaci vidí všichni (i inhouse instalace – ať vědí, že existuje)
+    const string _mobileUrl = "https://mobile.marktime.net";
+    bool _showMobile = true;
 }
 
 @addTagHelper *, UI
 @section header_content
 {
-
-    
-   
-
-
-
+    <link rel="stylesheet" href="~/css/login.css" asp-append-version="true" />
 }
 
+<div class="lg-wrap @(_showMobile ? "lg-with-mobile" : "")">
 
+    <div class="lg-card">
+        <img class="lg-logo" src="/images/logo_default.png" alt="MARKTIME" />
 
+        <form id="form1" asp-action="UserLogin" method="post" onsubmit="return dosubmit();">
+            <h1 class="lg-title">@_f.tra("Přihlášení")</h1>
 
+            @if (Model.Message != null)
+            {
+                <div class="lg-alert" role="alert">@Html.Raw(Model.Message)</div>
+            }
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-<div class="container" style="max-width:800px;">
-
-    <form id="form1" asp-action="UserLogin" method="post" onsubmit="return dosubmit();">
-
-        <h4>@_f.tra("Přihlášení")</h4>
-
-        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-
-        <div class="row mb-2">
-            <label asp-for="@Model.Login" class="col-sm-3 col-form-label">@_f.tra("Přihlašovací jméno (login)"):</label>
-            <div class="col-sm-9">
-                <input asp-for="@Model.Login" class="form-control" autocomplete="username" />
+            <div class="lg-field">
+                <label asp-for="@Model.Login">@_f.tra("Přihlašovací jméno (login)")</label>
+                <input asp-for="@Model.Login" class="form-control" autocomplete="username" autocapitalize="none" spellcheck="false" autofocus />
                 <span asp-validation-for="@Model.Login" class="text-danger"></span>
             </div>
 
-
-        </div>
-        <div class="row mb-2">
-            <label asp-for="@Model.Password" class="col-sm-3 col-form-label">@_f.tra("Heslo"):</label>
-            <div class="col-sm-9">
-                <input type="password" asp-for="@Model.Password" autocomplete="current-password" class="form-control" />
+            <div class="lg-field">
+                <div class="lg-label-row">
+                    <label asp-for="@Model.Password">@_f.tra("Heslo")</label>
+                    <a href="/Password/Index" class="lg-link" tabindex="-1">@_f.tra("Zapomenuté heslo")</a>
+                </div>
+                <div class="lg-pwd">
+                    <input type="password" asp-for="@Model.Password" autocomplete="current-password" class="form-control" />
+                    <button type="button" class="lg-eye" id="cmdEye" tabindex="-1" title="@_f.tra("Zobrazit heslo")" aria-label="@_f.tra("Zobrazit heslo")">
+                        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 5C6.5 5 2.7 8.6 1 12c1.7 3.4 5.5 7 11 7s9.3-3.6 11-7c-1.7-3.4-5.5-7-11-7zm0 11.5A4.5 4.5 0 1 1 12 7.5a4.5 4.5 0 0 1 0 9zm0-7a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z" /></svg>
+                    </button>
+                </div>
+                <div class="lg-caps" id="divCaps" style="display:none;">@_f.tra("Zapnutý Caps Lock")</div>
                 <span asp-validation-for="@Model.Password" class="text-danger"></span>
             </div>
 
-        </div>
-        <div class="row mb-2">
-            <label asp-for="@Model.CookieExpiresInHours" class="col-sm-3 col-form-label">@_f.tra("Trvalé přihlášení"):</label>
-            <div class="col-sm-9">
-                <select asp-for="@Model.CookieExpiresInHours" class="form-select">
+            <div class="lg-field lg-inline">
+                <label asp-for="@Model.CookieExpiresInHours">@_f.tra("Trvalé přihlášení")</label>
+                <select asp-for="@Model.CookieExpiresInHours" class="form-select form-select-sm">
                     <option value="168">@_f.tra("7 dní (168 hodin)")</option>
                     <option value="48">@_f.tra("48 hodin")</option>
                     <option value="24">@_f.tra("24 hodin")</option>
                     <option value="12">@_f.tra("12 hodin")</option>
                     <option value="1">@_f.tra("1 hodina")</option>
-
-                    
-
                 </select>
             </div>
 
-        </div>
+            <button type="submit" id="cmdLogin" class="btn lg-submit">@_f.tra("Přihlásit se")</button>
 
-        <div class="row mb-2">
-            <div class="col-sm-3">
-            </div>
+            @if (_f.App.AllowGoogleLogin)
+            {
+                <div class="lg-or"><span>@_f.tra("nebo")</span></div>
+                <a href="/Login/GoogleLogin?returnurl=@System.Net.WebUtility.UrlEncode(_returnurl)" class="btn lg-google">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="18" height="18" aria-hidden="true">
+                        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+                        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+                        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+                        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+                    </svg>
+                    @_f.tra("Přihlásit se přes Google")
+                </a>
+            }
 
-            <div class="col-auto">
-                <input type="submit" value="@_f.tra("Přihlásit se")" class="btn btn-default btn-primary" asp-route-returnurl="@_returnurl" />
-            </div>
-            <div class="col-auto" style="margin-left:auto;">
-                <a href="/Password/Index" class="btn btn-light">@_f.tra("Zapomenuté heslo")</a>
-            </div>
-        </div>
-        @if (_f.App.AllowGoogleLogin)
-        {
-            <div class="row mb-2">
-                <div class="col-sm-9 offset-sm-3">
-                    <hr class="my-3" />
-                    <a href="/Login/GoogleLogin?returnurl=@_returnurl"
-                       class="btn btn-outline-secondary d-inline-flex align-items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="18" height="18">
-                            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
-                            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
-                            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
-                            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
-                            <path fill="none" d="M0 0h48v48H0z" />
-                        </svg>
-                        @_f.tra("Přihlásit se přes Google")
-                    </a>
+            @if (_f.App.HostingMode == BL.Singleton.HostingModeEnum.TotalCloud)
+            {
+                <div class="lg-register">
+                    @_f.tra("Nemáte účet?") <a href="/CreateLicenseFree" class="lg-link">@(_f.tra("Zaregistrovat novou databázi"))</a>
                 </div>
-            </div>
+            }
 
-        }
+            <input type="hidden" asp-for="Browser_AvailWidth" />
+            <input type="hidden" asp-for="Browser_AvailHeight" />
+            <input type="hidden" asp-for="Browser_InnerWidth" />
+            <input type="hidden" asp-for="Browser_InnerHeight" />
+            <input type="hidden" asp-for="Browser_UserAgent" />
+            <input type="hidden" asp-for="Browser_DeviceType" />
+            <input type="hidden" asp-for="Browser_Host" />
+        </form>
 
-            
-
-        
-        
-        
-        @if (_f.App.HostingMode == BL.Singleton.HostingModeEnum.TotalCloud)
-        {
-            <div style="margin-top:10px;">
-
-                <a href="/CreateLicenseFree">@(_f.tra("Zaregistrovat novou databázi"))</a>
-
-            </div>
-        }
-
-        <div class="nonmobile">
-            <img src="/images/devices.png" />
-            <div>
-                <small class="text-info">
-                    @_f.tra("Jedna aplikace pro všechna zařízení!")
-                </small>
-            </div>
-        </div>
-
-
-        
-
-        <input type="hidden" asp-for="Browser_AvailWidth" />
-        <input type="hidden" asp-for="Browser_AvailHeight" />
-        <input type="hidden" asp-for="Browser_InnerWidth" />
-        <input type="hidden" asp-for="Browser_InnerHeight" />
-        <input type="hidden" asp-for="Browser_UserAgent" />
-        <input type="hidden" asp-for="Browser_DeviceType" />
-        <input type="hidden" asp-for="Browser_Host" />
-
-
-        
-
-
-    </form>
-
-
-
-
-    <form id="form2" asp-controller="Login" asp-action="SaveLang" method="post" class="d-inline">
-        <div class="d-flex gap-3">
-
-            <div class="form-check">
-                <input class="form-check-input"
-                       type="radio"
-                       name="culture"
-                       value="cs-CZ"
-                       id="lang-cs"
-                       onchange="this.form.submit()"
-                @( _culture == "cs-CZ" ? "checked" : null )>
-                <label class="form-check-label" for="lang-cs">
-                    <img src="/images/small_czechrepublic.gif" width="18" class="me-1" />
-                    Čeština
-                </label>
-            </div>
-
-            <div class="form-check">
-                <input class="form-check-input"
-                       type="radio"
-                       name="culture"
-                       value="en-US"
-                       id="lang-en"
-                       onchange="this.form.submit()"
-                @( _culture == "en-US" ? "checked" : null )>
-                <label class="form-check-label" for="lang-en">
-                    <img src="/images/small_uk.gif" width="18" class="me-1" />
-                    English
-                </label>
-            </div>
-
-            <div class="form-check">
-                <input class="form-check-input"
-                       type="radio"
-                       name="culture"
-                       value="sk-SK"
-                       id="lang-sk"
-                       onchange="this.form.submit()"
-                @( _culture == "sk-SK" ? "checked" : null )>
-                <label class="form-check-label" for="lang-sk">
-                    <img src="/images/small_slovakia.gif" width="18" class="me-1" />
-                    Slovenčina
-                </label>
-            </div>
-
-        </div>
-    </form>
-
-</div>
-
-
-
-@if (Model.Message != null)
-{
-    <div class="alert alert-danger" role="alert">
-        <h4>@Html.Raw(Model.Message)</h4>
+        <form id="form2" asp-controller="Login" asp-action="SaveLang" method="post" class="lg-langs">
+            <label class="lg-lang @(_culture == "cs-CZ" ? "lg-lang-on" : "")">
+                <input type="radio" name="culture" value="cs-CZ" onchange="this.form.submit()" @(_culture == "cs-CZ" ? "checked" : null)>
+                <img src="/images/small_czechrepublic.gif" width="18" alt="" /> Čeština
+            </label>
+            <label class="lg-lang @(_culture == "en-US" ? "lg-lang-on" : "")">
+                <input type="radio" name="culture" value="en-US" onchange="this.form.submit()" @(_culture == "en-US" ? "checked" : null)>
+                <img src="/images/small_uk.gif" width="18" alt="" /> English
+            </label>
+            <label class="lg-lang @(_culture == "sk-SK" ? "lg-lang-on" : "")">
+                <input type="radio" name="culture" value="sk-SK" onchange="this.form.submit()" @(_culture == "sk-SK" ? "checked" : null)>
+                <img src="/images/small_slovakia.gif" width="18" alt="" /> Slovenčina
+            </label>
+        </form>
     </div>
-}
 
+    @if (_showMobile)
+    {
+        <aside class="lg-mobile">
+            <div class="lg-mobile-head">
+                <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M16 1H8a3 3 0 0 0-3 3v16a3 3 0 0 0 3 3h8a3 3 0 0 0 3-3V4a3 3 0 0 0-3-3zm1 19a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v16zm-5-2.5a1.25 1.25 0 1 0 0 2.5 1.25 1.25 0 0 0 0-2.5z" /></svg>
+                <h2>@_f.tra("MARKTIME v mobilu")</h2>
+            </div>
+            <p>@_f.tra("Vykazujte hodiny a výdaje přímo z telefonu – u klienta nebo na cestě. Přihlásíte se stejným jménem a heslem.")</p>
+
+            <div class="lg-qr">
+                <img src="@UI.Code.basQRCoder.GetUrlQrDataUri(_mobileUrl)" width="168" height="168" alt="QR kód: @_mobileUrl" />
+                <small>@_f.tra("Naskenujte fotoaparátem telefonu")</small>
+            </div>
+
+            <a href="@_mobileUrl" target="_blank" rel="noopener" class="btn lg-mobile-btn">@_f.tra("Otevřít mobilní aplikaci")</a>
+            <div class="lg-mobile-url"><a href="@_mobileUrl" target="_blank" rel="noopener">mobile.marktime.net</a></div>
+            <p class="lg-mobile-tip">@_f.tra("Tip: v telefonu si stránku přidejte na plochu (Sdílet / ⋮ → Přidat na plochu) a bude se chovat jako aplikace.")</p>
+        </aside>
+    }
+</div>
 
 <script type="text/javascript">
     $(document).ready(function () {
-
-
         $("#Browser_UserAgent").val(navigator.userAgent);
         $("#Browser_AvailWidth").val(screen.availWidth);
         $("#Browser_AvailHeight").val(screen.availHeight);
@@ -219,23 +150,35 @@
         }
         $("#Browser_DeviceType").val(devicetype);
 
+        if ($("#Login").val() !== "") $("#Password").focus();
 
+        $("#cmdEye").on("click", function () {
+            var $p = $("#Password");
+            var show = $p.attr("type") === "password";
+            $p.attr("type", show ? "text" : "password");
+            $(this).toggleClass("lg-eye-on", show);
+            $p.focus();
+        });
 
-
-
+        $("#Password").on("keyup keydown", function (e) {
+            if (e.originalEvent && e.originalEvent.getModifierState) {
+                $("#divCaps").toggle(e.originalEvent.getModifierState("CapsLock"));
+            }
+        });
     });
 
-    
-   
+    window.addEventListener("pageshow", function () {      //návrat tlačítkem Zpět – tlačítko znovu povolit
+        $("#cmdLogin").prop("disabled", false).text(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(_f.tra("Přihlásit se"))));
+    });
 
-    
-
-    function dosubmit()
-    {
-
+    function dosubmit() {
         const selectedCulture = document.querySelector('input[name="culture"]:checked')?.value;
-
-        form1.action = "/Login/UserLogin?culture="+selectedCulture;
+        const returnurl = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(_returnurl ?? ""));
+        var q = [];
+        if (selectedCulture) q.push("culture=" + encodeURIComponent(selectedCulture));
+        if (returnurl !== "") q.push("returnurl=" + encodeURIComponent(returnurl));      //zůstane i po chybném přihlášení
+        form1.action = "/Login/UserLogin" + (q.length ? "?" + q.join("&") : "");
+        $("#cmdLogin").prop("disabled", true).text(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(_f.tra("Přihlašuji…"))));
         return true;
     }
 </script>

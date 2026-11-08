@@ -1,18 +1,37 @@
 ﻿@model BaseViewModel
 @inject BL.Factory _f
 
-
-
 @{
-    
-
-    ViewData["Title"] = _f.tra("Odhlášení z aplikace");
+    Model.PageTitle = _f.tra("Odhlášení z aplikace");
     Layout = "~/Views/Shared/_LayoutAnonym.cshtml";
 }
 
-<div style="margin:auto;max-width:500px;">
-    <h4>@_f.tra("Došlo k odhlášení uživatele")</h4>
+@addTagHelper *, UI
+@section header_content
+{
+    <link rel="stylesheet" href="~/css/login.css" asp-append-version="true" />
+}
 
-    <a asp-action="UserLogin" asp-controller="Login">@_f.tra("Přihlásit se")</a>
+<div class="lg-wrap">
+    <div class="lg-card lg-center">
+        <a href="/Login/UserLogin"><img class="lg-logo" src="/images/logo_default.png" alt="MARKTIME" /></a>
+
+        <div class="lg-done" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="30" height="30"><path fill="currentColor" d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z" /></svg>
+        </div>
+        <h1 class="lg-title">@_f.tra("Byli jste odhlášeni")</h1>
+        <p class="lg-hint">@_f.tra("Na sdíleném počítači doporučujeme zavřít i okno prohlížeče.")</p>
+
+        <a href="/Login/UserLogin" class="btn lg-submit">@_f.tra("Přihlásit se znovu")</a>
+    </div>
 </div>
 
+<script type="text/javascript">
+    //po odhlášení smazat uložený stav AI dotazů (sessionStorage aiask-state-*) – citlivá data na sdíleném počítači
+    try {
+        for (var i = sessionStorage.length - 1; i >= 0; i--) {
+            var k = sessionStorage.key(i);
+            if (k && k.indexOf("aiask-") === 0) sessionStorage.removeItem(k);
+        }
+    } catch (e) { }
+</script>

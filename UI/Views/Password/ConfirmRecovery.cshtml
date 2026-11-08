@@ -1,34 +1,36 @@
 ﻿@model PasswordViewModel
 @inject BL.Factory _f
 
-
 @{
     Model.PageTitle = _f.tra("Obnovení zapomenutého hesla");
     Layout = "~/Views/Shared/_LayoutAnonym.cshtml";
-
-    var _returnurl = @Context.Request.Query["returnurl"];
 }
 
 @addTagHelper *, UI
+@section header_content
+{
+    <link rel="stylesheet" href="~/css/login.css" asp-append-version="true" />
+}
 
+<div class="lg-wrap">
+    <div class="lg-card">
+        <a href="/Login/UserLogin"><img class="lg-logo" src="/images/logo_default.png" alt="MARKTIME" /></a>
 
-<div class="container" style="max-width:800px;">
+        <h1 class="lg-title">@_f.tra("Vygenerování nového hesla")</h1>
 
+        @if (Model.ErrorMessage != null)
+        {
+            <div class="lg-alert" role="alert">@Html.Raw(Model.ErrorMessage)</div>
+            <a href="/Password/Index" class="btn lg-google">@_f.tra("Poslat novou žádost")</a>
+        }
+        @if (Model.SuccessMessage != null)
+        {
+            <div class="lg-alert lg-alert-ok" role="status">@Html.Raw(Model.SuccessMessage)</div>
+            <a href="/Login/UserLogin" class="btn lg-submit">@_f.tra("Přejít na přihlášení")</a>
+        }
 
-    <h4>@_f.tra("Vygenerování nového hesla")</h4>
-
-
-    @if (Model.ErrorMessage != null)
-    {
-        <div class="alert alert-danger" role="alert">
-            <h4>@Html.Raw(Model.ErrorMessage)</h4>
+        <div class="lg-back">
+            <a href="/Login/UserLogin" class="lg-link">← @_f.tra("Vrátit se na přihlášení")</a>
         </div>
-    }
-    @if (Model.SuccessMessage != null)
-    {
-        <div class="alert alert-success" role="alert">
-            <h4>@Html.Raw(Model.SuccessMessage)</h4>
-        </div>
-    }
-
+    </div>
 </div>

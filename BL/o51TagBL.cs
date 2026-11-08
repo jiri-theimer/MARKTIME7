@@ -125,6 +125,7 @@ namespace BL
 
         public int SaveTagging(string record_entity, int record_pid, string o51ids,int only_one_o53id=0)
         {
+            o51ids = string.Join(",", BO.Code.Bas.ConvertString2ListInt(o51ids).Where(p => p > 0)); //kvůli sql injectins
             record_entity = record_entity.Substring(0, 3);
             if (only_one_o53id == 0)
             {

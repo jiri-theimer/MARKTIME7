@@ -300,6 +300,130 @@ function mystitky_multiselect(event, entity) {
 }
 
 
+/*taghelper mystitky – čipy s × a rozbalovací výběr štítků s hledáním. Vzhled: mst-* v site.css.
+  Hodnoty beze změny: #TagPids = o51ID oddělené čárkou, #TagHtml = HTML čipů. Skupina s jedním štítkem (o53IsMultiSelect=false) se chová jako přepínač. */
+function mystitky_init(c) {
+    var $box = $("#mstTagging");
+    var $chips = $("#divTagHtml");
+    var $data = $box.find(".mst-data");
+    var $search = $box.find(".mst-search");
+    var $count = $box.find(".mst-count");
+    var tags = null, loading = false;
+
+    function norm(s) { return (s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); }
+    function esc(s) { return $("<div>").text(s == null ? "" : s).html(); }
+    function sel() { var v = $("#TagPids").val(); return v ? v.split(",").filter(function (x) { return x !== "" && x !== "0"; }) : []; }
+    function bypid(pid) { if (!tags) return null; for (var i = 0; i < tags.length; i++) { if (String(tags[i].pid) === String(pid)) return tags[i]; } return null; }
+
+    function chip(t) {
+        var st = t.bg ? " style='background-color:" + esc(t.bg) + ";color:" + esc(t.fg) + ";border-color:" + esc(t.bg) + ";'" : "";
+        return "<span class='mst-chip' data-pid='" + t.pid + "' title='" + esc(t.gname) + "'" + st + "><span class='mst-name'>" + esc(t.name) + "</span><button type='button' class='mst-x' tabindex='-1' title='Odebrat' aria-label='Odebrat'>×</button></span>";
+    }
+
+    function save(pids) {      //zápis hodnot + překreslení čipů (pořadí podle nabídky = skupina, pořadí štítku)
+        var ordered = tags ? tags.filter(function (t) { return pids.indexOf(String(t.pid)) >= 0; }).map(function (t) { return String(t.pid); }) : pids;
+        $("#TagPids").val(ordered.join(","));
+        if (tags) {
+            $chips.html(ordered.map(function (p) { return chip(bypid(p)); }).join(""));
+        } else {      //nabídka ještě nenačtena (odebrání ×) – stačí odstranit čipy
+            $chips.find(".mst-chip").filter(function () { return ordered.indexOf(String($(this).data("pid"))) < 0; }).remove();
+        }
+        $("#TagHtml").val($chips.html());
+        render_list();
+    }
+
+    function toggle(pid) {
+        var t = bypid(pid), cur = sel(), p = String(pid), i = cur.indexOf(p);
+        if (i >= 0) { cur.splice(i, 1); }
+        else {
+            if (t && !t.multi) {    //skupina s jedním štítkem: ostatní ze skupiny pryč
+                cur = cur.filter(function (x) { var o = bypid(x); return !(o && o.g === t.g); });
+            }
+            cur.push(p);
+        }
+        save(cur);
+    }
+
+    function mark(txt, words) {
+        var map = [], n = "";
+        for (var i = 0; i < txt.length; i++) { var ch = norm(txt[i]); for (var k = 0; k < ch.length; k++) { n += ch[k]; map.push(i); } }
+        var hit = new Array(txt.length).fill(false);
+        words.forEach(function (w) { var p = n.indexOf(w); while (p >= 0) { for (var j = p; j < p + w.length; j++) hit[map[j]] = true; p = n.indexOf(w, p + w.length); } });
+        var out = "", open = false;
+        for (var i2 = 0; i2 < txt.length; i2++) {
+            if (hit[i2] && !open) { out += "<mark class='mtc-mark'>"; open = true; }
+            if (!hit[i2] && open) { out += "</mark>"; open = false; }
+            out += esc(txt[i2]);
+        }
+        return out + (open ? "</mark>" : "");
+    }
+
+    function render_list() {
+        if (!tags) return;
+        var cur = sel();
+        var words = norm($search.val()).split(/\s+/).filter(function (w) { return w !== ""; });
+        var h = [], lastg = null, nvis = 0;
+        tags.forEach(function (t) {
+            var hay = norm(t.name + " " + t.gname), ok = true;
+            for (var i = 0; i < words.length; i++) { if (hay.indexOf(words[i]) < 0) { ok = false; break; } }
+            if (!ok) return;
+            if (t.g !== lastg) {
+                h.push("<div class='mst-group'>" + esc(t.gname) + (t.multi ? "" : " <span class='mst-single'>· jen jeden</span>") + "</div>");
+                lastg = t.g;
+            }
+            var on = cur.indexOf(String(t.pid)) >= 0;
+            var st = t.bg ? " style='background-color:" + esc(t.bg) + ";color:" + esc(t.fg) + ";border-color:" + esc(t.bg) + ";'" : "";
+            h.push("<button type='button' class='mst-item" + (on ? " mst-on" : "") + "' data-pid='" + t.pid + "'><span class='mst-check material-icons-outlined-nosize'>" + (on ? "check" : "") + "</span><span class='mst-swatch'" + st + ">" + (words.length ? mark(t.name, words) : esc(t.name)) + "</span></button>");
+            nvis++;
+        });
+        if (tags.length === 0) h.push("<div class='mst-empty'>Pro tento typ záznamu nejsou založené žádné štítky.</div>");
+        else if (nvis === 0) h.push("<div class='mst-empty'>Nic nenalezeno</div>");
+        var focused = document.activeElement && $(document.activeElement).hasClass("mst-item") ? $(document.activeElement).data("pid") : null;
+        $data.html(h.join(""));
+        if (focused != null) $data.find(".mst-item[data-pid='" + focused + "']").focus();
+        $count.text(cur.length > 0 ? "Vybráno: " + cur.length : "");
+        $box.find(".mst-clear").prop("disabled", cur.length === 0);
+    }
+
+    function load() {
+        if (tags || loading) return;
+        loading = true;
+        $data.html("<div class='mst-empty'>Načítám…</div>");
+        $.get(_ep("/o51/GetApplicableTags"), { entity: c.entity }, function (data) {
+            tags = data || [];
+            loading = false;
+            render_list();
+        }).fail(function () { loading = false; $data.html("<div class='mst-empty'>Chyba načtení</div>"); });
+    }
+
+    $box.find(".dropdown-menu").on("click.bs.dropdown", function (e) { e.stopPropagation(); });
+    $chips.on("click", ".mst-x", function (e) {
+        e.preventDefault(); e.stopPropagation();
+        var p = String($(this).closest(".mst-chip").data("pid"));
+        save(sel().filter(function (x) { return x !== p; }));
+    });
+    $data.on("click", ".mst-item", function () { toggle($(this).data("pid")); });
+    $box.find(".mst-clear").on("click", function () { save([]); });
+    $search.on("input", render_list);
+
+    $search.on("keydown", function (e) {
+        var $it = $data.find(".mst-item");
+        if (e.key === "ArrowDown") { e.preventDefault(); $it.first().focus(); }
+        else if (e.key === "Enter") { e.preventDefault(); if ($it.length === 1) toggle($it.data("pid")); }
+    });
+    $data.on("keydown", ".mst-item", function (e) {
+        var $it = $data.find(".mst-item"), i = $it.index(this);
+        if (e.key === "ArrowDown" && i < $it.length - 1) { e.preventDefault(); $it.eq(i + 1).focus(); }
+        else if (e.key === "ArrowUp") { e.preventDefault(); if (i > 0) $it.eq(i - 1).focus(); else $search.focus(); }
+    });
+
+    var el = $box[0];
+    el.addEventListener("show.bs.dropdown", load);
+    el.addEventListener("shown.bs.dropdown", function () { $search.trigger("focus"); });
+    el.addEventListener("hidden.bs.dropdown", function () { if ($search.val() !== "") { $search.val(""); render_list(); } });
+}
+
+
 /*taghelper mycombochecklist*/
 /*taghelper mycombochecklist – výběr více položek (hledání, Vše/Nic, počet). Vzhled: mcl-* v site.css.
   Hodnoty beze změny: skrytý input c.controlid = pid oddělené čárkou, c.aliasid = názvy oddělené ★ */
@@ -313,7 +437,7 @@ function mycombochecklist_init(c) {
     var container = document.getElementById("divDropdownContainer" + c.controlid);
     var filled = false, loading = false;
 
-    function norm(s) { return (s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, ""); }
+    function norm(s) { return (s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); }
     function esc(s) { return $("<div>").text(s).html(); }
 
     function render_button(lbls) {

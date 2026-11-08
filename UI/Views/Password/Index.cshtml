@@ -1,49 +1,57 @@
 ﻿@model PasswordViewModel
 @inject BL.Factory _f
 
-
 @{
     Model.PageTitle = _f.tra("Obnovení zapomenutého hesla");
     Layout = "~/Views/Shared/_LayoutAnonym.cshtml";
-
-    var _returnurl = @Context.Request.Query["returnurl"];
 }
 
 @addTagHelper *, UI
+@section header_content
+{
+    <link rel="stylesheet" href="~/css/login.css" asp-append-version="true" />
+}
 
+<div class="lg-wrap">
+    <div class="lg-card">
+        <a href="/Login/UserLogin"><img class="lg-logo" src="/images/logo_default.png" alt="MARKTIME" /></a>
 
-<div class="container" style="max-width:800px;">
+        <h1 class="lg-title">@_f.tra("Obnovení zapomenutého hesla")</h1>
 
-    <form id="form1" asp-action="Index" method="post">
-        
-        <h4>@_f.tra("Obnovení zapomenutého hesla")</h4>
+        @if (Model.ErrorMessage != null)
+        {
+            <div class="lg-alert" role="alert">@Html.Raw(Model.ErrorMessage)</div>
+        }
+        @if (Model.SuccessMessage != null)
+        {
+            <div class="lg-alert lg-alert-ok" role="status">@Html.Raw(Model.SuccessMessage)</div>
+        }
+        else
+        {
+            <p class="lg-hint">@_f.tra("Zadejte přihlašovací jméno nebo e-mail. Pošleme vám odkaz, přes který si vygenerujete nové heslo. Odkaz platí 30 minut.")</p>
 
-        <div class="row mb-2">
-            <label asp-for="@Model.Login" class="col-sm-4 col-form-label">@_f.tra("Přihlašovací jméno (login) nebo e-mail"):</label>
-            <div class="col-sm-8">
-                <input asp-for="@Model.Login" class="form-control" autocomplete="username"/>
-            </div>
+            <form id="form1" asp-action="Index" method="post" onsubmit="return dosubmit();">
+                <div class="lg-field">
+                    <label asp-for="@Model.Login">@_f.tra("Přihlašovací jméno (login) nebo e-mail")</label>
+                    <input asp-for="@Model.Login" class="form-control" autocomplete="username" autocapitalize="none" spellcheck="false" autofocus />
+                </div>
 
+                <button type="submit" id="cmdSend" class="btn lg-submit">@_f.tra("Zaslat odkaz pro změnu hesla")</button>
+            </form>
+        }
 
+        <div class="lg-back">
+            <a href="/Login/UserLogin" class="lg-link">← @_f.tra("Vrátit se na přihlášení")</a>
         </div>
-
-        <p></p>
-
-        <button type="submit" class="btn btn-primary">@_f.tra("Zaslat odkaz pro změnu hesla")</button>
-
-        <a class="btn btn-light" href="/Login/UserLogin">@_f.tra("Vrátit se na přihlášení")</a>
-    </form>
-
-    @if (Model.ErrorMessage != null)
-    {
-        <div class="alert alert-danger" role="alert">
-            <h4>@Html.Raw(Model.ErrorMessage)</h4>
-        </div>
-    }
-    @if (Model.SuccessMessage != null)
-    {
-        <div class="alert alert-success" role="alert">
-            <h4>@Html.Raw(Model.SuccessMessage)</h4>
-        </div>
-    }
+    </div>
 </div>
+
+<script type="text/javascript">
+    window.addEventListener("pageshow", function () {
+        $("#cmdSend").prop("disabled", false).text(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(_f.tra("Zaslat odkaz pro změnu hesla"))));
+    });
+    function dosubmit() {
+        $("#cmdSend").prop("disabled", true).text(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(_f.tra("Odesílám…"))));
+        return true;
+    }
+</script>
