@@ -577,7 +577,6 @@ namespace UI.Controllers
             {
                 v.recX56 = Factory.x55WidgetBL.LoadState(Factory.CurrentUser.pid, v.Skin, v.SelectedX54ID);
             }
-            v.DockStructure = new WidgetsEnvironment(v.recX56.x56DockState);
 
             if (Factory.CurrentUser.j02LangIndex == 2)
             {
@@ -603,48 +602,9 @@ namespace UI.Controllers
             }
 
 
-            foreach (var onestate in v.DockStructure.States)
-            {
-                if (v.lisUserWidgets.Where(p => p.pid.ToString() == onestate.Value).Count() > 0)
-                {
-                    var c = v.lisUserWidgets.Where(p => p.pid.ToString() == onestate.Value).First();
-                    switch (onestate.Key)
-                    {
-                        case "2":
-                            if (v.ColumnsPerPage >= 2) v.DockStructure.Col2.Add(c);
-                            break;
-                        case "3":
-                            if (v.ColumnsPerPage >= 3) v.DockStructure.Col3.Add(c);
-                            break;
-                        default:
-                            v.DockStructure.Col1.Add(c);
-                            break;
-                    }
-                }
-            }
-            foreach (var c in v.lisUserWidgets)
-            {
-                if ((v.DockStructure.Col1.Contains(c) || v.DockStructure.Col2.Contains(c) || v.DockStructure.Col3.Contains(c)) == false)
-                {
-                    switch (v.ColumnsPerPage)
-                    {
-                        case 2 when (v.DockStructure.Col1.Count() >= 2):
-                            v.DockStructure.Col2.Add(c);
-                            break;
-                        case 3 when (v.DockStructure.Col1.Count() >= 2 && v.DockStructure.Col2.Count() >= 2):
-                            v.DockStructure.Col3.Add(c);
-                            break;
-                        case 3 when (v.DockStructure.Col1.Count() >= 2 && v.DockStructure.Col2.Count() < 2):
-                            v.DockStructure.Col2.Add(c);
-                            break;
-                        default:
-                            v.DockStructure.Col1.Add(c);
-                            break;
-                    }
+            //rozložení: jedno pořadí + široké widgety (starý sloupcový stav se načte po řádcích – WidgetsGrid)
+            v.Grid = WidgetsGrid.Build(v.recX56.x56DockState, v.lisUserWidgets);
 
-                }
-
-            }
             if (v.lisUserWidgets.Exists(p => p.x55TableSql != null && p.x55TableColHeaders != null))
             {
                 v.IsDataTables = true;

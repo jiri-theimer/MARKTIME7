@@ -26,9 +26,9 @@
 
 @{
     //jeden widget – společné pro všechny sloupce (dříve 3× kopie; název měl id jen v 1. sloupci)
-    void RenderBox(BO.x55Widget c)
+    void RenderBox(BO.x55Widget c, bool wide)
     {
-        <div id="box_@(c.pid)" class="portlet wd-card">
+        <div id="box_@(c.pid)" class="portlet wd-card@(wide ? " wd-wide" : "")">
             <div class="portlet-header wd-head" @Html.Raw(c.CssHeaderDiv)>
                 <span class="material-icons-outlined-nosize wd-grip nonmobile" title="@_f.tra("Přetáhnout")">drag_indicator</span>
                 <span class="material-icons-outlined-nosize wd-icon">@(c.HeaderImage)</span>
@@ -45,6 +45,15 @@
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li><a class="dropdown-item" href="javascript:_copy_element_to_clipboard('@c.x55Code')"><span class="material-icons-outlined-btn">content_copy</span> @_f.tra("Zkopírovat do schránky")</a></li>
                             <li><a class="dropdown-item" href="javascript:_html2mail('box_content_@(c.pid)','@c.x55Name','send_message_template_htmltable.html')"><span class="material-icons-outlined-btn">alternate_email</span> @_f.tra("Odeslat e-mailem")</a></li>
+                            @if (Model.ColumnsPerPage > 1)
+                            {
+                                <li>
+                                    <a class="dropdown-item wd-width" href="javascript:wd_toggle_wide(@c.pid)">
+                                        <span class="material-icons-outlined-btn wd-lbl-wide">open_in_full</span><span class="wd-lbl-wide">@_f.tra("Široký widget")</span>
+                                        <span class="material-icons-outlined-btn wd-lbl-normal">close_fullscreen</span><span class="wd-lbl-normal">@_f.tra("Normální šířka")</span>
+                                    </a>
+                                </li>
+                            }
                             <li><hr class="dropdown-divider" /></li>
                             @if (c.IsPersonal && c.IsAiWidget)
                             {
@@ -208,22 +217,8 @@ else if (Model.lisUserWidgets.Count == 0)
     </div>
 }
 
-<div id="@(Model.IsSubform ? "container_subform" : "container_index")" class="row wd-board wd-cols-@(Model.ColumnsPerPage)">
-    <div class="column @Model.BoxColCss" id="col1">
-        @foreach (var c in Model.DockStructure.Col1) { RenderBox(c); }
-    </div>
-    @if (Model.ColumnsPerPage > 1)
-    {
-        <div class="column @Model.BoxColCss" id="col2">
-            @foreach (var c in Model.DockStructure.Col2) { RenderBox(c); }
-        </div>
-    }
-    @if (Model.ColumnsPerPage > 2)
-    {
-        <div class="column @Model.BoxColCss" id="col3">
-            @foreach (var c in Model.DockStructure.Col3) { RenderBox(c); }
-        </div>
-    }
+<div id="@(Model.IsSubform ? "container_subform" : "container_index")" class="wd-board wd-cols-@(Model.ColumnsPerPage)">
+    @foreach (var c in Model.Grid.Items) { RenderBox(c, Model.Grid.IsWide(c.pid)); }
 </div>
 
 

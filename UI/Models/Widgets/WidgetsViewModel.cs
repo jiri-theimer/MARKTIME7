@@ -15,7 +15,8 @@ namespace UI.Models.Widgets
         public bool IsSubform { get; set; }     //true: jedná se o podformulář
         public string BoxColCss { get; set; } = "col-lg-6";
 
-        public WidgetsEnvironment DockStructure { get; set; }
+        /// <summary>Rozložení plochy: pořadí widgetů + šířka (mřížka podle ColumnsPerPage).</summary>
+        public WidgetsGrid Grid { get; set; } = new WidgetsGrid();
 
         public BO.x56WidgetBinding recX56 { get; set; }
 

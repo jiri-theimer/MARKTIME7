@@ -1,4 +1,4 @@
-﻿/* Dashboard (Views/Widgets/Index.cshtml) – třídy wd-*, zachovány portlet / portlet-header / portlet-content (jQuery UI sortable, serializace box_{pid}). */
+﻿/* Dashboard (Views/Widgets/Index.cshtml) – třídy wd-*, zachovány portlet / portlet-header / portlet-content (id box_{pid}); přetahování SortableJS v mřížce. */
 
 /* ------------------------------------------------------------------ lišta */
 .wd-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 10px; padding: 8px 12px; background: #fff; border-bottom: 1px solid #e3e6ea; }
@@ -17,7 +17,22 @@
 /* ------------------------------------------------------------------ plocha */
 #container_index.wd-board { margin: 0; padding: 14px 10px 24px; background: #f5f6f8; min-height: calc(100vh - 140px); border: 0; }
 #container_subform.wd-board { margin: 0; padding: 8px 4px; border: 0; }
-.wd-board > .column { min-height: 60px; padding-left: 6px; padding-right: 6px; }
+/* mřížka: jedno pořadí widgetů, počet sloupců = nastavení uživatele (1/2/3); zlomy jako dřív col-lg-6 / col-sm-6 col-lg-4 */
+.wd-board { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px 12px; align-items: start; align-content: start; }
+.wd-board > .wd-card { margin: 0; }
+@media (min-width: 576px) {
+    .wd-cols-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .wd-cols-3 > .wd-wide { grid-column: span 2; }
+}
+@media (min-width: 992px) {
+    .wd-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .wd-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .wd-cols-2 > .wd-wide { grid-column: span 2; }
+}
+/* přepínač šířky v menu widgetu; na úzké obrazovce (1 sloupec) nemá smysl */
+.wd-card:not(.wd-wide) .wd-lbl-normal, .wd-card.wd-wide .wd-lbl-wide { display: none; }
+@media (max-width: 991.98px) { .wd-cols-2 .wd-width { display: none !important; } }
+@media (max-width: 575.98px) { .wd-cols-3 .wd-width { display: none !important; } }
 
 .wd-card { margin: 0 0 14px; background: #fff; border: 1px solid #e3e6ea; border-radius: 10px; box-shadow: 0 1px 2px rgba(16,24,40,.05); }
 .wd-head { display: flex; align-items: center; gap: 6px; min-height: 40px; padding: 6px 8px 6px 6px; border-bottom: 1px solid #eef0f2; border-radius: 10px 10px 0 0; background: #fff; cursor: move; color: #1f2328; }

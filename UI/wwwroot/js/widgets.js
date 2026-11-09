@@ -1,6 +1,7 @@
 ﻿// Dashboard (Views/Widgets/Index.cshtml) – logika plochy.
 // Konfigurace z view: window._wd = { x54id, p28id, j02idme, j02idsys, skin, cols, autorefresh, count, txt: {...} }.
-// Přetahování: SortableJS (umí i dotyk); rozložení se ukládá ve stejném formátu jako dříve jQuery UI ("sort=1&sort=2|sort=3…").
+// Přetahování: SortableJS (umí i dotyk) v mřížce; rozložení se ukládá jako "grid:12,15w,7" (w = široký widget přes 2 sloupce).
+// Starý sloupcový formát "sort=1&sort=2|sort=3" umí načíst server (UI/Models/Widgets/WidgetsGrid.cs).
 // Obsah widgetů se vkládá přes jQuery .html() – SQL widgety s grafem obsahují <script>, který innerHTML nespustí.
 // Globální názvy funkcí zůstávají (volají je taghelpery a onclick v markupu).
 "use strict";
@@ -39,11 +40,10 @@ const wd_el = (id) => document.getElementById(id);
 document.addEventListener("DOMContentLoaded", () => {
     wd_el("cmddashboard")?.classList.add("active");
 
-    // přetahování widgetů mezi sloupci
+    // přetahování widgetů v mřížce
     if (window.Sortable) {
-        document.querySelectorAll(".wd-board > .column").forEach(col => {
-            Sortable.create(col, {
-                group: "wd-board",
+        document.querySelectorAll(".wd-board").forEach(board => {
+            Sortable.create(board, {
                 handle: ".portlet-header",
                 filter: "a, button, input, select, .dropdown-menu",
                 preventOnFilter: false,      // klik na tlačítka v hlavičce musí projít
@@ -54,7 +54,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 dragClass: "wd-drag",
                 delayOnTouchOnly: true,
                 delay: 200,                  // na dotyku dlouhé podržení = přetažení, krátký tah = posun stránky
-                onEnd: (e) => { if (e.from !== e.to || e.oldIndex !== e.newIndex) save_dock_state(); }
+                onEnd: (e) => { if (e.oldIndex !== e.newIndex) save_dock_state(); }
             });
         });
     }
@@ -144,12 +144,23 @@ async function load_widget_content(x55id) {
 // ------------------------------------------------------------------ rozložení
 
 function save_dock_state() {
-    // stejný formát jako jQuery UI sortable("serialize", {key:"sort"}): "sort=12&sort=15|sort=7"
-    const cols = ["col1", "col2", "col3"].map(wd_el).filter(Boolean);
-    const s = cols.map(col => Array.from(col.querySelectorAll(":scope > .portlet")).map(p => "sort=" + p.id.replace("box_", "")).join("&")).join("|");
+    const board = document.querySelector(".wd-board");
+    if (!board) return;
+    const s = "grid:" + Array.from(board.querySelectorAll(":scope > .portlet"))
+        .map(p => p.id.replace("box_", "") + (p.classList.contains("wd-wide") ? "w" : "")).join(",");
     wd_post("/Widgets/SaveWidgetState", { s: s, skin: _skin, x54id: _x54id })
         .then(() => _notify_message(wd_t("saved", "Změna rozložení plochy uložena."), "info"))
         .catch(wd_err);
+}
+
+// široký widget (přes 2 sloupce) ↔ normální šířka
+function wd_toggle_wide(x55id) {
+    const card = wd_el("box_" + x55id);
+    if (!card) return;
+    card.classList.toggle("wd-wide");
+    save_dock_state();
+    // Chart.js se přizpůsobí sám; Google grafy a DataTables SQL widgetů mají šířku pevnou z vykreslení → načíst znovu
+    if (!card.querySelector(".aiw-chartjs")) load_widget_content(x55id);
 }
 
 // ------------------------------------------------------------------ navigace a nastavení
