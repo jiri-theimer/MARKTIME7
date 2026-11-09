@@ -79,6 +79,12 @@ namespace UI.Views.Shared.Components.myGrid
 
             gridinput.query.MyRecordsDisponible = !Factory.CurrentUser.IsAdmin;
 
+            if (tgi.prefix == "j98" && !Factory.CurrentUser.IsAdmin)
+            {
+                //AI log všech uživatelů: data (grid, filtr, export) jen pro administrátora – i při přímém POSTu
+                gridinput.query.explicit_sqlwhere = string.IsNullOrEmpty(gridinput.query.explicit_sqlwhere) ? "1=0" : $"({gridinput.query.explicit_sqlwhere}) AND 1=0";
+            }
+
             gridinput.oncmclick = tgi.oncmclick;
             gridinput.fixedcolumns = tgi.fixedcolumns;
             gridinput.reczoomflag = tgi.reczoomflag;

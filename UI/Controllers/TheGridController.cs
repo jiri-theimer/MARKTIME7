@@ -285,6 +285,8 @@ namespace UI.Controllers
                     return Factory.CurrentUser.j04IsModule_p49;
                 case "b05":
                     return true;
+                case "j98":
+                    return Factory.CurrentUser.IsAdmin;     //AI log všech uživatelů – jen administrace (kontrola i v myGridController)
                    
                     
                 default:

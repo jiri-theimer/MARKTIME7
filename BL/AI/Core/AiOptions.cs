@@ -32,6 +32,9 @@ namespace BL.AI.Core
         /// <summary>Odkud konfigurace pochází (pro administraci).</summary>
         public BO.x01AiUsageFlagEnum Source { get; set; } = BO.x01AiUsageFlagEnum.GlobalApiKey;
 
+        /// <summary>true = licence AI má, ale aplikační role uživatele nemá oprávnění GR_AI (viz <see cref="ForUser"/>).</summary>
+        public bool DeniedByRole { get; set; }
+
         public const string SecretsPath = "c:\\temp\\appsecrets.json";
 
         /// <summary>Globální konfigurace ze serveru (appsettings + appsecrets). Načítá se jednou při startu.</summary>
@@ -110,6 +113,21 @@ namespace BL.AI.Core
                 default:    // GlobalApiKey: appsettings beze změny
                     return o;
             }
+        }
+
+        /// <summary>
+        /// Konfigurace licence omezená na uživatele: bez oprávnění role GR_AI je AI vypnuté (týká se i administrátora).
+        /// Bez přihlášeného uživatele se vrací konfigurace licence beze změny. Vstup nemění (vrací kopii).
+        /// </summary>
+        public static AiOptions ForUser(AiOptions lic, BO.RunningUser user)
+        {
+            if (lic == null || !lic.Enabled || user == null || user.TestPermission(BO.PermValEnum.GR_AI)) return lic;
+            var o = (AiOptions)lic.MemberwiseClone();
+            o.Enabled = false;
+            o.ApiKey = null;
+            o.DeniedByRole = true;
+            o.DisabledReason = "Vaše aplikační role nemá oprávnění „Přístup k AI agentům“.";
+            return o;
         }
     }
 }

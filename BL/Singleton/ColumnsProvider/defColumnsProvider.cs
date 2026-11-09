@@ -149,7 +149,6 @@ namespace BL
             AA("j98ContextPage", "Stránka", gdc1);
             AA("j98AiModel", "AI model", gdc1);
             AA("j98InputTokens", "Input tokens (px)", gdc1, null, "int");
-            AA("j98OutputTokens", "Output tokens", gdc1,null,"int");
             AA("j98OutputTokens", "Output tokens", gdc1, null, "int");
             AA("j98DurationMs", "Duration", gdc1, null, "int");
 
