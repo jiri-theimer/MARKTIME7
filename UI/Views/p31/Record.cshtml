@@ -108,9 +108,9 @@
         @if (Model.RecP34 != null && (Model.RecP34.p33ID == BO.p33IdENUM.PenizeVcDPHRozpisu || Model.RecP34.p33ID == BO.p33IdENUM.PenizeBezDPH))
         {
             <div class="col-auto">
-                <mytooltip text="Můžete nahrát ISDOC soubor nebo PDF dokument, v kterém je přiložen ISDOC soubor.<hr>Z ISDOC se načte částka, dph, text, datum a vazba na dodavatele nebo na projekt (podle IČO).<hr>Vstupní soubor se stane přílohou záznamu výdaje."></mytooltip>
+                <mytooltip text="Můžete nahrát ISDOC nebo ISDOCX soubor, případně PDF dokument, v kterém je přiložen ISDOC soubor.<hr>Z ISDOC se načte částka, dph, měna, text, datum (DUZP, u neplátce datum vystavení) a vazba na dodavatele nebo na projekt (podle IČO).<hr>Vstupní soubor se stane přílohou záznamu výdaje."></mytooltip>
                 <label for="isdoc1" class="btn btn-sm bog" style="margin-left:13px;"><img src="/images/isdoc_icon.png" />Import z ISDOC</label>
-                <input type="file" id="isdoc1" name="files" onchange="isdoc_upload()" accept=".isdoc, .pdf" style="visibility:hidden">
+                <input type="file" id="isdoc1" name="files" onchange="isdoc_upload()" accept=".isdoc, .isdocx, .pdf, .xml" style="visibility:hidden">
 
                 <input type="hidden" asp-for="IsdocLastUpload" />
             </div>

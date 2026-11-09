@@ -51,7 +51,8 @@ namespace BO
         GR_P31_Creator_Expenses = 30,        // Oprávnění vykazovat peněžní výdaje worksheet do jakéhokoliv projektu bez ohledu na projektovou roli
         GR_P31_Creator_Fees = 31,           // Oprávnění vykazovat odměny do jakéhokoliv projektu bez ohledu na projektovou roli
 
-        GR_P31_Vysledovky=41,               //přístup k výsledovkám       
+        GR_P31_Vysledovky=41,               //přístup k výsledovkám
+        GR_AI=42,                           //přístup k AI agentům      
         GR_AllowRates =34,                
 
         

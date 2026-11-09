@@ -140,6 +140,22 @@ namespace BL
             AA("j92BrowserAvailHeight", "Výška (px)", gdc1);
             AA("j92RequestURL", "Url", gdc1);
 
+
+            //j98 = ai log uživatelů
+            this.EntityName = "j98OpenAILog";
+            AA("j98Date", "Čas", gdc1, null, "datetime");
+            AA("j98Login", "Login", gdc1);
+            AA("j98Feature", "Prefix", gdc1);
+            AA("j98ContextPage", "Stránka", gdc1);
+            AA("j98AiModel", "AI model", gdc1);
+            AA("j98InputTokens", "Input tokens (px)", gdc1, null, "int");
+            AA("j98OutputTokens", "Output tokens", gdc1,null,"int");
+            AA("j98OutputTokens", "Output tokens", gdc1, null, "int");
+            AA("j98DurationMs", "Duration", gdc1, null, "int");
+
+            
+
+
             this.EntityName = "j95GeoWeatherLog";
             AA("j95Date", "Čas", gdc1, null, "datetime");
             AA("j95Description", "Slovně", gdc1);

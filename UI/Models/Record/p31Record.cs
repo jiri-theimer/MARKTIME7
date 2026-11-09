@@ -24,7 +24,7 @@ namespace UI.Models.Record
         public bool IsMultiDate { get; set; }
         public string MultiDate { get; set; }
         public string IsdocLastUpload { get; set; }
-        public string IsdocLastDokladText { get; set; }
+        public string IsdocLastDokladText { get; set; }     //text dokladu: textarea Rec.p31Text bere po POSTu hodnotu z ModelState, proto ho připojí p31record.js
         public IEnumerable<BO.p54OvertimeLevel> lisP54 { get; set; }
         public IEnumerable<BO.p40WorkSheet_Recurrence> lisP40 { get; set; }
         public IEnumerable<BO.p30ContactPerson> lisP30 { get; set; }

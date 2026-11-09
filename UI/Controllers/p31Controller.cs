@@ -3,7 +3,6 @@ using BL;
 using BO;
 using Google.Apis.Logging;
 using Microsoft.AspNetCore.Mvc;
-using System.Xml;
 using UI.Models;
 using UI.Models.p31view;
 using UI.Models.Record;
@@ -1647,28 +1646,74 @@ namespace UI.Controllers
 
         private void Handle_Isdoc_Import(p31Record v, List<IFormFile> files)
         {
+            //import výdaje z přijatého dokladu ISDOC / ISDOCX / PDF s přiloženým ISDOC – čte se lokálně (BL.Code.IsdocImportSupport), dříve služba mas.marktime.net
             var formFile = files.First();
-            var strPath = $"{Factory.TempFolder}\\{v.UploadGuid}_{formFile.FileName}";
-            using (var stream = new FileStream(strPath, FileMode.Create))
+            string strExt = System.IO.Path.GetExtension(formFile.FileName ?? "").ToLower();
+            if (strExt != ".isdoc" && strExt != ".isdocx" && strExt != ".pdf" && strExt != ".xml")
             {
-                formFile.CopyTo(stream);
+                this.AddMessage("Podporované soubory: ISDOC, ISDOCX nebo PDF s přiloženým ISDOC.");
+                return;
             }
-            if (formFile.FileName.ToLower().Contains(".pdf"))
+            if (formFile.Length > 20 * 1024 * 1024)
             {
-                var pdfsup = new UI.PdfSupport();
-                strPath = pdfsup.SaveIsdocAttachmentToTemp(strPath, $"{Factory.TempFolder}\\{BO.Code.Bas.GetGuid()}.xml");
-                if (strPath == null)
-                {
-                    this.AddMessageTranslated("PDF soubor neobsahuje ISDOC soubor.");
-                    return;
-                }
+                this.AddMessage("Soubor je příliš velký (max. 20 MB).");
+                return;
+            }
+            if (string.IsNullOrEmpty(v.UploadGuid) || !System.Text.RegularExpressions.Regex.IsMatch(v.UploadGuid, "^[A-Za-z0-9-]{1,64}$"))
+            {
+                v.UploadGuid = BO.Code.Bas.GetGuid();      //přichází ze skrytého pole formuláře – do cesty na disku jen bezpečné znaky
+            }
 
+            //na disk nikdy název z prohlížeče (path traversal) – jen guid a ověřená přípona; původní název jen jako text přílohy
+            string strOrigFileName = SafeUploadFileName(formFile.FileName, strExt);
+            string strTempFileName = $"{v.UploadGuid}_{BO.Code.Bas.GetGuid()}{strExt}";
+            byte[] data;
+            using (var ms = new MemoryStream())
+            {
+                formFile.CopyTo(ms);
+                data = ms.ToArray();
             }
-            var xmldoc = new XmlDocument();
-            xmldoc.Load(strPath);
-            var xx = BL.Code.p31Support.ImportIsDoc(xmldoc.InnerXml, null);
-            v.IsdocLastUpload = formFile.FileName;
-            v.IsdocLastDokladText = xx.doklad_text;
+
+            string strTempPath = $"{Factory.TempFolder}\\{strTempFileName}";
+            System.IO.File.WriteAllBytes(strTempPath, data);
+
+            BO.Integrace.IsdocImport xx;
+            try
+            {
+                byte[] isdoc = data;
+                if (strExt == ".pdf")
+                {
+                    isdoc = new UI.PdfSupport().GetIsdocAttachment(strTempPath);
+                    if (isdoc == null)
+                    {
+                        this.AddMessage("PDF soubor neobsahuje ISDOC soubor.");
+                        return;
+                    }
+                }
+                if (strExt == ".isdocx")
+                {
+                    isdoc = BL.Code.IsdocImportSupport.ExtractFromIsdocx(data);
+                    if (isdoc == null)
+                    {
+                        this.AddMessage("ISDOCX soubor neobsahuje ISDOC dokument.");
+                        return;
+                    }
+                }
+                xx = BL.Code.IsdocImportSupport.Parse(isdoc);
+            }
+            catch (InvalidDataException ex)
+            {
+                this.AddMessageTranslated(ex.Message);
+                return;
+            }
+            catch (Exception ex)
+            {
+                this.AddMessageTranslated(Factory.tra("Soubor se nepodařilo načíst") + ": " + ex.Message);
+                return;
+            }
+
+            v.IsdocLastUpload = strOrigFileName;
+            v.IsdocLastDokladText = xx.doklad_text;     //do textarea ho připojí p31record.js (asp-for po POSTu zobrazuje ModelState)
             v.Rec.p31Code = xx.doklad_id;
             v.Rec.Amount_WithoutVat_Orig = xx.castka_bezdph;
             v.Rec.Amount_WithVat_Orig = xx.castka_vcdphh;
@@ -1682,6 +1727,10 @@ namespace UI.Controllers
                 {
                     v.SelectedComboJ27Code = recJ27.j27Code;
                     v.Rec.j27ID_Billing_Orig = recJ27.pid;
+                }
+                else
+                {
+                    this.AddMessageTranslated($"{Factory.tra("Měna dokladu není v číselníku měn")}: {xx.mena}", "warning");
                 }
             }
             if (xx.dodavatel_ico != null)    //doplnit projekt nebo dodavatele
@@ -1710,10 +1759,26 @@ namespace UI.Controllers
                 }
             }
 
+            if (xx.datum_plneni != null)
+            {
+                v.p31Date = xx.datum_plneni;      //DUZP, u neplátce datum vystavení
+            }
+            foreach (var s in xx.upozorneni)
+            {
+                this.AddMessageTranslated(s, "warning");
+            }
 
-            v.p31Date = xx.datum_duzp;
+            Factory.o27AttachmentBL.CreateTempInfoxFile(v.UploadGuid, "p31", strTempFileName, strOrigFileName, formFile.ContentType);
+        }
 
-            Factory.o27AttachmentBL.CreateTempInfoxFile(v.UploadGuid, "p31", $"{v.UploadGuid}_{formFile.FileName}", formFile.FileName, formFile.ContentType);
+        private static string SafeUploadFileName(string strFileName, string strExt)
+        {
+            //původní název souboru z prohlížeče jen pro zobrazení / název přílohy: bez cesty a znaků, které nesmí být v názvu souboru
+            string s = System.IO.Path.GetFileName((strFileName ?? "").Replace("\\", "/"));
+            foreach (char ch in "\\/:*?\"<>|") s = s.Replace(ch, '_');
+            s = new string(s.Where(ch => !char.IsControl(ch)).ToArray()).Trim().TrimStart('.');
+            if (s.Length > 120) s = s.Substring(0, 120 - strExt.Length) + strExt;
+            return s == "" ? "doklad" + strExt : s;
         }
     }
 }

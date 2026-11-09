@@ -187,6 +187,8 @@ namespace BO.Code
             if (prefix == "j04")
             {
                 lis.Add(new BO.Permission() { Entity = "j04", Value = BO.PermValEnum.GR_Admin, Name = "Administrátor systému" });
+                lis.Add(new BO.Permission() { Entity = "j04", Value = BO.PermValEnum.GR_AI, Name = "Přístup k AI agentům" });
+
                 lis.Add(new BO.Permission() { Entity = "j04", Value = BO.PermValEnum.GR_p28_Creator, Name = "Vytvářet kontakty všech typů", Group = "Kontakty" });
                 lis.Add(new BO.Permission() { Entity = "j04", Value = BO.PermValEnum.GR_p28_Reader, Name = "Číst všechny kontakty", Group = "Kontakty" });
                 lis.Add(new BO.Permission() { Entity = "j04", Value = BO.PermValEnum.GR_p28_Owner, Name = "Vlastnické oprávnění ke všem kontaktům", Group = "Kontakty" });

@@ -65,25 +65,24 @@ namespace UI
 
         }
 
-        public string SaveIsdocAttachmentToTemp(string strPdfPath,string strDestFullPath)
+        public byte[] GetIsdocAttachment(string strPdfPath)    //ISDOC.PDF: obsah přiloženého ISDOC souboru, nebo null
         {
             ceTe.DynamicPDF.Document.AddLicense("DPSPROU4223720241231Xap8Eso/OLqTQoAdWV83/EhF3keLURxFeh6eWVIsKRuL5QcYIwkKfrnldyUxzLX17t/Zdk0VJQDF/Ka6byCKNrfL/A");
             var doc1 = new PdfDocument(strPdfPath);
-            var lis = doc1.GetAttachments();
-            foreach (var c in lis)
+            byte[] fallback = null;
+            foreach (var c in doc1.GetAttachments())
             {
-                if (c.Filename.ToLower().Contains("isdoc"))
+                string fn = (c.Filename ?? "").ToLower();
+                if (fn.EndsWith(".isdoc"))
                 {
-                    var arr = c.GetData();
-                    System.IO.File.WriteAllBytes($"{strDestFullPath}", arr);
-                    return strDestFullPath;
+                    return c.GetData();     //přednostně příloha s příponou .isdoc
                 }
-                
-
-                
+                if (fallback == null && fn.Contains("isdoc") && (fn.EndsWith(".xml") || !fn.Contains(".")))
+                {
+                    fallback = c.GetData();     //starší generátory: „isdoc“ v názvu, ale ne obrázek apod.
+                }
             }
-
-            return null;
+            return fallback;
         }
     }
 }

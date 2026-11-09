@@ -439,29 +439,6 @@ namespace BL.Code
         }
 
 
-        public static BO.Integrace.IsdocImport ImportIsDoc(string xml, HttpClient hc = null)
-        {
-            
-            if (hc == null)
-            {
-                hc = new HttpClient();
-            }
-            string url = "https://mas.marktime.net/IsdocImport";
-            var vstup = new BO.Integrace.IsdocImport() { xml = xml };
-
-            var recjson = BO.Code.basJson.SerializeObject(vstup);
-            var requestContent = new StringContent(recjson, Encoding.UTF8, "application/json");
-           
-
-            var response1 = hc.PostAsync(url, requestContent).Result;
-            var ret = response1.Content.ReadAsStringAsync().Result;
-
-            return basJson.DeserializeData<BO.Integrace.IsdocImport>(ret);
-
-            
-
-
-        }
 
 
     }

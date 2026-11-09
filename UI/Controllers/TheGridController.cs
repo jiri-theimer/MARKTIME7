@@ -483,7 +483,7 @@ namespace UI.Controllers
             }
 
             v.gridinput.query.IsRecordValid = null;
-            if (v.prefix !="j92" && v.prefix !="j90" && v.prefix !="x40")
+            if (v.prefix !="j92" && v.prefix !="j90" && v.prefix !="x40" && v.prefix != "j98")
             {
                 v.recordbinquery = new RecordBinQueryViewModel() { Prefix=v.prefix};
                 if (bolMasterEntity)

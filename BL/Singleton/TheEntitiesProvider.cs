@@ -76,7 +76,9 @@ namespace BL.Singleton
                 AE_TINY("j92PingLog", "PING Log", "PING Log");
                 ByPrefix("j92").IsWithoutValidity = true;
             }
-            
+            AE_TINY("j98OpenAILog", "AI Log", "AI Log");            
+            ByPrefix("j98").IsWithoutValidity = true;
+
             AE_TINY("j95GeoWeatherLog", "Historie počasí", "Historie počasí");
             ByPrefix("j95").IsWithoutValidity = true;
 
@@ -326,6 +328,9 @@ namespace BL.Singleton
                     break;
                 case "j92":
                     lis.Add(getREL("j02User", "j92_j02", "Uživatel", "INNER JOIN j02User j92_j02 ON a.j02ID=j92_j02.j02ID INNER JOIN j04UserRole j02_j04 ON j92_j02.j04ID=j02_j04.j04ID"));
+                    break;
+                case "j98":
+                    lis.Add(getREL("j02User", "j98_j02", "Uživatel", "INNER JOIN j02User j98_j02 ON a.j02ID=j98_j02.j02ID"));
                     break;
                 case "p32":
                     lis.Add(getREL("p34ActivityGroup", "p32_p34", "Sešit", "INNER JOIN p34ActivityGroup p32_p34 ON a.p34ID=p32_p34.p34ID"));

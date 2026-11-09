@@ -27,7 +27,7 @@
     bool _a_workflow = "p41,p28,p91,o23,le1,le2,le3,le4,le5,p56".Contains(_pfx);
     bool _a_color = "p31,p28,p41,le5,p91,o23".Contains(_pfx);
 
-    bool _a_archive = _pfx != "p31" && _pfx != "p91" && _pfx != "p11" && _pfx != "x40" && _pfx != "j92" && _pfx != "j90" && _pfx != "j05" && _pfx != "j06" && _pfx != "x97";
+    bool _a_archive = _pfx != "p31" && _pfx != "p91" && _pfx != "p11" && _pfx != "x40" && _pfx != "j92" && _pfx != "j90" && _pfx != "j98" && _pfx != "j05" && _pfx != "j06" && _pfx != "x97";
     bool _a_p31archive = _pfx == "p31" && _f.CurrentUser.TestPermission(BO.PermValEnum.GR_P31_Owner) && _recordbinquery != 2;
     bool _a_p31restore = _pfx == "p31" && _f.CurrentUser.TestPermission(BO.PermValEnum.GR_P31_Owner) && _recordbinquery == 2;
     bool _a_delete = !(_pfx == "p91" || _pfx == "p11" || _pfx == "x40" || (_pfx == "p31" && _recordbinquery == 2));
