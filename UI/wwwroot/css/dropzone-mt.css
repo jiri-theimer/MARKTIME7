@@ -1,0 +1,37 @@
+﻿/* FILEBOX (Views/Shared/_dropzone.cshtml) – seznam souborů a e-mailů, třídy fb-*. Vzhled drop zóny a náhledů: lib/dropzone/dropzone.css */
+.fb-list { display: flex; flex-direction: column; gap: 2px; margin: 6px 0; max-width: 1050px; }
+.fb-item { display: flex; align-items: flex-start; gap: 8px; padding: 5px 8px; border-radius: 8px; }
+.fb-item:hover { background: #f5f7f9; }
+.fb-item + .fb-item { border-top: 1px solid #f0f2f4; }
+.fb-cm { flex: 0 0 auto; text-decoration: none; opacity: .4; cursor: pointer; }
+.fb-item:hover .fb-cm { opacity: 1; }
+.fb-ico { flex: 0 0 auto; width: 22px; font-size: 20px; color: #6c757d; text-align: center; }
+.fb-mail .fb-ico { color: var(--pozadi, #0b4b92); }
+.fb-main { flex: 1 1 auto; min-width: 0; }
+.fb-name { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; color: #1f2328; text-decoration: none; }
+.fb-name:hover { color: var(--pozadi, #0b4b92); text-decoration: underline; }
+.fb-temp .fb-name { flex: 1 1 auto; min-width: 0; }
+.fb-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; font-size: .8rem; color: #6c757d; }
+.fb-arrow, .fb-dot { color: #adb5bd; }
+.fb-tag { padding: 0 6px; border-radius: 6px; background: #eef1f4; color: #495057; }
+.fb-note { padding: 0 6px; border-radius: 6px; background: #fff8d6; color: #5c4a00; }
+.fb-atts { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
+.fb-att { display: inline-flex; align-items: center; gap: 3px; padding: 0 8px 0 4px; border: 1px solid #dfe3e8; border-radius: 12px; background: #fff; color: #3d444d; font-size: .78rem; text-decoration: none; }
+.fb-att:hover { border-color: var(--pozadi, #0b4b92); color: var(--pozadi, #0b4b92); }
+.fb-att .material-icons-outlined-nosize { font-size: 15px; color: #8a939c; }
+.fb-size, .fb-date { flex: 0 0 auto; font-size: .8rem; color: #6c757d; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.fb-size { min-width: 64px; text-align: right; }
+.fb-date { min-width: 70px; }
+.fb-edit { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; color: #8a939c; text-decoration: none; opacity: 0; }
+.fb-item:hover .fb-edit, .fb-edit:focus { opacity: 1; }
+.fb-edit:hover { background: #e9ecef; color: #1f2328; }
+.fb-edit .material-icons-outlined-nosize { font-size: 17px; }
+.fb-queue { display: inline-flex; align-items: center; gap: 4px; }
+
+/* telefon: velikost a datum pod název */
+html.mt-phone .fb-item { flex-wrap: wrap; }
+html.mt-phone .fb-size, html.mt-phone .fb-date { min-width: 0; text-align: left; }
+@media (max-width: 575.98px) {
+    .fb-item { flex-wrap: wrap; }
+    .fb-size, .fb-date { min-width: 0; text-align: left; }
+}

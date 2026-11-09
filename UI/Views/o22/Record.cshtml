@@ -26,6 +26,7 @@
 @addTagHelper *, UI
 
 @section header_content{
+    <link rel="stylesheet" href="~/css/recordform.css" asp-append-version="true" />
 
     @if (Model.IsShowMore && Model.Notepad.SelectedX04ID > 0)
     {
@@ -36,174 +37,153 @@
 
 
 @Html.Raw("<div class='modal_record_container'>")
-
-<div class="row">
-    <div class="col-sm-8 col-md-8">
-        <input class="form-control record_name" asp-for="Rec.o22Name" placeholder="@_f.tra("Název")" />
-    </div>
-
-    <div class="col-sm-4 col-md-4">
-        <mycombo entity="o21MilestoneType" placeholder="@_f.tra("Typ lhůty/události")" asp-for="@Model.Rec.o21ID" selectedtext="@Model.ComboO21" myqueryinline="o21isusercombo|bool|1" event_after_changevalue="change_o21id"></mycombo>
-
-    </div>
-
-
-</div>
-
-@if (Model.RecO21 != null && Model.RecO21.o21TypeFlag == BO.o21TypeFlagEnum.Lhuta)
-{
-    <div class="row my-2">
-        <label class="col-sm-1 col-md-2 col-form-label recpagelabel">@(_f.tra("První den lhůty")):</label>
-        <div class="col-sm-2 col-md-2">
-            <mydate asp-for="@Model.Rec.o22PlanFrom" include-time="false"></mydate>
+@* verze 8: moderní vzhled (třídy rf-*, css/recordform.css), názvy polí a id beze změny *@
+<div class="rf">
+<section class="rf-card">
+    <div class="rf-task rf-task-wide">
+        <div class="rf-field">
+            <label for="Rec_o22Name">@_f.tra("Název")</label>
+            <input class="form-control record_name" asp-for="Rec.o22Name" />
         </div>
-
+        <div class="rf-field">
+            <label for="cmdComboRec_o21ID">@_f.tra("Typ lhůty/události")</label>
+            <mycombo entity="o21MilestoneType" placeholder="@_f.tra("Typ lhůty/události")" asp-for="@Model.Rec.o21ID" selectedtext="@Model.ComboO21" myqueryinline="o21isusercombo|bool|1" event_after_changevalue="change_o21id"></mycombo>
+        </div>
     </div>
 
-
-    <div class="row my-2">
-        <label class="col-sm-1 col-md-2 col-form-label recpagelabel">@(_f.tra("Délka lhůty")):</label>
-        @if (Model.Rec.o22DurationCalcFlag == BO.o22DurationCalcFlagEnum.Pocitat)
-        {
-            <div class="col-sm-1 col-md-1">
-                <mynumber asp-for="Rec.o22DurationCount" event_after_changevalue="recalc_duration()" decimal-digits="0"></mynumber>
-            </div>
-            <div class="col-sm-1 col-md-1">
-                <select asp-for="Rec.o22DurationUnit" class="form-select" onchange="recalc_duration()">
-                    <option value="d">dní</option>
-                    <option value="e">pracovních dní</option>
-                    <option value="w">týdnů</option>
-                    <option value="m">měsíců</option>
-                    <option value="y">roků</option>
+    @if (Model.RecO21 != null && Model.RecO21.o21TypeFlag == BO.o21TypeFlagEnum.Lhuta)
+    {
+        <div class="rf-row">
+            <label for="Rec_o22PlanFromhelper" class="rf-label">@(_f.tra("První den lhůty"))</label>
+            <div class="rf-value rf-w-date"><mydate asp-for="@Model.Rec.o22PlanFrom" include-time="false"></mydate></div>
+        </div>
+        <div class="rf-row">
+            <label class="rf-label">@(_f.tra("Délka lhůty"))</label>
+            <div class="rf-value rf-inline rf-wrap">
+                @if (Model.Rec.o22DurationCalcFlag == BO.o22DurationCalcFlagEnum.Pocitat)
+                {
+                    <div class="rf-w-cnt"><mynumber asp-for="Rec.o22DurationCount" event_after_changevalue="recalc_duration()" decimal-digits="0"></mynumber></div>
+                    <select asp-for="Rec.o22DurationUnit" class="form-select rf-w-auto" onchange="recalc_duration()">
+                        <option value="d">@_f.tra("dní")</option>
+                        <option value="e">@_f.tra("pracovních dní")</option>
+                        <option value="w">@_f.tra("týdnů")</option>
+                        <option value="m">@_f.tra("měsíců")</option>
+                        <option value="y">@_f.tra("roků")</option>
+                    </select>
+                }
+                <select asp-for="Rec.o22DurationCalcFlag" class="form-select rf-w-auto" onchange="_postback()">
+                    <option value="Pocitat">@_f.tra("Konec počítat")</option>
+                    <option value="Rucne">@_f.tra("Konec zadat ručně")</option>
                 </select>
             </div>
-        }
-
-
-        <div class="col-auto">
-            <select asp-for="Rec.o22DurationCalcFlag" class="form-select" onchange="_postback()">
-                <option value="Pocitat">Konec počítat</option>
-                <option value="Rucne">Konec zadat ručně</option>
-            </select>
         </div>
-        <div class="col-sm-3 col-md-3">
-            <div id="divO22PlanUtil" style="display:@(Model.Rec.o22DurationCalcFlag==BO.o22DurationCalcFlagEnum.Pocitat ? "none": "block");">
-                <mydate asp-for="@Model.Rec.o22PlanUntil" include-time="true"></mydate>
+        <div class="rf-row">
+            <span class="rf-label">@_f.tra("Konec lhůty")</span>
+            <div class="rf-value rf-inline rf-wrap">
+                <div id="divO22PlanUtil" class="rf-w-date" style="display:@(Model.Rec.o22DurationCalcFlag==BO.o22DurationCalcFlagEnum.Pocitat ? "none": "block");">
+                    <mydate asp-for="@Model.Rec.o22PlanUntil" include-time="true"></mydate>
+                </div>
+                <strong id="calc_o22PlanUntil" class="rf-calc"></strong>
             </div>
-
-            <strong id="calc_o22PlanUntil"></strong>
-
         </div>
+    }
+
+    @if (Model.RecO21 != null && Model.RecO21.o21TypeFlag == BO.o21TypeFlagEnum.Udalost)
+    {
+        <div class="rf-row">
+            <label for="Rec_o22PlanFromhelper" class="rf-label">@(_f.tra("Začátek"))</label>
+            <div class="rf-value rf-inline rf-wrap">
+                <div class="rf-w-date">
+                    @if (Model.Rec.o22IsAllDay)
+                    {
+                        <mydate asp-for="@Model.Rec.o22PlanFrom" include-time="false"></mydate>
+                    }
+                    else
+                    {
+                        <mydate asp-for="@Model.Rec.o22PlanFrom" include-time="true"></mydate>
+                    }
+                </div>
+                <div class="form-check form-switch m-0">
+                    <input type="checkbox" class="form-check-input" role="switch" asp-for="Rec.o22IsAllDay" onchange="_postback()" />
+                    <label class="form-check-label" for="Rec_o22IsAllDay">@_f.tra("Celý den")</label>
+                </div>
+            </div>
+        </div>
+        <div class="rf-row">
+            <label for="Rec_o22PlanUntilhelper" class="rf-label">@(_f.tra("Konec"))</label>
+            <div class="rf-value rf-inline rf-wrap">
+                <div class="rf-w-date">
+                    @if (Model.Rec.o22IsAllDay)
+                    {
+                        <mydate asp-for="@Model.Rec.o22PlanUntil" include-time="false"></mydate>
+                    }
+                    else
+                    {
+                        <mydate asp-for="@Model.Rec.o22PlanUntil" include-time="true"></mydate>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="rf-row">
+            <label for="Rec_o22Location" class="rf-label">@(_f.tra("Lokalita"))</label>
+            <div class="rf-value"><input type="text" asp-for="@Model.Rec.o22Location" class="form-control"></div>
+        </div>
+    }
+
+    @if (Model.RecO21 != null && Model.RecO21.o21TypeFlag == BO.o21TypeFlagEnum.Milnik)
+    {
+        <div class="rf-row">
+            <label for="Rec_o22PlanUntilhelper" class="rf-label">@(_f.tra("Datum"))</label>
+            <div class="rf-value rf-w-date"><mydate asp-for="@Model.Rec.o22PlanUntil" include-time="true"></mydate></div>
+        </div>
+    }
+
+    <div class="rf-project">
+        @Html.EditorFor(m => m.ProjectCombo, "~/Views/Shared/_ProjectCombo.cshtml")
     </div>
-}
-
-
-
-@if (Model.RecO21 != null && Model.RecO21.o21TypeFlag == BO.o21TypeFlagEnum.Udalost)
-{
-    <div class="row my-2">
-        <label class="col-sm-1 col-md-1 col-form-label">@(_f.tra("Začátek")):</label>
-        <div class="col-sm-3 col-md-3">
-            @if (Model.Rec.o22IsAllDay)
-            {
-                <mydate asp-for="@Model.Rec.o22PlanFrom" include-time="false"></mydate>
-            }
-            else
-            {
-                <mydate asp-for="@Model.Rec.o22PlanFrom" include-time="true"></mydate>
-            }
-            
-        </div>
-        <label class="col-sm-1 col-md-1 col-form-label">@(_f.tra("Konec")):</label>
-        <div class="col-sm-3 col-md-3">
-            @if (Model.Rec.o22IsAllDay)
-            {
-                <mydate asp-for="@Model.Rec.o22PlanUntil" include-time="false"></mydate>
-            }
-            else
-            {
-                <mydate asp-for="@Model.Rec.o22PlanUntil" include-time="true"></mydate>
-            }
-            
-        </div>
-        <div class="col-sm-4 col-md-4">
-            
-            <input type="checkbox" asp-for="Rec.o22IsAllDay" onchange="_postback()" />
-            <label class="col-form-label" for="Rec_o22IsAllDay">@_f.tra("Celý den")</label>
-        </div>
-    </div>
-    <div class="row my-2">
-        <label class="col-sm-1 col-md-1 col-form-label">@(_f.tra("Lokalita")):</label>
-        <div class="col-sm-7 col-md-7">
-            <input type="text" asp-for="@Model.Rec.o22Location" class="form-control">
-        </div>
-
-    </div>
-}
-
-@if (Model.RecO21 != null && Model.RecO21.o21TypeFlag == BO.o21TypeFlagEnum.Milnik)
-{
-    <div class="row my-2">
-
-        <label class="col-sm-1 col-md-1 col-form-label">@(_f.tra("Datum")):</label>
-        <div class="col-sm-3 col-md-3">
-            <mydate asp-for="@Model.Rec.o22PlanUntil" include-time="true"></mydate>
-        </div>
-    </div>
-}
-
+</section>
 
 @Html.EditorFor(m => m.roles, "~/Views/Shared/_RoleAssign.cshtml")
 
-
-<div class="my-2">
-    @Html.EditorFor(m => m.ProjectCombo, "~/Views/Shared/_ProjectCombo.cshtml")
-</div>
-
-@Html.EditorFor(m => m.reminder, "~/Views/Shared/_Reminder.cshtml")
-
-<div style="padding-top:5px;">
-    <button id="cmdMore" type="button" class="btn dropdown-toggle bog" onclick="_postback('more')">
-        <myicon symbol="more_horiz"></myicon>
-    </button>
-</div>
-
-
-
-<div class="divMore">
-
-
+<div class="rf-extras">
+    @Html.EditorFor(m => m.reminder, "~/Views/Shared/_Reminder.cshtml")
     @if (Model.IsShowMore)
     {
-        @Html.EditorFor(m => m.Notepad, "~/Views/Shared/_Notepad.cshtml")
-
-
         <mystitky entity="o22Milestone" asp-for="@Model.TagPids" tagnames="@Model.TagNames" taghtml="@Model.TagHtml" buttontext="@_f.tra("Oštítkovat")"></mystitky>
+    }
+    else
+    {
+        <button id="cmdMore" type="button" class="btn btn-sm btn-light" onclick="_postback('more')" title="@_f.tra("Notepad, štítky, zadavatel")">
+            <myicon symbol="more_horiz"></myicon> @_f.tra("Další")
+        </button>
+    }
+</div>
 
-
-
-        <div class="row my-2">
-            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Zadavatel (Vlastník záznamu)"):</label>
-            <div class="col-sm-4 col-md-4">
-                <mycombo entity="j02User" asp-for="Rec.j02ID_Owner" selectedtext="@Model.ComboOwner" view-flag="1"></mycombo>
+<div class="divMore">
+    @if (Model.IsShowMore)
+    {
+        <section class="rf-card">
+            <div class="rf-row">
+                <label for="cmdComboRec_j02ID_Owner" class="rf-label">@_f.tra("Zadavatel (Vlastník záznamu)")</label>
+                <div class="rf-value rf-w-half"><mycombo entity="j02User" asp-for="Rec.j02ID_Owner" selectedtext="@Model.ComboOwner" view-flag="1"></mycombo></div>
             </div>
+        </section>
+        <div class="rf-notepad">
+            @Html.EditorFor(m => m.Notepad, "~/Views/Shared/_Notepad.cshtml")
         </div>
     }
     else
     {
-
         <input type="hidden" asp-for="Rec.j02ID_Owner" value="@Model.Rec.j02ID_Owner" />
         <input type="hidden" asp-for="ComboOwner" value="@Model.ComboOwner" />
-
     }
 </div>
 
 @if (Model.UploadGuid != null)
 {
-    <iframe id="fraUpload" src="/Dropzone/UploadInFrame?recpid=@Model.rec_pid&entity=o22&guid=@Model.UploadGuid" frameborder="0" scrolling="yes" style="max-width:1200px;height:60px;"></iframe>
+    <iframe id="fraUpload" src="/Dropzone/UploadInFrame?recpid=@Model.rec_pid&entity=o22&guid=@Model.UploadGuid" frameborder="0" scrolling="yes" style="max-width:1200px;width:100%;height:60px;"></iframe>
 }
-
-
+</div>
 @Html.Raw("</div>")
 
 <input type="hidden" asp-for="j02id_create_taskfor" />

@@ -9,6 +9,18 @@ namespace UI.Controllers
 {
     public class DropzoneController : BaseController
     {
+        /// <summary>Povolené přípony – stejné jako acceptedFiles v Views/Shared/_dropzone.cshtml (prohlížeč filtruje jen pro pohodlí, rozhoduje server).</summary>
+        private static readonly HashSet<string> AllowedExtensions = new(StringComparer.OrdinalIgnoreCase)
+        {
+            ".msg", ".eml", ".pdf", ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp", ".tif", ".tiff", ".heic", ".svg",
+            ".xls", ".xlsx", ".doc", ".docx", ".txt", ".zip", ".rar", ".7z", ".ppt", ".pptx", ".csv",
+            ".mp3", ".mp4", ".avi", ".html", ".htm", ".odt", ".ods", ".rtf", ".ics", ".isdoc", ".isdocx", ".xml"
+        };
+        public const long MaxFileBytes = 20L * 1024 * 1024;     //= maxFilesize v _dropzone.cshtml
+        /// <summary>Přípony, které se z temp nikdy nevracejí „inline“ (prohlížeč by je vykreslil v kontextu aplikace).</summary>
+        private static readonly HashSet<string> NeverInline = new(StringComparer.OrdinalIgnoreCase) { ".html", ".htm", ".svg", ".xml", ".xhtml" };
+        private static readonly System.Text.RegularExpressions.Regex SafeUid = new("^[A-Za-z0-9-]{1,64}$");
+
         public IActionResult UploadInFrame(string guid, string entity, int recpid)
         {
             if (string.IsNullOrEmpty(entity) || string.IsNullOrEmpty(guid))
@@ -44,16 +56,25 @@ namespace UI.Controllers
             if (files == null || files.Count == 0)
                 return BadRequest("Žádné soubory nebyly přijaty.");
 
-            int x = 0;
-            foreach (var file in files)
+            var rejected = new List<string>();
+            for (int x = 0; x < files.Count; x++)    //index i u prázdného/odmítnutého souboru – uid a názvy z dropzone jsou ve stejném pořadí
             {
+                var file = files[x];
                 if (file.Length == 0)
                     continue;
 
+                string ext = System.IO.Path.GetExtension(file.FileName ?? "");
+                if (string.IsNullOrEmpty(ext) || !AllowedExtensions.Contains(ext) || file.Length > MaxFileBytes)
+                {
+                    rejected.Add(System.IO.Path.GetFileName(file.FileName ?? ""));
+                    continue;
+                }
 
-                var fileuid = dropzoneuids[x];  //uid přidělené z dropzone
-                var filename = dropzonenames[x];
-                var archivefilename = fileuid + System.IO.Path.GetExtension(file.FileName);
+                //uid z prohlížeče jde do názvu souboru na disku → jen bezpečné znaky (jinak path traversal), jinak nové
+                string fileuid = x < dropzoneuids.Count ? dropzoneuids[x] : null;
+                if (string.IsNullOrEmpty(fileuid) || !SafeUid.IsMatch(fileuid)) fileuid = Guid.NewGuid().ToString();
+                string filename = x < dropzonenames.Count ? dropzonenames[x] : null;
+                var archivefilename = fileuid + ext.ToLowerInvariant();
 
 
                 var archiveDestPath = System.IO.Path.Combine(Factory.TempFolder, archivefilename);
@@ -84,7 +105,6 @@ namespace UI.Controllers
                 }
 
                 var p85id = Factory.p85TempboxBL.Save(rec);
-                x += 1;
             }
 
             if (isautosave)
@@ -92,7 +112,7 @@ namespace UI.Controllers
                 SaveToFilebox(tempguid,recprefix,recpid);
             }
 
-            return Ok(new { count = files.Count });
+            return Ok(new { count = files.Count - rejected.Count, rejected });
         }
 
         
@@ -165,9 +185,14 @@ namespace UI.Controllers
             }
 
             string strFullPath = $"{Factory.TempFolder}\\{rec.p85FreeText03}";
-            string contenttype = rec.p85FreeText02;
-
-            if (string.IsNullOrEmpty(contenttype)) contenttype = "application/octet-stream";
+            //typ podle přípony, ne podle Content-Type z prohlížeče; HTML/SVG/XML jen ke stažení (jinak by se vykreslily v kontextu aplikace)
+            string ext = System.IO.Path.GetExtension(rec.p85FreeText03 ?? "");
+            if (!new Microsoft.AspNetCore.StaticFiles.FileExtensionContentTypeProvider().TryGetContentType(rec.p85FreeText03 ?? "", out string contenttype))
+            {
+                contenttype = "application/octet-stream";
+            }
+            string disposition = NeverInline.Contains(ext) ? "attachment" : "inline";
+            Response.Headers["X-Content-Type-Options"] = "nosniff";
 
             
 
@@ -179,7 +204,7 @@ namespace UI.Controllers
 
             //Response.Headers["Content-Disposition"] =$"inline; filename=\"{rec.p85FreeText01}\"; filename*=UTF-8''{Uri.EscapeDataString(rec.p85FreeText01)}";
 
-            Response.Headers["Content-Disposition"] = $"inline; filename*=UTF-8''{HttpUtility.UrlEncode(rec.p85FreeText01)}";
+            Response.Headers["Content-Disposition"] = $"{disposition}; filename*=UTF-8''{HttpUtility.UrlEncode(rec.p85FreeText01)}";
 
 
             var fileContentResult = new FileContentResult(System.IO.File.ReadAllBytes(strFullPath), contenttype);

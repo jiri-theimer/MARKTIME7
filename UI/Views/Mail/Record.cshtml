@@ -33,6 +33,55 @@
 
     string _recAlias = (r.x40RecordEntity != null && r.x40RecordPid > 0) ? _f.CBL.GetObjectAlias(r.x40RecordEntity, r.x40RecordPid) : null;
     int _attCount = Model.Mail != null ? Model.Mail.Attachments.Count : 0;
+
+    string _stateIcon = r.x40Status switch
+    {
+        BO.x40StateENUM.IsProceeded => "check_circle",
+        BO.x40StateENUM.IsError => "error",
+        BO.x40StateENUM.InQueque => "schedule",
+        _ => "info"
+    };
+
+    //adresy: "Jméno <a@b.cz>; c@d.cz" → seznam pro chipy (zobrazí se max. _maxChips, zbytek „+N“)
+    const int _maxChips = 6;
+    List<(string Name, string Addr)> Parse(string s)
+    {
+        var res = new List<(string, string)>();
+        if (string.IsNullOrWhiteSpace(s)) return res;
+        foreach (var part in s.Split(new[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            int lt = part.IndexOf('<'), gt = part.LastIndexOf('>');
+            if (lt >= 0 && gt > lt) res.Add((part.Substring(0, lt).Trim().Trim('"'), part.Substring(lt + 1, gt - lt - 1).Trim()));
+            else res.Add((null, part));
+        }
+        return res;
+    }
+
+    //prostý text: zakódovat a odkazy (http/https, e-mail) udělat klikací – jeden průchod, aby se odkazy nevnořovaly
+    string Linkify(string t)
+    {
+        string enc = System.Net.WebUtility.HtmlEncode(t ?? "");
+        return System.Text.RegularExpressions.Regex.Replace(enc,
+            @"(?<url>\bhttps?://[^\s<>""']+?)(?=(&quot;|&#39;|&gt;|&lt;|[.,;:!?)\]])*(\s|$))|(?<mail>(?<![\w/.:=&;-])[\w.+-]+@[\w-]+(\.[\w-]+)+)",
+            m => m.Groups["url"].Success
+                ? $"<a href=\"{m.Value}\" target=\"_blank\" rel=\"noopener\">{m.Value}</a>"
+                : $"<a href=\"mailto:{m.Value}\">{m.Value}</a>");
+    }
+
+    string AttIcon(string name)
+    {
+        string ext = System.IO.Path.GetExtension(name ?? "").ToLowerInvariant();
+        return ext switch
+        {
+            ".pdf" => "picture_as_pdf",
+            ".xls" or ".xlsx" or ".csv" => "table_chart",
+            ".doc" or ".docx" or ".odt" or ".rtf" => "article",
+            ".png" or ".jpg" or ".jpeg" or ".gif" or ".bmp" or ".webp" => "image",
+            ".zip" or ".7z" or ".rar" => "folder_zip",
+            ".isdoc" or ".isdocx" or ".xml" => "code",
+            _ => "description"
+        };
+    }
 }
 
 @addTagHelper *, UI
@@ -71,10 +120,10 @@
         </div>
     }
 
-    <div class="sm-head mr-head">
+    <div class="sm-head mr-card">
         <div class="mr-subject-row">
             <h1 class="mr-subject">@(string.IsNullOrWhiteSpace(r.x40Subject) ? _f.tra("(bez předmětu)") : r.x40Subject)</h1>
-            <span class="mr-state @_stateCss">@_f.tra(r.StatusAlias)</span>
+            <span class="mr-state @_stateCss"><span class="material-icons-outlined-nosize">@_stateIcon</span>@_f.tra(r.StatusAlias)</span>
         </div>
 
         <div class="sm-row">
@@ -87,28 +136,48 @@
                 }
             </div>
         </div>
-        <div class="sm-row">
-            <label class="sm-lab">@_f.tra("Komu")</label>
-            <div class="sm-val mr-list">@r.x40Recipient</div>
-        </div>
-        @if (!string.IsNullOrEmpty(r.x40CC))
+        @foreach (var grp in new[] { (Label: _f.tra("Komu"), List: Parse(r.x40Recipient)), (Label: _f.tra("Kopie"), List: Parse(r.x40CC)), (Label: _f.tra("Skrytá kopie"), List: Parse(r.x40BCC)) })
         {
+            if (grp.List.Count == 0 && grp.Label != _f.tra("Komu")) { continue; }
             <div class="sm-row">
-                <label class="sm-lab">@_f.tra("Kopie")</label>
-                <div class="sm-val mr-list">@r.x40CC</div>
+                <label class="sm-lab">@grp.Label</label>
+                <div class="sm-val mr-chips">
+                    @for (int i = 0; i < grp.List.Count; i++)
+                    {
+                        var a = grp.List[i];
+                        <span class="mr-chip @(i >= _maxChips ? "mr-more" : null)" title="@a.Addr">
+                            @if (!string.IsNullOrEmpty(a.Name))
+                            {
+                                <b>@a.Name</b> <span class="mr-addr">@a.Addr</span>
+                            }
+                            else
+                            {
+                                @a.Addr
+                            }
+                        </span>
+                    }
+                    @if (grp.List.Count > _maxChips)
+                    {
+                        <button type="button" class="mr-chip mr-chip-more" onclick="mr_show_all(this)">+@(grp.List.Count - _maxChips) @_f.tra("dalších")</button>
+                    }
+                </div>
             </div>
         }
-        @if (!string.IsNullOrEmpty(r.x40BCC))
-        {
-            <div class="sm-row">
-                <label class="sm-lab">@_f.tra("Skrytá kopie")</label>
-                <div class="sm-val mr-list">@r.x40BCC</div>
-            </div>
-        }
         <div class="sm-row">
-            <label class="sm-lab">@_f.tra("Odesláno")</label>
+            <label class="sm-lab">@(r.x40DatetimeProcessed == null ? _f.tra("Vytvořeno") : _f.tra("Odesláno"))</label>
             <div class="sm-val">
-                @(r.x40DatetimeProcessed == null ? "–" : r.x40DatetimeProcessed.Value.ToString("d.M.yyyy HH:mm"))
+                @if (r.x40DatetimeProcessed != null)
+                {
+                    @r.x40DatetimeProcessed.Value.ToString("d.M.yyyy HH:mm")
+                }
+                else if (r.DateInsert != null)
+                {
+                    @r.DateInsert.Value.ToString("d.M.yyyy HH:mm")
+                }
+                else
+                {
+                    @("–")
+                }
                 @if (_recAlias != null)
                 {
                     <span class="mr-meta">· @_f.tra("k záznamu") <a href="/Record/RecPage?prefix=@(r.x40RecordEntity.Substring(0, 3))&pid=@(r.x40RecordPid)" target="_blank" rel="noopener">@_recAlias</a></span>
@@ -125,8 +194,8 @@
                     {
                         var att = Model.Mail.Attachments[i];
                         string name = string.IsNullOrWhiteSpace(att.FileName) ? _f.tra("příloha") + " " + (i + 1) : att.FileName.Trim();
-                        <a class="mr-att" href="/Mail/DownloadAttachment?guid=@(r.x40MessageGuid)&index=@i" title="@_f.tra("Stáhnout")">
-                            <span class="material-icons-outlined-nosize">description</span>@name
+                        <a class="mr-att" href="/Mail/DownloadAttachment?guid=@(r.x40MessageGuid)&index=@i" title="@_f.tra("Stáhnout") @name">
+                            <span class="material-icons-outlined-nosize">@AttIcon(name)</span><span class="mr-att-name">@name</span>
                         </a>
                     }
                 </div>
@@ -141,7 +210,7 @@
         }
         else if (!string.IsNullOrEmpty(_text))
         {
-            <pre class="mr-text">@_text</pre>
+            <pre class="mr-text">@Html.Raw(Linkify(_text))</pre>
         }
         else
         {
@@ -217,6 +286,11 @@
             timer = setTimeout(function () { $d.data("armed", false).removeClass("btn-danger").addClass("btn-outline-danger").html(html); }, 4000);
         });
     });
+
+    function mr_show_all(btn) {     //„+N dalších“ adresátů
+        $(btn).closest(".mr-chips").find(".mr-more").removeClass("mr-more");
+        $(btn).remove();
+    }
 
     function eml() {
         location.replace("/Mail/DownloadEmlFile?guid=@r.x40MessageGuid");
