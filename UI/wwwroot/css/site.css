@@ -1883,7 +1883,9 @@ a.att {
 
 
 
-/* výchozí: pod elementem */
+/* výchozí: pod elementem; zobrazí se i fokusem (Tab, klepnutí na dotykovém zařízení) */
+.mylabelhelp:focus { outline: none; border-color: navy; }
+.mylabelhelp:focus .mylabelhelptext,
 .mylabelhelp:hover .mylabelhelptext {
     visibility: visible;
     opacity: 1;

@@ -102,7 +102,10 @@ namespace BL.AI.Ask
 
         // ------------------------------------------------------------------ uložené zadání tabulky (p85TempBox)
 
-        private string SaveSpec(AiQuerySpec spec)
+        private string SaveSpec(AiQuerySpec spec) => SaveSpec(F, spec);
+
+        /// <summary>Uloží zadání tabulky do p85TempBox pro přihlášeného uživatele a vrátí guid (Pivot-Explorer, zdrojové úkony, AI widget).</summary>
+        public static string SaveSpec(BL.Factory F, AiQuerySpec spec)
         {
             string guid = BO.Code.Bas.GetGuid();
             F.p85TempboxBL.Save(new BO.p85Tempbox

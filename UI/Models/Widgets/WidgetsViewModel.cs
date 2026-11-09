@@ -37,5 +37,9 @@ namespace UI.Models.Widgets
         public string SelectedP28Name { get; set; }
         public IEnumerable<BO.p28Contact> lisP28 { get; set; }
 
+        /// <summary>Vybraná je virtuální skupina „Moje AI widgety“ (x54id = -1).</summary>
+        public bool IsAiGroup { get; set; }
+        public bool IsAiEnabled { get; set; }
+
     }
 }

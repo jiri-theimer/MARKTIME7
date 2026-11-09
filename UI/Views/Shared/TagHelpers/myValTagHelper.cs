@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Razor.Runtime.TagHelpers;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using System.Text.Encodings.Web;
 
 namespace UI.Views.Shared.TagHelpers
 {
@@ -12,7 +13,14 @@ namespace UI.Views.Shared.TagHelpers
     [HtmlTargetElement("myval")]
 
     public class myValTagHelper : TagHelper
-    {        
+    {
+        private readonly HtmlEncoder _enc;
+        public myValTagHelper(HtmlEncoder enc)
+        {
+            _enc = enc;
+        }
+
+        private string E(object o) => o == null ? "" : _enc.Encode(o.ToString());   //escapování textu i hodnot atributů
 
         [HtmlAttributeName("value")]
         public object Value { get; set; }
@@ -20,8 +28,13 @@ namespace UI.Views.Shared.TagHelpers
         [HtmlAttributeName("datatype")]     //string | date | datetime | num | html | link
         public string DataType { get; set; } = "string";
 
+        /// <summary>Text za hodnotou (měna, jednotka…) – escapuje se.</summary>
         [HtmlAttributeName("valueafter")]
         public string ValueAfter { get; set; }
+
+        /// <summary>HTML za hodnotou (např. basUI.HtmlColorStrip) – NEescapuje se, nepoužívat pro data od uživatelů.</summary>
+        [HtmlAttributeName("valueafter-html")]
+        public string ValueAfterHtml { get; set; }
 
         [HtmlAttributeName("withoutcss")]
         public bool IsWithoutCssClass { get; set; }     //pokud true, pak není podklad šedý box: val-readonly
@@ -105,7 +118,7 @@ namespace UI.Views.Shared.TagHelpers
             }
             if (this.CmPid > 0)
             {
-                output.Content.AppendHtml(string.Format("<a class=\"cm h4\" onclick=\"_cm(event, '{0}',{1})\">☰</a>", this.CmPrefix, this.CmPid));
+                output.Content.AppendHtml(string.Format("<a class=\"cm h4\" onclick=\"_cm(event, '{0}',{1})\">☰</a>", E(this.CmPrefix), this.CmPid));
             }
             if (this.Value != null)
             {
@@ -143,17 +156,17 @@ namespace UI.Views.Shared.TagHelpers
                     case "link":
                         if (this.LinkTarget == null)
                         {
-                            output.Content.AppendHtml(string.Format("<a href=\"{0}\">{1}</a>", this.LinkUrl, this.Value));
+                            output.Content.AppendHtml(string.Format("<a href=\"{0}\">{1}</a>", E(this.LinkUrl), E(this.Value)));
                         }
                         else
                         {
-                            output.Content.AppendHtml(string.Format("<a target='{2}' href=\"{0}\">{1}</a>", this.LinkUrl, this.Value,this.LinkTarget));
+                            output.Content.AppendHtml(string.Format("<a target=\"{2}\" href=\"{0}\">{1}</a>", E(this.LinkUrl), E(this.Value), E(this.LinkTarget)));
                         }
                         
                         break;
                     case "bool":
                     case "boolean":
-                        if (this.Value !=null || Convert.ToBoolean(this.Value))
+                        if (this.Value is bool b ? b : (this.Value != null && this.Value.ToString() != "" && this.Value.ToString() != "0" && !"false".Equals(this.Value.ToString(), StringComparison.OrdinalIgnoreCase)))     //dříve se fajfka zobrazovala i pro false
                         {
                             output.Content.AppendHtml("<span style='font-size:140%;' class='material-icons'>done</span>");
                         }
@@ -169,16 +182,12 @@ namespace UI.Views.Shared.TagHelpers
             }
 
             if (!string.IsNullOrEmpty(this.ValueAfter))
-            {                
-                if (this.ValueAfter.Contains("<"))
-                {
-                    output.Content.AppendHtml(this.ValueAfter);
-                }
-                else
-                {
-                    output.Content.AppendHtml($"<span class='myval-after'>{this.ValueAfter}</span>");
-                }
-                
+            {
+                output.Content.AppendHtml($"<span class='myval-after'>{E(this.ValueAfter)}</span>");
+            }
+            if (!string.IsNullOrEmpty(this.ValueAfterHtml))
+            {
+                output.Content.AppendHtml(this.ValueAfterHtml);
             }
 
 
@@ -193,30 +202,30 @@ namespace UI.Views.Shared.TagHelpers
                 //output.Content.AppendHtml(string.Format("<a class='valhover_tooltip' onclick=\"_zoom(event,'{0}',{1},900,'Info')\">{2}</a>", this.HoverPrefix, this.HoverPid, this.HoverSymbol));
                 if (this.DataType == "html")
                 {
-                    output.Content.AppendHtml($"<a class='reczoom' data-rel='{this.HoverUrl}' data-height='{this.HoverHeight}'>{this.HoverSymbol}</a>");
+                    output.Content.AppendHtml($"<a class='reczoom' data-rel='{E(this.HoverUrl)}' data-height='{this.HoverHeight}'>{E(this.HoverSymbol)}</a>");
                 }
                 else
                 {
-                    output.Content.AppendHtml($"<a class='reczoom' data-title='{this.Value}' data-rel='{this.HoverUrl}' data-height='{this.HoverHeight}'>{this.HoverSymbol}</a>");
+                    output.Content.AppendHtml($"<a class='reczoom' data-title='{E(this.Value)}' data-rel='{E(this.HoverUrl)}' data-height='{this.HoverHeight}'>{E(this.HoverSymbol)}</a>");
                 }
                 
             }
             if (this.HoverInfo != null)
             {
-                output.Content.AppendHtml(string.Format("<a class='valhover_tooltip' href=\"javascript: alert({0})\">{1}</a>", BO.Code.Bas.GS(this.HoverInfo),this.HoverSymbol));
+                //bez alert(): text v data atributu (escapovaný), zobrazí se jako notifikace
+                output.Content.AppendHtml($"<a class='valhover_tooltip' href='javascript:void(0)' title='{E(this.HoverInfo)}' data-info='{E(this.HoverInfo)}' onclick=\"_notify_message(this.getAttribute('data-info'),'info')\">{E(this.HoverSymbol)}</a>");
             }
-            if (this.IsHoverOnClick)
+            if (this.IsHoverOnClick && !string.IsNullOrEmpty(this.HoverUrl))
             {
                 if (this.HoverUrl.Contains("javascript"))
                 {
-                    output.Content.AppendHtml(string.Format("<a class='valhover_tooltip' href=\"{0}\">{1}</a>", this.HoverUrl, this.HoverSymbol));
+                    output.Content.AppendHtml(string.Format("<a class='valhover_tooltip' href=\"{0}\">{1}</a>", E(this.HoverUrl), E(this.HoverSymbol)));
                 }
                 else
                 {
                     if (this.LinkTarget == null) this.LinkTarget = "_blank";
-                    output.Content.AppendHtml(string.Format("<a target='{0}' class='valhover_tooltip' href=\"{1}\">{2}</a>",this.LinkTarget,this.HoverUrl, this.HoverSymbol));
+                    output.Content.AppendHtml(string.Format("<a target='{0}' class='valhover_tooltip' href=\"{1}\">{2}</a>", E(this.LinkTarget), E(this.HoverUrl), E(this.HoverSymbol)));
                 }
-                
             }
 
         }

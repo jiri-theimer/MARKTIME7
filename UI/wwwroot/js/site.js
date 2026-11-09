@@ -684,6 +684,7 @@ function _init_qtip_onpage() {
         if (mytitle === null || mytitle === "") {
             mytitle = "Detail";
         }
+        if (mytitle !== undefined) mytitle = $("<div>").text(mytitle).html();     //qTip vkládá titulek jako HTML → escapovat (název záznamu je data od uživatelů)
         if ($this.attr("data-maxwidth") === "1") {
             mywidth = $(window).innerWidth() - 10;     //okno má mít maximální šířku            
         }

@@ -27,6 +27,9 @@ namespace UI.Controllers.AI
             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
 
+        /// <summary>JSON vkládaný do &lt;script&gt; ve view – výchozí encoder escapuje &lt; &gt; &amp; (data od uživatelů nesmí ukončit skript).</summary>
+        private static readonly JsonSerializerOptions _jsonScript = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+
         public AiAskController(BL.TheColumnsProvider cp, BL.AI.Core.ILlmClient llm)
         {
             _cp = cp; _llm = llm;
@@ -35,7 +38,8 @@ namespace UI.Controllers.AI
         private BL.AI.Ask.AiAskService Service() => new(Factory, _cp, _llm);
 
         /// <summary>Samostatná stránka (hlavní layout); konverzace přežije reload díky sessionStorage (aiask.js).</summary>
-        public IActionResult Index()
+        /// <param name="editx55">úprava osobního AI widgetu: konverzace začne jeho současným zadáním a tabulkou (spočítanou bez AI)</param>
+        public IActionResult Index(int editx55 = 0)
         {
             var svc = Service();
             if (!svc.IsEnabled)
@@ -50,7 +54,50 @@ namespace UI.Controllers.AI
                 PageSymbol = "auto_awesome",
                 Feature = BL.AI.Ask.AiAskService.FeatureCode
             };
+            if (editx55 > 0) v.EditJson = WidgetEditSeed(editx55);
             return View(v);
+        }
+
+        /// <summary>
+        /// Výchozí stav konverzace pro úpravu AI widgetu: úvodní zpráva s tabulkou (bez volání AI) a thread se zadáním
+        /// ve formátu vstupu nástroje – model pak mění jen to, o co uživatel požádá. null = widget nenalezen / nelze spočítat.
+        /// </summary>
+        private string WidgetEditSeed(int x55id)
+        {
+            var rec = Factory.x55WidgetBL.Load(x55id);
+            if (rec == null || !rec.IsAiWidget || rec.j02ID_Owner != Factory.CurrentUser.pid) return null;
+            var task = BO.AI.AiWidgetTask.Parse(rec.x55AiTask);
+            if (task == null) return null;
+
+            var sp = HttpContext.RequestServices;
+            var renderer = new UI.Code.AiWidgetRenderer(Factory, _cp, sp.GetRequiredService<BL.Singleton.ThePeriodProvider>(), sp.GetRequiredService<System.Text.Encodings.Web.HtmlEncoder>());
+            renderer.ApplyPeriod(task);
+            BO.AI.AiAskTable table = null;
+            try
+            {
+                table = renderer.ComputeTable(task, new List<string>());
+                if (table != null) table.Guid = BL.AI.Ask.AiAskService.SaveSpec(Factory, task.Spec);
+            }
+            catch { table = null; }
+
+            string tool = task.Kind == "list" ? "hledej" : "agregace";
+            string input = renderer.ToToolInput(task).ToJsonString(_json);
+            var thread = new JsonArray
+            {
+                new JsonObject { ["role"] = "user", ["content"] = new JsonArray { new JsonObject { ["type"] = "text", ["text"] =
+                    $"Upravuji svůj AI widget na dashboardu „{rec.x55Name}“. Jeho současné zadání odpovídá volání nástroje {tool} s tímto vstupem:\n{input}\n" +
+                    "V dalších požadavcích vyjdi z tohoto zadání, změň jen to, o co požádám, a výsledek znovu spočítej nástrojem (ne jen popiš změnu)." } } },
+                new JsonObject { ["role"] = "assistant", ["content"] = new JsonArray { new JsonObject { ["type"] = "text", ["text"] = "Rozumím. Co chcete na widgetu změnit?" } } }
+            };
+
+            return JsonSerializer.Serialize(new
+            {
+                x55id = rec.pid,
+                name = rec.x55Name,
+                intro = string.Format(Factory.tra("Upravujete AI widget „{0}“. Napište, co změnit – třeba přidat sloupec, omezit na klienta nebo seskupit jinak. Hotový výsledek uložte tlačítkem „Uložit do widgetu“."), rec.x55Name),
+                thread = thread.ToJsonString(),
+                table = table
+            }, _jsonScript);
         }
 
         [HttpPost]

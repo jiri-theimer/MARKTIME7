@@ -5,6 +5,8 @@
     {
         /// <summary>Kód funkce pro historii dotazů (j98Feature).</summary>
         public string Feature { get; set; }
+        /// <summary>Úprava AI widgetu: JSON { x55id, name, intro, thread, table } pro aiask.js; null = běžná konverzace.</summary>
+        public string EditJson { get; set; }
     }
 
     /// <summary>Pivot-Explorer nad výsledkem agenta (AiAskController.Pivot).</summary>

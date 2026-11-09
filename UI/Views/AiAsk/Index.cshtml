@@ -35,6 +35,8 @@
 
 <script type="text/javascript">
     var _ask_user = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(_f.CurrentUser.pid));
+    var _ask_pin = @(_f.CurrentUser.j04IsModule_Widgets ? "true" : "false");     //„Na plochu“ jen s přístupem k dashboardu
+    var _ask_edit = @Html.Raw(Model.EditJson ?? "null");     //úprava AI widgetu (/AiAsk?editx55=…): { x55id, name, intro, thread, table }
     var _ask_txt = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(new
     {
         total = _f.tra("Celkem"),
@@ -53,7 +55,21 @@
         cardP31 = _f.tra("Otevřít úkon"),
         cardMenu = _f.tra("Menu záznamu"),
         drillError = _f.tra("Zdrojové úkony se nepodařilo načíst."),
-        empty = _f.tra("Nic nenalezeno.")
+        empty = _f.tra("Nic nenalezeno."),
+        pin = _f.tra("Uložit na dashboard"),
+        pinTitle = _f.tra("Uložit jako AI widget na dashboard (skupina Moje AI widgety) – data se pak počítají vždy aktuálně, bez dalšího volání AI"),
+        pinName = _f.tra("Název widgetu"),
+        pinLive = _f.tra("Vždy aktuální období"),
+        pinFixed = _f.tra("Období je pevné (data z dotazu)."),
+        pinCount = _f.tra("Osobní AI widgety: {0} z {1}"),
+        pinSave = _f.tra("Uložit na dashboard"),
+        pinCancel = _f.tra("Zrušit"),
+        pinDone = _f.tra("Widget je na dashboardu ve skupině „Moje AI widgety“."),
+        pinOpen = _f.tra("Otevřít dashboard"),
+        pinError = _f.tra("Widget se nepodařilo uložit."),
+        saveTo = _f.tra("Uložit do widgetu"),
+        saveToTitle = _f.tra("Nahradit zadání upravovaného widgetu tímto výsledkem (název a místo na ploše zůstanou)"),
+        savedTo = _f.tra("Uloženo do widgetu.")
     }));
 </script>
 <script src="~/js/ai/aiask.js" asp-append-version="true"></script>

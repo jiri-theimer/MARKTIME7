@@ -6,6 +6,7 @@ var _ask_thread = null;
 var _ask_chat = null;
 var _ask_items = [];        // vykreslené zprávy pro obnovu: {role, text, logId, tables, warnings}
 var _ask_key = "aiask-state-" + _ask_user;
+if (typeof _ask_edit !== "undefined" && _ask_edit) _ask_key += "-w" + _ask_edit.x55id;      //úprava widgetu = vlastní konverzace, běžnou nepřepíše
 
 $(function () {
     _ask_chat = new AiChat({
@@ -28,9 +29,10 @@ $(function () {
         _ask_items = [];
         try { sessionStorage.removeItem(_ask_key); } catch (e) { }
         _ask_chat.reset();
+        if (_ask_edit) ask_edit_seed();      //při úpravě widgetu začít znovu od jeho zadání
     });
 
-    ask_restore();
+    if (!ask_restore() && _ask_edit) ask_edit_seed();
 
     //?q=… (např. z okna upozornění) → položit dotaz a parametr z adresy odstranit, aby se po reloadu neopakoval
     try {
@@ -57,7 +59,7 @@ function ask_save() {
 function ask_restore() {
     var st = null;
     try { st = JSON.parse(sessionStorage.getItem(_ask_key) || "null"); } catch (e) { st = null; }
-    if (!st || st.v !== 1 || !st.items || !st.items.length) return;
+    if (!st || st.v !== 1 || !st.items || !st.items.length) return false;
 
     _ask_thread = st.thread || null;
     _ask_items = st.items;
@@ -69,6 +71,28 @@ function ask_restore() {
         if (it.logId) { _ask_chat.lastLogId = it.logId; _ask_chat.addRating($m, it.logId); }
         ask_decorate($m, it.tables || [], it.warnings || []);
     });
+    return true;
+}
+
+// úprava AI widgetu: úvodní zpráva s jeho současnou tabulkou (spočítanou bez AI) a thread se zadáním pro model
+function ask_edit_seed() {
+    _ask_thread = _ask_edit.thread || null;
+    var tables = [];
+    if (_ask_edit.table) { _ask_edit.table.seed = true; tables.push(_ask_edit.table); }
+    var $m = _ask_chat.addMessage("ai-assistant", _ask_edit.intro);
+    ask_decorate($m, tables, []);
+    _ask_items = [{ role: "assistant", text: _ask_edit.intro, logId: 0, tables: tables, warnings: [] }];
+    ask_save();
+}
+
+// „Uložit do widgetu“ – nové zadání nahradí zadání upravovaného widgetu
+function ask_replace(t, $box) {
+    $.post("/Widgets/AiReplace", { x55id: _ask_edit.x55id, guid: t.guid }, function (r) {
+        if (!r || !r.ok) { _notify_message((r && r.error) || _ask_txt.pinError, "warning"); return; }
+        $box.find(".ai-pin").remove();
+        $box.append($("<div>").addClass("ai-pin").append($("<span>").text(_ask_txt.savedTo + " "))
+            .append($("<a>").attr({ href: r.url, target: "_top" }).text(_ask_txt.pinOpen)));
+    }).fail(function () { _notify_message(_ask_txt.pinError, "error"); });
 }
 
 // tabulky a upozornění do bubliny odpovědi (před hodnocení)
@@ -182,6 +206,16 @@ function ask_render_table(t) {
                 .append($("<span>").addClass("material-icons-outlined-btn").text("list")).append(document.createTextNode(_ask_txt.drill))
                 .on("click", function () { ask_drill(t, null); }));
         }
+        if (typeof _ask_edit !== "undefined" && _ask_edit && !t.seed) {
+            $btns.append($("<button>").attr("type", "button").addClass("btn btn-primary btn-sm").attr("title", _ask_txt.saveToTitle)
+                .append($("<span>").addClass("material-icons-outlined-btn").text("save")).append(document.createTextNode(_ask_txt.saveTo))
+                .on("click", function () { ask_replace(t, $box); }));
+        }
+        if (typeof _ask_pin !== "undefined" && _ask_pin && !t.seed) {
+            $btns.append($("<button>").attr("type", "button").addClass("btn btn-light btn-sm").attr("title", _ask_txt.pinTitle)
+                .append($("<span>").addClass("material-icons-outlined-btn").text("push_pin")).append(document.createTextNode(_ask_txt.pin))
+                .on("click", function () { ask_pin(t, $box); }));
+        }
     }
     if ($btns.children().length) $box.append($btns);
     return $box;
@@ -230,4 +264,50 @@ function ask_drill(t, row) {
             _window_open("/p31totals/Drill?guid=" + r.guid + "&count=" + r.count + "&label=" + encodeURIComponent(lbl), 2);
         })
         .fail(function () { _notify_message(_ask_txt.drillError, "error"); });
+}
+
+// ------------------------------------------------------------------ „Na plochu“: výsledek jako osobní AI widget na dashboardu
+// Ukládá se zadání (ne data); dashboard ho při každém zobrazení přepočítá z databáze – bez volání AI.
+// Widget se zakládá do virtuální skupiny dashboardu „Moje AI widgety“ (x54id = -1, není v x54).
+function ask_pin(t, $box) {
+    if ($box.find(".ai-pin").length) return;
+    $.post("/Widgets/AiPinInfo", { guid: t.guid }, function (info) {
+        if (!info || !info.ok) { _notify_message((info && info.error) || _ask_txt.pinError, "warning"); return; }
+
+        var $p = $("<div>").addClass("ai-pin");
+        var $name = $("<input>").attr({ type: "text", maxlength: 100 }).addClass("form-control form-control-sm").val(info.title);
+        $p.append($("<label>").text(_ask_txt.pinName)).append($name);
+
+        var $live = null;
+        if (info.period) {
+            $live = $("<input>").attr({ type: "checkbox", id: "ai_pin_live_" + t.guid }).prop("checked", true);
+            $p.append($("<div>").addClass("ai-pin-check").append($live)
+                .append($("<label>").attr("for", "ai_pin_live_" + t.guid).text(_ask_txt.pinLive + ": " + info.period.name)));
+        } else {
+            $p.append($("<div>").addClass("ai-result-desc").text(_ask_txt.pinFixed));
+        }
+
+        $p.append($("<div>").addClass("ai-result-desc").text(_ask_txt.pinCount.replace("{0}", info.count).replace("{1}", info.limit)));
+
+        var $save = $("<button>").attr("type", "button").addClass("btn btn-primary btn-sm").text(_ask_txt.pinSave);
+        var $cancel = $("<button>").attr("type", "button").addClass("btn btn-light btn-sm").text(_ask_txt.pinCancel)
+            .on("click", function () { $p.remove(); });
+        $p.append($("<div>").addClass("ai-pin-buttons").append($save).append($cancel));
+        if (info.count >= info.limit) $save.prop("disabled", true);
+
+        $save.on("click", function () {
+            $save.prop("disabled", true);
+            $.post("/Widgets/AiCreate", {
+                guid: t.guid, name: $name.val(),
+                live: $live ? $live.prop("checked") : false
+            }, function (r) {
+                if (!r || !r.ok) { _notify_message((r && r.error) || _ask_txt.pinError, "warning"); $save.prop("disabled", false); return; }
+                $p.empty().append($("<span>").text(_ask_txt.pinDone + " "))
+                    .append($("<a>").attr({ href: r.url, target: "_top" }).text(_ask_txt.pinOpen));
+            }).fail(function () { _notify_message(_ask_txt.pinError, "error"); $save.prop("disabled", false); });
+        });
+
+        $box.append($p);
+        $name.trigger("focus").trigger("select");
+    }).fail(function () { _notify_message(_ask_txt.pinError, "error"); });
 }

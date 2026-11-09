@@ -48,6 +48,14 @@ namespace BO
         public string x55TableColTotals { get; set; }
         public string Rezerva { get; set; }
         public string x55ReportCodes { get; set; }
+
+        /// <summary>AI widget: zadání dotazu (JSON BO.AI.AiWidgetTask). Při zobrazení se přepočítá z dat – bez volání AI.</summary>
+        public string x55AiTask { get; set; }
+        /// <summary>Vlastník osobního widgetu; 0 = sdílený widget (skupiny přes x57).</summary>
+        public int j02ID_Owner { get; set; }
+
+        public bool IsAiWidget => !string.IsNullOrEmpty(this.x55AiTask);
+        public bool IsPersonal => this.j02ID_Owner > 0;
         public string NamePlusCategory
         {
             get

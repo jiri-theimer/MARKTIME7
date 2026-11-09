@@ -12,11 +12,24 @@ namespace UI.Controllers
     {
         private readonly BL.Singleton.ThePeriodProvider _pp;
         private readonly BL.TheColumnsProvider _colsProvider;
-        public WidgetsController(BL.Singleton.ThePeriodProvider pp, BL.TheColumnsProvider cp)
+        private readonly BL.AI.Core.ILlmClient _llm;
+        public WidgetsController(BL.Singleton.ThePeriodProvider pp, BL.TheColumnsProvider cp, BL.AI.Core.ILlmClient llm)
         {
             _pp = pp;
             _colsProvider = cp;
+            _llm = llm;
         }
+
+        /// <summary>Virtuální skupina „Moje AI widgety“ – není v DB; plocha = všechny osobní AI widgety uživatele.</summary>
+        public const int AiX54ID = -1;
+        private const string AiDockStateParam = "Widgets-AiDockState";
+
+        private BO.x54WidgetGroup VirtualAiGroup() => new BO.x54WidgetGroup()
+        {
+            pid = AiX54ID,
+            x54Name = "✨ " + Factory.tra("Moje AI widgety"),
+            x54IsAllowAutoRefresh = true
+        };
 
         public IActionResult MiniAbsence(string d0)
         {
@@ -147,6 +160,11 @@ namespace UI.Controllers
             }
 
             v.lisX54 = Factory.j04UserRoleBL.GetList_x54(intJ04ID).Where(p => !p.isclosed);
+            //virtuální skupina osobních AI widgetů – na první místo, jen na vlastní ploše a jen když má smysl (AI zapnuté nebo už nějaký widget má)
+            if (v.j02id_me == Factory.CurrentUser.pid && (_llm.Options.Enabled || Factory.x55WidgetBL.CountPersonal(Factory.CurrentUser.pid) > 0))
+            {
+                v.lisX54 = new[] { VirtualAiGroup() }.Concat(v.lisX54).ToList();
+            }
             if (v.lisX54.Count() == 0)
             {
                 return this.StopPage(false, "Vaše aplikační role nemá nastavenou widget skupinu.", "/Admin/Page?area=widgets&prefix=x54");
@@ -160,7 +178,9 @@ namespace UI.Controllers
             {
                 v.SelectedX54ID = v.lisX54.First().pid;
             }
-            v.RecX54 = Factory.x54WidgetGroupBL.Load(v.SelectedX54ID);
+            v.RecX54 = v.SelectedX54ID == AiX54ID ? VirtualAiGroup() : Factory.x54WidgetGroupBL.Load(v.SelectedX54ID);
+            v.IsAiGroup = v.SelectedX54ID == AiX54ID;
+            v.IsAiEnabled = _llm.Options.Enabled;
                         
             if (v.RecX54.x54IsParamP28ID)
             {
@@ -235,6 +255,11 @@ namespace UI.Controllers
 
         public BO.Result SaveWidgetState(string s, string skin,int x54id)
         {
+            if (x54id == AiX54ID)
+            {
+                Factory.CBL.SetUserParam(AiDockStateParam, s);
+                return new BO.Result(false);
+            }
             var rec = Factory.x55WidgetBL.LoadState(Factory.CurrentUser.pid, skin,x54id);
             rec.x56DockState = s;
             rec.x56Skin = skin;
@@ -243,6 +268,7 @@ namespace UI.Controllers
         }
         public BO.Result RemoveWidget(int x55id, string skin,int x54id)
         {
+            if (x54id == AiX54ID) return new BO.Result(false);     //virtuální plocha ukazuje vždy všechny osobní widgety – odebrání = smazání (AiDelete)
             var recX55 = Factory.x55WidgetBL.Load(x55id);
             var recX56 = Factory.x55WidgetBL.LoadState(Factory.CurrentUser.pid, skin,x54id);
             var boxes = BO.Code.Bas.ConvertString2List(recX56.x56Boxes);
@@ -258,6 +284,7 @@ namespace UI.Controllers
         }
         public BO.Result InsertWidget(int x55id, string skin, int x54id)
         {
+            if (x54id == AiX54ID) return new BO.Result(false);
             var recX55 = Factory.x55WidgetBL.Load(x55id);
             var recX56 = Factory.x55WidgetBL.LoadState(Factory.CurrentUser.pid, skin,x54id);
             var boxes = BO.Code.Bas.ConvertString2List(recX56.x56Boxes);
@@ -285,20 +312,205 @@ namespace UI.Controllers
 
         public BO.Result Clear2FactoryState(string skin,int x54id)    //vyčistí plochu do továrního nastavení
         {
+            if (x54id == AiX54ID) { Factory.CBL.SetUserParam(AiDockStateParam, ""); return new BO.Result(false); }
             Factory.x55WidgetBL.Clear2FactoryState(Factory.x55WidgetBL.LoadState(Factory.CurrentUser.pid, skin,x54id));
             return new BO.Result(false);
         }
 
         public BO.Result SetAsDefaultGlobalBoxes(string skin,int x54id)    //vyčistí plochu do továrního nastavení
         {
+            if (x54id == AiX54ID) return new BO.Result(true, "Not supported for personal AI widgets.");
             Factory.x55WidgetBL.SetAsDefaultGlobalBoxes(Factory.x55WidgetBL.LoadState(Factory.CurrentUser.pid, skin,x54id).x56Boxes);
             return new BO.Result(false);
         }
 
         public BO.Result UpdateBoxes2AllUsers(string skin,int x54id)    //vyčistí plochu do továrního nastavení
         {
+            if (x54id == AiX54ID) return new BO.Result(true, "Not supported for personal AI widgets.");
             Factory.x55WidgetBL.UpdateBoxes2AllUsers(Factory.x55WidgetBL.LoadState(Factory.CurrentUser.pid, skin,x54id).x56Boxes,skin,x54id);
             return new BO.Result(false);
+        }
+
+
+        // ------------------------------------------------------------------ AI widgety (osobní, z „Zeptej se MARKTIME“)
+
+        public const int MaxPersonalAiWidgets = 20;
+
+        private AiWidgetRenderer AiRenderer() =>
+            new AiWidgetRenderer(Factory, _colsProvider, _pp, HttpContext.RequestServices.GetRequiredService<System.Text.Encodings.Web.HtmlEncoder>());
+
+        /// <summary>Podklady pro dialog „Na plochu“ v AiAsk: název, druh, pojmenované období, počet osobních widgetů.</summary>
+        [HttpPost]
+        public IActionResult AiPinInfo(string guid)
+        {
+            if (!Factory.CurrentUser.j04IsModule_Widgets) return Json(new { ok = false, error = Factory.tra("Nemáte přístup k dashboardu.") });
+            var spec = BL.AI.Ask.AiAskService.LoadSpec(Factory, guid);
+            if (spec == null) return Json(new { ok = false, error = Factory.tra("Výsledek nebyl nalezen.") });
+            var per = AiRenderer().MatchNamedPeriod(spec);
+            return Json(new
+            {
+                ok = true,
+                title = string.IsNullOrEmpty(spec.Title) ? Factory.tra("AI widget") : spec.Title,
+                kind = spec is BO.AI.AiListSpec ? "list" : "agg",
+                period = per == null ? null : new { pid = per.pid, name = per.PeriodName },
+                count = Factory.x55WidgetBL.CountPersonal(Factory.CurrentUser.pid),
+                limit = MaxPersonalAiWidgets
+            });
+        }
+
+        /// <summary>Vytvoří osobní AI widget ze zadání tabulky AiAsk (guid v p85). Zobrazí se ve virtuální skupině „Moje AI widgety“.</summary>
+        [HttpPost]
+        public IActionResult AiCreate(string guid, string name, bool live)
+        {
+            if (!Factory.CurrentUser.j04IsModule_Widgets) return Json(new { ok = false, error = Factory.tra("Nemáte přístup k dashboardu.") });
+            var spec = BL.AI.Ask.AiAskService.LoadSpec(Factory, guid);
+            if (spec == null) return Json(new { ok = false, error = Factory.tra("Výsledek nebyl nalezen.") });
+            if (Factory.x55WidgetBL.CountPersonal(Factory.CurrentUser.pid) >= MaxPersonalAiWidgets)
+                return Json(new { ok = false, error = string.Format(Factory.tra("Můžete mít nejvýše {0} osobních AI widgetů. Nějaký nejdřív smažte."), MaxPersonalAiWidgets) });
+
+            name = (name ?? "").Trim();
+            if (name.Length == 0) name = string.IsNullOrEmpty(spec.Title) ? Factory.tra("AI widget") : spec.Title;
+            if (name.Length > 100) name = name.Substring(0, 100);
+
+            var task = new BO.AI.AiWidgetTask
+            {
+                Kind = spec is BO.AI.AiListSpec ? "list" : "agg",
+                View = "table",     //graf zatím vypnutý
+                PeriodPid = live ? (AiRenderer().MatchNamedPeriod(spec)?.pid ?? 0) : 0,
+                Agg = spec as BO.AI.AiAggSpec,
+                List = spec as BO.AI.AiListSpec,
+                Description = new BL.AI.Tools.AiAggregate(Factory, _colsProvider).Describe(spec)
+            };
+
+            var rec = new BO.x55Widget
+            {
+                x01ID = Factory.CurrentUser.x01ID,
+                x55Name = name,
+                x55Code = $"ai_{Factory.CurrentUser.pid}_{BO.Code.Bas.GetGuid().Substring(0, 8)}",
+                x55Image = "auto_awesome",
+                x55AiTask = task.ToJson(),
+                j02ID_Owner = Factory.CurrentUser.pid
+            };
+            int x55id = Factory.x55WidgetBL.Save(rec);
+            if (x55id == 0) return Json(new { ok = false, error = Factory.tra("Widget se nepodařilo uložit.") });
+
+            Factory.CBL.SetUserParam("Widgets-x54ID", AiX54ID.ToString());     //po otevření dashboardu rovnou „Moje AI widgety“
+            return Json(new { ok = true, x55id = x55id, url = $"/Widgets/Index?x54id={AiX54ID}" });
+        }
+
+        private BO.x55Widget LoadMyAiWidget(int x55id)
+        {
+            var rec = Factory.x55WidgetBL.Load(x55id);
+            return rec != null && rec.IsAiWidget && rec.IsPersonal && rec.j02ID_Owner == Factory.CurrentUser.pid ? rec : null;
+        }
+
+        /// <summary>Rychlá úprava (bez AI) – podklady: název, období (pojmenovaná / pevné), počet řádků.</summary>
+        public IActionResult AiEditInfo(int x55id)
+        {
+            var rec = LoadMyAiWidget(x55id);
+            var task = rec == null ? null : BO.AI.AiWidgetTask.Parse(rec.x55AiTask);
+            if (task == null) return Json(new { ok = false, error = Factory.tra("Widget nebyl nalezen.") });
+            var spec = task.Spec;
+            string fixedText = null;
+            if (spec.Period != null && BL.AI.Grid.AiGridFilterCodec.TryDate(spec.Period.D1, out var d1) && BL.AI.Grid.AiGridFilterCodec.TryDate(spec.Period.D2, out var d2))
+                fixedText = $"{d1:d.M.yyyy} – {d2:d.M.yyyy}";
+            int max = task.Kind == "list" ? AiWidgetRenderer.MaxListRows : AiWidgetRenderer.MaxAggRows;
+            return Json(new
+            {
+                ok = true,
+                x55id = rec.pid,
+                name = rec.x55Name,
+                hasPeriod = spec.Period != null,
+                periodPid = task.PeriodPid,
+                fixedText = fixedText,
+                periods = _pp.getPallete().Where(p => p.pid > 1 && p.pid <= 60).Select(p => new { pid = p.pid, name = p.PeriodName, interval = p.PeriodInterval }),
+                limit = Math.Clamp(spec.Limit <= 0 ? max : spec.Limit, 1, max),
+                limitMax = max,
+                canAsk = _llm.Options.Enabled
+            });
+        }
+
+        /// <summary>Rychlá úprava (bez AI): název, období, počet řádků. Přechod z pojmenovaného na pevné období zmrazí aktuální data.</summary>
+        [HttpPost]
+        public IActionResult AiUpdate(int x55id, string name, int periodPid, int limit)
+        {
+            var rec = LoadMyAiWidget(x55id);
+            var task = rec == null ? null : BO.AI.AiWidgetTask.Parse(rec.x55AiTask);
+            if (task == null) return Json(new { ok = false, error = Factory.tra("Widget nebyl nalezen.") });
+
+            name = (name ?? "").Trim();
+            if (name.Length > 0) rec.x55Name = name.Length > 100 ? name.Substring(0, 100) : name;
+
+            if (task.Spec.Period != null)
+            {
+                if (periodPid > 1 && periodPid <= 60 && _pp.getPallete().Any(p => p.pid == periodPid))
+                {
+                    task.PeriodPid = periodPid;
+                    AiRenderer().ApplyPeriod(task);       //uložit i aktuální data – kdyby se později přepnulo na pevné
+                }
+                else if (periodPid == 0 && task.PeriodPid > 0)
+                {
+                    AiRenderer().ApplyPeriod(task);       //zmrazit data aktuálního pojmenovaného období
+                    task.PeriodPid = 0;
+                }
+            }
+            int max = task.Kind == "list" ? AiWidgetRenderer.MaxListRows : AiWidgetRenderer.MaxAggRows;
+            task.Spec.Limit = Math.Clamp(limit, 1, max);
+            task.View = "table";
+
+            rec.x55AiTask = task.ToJson();
+            if (Factory.x55WidgetBL.Save(rec) == 0) return Json(new { ok = false, error = Factory.tra("Widget se nepodařilo uložit.") });
+            return Json(new { ok = true });
+        }
+
+        /// <summary>Úprava v „Zeptej se MARKTIME“: nové zadání (guid tabulky v p85) nahradí zadání widgetu; název a místo na ploše zůstávají.</summary>
+        [HttpPost]
+        public IActionResult AiReplace(int x55id, string guid)
+        {
+            var rec = LoadMyAiWidget(x55id);
+            var old = rec == null ? null : BO.AI.AiWidgetTask.Parse(rec.x55AiTask);
+            if (old == null) return Json(new { ok = false, error = Factory.tra("Widget nebyl nalezen.") });
+            var spec = BL.AI.Ask.AiAskService.LoadSpec(Factory, guid);
+            if (spec == null) return Json(new { ok = false, error = Factory.tra("Výsledek nebyl nalezen.") });
+
+            var task = new BO.AI.AiWidgetTask
+            {
+                Kind = spec is BO.AI.AiListSpec ? "list" : "agg",
+                View = "table",
+                //bylo „vždy aktuální“ → zůstane, pokud nové období odpovídá pojmenovanému; jinak pevné
+                PeriodPid = old.PeriodPid > 0 ? (AiRenderer().MatchNamedPeriod(spec)?.pid ?? 0) : 0,
+                Agg = spec as BO.AI.AiAggSpec,
+                List = spec as BO.AI.AiListSpec,
+                Description = new BL.AI.Tools.AiAggregate(Factory, _colsProvider).Describe(spec)
+            };
+            rec.x55AiTask = task.ToJson();
+            if (Factory.x55WidgetBL.Save(rec) == 0) return Json(new { ok = false, error = Factory.tra("Widget se nepodařilo uložit.") });
+            Factory.CBL.SetUserParam("Widgets-x54ID", AiX54ID.ToString());
+            return Json(new { ok = true, url = $"/Widgets/Index?x54id={AiX54ID}" });
+        }
+
+        /// <summary>Smaže osobní AI widget (jen vlastník) a odebere ho z aktuální plochy.</summary>
+        [HttpPost]
+        public BO.Result AiDelete(int x55id, string skin, int x54id)
+        {
+            var rec = Factory.x55WidgetBL.Load(x55id);
+            if (rec == null || !rec.IsPersonal || rec.j02ID_Owner != Factory.CurrentUser.pid) return new BO.Result(true, Factory.tra("Widget nelze smazat."));
+            RemoveWidget(x55id, skin, x54id);
+            Factory.x55WidgetBL.DeletePersonal(x55id, Factory.CurrentUser.pid);
+            return new BO.Result(false);
+        }
+
+        /// <summary>Otevře zadání AI widgetu v Pivot-Exploreru (uloží ho do p85 jako v AiAsk).</summary>
+        public IActionResult AiPivot(int x55id)
+        {
+            var rec = Factory.x55WidgetBL.Load(x55id);
+            if (rec == null || !rec.IsAiWidget || (rec.IsPersonal && rec.j02ID_Owner != Factory.CurrentUser.pid)) return this.StopPage(true, Factory.tra("Widget nebyl nalezen."));
+            var task = BO.AI.AiWidgetTask.Parse(rec.x55AiTask);
+            if (task?.Agg == null) return this.StopPage(true, Factory.tra("Pivot-Explorer je dostupný jen pro souhrnné AI widgety."));
+            AiRenderer().ApplyPeriod(task);
+            if (string.IsNullOrEmpty(task.Agg.Title)) task.Agg.Title = rec.x55Name;
+            string guid = BL.AI.Ask.AiAskService.SaveSpec(Factory, task.Agg);
+            return Redirect("/AiAsk/Pivot?guid=" + guid);
         }
 
 
@@ -308,7 +520,14 @@ namespace UI.Controllers
             var mq = new BO.myQuery("x55") {x54id=v.SelectedX54ID, IsRecordValid = true, MyRecordsDisponible = true, CurrentUser = Factory.CurrentUser };
             var hodnoty = new List<string>() { null, v.Skin };
 
-            v.lisAllWidgets = Factory.x55WidgetBL.GetList(mq).OrderBy(p => p.x55Category).ThenBy(p => p.x55Ordinal);
+            if (v.IsAiGroup)
+            {
+                v.lisAllWidgets = Factory.x55WidgetBL.GetList_Personal(Factory.CurrentUser.pid).ToList();   //osobní AI widgety (nejsou ve skupinách x57)
+            }
+            else
+            {
+                v.lisAllWidgets = Factory.x55WidgetBL.GetList(mq).Where(p => !p.IsPersonal).OrderBy(p => p.x55Category).ThenBy(p => p.x55Ordinal);
+            }
             
             string ss = null;
             foreach(var c in v.lisAllWidgets)
@@ -338,7 +557,20 @@ namespace UI.Controllers
             }
             
             
-            v.recX56 = Factory.x55WidgetBL.LoadState(Factory.CurrentUser.pid, v.Skin,v.SelectedX54ID);
+            if (v.IsAiGroup)
+            {
+                //virtuální plocha: všechny osobní widgety, rozložení v uživatelském parametru (x56 se pro ni nezakládá)
+                v.recX56 = new BO.x56WidgetBinding()
+                {
+                    j02ID = Factory.CurrentUser.pid, x56Skin = v.Skin, x54ID = AiX54ID,
+                    x56Boxes = string.Join(",", v.lisAllWidgets.Select(p => p.x55Code)),
+                    x56DockState = Factory.CBL.LoadUserParam(AiDockStateParam)
+                };
+            }
+            else
+            {
+                v.recX56 = Factory.x55WidgetBL.LoadState(Factory.CurrentUser.pid, v.Skin, v.SelectedX54ID);
+            }
             v.DockStructure = new WidgetsEnvironment(v.recX56.x56DockState);
 
             if (Factory.CurrentUser.j02LangIndex == 2)
@@ -450,6 +682,16 @@ namespace UI.Controllers
         public BO.x55Widget GetWidgetHtmlContent(int x55id, int columnsperpage, string d,int j02id,int p28id)
         {
             var rec = Factory.x55WidgetBL.Load(x55id);
+            if (rec == null || (rec.IsPersonal && rec.j02ID_Owner != Factory.CurrentUser.pid))
+            {
+                return new BO.x55Widget() { x55ID = x55id, x55Name = "?", x55Code = "x", x55Content = Factory.tra("Widget nebyl nalezen.") };
+            }
+            if (rec.IsAiWidget)
+            {
+                //AI widget: zadání → SQL přes AiAggregate, bez volání AI
+                rec.x55Content = AiRenderer().Render(rec);
+                return rec;
+            }
             string strHtml = rec.x55Content;
             if (strHtml != null)
             {

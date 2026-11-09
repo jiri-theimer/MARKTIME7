@@ -80,7 +80,7 @@
             <td class="tdval">
                 @if (_bolRowHover)
                 {
-                    <myval value="@_recB02.b02Name" hoverurl="/b02/Info?prefix=p28&pid=@Model.pid" valueafter="@(UI.Code.basUI.HtmlColorStrip(_recB02.b02Color))"></myval>
+                    <myval value="@_recB02.b02Name" hoverurl="/b02/Info?prefix=p28&pid=@Model.pid" valueafter-html="@(UI.Code.basUI.HtmlColorStrip(_recB02.b02Color))"></myval>
                 }
                 else
                 {

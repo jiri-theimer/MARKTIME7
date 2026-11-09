@@ -1,68 +1,128 @@
-﻿.column {
-    float: left;
+﻿/* Dashboard (Views/Widgets/Index.cshtml) – třídy wd-*, zachovány portlet / portlet-header / portlet-content (jQuery UI sortable, serializace box_{pid}). */
+
+/* ------------------------------------------------------------------ lišta */
+.wd-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 10px; padding: 8px 12px; background: #fff; border-bottom: 1px solid #e3e6ea; }
+.wd-who { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; color: #1f2328 !important; text-decoration: none; margin-right: 6px; }
+.wd-who .material-icons-outlined-nosize { color: var(--pozadi, #0b4b92); font-size: 22px; }
+.wd-skin { font-weight: 500; font-size: .8rem; padding: 1px 8px; border-radius: 10px; background: #eef1f4; color: #3d444d; }
+.wd-field { display: flex; align-items: center; gap: 6px; }
+.wd-field .col-form-label { white-space: nowrap; color: #59636e; font-size: .875rem; }
+.wd-add { display: inline-flex; align-items: center; gap: 4px; }
+.wd-add .material-icons-outlined-btn { color: inherit; margin-top: 0; }
+.wd-right { margin-left: auto; display: flex; gap: 6px; }
+
+#header_index.wd-toolbar { margin: 0; }
+#header_subform.wd-toolbar { margin: 0 0 10px; }
+
+/* ------------------------------------------------------------------ plocha */
+#container_index.wd-board { margin: 0; padding: 14px 10px 24px; background: #f5f6f8; min-height: calc(100vh - 140px); border: 0; }
+#container_subform.wd-board { margin: 0; padding: 8px 4px; border: 0; }
+.wd-board > .column { min-height: 60px; padding-left: 6px; padding-right: 6px; }
+
+.wd-card { margin: 0 0 14px; background: #fff; border: 1px solid #e3e6ea; border-radius: 10px; box-shadow: 0 1px 2px rgba(16,24,40,.05); }
+.wd-head { display: flex; align-items: center; gap: 6px; min-height: 40px; padding: 6px 8px 6px 6px; border-bottom: 1px solid #eef0f2; border-radius: 10px 10px 0 0; background: #fff; cursor: move; color: #1f2328; }
+.wd-grip { font-size: 18px; color: #b5bcc4; }
+.wd-head:hover .wd-grip { color: #59636e; }
+.wd-icon { font-size: 20px; color: var(--pozadi, #0b4b92); }
+.wd-head[style] .wd-icon, .wd-head[style] .wd-grip { color: inherit; opacity: .85; }     /* vlastní barvy hlavičky z x55 */
+.wd-title { flex: 1 1 auto; min-width: 0; font-weight: 600; font-size: .95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wd-actions { display: flex; align-items: center; gap: 2px; flex: 0 0 auto; }
+.wd-btn { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 6px; background: transparent; color: #6c757d; cursor: pointer; }
+.wd-btn .material-icons-outlined-nosize { font-size: 19px; }
+.wd-btn:hover { background: rgba(0,0,0,.06); color: #1f2328; }
+.wd-head[style] .wd-btn { color: inherit; }
+.wd-actions .dropdown-item { display: flex; align-items: center; gap: 8px; font-size: .875rem; }
+.wd-actions .dropdown-item .material-icons-outlined-btn { margin-top: 0; font-size: 18px; color: #59636e; }
+.wd-remove, .wd-remove .material-icons-outlined-btn { color: #b02a37 !important; }
+
+.wd-body { padding: 10px 12px; overflow: auto; }     /* max-height a pozadí z x55 (CssContentDiv) */
+.wd-body a { color: #0b5ed7; }
+
+.portlet-placeholder { margin: 0 0 14px; border: 2px dashed #b9c3cf; border-radius: 10px; background: rgba(11,75,146,.04); }
+.ui-sortable-helper.wd-card { box-shadow: 0 10px 28px rgba(16,24,40,.18); }
+/* SortableJS: místo, kam widget dopadne (ghost) a přetahovaný widget */
+.wd-card.portlet-placeholder { opacity: .45; box-shadow: none; }
+.wd-card.wd-drag { box-shadow: 0 10px 28px rgba(16,24,40,.18); }
+.wd-load-error { padding: 8px 0; color: #842029; font-size: .875rem; }
+
+/* AI vypnuté – info na ploše „Moje AI widgety“ */
+.wd-ai-off { display: flex; align-items: flex-start; gap: 8px; margin: 12px 16px 0; padding: 10px 12px; border-radius: 8px; background: #fff3cd; color: #664d03; font-size: .875rem; }
+.wd-ai-off .material-icons-outlined-nosize { font-size: 19px; flex: 0 0 auto; }
+
+/* načítání */
+.wd-skeleton { display: flex; flex-direction: column; gap: 10px; padding: 4px 0; overflow: hidden; }
+.wd-skeleton span { display: block; height: 12px; border-radius: 6px; background: linear-gradient(90deg, #eef0f3 25%, #f6f7f9 50%, #eef0f3 75%); background-size: 200% 100%; animation: wd-shimmer 1.2s infinite linear; }
+.wd-skeleton span:nth-child(1) { width: 70%; }
+.wd-skeleton span:nth-child(2) { width: 90%; }
+.wd-skeleton span:nth-child(3) { width: 55%; }
+@keyframes wd-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+/* prázdná plocha */
+.wd-empty { max-width: 520px; margin: 40px auto 10px; padding: 28px; text-align: center; background: #fff; border: 1px dashed #c9d1da; border-radius: 12px; color: #59636e; }
+.wd-empty > .material-icons-outlined-nosize { font-size: 44px; color: var(--pozadi, #0b4b92); }
+.wd-empty h5 { margin: 8px 0 6px; color: #1f2328; }
+.wd-empty .material-icons-outlined-btn { color: inherit; margin-top: 0; }
+
+/* ------------------------------------------------------------------ AI widget (UI/Code/AiWidgetRenderer.cs) */
+.aiw-desc { color: #6c757d; font-size: .8rem; margin: 0 0 6px; }
+.aiw-empty, .aiw-msg { color: #6c757d; font-size: .875rem; padding: 6px 0; }
+.aiw-msg { color: #842029; }
+.aiw-chart { margin: 2px 0 10px; font-size: .82rem; }
+.aiw-bar-v { font-variant-numeric: tabular-nums; }
+.aiw-table { font-size: .85rem; margin-bottom: 4px; }
+.aiw-table thead th { font-weight: 600; color: #59636e; border-bottom-width: 1px; white-space: nowrap; }
+.aiw-table td { font-variant-numeric: tabular-nums; }
+.aiw-table tfoot td { font-weight: 600; border-top: 2px solid #dee2e6; }
+.aiw-foot { display: flex; align-items: center; gap: 12px; margin-top: 6px; font-size: .8rem; }
+.aiw-foot a { display: inline-flex; align-items: center; gap: 3px; text-decoration: none; }
+.aiw-foot .material-icons-outlined-btn { margin-top: 0; font-size: 16px; }
+.aiw-ai { margin-left: auto; display: inline-flex; align-items: center; gap: 2px; color: #8a939c; cursor: help; }
+.aiw-ai .material-icons-outlined-btn { color: #a26bf0; }
+
+/* ------------------------------------------------------------------ galerie widgetů */
+.wd-gallery { width: 420px !important; }
+.wd-gallery-list { list-style: none; margin: 0; padding: 0; }
+.wd-cat { margin: 12px 0 4px; padding: 0 4px; font-size: .72rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #6c757d; }
+.wd-cat:first-child { margin-top: 0; }
+.wd-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; }
+.wd-item:hover { background: #f3f5f8; }
+.wd-kind { font-size: 19px; color: #8a939c; }
+.wd-item-name { flex: 1 1 auto; min-width: 0; color: #1f2328 !important; text-decoration: none; }
+.wd-item-add { color: var(--pozadi, #0b4b92) !important; line-height: 0; }
+.wd-item-add .material-icons-outlined-nosize { font-size: 20px; }
+.wd-on .wd-item-name { color: #8a939c !important; }
+.wd-item-del { color: #8a939c !important; line-height: 0; text-decoration: none; font-size: .72rem; }
+.wd-item-del .material-icons-outlined-nosize { font-size: 19px; }
+.wd-item-del.wd-armed { line-height: 1.4; padding: 1px 6px; border-radius: 6px; }
+.wd-item-on { font-size: .72rem; padding: 0 7px; border-radius: 9px; background: #e9f7ef; color: #17663a; white-space: nowrap; }
+
+/* ------------------------------------------------------------------ nastavení plochy */
+.wd-set { padding: 12px 0; border-bottom: 1px solid #eef0f2; }
+.wd-set:first-child { padding-top: 0; }
+.wd-set:last-child { border-bottom: 0; }
+.wd-set h6 { display: flex; align-items: center; gap: 6px; font-size: .78rem; font-weight: 600; letter-spacing: .03em; text-transform: uppercase; color: #6c757d; margin: 0 0 8px; }
+.wd-set small { display: block; margin-top: 4px; }
+.wd-seg { display: inline-flex; gap: 4px; }
+.wd-seg .btn { min-width: 40px; }
+.wd-admin .btn { display: block; width: 100%; text-align: left; margin-bottom: 6px; }
+.wd-armed { background: #dc3545 !important; border-color: #dc3545 !important; color: #fff !important; }
+
+@media (max-width: 700px) {
+    .wd-gallery { width: 100% !important; }
+    .wd-right { margin-left: 0; }
+    #container_index.wd-board { padding: 10px 4px; }
 }
 
-div.portlet {
-    margin: 0 1em 1em 0;
-    padding: 0.3em;
-}
 
-div.portlet-header {
-    padding: 0.2em 0.3em;
-    margin-bottom: 0.5em;
-    position: relative;
-    cursor: move;
-}
-
-.portlet-toggle {
-    position: absolute;
-    top: 50%;
-    right: 0;
-    margin-top: -8px;
-}
-
-div.portlet-content {
-    padding: 0.4em;
-    max-height: 400px;
-    overflow: auto;
-}
-
-    div.portlet-content a {
-        color: #007BFF;
-    }
-
-.portlet-placeholder {
-    border: 1px dotted black;
-    margin: 0 1em 1em 0;
-    height: 50px;
-}
-
-#container_subform {
-    margin: 0px;
-    border: dotted 1px #F5F5F5;
-}
-
-#container_index {
-    margin-top: 15px;
-    margin-left: 0px;
-    margin-right: 0px;
-    margin-bottom: 0px;
-    border: dotted 1px #F5F5F5;
-}
-
-#header_subform {
-    margin-top: 0px;
-    margin-left: 0px;
-    margin-right: 0px;
-    margin-bottom:10px;
-    border-bottom: solid 1px #F5F5F5;
-}
-
-#header_index {
-    margin-top: 10px;
-    margin-left: 0px;
-    margin-right: 0px;
-    margin-bottom: 0px;
-    border-bottom: solid 1px silver;
-}
+/* ------------------------------------------------------------------ původní vzhled – používá AdminOneWebpage/Index (stejné třídy a ID, bez wd-*) */
+.column { float: left; }
+div.portlet:not(.wd-card) { margin: 0 1em 1em 0; padding: 0.3em; }
+div.portlet-header:not(.wd-head) { padding: 0.2em 0.3em; margin-bottom: 0.5em; position: relative; cursor: move; }
+div.portlet-content:not(.wd-body) { padding: 0.4em; max-height: 400px; overflow: auto; }
+div.portlet-content:not(.wd-body) a { color: #007BFF; }
+.portlet-toggle { position: absolute; top: 50%; right: 0; margin-top: -8px; }
+#container_subform:not(.wd-board) { margin: 0px; border: dotted 1px #F5F5F5; }
+#container_index:not(.wd-board) { margin: 15px 0 0 0; border: dotted 1px #F5F5F5; }
+#header_subform:not(.wd-toolbar) { margin: 0 0 10px 0; border-bottom: solid 1px #F5F5F5; }
+#header_index:not(.wd-toolbar) { margin: 10px 0 0 0; border-bottom: solid 1px silver; }
 

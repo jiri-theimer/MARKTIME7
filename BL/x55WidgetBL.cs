@@ -19,6 +19,12 @@ namespace BL
         public void SetAsDefaultGlobalBoxes(string boxes);
         public void UpdateBoxes2AllUsers(string boxes,string skin, int x54id);
 
+        /// <summary>Osobní widgety uživatele (j02ID_Owner) – nejsou ve skupinách x57.</summary>
+        public IEnumerable<BO.x55Widget> GetList_Personal(int j02id);
+        public int CountPersonal(int j02id);
+        /// <summary>Smaže osobní widget – jen vlastník. true = smazáno.</summary>
+        public bool DeletePersonal(int x55id, int j02id);
+
     }
     class x55WidgetBL : BaseBL, Ix55WidgetBL
     {
@@ -60,6 +66,21 @@ namespace BL
 
 
 
+        public IEnumerable<BO.x55Widget> GetList_Personal(int j02id)
+        {
+            return _db.GetList<BO.x55Widget>(GetSQL1(" WHERE a.j02ID_Owner=@j02id ORDER BY a.x55Name"), new { j02id = j02id });
+        }
+        public int CountPersonal(int j02id)
+        {
+            return _db.Load<BO.GetInteger>("SELECT COUNT(*) as Value FROM x55Widget WHERE j02ID_Owner=@j02id", new { j02id = j02id })?.Value ?? 0;
+        }
+        public bool DeletePersonal(int x55id, int j02id)
+        {
+            var rec = Load(x55id);
+            if (rec == null || rec.j02ID_Owner == 0 || rec.j02ID_Owner != j02id) return false;
+            return _db.RunSql("DELETE FROM x55Widget WHERE x55ID=@pid AND j02ID_Owner=@j02id", new { pid = x55id, j02id = j02id });
+        }
+
         public int Save(BO.x55Widget rec)
         {
             
@@ -99,6 +120,8 @@ namespace BL
             p.AddString("x55Category", rec.x55Category);
             p.AddString("x55TableColTotals", rec.x55TableColTotals);
             p.AddString("x55ReportCodes", rec.x55ReportCodes);
+            p.AddString("x55AiTask", rec.x55AiTask);
+            p.AddInt("j02ID_Owner", rec.j02ID_Owner, true);
 
             int intPID = _db.SaveRecord("x55Widget", p, rec);            
             if (intPID > 0)

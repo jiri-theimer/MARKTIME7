@@ -28,3 +28,13 @@ tr:hover .ai-rec { color: var(--pozadi, #0b4b92); }
 .ai-rec-g { display: inline-flex; gap: 2px; margin-right: 6px; vertical-align: -4px; }
 .ai-rec-g .ai-rec { margin-right: 0; vertical-align: 0; }
 .ai-rec-cm { font-size: 14px; line-height: 20px; }
+
+/* „Na plochu“ – dialog pod tabulkou výsledku */
+.ai-pin { display: grid; grid-template-columns: max-content minmax(180px, 360px); gap: 6px 10px; align-items: center; margin-top: 8px; padding: 10px 12px; border: 1px solid #e3e6ea; border-radius: 8px; background: #fafbfc; font-size: .875rem; }
+.ai-pin > label { color: #59636e; margin: 0; }
+.ai-pin > .ai-pin-check, .ai-pin > .ai-result-desc, .ai-pin > .ai-pin-buttons, .ai-pin > span, .ai-pin > a { grid-column: 1 / -1; }
+.ai-pin-check { display: flex; align-items: center; gap: 6px; }
+.ai-pin-check label { margin: 0; }
+.ai-pin-buttons { display: flex; gap: 6px; }
+@media (max-width: 600px) { .ai-pin { grid-template-columns: 1fr; } }
+.ai-result-buttons .btn-primary .material-icons-outlined-btn { color: #fff; }
