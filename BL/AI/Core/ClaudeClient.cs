@@ -9,17 +9,24 @@ namespace BL.AI.Core
     /// <summary>
     /// Klient Claude Messages API (https://api.anthropic.com/v1/messages).
     /// Používá structured outputs (output_config.format = json_schema) a prompt caching (cache_control).
-    /// Registrovat jako singleton – HttpClient je sdílený.
+    /// Registruje se jako scoped (konfigurace závisí na licenci přihlášeného uživatele, viz <see cref="AiOptions.ForLicense"/>);
+    /// HttpClient je statický a sdílený, časový limit se uplatňuje na každý požadavek zvlášť.
     /// </summary>
     public class ClaudeClient : ILlmClient
     {
-        private readonly HttpClient _http;
-        public AiOptions Options { get; }
+        private static readonly HttpClient _http = new HttpClient { Timeout = System.Threading.Timeout.InfiniteTimeSpan };
+        private readonly Lazy<AiOptions> _options;
+        public AiOptions Options => _options.Value;
 
         public ClaudeClient(AiOptions options)
         {
-            Options = options;
-            _http = new HttpClient { Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds) };
+            _options = new Lazy<AiOptions>(options);
+        }
+
+        /// <summary>Konfigurace se vyhodnotí až při prvním použití (v době vytvoření scope ještě nemusí být známý přihlášený uživatel).</summary>
+        public ClaudeClient(Func<AiOptions> options)
+        {
+            _options = new Lazy<AiOptions>(options);
         }
 
         public async Task<LlmResult> CompleteJsonAsync(LlmRequest request, CancellationToken ct = default)
@@ -148,15 +155,19 @@ namespace BL.AI.Core
             msg.Content = new StringContent(body.ToJsonString(), Encoding.UTF8);
             msg.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            cts.CancelAfter(TimeSpan.FromSeconds(Options.TimeoutSeconds > 0 ? Options.TimeoutSeconds : 90));
+
             var sw = Stopwatch.StartNew();
             HttpResponseMessage resp;
             string text;
             try
             {
-                resp = await _http.SendAsync(msg, ct);
-                text = await resp.Content.ReadAsStringAsync(ct);
+                resp = await _http.SendAsync(msg, cts.Token);
+                text = await resp.Content.ReadAsStringAsync(cts.Token);
             }
-            catch (TaskCanceledException) { return (null, "Vypršel časový limit volání AI.", sw.ElapsedMilliseconds); }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested) { return (null, "Volání AI bylo zrušeno.", sw.ElapsedMilliseconds); }
+            catch (OperationCanceledException) { return (null, $"Vypršel časový limit volání AI ({Options.TimeoutSeconds} s).", sw.ElapsedMilliseconds); }
             catch (Exception ex) { return (null, "Chyba spojení s AI: " + ex.Message, sw.ElapsedMilliseconds); }
             long ms = sw.ElapsedMilliseconds;
 

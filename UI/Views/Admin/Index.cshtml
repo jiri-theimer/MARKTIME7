@@ -14,14 +14,50 @@
 
     var _treemenu = new UI.Models.Admin.AdminPage();
     var _isMobile = _f.CurrentUser.IsMobileDisplay();
+    var _x01 = Model.RecX01;
+
+    string _mena = _x01.j27ID switch { 2 => "CZK", 3 => "EUR", 58 => "USD", 59 => "GBP", 56 => "CHF", 50 => "PLN", _ => _x01.j27ID.ToString() };
+    var _jazyky = new[] { _x01.x01BillingLang1, _x01.x01BillingLang2, _x01.x01BillingLang3, _x01.x01BillingLang4 }.Where(p => !string.IsNullOrWhiteSpace(p)).ToList();
+
+    string _robotAgo = null;
+    if (_lastRobotRun != null)
+    {
+        var ts = DateTime.Now - _lastRobotRun.Value;
+        _robotAgo = ts.TotalMinutes < 1 ? _f.tra("právě teď")
+                  : ts.TotalMinutes < 60 ? $"{_f.tra("před")} {(int)ts.TotalMinutes} min"
+                  : ts.TotalHours < 48 ? $"{_f.tra("před")} {(int)ts.TotalHours} h"
+                  : $"{_f.tra("před")} {(int)ts.TotalDays} {_f.tra("dny")}";
+    }
+
+    //AI: efektivní konfigurace (to, co opravdu používají AI funkce) + uložené nastavení licence
+    var _ai = Model.AiOptions;
+    string _aiMode = _x01.x01AiUsageFlag switch
+    {
+        BO.x01AiUsageFlagEnum.None => _f.tra("Vypnuto"),
+        BO.x01AiUsageFlagEnum.PrivateApiKey => _f.tra("Vlastní připojení (API klíč)"),
+        _ => _f.tra("Podle konfigurace serveru")
+    };
+    string _aiKey = null;
+    if (_ai != null && _ai.Enabled)
+    {
+        _aiKey = _x01.x01AiUsageFlag == BO.x01AiUsageFlagEnum.PrivateApiKey && !string.IsNullOrEmpty(_x01.x01AiApikey) && _x01.x01AiApikey.Length > 4
+            ? "…" + _x01.x01AiApikey.Substring(_x01.x01AiApikey.Length - 4)
+            : _f.tra("ze serveru");
+    }
+    var _aiU = Model.AiUsage;
+    Func<string, string> _featureName = code => code switch
+    {
+        "ai-ask" => _f.tra("Zeptej se"),
+        "ai-grid" => _f.tra("AI návrhář tabulky"),
+        "ai-totals" => _f.tra("AI souhrny"),
+        _ => code
+    };
 }
 
 @addTagHelper *, UI
 
 @section header_content{
-
-   
-    
+    <link rel="stylesheet" href="~/css/adminhome.css" asp-append-version="true" />
 }
 
 
@@ -40,316 +76,238 @@
 
 
 
-<div id="layout_main" style="max-width:1000px;margin-left:230px !important;">
+<div id="layout_main" style="margin-left:230px !important;">
+    <div class="ah">
 
-    
-
-    <div class="card" style="margin:20px;">
-        <div class="card-header">
-            <div class="row">
-                <div class="col-4">
-                    <button id="cmdGlobalParams" type="button" onclick="_window_open('/x01/Record?pid=@_f.CurrentUser.x01ID')" class="btn bog"><span class="material-icons-outlined-btn">manufacturing</span>@_f.tra("Základní parametry databáze")</button>
+        <section class="ah-head">
+            <div class="ah-logo" aria-hidden="true"><span class="material-icons-outlined-nosize">manufacturing</span></div>
+            <div class="ah-who">
+                <div class="ah-name">@_x01.x01AppName</div>
+                <div class="ah-meta">
+                    <span title="@_f.tra("Doména")"><span class="material-icons-outlined-nosize">language</span>@_x01.x01LoginDomain</span>
+                    <span title="@_f.tra("Verze aplikace")"><span class="material-icons-outlined-nosize">new_releases</span>@_f.App.AppBuild</span>
+                    <span title="Hosting Mode"><span class="material-icons-outlined-nosize">dns</span>@_f.App.HostingMode</span>
                 </div>
-                <div class="col-4">
-                    <button id="cmdSpaceUsed" type="button" onclick="_window_open('/SpaceUsed/Index')" class="btn bog"><span class="material-icons-outlined-btn">build</span> @_f.tra("Velikost a výkon databáze")</button>
-                </div>
-                <div class="col-3">
-                    <button id="cmdBackup" type="button" onclick="_window_open('/Backup/Index')" class="btn bog"><span class="material-icons-outlined-btn">backup</span> @_f.tra("Záloha dat")</button>
-                </div>
-
-
-               
             </div>
-            
-            
+        </section>
 
-            
+        @if (BO.Code.Bas.bit_compare_or(_x01.x01LockFlag, 2))
+        {
+            <div class="ah-alert ah-alert-danger"><span class="material-icons-outlined-nosize">lock</span>@_f.tra("Databáze je přístupná pouze admin uživatelům.")</div>
+        }
+        @if (BO.Code.Bas.bit_compare_or(_x01.x01LockFlag, 4))
+        {
+            <div class="ah-alert ah-alert-warning"><span class="material-icons-outlined-nosize">smart_toy</span>@_f.tra("V databázi je vypnutý robot na pozadí.")</div>
+        }
+
+        <div class="ah-actions">
+            <button id="cmdGlobalParams" type="button" onclick="_window_open('/x01/Record?pid=@_f.CurrentUser.x01ID')" class="btn bog"><span class="material-icons-outlined-btn">manufacturing</span> @_f.tra("Základní parametry databáze")</button>
+            <button id="cmdSpaceUsed" type="button" onclick="_window_open('/SpaceUsed/Index')" class="btn bog"><span class="material-icons-outlined-btn">build</span> @_f.tra("Velikost a výkon databáze")</button>
+            <button id="cmdBackup" type="button" onclick="_window_open('/Backup/Index')" class="btn bog"><span class="material-icons-outlined-btn">backup</span> @_f.tra("Záloha dat")</button>
         </div>
-        <div class="card-body">
-            <table class="table-sm table-hover table">
-                <tr>
-                    <th style="width:200px;"></th>
-                    <th></th>
-                    <th></th>
-                </tr>
-                @if (BO.Code.Bas.bit_compare_or(Model.RecX01.x01LockFlag,2))
-                {
-                    <tr>
-                        <td>
-                            @_f.tra("Zámek"):
-                        </td>
-                        <td>
-                            <span class="badge text-bg-danger">Databáze je přístupná pouze admin uživatele</span>
 
+        <div class="ah-grid">
 
-                        </td>
-                        <td>
-                        </td>
-                    </tr>
-                }
-                @if (BO.Code.Bas.bit_compare_or(Model.RecX01.x01LockFlag, 4))
-                {
-                    <tr>
-                        <td>
-                            Robot:
-                        </td>
-                        <td>
-                            <span class="badge text-bg-warning">V databázi je vypnutý robot na pozadí</span>
+            @* ------------------------------------------------------------ LICENCE *@
+            <section class="ah-card">
+                <h2><span class="material-icons-outlined-nosize">badge</span>@_f.tra("Licence")</h2>
+                <dl class="ah-dl">
+                    <dt>@_f.tra("Název databáze")</dt>
+                    <dd>@_x01.x01AppName <br class="nonmobile" /><small class="nonmobile">@_f.tra("Zobrazuje se v hlavním menu vlevo nahoře.")</small></dd>
+                    <dt>@_f.tra("Doména")</dt>
+                    <dd>@_x01.x01LoginDomain</dd>
+                    <dt>@_f.tra("Veřejná URL adresa")</dt>
+                    <dd>@_x01.x01AppHost</dd>
+                    <dt>@_f.tra("Limitní počet uživatelů")</dt>
+                    <dd>@_x01.x01LimitUsers</dd>
+                    <dt>@_f.tra("ID Licence")</dt>
+                    <dd class="ah-mono">@_x01.x01Guid</dd>
+                </dl>
+            </section>
 
-
-                        </td>
-                        <td>
-                        </td>
-                    </tr>
-                }
-                
-                <tr>
-                    <td>
-                        @_f.tra("Verze aplikace"):
-                    </td>
-                    <td>                        
-                        <span>
-                            @_f.App.AppBuild
-                        </span>
-
-                    </td>
-                    <td>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        @_f.tra("Čas posledního spuštění robota"):
-                    </td>
-                    <td>
-                        @if (_lastRobotRun != null)
+            @* ------------------------------------------------------------ AI *@
+            <section class="ah-card">
+                <h2>
+                    <span class="material-icons-outlined-nosize">auto_awesome</span>AI
+                    <button id="cmdAiSetting" type="button" class="btn btn-sm bog ah-h2-btn" onclick="_window_open('/x01/Record?pid=@(_f.CurrentUser.x01ID)&tab=4')"><span class="material-icons-outlined-btn">settings</span> @_f.tra("Nastavit")</button>
+                </h2>
+                <dl class="ah-dl">
+                    <dt>@_f.tra("Stav")</dt>
+                    <dd>
+                        @if (_ai != null && _ai.Enabled)
                         {
-                            <span class="badge-light">
-                                @(_lastRobotRun)
-                            </span>
+                            <span class="ah-badge ah-on">● @_f.tra("Zapnuto")</span>
                         }
-
-
-                    </td>
-                    
-                    <td>
-                        @if (_f.App.HostingMode == BL.Singleton.HostingModeEnum.None || _f.CurrentUser.j02Login.Substring(0,5)=="admin")
+                        else if (_x01.x01AiUsageFlag == BO.x01AiUsageFlagEnum.None)
                         {
-                            <a href="/Robot" target="_blank" class="btn btn-sm bog"><span class="material-icons-outlined-btn">smart_toy</span>@_f.tra("Spustit robota ručně")</a>
-                        }
-
-                        <button type="button" onclick="run_recovery_permissions()" class="btn btn-sm bog"><span class="material-icons-outlined-btn">cached</span> @_f.tra("Přepočítat oprávnění")</button>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        @_f.tra("Režim spouštění robota"):
-                    </td>
-                    <td colspan="2">
-                        @if (_f.App.IsRobot)
-                        {
-                            <span>Na pozadí uvnitř aplikace (podle appsettings.json), robot url: <small>@(_f.App.RobotUrl)</small></span>
+                            <span class="ah-badge ah-off">@_f.tra("Vypnuto")</span>
                         }
                         else
                         {
-                            <span>Externí spouštěč mimo aplikaci (Task Scheduler)</span>
+                            <span class="ah-badge ah-bad">@_f.tra("Nedostupné")</span>
                         }
-
-                    </td>
-                   
-                </tr>
-                <tr>
-                    <td>
-                        @_f.tra("Limitní počet uživatelů"):
-                    </td>
-                    <td>
-                        @Model.RecX01.x01LimitUsers
-                    </td>
-                    <td>
-                    </td>
-                </tr>
-
-                <tr>
-                    <td>
-                        @_f.tra("Veřejná URL adresa"):
-                    </td>
-                    <td>
-                        @Model.RecX01.x01AppHost
-                    </td>
-                    <td>
-                    </td>
-                </tr>
-                @if (_f.App.HostingMode == BL.Singleton.HostingModeEnum.None)
+                    </dd>
+                    <dt>@_f.tra("Režim")</dt>
+                    <dd>@_aiMode</dd>
+                    @if (_ai != null && _ai.Enabled)
+                    {
+                        <dt>Model</dt>
+                        <dd class="ah-mono">@_ai.Model</dd>
+                        <dt>@_f.tra("API klíč")</dt>
+                        <dd>@_aiKey</dd>
+                        <dt>@_f.tra("Limity")</dt>
+                        <dd>@_ai.MaxTokens.ToString("N0") @_f.tra("tokenů odpovědi"), @_ai.TimeoutSeconds s</dd>
+                    }
+                </dl>
+                @if (_ai != null && !_ai.Enabled && _x01.x01AiUsageFlag != BO.x01AiUsageFlagEnum.None && _ai.DisabledReason != null)
                 {
-                    <tr>
-                        <td>
-                            @_f.tra("Upload složka"):
-                        </td>
-                        <td>
-                            @(_f.UploadFolder)
-                        </td>
-                        <td>
-                        </td>
-                    </tr>
+                    <div class="ah-reason">@_ai.DisabledReason</div>
                 }
-                <tr>
-                    <td>
-                        @_f.tra("Název databáze"):
-                    </td>
-                    <td>
-                        @(Model.RecX01.x01AppName)
-                    </td>
-                    <td>
-                        <i class="nonmobile">Zobrazuje se v hlavním menu vlevo nahoře.</i>
-                    </td>
-                </tr>
 
-                @if (_f.CurrentUser.j04IsModule_p31)
+                @if (_aiU != null && _x01.x01AiUsageFlag != BO.x01AiUsageFlagEnum.None)
                 {
-                    <tr>
-                        <td>
-                            @_f.tra("Zaokrouhlovat vykázané hodiny"):
-                        </td>
-                        <td>
-                            @Model.RecX01.x01Round2Minutes
-                        </td>
-                        <td>
-                            <i class="nonmobile">@_f.tra("Minuty nahoru")</i>
-                        </td>
-                    </tr>
+                    <div class="ah-card-foot" style="display:block;">
+                        <div class="ah-muted mb-2">@_f.tra("Využití za posledních 30 dní")</div>
+                        @if (_aiU.Pocet == 0)
+                        {
+                            <div class="ah-muted">@_f.tra("Zatím žádné dotazy.")</div>
+                        }
+                        else
+                        {
+                            <dl class="ah-stats">
+                                <div><dt>@_f.tra("Dotazů")</dt><dd>@_aiU.Pocet.ToString("N0")</dd></div>
+                                <div><dt>@_f.tra("Uživatelů")</dt><dd>@_aiU.Uzivatele.ToString("N0")</dd></div>
+                                <div><dt>@_f.tra("Chyb")</dt><dd>@_aiU.Chyby.ToString("N0")</dd></div>
+                                <div title="@_f.tra("Z toho z cache"): @_aiU.CacheReadTokens.ToString("N0")"><dt>@_f.tra("Tokeny vstup")</dt><dd>@_aiU.InputTokens.ToString("N0")</dd></div>
+                                <div><dt>@_f.tra("Tokeny výstup")</dt><dd>@_aiU.OutputTokens.ToString("N0")</dd></div>
+                            </dl>
+                            @if (Model.AiFeatures != null && Model.AiFeatures.Any())
+                            {
+                                <ul class="ah-features">
+                                    @foreach (var c in Model.AiFeatures)
+                                    {
+                                        <li>@_featureName(c.Feature): @c.Pocet</li>
+                                    }
+                                </ul>
+                            }
+                            @if (_aiU.Posledni != null)
+                            {
+                                <div class="ah-muted mt-2">@_f.tra("Poslední dotaz"): @_aiU.Posledni</div>
+                            }
+                        }
+                    </div>
                 }
-                @if (_f.CurrentUser.j04IsModule_p91)
-                {
-                    <tr>
-                        <td>
-                            @_f.tra("Výchozí splatnost faktury"):
-                        </td>
-                        <td>
-                            @Model.RecX01.x01InvoiceMaturityDays
-                        </td>
-                        <td>
-                            <i class="nonmobile">@_f.tra("Dny")</i>
-                        </td>
-                    </tr>
-                }
-               
+            </section>
 
-                <tr>
-                    <td>
-                        @_f.tra("Povolit uživatelům obnovu zapomenutého hesla"):
-                    </td>
-                    <td>
-                        @Model.RecX01.x01IsAllowPasswordRecovery
-                    </td>
-                    <td>
-                        <i class="nonmobile">@_f.tra("Tlačítko [Obnovit zapomenuté heslo] na přihlašovací stránce")</i>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        @_f.tra("Domácí měna"):
-                    </td>
-                    <td>
-                        @Model.RecX01.j27ID
-                    </td>
-                    <td>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        @_f.tra("ISO kód státu"):
-                    </td>
-                    <td>
-                        @Model.RecX01.x01CountryCode
-                    </td>
-                    <td>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        @_f.tra("Ostatní fakturační jazyky"):
-                    </td>
-                    <td>
-                        #1: @Model.RecX01.x01BillingLang1, #2: @Model.RecX01.x01BillingLang2, #3: @Model.RecX01.x01BillingLang3, #4: @Model.RecX01.x01BillingLang4
-                    </td>
-                    <td>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        @_f.tra("Doména"):
-                    </td>
-                    <td>
-                        @(Model.RecX01.x01LoginDomain)
-                    </td>
-                    <td>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        Hosting Mode:
-                    </td>
-                    <td>
-                        @(_f.App.HostingMode)
-                    </td>
-                    <td>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        @_f.tra("IIS binding"):
-                    </td>
-                    <td>
-                        @Model.IISBinding
-                    </td>
-                    <td>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        @_f.tra("ID Licence"):
-                    </td>
-                    <td>
-                        @Model.RecX01.x01Guid
-                    </td>
-                    <td>
-                    </td>
-                </tr>
+            @* ------------------------------------------------------------ ROBOT *@
+            <section class="ah-card">
+                <h2><span class="material-icons-outlined-nosize">smart_toy</span>@_f.tra("Robot")</h2>
+                <dl class="ah-dl">
+                    <dt>@_f.tra("Poslední spuštění")</dt>
+                    <dd>
+                        @if (_lastRobotRun != null)
+                        {
+                            <span>@_lastRobotRun</span> <small>(@_robotAgo)</small>
+                        }
+                        else
+                        {
+                            <span class="ah-muted">@_f.tra("Zatím neběžel")</span>
+                        }
+                    </dd>
+                    <dt>@_f.tra("Režim spouštění")</dt>
+                    <dd>
+                        @if (_f.App.IsRobot)
+                        {
+                            <span>@_f.tra("Na pozadí uvnitř aplikace (appsettings.json)")</span><br /><small class="ah-mono">@(_f.App.RobotUrl)</small>
+                        }
+                        else
+                        {
+                            <span>@_f.tra("Externí spouštěč mimo aplikaci (Task Scheduler)")</span>
+                        }
+                    </dd>
+                </dl>
+                <div class="ah-card-foot">
+                    @if (_f.App.HostingMode == BL.Singleton.HostingModeEnum.None || _f.CurrentUser.j02Login.Substring(0, 5) == "admin")
+                    {
+                        <a href="/Robot" target="_blank" class="btn btn-sm bog"><span class="material-icons-outlined-btn">smart_toy</span> @_f.tra("Spustit robota ručně")</a>
+                    }
+                    <button type="button" id="cmdRecoveryPermissions" onclick="run_recovery_permissions()" class="btn btn-sm bog"><span class="material-icons-outlined-btn">cached</span> @_f.tra("Přepočítat oprávnění")</button>
+                </div>
+            </section>
 
-            </table>
+            @* ------------------------------------------------------------ VÝCHOZÍ NASTAVENÍ *@
+            <section class="ah-card">
+                <h2><span class="material-icons-outlined-nosize">tune</span>@_f.tra("Výchozí nastavení")</h2>
+                <dl class="ah-dl">
+                    <dt>@_f.tra("Domácí měna")</dt>
+                    <dd>@_mena</dd>
+                    <dt>@_f.tra("ISO kód státu")</dt>
+                    <dd>@_x01.x01CountryCode</dd>
+                    @if (_f.CurrentUser.j04IsModule_p31)
+                    {
+                        <dt>@_f.tra("Zaokrouhlovat vykázané hodiny")</dt>
+                        <dd>@(_x01.x01Round2Minutes == -1 ? _f.tra("Nezaokrouhlovat") : _x01.x01Round2Minutes + " " + _f.tra("min nahoru"))</dd>
+                    }
+                    @if (_f.CurrentUser.j04IsModule_p91)
+                    {
+                        <dt>@_f.tra("Výchozí splatnost faktury")</dt>
+                        <dd>@_x01.x01InvoiceMaturityDays @_f.tra("dní")</dd>
+                    }
+                    <dt>@_f.tra("Ostatní fakturační jazyky")</dt>
+                    <dd>@(_jazyky.Any() ? string.Join(", ", _jazyky) : "–")</dd>
+                    <dt>@_f.tra("Obnova zapomenutého hesla")</dt>
+                    <dd>
+                        @if (_x01.x01IsAllowPasswordRecovery)
+                        {
+                            <span class="ah-badge ah-on">@_f.tra("Povolena")</span>
+                        }
+                        else
+                        {
+                            <span class="ah-badge ah-off">@_f.tra("Nepovolena")</span>
+                        }
+                    </dd>
+                </dl>
+            </section>
+
+            @* ------------------------------------------------------------ SERVER *@
+            <section class="ah-card">
+                <h2><span class="material-icons-outlined-nosize">dns</span>@_f.tra("Server")</h2>
+                <dl class="ah-dl">
+                    <dt>@_f.tra("Verze aplikace")</dt>
+                    <dd>@_f.App.AppBuild</dd>
+                    <dt>Hosting Mode</dt>
+                    <dd>@_f.App.HostingMode</dd>
+                    <dt>@_f.tra("IIS binding")</dt>
+                    <dd>@Model.IISBinding</dd>
+                    @if (_f.App.HostingMode == BL.Singleton.HostingModeEnum.None)
+                    {
+                        <dt>@_f.tra("Upload složka")</dt>
+                        <dd class="ah-mono">@(_f.UploadFolder)</dd>
+                    }
+                </dl>
+            </section>
+
+            @* ------------------------------------------------------------ LOGO *@
+            @if (_f.CurrentUser.j04IsModule_p41)
+            {
+                <section class="ah-card">
+                    <h2>
+                        <span class="material-icons-outlined-nosize">image</span>@_f.tra("Grafické logo")
+                        <button id="cmdLogo" type="button" onclick="_window_open('/Admin/CompanyLogo',3)" class="btn btn-sm bog ah-h2-btn"><span class="material-icons-outlined-btn">upload</span> @_f.tra("Nahrát")</button>
+                    </h2>
+                    @if (_x01.x01LogoFileName != null)
+                    {
+                        <iframe class="ah-logo-frame" frameborder="0" src="/FileUpload/LogoFile?logofilename=@(_x01.x01LogoFileName)"></iframe>
+                    }
+                    else
+                    {
+                        <div class="ah-muted">@_f.tra("Logo není nahrané.")</div>
+                    }
+                </section>
+            }
+
         </div>
     </div>
-
-    @if (_f.CurrentUser.j04IsModule_p41)
-    {
-        <div class="row">
-
-
-            <div class="col-auto">
-                <div class="card" style="margin:20px;">
-                    <div class="card-header">
-                        <strong>
-                            @_f.tra("Grafické logo")
-                        </strong>
-
-                        <button id="cmdLogo" type="button" onclick="_window_open('/Admin/CompanyLogo',3)" class="btn bog"><span class="material-icons-outlined-btn">image</span> @_f.tra("Nahrát grafické logo")</button>
-                    </div>
-                    <div class="card-body">
-                        @if (Model.RecX01.x01LogoFileName != null)
-                        {
-                            <iframe frameborder="1" src="/FileUpload/LogoFile?logofilename=@(Model.RecX01.x01LogoFileName)"></iframe>
-                        }
-
-                    </div>
-                </div>
-            </div>
-        </div>
-    }
-
-
-
-
-
-
 </div>
 
 
@@ -370,32 +328,25 @@
         $("#layout_sidebar").css("height", h_vertical + "px");
 
 
-
         if (_local_ismobile == "True") {
             $("#layout_sidebar").css("display", "none");
             $("#layout_main").css("margin-left", "0px");
             $("#cmdShowHideTreeMenu").css("display", "block");
-
-        }
-
-
-        if (_local_ismobile == "True") {
-            $("#layout_sidebar").css("display", "none");
-            $("#layout_main").css("margin-left", "0px");
-            $("#cmdShowHideTreeMenu").css("display", "block");
-            
         }
 
     });
 
 
     function run_recovery_permissions() {
-        _notify_message("Loading...", "info");
+        var btn = $("#cmdRecoveryPermissions");
+        btn.prop("disabled", true);
+        _notify_message("@_f.tra("Přepočítávám oprávnění…")", "info");
 
         $.post("/Admin/RunRecovery_Permissions", {}, function (data) {
             _notify_message_hide();
-            alert("Dokončeno.");
-
+            _notify_message("@_f.tra("Oprávnění přepočítána.")", "success");
+        }).always(function () {
+            btn.prop("disabled", false);
         });
     }
 
@@ -407,15 +358,6 @@
             $("#layout_main").css("margin-left", "0px");
             $("#layout_sidebar").css("display", "none");
         }
-
-
-
     }
 
-
 </script>
-
-
-
-
-

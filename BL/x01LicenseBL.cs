@@ -230,6 +230,23 @@ namespace BL
 
             }
 
+            rec.x01AiApikey = string.IsNullOrWhiteSpace(rec.x01AiApikey) ? null : rec.x01AiApikey.Trim();
+            rec.x01AiModel = string.IsNullOrWhiteSpace(rec.x01AiModel) ? null : rec.x01AiModel.Trim();
+            if (rec.x01AiMaxTokens < 0) rec.x01AiMaxTokens = 0;
+            if (rec.x01AiTimeoutSeconds < 0) rec.x01AiTimeoutSeconds = 0;
+            if (rec.x01AiUsageFlag == BO.x01AiUsageFlagEnum.PrivateApiKey && rec.x01AiApikey == null)
+            {
+                this.AddMessage("Pro vlastní připojení k AI chybí API klíč."); return false;
+            }
+            if (rec.x01AiMaxTokens > 0 && (rec.x01AiMaxTokens < 1024 || rec.x01AiMaxTokens > 64000))
+            {
+                this.AddMessage("AI: Max. tokenů odpovědi musí být 0 (podle serveru) nebo 1024–64000."); return false;
+            }
+            if (rec.x01AiTimeoutSeconds > 0 && (rec.x01AiTimeoutSeconds < 10 || rec.x01AiTimeoutSeconds > 600))
+            {
+                this.AddMessage("AI: Časový limit musí být 0 (podle serveru) nebo 10–600 sekund."); return false;
+            }
+
 
             return true;
         }

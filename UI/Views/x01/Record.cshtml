@@ -24,8 +24,13 @@
         </li>
 
         <li class="nav-item onetab" role="presentation">
+            <a id="link_tab4" class="nav-link" tabindex="-1" data-bs-toggle="tab" role="tab" href="#tab4">AI</a>
+        </li>
+
+        <li class="nav-item onetab" role="presentation">
             <a id="link_tab3" class="nav-link" tabindex="-1" data-bs-toggle="tab" role="tab" href="#tab3">@_f.tra("Různé")</a>
         </li>
+
       
     </ul>
 </div>
@@ -293,9 +298,102 @@
     <hr />
     <button type="button" class="btn btn-sm btn-light" onclick="_postback('ping')">Poslat ping na MARKTIME cloud uložiště</button>
 </div>
+
+<div class="tab-pane tab-pane-fixed" id="tab4" role="tabpanel">
+    <!-- Tab4: AI -->
+    @{
+        var aiG = Model.AiGlobal;
+        int aiFlag = (int)Model.Rec.x01AiUsageFlag;
+    }
+
+    <div class="row my-2">
+        <mylabel class="col-sm-2 col-md-3 col-form-label" explicit-for="Rec_x01AiUsageFlag" text="@_f.tra("Použití AI")" tooltip="Vypnuto: AI funkce se uživatelům nezobrazí.<hr>Podle konfigurace serveru: připojení, model a limity z appsettings.json (sekce AI).<hr>Vlastní připojení: API klíč, model a limity zadané zde. Endpoint a verze API zůstávají ze serveru."></mylabel>
+        <div class="col-sm-5 col-md-4">
+            <select asp-for="Rec.x01AiUsageFlag" class="form-select" onchange="x01_ai_mode()">
+                <option value="0">@_f.tra("Vypnuto")</option>
+                <option value="1">@_f.tra("Podle konfigurace serveru")</option>
+                <option value="2">@_f.tra("Vlastní připojení (API klíč)")</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="divAiGlobal" class="alert alert-secondary mt-2 @(aiFlag == 1 ? "" : "d-none")" role="alert">
+        @if (aiG.Enabled)
+        {
+            <div>@_f.tra("Konfigurace serveru je aktivní"): <b>@aiG.Model</b>, max. @aiG.MaxTokens tokenů, limit @aiG.TimeoutSeconds s.</div>
+        }
+        else
+        {
+            <div>@_f.tra("Konfigurace serveru AI nepovoluje"): @aiG.DisabledReason</div>
+        }
+    </div>
+
+    <div id="divAiPrivate" class="@(aiFlag == 2 ? "" : "d-none")">
+        <div class="row my-2">
+            <mylabel class="col-sm-2 col-md-3 col-form-label" explicit-for="AiApiKeyNew" text="API klíč" tooltip="Klíč z console.anthropic.com (sk-ant-…). Uložený klíč se ze zabezpečení nezobrazuje; pole nechte prázdné, pokud ho nechcete měnit."></mylabel>
+            <div class="col-sm-6 col-md-5">
+                <input type="password" class="form-control" id="AiApiKeyNew" name="AiApiKeyNew" value="@Model.AiApiKeyNew" autocomplete="new-password" spellcheck="false"
+                       placeholder="@(Model.AiApiKeyMasked == null ? "sk-ant-…" : _f.tra("Uložen") + " " + Model.AiApiKeyMasked + " – " + _f.tra("prázdné = beze změny"))" />
+            </div>
+            @if (Model.AiApiKeyMasked != null)
+            {
+                <div class="col-sm-4 col-md-4">
+                    <input type="checkbox" asp-for="AiApiKeyClear" />
+                    <label class="col-form-label" for="AiApiKeyClear">@_f.tra("Odstranit uložený klíč")</label>
+                </div>
+            }
+        </div>
+
+        <div class="row my-2">
+            <mylabel class="col-sm-2 col-md-3 col-form-label" explicit-for="Rec_x01AiModel" text="Model" tooltip="Prázdné = model podle konfigurace serveru."></mylabel>
+            <div class="col-sm-6 col-md-5">
+                <input class="form-control" asp-for="Rec.x01AiModel" list="x01AiModels" placeholder="@aiG.Model" spellcheck="false" />
+                <datalist id="x01AiModels">
+                    <option value="claude-sonnet-5-5"></option>
+                    <option value="claude-opus-5-5"></option>
+                    <option value="claude-haiku-5-5"></option>
+                </datalist>
+            </div>
+        </div>
+
+        <div class="row my-2">
+            <mylabel class="col-sm-2 col-md-3 col-form-label" explicit-for="Rec_x01AiMaxTokens" text="@_f.tra("Max. tokenů odpovědi")" tooltip="0 = podle konfigurace serveru. Jinak 1024–64000."></mylabel>
+            <div class="col-sm-3 col-md-2">
+                <input class="form-control" type="number" min="0" max="64000" step="256" asp-for="Rec.x01AiMaxTokens" />
+            </div>
+            <div class="col-sm-5 col-md-5 col-form-label"><i>0 = @aiG.MaxTokens</i></div>
+        </div>
+
+        <div class="row my-2">
+            <mylabel class="col-sm-2 col-md-3 col-form-label" explicit-for="Rec_x01AiTimeoutSeconds" text="@_f.tra("Časový limit volání")" tooltip="V sekundách. 0 = podle konfigurace serveru. Jinak 10–600."></mylabel>
+            <div class="col-sm-3 col-md-2">
+                <input class="form-control" type="number" min="0" max="600" asp-for="Rec.x01AiTimeoutSeconds" />
+            </div>
+            <div class="col-sm-5 col-md-5 col-form-label"><i>@_f.tra("Sekundy"), 0 = @aiG.TimeoutSeconds</i></div>
+        </div>
+    </div>
+
+    <div id="divAiTest" class="mt-3 @(aiFlag == 0 ? "d-none" : "")">
+        <button type="button" class="btn btn-sm btn-light" onclick="_postback('aitest')">
+            <span class="material-icons-outlined-btn">network_check</span> @_f.tra("Otestovat připojení")
+        </button>
+        <span class="ms-2 small">@_f.tra("Testuje hodnoty ve formuláři, nic neukládá.")</span>
+        @if (Model.AiTestResult != null)
+        {
+            <div class="alert @(Model.AiTestOk ? "alert-success" : "alert-danger") mt-2" role="alert">@Model.AiTestResult</div>
+        }
+    </div>
+</div>
     
 @Html.Raw("</div>")
 @Html.Raw("</div>")
 
 
-
+<script type="text/javascript">
+    function x01_ai_mode() {
+        var flag = $("#Rec_x01AiUsageFlag").val();
+        $("#divAiGlobal").toggleClass("d-none", flag != "1");
+        $("#divAiPrivate").toggleClass("d-none", flag != "2");
+        $("#divAiTest").toggleClass("d-none", flag == "0");
+    }
+</script>

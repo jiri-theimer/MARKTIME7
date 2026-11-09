@@ -41,7 +41,7 @@ namespace UI.Controllers.AI
             if (!svc.IsEnabled)
             {
                 string msg = "AI asistent není v této instalaci zapnutý.";
-                if (Factory.CurrentUser.IsAdmin) msg += " " + _llm.Options.DisabledReason + " Po úpravě konfigurace je nutné restartovat aplikaci.";
+                if (Factory.CurrentUser.IsAdmin) msg += " " + _llm.Options.DisabledReason;
                 return this.StopPage(true, msg);
             }
             var v = new AiAskViewModel

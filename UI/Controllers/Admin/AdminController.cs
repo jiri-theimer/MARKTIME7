@@ -12,9 +12,11 @@ namespace UI.Controllers
     public class AdminController : BaseController
     {
         private readonly BL.TheColumnsProvider _colsProvider;
-        public AdminController(BL.TheColumnsProvider cp)
+        private readonly BL.AI.Core.ILlmClient _llm;
+        public AdminController(BL.TheColumnsProvider cp, BL.AI.Core.ILlmClient llm)
         {
             _colsProvider = cp;
+            _llm = llm;
         }
        
 
@@ -110,6 +112,16 @@ namespace UI.Controllers
             
 
             v.lisP07 = Factory.p07ProjectLevelBL.GetList(new BO.myQuery("p07") { IsRecordValid = null });
+
+            v.AiOptions = _llm.Options;
+            //využití AI za 30 dní; při chybě (tabulka chybí) vrací DbHandler null a karta využití se nezobrazí
+            v.AiUsage = Factory.db.Load<AdminAiUsage>(@"SELECT COUNT(*) as Pocet, ISNULL(SUM(CASE WHEN j98Status='E' THEN 1 ELSE 0 END),0) as Chyby, COUNT(DISTINCT j02ID) as Uzivatele,
+ISNULL(SUM(CAST(j98InputTokens as bigint)),0) as InputTokens, ISNULL(SUM(CAST(j98OutputTokens as bigint)),0) as OutputTokens, ISNULL(SUM(CAST(j98CacheReadTokens as bigint)),0) as CacheReadTokens, MAX(j98Date) as Posledni
+FROM j98OpenAILog WHERE j98Date>=DATEADD(day,-30,GETDATE())");
+            if (v.AiUsage != null && v.AiUsage.Pocet > 0)
+            {
+                v.AiFeatures = Factory.db.GetList<AdminAiFeature>("SELECT a.Feature, COUNT(*) as Pocet FROM (SELECT CASE WHEN j98Feature LIKE 'ai-grid%' THEN 'ai-grid' ELSE ISNULL(j98Feature,'?') END as Feature FROM j98OpenAILog WHERE j98Date>=DATEADD(day,-30,GETDATE())) a GROUP BY a.Feature ORDER BY COUNT(*) DESC");
+            }
             return View(v);
         }
         public IActionResult Page(string area, string prefix, int go2pid, string myqueryinline)

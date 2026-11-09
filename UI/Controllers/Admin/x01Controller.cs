@@ -7,9 +7,17 @@ namespace UI.Controllers.Admin
 {
     public class x01Controller : BaseController
     {
-        public IActionResult Record(int pid, bool isclone)
+        private readonly BL.AI.Core.AiConfig _ai;
+        public x01Controller(BL.AI.Core.AiConfig ai)
+        {
+            _ai = ai;
+        }
+
+        /// <param name="tab">otevřít záložku (1 Karta licence, 2 Billing, 3 Různé, 4 AI)</param>
+        public IActionResult Record(int pid, bool isclone, int tab = 0)
         {
             var v = new x01Record() { rec_pid = pid, rec_entity = "x01" };
+            if (tab >= 1 && tab <= 4) v.ActiveTabIndex = tab;
             v.Rec = new BO.x01License();
             if (v.rec_pid > 0)
             {
@@ -40,8 +48,47 @@ namespace UI.Controllers.Admin
 
         private void RefreshState(x01Record v)
         {
+            v.AiGlobal = _ai.Global;
+            string key = null;
+            if (v.rec_pid > 0) key = Factory.x01LicenseBL.Load(v.rec_pid)?.x01AiApikey;
+            v.AiApiKeyMasked = string.IsNullOrEmpty(key) ? null : "…" + (key.Length > 4 ? key.Substring(key.Length - 4) : "");
+        }
 
+        /// <summary>Uložený klíč, nebo nově zadaný / smazaný z formuláře.</summary>
+        private string ResolveAiApiKey(x01Record v)
+        {
+            if (v.AiApiKeyClear) return null;
+            if (!string.IsNullOrWhiteSpace(v.AiApiKeyNew)) return v.AiApiKeyNew.Trim();
+            return v.rec_pid > 0 ? Factory.x01LicenseBL.Load(v.rec_pid)?.x01AiApikey : null;
+        }
 
+        /// <summary>Test připojení k AI s hodnotami z formuláře (bez uložení). Krátký požadavek, spotřeba v řádu desítek tokenů.</summary>
+        private void TestAi(x01Record v)
+        {
+            var tmp = new BO.x01License()
+            {
+                x01AiUsageFlag = v.Rec.x01AiUsageFlag,
+                x01AiApikey = ResolveAiApiKey(v),
+                x01AiModel = v.Rec.x01AiModel,
+                x01AiMaxTokens = v.Rec.x01AiMaxTokens,
+                x01AiTimeoutSeconds = v.Rec.x01AiTimeoutSeconds
+            };
+            var o = _ai.ForLicense(tmp);
+            if (!o.Enabled)
+            {
+                v.AiTestOk = false; v.AiTestResult = o.DisabledReason; return;
+            }
+            o.MaxTokens = 64;      // test nepotřebuje víc, nastavený limit se tím nekontroluje
+            var req = new BL.AI.Core.LlmRequest()
+            {
+                Schema = (System.Text.Json.Nodes.JsonObject)System.Text.Json.Nodes.JsonNode.Parse("{\"type\":\"object\",\"properties\":{\"ok\":{\"type\":\"boolean\"}},\"required\":[\"ok\"],\"additionalProperties\":false}")
+            };
+            req.System.Add(new BL.AI.Core.LlmSystemBlock() { Text = "Test připojení. Odpověz {\"ok\": true}." });
+            req.Messages.Add(new BL.AI.Core.LlmMessage() { Role = "user", Content = "ping" });
+
+            var r = _ai.CreateClient(o).CompleteJsonAsync(req).GetAwaiter().GetResult();
+            v.AiTestOk = r.Ok;
+            v.AiTestResult = r.Ok ? $"Spojení funguje: model {r.Model}, {r.ElapsedMs} ms." : r.Error;
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -55,6 +102,10 @@ namespace UI.Controllers.Admin
                     var cping = new BL.Code.PingSupport();
                     var ret=cping.SendPing(Factory).Result;
                     this.AddMessageTranslated($"Ping vrátil: {ret}", "info");
+                }
+                if (v.PostbackOper == "aitest")
+                {
+                    TestAi(v);
                 }
                 return View(v);
             }
@@ -91,6 +142,12 @@ namespace UI.Controllers.Admin
                 c.x01IsCapacityFaNefa = v.Rec.x01IsCapacityFaNefa;
                 c.x01LockFlag = v.Rec.x01LockFlag;
                 c.x01InfosoudToken = v.Rec.x01InfosoudToken;
+
+                c.x01AiUsageFlag = v.Rec.x01AiUsageFlag;
+                c.x01AiApikey = ResolveAiApiKey(v);
+                c.x01AiModel = v.Rec.x01AiModel;
+                c.x01AiMaxTokens = v.Rec.x01AiMaxTokens;
+                c.x01AiTimeoutSeconds = v.Rec.x01AiTimeoutSeconds;
 
                 c.ValidUntil = v.Toolbar.GetValidUntil(c);
                 c.ValidFrom = v.Toolbar.GetValidFrom(c);
