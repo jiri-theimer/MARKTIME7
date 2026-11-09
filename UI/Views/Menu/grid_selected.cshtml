@@ -3,327 +3,217 @@
 
 @{
     Layout = null;
-    var _lisX31 = _f.x31ReportBL.GetList(new BO.myQueryX31() { IsRecordValid = true, MyRecordsDisponible = true});
-    IEnumerable<BO.x31Report> _lisX31_Kontext = null;
-    if (Model.Prefix == "p28")
-    {
-        _lisX31_Kontext = _lisX31.Where(p => p.x31QueryFlag == BO.x31QueryFlagENUM.p31 || p.x31QueryFlag == BO.x31QueryFlagENUM.p28 || p.x31QueryFlag == BO.x31QueryFlagENUM.p91);
-    }
-    if (Model.Prefix == "p41")
-    {
-        _lisX31_Kontext = _lisX31.Where(p => p.x31QueryFlag == BO.x31QueryFlagENUM.p31 || p.x31QueryFlag == BO.x31QueryFlagENUM.p41 || p.x31QueryFlag == BO.x31QueryFlagENUM.p91);
-    }
-    if (Model.Prefix == "p91")
-    {
-        _lisX31_Kontext = _lisX31.Where(p => p.x31QueryFlag == BO.x31QueryFlagENUM.p31 || p.x31QueryFlag == BO.x31QueryFlagENUM.p91);
-    }
-    if (Model.Prefix == "p56")
-    {
-        _lisX31_Kontext = _lisX31.Where(p => p.x31QueryFlag == BO.x31QueryFlagENUM.p31 || p.x31QueryFlag == BO.x31QueryFlagENUM.p56 || p.x31QueryFlag == BO.x31QueryFlagENUM.p91);
-    }
-    if (Model.Prefix == "j02")
-    {
-        _lisX31_Kontext = _lisX31.Where(p => p.x31QueryFlag == BO.x31QueryFlagENUM.p31 || p.x31QueryFlag == BO.x31QueryFlagENUM.j02 || p.x31QueryFlag == BO.x31QueryFlagENUM.p91);
-    }
-    if (Model.Prefix == "p31")
-    {
-        _lisX31_Kontext = _lisX31.Where(p => p.x31QueryFlag == BO.x31QueryFlagENUM.p31);
-    }
+    string _pfx = Model.Prefix;
 
-    int _recordbinquery = _f.CBL.LoadUserParamInt($"grid-{Model.Prefix}-recordbinquery");
+    int _recordbinquery = _f.CBL.LoadUserParamInt($"grid-{_pfx}-recordbinquery");
     if (!string.IsNullOrEmpty(Model.MasterPrefix))
     {
-        _recordbinquery = _f.CBL.LoadUserParamInt($"grid-{Model.Prefix}-{Model.MasterPrefix}-recordbinquery");  //2: v přehledu má uživatel archivované úkony
+        _recordbinquery = _f.CBL.LoadUserParamInt($"grid-{_pfx}-{Model.MasterPrefix}-recordbinquery");  //2: v přehledu má uživatel archivované úkony
     }
+    bool _archiv = _recordbinquery >= 2;
 
+    //---- podmínky jednotlivých akcí (beze změny proti původnímu menu) ----
+    bool _approver = _f.CurrentUser.j04IsModule_p31 && _f.CurrentUser.IsApprovingPerson && Model.MasterPrefix != "p91" && !_archiv;
+    bool _a_approve = _approver && "p31,p41,j02,o23,le1,le2,le3,le4,le5,p56,p28".Contains(_pfx);
+    bool _a_append2invoice = _approver && _pfx == "p31" && _f.CurrentUser.TestPermission(BO.PermValEnum.GR_P91_Creator, BO.PermValEnum.GR_P91_Draft_Creator);
+    bool _a_excludebilling = _approver && "p31,p41,j02,le1,le2,le3,le4,le5,p56,p28".Contains(_pfx);
 
+    bool _a_p31ops = _pfx == "p31" && Model.MasterPrefix != "p91" && !_archiv;
+    bool _a_p31korekce = _a_p31ops && _f.CurrentUser.TestPermission(BO.PermValEnum.GR_P31_Owner);
+    bool _a_p91inner = _pfx == "p31" && Model.MasterPrefix == "p91" && !_archiv;
 
+    bool _a_batchupdate = "p41,p28,j02,p91,o23,le1,le2,le3,le4,le5,p56,o22,p40,p90".Contains(_pfx);
+    bool _a_tagging = "p31,p41,p28,j02,p91,o23,le1,le2,le3,le4,le5,p56,p90".Contains(_pfx) && !(_pfx == "p31" && _recordbinquery == 2);
+    bool _a_workflow = "p41,p28,p91,o23,le1,le2,le3,le4,le5,p56".Contains(_pfx);
+    bool _a_color = "p31,p28,p41,le5,p91,o23".Contains(_pfx);
+
+    bool _a_archive = _pfx != "p31" && _pfx != "p91" && _pfx != "p11" && _pfx != "x40" && _pfx != "j92" && _pfx != "j90" && _pfx != "j05" && _pfx != "j06" && _pfx != "x97";
+    bool _a_p31archive = _pfx == "p31" && _f.CurrentUser.TestPermission(BO.PermValEnum.GR_P31_Owner) && _recordbinquery != 2;
+    bool _a_p31restore = _pfx == "p31" && _f.CurrentUser.TestPermission(BO.PermValEnum.GR_P31_Owner) && _recordbinquery == 2;
+    bool _a_delete = !(_pfx == "p91" || _pfx == "p11" || _pfx == "x40" || (_pfx == "p31" && _recordbinquery == 2));
+
+    bool _g_entity = _pfx == "p56" || _a_p31ops || _pfx == "p91" || _pfx == "p90" || _pfx == "p28" || _pfx == "p40";
+    bool _g_edit = _a_batchupdate || _a_tagging || _a_workflow;
+    bool _g_bin = _a_archive || _a_p31archive || _a_p31restore || _a_delete;
+
+    string _entityTitle = _pfx switch
+    {
+        "p31" => _f.tra("Úkony"),
+        "p56" => _f.tra("Úkoly"),
+        "p91" => _f.tra("Vyúčtování"),
+        "p90" => _f.tra("Zálohy"),
+        "p28" => _f.tra("Kontakty"),
+        "p40" => _f.tra("Opakované odměny"),
+        _ => _f.tra("Akce")
+    };
 }
 
 @addTagHelper *, UI
 
-<style type="text/css">
-    .local-header {
-        padding: 10px;
-        color: silver;
-    }
-</style>
-
-
-
-
-
-<div id="divContainerGridSel" class="dynamicmenu_container" style="min-width:500px;">
-
-    <div class="row" style="padding-left:10px;padding-right:10px;">
-       
-        <div class="col-auto" id="divAkceGridSel">
-            
-            <div class="local-header"><h5>@_f.tra("Vybrané záznamy") <span class="badge bg-primary" id="akceSelPocet"></span></h5> </div>
-            <small>(výběr pomocí myši nebo checkboxů)</small>
-
-            <div id="divSchvalovani" style="background-color:#DFFFE9;border-radius:6px;margin-bottom:10px;">
-                @if (_f.CurrentUser.j04IsModule_p31 && _f.CurrentUser.IsApprovingPerson && Model.MasterPrefix != "p91" && _recordbinquery < 2)
-                {
-
-                    @if ("p31,p41,j02,o23,le1,le2,le3,le4,le5,p56,p28".Contains(Model.Prefix))
-                    {
-
-                        <a class="nav-link" href="javascript:tg_approve()" title="Klávesová zkratka: Alt+S nebo Alt+R">
-                            <span style="color:green;" class="material-icons-outlined">
-                                approval
-                            </span>
-                            @_f.tra("Schválit/Vyúčtovat")                            
-                        </a>
-                        
-
-                    }
-                    @if (Model.Prefix == "p31" && (_f.CurrentUser.TestPermission(BO.PermValEnum.GR_P91_Creator, BO.PermValEnum.GR_P91_Draft_Creator)) && _recordbinquery < 2)
-                    {
-
-
-                        <a class="nav-link" href="javascript:tg_append2invoice()"><myicon color="green" symbol="arrow_right_alt"></myicon> @_f.tra("Přidat do vybraného vyúčtování")</a>
-
-                    }
-
-                    @if ("p31,p41,j02,le1,le2,le3,le4,le5,p56,p28".Contains(Model.Prefix) && _recordbinquery < 2)
-                    {
-
-
-                        <a class="nav-link" href="javascript:p31_excludebilling_batch(1,'@(Model.Prefix)')"><myicon symbol="delete_sweep"></myicon> Úkony přesunout do/z [Vyloučené z vyúčtování]</a>
-                    }
-
-
-
-                }
-            </div>
-
-            @if (Model.Prefix == "p56")
-            {
-                <a class="nav-link" href="javascript:local_p56_clone()"><myicon symbol="content_copy"></myicon> Kopírovat vybrané úkoly</a>
-            }
-
-            @if (Model.Prefix == "p31" && Model.MasterPrefix != "p91" && _recordbinquery < 2)
-            {
-
-                <a class="nav-link" href="javascript:_p31_batch_clone()"><myicon symbol="content_copy"></myicon> Kopírovat vybrané úkony</a>
-
-                <a class="nav-link" href="javascript:_p31_move_to_project()"><myicon symbol="content_cut"></myicon> Přesunout rozpracovanost na jiný projekt</a>
-
-
-                <a class="nav-link" href="javascript:_p31_batch_recalc()"><myicon symbol="price_check"></myicon> Přepočítat hodinové/kusovníkové sazby</a>
-                @if (_f.CurrentUser.TestPermission(BO.PermValEnum.GR_P31_Owner))
-                {
-                    <a class="nav-link" href="javascript:_window_open_from_grid_selected('/p31korekce/Index', 'pids', 2);"><myicon symbol="downloading"></myicon>Hromadná korekce rozpracovaných úkonů</a>
-                }
-                
-
-
-            }
-            @if (Model.Prefix == "p31" && Model.MasterPrefix == "p91" && _recordbinquery < 2)
-            {
-
-
-                <a class="nav-link" style="color:darkviolet;" href="javascript:p91oper_p31operbatch('remove')"><myicon color="darkviolet" symbol="content_cut"></myicon> Vyjmout úkony z vyúčtování</a>
-
-
-                <a class="nav-link" style="color:pink;" href="javascript:p91oper_p31operbatch('p70-6')"><myicon color="pink" symbol="trending_down"></myicon> Zahrnout do paušálu</a>
-
-
-                <a class="nav-link" style="color:brown;" href="javascript:p91oper_p31operbatch('p70-2')"><myicon color="brown" symbol="trending_down"></myicon> Viditelný odpis</a>
-
-
-                <a class="nav-link" style="color:red;" href="javascript:p91oper_p31operbatch('p70-3')"><myicon color="red" symbol="trending_down"></myicon> Skrytý odpis</a>
-                <p></p>
-
-            }
-            @if (Model.Prefix == "p91")
-            {
-
-                <a class="nav-link" href="javascript:p91_sendmail()"><myicon symbol="alternate_email"></myicon> @_f.tra("Odeslat elektronickou poštou")</a>
-
-                <a href="javascript:p91_export()" class="nav-link"><img src="/images/isdoc_icon.png" /> @_f.tra("Export faktur do účetního IS")</a>
-
-
-                <a class="nav-link" href="javascript:p91_checkaddress()"><myicon color="violet" symbol="in_home_mode"></myicon> @_f.tra("Kontrola rozdílů klientů vůči rejstříku")</a>
-
-                <a class="nav-link" href="javascript:p91_upominky()"><myicon symbol="gavel"></myicon> @_f.tra("Vygenerovat upomínky")</a>
-            }
-            @if (Model.Prefix == "p90")
-            {                
-                <a href="javascript:p90_export()" class="nav-link"><myicon symbol="cloud_upload"></myicon> @_f.tra("Export záloh do účetního IS")</a>
-                
-            }
-            @if (Model.Prefix == "p28")
-            {
-
-
-                <a class="nav-link" href="javascript:p28_checkaddress()"><myicon color="violet" symbol="in_home_mode"></myicon> @_f.tra("Kontrola rozdílů vůči rejstříku")</a>
-            }
-
-            <div style="background-color:#F5F5F5;border-radius:6px;background-color:seashell;margin-bottom:10px;">
-                @if ("p41,p28,j02,p91,o23,le1,le2,le3,le4,le5,p56,o22,p40,p90".Contains(Model.Prefix))
-                {
-                    <a class="nav-link" href="javascript:batchupdate()"><myicon symbol="edit"></myicon> Hromadné úpravy</a>
-
-                }
-                @if ("p31,p41,p28,j02,p91,o23,le1,le2,le3,le4,le5,p56,p90".Contains(Model.Prefix) && !(Model.Prefix == "p31" && _recordbinquery == 2))
-                {
-                    <a class="nav-link" href="javascript:tagging()"><myicon symbol="local_offer"></myicon> Oštítkovat</a>
-                }
-            </div>
-
-            @if ("p31,p28,p41,le5,p91,o23".Contains(Model.Prefix))
-            {
-                <div class="nonmobile" style="background-color:lightyellow;border-radius:6px;margin-bottom:10px;">
-
-                    <myicon symbol="palette"></myicon>
-
-                    <span>Barva záznamu</span>
-                    
-                   
-                    <a title="Zelená Alt+Shift+1" href="javascript:local_rowcolor(1)" style="background-color:YellowGreen;text-decoration:none;border-radius:1px;">#1</a>
-                    <a title="Žlutá Alt+Shift+2" href="javascript:local_rowcolor(2)" style="background-color:yellow;text-decoration:none;border-radius:1px;">#2</a>
-                    <a title="Fialová Alt+Shift+3" style="background-color:violet;text-decoration:none;border-radius:1px;" href="javascript:local_rowcolor(3)">#3</a>
-
-                    <a title="Modrá Alt+Shift+4" style="background-color:deepskyblue;text-decoration:none;border-radius:1px;" href="javascript:local_rowcolor(4)">#4</a>
-                    <a title="Stříbrná Alt+Shift+5" style="background-color:silver;text-decoration:none;border-radius:1px;" href="javascript:local_rowcolor(5)">#5</a>
-
-                    <a href="javascript:local_clear_rowcolor()" title="Vyčistit barvu Alt+Shift+6"><myicon symbol="cleaning_services"></myicon></a>
-
-                </div>
-            }
-
-            @if ("p41,p28,p91,o23,le1,le2,le3,le4,le5,p56".Contains(Model.Prefix))
-            {
-
-
-                <a class="nav-link" href="javascript:workflow_batch()"><myicon symbol="task_alt"></myicon>Hromadně posunout/doplnit (workflow)</a>
-            }
-
-
-
-            @if (Model.Prefix == "p40")
-            {
-
-                <a class="nav-link" href="javascript:p40postgenerate()"><myicon symbol="flash_on"></myicon> Hromadně vygenerovat chybějící odměny</a>
-            }
-
-            <div style="background-color:#F5F5F5;border-radius:6px;">
-
-                @if (Model.Prefix != "p31" && Model.Prefix != "p91" && Model.Prefix != "p11" && Model.Prefix != "x40" && Model.Prefix != "j92" && Model.Prefix != "j90" && Model.Prefix != "j05" && Model.Prefix != "j06" && Model.Prefix != "x97")
-                {
-
-
-                    <a class="nav-link" href="javascript:batchdelete('archive')">
-                        <span style="color:orange;" class="material-icons-outlined">
-                            delete_sweep
-                        </span>
-                        Přesunout do archivu
-                    </a>
-
-
-                    <a class="nav-link" href="javascript:batchdelete('restore')">
-                        <span style="color:forestgreen;" class="material-icons-outlined">
-                            restore_from_trash
-                        </span>
-                        Obnovit z archivu
-                    </a>
-
-                }
-                @if (Model.Prefix == "p31" && _f.CurrentUser.TestPermission(BO.PermValEnum.GR_P31_Owner) && _recordbinquery != 2)
-                {
-
-
-                    <a class="nav-link" href="javascript:p31del('archive')">
-                        <span style="color:orange;" class="material-icons-outlined">
-                            cleaning_services
-                        </span>
-                        Přesunout úkony do archivu
-                    </a>
-
-
-                }
-                @if (Model.Prefix == "p31" && _f.CurrentUser.TestPermission(BO.PermValEnum.GR_P31_Owner) && _recordbinquery == 2)
-                {
-
-
-                    <a class="nav-link" href="javascript:p31del('restore')">
-                        <span style="color:blue;" class="material-icons-outlined">
-                            restore_from_trash
-                        </span>
-                        Obnovit úkony z archivu
-                    </a>
-
-                }
-
-                @if (!(Model.Prefix == "p91" || Model.Prefix == "p11" || Model.Prefix == "x40" || (Model.Prefix == "p31" && _recordbinquery == 2)))
-                {
-
-                    <a class="nav-link" href="javascript:batchdelete('delete')">
-                        <span style="color:red;" class="material-icons-outlined">
-                            delete_forever
-                        </span>
-                        Odstranit vybrané záznamy
-                    </a>
-                }
-            </div>
-
-
-            
+<div id="divContainerGridSel" class="dynamicmenu_container gs">
+
+    @* ------------------------------------------------ hlavička: počet vybraných + rychlý výběr *@
+    <div class="gs-head local-header">
+        <div class="gs-count">
+            <span class="material-icons-outlined-nosize">check_box</span>
+            @_f.tra("Vybráno"): <b id="akceSelPocet">0</b>
         </div>
-
-
-        <div class="col-auto nonmobile">
-            <div class="local-header"><h5>@_f.tra("VYBRAT/ZAŠKRTNOUT")</h5></div>
-            @if (Model.Prefix == "p31")
-            {
-
-                <a class="nav-link" href="javascript:tg_select_bycss('hours')">
-                    <myicon symbol="check_box"></myicon>
-                    @_f.tra("Pouze hodiny")
-                </a>
-
-                <a class="nav-link" href="javascript:tg_select_bycss('trexp')">
-                    <myicon symbol="check_box"></myicon>
-                    @_f.tra("Pouze výdaje")
-                </a>
-
-                <a class="nav-link" href="javascript:tg_select_bycss('trfee')">
-                    <myicon symbol="check_box"></myicon>
-                    @_f.tra("Pouze odměny")
-                </a>
-
-                <a class="nav-link" href="javascript:tg_select_bycss('trpc')">
-                    <myicon symbol="check_box"></myicon>
-                    @_f.tra("Pouze kusovníky")
-                </a>
-                <hr />
-            }
-
-            <a class="nav-link" href="javascript:tg_select(20)">
-                <myicon symbol="check_box"></myicon>
-                @_f.tra("Prvních #20")
-            </a>
-
-            <a class="nav-link" href="javascript:tg_select(50)">
-                <myicon symbol="check_box"></myicon>
-                @_f.tra("Prvních #50")
-            </a>
-
-            <a class="nav-link" href="javascript:tg_select(100)">
-                <myicon symbol="check_box"></myicon>
-                @_f.tra("Prvních #100")
-            </a>
-
-
-        </div>
-
-
+        <a class="gs-clear" href="javascript:local_gridsel_clear()" title="@_f.tra("Zrušit označení všech řádků")">@_f.tra("Zrušit výběr")</a>
+    </div>
+    <div id="gs_empty" class="gs-empty">
+        <span class="material-icons-outlined-nosize">info</span>
+        <span>@_f.tra("Nejdřív v tabulce označte řádky: klikem, Ctrl/Shift + klik nebo zaškrtávátkem. Akce níže se pak provedou se všemi označenými záznamy.")</span>
     </div>
 
+    <div class="gs-body">
 
+        <div class="gs-actions" id="divAkceGridSel">
 
+            @if (_a_approve || _a_append2invoice || _a_excludebilling)
+            {
+                <section class="gs-group gs-green" id="divSchvalovani">
+                    <h6>@_f.tra("Schvalování a vyúčtování")</h6>
+                    @if (_a_approve)
+                    {
+                        <a class="nav-link gs-primary" href="javascript:tg_approve()" title="@_f.tra("Klávesová zkratka"): Alt+S / Alt+R"><myicon symbol="approval"></myicon> @_f.tra("Schválit / vyúčtovat")</a>
+                    }
+                    @if (_a_append2invoice)
+                    {
+                        <a class="nav-link" href="javascript:tg_append2invoice()"><myicon symbol="arrow_right_alt"></myicon> @_f.tra("Přidat do existujícího vyúčtování")</a>
+                    }
+                    @if (_a_excludebilling)
+                    {
+                        <a class="nav-link" href="javascript:p31_excludebilling_batch(1,'@(_pfx)')"><myicon symbol="block"></myicon> @_f.tra("Vyloučit z vyúčtování / vrátit zpět")</a>
+                    }
+                </section>
+            }
+
+            @if (_a_p91inner)
+            {
+                <section class="gs-group gs-violet">
+                    <h6>@_f.tra("Úkony v tomto vyúčtování")</h6>
+                    <a class="nav-link" href="javascript:p91oper_p31operbatch('remove')"><myicon symbol="content_cut"></myicon> @_f.tra("Vyjmout z vyúčtování")</a>
+                    <a class="nav-link" href="javascript:p91oper_p31operbatch('p70-6')"><myicon symbol="inventory_2"></myicon> @_f.tra("Zahrnout do paušálu")</a>
+                    <a class="nav-link" href="javascript:p91oper_p31operbatch('p70-2')"><myicon symbol="trending_down"></myicon> @_f.tra("Viditelný odpis")</a>
+                    <a class="nav-link" href="javascript:p91oper_p31operbatch('p70-3')"><myicon symbol="visibility_off"></myicon> @_f.tra("Skrytý odpis")</a>
+                </section>
+            }
+
+            @if (_g_entity)
+            {
+                <section class="gs-group">
+                    <h6>@_entityTitle</h6>
+                    @if (_pfx == "p56")
+                    {
+                        <a class="nav-link" href="javascript:local_p56_clone()"><myicon symbol="content_copy"></myicon> @_f.tra("Kopírovat úkoly")</a>
+                    }
+                    @if (_a_p31ops)
+                    {
+                        <a class="nav-link" href="javascript:_p31_batch_clone()"><myicon symbol="content_copy"></myicon> @_f.tra("Kopírovat úkony")</a>
+                        <a class="nav-link" href="javascript:_p31_move_to_project()"><myicon symbol="drive_file_move"></myicon> @_f.tra("Přesunout na jiný projekt")</a>
+                        <a class="nav-link" href="javascript:_p31_batch_recalc()"><myicon symbol="price_check"></myicon> @_f.tra("Přepočítat sazby (hodinové/kusovníkové)")</a>
+                        @if (_a_p31korekce)
+                        {
+                            <a class="nav-link" href="javascript:_window_open_from_grid_selected('/p31korekce/Index', 'pids', 2);"><myicon symbol="tune"></myicon> @_f.tra("Hromadná korekce rozpracovaných úkonů")</a>
+                        }
+                    }
+                    @if (_pfx == "p91")
+                    {
+                        <a class="nav-link" href="javascript:p91_sendmail()"><myicon symbol="alternate_email"></myicon> @_f.tra("Odeslat e-mailem")</a>
+                        <a class="nav-link" href="javascript:p91_export()"><myicon symbol="cloud_upload"></myicon> @_f.tra("Export do účetního systému")</a>
+                        <a class="nav-link" href="javascript:p91_upominky()"><myicon symbol="gavel"></myicon> @_f.tra("Vygenerovat upomínky")</a>
+                        <a class="nav-link" href="javascript:p91_checkaddress()"><myicon symbol="fact_check"></myicon> @_f.tra("Porovnat klienty s rejstříkem")</a>
+                    }
+                    @if (_pfx == "p90")
+                    {
+                        <a class="nav-link" href="javascript:p90_export()"><myicon symbol="cloud_upload"></myicon> @_f.tra("Export záloh do účetního systému")</a>
+                    }
+                    @if (_pfx == "p28")
+                    {
+                        <a class="nav-link" href="javascript:p28_checkaddress()"><myicon symbol="fact_check"></myicon> @_f.tra("Porovnat s rejstříkem")</a>
+                    }
+                    @if (_pfx == "p40")
+                    {
+                        <a class="nav-link" href="javascript:p40postgenerate()"><myicon symbol="flash_on"></myicon> @_f.tra("Vygenerovat chybějící odměny")</a>
+                    }
+                </section>
+            }
+
+            @if (_g_edit)
+            {
+                <section class="gs-group">
+                    <h6>@_f.tra("Hromadné úpravy")</h6>
+                    @if (_a_batchupdate)
+                    {
+                        <a class="nav-link" href="javascript:batchupdate()"><myicon symbol="edit_note"></myicon> @_f.tra("Upravit pole")</a>
+                    }
+                    @if (_a_tagging)
+                    {
+                        <a class="nav-link" href="javascript:tagging()"><myicon symbol="local_offer"></myicon> @_f.tra("Oštítkovat")</a>
+                    }
+                    @if (_a_workflow)
+                    {
+                        <a class="nav-link" href="javascript:workflow_batch()"><myicon symbol="task_alt"></myicon> @_f.tra("Posunout ve workflow / doplnit")</a>
+                    }
+                </section>
+            }
+
+            @if (_a_color)
+            {
+                <section class="gs-group gs-side nonmobile">
+                    <h6>@_f.tra("Barva řádku")</h6>
+                    <div class="gs-colors">
+                        <a class="gs-swatch" style="background-color:YellowGreen;" href="javascript:local_rowcolor(1)" title="@_f.tra("Zelená") (Alt+Shift+1)"></a>
+                        <a class="gs-swatch" style="background-color:yellow;" href="javascript:local_rowcolor(2)" title="@_f.tra("Žlutá") (Alt+Shift+2)"></a>
+                        <a class="gs-swatch" style="background-color:violet;" href="javascript:local_rowcolor(3)" title="@_f.tra("Fialová") (Alt+Shift+3)"></a>
+                        <a class="gs-swatch" style="background-color:deepskyblue;" href="javascript:local_rowcolor(4)" title="@_f.tra("Modrá") (Alt+Shift+4)"></a>
+                        <a class="gs-swatch" style="background-color:silver;" href="javascript:local_rowcolor(5)" title="@_f.tra("Stříbrná") (Alt+Shift+5)"></a>
+                        <a class="gs-swatch-clear" href="javascript:local_clear_rowcolor()" title="@_f.tra("Odstranit barvu") (Alt+Shift+6)"><myicon symbol="format_color_reset"></myicon> @_f.tra("Bez barvy")</a>
+                    </div>
+                </section>
+            }
+
+            @if (_g_bin)
+            {
+                <section class="gs-group gs-side gs-bin">
+                    <h6>@_f.tra("Archiv a odstranění")</h6>
+                    @if (_a_archive)
+                    {
+                        <a class="nav-link" href="javascript:batchdelete('archive')"><myicon symbol="archive"></myicon> @_f.tra("Přesunout do archivu")</a>
+                        <a class="nav-link" href="javascript:batchdelete('restore')"><myicon symbol="unarchive"></myicon> @_f.tra("Obnovit z archivu")</a>
+                    }
+                    @if (_a_p31archive)
+                    {
+                        <a class="nav-link" href="javascript:p31del('archive')"><myicon symbol="archive"></myicon> @_f.tra("Přesunout úkony do archivu")</a>
+                    }
+                    @if (_a_p31restore)
+                    {
+                        <a class="nav-link" href="javascript:p31del('restore')"><myicon symbol="unarchive"></myicon> @_f.tra("Obnovit úkony z archivu")</a>
+                    }
+                    @if (_a_delete)
+                    {
+                        <a class="nav-link gs-danger" href="javascript:batchdelete('delete')"><myicon symbol="delete_forever"></myicon> @_f.tra("Odstranit")</a>
+                    }
+                </section>
+            }
+        </div>
+
+        @* ------------------------------------------------ rychlý výběr řádků *@
+        <div class="gs-select nonmobile">
+            <h6>@_f.tra("Označit v tabulce")</h6>
+            @if (_pfx == "p31")
+            {
+                <a class="nav-link" href="javascript:tg_select_bycss('hours')">@_f.tra("Jen hodiny")</a>
+                <a class="nav-link" href="javascript:tg_select_bycss('trexp')">@_f.tra("Jen výdaje")</a>
+                <a class="nav-link" href="javascript:tg_select_bycss('trfee')">@_f.tra("Jen odměny")</a>
+                <a class="nav-link" href="javascript:tg_select_bycss('trpc')">@_f.tra("Jen kusovníky")</a>
+                <div class="gs-sep"></div>
+            }
+            <a class="nav-link" href="javascript:tg_select(20)">@_f.tra("Prvních") 20</a>
+            <a class="nav-link" href="javascript:tg_select(50)">@_f.tra("Prvních") 50</a>
+            <a class="nav-link" href="javascript:tg_select(100)">@_f.tra("Prvních") 100</a>
+        </div>
+    </div>
 </div>
 
 
@@ -333,20 +223,81 @@
 
 
     $(document).ready(function () {
-        divContainerGridSel
-        _adjust_divheight_small_display("divContainerGridSel");
 
         if (location.href.indexOf("p31approve") > 0) {
             $("#divAkceGridSel").css("display", "none") //u schvalování nenabízet akce nad výběrem označených
         }
 
-        if ($("#divSchvalovani").html() == "") {
-            $("#divSchvalovani").css("display", "none");
-        }
         if (window !== top) {   //voláno uvnitř iframe
             $(".local-header").css("display", "none");
         }
+
+        local_gridsel_refresh();
+        local_gridsel_layout();
+
+        //počet #akceSelPocet aktualizuje thegrid.js při každé změně výběru → přepočítat stav menu
+        var el = document.getElementById("akceSelPocet");
+        if (el && window.MutationObserver) {
+            new MutationObserver(local_gridsel_refresh).observe(el, { childList: true, characterData: true, subtree: true });
+        }
+        //menu se načítá jen jednou – při každém otevření obnovit stav (výběr se mezitím mohl změnit)
+        var cmd = document.getElementById("cmdgridsel");
+        if (cmd && !cmd.getAttribute("gs-bound")) {
+            cmd.setAttribute("gs-bound", "1");
+            cmd.addEventListener("show.bs.dropdown", local_gridsel_refresh);
+            cmd.addEventListener("shown.bs.dropdown", local_gridsel_layout);   //po umístění menu (nahoru/dolů) přepočítat sloupce
+        }
     })
+
+    //Malá výška (typicky spodní panel pod hlavní tabulkou = iframe): „Barva řádku“ a „Archiv a odstranění“
+    //se přesunou do sloupce vpravo. Když ani to nestačí, menu dostane posuvník.
+    function local_gridsel_layout() {
+        var box = document.getElementById("divContainerGridSel");
+        var acts = document.getElementById("divAkceGridSel");
+        var menu = document.getElementById("cmdgridsel_menu");
+        var cmd = document.getElementById("cmdgridsel");
+        if (!box || !acts) return;
+
+        //výchozí stav: vše pod sebou
+        $("#gs_sidecol").children().appendTo(acts);
+        $("#gs_sidecol").remove();
+        $(box).removeClass("gs-cols");
+        if (menu) { menu.style.maxHeight = ""; menu.style.overflowY = ""; }
+        if (_device.isMobile || !cmd || acts.style.display === "none") return;
+
+        var r = cmd.getBoundingClientRect();
+        var avail = Math.max(window.innerHeight - r.bottom, r.top) - 16;   //větší z prostorů pod / nad tlačítkem
+        if (box.offsetHeight > avail && $(acts).children(".gs-side").length > 0) {
+            $(box).addClass("gs-cols");
+            var side = $("<div id='gs_sidecol' class='gs-sidecol'></div>").insertAfter(acts);
+            $(acts).children(".gs-side").appendTo(side);
+        }
+        if (box.offsetHeight > avail && menu) {   //ani to nestačí → posuvník
+            menu.style.maxHeight = avail + "px";
+            menu.style.overflowY = "auto";
+        }
+        if (window.bootstrap && bootstrap.Dropdown) {
+            var dd = bootstrap.Dropdown.getInstance(cmd);
+            if (dd) dd.update();   //Popper: přepočítat polohu po změně rozměrů
+        }
+    }
+
+    function local_gridsel_count() {
+        var s = $("#tg_selected_pids").val() || "";
+        return s.split(",").filter(function (x) { return x !== ""; }).length;
+    }
+
+    function local_gridsel_refresh() {
+        var n = local_gridsel_count();
+        var el = document.getElementById("akceSelPocet");
+        if (el && el.textContent !== String(n)) el.textContent = n;
+        $("#divContainerGridSel").toggleClass("gs-none", n === 0);
+    }
+
+    function local_gridsel_clear() {
+        tg_clear_selection();
+        local_gridsel_refresh();
+    }
 
     
 
