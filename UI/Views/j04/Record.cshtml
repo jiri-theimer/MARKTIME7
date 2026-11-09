@@ -14,232 +14,225 @@
     IEnumerable<BO.a55RecPage> _lisA55_le4 = lisA55.Where(p => p.a55Entity == "le4");
     IEnumerable<BO.a55RecPage> _lisA55_j02 = lisA55.Where(p => p.a55Entity == "j02");
 
+    //oprávnění: stejné id/name jako taghelper mycheckboxlist (checkbox chk{name}_{v} + hidden {name}_{v} s hodnotou v / 0)
+    var _selPerms = Model.SelectedPermNumbers ?? new List<int>();
+    var _permGroups = (Model.lisAllPerms ?? Enumerable.Empty<BO.Permission>()).GroupBy(p => p.Group ?? "").ToList();
+    int _permTotal = _permGroups.Sum(g => g.Count());
+    int _permOn = (Model.lisAllPerms ?? Enumerable.Empty<BO.Permission>()).Count(p => _selPerms.Contains(p.ValueInt));
+    var _selX54 = Model.SelectedX54IDs ?? new List<int>();
+
+    //moduly: (vlastnost, popisek, ikona)
+    var _modules = new (string Field, string Label, string Icon)[]
+    {
+        ("j04IsModule_Widgets", "Dashboard", "dashboard"),
+        ("j04IsModule_p31", "Úkony", "more_time"),
+        ("j04IsModule_p41", "Projekty", "work_outline"),
+        ("j04IsModule_p56", "Úkoly", "task_alt"),
+        ("j04IsModule_p28", "Kontakty", "contacts"),
+        ("j04IsModule_o23", "Dokumenty", "description"),
+        ("j04IsModule_p91", "Vyúčtování", "receipt_long"),
+        ("j04IsModule_p90", "Zálohy", "savings"),
+        ("j04IsModule_j02", "Uživatelé", "group"),
+        ("j04IsModule_x31", "Pevné tiskové sestavy", "print"),
+        ("j04IsModule_p11", "Docházka", "schedule"),
+        ("j04IsModule_o27", "Filebox", "attachment")
+    };
+    bool ModuleValue(string field) => (bool)(typeof(BO.j04UserRole).GetProperty(field)?.GetValue(Model.Rec) ?? false);
 }
 
 @addTagHelper *, UI
 
-<div class="modal_record_container">
+@section header_content
+{
+    <link rel="stylesheet" href="~/css/j04record.css" asp-append-version="true" />
+}
 
-    <div class="row">
-        <label class="col-auto col-form-label">@_f.tra("Název"):</label>
-        <div class="col-sm-6 col-md-5">
+@* verze 8: moderní vzhled (třídy jr-*). Zachované: názvy polí formuláře, id cmdCheckAll/cmdUnCheckAll, divX53, divMenu, divX54. *@
+<div class="modal_record_container jr">
+
+    <div class="jr-head">
+        <div class="jr-name">
+            <label for="Rec_j04Name">@_f.tra("Název role")</label>
             <input class="form-control" asp-for="Rec.j04Name" />
         </div>
-        <div class="col-sm-4 col-md-5">
-            <input type="checkbox" asp-for="@Model.Rec.j04IsAllowLoginByGoogle" />
-            <label class="col-form-label" for="Rec_j04IsAllowLoginByGoogle">@_f.tra("Povolit přihlášení/ověření uživatele přes Google")</label>
+        <div class="form-check form-switch jr-google">
+            <input type="checkbox" class="form-check-input" role="switch" asp-for="@Model.Rec.j04IsAllowLoginByGoogle" />
+            <label class="form-check-label" for="Rec_j04IsAllowLoginByGoogle">@_f.tra("Povolit přihlášení/ověření uživatele přes Google")</label>
         </div>
     </div>
 
+    <div class="jr-grid">
 
-    <div class="row my-2">
-        <div class="col-sm-6 col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    @_f.tra("Oprávnění aplikační role")
-                    <button type="button" id="cmdUnCheckAll" class="btn btn-sm btn-primary" onclick="_postback('uncheckall')">@_f.tra("Odškrtnout vše")</button>
-                    <button type="button" id="cmdCheckAll" class="btn btn-sm btn-primary" onclick="_postback('checkall')">@_f.tra("Zaškrtnout vše")</button>
-                </div>
-                <div class="card-body" id="divX53">
-                    <mycheckboxlist asp-for="@Model.SelectedPermNumbers" groupfield="Group" datasource="@Model.lisAllPerms" valuefield="ValueInt" textfield="Name"></mycheckboxlist>
+        <section class="jr-card jr-perms">
+            <div class="jr-card-head">
+                <h2><span class="material-icons-outlined-nosize">admin_panel_settings</span>@_f.tra("Oprávnění role")</h2>
+                <span class="jr-count" id="jrPermCount">@_permOn / @_permTotal</span>
+                <div class="jr-tools">
+                    <input type="search" class="form-control form-control-sm jr-filter" id="jrPermFilter" placeholder="@_f.tra("Hledat oprávnění…")" autocomplete="off" />
+                    <button type="button" id="cmdCheckAll" class="btn btn-sm btn-light" onclick="jr_check_all(true)">@_f.tra("Zaškrtnout vše")</button>
+                    <button type="button" id="cmdUnCheckAll" class="btn btn-sm btn-light" onclick="jr_check_all(false)">@_f.tra("Odškrtnout vše")</button>
                 </div>
             </div>
-        </div>
-        <div class="col-sm-6 col-md-6">
-            <div class="card" id="divMenu">
-                <div class="card-header">
-                    @_f.tra("Přístupné moduly")
-                </div>
-                <div class="card-body">
-                    <div class="row my-2">
-                        <div class="col-6">
-                            <div>
-                                <input type="checkbox" asp-for="@Model.Rec.j04IsModule_Widgets" />
-                                <label class="col-form-label" for="Rec_j04IsModule_Widgets">DASHBOARD</label>
-                            </div>
-                            <div class="my-2">
-                                <input type="checkbox" asp-for="@Model.Rec.j04IsModule_p31" />
-                                <label class="col-form-label" for="Rec_j04IsModule_p31">@_f.tra("ÚKONY")</label>
-                            </div>
-                            <div class="my-2">
-                                <input type="checkbox" asp-for="@Model.Rec.j04IsModule_p41" />
-                                <label class="col-form-label" for="Rec_j04IsModule_p41">@_f.tra("PROJEKTY")</label>
-                            </div>
-                            <div class="my-2">
-                                <input type="checkbox" asp-for="@Model.Rec.j04IsModule_p56" />
-                                <label class="col-form-label" for="Rec_j04IsModule_p56">@_f.tra("ÚKOLY")</label>
-                            </div>
-                            <div class="my-2">
-                                <input type="checkbox" asp-for="@Model.Rec.j04IsModule_p91" />
-                                <label class="col-form-label" for="Rec_j04IsModule_p91">@_f.tra("VYÚČTOVÁNÍ")</label>
-                            </div>
-                            <div class="my-2">
-                                <input type="checkbox" asp-for="@Model.Rec.j04IsModule_p90" />
-                                <label class="col-form-label" for="Rec_j04IsModule_p90">@_f.tra("ZÁLOHY")</label>
-                            </div>
-                            <div class="my-2">
-                                <input type="checkbox" asp-for="@Model.Rec.j04IsModule_o27" />
-                                <label class="col-form-label" for="Rec_j04IsModule_o27">FILEBOX</label>
-                            </div>
-                           
+            <div class="jr-card-body" id="divX53">
+                @foreach (var g in _permGroups)
+                {
+                    int gOn = g.Count(p => _selPerms.Contains(p.ValueInt));
+                    <div class="jr-group @(g.Key == "" ? "jr-group-main" : null)">
+                        <div class="jr-group-head">
+                            <span class="jr-group-name">@(g.Key == "" ? _f.tra("Hlavní") : g.Key)</span>
+                            <span class="jr-group-n">@gOn/@g.Count()</span>
+                            <button type="button" class="jr-group-toggle" data-jr-group title="@_f.tra("Zaškrtnout / odškrtnout celou skupinu")">@_f.tra("vše")</button>
                         </div>
-                        <div class="col-6">
-                            <div>
-                                <input type="checkbox" asp-for="@Model.Rec.j04IsModule_p28" />
-                                <label class="col-form-label" for="Rec_j04IsModule_p28">@_f.tra("KONTAKTY")</label>
-                            </div>
-                            <div class="my-2">
-                                <input type="checkbox" asp-for="@Model.Rec.j04IsModule_o23" />
-                                <label class="col-form-label" for="Rec_j04IsModule_o23">@_f.tra("DOKUMENTY")</label>
-                            </div>
-                            <div class="my-2">
-                                <input type="checkbox" asp-for="@Model.Rec.j04IsModule_j02" />
-                                <label class="col-form-label" for="Rec_j04IsModule_j02">@_f.tra("UŽIVATELÉ")</label>
-                            </div>
-                            <div class="my-2">
-                                <input type="checkbox" asp-for="@Model.Rec.j04IsModule_x31" />
-                                <label class="col-form-label" for="Rec_j04IsModule_x31">@_f.tra("PEVNÉ TISKOVÉ SESTAVY")</label>
-                            </div>
-                            <div class="my-2">
-                                <input type="checkbox" asp-for="@Model.Rec.j04IsModule_p11" />
-                                <label class="col-form-label" for="Rec_j04IsModule_p11">@_f.tra("DOCHÁZKA")</label>
-                            </div>
-                            <div class="my-2 d-none">
-                                <input type="checkbox" asp-for="@Model.Rec.j04IsModule_r01" />
-                                <label class="col-form-label" for="Rec_j04IsModule_r01">@_f.tra("KAPACITNÍ PLÁNOVÁNÍ")</label>
-                            </div>
-                            <div class="my-2 d-none">
-                                <input type="checkbox" asp-for="@Model.Rec.j04IsModule_p49" />
-                                <label class="col-form-label" for="Rec_j04IsModule_p49">@_f.tra("FINANČNÍ PLÁNOVÁNÍ")</label>
-                            </div>
-                        </div>
-                    </div>
-
-
-
-
-
-
-                </div>
-            </div>
-            <div class="card my-2">
-                <div class="card-header">
-                    @_f.tra("Povolené skupiny widgetů")                    
-                </div>
-                <div class="card-body" id="divX54">
-                    <mycheckboxlist asp-for="SelectedX54IDs" datasource="@Model.lisX54" valuefield="pid" textfield="x54Name"></mycheckboxlist>
-                </div>
-            </div>
-            <div class="card my-2" style="display:none;">
-                <div class="card-header">
-                    @_f.tra("Individuální stránky záznamů")
-                </div>
-                <div class="card-body">
-                    <table>
-                        <tr>
-                            <td>
-                                @_f.tra("Stránka dokumentu"):
-                            </td>
-                            <td>
-                                <mydropdown asp-for="@Model.Rec.a55ID_o23" isfirstemptyrow="true" firstemptyrowvalue="0" datasource="@_lisA55_o23" textfield="a55Name" valuefield="pid"></mydropdown>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                @_f.tra("Stránka kontaktu"):
-                            </td>
-                            <td>
-                                <mydropdown asp-for="@Model.Rec.a55ID_p28" isfirstemptyrow="true" firstemptyrowvalue="0" datasource="@_lisA55_p28" textfield="a55Name" valuefield="pid"></mydropdown>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                @_f.tra("Stránka")
-                                @(" " + _f.getP07Level_Inflection(5) + ":")
-                            </td>
-                            <td>
-                                <mydropdown asp-for="@Model.Rec.a55ID_le5" isfirstemptyrow="true" firstemptyrowvalue="0" datasource="@_lisA55_le5" textfield="a55Name" valuefield="pid"></mydropdown>
-                            </td>
-                        </tr>
-                        @if (_f.p07LevelsCount > 1)
+                        @foreach (var p in g)
                         {
-                            <tr>
-                                <td>
-                                    @_f.tra("Stránka")
-                                    @(" " + _f.getP07Level_Inflection(4) + ":")
-                                </td>
-                                <td>
-                                    <mydropdown asp-for="@Model.Rec.a55ID_le4" isfirstemptyrow="true" firstemptyrowvalue="0" datasource="@_lisA55_le4" textfield="a55Name" valuefield="pid"></mydropdown>
-                                </td>
-                            </tr>
+                            bool on = _selPerms.Contains(p.ValueInt);
+                            string chkId = "chkSelectedPermNumbers_" + p.ValueInt;
+                            <div class="form-check jr-item @(p.Value == BO.PermValEnum.GR_Admin ? "jr-admin" : null)">
+                                <input type="checkbox" class="form-check-input jr-perm" id="@chkId" data-v="@p.ValueInt" checked="@on" />
+                                <label class="form-check-label" for="@chkId">@p.Name</label>
+                                <input type="hidden" id="SelectedPermNumbers_@(p.ValueInt)" name="SelectedPermNumbers" value="@(on ? p.ValueInt : 0)" />
+                            </div>
                         }
-                        <tr>
-                            <td>
-                                @_f.tra("Stránka vyúčtování"):
-                            </td>
-                            <td>
-                                <mydropdown asp-for="@Model.Rec.a55ID_p91" isfirstemptyrow="true" firstemptyrowvalue="0" datasource="@_lisA55_p91" textfield="a55Name" valuefield="pid"></mydropdown>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                @_f.tra("Stránka uživatele"):
-                            </td>
-                            <td>
-                                <mydropdown asp-for="@Model.Rec.a55ID_j02" isfirstemptyrow="true" firstemptyrowvalue="0" datasource="@_lisA55_j02" textfield="a55Name" valuefield="pid"></mydropdown>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-
-            <div class="card my-2">
-                <div class="card-header">
-                    @_f.tra("Zakázané GRID sloupce")
-                </div>
-                <div class="card-body">
-                    <textarea class="form-control" asp-for="Rec.j04GridColumnsExclude" placeholder="Oddělovač je čárka"></textarea>
-                    
-                </div>
-            </div>
-
-            <div class="card my-2" style="display:none;">
-                <div class="card-header">
-                    @_f.tra("Výchozí Rozšíření karty uživatele")
-                </div>
-                <div class="card-body">
-                    <div>
-                        <label>@_f.tra("Nahrávání příloh v kartě uživatele"):</label>
-                        @Html.EditorFor(m => m.Rec.j04FilesTab, "~/Views/Shared/_BitStreamFlag.cshtml")
                     </div>
-
-                </div>
+                }
+                <div class="jr-empty" id="jrPermEmpty" style="display:none;">@_f.tra("Nic nenalezeno.")</div>
             </div>
+        </section>
 
-            
+        <div class="jr-side">
+            <section class="jr-card" id="divMenu">
+                <div class="jr-card-head">
+                    <h2><span class="material-icons-outlined-nosize">apps</span>@_f.tra("Přístupné moduly")</h2>
+                </div>
+                <div class="jr-card-body jr-modules">
+                    @foreach (var m in _modules)
+                    {
+                        string id = "Rec_" + m.Field;
+                        bool on = ModuleValue(m.Field);
+                        <label class="jr-module @(on ? "jr-on" : null)" for="@id">
+                            <input type="checkbox" class="form-check-input" id="@id" name="Rec.@m.Field" value="true" checked="@on" />
+                            <span class="material-icons-outlined-nosize">@m.Icon</span>
+                            <span>@_f.tra(m.Label)</span>
+                        </label>
+                    }
+                    @* skryté moduly – hodnota se musí odeslat beze změny *@
+                    <input type="hidden" name="Rec.j04IsModule_r01" value="@(Model.Rec.j04IsModule_r01 ? "true" : "false")" />
+                    <input type="hidden" name="Rec.j04IsModule_p49" value="@(Model.Rec.j04IsModule_p49 ? "true" : "false")" />
+                </div>
+            </section>
+
+            <section class="jr-card">
+                <div class="jr-card-head">
+                    <h2><span class="material-icons-outlined-nosize">dashboard_customize</span>@_f.tra("Povolené skupiny widgetů")</h2>
+                </div>
+                <div class="jr-card-body" id="divX54">
+                    @if (Model.lisX54 == null || !Model.lisX54.Any())
+                    {
+                        <div class="jr-empty">@_f.tra("Žádné skupiny widgetů.")</div>
+                    }
+                    else
+                    {
+                        foreach (var x in Model.lisX54)
+                        {
+                            bool on = _selX54.Contains(x.pid);
+                            string chkId = "chkSelectedX54IDs_" + x.pid;
+                            <div class="form-check jr-item">
+                                <input type="checkbox" class="form-check-input" id="@chkId" checked="@on" onclick="mycheckboxlist_checked(this,'SelectedX54IDs_@(x.pid)',@(x.pid))" />
+                                <label class="form-check-label" for="@chkId">@x.x54Name</label>
+                                <input type="hidden" id="SelectedX54IDs_@(x.pid)" name="SelectedX54IDs" value="@(on ? x.pid : 0)" />
+                            </div>
+                        }
+                    }
+                </div>
+            </section>
+
+            <section class="jr-card">
+                <div class="jr-card-head">
+                    <h2><span class="material-icons-outlined-nosize">view_column</span>@_f.tra("Zakázané sloupce tabulek")</h2>
+                </div>
+                <div class="jr-card-body">
+                    <textarea class="form-control" asp-for="Rec.j04GridColumnsExclude" rows="3"></textarea>
+                    <small class="jr-hint">@_f.tra("Názvy sloupců oddělené čárkou. Uživatelé s touto rolí je v tabulkách neuvidí.")</small>
+                </div>
+            </section>
         </div>
     </div>
 
-
-
+    @* skryté (nepoužívané) části – hodnoty se odesílají beze změny *@
+    <div style="display:none;">
+        <mydropdown asp-for="@Model.Rec.a55ID_o23" isfirstemptyrow="true" firstemptyrowvalue="0" datasource="@_lisA55_o23" textfield="a55Name" valuefield="pid"></mydropdown>
+        <mydropdown asp-for="@Model.Rec.a55ID_p28" isfirstemptyrow="true" firstemptyrowvalue="0" datasource="@_lisA55_p28" textfield="a55Name" valuefield="pid"></mydropdown>
+        <mydropdown asp-for="@Model.Rec.a55ID_le5" isfirstemptyrow="true" firstemptyrowvalue="0" datasource="@_lisA55_le5" textfield="a55Name" valuefield="pid"></mydropdown>
+        @if (_f.p07LevelsCount > 1)
+        {
+            <mydropdown asp-for="@Model.Rec.a55ID_le4" isfirstemptyrow="true" firstemptyrowvalue="0" datasource="@_lisA55_le4" textfield="a55Name" valuefield="pid"></mydropdown>
+        }
+        <mydropdown asp-for="@Model.Rec.a55ID_p91" isfirstemptyrow="true" firstemptyrowvalue="0" datasource="@_lisA55_p91" textfield="a55Name" valuefield="pid"></mydropdown>
+        <mydropdown asp-for="@Model.Rec.a55ID_j02" isfirstemptyrow="true" firstemptyrowvalue="0" datasource="@_lisA55_j02" textfield="a55Name" valuefield="pid"></mydropdown>
+        @Html.EditorFor(m => m.Rec.j04FilesTab, "~/Views/Shared/_BitStreamFlag.cshtml")
+    </div>
 
 </div>
 
-
 <script type="text/javascript">
-    $(document).ready(function () {
+    (function () {
+        const box = document.getElementById("divX53");
 
+        function sync(chk) {
+            const v = chk.dataset.v;
+            document.getElementById("SelectedPermNumbers_" + v).value = chk.checked ? v : "0";
+        }
+        function counts() {
+            const all = box.querySelectorAll(".jr-perm");
+            document.getElementById("jrPermCount").textContent = box.querySelectorAll(".jr-perm:checked").length + " / " + all.length;
+            box.querySelectorAll(".jr-group").forEach(g => {
+                g.querySelector(".jr-group-n").textContent = g.querySelectorAll(".jr-perm:checked").length + "/" + g.querySelectorAll(".jr-perm").length;
+            });
+        }
+        function changed() {
+            counts();
+            if (typeof _toolbar_warn2save_changes === "function") _toolbar_warn2save_changes();
+        }
 
+        box.addEventListener("change", e => {
+            if (e.target.classList.contains("jr-perm")) { sync(e.target); changed(); }
+        });
+        box.addEventListener("click", e => {
+            const t = e.target.closest("[data-jr-group]");
+            if (!t) return;
+            const chks = t.closest(".jr-group").querySelectorAll(".jr-perm");
+            const on = Array.from(chks).some(c => !c.checked);
+            chks.forEach(c => { c.checked = on; sync(c); });
+            changed();
+        });
 
+        //zaškrtnout / odškrtnout vše (dříve postback checkall/uncheckall) – jen viditelné položky při filtru
+        window.jr_check_all = function (on) {
+            box.querySelectorAll(".jr-item:not(.jr-hide) .jr-perm").forEach(c => { c.checked = on; sync(c); });
+            changed();
+        };
 
+        //filtr oprávnění
+        document.getElementById("jrPermFilter").addEventListener("input", function () {
+            const q = this.value.trim().toLowerCase();
+            let any = false;
+            box.querySelectorAll(".jr-group").forEach(g => {
+                const gName = g.querySelector(".jr-group-name").textContent.toLowerCase();
+                let n = 0;
+                g.querySelectorAll(".jr-item").forEach(it => {
+                    const hit = q === "" || gName.includes(q) || it.textContent.toLowerCase().includes(q);
+                    it.classList.toggle("jr-hide", !hit);
+                    if (hit) n++;
+                });
+                g.classList.toggle("jr-hide", n === 0);
+                if (n) any = true;
+            });
+            document.getElementById("jrPermEmpty").style.display = any ? "none" : "";
+        });
 
-    });
-
-
-
-
-
-
-
-
+        //moduly: zvýraznění zapnutých
+        document.querySelectorAll(".jr-module input").forEach(chk => chk.addEventListener("change", () => {
+            chk.closest(".jr-module").classList.toggle("jr-on", chk.checked);
+        }));
+    })();
 </script>

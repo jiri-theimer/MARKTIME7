@@ -1,0 +1,52 @@
+﻿/* Aplikační role (Views/j04/Record.cshtml) – třídy jr-*. Barvy navazují na skin (--pozadi, --oznaceno). */
+.jr { max-width: 1200px; }
+
+.jr-head { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 8px 24px; margin: 4px 0 12px; }
+.jr-name { flex: 1 1 320px; max-width: 520px; }
+.jr-name label { display: block; font-size: .85rem; font-weight: 500; color: #3d444d; margin-bottom: 3px; }
+.jr-google { margin: 0 0 6px; }
+
+.jr-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; align-items: start; }
+.jr-side { display: flex; flex-direction: column; gap: 12px; }
+@media (max-width: 900px) { .jr-grid { grid-template-columns: minmax(0, 1fr); } }
+
+.jr-card { border: 1px solid #e3e6ea; border-radius: 10px; background: #fff; }
+.jr-card-head { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; padding: 9px 12px; border-bottom: 1px solid #eef0f3; }
+.jr-card-head h2 { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 1rem; font-weight: 600; color: #2b3138; }
+.jr-card-head h2 .material-icons-outlined-nosize { font-size: 20px; color: var(--pozadi, #0b4b92); }
+.jr-card-body { padding: 8px 12px 10px; }
+.jr-count { padding: 0 7px; border-radius: 9px; background: #eef1f4; color: #59636e; font-size: .78rem; line-height: 18px; font-variant-numeric: tabular-nums; }
+.jr-tools { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+.jr-filter { width: 170px; }
+.jr-hint { display: block; margin-top: 4px; color: #6c757d; font-size: .8rem; }
+.jr-empty { padding: 6px 0; color: #6c757d; font-size: .875rem; }
+.jr-hide { display: none !important; }
+
+/* oprávnění: skupiny */
+.jr-group { padding: 4px 0 6px; }
+.jr-group + .jr-group { border-top: 1px solid #f0f2f4; }
+.jr-group-head { display: flex; align-items: center; gap: 6px; margin: 2px 0 2px; }
+.jr-group-name { font-size: .76rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: #59636e; }
+.jr-group-n { color: #8a939c; font-size: .74rem; font-variant-numeric: tabular-nums; }
+.jr-group-toggle { margin-left: auto; padding: 0 6px; border: 0; border-radius: 6px; background: transparent; color: var(--pozadi, #0b4b92); font-size: .76rem; opacity: 0; }
+.jr-group:hover .jr-group-toggle, .jr-group-toggle:focus { opacity: 1; }
+.jr-group-toggle:hover { background: #eef1f4; }
+.jr-item { margin: 0; padding: 1px 0 1px 1.6em; min-height: 0; }
+.jr-item .form-check-label { font-size: .9rem; color: #1f2328; }
+.jr-item:hover .form-check-label { color: #000; }
+.jr-admin .form-check-label { font-weight: 600; }
+.jr-group-main { padding-bottom: 8px; }
+
+/* moduly: dlaždice */
+.jr-modules { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 6px; }
+.jr-module { display: flex; align-items: center; gap: 7px; margin: 0; padding: 5px 8px; border: 1px solid #e3e6ea; border-radius: 8px; cursor: pointer; font-size: .9rem; color: #3d444d; user-select: none; }
+.jr-module .form-check-input { margin: 0; flex: 0 0 auto; }
+.jr-module .material-icons-outlined-nosize { font-size: 18px; color: #8a939c; }
+.jr-module:hover { border-color: #c5ccd3; }
+.jr-module.jr-on { border-color: color-mix(in srgb, var(--oznaceno, #4169e1) 45%, #ffffff); background: color-mix(in srgb, var(--oznaceno, #4169e1) 7%, #ffffff); color: #1f2328; }
+.jr-module.jr-on .material-icons-outlined-nosize { color: var(--pozadi, #0b4b92); }
+
+/* telefon */
+html.mt-phone .jr-grid { grid-template-columns: minmax(0, 1fr); }
+html.mt-phone .jr-tools { margin-left: 0; width: 100%; }
+html.mt-phone .jr-filter { flex: 1 1 auto; width: auto; }

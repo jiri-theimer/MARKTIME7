@@ -759,10 +759,6 @@
 
     register_menu("cmdgridquerymenu", "cmdgridquerymenu_menu", "/Menu/grid_query?prefix=p31&j72id=@(Model.TheGridQueryButton.j72id)");
 
-    var h = _device.innerHeight - $("#timeline_tbody1").offset().top;
-    //h = h - 50;
-    h = h - 20;
-    $("#timeline_tbody1").height(h);
 
     if (_j02ids != "" || _j11ids != "" || _j07ids != "" || _statequery != "0" || _j72id != "0") {
     $(".showmore").toggle();
@@ -1023,12 +1019,29 @@ function zoom_toggle() {
 
     $("#timeline_table1").width(w);
 
+    //verze 8: roluje kontejner (sticky hlavička), ne tbody
+    var cont = document.querySelector(".timeline_container");
+    var h = _device.innerHeight - cont.getBoundingClientRect().top - 20;
+    cont.style.height = Math.max(h, 200) + "px";
 
-    var offset_container = $("#timeline_tbody1").offset();
-    var h = _device.innerHeight - offset_container.top - 20;
+    dl_fix_left_columns();
+    }
 
-
-    $("#timeline_tbody1").height(h);
+    //ukotvení prvních tří sloupců (pozice, osoba, Σ) při vodorovném rolování; colspan se počítá
+    function dl_fix_left_columns() {
+    const tbl = document.getElementById("timeline_table1");
+    const ths = tbl.tHead.rows[0].cells;
+    if (ths.length < 3) return;
+    tbl.style.setProperty("--dl-l1", ths[1].offsetLeft + "px");
+    tbl.style.setProperty("--dl-l2", ths[2].offsetLeft + "px");
+    for (const tr of tbl.rows) {
+        let col = 0;
+        for (const td of tr.cells) {
+            if (col > 2) break;
+            td.classList.add("dl-fix" + col);
+            col += td.colSpan || 1;
+        }
+    }
     }
 
 

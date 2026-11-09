@@ -25,6 +25,7 @@
 
 @section header_content
 {
+    <link rel="stylesheet" href="~/css/recordform.css" asp-append-version="true" />
 
 
     <link rel="stylesheet" href="/lib/pell/pell.css" asp-append-version="true" />
@@ -76,92 +77,72 @@
 @Html.Raw("<div class='tab-content'>")
 
 <div class="tab-pane tab-pane-fixed" id="tab1" role="tabpanel">
-    <!-- Tab1 -->
-
-    <div class="row">
-        <label for="Rec_p41Name" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název"):</label>
-        <div class="col-sm-8 col-md-7">
-            <input class="form-control record_name" required="true" asp-for="Rec.p41Name" />
-        </div>
-
-        <div class="col-sm-3 col-md-3">
-            <input class="form-control" asp-for="Rec.p41NameShort" placeholder="@_f.tra("Zkrácený (preferovaný) název")" />
-        </div>
-    </div>
-    <div class="row my-2">
-        <label for="cmdComboRec_p42ID" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Typ"):</label>
-        <div class="col-sm-8 col-md-7">
-            <mycombo entity="p42ProjectType" asp-for="Rec.p42ID" selectedtext="@Model.SelectedComboP42Name" event_after_changevalue="p42id_change"></mycombo>
-        </div>
-        <div class="col-sm-1 col-md-1">@_f.tra("Kód"):</div>
-        <div class="col-sm-2 col-md-2">
-            @if (Model.CanEditRecordCode)
-            {
-                <myval value="@Model.Rec.p41Code" hoversymol="@_f.tra("Upravit kód")" hoveronclick="true" hoverurl="javascript:_edit_code('p41',@Model.rec_pid)"></myval>
-            }
-            else
-            {
-                <myval value="@Model.Rec.p41Code"></myval>
-            }
-
-        </div>
-    </div>
-   
-    <div class="row my-2">
-        <label for="cmdComboRec_p28ID_Client" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Klient projektu"):</label>
-        <div class="col-sm-7 col-md-7">
-            <mycombo entity="p28Contact" asp-for="Rec.p28ID_Client" selectedtext="@Model.SelectedComboClient" filter-flag="1" search-result-width="700"></mycombo>
-        </div>
-        <label class="col-sm-1 col-md-1" for="cmdComboRec_j18ID">@_f.tra("Středisko"):</label>
-        <div class="col-sm-3 col-md-2">
-            <mycombo entity="j18Region" asp-for="Rec.j18ID" selectedtext="@Model.SelectedComboJ18Name"></mycombo>
-
-        </div>
-    </div>
-    
-
-    <div class="row my-2">
-        <div class="col-sm-8 col-md-9"></div>
-        <mylabel style="font-size:90%" class="col-sm-1 col-md-1 col-form-label" explicit-for="SelectedP07ID" text="@_f.tra("Strom úroveň")" tooltip="Projekty je možné vnořovat vertikálně do stromové struktury.<hr>V administraci můžete definovat až 5 vertikálních pojmenovaných úrovní (L1->L2->L3->L4->L5).<hr>Nejnižší (výchozí) úroveň má index L5 (level5), nejvyšší je L1 (level1)"></mylabel>
-      
-        
-
-        <div class="col-sm-3 col-md-2">
-            <mydropdown asp-for="SelectedP07ID" datasource="@_lisP07" isfirstemptyrow="false" firstemptyrowvalue="0" textfield="TreeName" valuefield="pid" event_after_changevalue="p07id_change"></mydropdown>
-
-            
-        </div>
-        
-    </div>
-    
-
-
-    @if (Model.lisParentLevels != null && Model.lisParentLevels.Count() > 0)
-    {
-        <div class="row my-2">
-            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Nadřízená úroveň"):</label>
-            <div class="col-sm-2 col-md-2">
-                <mydropdown asp-for="SelectedParentLevelIndex" datasource="@Model.lisParentLevels" isfirstemptyrow="true" firstemptyrowtext="--@_f.tra("Vybrat úroveň")--" firstemptyrowvalue="0" textfield="TreeName" valuefield="p07Level" event_after_changevalue="parentlevel_change"></mydropdown>
-
+    <!-- Tab1 – verze 8: moderní vzhled (třídy rf-*, css/recordform.css), názvy polí a id beze změny -->
+    <div class="rf">
+    <div class="rf-grid rf-grid-main">
+        <section class="rf-card">
+            <div class="rf-row">
+                <label for="Rec_p41Name" class="rf-label">@_f.tra("Název")</label>
+                <div class="rf-value"><input class="form-control record_name" required="true" asp-for="Rec.p41Name" /></div>
             </div>
-            @if (Model.SelectedParentLevelIndex > 0)
-            {
-                <div class="col-sm-9 col-md-8">
-                    @if (Model.lisParentLevels.Count() > 0)
+            <div class="rf-row">
+                <label for="Rec_p41NameShort" class="rf-label">@_f.tra("Zkrácený název")</label>
+                <div class="rf-value"><input class="form-control" asp-for="Rec.p41NameShort" placeholder="@_f.tra("Zkrácený (preferovaný) název")" /></div>
+            </div>
+            <div class="rf-row">
+                <label for="cmdComboRec_p42ID" class="rf-label">@_f.tra("Typ")</label>
+                <div class="rf-value"><mycombo entity="p42ProjectType" asp-for="Rec.p42ID" selectedtext="@Model.SelectedComboP42Name" event_after_changevalue="p42id_change"></mycombo></div>
+            </div>
+            <div class="rf-row">
+                <label for="cmdComboRec_p28ID_Client" class="rf-label">@_f.tra("Klient projektu")</label>
+                <div class="rf-value"><mycombo entity="p28Contact" asp-for="Rec.p28ID_Client" selectedtext="@Model.SelectedComboClient" filter-flag="1" search-result-width="700"></mycombo></div>
+            </div>
+        </section>
+
+        <section class="rf-card rf-narrow">
+            <h2><span class="material-icons-outlined-nosize">account_tree</span>@_f.tra("Zařazení")</h2>
+            <div class="rf-row">
+                <span class="rf-label">@_f.tra("Kód")</span>
+                <div class="rf-value">
+                    @if (Model.CanEditRecordCode)
                     {
-                        <mycombo entity="le@(Model.SelectedParentLevelIndex)" asp-for="Rec.p41ParentID" selectedtext="@Model.SelectedComboParent" filter-flag="1"></mycombo>
+                        <myval value="@Model.Rec.p41Code" hoversymol="@_f.tra("Upravit kód")" hoveronclick="true" hoverurl="javascript:_edit_code('p41',@Model.rec_pid)"></myval>
                     }
                     else
                     {
-                        <i>@_f.tra("Není k dispozici nadřízená úroveň.")</i>
+                        <myval value="@Model.Rec.p41Code"></myval>
                     }
-
                 </div>
+            </div>
+            <div class="rf-row">
+                <label class="rf-label" for="cmdComboRec_j18ID">@_f.tra("Středisko")</label>
+                <div class="rf-value"><mycombo entity="j18Region" asp-for="Rec.j18ID" selectedtext="@Model.SelectedComboJ18Name"></mycombo></div>
+            </div>
+            <div class="rf-row">
+                <mylabel class="rf-label" explicit-for="SelectedP07ID" text="@_f.tra("Strom úroveň")" tooltip="Projekty je možné vnořovat vertikálně do stromové struktury.<hr>V administraci můžete definovat až 5 vertikálních pojmenovaných úrovní (L1->L2->L3->L4->L5).<hr>Nejnižší (výchozí) úroveň má index L5 (level5), nejvyšší je L1 (level1)"></mylabel>
+                <div class="rf-value"><mydropdown asp-for="SelectedP07ID" datasource="@_lisP07" isfirstemptyrow="false" firstemptyrowvalue="0" textfield="TreeName" valuefield="pid" event_after_changevalue="p07id_change"></mydropdown></div>
+            </div>
+            @if (Model.lisParentLevels != null && Model.lisParentLevels.Count() > 0)
+            {
+                <div class="rf-row">
+                    <label class="rf-label" for="SelectedParentLevelIndex">@_f.tra("Nadřízená úroveň")</label>
+                    <div class="rf-value">
+                        <mydropdown asp-for="SelectedParentLevelIndex" datasource="@Model.lisParentLevels" isfirstemptyrow="true" firstemptyrowtext="--@_f.tra("Vybrat úroveň")--" firstemptyrowvalue="0" textfield="TreeName" valuefield="p07Level" event_after_changevalue="parentlevel_change"></mydropdown>
+                    </div>
+                </div>
+                @if (Model.SelectedParentLevelIndex > 0)
+                {
+                    <div class="rf-row">
+                        <span class="rf-label"></span>
+                        <div class="rf-value">
+                            <mycombo entity="le@(Model.SelectedParentLevelIndex)" asp-for="Rec.p41ParentID" selectedtext="@Model.SelectedComboParent" filter-flag="1"></mycombo>
+                        </div>
+                    </div>
+                }
             }
+        </section>
+    </div>
 
-
-        </div>
-    }
     @Html.EditorFor(m => m.roles, "~/Views/Shared/_RoleAssign.cshtml")
 
     
@@ -248,19 +229,19 @@
     }
 
 
-    @Html.EditorFor(m => m.hlidac, "~/Views/Shared/_hlidac.cshtml")
+    @* sdílené partialy beze změny; prázdné stavy „Přidat …“ se řadí vedle sebe, seznamy přes celou šířku *@
+    <div class="rf-extras">
+        @Html.EditorFor(m => m.hlidac, "~/Views/Shared/_hlidac.cshtml")
 
-    @Html.EditorFor(m => m.reminder, "~/Views/Shared/_Reminder.cshtml")
+        @Html.EditorFor(m => m.reminder, "~/Views/Shared/_Reminder.cshtml")
 
-    <mystitky entity="@Model.TagEntity" asp-for="@Model.TagPids" tagnames="@Model.TagNames" taghtml="@Model.TagHtml" buttontext="@_f.tra("Oštítkovat")"></mystitky>
+        <mystitky entity="@Model.TagEntity" asp-for="@Model.TagPids" tagnames="@Model.TagNames" taghtml="@Model.TagHtml" buttontext="@_f.tra("Oštítkovat")"></mystitky>
 
-
-    @Html.EditorFor(m => m, "~/Views/Shared/_p41Contacts.cshtml")
-    @Html.EditorFor(m => m, "~/Views/Shared/_p41Spisy.cshtml")
+        @Html.EditorFor(m => m, "~/Views/Shared/_p41Contacts.cshtml")
+        @Html.EditorFor(m => m, "~/Views/Shared/_p41Spisy.cshtml")
+    </div>
+    </div>
 </div>
-
-
-
 <div class="tab-pane tab-pane-fixed" id="tab2" role="tabpanel">
     <!-- Tab2 -->
     @if (Model.RecP42 == null || Model.RecP42.p42BillingFlag == 0)

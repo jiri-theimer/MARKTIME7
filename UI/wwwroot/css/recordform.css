@@ -1,0 +1,90 @@
+﻿/* Moderní formulář záznamu (verze 8) – obecné třídy rf-*: Views/j02/Record.cshtml, Views/p28/Record.cshtml, Views/p41/Record.cshtml.
+   Karty s nadpisem, řádky „popisek | hodnota“, na úzké obrazovce popisek nad hodnotou. Barvy navazují na skin. */
+.rf { max-width: 1200px; padding: 4px 0 8px; }
+.rf-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 12px; align-items: start; margin-bottom: 12px; }
+.rf-card { padding: 10px 14px 12px; margin-bottom: 12px; border: 1px solid #e3e6ea; border-radius: 10px; background: #fff; }
+.rf-grid > .rf-card { margin-bottom: 0; }
+.rf-card h2 { display: flex; align-items: center; gap: 6px; margin: 0 0 8px; font-size: 1rem; font-weight: 600; color: #2b3138; }
+.rf-card h2 .material-icons-outlined-nosize { font-size: 20px; color: var(--pozadi, #0b4b92); }
+
+/* řádek: popisek vlevo, hodnota vpravo */
+.rf-row { display: grid; grid-template-columns: 170px minmax(0, 1fr); align-items: center; gap: 4px 10px; margin-bottom: 6px; }
+.rf-label { margin: 0; font-size: .875rem; color: #59636e; }
+.rf-value { min-width: 0; }
+.rf-value.form-check { padding-left: 1.6em; margin: 0; }
+.rf-w-num { max-width: 160px; }
+.rf-narrow .rf-row { grid-template-columns: 110px minmax(0, 1fr); }
+
+/* pole s popiskem nad sebou */
+.rf-field { margin-bottom: 8px; min-width: 0; }
+.rf-field > label { display: block; margin-bottom: 2px; font-size: .8rem; font-weight: 500; color: #59636e; }
+.rf-inline { display: flex; align-items: center; gap: 6px; }
+
+/* jméno: avatar + 4 pole v řádku */
+.rf-names { display: grid; grid-template-columns: 52px minmax(70px, .6fr) minmax(120px, 1fr) minmax(140px, 1.2fr) minmax(70px, .6fr); gap: 8px 10px; align-items: end; }
+.rf-names .rf-field { margin-bottom: 0; }
+.rf-avatar { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.15rem; font-weight: 600; text-transform: uppercase; background: var(--pozadi, #0b4b92); color: var(--popredi, #fff); }
+
+/* zvýrazněný blok (nový login / heslo) */
+.rf-box { padding: 8px 10px 2px; margin-bottom: 8px; border-radius: 8px; background: color-mix(in srgb, var(--oznaceno, #4169e1) 8%, #ffffff); border: 1px solid color-mix(in srgb, var(--oznaceno, #4169e1) 30%, #ffffff); }
+.rf-alert { display: flex; gap: 10px; padding: 10px 12px; margin: 6px 0; border-radius: 8px; background: #fff3cd; color: #664d03; }
+.rf-alert .material-icons-outlined-nosize { font-size: 22px; }
+
+/* přepínač otevřený / uzavřený účet */
+.rf-seg { display: inline-flex; padding: 2px; border-radius: 8px; background: #e6e9ed; }
+.rf-seg input { position: absolute; opacity: 0; pointer-events: none; }
+.rf-seg label { margin: 0; padding: 3px 12px; border-radius: 6px; font-size: .875rem; color: #3d444d; cursor: pointer; }
+.rf-seg input:checked + label { background: #fff; color: #1f2328; font-weight: 500; box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+.rf-seg-state input:checked + label { color: #198754; }
+.rf-seg-state input:checked + label.rf-seg-off { color: #b02a37; }
+.rf-seg input:focus-visible + label { outline: 2px solid var(--oznaceno, #4169e1); }
+
+.rf-actions { display: flex; flex-wrap: wrap; gap: 6px; padding-top: 8px; margin-top: 6px; border-top: 1px solid #eef0f3; }
+.rf-tags { margin: 4px 0 8px; }
+
+.rf-sign { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.rf-sign img { max-height: 70px; max-width: 240px; border: 1px solid #e3e6ea; border-radius: 6px; padding: 2px; background: #fff; }
+.rf-upload { width: 100%; height: 70px; }
+
+
+/* lišta v kartě: nadpis / přepínač vlevo, akce vpravo */
+.rf-cardbar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 10px; margin-bottom: 8px; }
+.rf-cardbar h2 { margin: 0; }
+.rf-hint { display: block; margin-top: 3px; color: #6c757d; font-size: .8rem; }
+.rf-toggle { display: inline-block; margin: 2px 0 6px; font-size: .85rem; color: #3d444d; text-decoration: none; }
+.rf-toggle:hover { color: var(--pozadi, #0b4b92); }
+
+/* kontakt (p28) */
+.rf-grid-main { grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr); }
+.rf-country { width: 110px; }
+.rf-person { display: grid; grid-template-columns: minmax(70px, .6fr) minmax(120px, 1fr) minmax(140px, 1.2fr) minmax(70px, .6fr); gap: 0 10px; }
+.rf-ids { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0 10px; }
+.rf-ids .input-group > .btn { white-space: nowrap; }
+.rf-addr { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 2fr) minmax(80px, .7fr) minmax(0, 1.3fr); gap: 0 10px; }
+.rf-addr textarea { resize: vertical; }
+.rf-addr-note { flex: 1 1 220px; max-width: 420px; margin-left: auto; }
+.rf-w-bank { max-width: 110px; }
+/* sdílené partialy (média, osoby, hlídače, upozornění, štítky): tlačítka „Přidat …“ vedle sebe, karty se seznamem přes celou šířku */
+.rf-extras { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 4px 8px; margin-bottom: 8px; }
+.rf-extras > * { flex: 0 0 auto; }
+.rf-extras > .card { flex: 1 1 100%; order: 1; }
+.rf-extras > table { margin: 0; }
+.rf-extras .btn-light { margin-top: 0 !important; min-width: 0 !important; display: inline-flex; align-items: center; gap: 4px; min-height: 30px; }
+.rf-extras > .card { border-radius: 10px; border-color: #e3e6ea; margin: 0 !important; }
+/* karta ze sdíleného partialu přímo v .rf (např. _RoleAssign v projektu) */
+.rf > .card { border-radius: 10px; border-color: #e3e6ea; margin: 0 0 12px !important; }
+
+/* úzká obrazovka / telefon: popisek nad hodnotou, jméno pod sebou */
+@media (max-width: 900px) { .rf-grid-main { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 575.98px) {
+    .rf-row { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+    .rf-person, .rf-addr { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+    .rf-names { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+    .rf-avatar { display: none; }
+    .rf-grid { grid-template-columns: minmax(0, 1fr); }
+}
+html.mt-phone .rf-row { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+html.mt-phone .rf-names { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+html.mt-phone .rf-avatar { display: none; }
+html.mt-phone .rf-grid, html.mt-phone .rf-grid-main { grid-template-columns: minmax(0, 1fr); }
+html.mt-phone .rf-person, html.mt-phone .rf-addr { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }

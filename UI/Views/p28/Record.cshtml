@@ -24,6 +24,7 @@
 
 @section header_content
 {
+    <link rel="stylesheet" href="~/css/recordform.css" asp-append-version="true" />
     <link rel="stylesheet" href="/lib/pell/pell.css" asp-append-version="true" />
 
     <script src="~/lib/pell/pell.min.js"></script>
@@ -76,23 +77,21 @@
 
 
 <div class="tab-pane tab-pane-fixed" id="tab1" role="tabpanel">
-    <!-- Tab1 -->
-    <div class="row">
-        <div class="col-sm-3 col-md-3">
-            <input type="radio" id="opgIsCompany1" asp-for="@Model.IsCompany" value="1" onchange="_postback('IsCompany')">
-                <label for="opgIsCompany1">@_f.tra("Společnost/právnická osoba")</label>
-                <br />
-                <input type="radio" id="opgIsCompany0" asp-for="@Model.IsCompany" value="0" onchange="_postback('IsCompany')">
-                    <label for="opgIsCompany0">@_f.tra("Fyzická osoba")</label>
-                </div>
-                <div class="col-sm-2 col-md-2">
-                    @Html.EditorFor(m => m.Rec.p28CountryCode, "~/Views/Shared/_CountryCodeCombo.cshtml")
-
-                </div>
-                <div class="col-sm-2 col-md-2">
-                    <div class="dropdown float-end">
-                        <button tabindex="-1" class="btn bog dropdown-toggle" type="button" id="dropdownMenuRejstriky" data-bs-toggle="dropdown" aria-expanded="false">
-                            @_f.tra("Rejstříky")
+    <!-- Tab1 – verze 8: moderní vzhled (třídy rf-*, css/recordform.css), názvy polí a id beze změny -->
+    <div class="rf">
+        <div class="rf-grid rf-grid-main">
+            <section class="rf-card">
+                <div class="rf-cardbar">
+                    <div class="rf-seg" role="radiogroup">
+                        <input type="radio" id="opgIsCompany1" asp-for="@Model.IsCompany" value="1" onchange="_postback('IsCompany')"><label for="opgIsCompany1">@_f.tra("Společnost/právnická osoba")</label>
+                        <input type="radio" id="opgIsCompany0" asp-for="@Model.IsCompany" value="0" onchange="_postback('IsCompany')"><label for="opgIsCompany0">@_f.tra("Fyzická osoba")</label>
+                    </div>
+                    <div class="rf-country" title="@_f.tra("Stát subjektu – určuje rejstříky")">
+                        @Html.EditorFor(m => m.Rec.p28CountryCode, "~/Views/Shared/_CountryCodeCombo.cshtml")
+                    </div>
+                    <div class="dropdown ms-auto">
+                        <button tabindex="-1" class="btn btn-sm bog dropdown-toggle" type="button" id="dropdownMenuRejstriky" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span class="material-icons-outlined-btn">travel_explore</span> @_f.tra("Rejstříky")
                         </button>
                         <ul class="dropdown-menu" aria-labelledby="dropdownMenuRejstriky">
                             @if (Model.Rec.p28CountryCode == "CZ")
@@ -123,102 +122,72 @@
                     </div>
                 </div>
 
-
-            </div>
-
-            <div class="row">
-                <div class="col-sm-6 col-md-6">
-                    <div id="divCompany1">
-                        <div class="row my-2">
-                            <label for="Rec_p28CompanyName" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Společnost"):</label>
-                            <div class="col-sm-11 col-md-10">
-                                <input class="form-control record_name" asp-for="Rec.p28CompanyName" value="@Model.Rec.p28CompanyName" />
-                            </div>
+                <div id="divCompany1">
+                    <div class="rf-field">
+                        <label for="Rec_p28CompanyName">@_f.tra("Společnost")</label>
+                        <input class="form-control record_name" asp-for="Rec.p28CompanyName" value="@Model.Rec.p28CompanyName" />
+                    </div>
+                </div>
+                <div id="divCompany0">
+                    <div class="rf-person">
+                        <div class="rf-field">
+                            <label for="Rec_p28TitleBeforeName">@_f.tra("Titul")</label>
+                            <input class="form-control" asp-for="Rec.p28TitleBeforeName" />
+                        </div>
+                        <div class="rf-field">
+                            <label for="Rec_p28FirstName">@_f.tra("Křestní jméno")</label>
+                            <input class="form-control" asp-for="Rec.p28FirstName" />
+                        </div>
+                        <div class="rf-field">
+                            <label for="Rec_p28LastName">@_f.tra("Příjmení")</label>
+                            <input class="form-control" asp-for="Rec.p28LastName" />
+                        </div>
+                        <div class="rf-field">
+                            <label for="Rec_p28TitleAfterName">@_f.tra("Za jménem")</label>
+                            <input class="form-control" asp-for="Rec.p28TitleAfterName" />
                         </div>
                     </div>
-                    <div id="divCompany0">
-                        <div class="row my-2">
-                            <label for="Rec_p28TitleBeforeName" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Osoba"):</label>
-                            <div class="col-sm-11 col-md-10">
-                                <input class="form-control" asp-for="Rec.p28TitleBeforeName" placeholder="@_f.tra("Titul")" />
+                </div>
 
-                            </div>
-
-                        </div>
-                        <div class="row my-2">
-                            <div class="col-sm-1 col-md-2"></div>
-                            <div class="col-sm-11 col-md-10">
-                                <input class="form-control" asp-for="Rec.p28FirstName" placeholder="@_f.tra("Křestní jméno")" />
-                            </div>
-                        </div>
-                        <div class="row my-2">
-                            <div class="col-sm-1 col-md-2"></div>
-                            <div class="col-sm-11 col-md-10">
-                                <input class="form-control" asp-for="Rec.p28LastName" placeholder="@_f.tra("Příjmení")" />
-                            </div>
-                        </div>
-                        <div class="row my-2">
-                            <div class="col-sm-1 col-md-2"></div>
-                            <div class="col-sm-11 col-md-10">
-                                <input class="form-control" asp-for="Rec.p28TitleAfterName" placeholder="@_f.tra("Za jménem")" />
-
-                            </div>
+                <div class="rf-ids">
+                    <div class="rf-field">
+                        <label for="Rec_p28RegID">@_f.tra("IČO")</label>
+                        <div class="input-group">
+                            <input class="form-control" asp-for="Rec.p28RegID" value="@Model.Rec.p28RegID" />
+                            <button type="button" tabindex="-1" id="cmdAresImport" onclick="_postback('ares-ico')" style="display:@(Model.Rec.p28CountryCode == "CZ" || Model.Rec.p28CountryCode == "SK" ? "block" : "none");" title="Naimportovat název firmy, adresu a DIČ z českých a slovenských rejstříků. U českých subjektů navíc kontrola insolvence" class="btn bog"><myicon symbol="sync"></myicon> @Model.Rec.p28CountryCode</button>
                         </div>
                     </div>
-
-                    <div class="row my-2">
-                        <label for="Rec_p28RegID" class="col-sm-1 col-md-2 col-form-label">@_f.tra("IČO"):</label>
-                        <div class="col-sm-5 col-md-4">
-                            <div class="input-group">
-                                <input class="form-control" asp-for="Rec.p28RegID" value="@Model.Rec.p28RegID" />
-                                <button type="button" tabindex="-1" id="cmdAresImport" onclick="_postback('ares-ico')" style="display:@(Model.Rec.p28CountryCode == "CZ" || Model.Rec.p28CountryCode == "SK" ? "block" : "none");" title="Naimportovat název firmy, adresu a DIČ z českých a slovenských rejstříků. U českých subjektů navíc kontrola insolvence" class="btn bog"><myicon symbol="sync"></myicon> @Model.Rec.p28CountryCode</button>
-                            </div>
-                        </div>
-                        <label for="Rec_p28VatID" class="col-sm-1 md-1 col-form-label">@_f.tra("DIČ"):</label>
-                        <div class="col-sm-5 col-md-5">
-                            <div class="input-group">
-
-                                <input class="form-control" asp-for="Rec.p28VatID" value="@Model.Rec.p28VatID" />
-                                <button type="button" id="cmdViesImport" tabindex="-1" onclick="_postback('ares-dic')" title="Naimportovat název firmy a adresu z EU registru VIES" class="btn bog" style="display:@(Model.Rec.p28CountryCode == "SK" ? "none" : "block");"><myicon symbol="sync"></myicon> VIES/EU</button>
-
-                            </div>
-
+                    <div class="rf-field">
+                        <label for="Rec_p28VatID">@_f.tra("DIČ")</label>
+                        <div class="input-group">
+                            <input class="form-control" asp-for="Rec.p28VatID" value="@Model.Rec.p28VatID" />
+                            <button type="button" id="cmdViesImport" tabindex="-1" onclick="_postback('ares-dic')" title="Naimportovat název firmy a adresu z EU registru VIES" class="btn bog" style="display:@(Model.Rec.p28CountryCode == "SK" ? "none" : "block");"><myicon symbol="sync"></myicon> VIES/EU</button>
                         </div>
                     </div>
                     @if (Model.Rec.p28CountryCode == "SK")
                     {
-                        <div class="row my-2">
-                            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("IČ DPH (SK)"):</label>
-                            <div class="col-sm-5 col-md-4">
-                                <div class="input-group">
-                                    <input class="form-control" asp-for="Rec.p28ICDPH_SK" value="@Model.Rec.p28ICDPH_SK" />
-                                    <button type="button" onclick="_postback('sk-dic')" class="btn bog"><myicon symbol="sync"></myicon> SK</button>
-                                </div>
+                        <div class="rf-field">
+                            <label for="Rec_p28ICDPH_SK">@_f.tra("IČ DPH (SK)")</label>
+                            <div class="input-group">
+                                <input class="form-control" asp-for="Rec.p28ICDPH_SK" value="@Model.Rec.p28ICDPH_SK" />
+                                <button type="button" onclick="_postback('sk-dic')" class="btn bog"><myicon symbol="sync"></myicon> SK</button>
                             </div>
-
                         </div>
                     }
-
-
                 </div>
-                <div class="col-sm-6 col-md-6">
-                    <div class="row my-2">
-                        <label for="cmdComboRec_p29ID" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Typ"):</label>
-                        <div class="col-sm-11 col-md-10">
-                            <mycombo entity="p29ContactType" event_after_changevalue="p29id_change" asp-for="Rec.p29ID" selectedtext="@Model.SelectedComboP29Name"></mycombo>
-                        </div>
-                    </div>
-                    <div class="row my-2">
+            </section>
 
-                        <div class="col-sm-1 col-md-2">
-                            @if (Model.rec_pid > 0)
-                            {
-                                @_f.tra("Kód")
-                    
-                                <span>:</span>
-                            }
-                        </div>
-                        <div class="col-sm-5 col-md-4">
+            <section class="rf-card rf-narrow">
+                <h2><span class="material-icons-outlined-nosize">sell</span>@_f.tra("Zařazení")</h2>
+                <div class="rf-row">
+                    <label for="cmdComboRec_p29ID" class="rf-label">@_f.tra("Typ")</label>
+                    <div class="rf-value"><mycombo entity="p29ContactType" event_after_changevalue="p29id_change" asp-for="Rec.p29ID" selectedtext="@Model.SelectedComboP29Name"></mycombo></div>
+                </div>
+                @if (Model.rec_pid > 0)
+                {
+                    <div class="rf-row">
+                        <span class="rf-label">@_f.tra("Kód")</span>
+                        <div class="rf-value">
                             @if (Model.CanEditRecordCode)
                             {
                                 <myval value="@Model.Rec.p28Code" hoversymol="@_f.tra("Upravit kód")" hoveronclick="true" hoverurl="javascript:_edit_code('p28',@Model.rec_pid)"></myval>
@@ -228,83 +197,71 @@
                                 <myval value="@Model.Rec.p28Code"></myval>
                             }
                         </div>
-                        <div class="col-sm-6 col-md-6">
-                            <input class="form-control" asp-for="Rec.p28ShortName" placeholder="@_f.tra("Zkrácený (preferovaný) název")" />
-                        </div>
                     </div>
+                }
+                <div class="rf-row">
+                    <label for="Rec_p28ShortName" class="rf-label">@_f.tra("Zkrácený název")</label>
+                    <div class="rf-value"><input class="form-control" asp-for="Rec.p28ShortName" placeholder="@_f.tra("Zkrácený (preferovaný) název")" /></div>
+                </div>
+            </section>
+        </div>
 
-
+        <section class="rf-card">
+            <div class="rf-cardbar">
+                <h2><span class="material-icons-outlined-nosize">home</span>@_f.tra("Adresa")</h2>
+                <input type="text" class="form-control form-control-sm rf-addr-note" asp-for="Rec.p28BeforeAddress1" placeholder="@_f.tra("Doplnění adresy (např. k rukám)")" />
+            </div>
+            <div class="rf-addr">
+                <div class="rf-field">
+                    <label for="Rec_p28Street1">@_f.tra("Ulice")</label>
+                    <textarea asp-for="Rec.p28Street1" class="form-control" rows="2"></textarea>
+                </div>
+                <div class="rf-field">
+                    <label for="Rec_p28City1">@_f.tra("Město")</label>
+                    <textarea class="form-control" asp-for="Rec.p28City1" rows="2"></textarea>
+                </div>
+                <div class="rf-field">
+                    <label for="Rec_p28PostCode1">@_f.tra("PSČ")</label>
+                    <input type="text" class="form-control" asp-for="Rec.p28PostCode1" value="@Model.Rec.p28PostCode1" />
+                </div>
+                <div class="rf-field">
+                    <label for="Rec_p28Country1">@_f.tra("Stát")</label>
+                    <input type="text" class="form-control" asp-for="Rec.p28Country1" value="@Model.Rec.p28Country1" />
                 </div>
             </div>
-
-
-
-
-
-
-
-            <div class="card">
-                <div class="card-header row mx-0 my-0">
-                    <div class="col-sm-6 col-md-6">
-                        <myicon symbol="home"></myicon> @_f.tra("Adresa") #1
-                    </div>
-                    <div class="col-sm-6 col-md-6">
-                        <input type="text" class="form-control form-control-sm" asp-for="Rec.p28BeforeAddress1" placeholder="@_f.tra("Doplnění adresy")" />
-                    </div>
+            <a tabindex="-1" class="rf-toggle dropdown-toggle" href="#" id="cmdAdresa2">@_f.tra("Adresa") #2</a>
+            <div class="rf-addr" id="divAdresa2" style="display:@(Model.Rec.p28Street2 == null && Model.Rec.p28City2 == null ? "none" : "");">
+                <div class="rf-field">
+                    <textarea class="form-control" asp-for="Rec.p28Street2" placeholder="@_f.tra("Ulice")" rows="2"></textarea>
                 </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-sm-3 col-md-4">
-                            <textarea asp-for="Rec.p28Street1" class="form-control" placeholder="@_f.tra("Ulice")"></textarea>
-
-                        </div>
-                        <div class="col-sm-3 col-md-4">
-                            <textarea class="form-control" asp-for="Rec.p28City1" placeholder="@_f.tra("Město")"></textarea>
-                        </div>
-                        <div class="col-sm-1 col-md-1">
-                            <input type="text" class="form-control" asp-for="Rec.p28PostCode1" placeholder="@_f.tra("PSČ")" value="@Model.Rec.p28PostCode1" />
-                        </div>
-                        <div class="col-sm-3 col-md-3">
-                            <input type="text" class="form-control" asp-for="Rec.p28Country1" placeholder="@_f.tra("Stát")" value="@Model.Rec.p28Country1" />
-                        </div>
-                    </div>
-                    <div class="col-sm1 col-md-1">
-                        <a tabindex="-1" class="dropdown-toggle" href="#" id="cmdAdresa2" style="text-decoration:none;color:black;">@_f.tra("Adresa") #2</a>
-                    </div>
-                    <div class="row" id="divAdresa2" style="display:@(Model.Rec.p28Street2 == null && Model.Rec.p28City2 == null ? "none" : "");">
-                        <div class="col-sm-3 col-md-4">
-                            <textarea class="form-control" asp-for="Rec.p28Street2" placeholder="@_f.tra("Ulice")"></textarea>
-
-                        </div>
-                        <div class="col-sm-3 col-md-4">
-                            <textarea class="form-control" asp-for="Rec.p28City2" placeholder="@_f.tra("Město")"></textarea>
-                        </div>
-                        <div class="col-sm-1 col-md-1">
-                            <input type="text" class="form-control" asp-for="Rec.p28PostCode2" placeholder="@_f.tra("PSČ")" />
-                        </div>
-                        <div class="col-sm-3 col-md-3">
-                            <input type="text" class="form-control" asp-for="Rec.p28Country2" placeholder="@_f.tra("Stát")" />
-                        </div>
-                    </div>
+                <div class="rf-field">
+                    <textarea class="form-control" asp-for="Rec.p28City2" placeholder="@_f.tra("Město")" rows="2"></textarea>
+                </div>
+                <div class="rf-field">
+                    <input type="text" class="form-control" asp-for="Rec.p28PostCode2" placeholder="@_f.tra("PSČ")" />
+                </div>
+                <div class="rf-field">
+                    <input type="text" class="form-control" asp-for="Rec.p28Country2" placeholder="@_f.tra("Stát")" />
                 </div>
             </div>
+        </section>
 
-
+        @* sdílené partialy (i p41, p84…) beze změny; prázdné stavy „Přidat …“ se řadí vedle sebe, seznamy přes celou šířku *@
+        <div class="rf-extras">
             @Html.EditorFor(m => m, "~/Views/Shared/_p28ContactMedia.cshtml")
 
             @Html.EditorFor(m => m, "~/Views/Shared/_p28ContactPersons.cshtml")
-
 
             @Html.EditorFor(m => m.hlidac, "~/Views/Shared/_hlidac.cshtml")
 
             @Html.EditorFor(m => m.reminder, "~/Views/Shared/_Reminder.cshtml")
 
             <mystitky entity="p28Contact" asp-for="@Model.TagPids" tagnames="@Model.TagNames" taghtml="@Model.TagHtml" buttontext="@_f.tra("Oštítkovat")"></mystitky>
-
-
         </div>
+    </div>
+</div>
 
-       
+
         <div class="tab-pane tab-pane-fixed" id="tab2" role="tabpanel">
             <!-- Tab2 -->
             @if (Model.RecP29 == null || (Model.RecP29.p29ScopeFlag == BO.p29ScopeFlagENUM.Client || Model.RecP29.p29ScopeFlag == BO.p29ScopeFlagENUM.ClientOrSupplier || Model.RecP29.p29ScopeFlag == BO.p29ScopeFlagENUM.Anyone))
@@ -359,11 +316,13 @@
         <div class="tab-pane tab-pane-fixed" id="tab5" role="tabpanel">
             <!-- Tab4 -->
 
-            <div class="row" style="margin-bottom:10px;">
-                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Vlastník záznamu"):</label>
-                <div class="col-sm-11 col-md-10">
-                    <mycombo entity="j02User" asp-for="Rec.j02ID_Owner" selectedtext="@Model.SelectedComboOwner" view-flag="1"></mycombo>
-                </div>
+            <div class="rf">
+                <section class="rf-card">
+                    <div class="rf-row">
+                        <label for="cmdComboRec_j02ID_Owner" class="rf-label">@_f.tra("Vlastník záznamu")</label>
+                        <div class="rf-value"><mycombo entity="j02User" asp-for="Rec.j02ID_Owner" selectedtext="@Model.SelectedComboOwner" view-flag="1"></mycombo></div>
+                    </div>
+                </section>
             </div>
 
 
@@ -373,47 +332,38 @@
 
 
         <div class="tab-pane tab-pane-fixed" id="tab6" role="tabpanel">
-            <!-- Tab5 -->
-
-            <div class="row my-2">
-                <label for="cmdComboRec_p28ParentID" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Stromově nadřízený Kontakt"):</label>
-                <div class="col-sm-11 col-md-10">
-                    <mycombo entity="p28Contact" asp-for="Rec.p28ParentID" selectedtext="@Model.SelectedComboParentP28Name" view-flag="1"></mycombo>
-                </div>
+            <!-- Tab6 -->
+            <div class="rf">
+                <section class="rf-card">
+                    <div class="rf-row">
+                        <label for="cmdComboRec_p28ParentID" class="rf-label">@_f.tra("Stromově nadřízený kontakt")</label>
+                        <div class="rf-value"><mycombo entity="p28Contact" asp-for="Rec.p28ParentID" selectedtext="@Model.SelectedComboParentP28Name" view-flag="1"></mycombo></div>
+                    </div>
+                    <div class="rf-row">
+                        <label for="Rec_p28ExternalCode" class="rf-label">@_f.tra("Externí kód")</label>
+                        <div class="rf-value"><input class="form-control" asp-for="Rec.p28ExternalCode" /></div>
+                    </div>
+                    <div class="rf-row">
+                        <label for="Rec_p28BankAccount" class="rf-label">@_f.tra("Bankovní účet")</label>
+                        <div class="rf-value">
+                            <div class="rf-inline">
+                                <input class="form-control" asp-for="Rec.p28BankAccount" />
+                                <span>/</span>
+                                <input class="form-control rf-w-bank" asp-for="Rec.p28BankCode" placeholder="@_f.tra("Kód banky")" />
+                            </div>
+                            <small class="rf-hint">@_f.tra("Využívá se u párování úhrad klienta.")</small>
+                        </div>
+                    </div>
+                    <div class="rf-row">
+                        <label for="Rec_p28Salutation" class="rf-label">@_f.tra("Oslovení")</label>
+                        <div class="rf-value"><input class="form-control" asp-for="Rec.p28Salutation" /></div>
+                    </div>
+                    <div class="rf-row">
+                        <label for="Rec_p28JobTitle" class="rf-label">@_f.tra("Pozice na vizitce")</label>
+                        <div class="rf-value"><input class="form-control" asp-for="Rec.p28JobTitle" /></div>
+                    </div>
+                </section>
             </div>
-
-            <div class="row my-2">
-                <label for="Rec_p28ExternalCode" class="col-sm-1 col-md-2">@_f.tra("Externí kód"):</label>
-                <div class="col-sm-11 col-md-10">
-                    <input class="form-control" asp-for="Rec.p28ExternalCode" />
-                </div>
-            </div>
-            <div class="row my-2">
-                <label for="Rec_p28BankAccount" class="col-sm-1 col-md-2">@_f.tra("Bankovní účet"):</label>
-                <div class="col-sm-4 col-md-3">
-                    <input class="form-control" asp-for="Rec.p28BankAccount" />
-                </div>
-                <div class="col-sm-1 col-md-1">
-                    <input class="form-control" asp-for="Rec.p28BankCode" placeholder="Kód banky" />
-                </div>
-                <div class="col-auto">
-                    <i>Využívá se u párování úhrad klienta.</i>
-                </div>
-            </div>
-            <div class="row my-2">
-                <label for="Rec_p28Salutation" class="col-sm-1 col-md-2">@_f.tra("Oslovení"):</label>
-                <div class="col-sm-11 col-md-10">
-                    <input class="form-control" asp-for="Rec.p28Salutation" />
-                </div>
-            </div>
-            <div class="row my-2">
-                <label for="Rec_p28JobTitle" class="col-sm-1 col-md-2">@_f.tra("Pozice na vizitce"):</label>
-                <div class="col-sm-11 col-md-10">
-                    <input class="form-control" asp-for="Rec.p28JobTitle" />
-                </div>
-            </div>
-
-  
             @if (Model.UploadGuid != null)
             {
                 <iframe id="fraUpload" src="/Dropzone/UploadInFrame?recpid=@Model.rec_pid&entity=p28&guid=@Model.UploadGuid" frameborder="0" scrolling="yes" style="max-width:1200px;height:60px;"></iframe>

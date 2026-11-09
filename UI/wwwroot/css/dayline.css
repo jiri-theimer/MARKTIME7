@@ -2,17 +2,19 @@
     overflow:hidden;
 }
 
+/* verze 8: jedna tabulka (ne samostatně rolované thead/tbody) – šířky sloupců určuje hlavička (table-layout: fixed),
+   obsah buňky je nerozšíří; roluje kontejner, hlavička a první tři sloupce jsou sticky (výška a ukotvení: handle_table_width) */
 div.timeline_container {
     width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
+    overflow: auto;
+    position: relative;
 }
 
 
 table.timeline_table
-{  
-    display:block;
-    border-collapse: collapse;
+{
+    border-collapse: separate;
+    border-spacing: 0;
     table-layout: fixed;
 }
 
@@ -38,12 +40,7 @@ table.timeline_table
     vertical-align: top;
 }
 
-#timeline_tbody1 {
-    overflow-y:auto;
-    overflow-x:hidden;
-    display: block;
-    height: 500px;
-}
+
 
 th.th_weekend {
     background-color: #fff0f7;
@@ -255,9 +252,20 @@ td.td_project, td.td_client { font-style: normal; color: #3d5a80; padding-left: 
 td.td_sum { font-size: 1rem; }
 td.td_sum var { font-style: normal; color: #8a939c; font-size: .88rem; }
 
-/* hodnoty: denní součet a odkazy na úkony
-   POZOR: hlavička a tělo jsou samostatné bloky (tbody display:block) – šířky a vodorovné
-   paddingy th/td musí zůstat shodné, jinak se sloupce rozjedou. */
+/* sticky hlavička a ukotvené levé sloupce (třídy dl-fix0..2 a proměnné --dl-l1/--dl-l2 doplní JS) */
+.timeline_table thead th { position: sticky; top: 0; z-index: 3; }
+.timeline_table .dl-fix0, .timeline_table .dl-fix1, .timeline_table .dl-fix2 { position: sticky; z-index: 2; background-color: #fff; }
+.timeline_table thead th.dl-fix0, .timeline_table thead th.dl-fix1, .timeline_table thead th.dl-fix2 { z-index: 4; background-color: #fafbfc; }
+.timeline_table .dl-fix0 { left: 0; }
+.timeline_table .dl-fix1 { left: var(--dl-l1, 0); }
+.timeline_table .dl-fix2 { left: var(--dl-l2, 0); box-shadow: inset -1px 0 0 #dfe3e8; }
+tr.tr_person_projekty td.dl-fix0, tr.tr_person_projekty td.dl-fix1, tr.tr_person_projekty td.dl-fix2 { background-color: #f6f8fa; }
+.timeline_table tr:hover td.dl-fix0, .timeline_table tr:hover td.dl-fix1, .timeline_table tr:hover td.dl-fix2 { background-color: #f3f7fb; }
+/* obsah buňky dne se ořízne, nerozšíří sloupec */
+.timeline_table td.td_day, .timeline_table td.td_day_week { overflow: hidden; }
+.dl-item { min-width: 0; overflow: hidden; }
+
+/* hodnoty: denní součet a odkazy na úkony */
 a.hz { display: inline-block; padding: 0 4px; border-radius: 8px; }
 a.hz:hover { background: #e7eef6; text-decoration: none; }
 a.afa, a.anefa { display: inline-block; min-width: 30px; border: 0; border-radius: 8px; padding: 0 5px; font-size: .92rem; font-weight: 600; text-decoration: none; }
