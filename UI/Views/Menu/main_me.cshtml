@@ -155,6 +155,10 @@
                 </a>
             }
         }
+        <a id="linkOnboarding" class="mme-item" href="/Onboarding">
+            <myicon symbol="rocket_launch"></myicon>
+            <span>@_f.tra("Onboarding (začínáme)")</span>
+        </a>
         <a id="linkNews" class="mme-item" href="javascript:_news()">
             <myicon symbol="campaign"></myicon>
             <span>@_f.tra("Novinky | Blog")</span>
@@ -187,6 +191,7 @@
         if (url.indexOf("MyProfile") > 0) $("#linkMyProfile").addClass("mme-active");
         if (url.indexOf("ChangePassword") > 0) $("#linkPWD").addClass("mme-active");
         if (url.indexOf("About") > 0) $("#linkAbout").addClass("mme-active");
+        if (url.indexOf("/Onboarding") >= 0) $("#linkOnboarding").addClass("mme-active");
         if (location.href.indexOf("FlatView?prefix=x40") > 0) $("#linkMyOutbox").addClass("mme-active");
     })();
 

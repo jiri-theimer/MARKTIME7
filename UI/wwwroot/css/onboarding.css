@@ -1,0 +1,78 @@
+﻿/* „Začínáme“ (Views/Onboarding/_Checklist.cshtml; stránka /Onboarding a karta na /Home/Index) – třídy ob-* */
+.ob-page { max-width: 760px; padding: 4px 10px 24px; }
+.ob-intro { margin: 4px 0 12px; color: #59636e; }
+
+.ob { max-width: 760px; border: 1px solid #e3e6ea; border-radius: 10px; background: #fff; box-shadow: 0 1px 2px rgba(16,24,40,.05); }
+.ob-home { margin: 10px 0 16px; }
+
+.ob-head { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-bottom: 1px solid #eef0f3; }
+.ob-title { display: flex; align-items: center; gap: 6px; font-weight: 600; color: #1f2328; }
+.ob-title .material-icons-outlined-nosize { font-size: 20px; color: var(--pozadi, #0b4b92); }
+.ob-progress { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.ob-bar { width: 140px; height: 6px; border-radius: 3px; background: #e6e9ed; overflow: hidden; }
+.ob-bar span { display: block; height: 100%; border-radius: 3px; background: var(--pozadi, #0b4b92); transition: width .3s; }
+.ob-count { font-size: .8rem; color: #59636e; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ob-close { width: 28px; height: 28px; padding: 0; border: 1px solid transparent; border-radius: 50%; background: transparent; color: #8a939c; display: flex; align-items: center; justify-content: center; }
+.ob-close:hover { border-color: #ced4da; background: #f1f3f5; color: #1f2328; }
+.ob-close .material-icons-outlined-nosize { font-size: 18px; }
+
+.ob-list { list-style: none; margin: 0; padding: 4px 0; }
+.ob-step { display: flex; align-items: center; gap: 10px; padding: 7px 12px; }
+.ob-step + .ob-step { border-top: 1px solid #f3f4f6; }
+.ob-ico { flex: 0 0 auto; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #eef1f4; color: #495057; font-size: 18px; }
+.ob-main { flex: 1 1 auto; min-width: 0; }
+.ob-t { font-weight: 500; color: #1f2328; }
+.ob-x { font-size: .82rem; color: #6c757d; }
+.ob-act { flex: 0 0 auto; display: flex; align-items: center; gap: 6px; }
+.ob-act .btn { white-space: nowrap; }
+.ob-mark { padding: 2px 6px; border: 0; background: transparent; color: #8a939c; font-size: .78rem; text-decoration: underline dotted; }
+.ob-mark:hover { color: #198754; }
+.ob-qr { width: 56px; height: 56px; border: 1px solid #e3e6ea; border-radius: 6px; padding: 2px; background: #fff; }
+
+.ob-next { background: color-mix(in srgb, var(--oznaceno, #cfe2ff) 14%, #fff); }
+.ob-next .ob-ico { background: color-mix(in srgb, var(--oznaceno, #cfe2ff) 45%, #fff); color: var(--pozadi, #0b4b92); }
+
+.ob-done .ob-ico { background: #e8f5ee; color: #198754; }
+.ob-done .ob-t { color: #6c757d; font-weight: 400; }
+.ob-ok { font-size: .78rem; color: #198754; }
+
+.ob-empty { display: flex; align-items: center; gap: 8px; padding: 10px 12px; color: #59636e; }
+.ob-empty .material-icons-outlined-nosize { color: #198754; font-size: 22px; }
+.ob-foot { padding: 6px 12px 9px; border-top: 1px solid #eef0f3; font-size: .82rem; }
+.ob-switch { margin: 12px 2px 0; }
+
+/* úvodní stránka: hotové kroky jen jako přehled, ať karta nepřekáží */
+.ob-home .ob-done { padding-top: 4px; padding-bottom: 4px; }
+
+/* telefon: akce pod text (ikona + text zůstávají vedle sebe) */
+html.mt-phone .ob-step:not(.ob-done) { flex-wrap: wrap; }
+html.mt-phone .ob-main { flex: 1 1 0; }
+html.mt-phone .ob-step:not(.ob-done) .ob-act { flex-basis: 100%; padding-left: 40px; }
+html.mt-phone .ob-bar { width: 70px; }
+@media (max-width: 575.98px) {
+    .ob-step:not(.ob-done) { flex-wrap: wrap; }
+    .ob-main { flex: 1 1 0; }
+    .ob-step:not(.ob-done) .ob-act { flex-basis: 100%; padding-left: 40px; }
+    .ob-bar { width: 70px; }
+}
+.ob-more { display: flex; align-items: center; gap: 6px; margin: 14px 2px 0; color: #59636e; }
+.ob-more .material-icons-outlined-nosize { font-size: 18px; }
+
+/* záložky stránky /Onboarding */
+.ob-tabs { margin-bottom: 10px; }
+.ob-tabs .nav-link { display: flex; align-items: center; gap: 6px; padding: 6px 12px; }
+.ob-tabs .material-icons-outlined-nosize { font-size: 18px; }
+.ob-tabcount { padding: 0 6px; border-radius: 8px; background: #eef1f4; color: #59636e; font-size: .75rem; line-height: 18px; font-variant-numeric: tabular-nums; }
+
+.ob-keys, .ob-video { padding: 4px 12px 10px; }
+.ob-keys-group { margin: 10px 0 4px; font-size: .78rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: #59636e; }
+.ob-keys-table { width: 100%; border-collapse: collapse; }
+.ob-keys-table td { padding: 4px 6px; border-top: 1px solid #f3f4f6; vertical-align: middle; }
+.ob-keys-table tr:first-child td { border-top: 0; }
+.ob-keys-k { width: 210px; white-space: nowrap; }
+.ob-keys-k kbd { display: inline-block; min-width: 22px; margin-right: 3px; padding: 1px 6px; border: 1px solid #ced4da; border-bottom-width: 2px; border-radius: 4px; background: #f8f9fa; color: #1f2328; font-family: inherit; font-size: .78rem; text-align: center; }
+.ob-keys-or { margin: 0 5px 0 2px; color: #8a939c; font-size: .78rem; }
+.ob-video-list { list-style: none; margin: 0; padding: 0; columns: 2 260px; column-gap: 24px; }
+.ob-video-list li { display: flex; align-items: center; gap: 6px; padding: 3px 0; break-inside: avoid; }
+.ob-video-list .material-icons-outlined-nosize { font-size: 18px; color: var(--pozadi, #0b4b92); }
+@media (max-width: 575.98px) { .ob-keys-k { width: auto; white-space: normal; } }

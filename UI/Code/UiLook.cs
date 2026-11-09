@@ -3,7 +3,7 @@
     /// <summary>
     /// Vzhled aplikace: "modern" (nová vrstva CSS wwwroot/css/modern.css) nebo "classic" (původní).
     /// Volba uživatele = uživatelský parametr "ui-look" (MyProfile), jinak výchozí vzhled instalace
-    /// z appsettings.json "App": { "DefaultLook": "modern" } – bez nastavení "classic".
+    /// z appsettings.json "App": { "DefaultLook": "classic" } – bez nastavení "modern" (výchozí od verze 8).
     /// Klasickému vzhledu se modern.css vůbec nenačte, pravidla jsou navíc omezená na html.mt-modern.
     /// </summary>
     public static class UiLook
@@ -15,7 +15,7 @@
             if (f?.CurrentUser == null) return false;
             string v = f.CBL.LoadUserParam(ParamKey, null);
             if (string.IsNullOrEmpty(v)) v = f.App?.Configuration?.GetSection("App")["DefaultLook"];
-            return v == "modern";
+            return v != "classic";
         }
 
         /// <summary>Třída pro element html.</summary>

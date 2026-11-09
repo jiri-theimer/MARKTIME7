@@ -1,0 +1,76 @@
+﻿@model UI.Code.OnboardingViewModel
+@inject BL.Factory _f
+@{
+    int _total = Model.Steps.Count;
+    int _done = Model.DoneCount;
+    int _pct = _total == 0 ? 0 : (int)Math.Round(100.0 * _done / _total);
+    bool _home = Model.Mode == "home";
+    var _next = Model.Steps.FirstOrDefault(p => !p.IsDone);
+}
+
+@* „Začínáme“ – obsah obnovuje onboarding.js (/Onboarding/Checklist?mode=…) *@
+<div class="ob-head">
+    <div class="ob-title">
+        <span class="material-icons-outlined-nosize">rocket_launch</span>
+        @_f.tra("Začínáme s MARKTIME")
+    </div>
+    <div class="ob-progress" title="@string.Format(_f.tra("Hotovo {0} z {1}"), _done, _total)">
+        <div class="ob-bar"><span style="width:@(_pct)%"></span></div>
+        <span class="ob-count">@_done / @_total</span>
+    </div>
+    @if (_home)
+    {
+        <button type="button" class="ob-close" data-ob-hide title="@_f.tra("Skrýt – znovu zapnete v osobním menu (Začínáme)")"><span class="material-icons-outlined-nosize">close</span></button>
+    }
+</div>
+
+@if (_total == 0)
+{
+    <div class="ob-empty">@_f.tra("Pro vaši aplikační roli tu zatím nejsou žádné kroky.")</div>
+}
+else if (_next == null)
+{
+    <div class="ob-empty">
+        <span class="material-icons-outlined-nosize">celebration</span>
+        <b>@_f.tra("Máte hotovo. MARKTIME znáte.")</b>
+    </div>
+}
+
+<ol class="ob-list">
+    @foreach (var s in Model.Steps)
+    {
+        <li class="ob-step @(s.IsDone ? "ob-done" : null) @(s == _next ? "ob-next" : null)" data-code="@s.Code">
+            <span class="ob-ico material-icons-outlined-nosize" aria-hidden="true">@(s.IsDone ? "check" : s.Icon)</span>
+            <div class="ob-main">
+                <div class="ob-t">@s.Title</div>
+                @if (!s.IsDone)
+                {
+                    <div class="ob-x">@s.Text</div>
+                }
+            </div>
+            <div class="ob-act">
+                @if (s.IsDone)
+                {
+                    <span class="ob-ok">@_f.tra("Hotovo")</span>
+                }
+                else
+                {
+                    if (s.Code == "mo" && !_home)
+                    {
+                        <img class="ob-qr nonmobile" src="@UI.Code.basQRCoder.GetUrlQrDataUri(s.Href)" width="56" height="56" alt="QR: @s.Href" />
+                    }
+                    if (s.Href != null)
+                    {
+                        <a class="btn btn-sm @(s == _next ? "btn-primary" : "bog")" href="@s.Href" target="@(s.IsExternal ? "_blank" : null)" rel="@(s.IsExternal ? "noopener" : null)">@s.ActionLabel</a>
+                    }
+                    <button type="button" class="ob-mark" data-ob-mark="@s.Code" title="@_f.tra("Mám hotovo – krok skrýt")">@_f.tra("Hotovo")</button>
+                }
+            </div>
+        </li>
+    }
+</ol>
+
+@if (_home)
+{
+    <div class="ob-foot"><a href="/Onboarding">@_f.tra("Otevřít Začínáme")</a></div>
+}

@@ -1,0 +1,111 @@
+﻿@model UI.Code.OnboardingViewModel
+@inject BL.Factory _f
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    Model.PageSymbol = "rocket_launch";
+}
+
+@section header_content
+{
+    <link rel="stylesheet" href="~/css/onboarding.css" asp-append-version="true" />
+}
+
+@* záložky: Začínáme | Klávesové zkratky | Videonávody (Bootstrap tabs; aktivní záložka v #hash adresy) *@
+<div class="ob-page">
+    <ul class="nav nav-tabs ob-tabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="obTabStart" data-bs-toggle="tab" data-bs-target="#obPaneStart" data-ob-hash="" type="button" role="tab">
+                <span class="material-icons-outlined-nosize">rocket_launch</span> @_f.tra("Začínáme")
+                <span class="ob-tabcount">@Model.DoneCount/@Model.Steps.Count</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="obTabKeys" data-bs-toggle="tab" data-bs-target="#obPaneKeys" data-ob-hash="zkratky" type="button" role="tab">
+                <span class="material-icons-outlined-nosize">keyboard</span> @_f.tra("Klávesové zkratky")
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="obTabVideo" data-bs-toggle="tab" data-bs-target="#obPaneVideo" data-ob-hash="videa" type="button" role="tab">
+                <span class="material-icons-outlined-nosize">smart_display</span> @_f.tra("Videonávody")
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <div class="tab-pane fade show active" id="obPaneStart" role="tabpanel">
+            <p class="ob-intro">@_f.tra("Pár kroků, se kterými MARKTIME rychle zvládnete. Splněné kroky se odškrtnou samy, jakmile je v aplikaci uděláte.")</p>
+
+            <div class="ob" id="obChecklist" data-mode="page">
+                <partial name="_Checklist" model="Model" />
+            </div>
+
+            <label class="ob-switch form-check">
+                <input type="checkbox" class="form-check-input" id="obOnHome" @(Model.IsOnHome ? "checked" : null) />
+                <span class="form-check-label">@_f.tra("Zobrazovat na úvodní stránce, dokud nebude vše hotovo")</span>
+            </label>
+        </div>
+
+        <div class="tab-pane fade" id="obPaneKeys" role="tabpanel">
+            <div class="ob ob-keys">
+                @foreach (var g in UI.Code.OnboardingSupport.Shortcuts.GroupBy(p => p.Group))
+                {
+                    <div class="ob-keys-group">@_f.tra(g.Key)</div>
+                    <table class="ob-keys-table">
+                        @foreach (var k in g)
+                        {
+                            <tr>
+                                <td class="ob-keys-k">
+                                    @foreach (var part in k.Keys.Split(' '))
+                                    {
+                                        if (part == "nebo" || part == "až")
+                                        {
+                                            <span class="ob-keys-or">@_f.tra(part)</span>
+                                        }
+                                        else
+                                        {
+                                            foreach (var key in part.Split('+'))
+                                            {
+                                                <kbd>@key</kbd>
+                                            }
+                                        }
+                                    }
+                                </td>
+                                <td>@_f.tra(k.Text)</td>
+                            </tr>
+                        }
+                    </table>
+                }
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="obPaneVideo" role="tabpanel">
+            <div class="ob ob-video">
+                @if (UI.Code.OnboardingSupport.Videos.Length == 0)
+                {
+                    <div class="ob-empty">
+                        <span class="material-icons-outlined-nosize" style="color:#8a939c">smart_display</span>
+                        @_f.tra("Videonávody pro verzi 8 připravujeme.")
+                    </div>
+                }
+                else
+                {
+                    foreach (var g in UI.Code.OnboardingSupport.Videos.GroupBy(p => p.Group))
+                    {
+                        <div class="ob-keys-group">@_f.tra(g.Key)</div>
+                        <ul class="ob-video-list">
+                            @foreach (var v in g)
+                            {
+                                <li>
+                                    <span class="material-icons-outlined-nosize">play_circle</span>
+                                    <a href="@v.Url" target="_blank" rel="noopener">@_f.tra(v.Title)</a>
+                                </li>
+                            }
+                        </ul>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/onboarding.js" asp-append-version="true"></script>
