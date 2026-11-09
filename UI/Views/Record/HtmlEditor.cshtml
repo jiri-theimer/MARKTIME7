@@ -58,7 +58,11 @@
         const txt = window.parent.document.getElementById(textareaid);
         txt.value=document.getElementById("edi1").value;
 
-        if (window.parent.document.getElementById(textareaid+"-html"))
+        if (typeof window.parent.show_hide_html === "function")
+        {
+            window.parent.show_hide_html();     //stránka si náhled vykreslí sama (p91: sandboxovaný iframe)
+        }
+        else if (window.parent.document.getElementById(textareaid+"-html"))
         {
             const div=window.parent.document.getElementById(textareaid+"-html");
             if (_detect_textarea_content(txt.value) == "html")

@@ -9,6 +9,11 @@
 
 @addTagHelper *, UI
 
+@section header_content
+{
+    <link rel="stylesheet" href="~/css/recordform.css" asp-append-version="true" />
+}
+
 
 
 
@@ -48,165 +53,139 @@
 <div class="modal_record_container">
     <div class="tab-content">
         <div class="tab-pane" id="tab1" role="tabpanel">
-            <!-- Tab1 -->
-            <div class="row">
-                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Číslo faktury"):</label>
-
-                <div class="col-sm-3 col-md-2">
-                    @if (Model.CanEditRecordCode)
-                    {
-                        <myval value="@Model.Rec.p91Code" hoversymol="@_f.tra("Upravit kód")" hoveronclick="true" hoverurl="javascript:_edit_code('p91',@Model.rec_pid)"></myval>
-                    }
-                    else
-                    {
-                        <myval value="@Model.Rec.p91Code"></myval>
-                    }
-                </div>
-
-                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Typ faktury"):</label>
-                <div class="col-sm-4 col-md-3">
-
-                    <myval value="@Model.ComboP92Name" hoverprefix="p92" hoverpid="@Model.Rec.p92ID"></myval>
-
-
-                </div>
-                <div class="col-sm-2 col-md-2">
-                    <input type="hidden" asp-for="Rec.p92ID" />
-                    <a href="/p91oper/p91changetype?pids=@(Model.rec_pid)">@_f.tra("Změnit typ faktury")</a>
-                </div>
-            </div>
-
-            <div class="row my-2">
-                <label for="Rec_p91DateSupplyhelper" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Datum zdanitelného plnění"):</label>
-                <div class="col-sm-3 col-md-2">
-                    <mydate asp-for="Rec.p91DateSupply"></mydate>
-                </div>
-
-                <label for="cmdComboRec_p98ID" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Zaokrouhlovací pravidlo"):</label>
-                <div class="col-sm-7 col-md-6">
-                    <mycombo entity="p98Invoice_Round_Setting_Template" asp-for="Rec.p98ID" selectedtext="@Model.ComboP98Name"></mycombo>
-                </div>
-            </div>
-
-            <div class="row my-2">
-                <label for="Rec_p91Datehelper" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Datum vystavení"):</label>
-                <div class="col-sm-3 col-md-2">
-                    <mydate asp-for="Rec.p91Date"></mydate>
-                </div>
-
-                <label for="cmdComboRec_p80ID" class="col-sm-1 col-md-2 col-form-label recpagelabel">@_f.tra("Struktura cenového rozpisu"):</label>
-                <div class="col-sm-4 col-md-3">
-                    <mycombo entity="p80InvoiceAmountStructure" asp-for="Rec.p80ID" selectedtext="@Model.ComboP80Name"></mycombo>
-                </div>
-                <label for="cmdComboRec_j19ID" class="col-sm-1 col-md-1 col-form-label recpagelabel">@_f.tra("Forma úhrady"):</label>
-                <div class="col-sm-2 col-md-2">
-                    <mycombo entity="j19PaymentType" asp-for="Rec.j19ID" selectedtext="@Model.ComboJ19Name"></mycombo>
-                </div>
-            </div>
-
-            <div class="row my-2">
-                <label for="Rec_p91DateMaturityhelper" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Datum splatnosti"):</label>
-                <div class="col-sm-3 col-md-2">
-                    <mydate asp-for="Rec.p91DateMaturity"></mydate>
-                </div>
-
-                <label for="cmdComboRec_p63ID" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Režijní přirážka k faktuře"):</label>
-                <div class="col-sm-4 col-md-3">
-                    <mycombo entity="p63Overhead" asp-for="Rec.p63ID" selectedtext="@Model.ComboP63Name"></mycombo>
-                </div>
-
-                <mylabel explicit-for="Rec_p91VatCodePohoda" class="col-sm-1 col-md-1 col-form-label" text="Členění DPH" tooltip="Klasifikace DPH v účetním IS: Kód/Členění DPH pro export vydaných faktur do IS POHODA.">
-                </mylabel>
-                <div class="col-sm-2 col-md-2">
-                    <input type="text" class="form-control" asp-for="Rec.p91VatCodePohoda" />
-                </div>
-
-            </div>
-
-            <div onmouseover="p91text1_mouseover(this)" onmouseout="p91text1_mouseout(this)">
-                <div class="form-floating" style="margin:0px;padding:0px;">
-                    <textarea class="form-control" asp-for="Rec.p91Text1" onchange="show_hide_html()"></textarea>
-                    <label for="Rec_p91Text1">@_f.tra("Text faktury")</label>
-                </div>
-                <div id="Rec_p91Text1-html" title="HTML text">
-                </div>
-            </div>
-            
-            <div id="divcmdFindText1" style="width:100%;" onmouseover="p91text1_mouseover(this)" onmouseout="p91text1_mouseout(this)">
-                <button type="button" id="cmdFindText1" tabindex="-1" class="btn btn-sm btn-light py-0 my-0" style="visibility:hidden;" onclick="_najit_text(this,event,'p91text1',0)">Najít text</button>
-
-                <button type="button" id="cmdHtmlEditorText1" tabindex="-1" class="btn btn-sm btn-light py-0 my-0" style="visibility:hidden;" onclick="_html_editor(this,event,'Rec_p91Text1',0)">Html editor</button>
-            </div>
-            
-            <div onmouseover="p91text2_mouseover(this)" onmouseout="p91text2_mouseout(this)">
-                <div class="form-floating" style="margin:0px;padding:0px;">
-                    <textarea class="form-control" asp-for="Rec.p91Text2" onchange="show_hide_html()"></textarea>
-                    <label for="Rec_p91Text2">@_f.tra("Technický text faktury")</label>
-                </div>
-                <div id="Rec_p91Text2-html" title="HTML text">
-                </div>
-            </div>
-            
-            <div id="divcmdFindText2" style="width:100%;" onmouseover="p91text2_mouseover(this)" onmouseout="cmdFindText2_mouseout(this)">
-                <button type="button" id="cmdFindText2" tabindex="-1" class="btn btn-sm btn-light py-0 my-0" style="visibility:hidden;" onclick="_najit_text(this,event,'p91text2',0)">Najít text</button>
-
-                <button type="button" id="cmdHtmlEditorText2" tabindex="-1" class="btn btn-sm btn-light py-0 my-0" style="visibility:hidden;" onclick="_html_editor(this,event,'Rec_p91Text2',0)">Html editor</button>
-            </div>
-            
-
-
-            <div class="row my-2">
-                <label for="Rec_p91Datep31_Fromhelper" class="col-auto col-form-label">@_f.tra("Období vyúčtovaných úkonů od"):</label>
-                <div class="col-sm-3 col-md-2">
-                    <mydate asp-for="Rec.p91Datep31_From"></mydate>
-                </div>
-
-                <label for="Rec_p91Datep31_Untilhelper" class="col-auto col-form-label">@_f.tra("Do"):</label>
-                <div class="col-sm-3 col-md-2">
-                    <mydate asp-for="Rec.p91Datep31_Until"></mydate>
-                </div>
-
-            </div>
-
-            <div class="card div-over-table-scrolling">
-                <div class="card-header">
-                    <span class="material-icons-outlined">lock</span>
-                    <span class="material-icons-outlined" style="color:blue;">lock</span>
-                    <span class="material-icons-outlined" style="color:hotpink;">lock</span>
-                    @_f.tra("Zámky nad vyúčtováním")
-                </div>
-                <div class="card-body" style="min-width:600px;">
-                    <div>
-                        <kbd>A</kbd>
-                        <input type="checkbox" id="chkLockFlag2" asp-for="@Model.Isp91LockFlag2" />
-                        <label for="chkLockFlag2">@_f.tra("Zákaz upravovat cenu vyúčtování") <span class="material-icons-outlined" style="color:black;">lock</span></label>
+            <!-- Tab1 – verze 8: moderní vzhled (třídy rf-*, css/recordform.css), názvy polí a id beze změny -->
+            <div class="rf">
+            <div class="rf-grid">
+                <section class="rf-card">
+                    <h2><span class="material-icons-outlined-nosize">receipt_long</span>@_f.tra("Faktura")</h2>
+                    <div class="rf-row">
+                        <span class="rf-label">@_f.tra("Číslo faktury")</span>
+                        <div class="rf-value">
+                            @if (Model.CanEditRecordCode)
+                            {
+                                <myval value="@Model.Rec.p91Code" hoversymol="@_f.tra("Upravit kód")" hoveronclick="true" hoverurl="javascript:_edit_code('p91',@Model.rec_pid)"></myval>
+                            }
+                            else
+                            {
+                                <myval value="@Model.Rec.p91Code"></myval>
+                            }
+                        </div>
                     </div>
-                    <div>
-                        <kbd>B</kbd>
-                        <input type="checkbox" id="chkLockFlag4" asp-for="@Model.Isp91LockFlag4" />
-                        <label for="chkLockFlag4">@_f.tra("Zákaz manipulace s úkony s nulovou cenou (zahrnout do paušálu/odpis)") <span class="material-icons-outlined" style="color:blue;">lock</span></label>
+                    <div class="rf-row">
+                        <span class="rf-label">@_f.tra("Typ faktury")</span>
+                        <div class="rf-value rf-inline">
+                            <myval value="@Model.ComboP92Name" hoverprefix="p92" hoverpid="@Model.Rec.p92ID"></myval>
+                            <input type="hidden" asp-for="Rec.p92ID" />
+                            <a class="rf-link" href="/p91oper/p91changetype?pids=@(Model.rec_pid)">@_f.tra("Změnit typ faktury")</a>
+                        </div>
                     </div>
-                    <div>
-                        <kbd>C</kbd>
-                        <input type="checkbox" id="chkLockFlag8" asp-for="@Model.Isp91LockFlag8" />
-                        <label for="chkLockFlag8">@_f.tra("Zákaz upravovat/odstraňovat kartu vyúčtování (s výjimkou administrátora)") <span class="material-icons-outlined" style="color:hotpink;">lock</span></label>
+                    <div class="rf-row">
+                        <label for="Rec_p91DateSupplyhelper" class="rf-label">@_f.tra("Datum zdanitelného plnění")</label>
+                        <div class="rf-value rf-w-date"><mydate asp-for="Rec.p91DateSupply"></mydate></div>
                     </div>
+                    <div class="rf-row">
+                        <label for="Rec_p91Datehelper" class="rf-label">@_f.tra("Datum vystavení")</label>
+                        <div class="rf-value rf-w-date"><mydate asp-for="Rec.p91Date"></mydate></div>
+                    </div>
+                    <div class="rf-row">
+                        <label for="Rec_p91DateMaturityhelper" class="rf-label">@_f.tra("Datum splatnosti")</label>
+                        <div class="rf-value rf-w-date"><mydate asp-for="Rec.p91DateMaturity"></mydate></div>
+                    </div>
+                    <div class="rf-row">
+                        <label for="Rec_p91Datep31_Fromhelper" class="rf-label">@_f.tra("Období vyúčtovaných úkonů")</label>
+                        <div class="rf-value rf-inline">
+                            <div class="rf-w-date"><mydate asp-for="Rec.p91Datep31_From"></mydate></div>
+                            <span>–</span>
+                            <div class="rf-w-date"><mydate asp-for="Rec.p91Datep31_Until"></mydate></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="rf-card">
+                    <h2><span class="material-icons-outlined-nosize">tune</span>@_f.tra("Nastavení")</h2>
+                    <div class="rf-row">
+                        <label for="cmdComboRec_p98ID" class="rf-label">@_f.tra("Zaokrouhlovací pravidlo")</label>
+                        <div class="rf-value"><mycombo entity="p98Invoice_Round_Setting_Template" asp-for="Rec.p98ID" selectedtext="@Model.ComboP98Name"></mycombo></div>
+                    </div>
+                    <div class="rf-row">
+                        <label for="cmdComboRec_p80ID" class="rf-label">@_f.tra("Struktura cenového rozpisu")</label>
+                        <div class="rf-value"><mycombo entity="p80InvoiceAmountStructure" asp-for="Rec.p80ID" selectedtext="@Model.ComboP80Name"></mycombo></div>
+                    </div>
+                    <div class="rf-row">
+                        <label for="cmdComboRec_j19ID" class="rf-label">@_f.tra("Forma úhrady")</label>
+                        <div class="rf-value"><mycombo entity="j19PaymentType" asp-for="Rec.j19ID" selectedtext="@Model.ComboJ19Name"></mycombo></div>
+                    </div>
+                    <div class="rf-row">
+                        <label for="cmdComboRec_p63ID" class="rf-label">@_f.tra("Režijní přirážka k faktuře")</label>
+                        <div class="rf-value"><mycombo entity="p63Overhead" asp-for="Rec.p63ID" selectedtext="@Model.ComboP63Name"></mycombo></div>
+                    </div>
+                    <div class="rf-row">
+                        <mylabel explicit-for="Rec_p91VatCodePohoda" class="rf-label" text="Členění DPH" tooltip="Klasifikace DPH v účetním IS: Kód/Členění DPH pro export vydaných faktur do IS POHODA."></mylabel>
+                        <div class="rf-value"><input type="text" class="form-control" asp-for="Rec.p91VatCodePohoda" /></div>
+                    </div>
+                </section>
+            </div>
+
+                <section class="rf-card rf-text" id="divText1">
+                    <div class="rf-cardbar">
+                        <h2><span class="material-icons-outlined-nosize">notes</span>@_f.tra("Text faktury")</h2>
+                        <span class="rf-mode" id="Rec_p91Text1-mode" data-title="@_f.tra("Text obsahuje HTML značky – na faktuře se vykreslí formátovaně. Náhled je pod polem.")"></span>
+                        <div class="rf-text-tools" id="divcmdFindText1">
+                            <button type="button" id="cmdFindText1" tabindex="-1" class="btn btn-sm btn-light" onclick="_najit_text(this,event,'p91text1',0)"><span class="material-icons-outlined-btn">search</span> @_f.tra("Najít text")</button>
+                            <button type="button" id="cmdHtmlEditorText1" tabindex="-1" class="btn btn-sm btn-light" onclick="_html_editor(this,event,'Rec_p91Text1',0)" title="@_f.tra("Formátovaný text (HTML) – jen pokud je potřeba")"><span class="material-icons-outlined-btn">code</span> @_f.tra("Html editor")</button>
+                        </div>
+                    </div>
+                    <textarea class="form-control" asp-for="Rec.p91Text1" rows="4" oninput="p91_text_changed(this)" onchange="show_hide_html()"></textarea>
+                    <div class="rf-preview" id="Rec_p91Text1-html" title="@_f.tra("Náhled HTML textu")"></div>
+                </section>
+
+                <section class="rf-card rf-text" id="divText2">
+                    <div class="rf-cardbar">
+                        <h2><span class="material-icons-outlined-nosize">notes</span>@_f.tra("Technický text faktury")</h2>
+                        <span class="rf-mode" id="Rec_p91Text2-mode" data-title="@_f.tra("Text obsahuje HTML značky – na faktuře se vykreslí formátovaně. Náhled je pod polem.")"></span>
+                        <div class="rf-text-tools" id="divcmdFindText2">
+                            <button type="button" id="cmdFindText2" tabindex="-1" class="btn btn-sm btn-light" onclick="_najit_text(this,event,'p91text2',0)"><span class="material-icons-outlined-btn">search</span> @_f.tra("Najít text")</button>
+                            <button type="button" id="cmdHtmlEditorText2" tabindex="-1" class="btn btn-sm btn-light" onclick="_html_editor(this,event,'Rec_p91Text2',0)" title="@_f.tra("Formátovaný text (HTML) – jen pokud je potřeba")"><span class="material-icons-outlined-btn">code</span> @_f.tra("Html editor")</button>
+                        </div>
+                    </div>
+                    <textarea class="form-control" asp-for="Rec.p91Text2" rows="4" oninput="p91_text_changed(this)" onchange="show_hide_html()"></textarea>
+                    <div class="rf-preview" id="Rec_p91Text2-html" title="@_f.tra("Náhled HTML textu")"></div>
+                </section>
+
+                <section class="rf-card">
+                    <h2><span class="material-icons-outlined-nosize">lock</span>@_f.tra("Zámky nad vyúčtováním")</h2>
+                    <div class="rf-locks">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="chkLockFlag2" asp-for="@Model.Isp91LockFlag2" />
+                            <label class="form-check-label" for="chkLockFlag2"><kbd>A</kbd> @_f.tra("Zákaz upravovat cenu vyúčtování") <span class="material-icons-outlined rf-lock" style="color:black;">lock</span></label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="chkLockFlag4" asp-for="@Model.Isp91LockFlag4" />
+                            <label class="form-check-label" for="chkLockFlag4"><kbd>B</kbd> @_f.tra("Zákaz manipulace s úkony s nulovou cenou (zahrnout do paušálu/odpis)") <span class="material-icons-outlined rf-lock" style="color:blue;">lock</span></label>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="chkLockFlag8" asp-for="@Model.Isp91LockFlag8" />
+                            <label class="form-check-label" for="chkLockFlag8"><kbd>C</kbd> @_f.tra("Zákaz upravovat/odstraňovat kartu vyúčtování (s výjimkou administrátora)") <span class="material-icons-outlined rf-lock" style="color:hotpink;">lock</span></label>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="my-2" style="display:none;">
+                    <select class="form-select" asp-for="Rec.p91PortalFlag">
+                        <option value="None">@_f.tra("Nepublikovat na portále")</option>
+                        <option value="Published">@_f.tra("Publikovat na portále")</option>
+                    </select>
                 </div>
+
+                <div class="rf-extras">
+                    <mystitky entity="p91Invoice" asp-for="@Model.TagPids" tagnames="@Model.TagNames" taghtml="@Model.TagHtml" buttontext="@_f.tra("Oštítkovat")"></mystitky>
+                </div>
+
+                @if (Model.UploadGuid != null)
+                {
+                    <iframe id="fraUpload" src="/Dropzone/UploadInFrame?recpid=@Model.rec_pid&entity=p91&guid=@Model.UploadGuid" frameborder="0" scrolling="yes" style="max-width:1200px;width:100%;height:60px;"></iframe>
+                }
             </div>
-
-            <div class="my-2" style="display:none;">
-                <select class="form-select" asp-for="Rec.p91PortalFlag">
-                    <option value="None">@_f.tra("Nepublikovat na portále")</option>
-                    <option value="Published">@_f.tra("Publikovat na portále")</option>
-                </select>
-            </div>
-
-            <mystitky entity="p91Invoice" asp-for="@Model.TagPids" tagnames="@Model.TagNames" taghtml="@Model.TagHtml" buttontext="@_f.tra("Oštítkovat")"></mystitky>
-
-            @if (Model.UploadGuid != null)
-            {
-                <iframe id="fraUpload" src="/Dropzone/UploadInFrame?recpid=@Model.rec_pid&entity=p91&guid=@Model.UploadGuid" frameborder="0" scrolling="yes" style="max-width:1200px;height:60px;"></iframe>
-            }
         </div>
         <div class="tab-pane" id="tab2" role="tabpanel">
             <!-- Tab2 -->
@@ -475,91 +454,39 @@
 
 
 
-    function p91text1_mouseover(txt) {
-        $("#cmdFindText1").css("visibility", "visible");
-        $("#cmdHtmlEditorText1").css("visibility", "visible");
-    }
-
-    function p91text1_mouseout(txt) {
-
-        var btn = document.getElementById("divcmdFindText1");
-
-        if (btn.matches(":hover")) {
-            return; //myš je nad tlačítkem
+    //verze 8: Text faktury / Technický text – primárně prostý text; HTML se pozná automaticky (_detect_textarea_content)
+    //a ukáže se jeho náhled v sandboxovaném iframe (skripty a on* atributy z textu se nespustí)
+    function p91_preview(id) {
+        const ta = document.getElementById(id);
+        const box = document.getElementById(id + "-html");
+        const mode = document.getElementById(id + "-mode");
+        if (!ta || !box) return;
+        const isHtml = _detect_textarea_content(ta.value) === "html";
+        if (mode) {
+            mode.textContent = isHtml ? "HTML" : "";
+            mode.title = isHtml ? (mode.dataset.title || "") : "";
         }
-        
-        $("#cmdFindText1").css("visibility", "hidden");
-
-        btn = document.getElementById("cmdHtmlEditorText1");
-
-        if (btn.matches(":hover")) {
-            return; //myš je nad tlačítkem
-        }
-        $("#cmdHtmlEditorText1").css("visibility", "hidden");
+        box.innerHTML = "";
+        if (!isHtml) return;
+        const fr = document.createElement("iframe");
+        fr.setAttribute("sandbox", "allow-same-origin");     //bez allow-scripts
+        fr.className = "rf-preview-frame";
+        //znak „menší než“ zapsaný jako \x3C – doslovné HTML značky v tomto skriptu by Razor zpracoval jako markup
+        const css = "body{margin:6px 8px;font:14px/1.4 'Segoe UI',system-ui,sans-serif;color:#1f2328}table{border-collapse:collapse}td,th{border:1px solid #dfe3e8;padding:2px 6px}";
+        fr.srcdoc = "\x3C!doctype html>\x3Cmeta charset='utf-8'>\x3Cstyle>" + css + "\x3C/style>" + ta.value;
+        fr.onload = function () {
+            try { fr.style.height = Math.min(Math.max(fr.contentDocument.body.scrollHeight + 14, 30), 400) + "px"; } catch (e) { }
+        };
+        box.appendChild(fr);
     }
-
-
-
-    function cmdFindText1_mouseout(cmd) {
-        $("#cmdFindText1").css("visibility", "hidden");
+    function show_hide_html() {     //volá i Views/Record/HtmlEditor po uložení
+        p91_preview("Rec_p91Text1");
+        p91_preview("Rec_p91Text2");
     }
-    function cmdHtmlEditorText1_mouseout(cmd) {
-        $("#cmdHtmlEditorText1").css("visibility", "hidden");
-    }
-
-
-    function p91text2_mouseover(txt) {
-        $("#cmdFindText2").css("visibility", "visible");
-        $("#cmdHtmlEditorText2").css("visibility", "visible");
-    }
-
-    function p91text2_mouseout(txt) {
-
-        var btn = document.getElementById("divcmdFindText2");
-
-        if (btn.matches(":hover")) {
-            return; //myš je nad tlačítkem
-        }
-
-        $("#cmdFindText2").css("visibility", "hidden");
-
-        btn = document.getElementById("cmdHtmlEditorText2");
-
-        if (btn.matches(":hover")) {
-            return; //myš je nad tlačítkem
-        }
-        $("#cmdHtmlEditorText2").css("visibility", "hidden");
-    }
-
-
-
-    function cmdFindText2_mouseout(cmd) {
-        $("#cmdFindText2").css("visibility", "hidden");
-    }
-    function cmdHtmlEditorText2_mouseout(cmd) {
-        $("#cmdHtmlEditorText2").css("visibility", "hidden");
-    }
-
-
-    function show_hide_html()
-    {
-        if (_detect_textarea_content(document.getElementById("Rec_p91Text1").value) == "html")
-        {
-            $("#Rec_p91Text1-html").html(document.getElementById("Rec_p91Text1").value);
-        }
-        else
-        {
-            $("#Rec_p91Text1-html").html(null);
-        }
-        if (_detect_textarea_content(document.getElementById("Rec_p91Text2").value) == "html")
-        {
-            $("#Rec_p91Text2-html").html(document.getElementById("Rec_p91Text2").value);
-        }
-        else
-        {
-            $("#Rec_p91Text2-html").html(null);
-        }
-       
+    let _p91_text_timer = null;
+    function p91_text_changed(ta) {
+        clearTimeout(_p91_text_timer);
+        _p91_text_timer = setTimeout(function () { p91_preview(ta.id); }, 400);
     }
 
 </script>

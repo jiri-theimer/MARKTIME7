@@ -1,4 +1,4 @@
-﻿/* Moderní formulář záznamu (verze 8) – obecné třídy rf-*: Views/j02/Record.cshtml, Views/p28/Record.cshtml, Views/p41/Record.cshtml.
+﻿/* Moderní formulář záznamu (verze 8) – obecné třídy rf-*: Views/j02/Record.cshtml, Views/p28/Record.cshtml, Views/p41/Record.cshtml, Views/p91/Record.cshtml.
    Karty s nadpisem, řádky „popisek | hodnota“, na úzké obrazovce popisek nad hodnotou. Barvy navazují na skin. */
 .rf { max-width: 1200px; padding: 4px 0 8px; }
 .rf-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 12px; align-items: start; margin-bottom: 12px; }
@@ -73,6 +73,24 @@
 .rf-extras > .card { border-radius: 10px; border-color: #e3e6ea; margin: 0 !important; }
 /* karta ze sdíleného partialu přímo v .rf (např. _RoleAssign v projektu) */
 .rf > .card { border-radius: 10px; border-color: #e3e6ea; margin: 0 0 12px !important; }
+
+
+/* vyúčtování (p91): data, texty faktury, zámky */
+.rf-w-date { max-width: 170px; }
+.rf-link { font-size: .85rem; white-space: nowrap; }
+.rf-text textarea { resize: vertical; font-size: .95rem; }
+.rf-text-tools { display: flex; gap: 6px; }     /* vlevo u nadpisu: Html editor (_zoom) otevírá okno od tlačítka doprava */
+.rf-text-tools .btn { display: inline-flex; align-items: center; gap: 3px; padding: 1px 8px; font-size: .8rem; opacity: .75; }
+.rf-text:hover .rf-text-tools .btn, .rf-text-tools .btn:focus { opacity: 1; }
+.rf-mode:empty { display: none; }
+.rf-mode { padding: 0 6px; border-radius: 6px; background: #fff3cd; color: #664d03; font-size: .72rem; font-weight: 600; letter-spacing: .03em; cursor: help; }
+.rf-preview:empty { display: none; }
+.rf-preview { margin-top: 6px; }
+.rf-preview::before { content: "Náhled"; display: block; margin-bottom: 2px; font-size: .72rem; text-transform: uppercase; letter-spacing: .04em; color: #8a939c; }
+.rf-preview-frame { display: block; width: 100%; height: 60px; border: 1px dashed #dfe3e8; border-radius: 6px; background: #fff; }
+.rf-locks .form-check { margin-bottom: 4px; }
+.rf-locks kbd { font-size: .72rem; padding: 1px 5px; margin-right: 4px; }
+.rf-lock { font-size: 18px; vertical-align: -4px; }
 
 /* úzká obrazovka / telefon: popisek nad hodnotou, jméno pod sebou */
 @media (max-width: 900px) { .rf-grid-main { grid-template-columns: minmax(0, 1fr); } }
