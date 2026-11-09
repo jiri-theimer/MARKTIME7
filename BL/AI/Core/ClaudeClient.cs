@@ -176,8 +176,32 @@ namespace BL.AI.Core
             catch { return (null, $"Neplatná odpověď AI (HTTP {(int)resp.StatusCode}).", ms); }
 
             if (!resp.IsSuccessStatusCode)
-                return (null, $"AI API HTTP {(int)resp.StatusCode}: {root?["error"]?["message"]?.GetValue<string>() ?? text}", ms);
+                return (null, TranslateError((int)resp.StatusCode, root?["error"]?["type"]?.GetValue<string>(), root?["error"]?["message"]?.GetValue<string>() ?? text), ms);
             return (root, null, ms);
+        }
+
+        /// <summary>Srozumitelná hláška k chybě API; původní text API zůstává v závorce (pro administrátora a j98 log).</summary>
+        private static string TranslateError(int status, string type, string message)
+        {
+            string m = message ?? "";
+            string cz;
+            if (m.Contains("credit balance", StringComparison.OrdinalIgnoreCase))
+                cz = "Kredit pro AI je vyčerpán. Kontaktujte administrátora (MARKTIME).";
+            else if (m.Contains("spend limit", StringComparison.OrdinalIgnoreCase) || m.Contains("usage limit", StringComparison.OrdinalIgnoreCase))
+                cz = "Měsíční limit útraty AI je vyčerpán. Kontaktujte administrátora (MARKTIME).";
+            else if (status == 401 || type == "authentication_error")
+                cz = "Neplatný API klíč AI. Kontaktujte administrátora.";
+            else if (status == 403 || type == "permission_error")
+                cz = "API klíč AI nemá oprávnění k tomuto modelu nebo službě.";
+            else if (status == 404 || type == "not_found_error")
+                cz = "Model AI nebyl nalezen – zkontrolujte název modelu v nastavení.";
+            else if (status == 429 || type == "rate_limit_error")
+                cz = "Příliš mnoho požadavků na AI, zkuste to za chvíli znovu.";
+            else if (status == 529 || status >= 500 || type == "overloaded_error" || type == "api_error")
+                cz = "Služba AI je dočasně nedostupná nebo přetížená, zkuste to za chvíli znovu.";
+            else
+                cz = $"Chyba AI (HTTP {status}).";
+            return $"{cz} [{status}: {m}]";
         }
 
         private static void ReadUsage(JsonNode root, LlmUsage usage)

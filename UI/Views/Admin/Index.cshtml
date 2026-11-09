@@ -45,6 +45,8 @@
             : _f.tra("ze serveru");
     }
     var _aiU = Model.AiUsage;
+    Func<decimal?, string> _usd = d => d == null ? "–" : (d.Value > 0 && d.Value < 0.01m ? "< $0.01" : "$" + d.Value.ToString("N2", System.Globalization.CultureInfo.InvariantCulture));
+    string _qName = $"Q{(Model.AiQuarterStart.Month - 1) / 3 + 1}/{Model.AiQuarterStart.Year}";
     Func<string, string> _featureName = code => code switch
     {
         "ai-ask" => _f.tra("Zeptej se"),
@@ -181,6 +183,18 @@
                                 <div title="@_f.tra("Z toho z cache"): @_aiU.CacheReadTokens.ToString("N0")"><dt>@_f.tra("Tokeny vstup")</dt><dd>@_aiU.InputTokens.ToString("N0")</dd></div>
                                 <div><dt>@_f.tra("Tokeny výstup")</dt><dd>@_aiU.OutputTokens.ToString("N0")</dd></div>
                             </dl>
+                            @if (Model.AiCost30 != null)
+                            {
+                                <dl class="ah-stats ah-cost" title="@_f.tra("Odhad z tokenů zapsaných v aplikaci × ceník modelu") (@BL.AI.Core.AiPricing.PriceListDate). @_f.tra("Skutečnou útratu a zůstatek kreditu ukazuje Claude Console.")">
+                                    <div><dt>@_f.tra("Odhad útraty 30 dní")</dt><dd>@_usd(Model.AiCost30)</dd></div>
+                                    <div><dt>@_f.tra("Odhad útraty") @_qName</dt><dd>@_usd(Model.AiCostQuarter)</dd></div>
+                                </dl>
+                                <div class="ah-muted mb-2" style="font-size:.78rem;">* @_f.tra("Odhad z tokenů × ceník") (@BL.AI.Core.AiPricing.PriceListDate). @_f.tra("Skutečná útrata a zůstatek kreditu jsou v") <a href="https://platform.claude.com/usage" target="_blank" rel="noopener">Claude Console</a>.</div>
+                            }
+                            @if (Model.AiCostUnknownModels.Any())
+                            {
+                                <div class="ah-muted mb-2">@_f.tra("Bez ceny v odhadu (model není v ceníku)"): <span class="ah-mono">@string.Join(", ", Model.AiCostUnknownModels)</span></div>
+                            }
                             @if (Model.AiFeatures != null && Model.AiFeatures.Any())
                             {
                                 <ul class="ah-features">

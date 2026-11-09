@@ -41,6 +41,8 @@
 .ah-stats > div { padding: 8px 10px; border: 1px solid #eef0f2; border-radius: 8px; }
 .ah-stats dt { font-weight: normal; font-size: .75rem; color: #6c757d; }
 .ah-stats dd { margin: 0; font-size: 1.05rem; font-weight: 600; color: #1f2328; }
+.ah-cost > div { background: #f6f8fa; }
+.ah-cost dd::after { content: " *"; font-weight: normal; color: #6c757d; }
 .ah-features { display: flex; flex-wrap: wrap; gap: 4px; margin: 0; padding: 0; list-style: none; }
 .ah-features li { padding: 1px 8px; border-radius: 10px; background: #eef1f4; color: #3d444d; font-size: .8rem; }
 .ah-muted { color: #6c757d; font-size: .875rem; }

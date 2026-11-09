@@ -120,10 +120,51 @@ ISNULL(SUM(CAST(j98InputTokens as bigint)),0) as InputTokens, ISNULL(SUM(CAST(j9
 FROM j98OpenAILog WHERE j98Date>=DATEADD(day,-30,GETDATE())");
             if (v.AiUsage != null && v.AiUsage.Pocet > 0)
             {
+                Handle_AiCostEstimate(v);
                 v.AiFeatures = Factory.db.GetList<AdminAiFeature>("SELECT a.Feature, COUNT(*) as Pocet FROM (SELECT CASE WHEN j98Feature LIKE 'ai-grid%' THEN 'ai-grid' ELSE ISNULL(j98Feature,'?') END as Feature FROM j98OpenAILog WHERE j98Date>=DATEADD(day,-30,GETDATE())) a GROUP BY a.Feature ORDER BY COUNT(*) DESC");
             }
             return View(v);
         }
+        /// <summary>Odhad útraty AI (30 dní a aktuální čtvrtletí) z tokenů v j98OpenAILog × ceník AiPricing. Skutečná útrata je jen v Claude Console.</summary>
+        private void Handle_AiCostEstimate(AdminHome v)
+        {
+            var today = DateTime.Today;
+            v.AiQuarterStart = new DateTime(today.Year, (today.Month - 1) / 3 * 3 + 1, 1);
+            var d30 = today.AddDays(-30);
+            var dmin = d30 < v.AiQuarterStart ? d30 : v.AiQuarterStart;
+
+            string s = @"SELECT ISNULL(j98AiModel,'') as Model,
+SUM(CASE WHEN j98Date>=@d30 THEN CAST(ISNULL(j98InputTokens,0) as bigint) ELSE 0 END) as In30,
+SUM(CASE WHEN j98Date>=@d30 THEN CAST(ISNULL(j98CacheWriteTokens,0) as bigint) ELSE 0 END) as Cw30,
+SUM(CASE WHEN j98Date>=@d30 THEN CAST(ISNULL(j98CacheReadTokens,0) as bigint) ELSE 0 END) as Cr30,
+SUM(CASE WHEN j98Date>=@d30 THEN CAST(ISNULL(j98OutputTokens,0) as bigint) ELSE 0 END) as Out30,
+SUM(CASE WHEN j98Date>=@dq THEN CAST(ISNULL(j98InputTokens,0) as bigint) ELSE 0 END) as InQ,
+SUM(CASE WHEN j98Date>=@dq THEN CAST(ISNULL(j98CacheWriteTokens,0) as bigint) ELSE 0 END) as CwQ,
+SUM(CASE WHEN j98Date>=@dq THEN CAST(ISNULL(j98CacheReadTokens,0) as bigint) ELSE 0 END) as CrQ,
+SUM(CASE WHEN j98Date>=@dq THEN CAST(ISNULL(j98OutputTokens,0) as bigint) ELSE 0 END) as OutQ
+FROM j98OpenAILog WHERE j98Date>=@dmin GROUP BY j98AiModel";
+            var lis = Factory.db.GetList<AdminAiModelTokens>(s, new { d30 = d30, dq = v.AiQuarterStart, dmin = dmin });
+            if (lis == null) return;
+
+            decimal c30 = 0, cq = 0; bool any = false;
+            foreach (var r in lis)
+            {
+                if (r.In30 + r.Cw30 + r.Cr30 + r.Out30 + r.InQ + r.CwQ + r.CrQ + r.OutQ == 0) continue;
+                var a = BL.AI.Core.AiPricing.EstimateUsd(r.Model, r.In30, r.Cw30, r.Cr30, r.Out30);
+                var b = BL.AI.Core.AiPricing.EstimateUsd(r.Model, r.InQ, r.CwQ, r.CrQ, r.OutQ);
+                if (a == null || b == null)
+                {
+                    v.AiCostUnknownModels.Add(string.IsNullOrEmpty(r.Model) ? "?" : r.Model);
+                    continue;
+                }
+                c30 += a.Value; cq += b.Value; any = true;
+            }
+            if (any)
+            {
+                v.AiCost30 = c30; v.AiCostQuarter = cq;
+            }
+        }
+
         public IActionResult Page(string area, string prefix, int go2pid, string myqueryinline)
         {
             if (!TUP(BO.PermValEnum.GR_Admin))
