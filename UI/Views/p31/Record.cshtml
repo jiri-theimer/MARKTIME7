@@ -16,15 +16,16 @@
         Model.PageSymbol = "paid";
     }
     string _o18Name = null;
-    if (Model.Rec.o23ID > 0)
+    if (Model.Rec.o23ID > 0 && Model.rec_pid > 0)
     {
-        _o18Name = _f.o23DocBL.Load(Model.Rec.o23ID).o18Name;
+        _o18Name = _f.o23DocBL.Load(Model.Rec.o23ID).o18Name;     //jen pro tlačítko „Vyčistit vazbu“ u existujícího úkonu
     }
 
-    var _lisB05 = _f.WorkflowBL.GetList_b05("p31", Model.rec_pid, 0, 0, 0);
+    //historie workflow a FieldBag existují jen u uloženého úkonu – u nového (a při každém postbacku) se nedotazovat
+    var _lisB05 = Model.rec_pid > 0 ? _f.WorkflowBL.GetList_b05("p31", Model.rec_pid, 0, 0, 0) : Enumerable.Empty<BO.b05Workflow_History>();
     bool _isMobile = _f.CurrentUser.IsMobileDisplay();
 
-    var _lisFieldBagParams = _f.FBL.GetList_FieldBagParam("p31", Model.rec_pid);
+    var _lisFieldBagParams = Model.rec_pid > 0 ? _f.FBL.GetList_FieldBagParam("p31", Model.rec_pid) : null;
 }
 
 @addTagHelper *, UI
@@ -34,6 +35,24 @@
 <div id="loading_container" class="loader_postback"></div>
 
 @Html.Raw("<div class='modal_record_container'>")
+
+@if (Model.IsShowDateCloneDialog)
+{
+    @* kopie úkonu z jiného dne: dotaz na datum jako pruh nad formulářem (dříve překryvné okno) *@
+    <div id="KopirovatZaznamDialog" class="p31-clonebar">
+        <span class="material-icons-outlined-nosize">event</span>
+        <span>
+            @_f.tra("Kopírovaný úkon je ze dne")
+            @if (Model.p31Date != null)
+            {
+                <b>@(Model.p31Date.Value.ToString("dd.MM.yyyy ddd"))</b>
+            }
+            – @_f.tra("použít dnešní datum?")
+        </span>
+        <button type="button" id="cmdSetToday" class="btn btn-sm btn-primary" onclick="set_p31date_today()">@_f.tra("Dnešní datum")</button>
+        <button type="button" class="btn btn-sm btn-light" onclick="$('#KopirovatZaznamDialog').css('display','none');">@_f.tra("Zachovat")</button>
+    </div>
+}
 
 @if (Model.Rec.o23ID > 0)
 {
@@ -139,6 +158,25 @@ else
     <input type="hidden" asp-for="PravaZaJineho" />
 }
 
+
+@if (Model.lisRecent != null && Model.lisRecent.Count > 0)
+{
+    <div class="row my-2">
+        <div class="col-sm-1 col-md-1 col-form-label nonmobile p31-recent-label">@_f.tra("Naposledy"):</div>
+        <div class="col-sm-10 col-md-11">
+            <div class="p31-recent">
+                @foreach (var c in Model.lisRecent)
+                {
+                    <button type="button" class="p31-recent-btn" tabindex="-1" onclick="p31_recent(@c.p41ID,@c.p34ID,@c.p32ID)"
+                            title="@(c.Project) · @(c.p34Name) · @(c.p32Name)">
+                        <span class="p31-recent-p">@c.Project</span>
+                        <span class="p31-recent-a">@c.p32Name</span>
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+}
 
 <div class="row my-2">
     <label for="cmdComboRec_p41ID" class="col-sm-1 col-md-1 col-form-label recpagelabel">@(_f.getP07Level(Model.SelectedLevelIndex, true)):</label>
@@ -261,6 +299,12 @@ else
         <div class="col-sm-2 col-md-2 col-6">
             <mydate asp-for="p31Date"></mydate>
             <input type="hidden" asp-for="MultiDate" />
+        </div>
+    }
+    @if (!_isMobile)
+    {
+        <div class="col-auto nonmobile">
+            <span id="p31_daysum" class="p31-daysum" title="@_f.tra("Vykázáno za den – celý přehled po najetí na ℹ u data")"></span>
         </div>
     }
     @if (Model.rec_pid == 0 && Model.RecP34 != null && Model.RecP34.p33ID == BO.p33IdENUM.Cas)
@@ -633,28 +677,6 @@ else
 
 
 
-@if (Model.IsShowDateCloneDialog)
-{
-    <div id="KopirovatZaznamDialog" class="modal-dialog-inner" style="display:block;">
-
-        <!-- Modal content -->
-        <div class="modal-dialog-inner-content">
-            <h4>@_f.tra("Do nového úkonu zkopírovat dnešní datum?")</h4>
-            <p>
-                @_f.tra("Datum kopírovaného záznamu"):
-                @if (Model.p31Date != null)
-                {
-                    <kbd style="background-color:green;">@(Model.p31Date.Value.ToString("dd.MM.yyyy ddd"))</kbd>
-                }
-
-            </p>
-            <button type="button" id="cmdSetToday" class="btn btn-primary" onclick="set_p31date_today()">OK: @_f.tra("Dnešní datum")</button>
-            <button type="button" class="btn btn-secondary" style="margin-left:40px;" onclick="$('#KopirovatZaznamDialog').css('display','none');">@_f.tra("Zachovat kopírované datum")</button>
-
-        </div>
-
-    </div>
-}
 <button type="button" id="cmdSaveAndClone" class="btn btn-light nonmobile" style="margin-right:10px;" onclick="handle_saveandclone()">
     <span class="material-icons-outlined-btn" style="color:green;">save</span>@_f.tra("Uložit a kopírovat")
 </button>
@@ -691,6 +713,20 @@ else
 
 
 
+<style>
+    /* dialog úkonu – naposledy použité kombinace, souhrn dne, dotaz na datum kopie (třídy p31-*) */
+    .p31-recent { display: flex; flex-wrap: wrap; gap: 6px; }
+    .p31-recent-label { color: #6c757d; }
+    .p31-recent-btn { display: inline-flex; flex-direction: column; align-items: flex-start; max-width: 260px; padding: 3px 10px; border: 1px solid #d0d7de; border-radius: 8px; background: #fff; text-align: left; line-height: 1.2; cursor: pointer; }
+    .p31-recent-btn:hover { border-color: var(--pozadi, #0b4b92); background: color-mix(in srgb, var(--oznaceno, #4169e1) 10%, #ffffff); }
+    .p31-recent-p { max-width: 100%; font-size: .82rem; font-weight: 600; color: #1f2328; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .p31-recent-a { max-width: 100%; font-size: .75rem; color: #59636e; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .p31-daysum { display: inline-block; margin-top: 7px; font-size: .8rem; color: #59636e; white-space: nowrap; }
+    .p31-daysum b { color: #1f2328; }
+    .p31-clonebar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 6px 0; padding: 8px 12px; border-radius: 8px; background: #fff3cd; color: #664d03; }
+    .p31-clonebar .material-icons-outlined-nosize { font-size: 20px; }
+</style>
+
 <script type="text/javascript">
     var _theukon = {
         rec_pid: "@(Model.rec_pid)",
@@ -706,7 +742,8 @@ else
         timesheet_by_minutes: false,
         hoursformat: "@(_f.CurrentUser.j02DefaultHoursFormat)",
         auto_open_project_searchbox: "@(Model.AutoOpenProjectSearchbox)",
-        isdoclasttext: "@(Model.IsdocLastDokladText)"
+        isdoclasttext: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.IsdocLastDokladText ?? "")),
+        daysum_texts: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(new { day = _f.tra("Vykázáno"), h = "h", count = _f.tra("úkonů") }))
     };
 
 

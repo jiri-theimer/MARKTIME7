@@ -33,20 +33,18 @@ $(document).ready(function () {
 
     if ($("#PostbackOper").val() == "p32id" && _theukon.rec_pid == "0" && _theukon.p32id != "0" && $("#DefaultText").val() != "")
     {        
+        //výchozí text aktivity – vkládat jako text (dříve .append = HTML)
         var strAppendText = $("#DefaultText").val();
-        var strCurText = $("#Rec_p31Text").text();
+        var strCurText = $("#Rec_p31Text").val();
         if (strCurText != "")
         {
             if (strCurText.indexOf(strAppendText) == -1) {
-                $("#Rec_p31Text").text(strCurText + "\n");
-                $("#Rec_p31Text").append(strAppendText);
+                $("#Rec_p31Text").val(strCurText + "\n" + strAppendText);
             }
-            
-            
         }
         else
         {
-            $("#Rec_p31Text").append(strAppendText);
+            $("#Rec_p31Text").val(strAppendText);
         }
         
         
@@ -55,7 +53,7 @@ $(document).ready(function () {
     
     if (_theukon.isdoclasttext != "")
     {        
-        $("#Rec_p31Text").append(_theukon.isdoclasttext);//text isdoc naimportovaného dokladu
+        $("#Rec_p31Text").val($("#Rec_p31Text").val() + _theukon.isdoclasttext);   //text isdoc naimportovaného dokladu (jako text)
     }
 
 
@@ -178,9 +176,12 @@ $(document).ready(function () {
         var d = $("#p31Datehelper").val();
         $("#linkZoomDay").attr("data-rel", "/p31/Day?d=" + d + "&hover_by_reczoom=1&j02id=" + _theukon.j02id);
         _init_qtip_onpage();
+        p31_daysum();
         
     });
 
+
+    p31_daysum();
 
     if (_theukon.auto_open_project_searchbox == "True") {
         $("#cmdComboRec_p41ID").click();   //u nového záznamu automaticky otevřít searchbox projektů
@@ -461,4 +462,42 @@ function zrusit_p34id_for_p31_entry()
    
     _postback("zrusit_p34id_for_p31_entry");
     
+}
+
+
+// naposledy použitá kombinace projekt + sešit + aktivita: vyplnit vše a jedním postbackem načíst (oper "recent")
+function p31_recent(p41id, p34id, p32id) {
+    const form = document.getElementById("form1");
+    const setVal = (name, val) => {
+        let el = form.querySelector("input[name='" + name + "']");
+        if (!el) {          //aktivita bez comba (sešit ještě nevybraný) – pole doplnit
+            el = document.createElement("input");
+            el.type = "hidden";
+            el.name = name;
+            form.appendChild(el);
+        }
+        el.value = val;
+    };
+    setVal("Rec.p41ID", p41id);
+    setVal("Rec.p34ID", p34id);
+    setVal("Rec.p32ID", p32id);
+    ["SelectedComboProject", "SelectedComboP34Name", "SelectedComboP32Name"].forEach(n => setVal(n, ""));     //názvy doplní server
+    _postback("recent");
+}
+
+// souhrn dne u data (počet úkonů a hodiny vykazované osoby) – na pozadí
+function p31_daysum() {
+    const el = document.getElementById("p31_daysum");
+    const d = $("#p31Datehelper").val();
+    if (!el || !d) return;
+    const t = _theukon.daysum_texts || {};
+    $.get(_ep("/p31/Record_DaySum"), { d: d, j02id: _theukon.j02id }, function (r) {
+        if (!r) { el.textContent = ""; return; }
+        el.innerHTML = "";
+        el.append((t.day || "Vykázáno") + ": ");
+        const b = document.createElement("b");
+        b.textContent = String(r.hours).replace(".", ",") + " " + (t.h || "h");
+        el.append(b);
+        el.append(" (" + (t.count || "úkonů") + ": " + r.count + ")");      //bez skloňování: „úkonů: 4“
+    });
 }
