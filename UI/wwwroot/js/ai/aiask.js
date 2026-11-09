@@ -278,6 +278,15 @@ function ask_pin(t, $box) {
         var $name = $("<input>").attr({ type: "text", maxlength: 100 }).addClass("form-control form-control-sm").val(info.title);
         $p.append($("<label>").text(_ask_txt.pinName)).append($name);
 
+        var $view = null;
+        if (info.kind === "agg") {
+            $view = $("<select>").addClass("form-select form-select-sm")
+                .append($("<option>").val("table").text(_ask_txt.pinViewTable))
+                .append($("<option>").val("both").text(_ask_txt.pinViewBoth))
+                .append($("<option>").val("chart").text(_ask_txt.pinViewChart));
+            $p.append($("<label>").text(_ask_txt.pinView)).append($view);
+        }
+
         var $live = null;
         if (info.period) {
             $live = $("<input>").attr({ type: "checkbox", id: "ai_pin_live_" + t.guid }).prop("checked", true);
@@ -298,7 +307,7 @@ function ask_pin(t, $box) {
         $save.on("click", function () {
             $save.prop("disabled", true);
             $.post("/Widgets/AiCreate", {
-                guid: t.guid, name: $name.val(),
+                guid: t.guid, name: $name.val(), view: $view ? $view.val() : "table",
                 live: $live ? $live.prop("checked") : false
             }, function (r) {
                 if (!r || !r.ok) { _notify_message((r && r.error) || _ask_txt.pinError, "warning"); $save.prop("disabled", false); return; }

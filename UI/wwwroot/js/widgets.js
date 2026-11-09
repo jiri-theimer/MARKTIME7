@@ -104,6 +104,7 @@ async function load_widget_content(x55id) {
     const box = wd_el("box_content_" + x55id);
     if (!box) return;
     const h = Math.max(box.clientHeight, 80);
+    wd_destroy_charts(box);
     box.innerHTML = `<div class='wd-skeleton' style='height:${h}px;'><span></span><span></span><span></span></div>`;
 
     let data;
@@ -125,7 +126,9 @@ async function load_widget_content(x55id) {
         return;
     }
 
+    wd_destroy_charts(box);
     $(box).html(data.x55Content);           // jQuery kvůli spuštění <script> v obsahu (grafy SQL widgetů)
+    wd_init_charts(box);                    // grafy AI widgetů (Chart.js)
     const head = wd_el("box_header_" + x55id);
     if (head) head.textContent = data.x55Name;
     if ((data.x55Content || "").indexOf("iframe") > 0) box.style.height = "360px";
@@ -266,6 +269,9 @@ async function aiw_edit(x55id) {
     opts.sort((a, b) => a - b).forEach(n => lim.add(new Option(String(n), String(n))));
     lim.value = String(r.limit);
 
+    wd_el("aiw_edit_view").value = r.view || "table";
+    wd_el("aiw_edit_view_box").style.display = r.kind === "list" ? "none" : "";
+
     wd_el("aiw_edit_ask").href = "/AiAsk?editx55=" + r.x55id;
     wd_el("aiw_edit_ask_box").style.display = r.canAsk ? "" : "none";
     bootstrap.Offcanvas.getOrCreateInstance(wd_el("offcanvas_aiedit")).show();
@@ -277,7 +283,8 @@ async function aiw_edit_save() {
     try {
         r = await wd_post("/Widgets/AiUpdate", {
             x55id: x55id, name: wd_el("aiw_edit_name").value,
-            periodPid: wd_el("aiw_edit_period").value || 0, limit: wd_el("aiw_edit_limit").value
+            periodPid: wd_el("aiw_edit_period").value || 0, limit: wd_el("aiw_edit_limit").value,
+            view: wd_el("aiw_edit_view").value
         });
     } catch (e) { wd_err(e); return; }
     if (!r || !r.ok) { _notify_message((r && r.error) || wd_t("error", "Chyba")); return; }
@@ -323,5 +330,60 @@ function datatables_init_buttons_export_print_pdf(tableid, lang) {
             { extend: "print", text: wd_t("print", "Tisk"), footer: true, autoPrint: true }
         ],
         paging: true
+    });
+}
+
+// ------------------------------------------------------------------ grafy AI widgetů (Chart.js, lokálně wwwroot/lib/chartjs)
+// Server (AiWidgetRenderer.Chart) posílá <div class="aiw-chartjs"><canvas/><script type="application/json">{type, horizontal, other, labels, series[{name, decimals, data}]}</script></div>.
+
+function wd_destroy_charts(box) {
+    if (!window.Chart) return;
+    box.querySelectorAll(".aiw-chartjs canvas").forEach(c => Chart.getChart(c)?.destroy());
+}
+
+function wd_init_charts(box) {
+    if (!window.Chart) return;
+    const css = getComputedStyle(document.body);
+    const primary = (css.getPropertyValue("--pozadi") || "").trim() || "#0b4b92";
+    const palette = [primary, "#f59f00", "#2f9e44"];
+    const otherColor = "#c3c9d1";
+
+    box.querySelectorAll(".aiw-chartjs").forEach(el => {
+        let cfg;
+        try { cfg = JSON.parse(el.querySelector("script[type='application/json']").textContent); } catch (e) { return; }
+        const canvas = el.querySelector("canvas");
+        const nf = (dec) => new Intl.NumberFormat("cs-CZ", { minimumFractionDigits: dec, maximumFractionDigits: dec });
+        const last = cfg.labels.length - 1;
+
+        const datasets = cfg.series.map((s, k) => {
+            const color = palette[k % palette.length];
+            const ds = { label: s.name, data: s.data, borderColor: color, backgroundColor: color, borderWidth: cfg.type === "line" ? 2 : 0, borderRadius: 3, maxBarThickness: 28, tension: 0.25, pointRadius: 2 };
+            // „Ostatní“ šedě (jen u jedné řady – u více řad by se barvy pletly)
+            if (cfg.other && cfg.series.length === 1) ds.backgroundColor = s.data.map((v, i) => i === last ? otherColor : color);
+            return ds;
+        });
+
+        new Chart(canvas, {
+            type: cfg.type,
+            data: { labels: cfg.labels, datasets: datasets },
+            options: {
+                indexAxis: cfg.horizontal ? "y" : "x",
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: { duration: 300 },
+                plugins: {
+                    legend: { display: cfg.series.length > 1, position: "bottom", labels: { boxWidth: 12, font: { size: 11 } } },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => (cfg.series.length > 1 ? ctx.dataset.label + ": " : "") + nf(cfg.series[ctx.datasetIndex].decimals).format(ctx.parsed[cfg.horizontal ? "x" : "y"])
+                        }
+                    }
+                },
+                scales: {
+                    [cfg.horizontal ? "x" : "y"]: { beginAtZero: true, ticks: { font: { size: 11 }, callback: (v) => new Intl.NumberFormat("cs-CZ", { notation: "compact", maximumFractionDigits: 1 }).format(v) }, grid: { color: "#eef0f3" } },
+                    [cfg.horizontal ? "y" : "x"]: { ticks: { font: { size: 11 }, autoSkip: !cfg.horizontal, callback: function (v) { const l = this.getLabelForValue(v); return l && l.length > 28 ? l.substring(0, 27) + "…" : l; } }, grid: { display: false } }
+                }
+            }
+        });
     });
 }

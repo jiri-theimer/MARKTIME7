@@ -360,7 +360,7 @@ namespace UI.Controllers
 
         /// <summary>Vytvoří osobní AI widget ze zadání tabulky AiAsk (guid v p85). Zobrazí se ve virtuální skupině „Moje AI widgety“.</summary>
         [HttpPost]
-        public IActionResult AiCreate(string guid, string name, bool live)
+        public IActionResult AiCreate(string guid, string name, bool live, string view)
         {
             if (!Factory.CurrentUser.j04IsModule_Widgets) return Json(new { ok = false, error = Factory.tra("Nemáte přístup k dashboardu.") });
             var spec = BL.AI.Ask.AiAskService.LoadSpec(Factory, guid);
@@ -375,7 +375,7 @@ namespace UI.Controllers
             var task = new BO.AI.AiWidgetTask
             {
                 Kind = spec is BO.AI.AiListSpec ? "list" : "agg",
-                View = "table",     //graf zatím vypnutý
+                View = AiView(spec is BO.AI.AiListSpec ? "list" : "agg", view),
                 PeriodPid = live ? (AiRenderer().MatchNamedPeriod(spec)?.pid ?? 0) : 0,
                 Agg = spec as BO.AI.AiAggSpec,
                 List = spec as BO.AI.AiListSpec,
@@ -397,6 +397,9 @@ namespace UI.Controllers
             Factory.CBL.SetUserParam("Widgets-x54ID", AiX54ID.ToString());     //po otevření dashboardu rovnou „Moje AI widgety“
             return Json(new { ok = true, x55id = x55id, url = $"/Widgets/Index?x54id={AiX54ID}" });
         }
+
+        /// <summary>Zobrazení AI widgetu: výpis jen tabulka; souhrn table | both | chart (výchozí table).</summary>
+        private static string AiView(string kind, string view) => kind == "list" ? "table" : (view == "both" || view == "chart" ? view : "table");
 
         private BO.x55Widget LoadMyAiWidget(int x55id)
         {
@@ -426,13 +429,15 @@ namespace UI.Controllers
                 periods = _pp.getPallete().Where(p => p.pid > 1 && p.pid <= 60).Select(p => new { pid = p.pid, name = p.PeriodName, interval = p.PeriodInterval }),
                 limit = Math.Clamp(spec.Limit <= 0 ? max : spec.Limit, 1, max),
                 limitMax = max,
+                kind = task.Kind,
+                view = AiView(task.Kind, task.View),
                 canAsk = _llm.Options.Enabled
             });
         }
 
         /// <summary>Rychlá úprava (bez AI): název, období, počet řádků. Přechod z pojmenovaného na pevné období zmrazí aktuální data.</summary>
         [HttpPost]
-        public IActionResult AiUpdate(int x55id, string name, int periodPid, int limit)
+        public IActionResult AiUpdate(int x55id, string name, int periodPid, int limit, string view)
         {
             var rec = LoadMyAiWidget(x55id);
             var task = rec == null ? null : BO.AI.AiWidgetTask.Parse(rec.x55AiTask);
@@ -456,7 +461,7 @@ namespace UI.Controllers
             }
             int max = task.Kind == "list" ? AiWidgetRenderer.MaxListRows : AiWidgetRenderer.MaxAggRows;
             task.Spec.Limit = Math.Clamp(limit, 1, max);
-            task.View = "table";
+            task.View = AiView(task.Kind, view);
 
             rec.x55AiTask = task.ToJson();
             if (Factory.x55WidgetBL.Save(rec) == 0) return Json(new { ok = false, error = Factory.tra("Widget se nepodařilo uložit.") });
@@ -473,10 +478,11 @@ namespace UI.Controllers
             var spec = BL.AI.Ask.AiAskService.LoadSpec(Factory, guid);
             if (spec == null) return Json(new { ok = false, error = Factory.tra("Výsledek nebyl nalezen.") });
 
+            string kind = spec is BO.AI.AiListSpec ? "list" : "agg";
             var task = new BO.AI.AiWidgetTask
             {
-                Kind = spec is BO.AI.AiListSpec ? "list" : "agg",
-                View = "table",
+                Kind = kind,
+                View = AiView(kind, old.View),
                 //bylo „vždy aktuální“ → zůstane, pokud nové období odpovídá pojmenovanému; jinak pevné
                 PeriodPid = old.PeriodPid > 0 ? (AiRenderer().MatchNamedPeriod(spec)?.pid ?? 0) : 0,
                 Agg = spec as BO.AI.AiAggSpec,

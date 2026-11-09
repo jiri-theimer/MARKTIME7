@@ -79,6 +79,10 @@
 
 
 <script src="~/lib/sortable/Sortable.min.js"></script>
+@if (Model.lisUserWidgets.Any(p => p.IsAiWidget))
+{
+    <script src="~/lib/chartjs/chart.umd.min.js"></script>
+}
 @if (Model.IsDataTables)
 {
     <script src="/lib/datatables/js/jquery.dataTables.min.js"></script>
@@ -278,6 +282,14 @@ else if (Model.lisUserWidgets.Count == 0)
             <h6>@_f.tra("Období")</h6>
             <select class="form-select form-select-sm" id="aiw_edit_period"></select>
             <small class="text-muted">@_f.tra("Pojmenované období se počítá vždy k dnešku (tento měsíc, letos…). Pevné období zůstává stejné.")</small>
+        </section>
+        <section class="wd-set" id="aiw_edit_view_box">
+            <h6>@_f.tra("Zobrazení")</h6>
+            <select class="form-select form-select-sm" id="aiw_edit_view" style="width:auto;">
+                <option value="table">@_f.tra("Pouze tabulka")</option>
+                <option value="both">@_f.tra("Tabulka i graf")</option>
+                <option value="chart">@_f.tra("Pouze graf")</option>
+            </select>
         </section>
         <section class="wd-set">
             <h6>@_f.tra("Počet řádků")</h6>

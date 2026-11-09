@@ -15,8 +15,10 @@ namespace UI.Code
         public const int MaxAggRows = 20;
         public const int MaxListRows = 15;
         public const int MaxChartBars = 12;
-        /// <summary>Graf zatím vypnutý (rozhodnutí 9. 11. 2026) – widget vždy jako tabulka. Kód grafu zůstává pro pozdější použití.</summary>
-        public const bool ChartsEnabled = false;
+        /// <summary>Grafy přes Chart.js (wwwroot/lib/chartjs, lokálně). Data jdou do &lt;script type="application/json"&gt;, kreslí widgets.js.</summary>
+        public const bool ChartsEnabled = true;
+        private const int MaxChartCategories = 12;
+        private const int MaxChartSeries = 3;
         private const int MaxGroups = 5000;
 
         private readonly BL.Factory _f;
@@ -145,6 +147,16 @@ namespace UI.Code
             else
             {
                 bool chart = ChartsEnabled && task.Kind != "list" && task.View != "table" && t.Columns.Count >= 2 && !t.Columns[0].Measure && t.Columns.Any(c => c.Measure);
+                if (chart && IsTimeSeries(t) && t.Truncated)
+                {
+                    //časová řada oříznutá na N „největších“ období by měla díry → přepočítat s řazením podle období (nejnovější)
+                    var again = BO.AI.AiWidgetTask.Parse(task.ToJson());
+                    ApplyPeriod(again);
+                    again.Agg.SortBy = again.Agg.Dims[0];
+                    again.Agg.SortDesc = true;
+                    var t2 = ComputeTable(again, new List<string>());
+                    if (t2 != null) t = t2;
+                }
                 bool table = !chart || task.View != "chart";
                 if (chart) sb.Append(Chart(t));
                 if (table) sb.Append(Table(task, t, rec.x55Code));
@@ -165,28 +177,84 @@ namespace UI.Code
             return sb.ToString();
         }
 
-        /// <summary>Vodorovný pruhový graf v HTML (bez externí knihovny): 1. dimenze × 1. měřítko.</summary>
+        /// <summary>
+        /// Data grafu pro Chart.js: časová dimenze → sloupce (≤ 12 bodů) / čára, kategorie → vodorovné pruhy (top 12 + „Ostatní“).
+        /// Až 3 měřítka jako řady. JSON v &lt;script type="application/json"&gt; (jQuery .html() ho nespouští), výchozí encoder escapuje &lt;.
+        /// </summary>
         private string Chart(BO.AI.AiAskTable t)
         {
-            int mi = t.Columns.FindIndex(c => c.Measure);
-            var rows = t.Rows.Take(MaxChartBars).ToList();
-            double max = rows.Select(r => Math.Abs(D(r[mi]))).DefaultIfEmpty(0).Max();
-            if (max <= 0) return "";
-            var sb = new StringBuilder();
-            sb.Append($"<div class='aiw-chart' title='{E(t.Columns[mi].Name)}'>");
-            foreach (var r in rows)
+            var measures = t.Columns.Select((c, i) => (c, i)).Where(x => x.c.Measure).Take(MaxChartSeries).ToList();
+            var dims = t.Columns.Select((c, i) => (c, i)).Where(x => !x.c.Measure).ToList();
+            if (measures.Count == 0 || dims.Count == 0 || t.Rows.Count == 0) return "";
+
+            string Label(object[] r) => string.Join(" / ", dims.Select(d => Fmt(r[d.i], d.c) ?? "–"));
+            bool time = IsTimeSeries(t);
+            var rows = t.Rows.ToList();
+            var labels = new List<string>();
+            var series = measures.Select(m => new List<double>()).ToList();
+            bool other = false;
+
+            if (time)
             {
-                double v = D(r[mi]);
-                double w = Math.Round(Math.Abs(v) / max * 100, 1);
-                string color = v < 0 ? "#dc3545" : "var(--pozadi, #0b4b92)";
-                sb.Append("<div class='aiw-bar' style='display:flex;align-items:center;gap:8px;margin:2px 0;'>");
-                sb.Append($"<span class='aiw-bar-l' style='flex:0 0 38%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;'>{E(Fmt(r[0], t.Columns[0]) ?? "–")}</span>");
-                sb.Append($"<span class='aiw-bar-t' style='flex:1 1 auto;background:#eef1f4;border-radius:3px;height:14px;'><span style='display:block;height:14px;border-radius:3px;width:{w.ToString(CultureInfo.InvariantCulture)}%;background:{color};'></span></span>");
-                sb.Append($"<span class='aiw-bar-v' style='flex:0 0 auto;min-width:70px;text-align:right;'>{E(Fmt(r[mi], t.Columns[mi]))}</span>");
-                sb.Append("</div>");
+                rows = rows.OrderBy(r => TimeKey(r[dims[0].i])).ToList();
+                foreach (var r in rows) { labels.Add(Label(r)); for (int k = 0; k < measures.Count; k++) series[k].Add(D(r[measures[k].i])); }
             }
-            sb.Append("</div>");
-            return sb.ToString();
+            else
+            {
+                var top = rows.Take(MaxChartCategories).ToList();
+                foreach (var r in top) { labels.Add(Label(r)); for (int k = 0; k < measures.Count; k++) series[k].Add(D(r[measures[k].i])); }
+                //zbytek do „Ostatní“: celkem (ze všech skupin) − zobrazené
+                if ((t.Groups > top.Count) && t.Total != null)
+                {
+                    var rest = measures.Select((m, k) => t.Total[m.i] == null ? 0 : D(t.Total[m.i]) - series[k].Sum()).ToList();
+                    if (rest.Any(v => Math.Abs(v) > 0.000001))
+                    {
+                        labels.Add(_f.tra("Ostatní"));
+                        for (int k = 0; k < measures.Count; k++) series[k].Add(Math.Round(rest[k], measures[k].c.Decimals));
+                        other = true;
+                    }
+                }
+            }
+
+            string type = time ? (labels.Count > MaxChartCategories ? "line" : "bar") : "bar";
+            bool horizontal = !time;
+            int height = horizontal ? Math.Clamp(labels.Count * 24 + 50, 120, 380) : 230;
+
+            var cfg = new
+            {
+                type,
+                horizontal,
+                other,
+                labels,
+                series = measures.Select((m, k) => new { name = m.c.Name, decimals = m.c.Decimals, data = series[k] })
+            };
+            string json = System.Text.Json.JsonSerializer.Serialize(cfg);     //výchozí encoder: < > & jako \u003C… (nelze ukončit <script>)
+            return $"<div class='aiw-chartjs' style='position:relative;height:{height}px;margin:2px 0 10px;'><canvas></canvas><script type='application/json'>{json}</script></div>";
+        }
+
+        /// <summary>První dimenze je čas: typ date nebo hodnoty ve tvaru rok-měsíc / měsíc.rok.</summary>
+        private static bool IsTimeSeries(BO.AI.AiAskTable t)
+        {
+            int di = t.Columns.FindIndex(c => !c.Measure);
+            if (di < 0 || t.Rows.Count == 0) return false;
+            if (t.Columns[di].Type == "date") return true;
+            var vals = t.Rows.Select(r => r[di]?.ToString()).Where(v => !string.IsNullOrEmpty(v)).ToList();
+            return vals.Count > 0 && vals.All(v => TimeKey(v) != null);
+        }
+
+        /// <summary>Řaditelný klíč období: 2026-11(-05), 11.2026, 11/2026, 2026/11, 2026 → "2026-11-05"; null = není období.</summary>
+        private static string TimeKey(object o)
+        {
+            string v = o?.ToString()?.Trim();
+            if (string.IsNullOrEmpty(v)) return null;
+            var m = System.Text.RegularExpressions.Regex.Match(v, @"^(\d{4})[-/](\d{1,2})(?:[-/](\d{1,2}))?");
+            if (m.Success) return $"{m.Groups[1].Value}-{int.Parse(m.Groups[2].Value):00}-{(m.Groups[3].Success ? int.Parse(m.Groups[3].Value) : 1):00}";
+            m = System.Text.RegularExpressions.Regex.Match(v, @"^(\d{1,2})[./](\d{4})$");
+            if (m.Success) return $"{m.Groups[2].Value}-{int.Parse(m.Groups[1].Value):00}-01";
+            m = System.Text.RegularExpressions.Regex.Match(v, @"^(\d{1,2})\.(\d{1,2})\.(\d{4})$");
+            if (m.Success) return $"{m.Groups[3].Value}-{int.Parse(m.Groups[2].Value):00}-{int.Parse(m.Groups[1].Value):00}";
+            if (System.Text.RegularExpressions.Regex.IsMatch(v, @"^(19|20)\d{2}$")) return v + "-01-01";
+            return null;
         }
 
         private string Table(BO.AI.AiWidgetTask task, BO.AI.AiAskTable t, string tableId)
