@@ -210,26 +210,38 @@ namespace UI.Controllers
             
             
 
-            AMI("Nefiltrovat", $"javascript:{explicit_javascript_onchange}('0')",(explicit_value == 0 ? s1:s0));
-            //var arr = new List<int> { 1, 2,16,17, 3,4,5,6,7,8,9,10,11,12,13,14,15,19 };
-            var arr = new List<int> { 1,3,4,2, 16, 17,  5, 6, 7, 8, 9, 10, 11, 12, 13, 14,21, 15, 19 };
-
-
-            var cv = new p31StateQueryViewModel();
-            foreach(int x in arr)
+            //onchange je název JS funkce – povolit jen identifikátor (přichází z prohlížeče)
+            if (!System.Text.RegularExpressions.Regex.IsMatch(explicit_javascript_onchange, "^[A-Za-z_$][A-Za-z0-9_$.]*$"))
             {
-                cv.Value = x;
-                MenuItem mi=AMI(cv.getStateAlias(), $"javascript:{explicit_javascript_onchange}('{x}')",(explicit_value == x ? s1: s0));
-               
-                if (x == explicit_value) mi.IsActive = true;               
-                if (x == 4 || x==9)
-                {
-                    DIV();  //za první skupinou 3 nejpoužívanější položek vizuálně oddělit + oddělit vyúčtované
-                }
+                explicit_javascript_onchange = "handle_p31statequery_change";
             }
-            
-            return _menusup.FlushResult_UL(_lis, true, false);      
-            
+            var enc = System.Text.Encodings.Web.HtmlEncoder.Default;
+            var sb = new System.Text.StringBuilder();
+
+            void Item(int value, string name, string sub)
+            {
+                bool on = value == explicit_value;
+                sb.Append($"<li><a class='dropdown-item sq-item{(on ? " active" : "")}' href=\"javascript:{explicit_javascript_onchange}('{value}')\">");
+                sb.Append($"<span class='material-icons-outlined-nosize sq-radio'>{(on ? s1 : s0)}</span><span class='sq-t'><span class='sq-n'>{enc.Encode(Factory.tra(name))}</span>");
+                if (sub != null) sb.Append($"<span class='sq-s'>{enc.Encode(Factory.tra(sub))}</span>");
+                sb.Append("</span></a></li>");
+            }
+
+            //skupiny podle průběhu úkonu (p31StateQueryViewModel.Groups); stav 18 záměrně skrytý
+            //každá skupina je jeden blok (li.sq-g) – při malé výšce se nabídka rozloží do sloupců doprava a skupina se netrhá
+            sb.Append("<li class='sq-g'><ul>");
+            Item(0, "Nefiltrovat", null);
+            foreach (var g in p31StateQueryViewModel.Groups)
+            {
+                if (g.Title != null)
+                {
+                    sb.Append("</ul></li><li class='sq-g'>");
+                    sb.Append($"<div class='sq-h'>{enc.Encode(Factory.tra(g.Title))}</div><ul>");
+                }
+                foreach (var i in g.Items) Item(i.Value, i.Name, i.Sub);
+            }
+            sb.Append("</ul></li>");
+            return sb.ToString();
         }
 
 

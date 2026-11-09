@@ -2,26 +2,44 @@
 @inject BL.Factory _f
 
 @{
-
-    string _strCssClass = "btn btn-light dropdown-toggle bog";
-
-    if (Model.Value>0)
-    {
-        _strCssClass = "btn btn-light dropdown-toggle bog filtered";
-    }
-
-    
-
-   
+    string _strCssClass = "btn btn-light dropdown-toggle bog" + (Model.Value > 0 ? " filtered" : "");
+    string _onchange = string.IsNullOrEmpty(Model.javascript_onchange) ? "handle_p31statequery_change" : Model.javascript_onchange;
 }
 
+<style>
+    /* filtr „Stav úkonů“ (Views/Shared/_p31StateQuery.cshtml + MenuController.get_p31StateQuery_MenuItems), třídy sq-* */
+    .sq-wrap .sq-btn { max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sq-wrap .sq-clear { padding-left: 6px; padding-right: 6px; }
+    .sq-wrap .sq-clear .material-icons-outlined-nosize { font-size: 17px; vertical-align: -3px; }
+    #ulP31StateQuery { min-width: 300px; padding: 4px 0; }
+    /* malá výška: položky tečou do sloupců doprava (flex column wrap), skupiny se rozpustí do jednoho toku */
+    #ulP31StateQuery.sq-cols.show { display: flex; flex-direction: column; flex-wrap: wrap; align-content: flex-start; overflow: hidden; }
+    #ulP31StateQuery.sq-cols .sq-g, #ulP31StateQuery.sq-cols .sq-g ul { display: contents; }
+    #ulP31StateQuery.sq-cols li, #ulP31StateQuery.sq-cols .sq-h { width: 280px; }
+    #ulP31StateQuery .sq-sp { list-style: none; }
+    #ulP31StateQuery .sq-g { break-inside: avoid; padding-bottom: 4px; }
+    #ulP31StateQuery .sq-g ul { list-style: none; margin: 0; padding: 0; }
+    #ulP31StateQuery .sq-h { margin-top: 2px; padding: 6px 14px 2px; border-top: 1px solid #eef0f2; font-size: .7rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #6c757d; }
+    #ulP31StateQuery .sq-item { display: flex; align-items: flex-start; gap: 8px; padding: 4px 14px; white-space: normal; }
+    #ulP31StateQuery .sq-radio { font-size: 17px; color: #8a939c; margin-top: 2px; flex: 0 0 auto; }
+    #ulP31StateQuery .sq-item.active { background-color: color-mix(in srgb, var(--oznaceno, #4169e1) 16%, #ffffff); color: #1f2328; font-weight: 600; }
+    #ulP31StateQuery .sq-item.active .sq-radio { color: var(--pozadi, #0b4b92); }
+    #ulP31StateQuery .sq-t { display: flex; flex-direction: column; line-height: 1.25; }
+    #ulP31StateQuery .sq-s { font-size: .75rem; color: #6c757d; font-weight: normal; }
+</style>
 
-
-<div class="dropdown" style="margin-left:8px;">
-    <button class="@(_strCssClass)" type="button" id="cmdP31StateQuery" data-bs-toggle="dropdown" aria-expanded="false" tabindex="-1">
+<div class="btn-group sq-wrap" role="group" style="margin-left:8px;">
+    <button class="@(_strCssClass) sq-btn" type="button" id="cmdP31StateQuery" data-bs-toggle="dropdown" aria-expanded="false" tabindex="-1"
+            title="@(Model.Value > 0 ? _f.tra("Stav úkonů") + ": " + _f.tra(Model.getStateAlias()) : _f.tra("Filtrovat podle stavu úkonů"))">
         <span class="material-icons-outlined-nosize">filter_alt</span>
-        @(Model.getStateAlias())
+        @(Model.Value > 0 ? _f.tra("Stav") + ": " + _f.tra(Model.getButtonLabel()) : _f.tra("Stav úkonů"))
     </button>
+    @if (Model.Value > 0)
+    {
+        <button class="btn btn-light bog filtered sq-clear" type="button" tabindex="-1" title="@_f.tra("Zrušit filtr stavu úkonů")" onclick="@(_onchange)('0')">
+            <span class="material-icons-outlined-nosize">close</span>
+        </button>
+    }
     <ul id="ulP31StateQuery" class="dropdown-menu" aria-labelledby="cmdP31StateQuery"></ul>
     <input type="hidden" id="_p31StateQueryHiddenValue" value="@Model.Value" />
 </div>
@@ -31,31 +49,63 @@
     var _p31StateQuery_Value = "@Model.Value";
     var _p31StateQuery_ParamKey = "@Model.UserParamKey";
 
-    
-
+    //nabídka se načítá až při otevření (kvůli výkonu se nerenderuje s každou stránkou)
     document.getElementById("cmdP31StateQuery").addEventListener("show.bs.dropdown", function () {
-        
+
         var explicit_javascript_onchange = "@Model.javascript_onchange";
 
-        $.post("/Menu/get_p31StateQuery_MenuItems", { userparamkey: _p31StateQuery_ParamKey, explicit_value: _p31StateQuery_Value, explicit_javascript_onchange: explicit_javascript_onchange }, function (data) {
+        $.post(_ep("/Menu/get_p31StateQuery_MenuItems"), { userparamkey: _p31StateQuery_ParamKey, explicit_value: _p31StateQuery_Value, explicit_javascript_onchange: explicit_javascript_onchange }, function (data) {
             $("#ulP31StateQuery").html(data);
-
-            if (_device.innerHeight <= 450) {
-                $("#ulP31StateQuery").css("column-count", "2");
-            }
-            if (_device.innerHeight <= 300) {
-                $("#ulP31StateQuery").css("column-count", "3");
-            }
-            
-            _adjust_divheight_small_display("ulP31StateQuery");
+            sq_layout();
         });
     });
 
+    //malá výška (spodní panel pod tabulkou, nízké okno): nabídka se rozloží do sloupců doprava; skupiny se netrhají
+    function sq_layout() {
+        const ul = document.getElementById("ulP31StateQuery");
+        const cmd = document.getElementById("cmdP31StateQuery");
+        if (!ul || !cmd) return;
+        ul.classList.remove("sq-cols");
+        ul.querySelectorAll(".sq-sp").forEach(x => x.remove());
+        ul.style.height = ""; ul.style.width = ""; ul.style.maxHeight = ""; ul.style.overflowY = "";
+
+        const r = cmd.getBoundingClientRect();
+        const avail = Math.max(window.innerHeight - r.bottom, r.top) - 16;      //větší z prostorů pod / nad tlačítkem
+        if (ul.scrollHeight > avail && avail > 100) {
+            ul.classList.add("sq-cols");
+            ul.style.height = avail + "px";
+            //nadpis skupiny nesmí zůstat sám na konci sloupce → mezerou ho posunout do dalšího sloupce
+            ul.querySelectorAll(".sq-h").forEach(h => {
+                const first = h.nextElementSibling && h.nextElementSibling.querySelector("li");
+                if (first && first.offsetLeft !== h.offsetLeft) {
+                    const sp = document.createElement("li");
+                    sp.className = "sq-sp";
+                    const padB = parseFloat(getComputedStyle(ul).paddingBottom) || 0;
+                    sp.style.height = Math.max(0, ul.clientHeight - padB - h.offsetTop - 1) + "px";     //vyplní zbytek sloupce, sama se ještě vejde
+                    h.parentNode.insertBefore(sp, h);
+                }
+            });
+            let right = 0;
+            ul.querySelectorAll(".sq-h, li:not(.sq-g)").forEach(el => { right = Math.max(right, el.offsetLeft + el.offsetWidth); });
+            if (right + 8 <= window.innerWidth - 16) {
+                ul.style.width = (right + 8) + "px";
+            } else {                                //ani sloupce se nevejdou → jeden sloupec s posuvníkem
+                ul.classList.remove("sq-cols");
+                ul.querySelectorAll(".sq-sp").forEach(x => x.remove());
+                ul.style.height = "";
+                ul.style.maxHeight = avail + "px";
+                ul.style.overflowY = "auto";
+            }
+        }
+        const dd = bootstrap.Dropdown.getInstance(cmd);
+        if (dd) dd.update();        //přepočítat umístění (nad / pod tlačítkem, posun ke kraji okna)
+    }
+
 
     function handle_p31statequery_change(val) {     //filtrování podle stavu úkonu
-        
+
         $.post(_ep("/Common/SetUserParam"), { key: _p31StateQuery_ParamKey, value: val }, function (data) {
-           
+
             var url = location.href;
 
             if (document.getElementById("tempguid")) {
