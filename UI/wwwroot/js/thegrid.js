@@ -98,7 +98,7 @@ function tg_init(c) {
         _tg_resize_timer = setTimeout(function () {
             var pe = document.getElementById("container_grid");
             if (!pe) return;
-            if (pe.parentNode.id === "splitter_panel1") {
+            if (pe.parentNode.id === "splitter_panel1" && !document.body.classList.contains("mv-single")) {     //mv-single: MasterView na telefonu = jen grid (MasterView.cshtml)
                 tg_adjust_for_screen("splitter_panel1");
             } else {
                 tg_adjust_for_screen();
@@ -107,6 +107,9 @@ function tg_init(c) {
     });
 
     tg_setup_selectable();  //inicializace selectable
+
+    //telefon: klepnutí na řádek = dvojklik (delegovaně – tbody se při každém načtení dat přepisuje)
+    $("#tabgrid1_tbody").off("click.tgphone").on("click.tgphone", "tr", tg_phone_tap);
 
     
     if (_tg_current_groupfield != null && _tg_current_groupfield != "")
@@ -1200,6 +1203,15 @@ function tg_adjust_for_screen(strParentElementID)
 }
 
 
+
+function tg_phone_tap(e) {     //jen na telefonu (_device.isMobile); na desktopu se nic nemění
+    if (!_device.isMobile) return;
+    const tr = e.currentTarget;
+    if (!tr.id || tr.id.charAt(0) !== "r" || tr.classList.contains("trgroup")) return;
+    if (e.target.closest("input, a, button, select, label, .td0, .link_in_grid, .cm")) return;     //checkbox, ☰ menu, odkazy v buňce
+    if (typeof tg_phone_rowtap === "function" && tg_phone_rowtap(tr) === true) return;            //stránka si může klepnutí obsloužit sama (MasterView)
+    if (_tg_ondblclick && typeof window[_tg_ondblclick] === "function") window[_tg_ondblclick](tr);
+}
 
 function tg_dblclick(row) {
     var prefix = _tg_entity.substr(0, 3);

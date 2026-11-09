@@ -233,40 +233,6 @@ namespace UI.Controllers
             return View(v);
         }
 
-        public IActionResult MobileView(string prefix, int go2pid, string myqueryinline, string tab, string rez)    //pouze grid bez subform
-        {
-            
-
-            if (!TestGridPermissions(prefix))
-            {
-                return this.StopPage(false, "Nemáte oprávnění pro tento Modul.");
-            }
-            if (go2pid == 0 && (prefix == "p28" || prefix == "p91" || prefix == "p41" || prefix == "j02" || prefix == "o23" || prefix == "p90" || prefix == "p51" || prefix == "p40" || prefix == "o43" || prefix=="p84" || prefix=="p78"))
-            {
-                go2pid = LoadLastUsedPid(prefix, rez);
-            }
-
-            if (tab == null && (prefix == "p31" || prefix == "j02"))
-            {
-                tab = Factory.CBL.LoadUserParam("overgrid-tab-" + prefix, "zero", 1);
-                if (tab != null && tab != "zero")
-                {
-                    myqueryinline = $"tabquery|string|{tab}";
-                }
-            }
-
-            TheGridViewModel v = LoadFsmViewModel(prefix, go2pid, "flatview", "mobile", 0, myqueryinline, TestIfPeriodOverGrid(prefix), rez);
-
-            v.gridinput.j72id = Factory.CBL.LoadUserParamInt($"flatview-j72id-{prefix}-{rez}");            
-            Handle_InhaleQuery(v, $"flatview-query-j72id-{prefix}-{rez}");
-
-            var cTabs = new UI.Code.NavTabsSupport(Factory);
-            v.OverGridTabs = cTabs.getOverGridTabs(v.prefix, tab, true, v.rez);
-
-
-
-            return View(v);
-        }
 
         private bool TestGridPermissions(string prefix)
         {

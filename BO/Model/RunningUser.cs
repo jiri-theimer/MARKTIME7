@@ -66,7 +66,6 @@ namespace BO
         public string j02SkinForeColor { get; set; }    //set, protože v můj-profil se aktualizuje kvůli simulaci
         public string j02SkinSelColor { get; set; }     //set, protože v můj-profil se aktualizuje kvůli simulaci
         public int j02FontSizeFlag { get; }
-        public j02ModalWindowsFlagENUM j02ModalWindowsFlag { get; }
         public DeviceTypeFlag j02Ping_DeviceTypeFlag { get; }
         public int j02Ping_InnerWidth { get; }  //je zde šířka obrazovky avail
         public int j02Ping_InnerHeight { get; } //je zde výška obrazovky AVAIL
@@ -326,8 +325,6 @@ namespace BO
             //{
             //    return true;    //testování - vyhodit!!
             //}
-            if (j02ModalWindowsFlag == BO.j02ModalWindowsFlagENUM.KeepMobileUI) return true;
-            if (j02ModalWindowsFlag == BO.j02ModalWindowsFlagENUM.KeepDesktopUI) return false;  //držet desktop rozhraní
 
             if (j02Ping_InnerWidth >0 && (j02Ping_InnerHeight>j02Ping_InnerWidth || j02Ping_InnerHeight<500 || j02Ping_InnerWidth < 800))
             {
@@ -336,19 +333,6 @@ namespace BO
             else
             {
                 return false;
-            }
-        }
-
-        public string GetLayoutPerDisplay()
-        {
-           
-            if (IsMobileDisplay())
-            {
-                return "~/Views/Shared/_LayoutMobile.cshtml";
-            }
-            else
-            {
-                return "~/Views/Shared/_Layout.cshtml";
             }
         }
 

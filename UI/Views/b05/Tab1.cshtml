@@ -13,14 +13,9 @@
 
     var _NotepadLookAt = new UI.Models.Notepad.LookAtViewModel() { IsTab1 = true, prefix = "b05", pid = Model.Rec.pid, NotepadContent = Model.Rec.b05Notepad, x04ID = Model.Rec.x04ID, NotepadIsBillingMemo = BO.Code.Bas.bit_compare_or(Model.Rec.b05Tab1Flag, 4) };
 
-    bool _bolIsMobile = _f.CurrentUser.IsMobileDisplay();
     string _strRecPage = "RecPage";
 
 
-    if (_bolIsMobile)
-    {
-        _strRecPage = "RecPageMobile";
-    }
 
     IEnumerable<BO.b05Workflow_History> _lisB05 = null;
 

@@ -608,11 +608,27 @@ hr.hr-mini { /*používá se v kontextovém menu*/
     }
 }
 
-@media screen and (max-width: 600px) {
+/* telefon: třídu mt-phone na <html> nastavuje site.js (_device – šířka hlavního okna < 768 px, nebo dotykový displej s výškou < 500 px) */
+html.mt-phone .nonmobile {
+    display: none;
+}
 
-    .nonmobile {
-        display: none;
-    }
+.mobileonly {
+    display: none;
+}
+
+html.mt-phone .mobileonly {
+    display: revert;
+}
+
+html.mt-phone .div-over-table-scrolling {
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+html.mt-phone #myModalContentContainerHeader a.modal-close-right {
+    display: inline-block;
+    padding: 0 6px;
 }
 
 @media screen and (max-width: 1000px) {
@@ -2211,3 +2227,56 @@ mark.mtc-mark { background: #ffe58f; color: inherit; padding: 0; border-radius: 
 .ms-info small { display: block; color: #6c757d; margin-top: 2px; max-width: 560px; }
 .ms-setting { display: block; width: 100%; height: 230px; border-top: 1px solid #eef0f2; }
 @media (max-width: 760px) { .ms-input { width: 100% !important; } }
+
+/* verze 8: tip na mobile.marktime.net na mobilu (_Layout) */
+.mo-hint { display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: #fff8e1; border-bottom: 1px solid #f0d98c; font-size: 0.9rem; }
+.mo-hint[hidden] { display: none; }
+.mo-hint .mo-hint-text { flex: 1 1 auto; }
+.mo-hint .btn-close { flex: 0 0 auto; font-size: 0.7rem; }
+
+/* hlavní lišta v úzkém okně (< 992 px, telefon/tablet) – _Layout: .mm-quick, #mmSearchRow; moduly jsou v ☰ hlavním menu */
+.mm-quick { display: flex; align-items: center; gap: 2px; margin-left: auto; padding-right: 4px; }
+.mm-quick .nav-link { padding: 4px 8px; }
+.mm-quick .material-icons-outlined-btn { font-size: 22px; vertical-align: middle; }
+.mm-search-row { background-color: var(--pozadi); padding: 4px 8px 6px; }
+.mm-search-row[hidden] { display: none; }
+.mm-search-row #divSearchBox, .mm-search-row .dropdown { width: 100%; }
+.mm-search-row .ms-input { width: 100% !important; height: 36px; }
+.mm-search-row .ms-menu { width: 100%; }
+.mm-search-row .ms-data { width: auto !important; max-width: calc(100vw - 16px); }
+
+@media (max-width: 991.98px) {
+    #mainmenu1 .navbar-toggler, #mainmenu1 #navbarNavDropdown { display: none !important; }
+    #mainmenu1_container { flex-wrap: nowrap; }
+    #mainmenu1_container > div:first-child { min-width: 0 !important; flex: 1 1 auto; overflow: hidden; }
+    #cmdHome { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 0; }
+    .mm-quick { flex: 0 0 auto; }
+    #offcanvas_mainmenu, #offcanvas_newrecord, #offcanvas_myprofile { max-width: 100vw; }
+}
+
+/* MasterView na telefonu = jen grid (body.mv-single nastavuje MasterView.cshtml – mv_layout) */
+body.mv-single #splitter_container { height: auto !important; border: 0; overflow: visible; }
+body.mv-single #splitter_panel1 { height: auto !important; }
+body.mv-single #splitter_container > .tabs_container,
+body.mv-single #splitter_resizer,
+body.mv-single #splitter_panel2 { display: none !important; }
+
+/* menu nad gridem (Views/Menu/grid_menu.cshtml) – dříve inline styly a serverová větev pro mobil */
+#divContainerGridMenu { min-width: 500px; }
+#divGridMenuPrehledy { margin-left: 40px; }
+html.mt-phone #divContainerGridMenu { min-width: 0; }
+html.mt-phone #divGridMenuPrehledy { margin-left: 0; }
+
+/* telefon: rozbalovací menu nesmí přetéct šířku okna; v gridu o kousek vyšší řádky pro prst */
+html.mt-phone .dropdown-menu { max-width: calc(100vw - 16px); }
+html.mt-phone #tabgrid1_tbody > tr > td { padding-top: 5px; padding-bottom: 5px; }
+
+/* stránka záznamu (RecPage, TreePage) na telefonu: záložky v jednom vodorovně posuvném řádku (recpage.js revealTab), režim „levý grid + záznam“ jen se záznamem */
+html.mt-phone #navtabs { flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; position: relative; scrollbar-width: none; }
+html.mt-phone #navtabs::-webkit-scrollbar { display: none; }
+html.mt-phone #navtabs > li { flex: 0 0 auto; }
+html.mt-phone #navtabs .nav-link { white-space: nowrap; padding-top: 8px; padding-bottom: 8px; }
+html.mt-phone #divOverGrid { display: none; }     /* horní grid s jedním (aktuálním) záznamem – na telefonu zbytečný; zůstává v DOM kvůli výběru pro tg_approve */
+html.mt-phone .splitter-container-left2right { touch-action: auto; }
+html.mt-phone .splitter-container-left2right > #splitter_panel1,
+html.mt-phone .splitter-container-left2right > #splitter_resizer { display: none; }

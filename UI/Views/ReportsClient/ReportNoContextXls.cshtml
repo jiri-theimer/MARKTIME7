@@ -3,15 +3,7 @@
 @inject BL.Factory _f
 
 @{
-    bool _isMobile = _f.CurrentUser.IsMobileDisplay();
-    if (_isMobile)
-    {
-        Layout = "~/Views/Shared/_LayoutSubformMobile.cshtml";
-    }
-    else
-    {
-        Layout = "~/Views/Shared/_LayoutSubform.cshtml";
-    }
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
 
 
    

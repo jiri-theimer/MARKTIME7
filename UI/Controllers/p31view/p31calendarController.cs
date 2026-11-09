@@ -10,20 +10,6 @@ namespace UI.Controllers.p31view
 {
     public class p31calendarController : BaseController
     {
-        public IActionResult Mobile(int j02id, string d, int cv)
-        {
-            var v = new calendarViewModel() { d0 = DateTime.Today, j02ID = j02id, CurrentView = CalendarViewEnum.Month };
-
-            handle_defaults(v, d, cv);
-            if (v.CurrentView == CalendarViewEnum.Hybrid)
-            {
-                cv = 1;
-                handle_defaults(v, d, cv);
-            }
-            RefreshState(v);
-
-            return View(v);
-        }
         public IActionResult Index(int j02id,string d,int cv)
         {
             if (cv == 7)

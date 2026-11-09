@@ -2,15 +2,7 @@
 @inject BL.Factory _f
 
 @{
-    bool _isMobile = _f.CurrentUser.IsMobileDisplay();
-    if (_isMobile)
-    {
-        Layout = "~/Views/Shared/_LayoutSubformMobile.cshtml";
-    }
-    else
-    {
-        Layout = "~/Views/Shared/_LayoutSubform.cshtml";
-    }
+    Layout = "~/Views/Shared/_LayoutSubform.cshtml";
     
 
     if (Model.entity == null || Model.master_pid == 0)
@@ -36,45 +28,6 @@
         
 
     </div>
-    @if (_isMobile)
-    {
-        <myshowmore></myshowmore>
-        @if (_f.CurrentUser.j04IsModule_p31 && Model.gridinput.master_entity !="p91Invoice" && (Model.prefix == "p28" || Model.prefix == "le5" || Model.prefix == "le4" || Model.prefix == "p31" || Model.prefix == "p56"))
-        {
-            <div>
-                <a class="btn descreet_link_over_grid" href="javascript:_p31_entry_from_grid()" title="Vykázat úkon, klávesová zkratka: Alt+W"><span class="material-icons-outlined-btn menu_new_record">more_time</span></a>
-            </div>
-        }
-        @if (_f.CurrentUser.TestPermission(BO.PermValEnum.GR_GridColumnDesigner))
-        {
-            <div class="showmore dog">
-                @Html.EditorFor(m => Model.PageTitle, "~/Views/Shared/_ButtonGridDesigner.cshtml")
-            </div>
-        }
-        <div class="showmore dog">
-            @Html.EditorFor(m => Model.PageTitle,"~/Views/Shared/_ButtonGridSelMenu.cshtml")
-        </div>
-
-        <div class="showmore dog">
-            @Html.EditorFor(m => Model.TheGridQueryButton, "~/Views/Shared/_ButtonGridQuery.cshtml")
-        </div>
-        
-        @if (Model.periodinput != null)
-        {
-            <div class="showmore dog">
-                @await Component.InvokeAsync("myPeriod",Model.periodinput)
-            </div>
-
-        }
-        @if (Model.recordbinquery != null)
-        {
-            <div class="showmore dog">
-                @Html.EditorFor(m => Model.recordbinquery,"~/Views/Shared/_RecordBinQuery.cshtml")
-            </div>
-        }
-    }
-    else
-    {
         @if (_f.CurrentUser.TestPermission(BO.PermValEnum.GR_GridColumnDesigner))
         {
             @Html.EditorFor(m => Model.PageTitle, "~/Views/Shared/_ButtonGridDesigner.cshtml")
@@ -155,7 +108,6 @@
             </div>
 
         }
-    }
     
 
     

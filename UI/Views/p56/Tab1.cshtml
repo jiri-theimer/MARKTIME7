@@ -6,12 +6,7 @@
     Layout = "~/Views/Shared/_LayoutSubform.cshtml";
     if (Model.Rec == null) return;
 
-    bool _bolIsMobile = _f.CurrentUser.IsMobileDisplay();
     string _strRecPage = "RecPage";
-    if (_bolIsMobile)
-    {
-        _strRecPage = "RecPageMobile";
-    }
 
     UI.Models.Tab1.BaseTab1ViewModel _tabWeather = null;
     if (Model.Rec.p15ID > 0)

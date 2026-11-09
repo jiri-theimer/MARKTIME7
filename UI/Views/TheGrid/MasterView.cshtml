@@ -230,7 +230,11 @@
 
     <div id="splitter_panel2" class="splitter-panel-bottom">
 
-        <iframe id="fra_subgrid" name="fra_subgrid" frameborder="0" src="@Model.go2pid_url_in_iframe" scrolling="yes" style="width:100%;" onload="$('#splitter_panel2').css('background','none');"></iframe>
+        <iframe id="fra_subgrid" name="fra_subgrid" frameborder="0" data-src="@Model.go2pid_url_in_iframe" scrolling="yes" style="width:100%;" onload="$('#splitter_panel2').css('background','none');"></iframe>
+        <script type="text/javascript">
+            //telefon: MasterView jen jako grid – spodní panel se nenačítá (mv_layout); jinak src hned, ještě před RecTabs.init
+            if (!_device.isMobile) { const f = document.getElementById("fra_subgrid"); if (f.dataset.src) f.src = f.dataset.src; }
+        </script>
     </div>
 </div>
 @if (BL.Code.UserUI.GetLeftPanelValue(Model.prefix) > 0)
@@ -330,16 +334,8 @@
             $("#cmdMore").removeClass("is-open").attr("aria-expanded", "false");
         });
 
-        _splitter_init("1", _pageprefix);
-        var key = _pageprefix + "_panel1_size";
-        var defHeight = localStorage.getItem(key);
-        if (defHeight == null || Math.floor(defHeight)+200>_device.innerHeight)
-        {            
-            defHeight = Math.floor(_device.innerHeight / 2);
-            localStorage.setItem(key, defHeight);
-        }
-
-        _splitter_resize_after_init("1", defHeight);
+        mv_layout();       //jeden panel (telefon) / horní+spodní panel
+        _device_on_change(mv_layout);
 
 
 
@@ -348,7 +344,7 @@
 
         if (_tg_go2pid !== null && _tg_go2pid !== 0) {  //masterview potřebuje odscrollovat vybraný záznam. FlatView to nepotřebuje
             tg_go2pid(_tg_go2pid);
-            handle_render_tabs(_tg_go2pid);
+            if (!_mv_single) handle_render_tabs(_tg_go2pid);
         }
 
         if ($("#FilterMyInvolvement").val() != "") {
@@ -377,13 +373,51 @@
 
         }
 
-        tg_adjust_for_screen("splitter_panel1");
     });
 
+    //telefon (_device.isMobile): jen grid bez záložek a spodního panelu, klepnutí na řádek → stránka záznamu; jinak horní+spodní panel
+    var _mv_single = null;
+    var _mv_splitter_ready = false;
+    function mv_layout() {
+        const single = _device.isMobile;
+        if (single === _mv_single) return;
+        _mv_single = single;
+        document.body.classList.toggle("mv-single", single);
 
+        if (single) {
+            tg_adjust_for_screen();
+            return;
+        }
+
+        if (!_mv_splitter_ready) {
+            _mv_splitter_ready = true;
+            _splitter_init("1", _pageprefix);
+        }
+        var key = _pageprefix + "_panel1_size";
+        var defHeight = localStorage.getItem(key);
+        if (defHeight == null || Math.floor(defHeight)+200>_device.innerHeight)
+        {
+            defHeight = Math.floor(_device.innerHeight / 2);
+            localStorage.setItem(key, defHeight);
+        }
+        _splitter_resize_after_init("1", defHeight);
+
+        const f = document.getElementById("fra_subgrid");
+        if (f && !f.getAttribute("src")) {      //stránka se otevřela na telefonu a okno se rozšířilo: dočíst spodní panel
+            const pid = $("#cur_pid").val();
+            if (pid && pid != "0") RecTabs.select(pid); else if (f.dataset.src) f.src = f.dataset.src;
+        }
+        tg_adjust_for_screen("splitter_panel1");
+    }
+
+    function tg_phone_rowtap(tr) {      //volá thegrid.js (tg_phone_tap) jen na telefonu
+        _redirect("/Record/RecPage?prefix=" + _pageprefix + "&pid=" + tr.id.replace("r", ""));
+        return true;
+    }
 
     function thegrid_handle_rowselect(pid) {
         $("#cur_pid").val(pid);
+        if (_mv_single) return;     //telefon: spodní panel není
         RecTabs.select(pid);        //adresy záložek (pid / master_pid, rez), obsah aktivní záložky, počty
     }
 

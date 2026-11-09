@@ -85,7 +85,19 @@ const RecTabs = (() => {
         }
     }
 
+    //telefon: záložky jsou v jednom vodorovně posuvném řádku (site.css) – aktivní posunout do pohledu
+    function revealTab(a) {
+        if (!a || !window._device || !_device.isMobile) return;
+        const ul = a.closest("#navtabs");
+        if (!ul) return;
+        const li = a.closest("li") || a;
+        const l = li.offsetLeft, r = l + li.offsetWidth;
+        if (l < ul.scrollLeft) ul.scrollLeft = Math.max(0, l - 40);
+        else if (r > ul.scrollLeft + ul.clientWidth) ul.scrollLeft = r - ul.clientWidth + 40;
+    }
+
     function showTab(a) {
+        revealTab(a);
         const href = a.getAttribute("href");
         const key = keyOf(a);
         const cur = frame();
@@ -171,8 +183,7 @@ const RecTabs = (() => {
         if (!cfg.heightBox) return;
         const box = document.getElementById(cfg.heightBox);
         if (!box) return;
-        let h = window.innerHeight - box.getBoundingClientRect().top - window.scrollY;
-        if (window._device && _device.type === "Phone") h = 400;
+        let h = window.innerHeight - box.getBoundingClientRect().top - window.scrollY;     //i na telefonu do spodního okraje (dříve napevno 400 px)
         box.style.height = Math.max(parseInt(h), 150) + "px";
     }
 
@@ -201,6 +212,7 @@ const RecTabs = (() => {
                 if (f.getAttribute("src")) f.dataset.loadedOnce = "";
             }
             fitHeight();
+            revealTab(activeLink());
             let t = null;
             window.addEventListener("resize", () => { clearTimeout(t); t = setTimeout(fitHeight, 120); });
             updateHistory();

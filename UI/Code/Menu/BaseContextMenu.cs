@@ -54,14 +54,7 @@ namespace UI.Menu
             {
                 icon = get_menu_icon(prefix);
             }
-            if (device == "Phone")
-            {
-                return AMI(strName, $"/Record/RecPageMobile?prefix={prefix}&pid={pid}", icon, parentid, null, "_top",null,false);
-            }
-            else
-            {
-                return AMI(strName, $"/Record/RecPage?prefix={prefix}&pid={pid}", icon, parentid, null, "_top", strAfterName,false);
-            }
+            return AMI(strName, $"/Record/RecPage?prefix={prefix}&pid={pid}", icon, parentid, null, "_top", strAfterName,false);
 
         }
         public MenuItem AMI_RecGrid(string strName, string prefix, int pid, int rez = 0,bool bolTranslate=true)
@@ -72,11 +65,6 @@ namespace UI.Menu
                 s = $"/TheGrid/FlatView?prefix={prefix}&go2pid={pid}";
             }
 
-            if (this.device == "Phone")
-            {
-                s = $"/TheGrid/MobileView?prefix={prefix}&go2pid={pid}";
-            }
-
             if (rez > 0) s += "&rez=" + rez.ToString();
 
             return AMI(strName, s, "grid_view", null, null, "_top",null,bolTranslate);
@@ -84,10 +72,6 @@ namespace UI.Menu
 
         public void AMI_RowColor(string prefix, int pid)
         {
-            if (_f.CurrentUser.IsMobileDisplay())
-            {
-                return;
-            }
             AMI("Barva záznamu", null, "palette", null, "rowcolor");
 
             AMI("Zelená", $"javascript:_rowcolor('{prefix}','{pid}',1)", "filter_1", "rowcolor");

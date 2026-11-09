@@ -3,7 +3,7 @@
 
 @{
     Model.PageTitle = _f.tra("Administrace");
-    Layout = _f.CurrentUser.GetLayoutPerDisplay();
+    Layout = "~/Views/Shared/_Layout.cshtml";
 
     DateTime? _lastRobotRun = null;
     var recJ91 = _f.FBL.GetLastRobotRun(BO.j91RobotTaskFlag.End);

@@ -9,7 +9,7 @@
         Model.PageTitle += ": " + Model.entityTitle;
         _MenuTitle = Model.entityTitle;
     }
-    Layout = _f.CurrentUser.GetLayoutPerDisplay();
+    Layout = "~/Views/Shared/_Layout.cshtml";
     bool _isMobile = _f.CurrentUser.IsMobileDisplay();
 
 }

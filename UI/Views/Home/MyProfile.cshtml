@@ -3,7 +3,7 @@
 
 @{
     Model.PageTitle = _f.tra("Můj profil");
-    Layout = _f.CurrentUser.GetLayoutPerDisplay();
+    Layout = "~/Views/Shared/_Layout.cshtml";
 
     //údaje do hlavičky vždy z databáze (po POSTu má RecJ02 jen pole z formuláře)
     var _me = _f.j02UserBL.Load(_f.CurrentUser.pid) ?? Model.RecJ02;
@@ -145,15 +145,6 @@
                                 <option value="1">@_f.tra("Zapnuto")</option>
                             </select>
                             <small>@_f.tra("Zda prohlížeč nabízí dříve zadané hodnoty v polích formulářů.")</small>
-                        </div>
-                        <div class="mp-field nonmobile">
-                            <label for="RecJ02_j02ModalWindowsFlag">@_f.tra("Detekce mobilních zařízení")</label>
-                            <select asp-for="RecJ02.j02ModalWindowsFlag" class="form-select">
-                                <option value="Default">@_f.tra("Nechat rozhodnutí na systému")</option>
-                                <option value="FullScreen">@_f.tra("Nechat rozhodnutí na systému + okna na celou obrazovku")</option>
-                                <option value="KeepMobileUI">@_f.tra("Vždy mobilní rozhraní")</option>
-                                <option value="KeepDesktopUI">@_f.tra("Vždy desktop rozhraní")</option>
-                            </select>
                         </div>
                     </section>
                 </div>

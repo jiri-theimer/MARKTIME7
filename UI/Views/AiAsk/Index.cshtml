@@ -1,7 +1,7 @@
 ﻿@model UI.Models.AI.AiAskViewModel
 @inject BL.Factory _f
 @{
-    Layout = _f.CurrentUser.GetLayoutPerDisplay();
+    Layout = "~/Views/Shared/_Layout.cshtml";
 
     //příklady dotazů jen k datům, na která má uživatel oprávnění (moduly role)
     var _u = _f.CurrentUser;

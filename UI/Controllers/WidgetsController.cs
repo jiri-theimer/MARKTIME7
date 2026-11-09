@@ -110,16 +110,6 @@ namespace UI.Controllers
                 //úvodní spuštění: otestovat nastavení domovské stránky
 
                 
-                if (basUI.DetectIfMobileFromUserAgent(Request))
-                {
-                    string s = Factory.CBL.LoadUserParam("j02-homepageurl-mobile");
-                    if (!string.IsNullOrEmpty(s))
-                    {
-                        return Redirect(s);  //pryč na jinou stránku
-                    }
-                    
-                    return Redirect("/Home/Mobile");  //stránky pro mobilní zařízení
-                }
                 
                
 

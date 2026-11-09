@@ -22,14 +22,9 @@
     string _strBadgeHeader = null;
     bool _bolIsTree = false;
 
-    bool _bolIsMobile = _f.CurrentUser.IsMobileDisplay();
     string _strRecPage = "RecPage";
 
 
-    if (_bolIsMobile)
-    {
-        _strRecPage = "RecPageMobile";
-    }
 
     if (Model.Rec.p41TreePrev > 0 && Model.Rec.p41TreeNext > 0)
     {

@@ -27,6 +27,7 @@
     }
 
     bool _islivechat = (_f.CurrentUser.j02LiveChatTimestamp != null ? true : false);
+    bool _showMoHint = _f.CurrentUser.j04IsModule_p31 && UI.Code.basUI.DetectIfMobileFromUserAgent(Context.Request);   //verze 8: na mobilu nabídnout mobile.marktime.net pro vykazování
 
 }
 
@@ -127,6 +128,23 @@
 
 
 
+                </div>
+
+                @* úzké okno (< 992 px, telefon/tablet): místo rozbalovacího seznamu modulů jen rychlé ikony; moduly jsou v ☰ hlavním menu *@
+                <div class="mm-quick d-lg-none">
+                    @if (_f.CurrentUser.j04IsModule_p41 || _f.CurrentUser.j04IsModule_p28 || _f.CurrentUser.j04IsModule_p91)
+                    {
+                        <a class="nav-link" href="javascript:_mm_search_toggle()" title="@_f.tra("Najít")"><span class="material-icons-outlined-btn">search</span></a>
+                    }
+                    @if (_f.CurrentUser.j04IsModule_p41 || _f.CurrentUser.j04IsModule_p28 || _f.CurrentUser.j04IsModule_p56)
+                    {
+                        <a class="nav-link" tabindex="-1" role="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvas_newrecord" title="@_f.tra("Nový")"><span class="material-icons-outlined-btn">add_circle_outline</span></a>
+                    }
+                    @if (_ai.Options.Enabled)
+                    {
+                        <a class="nav-link" href="/AiAsk" title="@_f.tra("Zeptej se")"><span class="material-icons-outlined-btn">auto_awesome</span></a>
+                    }
+                    <a class="nav-link" tabindex="-1" role="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvas_myprofile" title="@_f.CurrentUser.SiteMenuPersonalName"><span class="material-icons-outlined-btn">person</span></a>
                 </div>
 
 
@@ -508,44 +526,6 @@
                     </ul>
 
                     <ul class="navbar-nav" style="margin-left:auto;">
-                        <li style="display:none;">
-                           
-
-                            <!-- Button trigger modal -->
-                            <a class="nav-link nomobile" data-bs-toggle="modal" data-bs-target="#exampleModal" title="Vyzkoušejte mobilní appku pro vykazování." href="#">
-                                <span class="material-icons-outlined-btn" style="color:orange;">smartphone</span>
-                            </a>
-
-                            <!-- Modal -->
-                            <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h1 class="modal-title fs-5" id="exampleModalLabel">Mobilní appka</h1>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                        </div>
-                                        <div class="modal-body">
-                                            <img src="/images/qr_mobile.png" />
-                                            <p>
-                                                Appka je zatím v testovací fázi na Google Play a brzy bude dostupná i přímo z Google Play.
-                                                <hr />
-                                                Je funkční přímo z prohlížeče (a vždy bude) přes url <a href="https://mobile.marktime.net" target="_blank">https://mobile.marktime.net</a>.
-                                                <br />
-                                                Vyzkoušejte a dejte nám vědět, co vylepšit.
-
-                                                <hr />
-                                                Appka je automaticky dostupná všem našim cloud uživatelům.
-                                                Instalace na serverech našich zákazníků je třeba řešit individuálně.
-                                            </p>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zavřít</button>
-                                            
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </li>
                         @if (_f.CurrentUser.j02LastReadNews_Timestamp == null)
                         {
                             <li class="nav-news" title="Novinky | Blog">
@@ -610,7 +590,29 @@
                 </div>
             </div>
         </nav>
+        <div id="mmSearchRow" class="mm-search-row d-lg-none" hidden></div>
     </header>
+
+    @if (_showMoHint)
+    {
+        <div id="divMoHint" class="mo-hint" hidden>
+            <span class="material-icons-outlined-nosize">smartphone</span>
+            <span class="mo-hint-text">@_f.tra("Pro vykazování úkonů na mobilu je pohodlnější") <a href="https://mobile.marktime.net" target="_blank" rel="noopener">mobile.marktime.net</a></span>
+            <button type="button" class="btn-close" aria-label="Zavřít" onclick="_mo_hint_close()"></button>
+        </div>
+        <script type="text/javascript">
+            (function () {
+                if (window.top !== window.self) return;     //ne uvnitř iframe
+                let off = null;
+                try { off = localStorage.getItem("mt-mo-hint-off"); } catch (e) { }
+                if (!off) document.getElementById("divMoHint").hidden = false;
+            })();
+            function _mo_hint_close() {
+                document.getElementById("divMoHint").hidden = true;
+                try { localStorage.setItem("mt-mo-hint-off", "1"); } catch (e) { }
+            }
+        </script>
+    }
 
     
     <div id="loading_container" class="loader_topleft" style="position:absolute;"></div>
@@ -632,11 +634,11 @@
                         <td>
                             <span id="myModalContentHeader"></span>
                         </td>
-                        <td style="width:30px;">
+                        <td class="nonmobile" style="width:30px;">
                             <a href="javascript:_window_toggle()"><span id="spanToggle" class="material-icons-outlined-btn" style="color:white;">crop_landscape</span></a>
                         </td>
                         <td style="width:30px;">
-                            <a href="javascript:_window_close()"><span class="material-icons-outlined-btn" style="color:white;">close</span></a>
+                            <a class="modal-close-right" href="javascript:_window_close()"><span class="material-icons-outlined-btn" style="color:white;">close</span></a>
                         </td>
                     </tr>
                 </table>
@@ -738,18 +740,6 @@
         var _modal = document.getElementById("myModalContainer");
         var _modal_current_layout = null;   //používá podformulář k otevírání modálního okna
         var _header_uschova = "";
-        var _j02_modal_window_flag = "@_f.CurrentUser.j02ModalWindowsFlag";
-        if (_j02_modal_window_flag == "KeepMobileUI")
-        {
-            _j02_modal_window_flag = "FullScreen";
-            _device.type = "Phone";
-            _device.isMobile = true;
-        }
-        if (_j02_modal_window_flag == "KeepDesktopUI") {
-            _j02_modal_window_flag = "FullScreen";
-            _device.type = "Desktop";
-            _device.isMobile = false;
-        }
 
 
         $(document).ready(function () {
@@ -1035,16 +1025,43 @@
 
 
 
+        //úzké okno (< 992 px): hledání se přesune z lišty modulů (skrytá) do řádku pod lištou
+        const _mm_narrow_mq = window.matchMedia("(max-width: 991.98px)");
+
         function _search_box_show() {
+            const box = document.getElementById("divSearchBox");
+            if (!box) return;
+            if (_mm_narrow_mq.matches) {
+                const row = document.getElementById("mmSearchRow");
+                row.appendChild(box);
+                row.hidden = false;
+            }
             $("#cmdSearchToggle").hide();
-            $("#divSearchBox").show();
+            $(box).show();
             document.getElementById("cmdCombomySearch1").focus();
         }
 
         function _search_box_hide() {
-            $("#divSearchBox").hide();
+            const box = document.getElementById("divSearchBox");
+            if (!box) return;
+            $(box).hide();
+            const row = document.getElementById("mmSearchRow");
+            if (row && box.parentElement === row) {
+                row.hidden = true;
+                $("#cmdSearchToggle").after(box);     //zpět do lišty modulů
+            }
             $("#cmdSearchToggle").show();
         }
+
+        function _mm_search_toggle() {
+            const row = document.getElementById("mmSearchRow");
+            if (row && !row.hidden) _search_box_hide(); else _search_box_show();
+        }
+
+        _mm_narrow_mq.addEventListener("change", function () {
+            const row = document.getElementById("mmSearchRow");
+            if (row && !row.hidden) _search_box_hide();     //okno se rozšířilo: hledání zpět do lišty
+        });
 
         function _window_open(url, flag, header, layout) {
             //flag=1: normální velikost, flag=2: maximalizovaná, flag=3: za každou cenu normální velikost
@@ -1054,8 +1071,8 @@
             _modal_current_layout = layout;
             if (typeof header === "undefined") header = "";
             if (typeof flag === "undefined") flag = 1;   //automaticky ne-maximalovazné okno
-            if (url != "" && _j02_modal_window_flag == "FullScreen" && flag != 3) {
-                flag = 2; //vždy maximalizovat modální okno
+            if (url != "" && _device.isMobile) {
+                flag = 2; //telefon: okno vždy na celou obrazovku
             }
 
             if (!$(_modal).attr("initialized") && flag !== 2) {

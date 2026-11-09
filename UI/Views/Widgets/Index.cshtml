@@ -3,7 +3,7 @@
 
 @{
     Model.PageTitle = (Model.RecX54 != null ? Model.RecX54.x54Name : "Dashboard");
-    Layout = _f.CurrentUser.GetLayoutPerDisplay();
+    Layout = "~/Views/Shared/_Layout.cshtml";
     bool _IsGrid = false;
     var _userIds = Model.lisUserWidgets.Select(p => p.pid).ToHashSet();
     var _skinNames = new Dictionary<string, string>() {

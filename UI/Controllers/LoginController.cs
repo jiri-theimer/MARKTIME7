@@ -215,11 +215,6 @@ namespace UI.Controllers
 
             if (returnurl == null || returnurl.Length < 3)
             {
-                if (basUI.DetectIfMobileFromUserAgent(Request))
-                {
-                    return Redirect("/Home/Mobile");  //stránky pro mobilní zařízení
-                }
-
                 return RedirectToAction("Index", "Home");
             }
             else
@@ -434,8 +429,6 @@ namespace UI.Controllers
             // Přesměrování po přihlášení
             if (string.IsNullOrEmpty(returnurl) || returnurl.Length < 3)
             {
-                if (basUI.DetectIfMobileFromUserAgent(Request))
-                    return Redirect("/Home/Mobile");
                 return RedirectToAction("Index", "Home");
             }
 

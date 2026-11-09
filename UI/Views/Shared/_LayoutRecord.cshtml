@@ -24,14 +24,7 @@
                 --oznaceno: @_f.CurrentUser.j02SkinSelColor;
             }
     </style>
-    @if (_f.CurrentUser.IsMobileDisplay())
-    {
-        <link rel="stylesheet" href="~/css/mobile.css" asp-append-version="true" />
-    }
-    else
-    {
-        <link rel="stylesheet" href="~/css/@_f.CurrentUser.getFontSizeCss()" />
-    }
+    <link rel="stylesheet" href="~/css/@_f.CurrentUser.getFontSizeCss()" />
     
     
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />

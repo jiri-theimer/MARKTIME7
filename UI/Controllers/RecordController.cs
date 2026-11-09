@@ -285,81 +285,6 @@ namespace UI.Controllers
             return View(v);
 
         }
-        public IActionResult RecPageMobile(string prefix, int pid, string tab, string rez)
-        {
-            var v = new RecPageViewModel() { Factory = this.Factory, pid = pid, prefix = prefix, DefTab = tab };
-            if (v.pid == 0)
-            {
-                v.pid = v.LoadLastUsedPid(v.prefix, null);
-            }
-            if (v.pid == 0)
-            {
-                v.NavTabs = new List<NavTab>();
-                return View(v); //prázdná stránka
-            }
-
-            switch (v.prefix)
-            {
-                case "o23":
-                    var permO23 = Factory.o23DocBL.InhaleRecDisposition(v.pid, null);
-                    if (!permO23.ReadAccess)
-                    {
-                        return this.StopPage(false, "Nemáte oprávnění číst tento dokument.");
-                    }                    
-                    break;
-                case "p28":
-                    var permP28 = Factory.p28ContactBL.InhaleRecDisposition(v.pid, null);
-                    if (!permP28.ReadAccess)
-                    {
-                        return this.StopPage(false, "Nemáte oprávnění číst tento kontakt.");
-                    }                   
-                    break;
-                case "p41":
-                case "le5":
-                case "le4":
-                case "le3":
-                case "le2":
-                case "le1":
-                    if (v.pid > 0)
-                    {
-                        var permP41 = Factory.p41ProjectBL.InhaleRecDisposition(v.pid, null);
-                        if (!permP41.ReadAccess)
-                        {
-                            return this.StopPage(false, "Nemáte oprávnění číst tento projekt.");
-                        }                        
-                    }
-                    break;
-                case "p91":
-                    var permP91 = Factory.p91InvoiceBL.InhaleRecDisposition(v.pid, null);
-                    if (!permP91.ReadAccess)
-                    {
-                        return this.StopPage(false, "Nemáte oprávnění číst toto vyúčtování.");
-                    }                    
-                    break;
-
-            }
-            
-            v.MenuCode = Factory.CBL.GetObjectAlias(BO.Code.Entity.GetPrefixDb(v.prefix), v.pid);
-            if (v.MenuCode == null)
-            {
-                
-                this.Notify_RecNotFound();
-                v.pid = 0;
-            }
-            else
-            {
-                
-                
-                Factory.CBL.SaveLastCallingRecPid(v.prefix, v.pid, "recpage", true, true, rez);  //uložit info o naposledy navštíveném záznamu, kvůli le1-le4 pracujeme s původním prefixem
-
-                RefreshState_RecPage(v);
-
-            }
-
-            
-
-            return View(v);
-        }
 
         public IActionResult RecPageTree(string prefix, int pid, string tab, string rez, string myqueryinline)
         {
@@ -386,10 +311,6 @@ namespace UI.Controllers
             {
                 
                 prefix = "o23";
-            }
-            if (Factory.CurrentUser.IsMobileDisplay())
-            {
-                return RedirectToAction("RecPageMobile", new { prefix = prefix, pid = pid, tab = tab, rez = rez }); //mobilní zařízení
             }
             var v = new RecPageViewModel() { Factory = this.Factory, pid = pid, prefix = prefix,DefTab=tab,rez=rez };
             

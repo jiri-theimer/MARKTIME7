@@ -9,12 +9,7 @@
     var _lisO24 = _f.o24ReminderBL.GetList("p28", Model.pid);
     IEnumerable<BO.b05Workflow_History> _lisB05 = _f.WorkflowBL.GetList_b05("p28", Model.pid, 0, 0, 0).Where(p => BO.Code.Bas.bit_compare_or(p.b05Tab1Flag, 2) == true);
 
-    bool _bolIsMobile = _f.CurrentUser.IsMobileDisplay();
     string _strRecPage = "RecPage";
-    if (_bolIsMobile)
-    {
-        _strRecPage = "RecPageMobile";
-    }
 
     var _lisO32 = _f.p28ContactBL.GetList_o32(Model.pid, 0,0);
 

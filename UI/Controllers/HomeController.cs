@@ -29,18 +29,6 @@ namespace UI.Controllers
             if (HttpContext.Request.Path.Value.Length <= 5)
             {
                 //úvodní spuštění: otestovat nastavení domovské stránky
-                if (basUI.DetectIfMobileFromUserAgent(Request))
-                {
-                    string s = Factory.CBL.LoadUserParam("j02-homepageurl-mobile");
-                    if (!string.IsNullOrEmpty(s))
-                    {
-                        return Redirect(s);  //pryč na jinou stránku
-                    }
-                    return Redirect("/Home/Mobile");  //stránky pro mobilní zařízení
-                }
-
-                
-
                 if (!string.IsNullOrEmpty(Factory.CurrentUser.j02HomePageUrl))
                 {
 
@@ -56,15 +44,7 @@ namespace UI.Controllers
             
             return View(new BaseViewModel());
         }
-        
-        [Route("[controller]/[action]")]
-        [Route("mobile")]
-        public IActionResult Mobile()
-        {
-            
 
-            return View(new BaseViewModel());
-        }
 
         public IActionResult About()
         {
@@ -260,7 +240,6 @@ namespace UI.Controllers
                 c.j02Email = v.RecJ02.j02Email;
                 c.j02Mobile = v.RecJ02.j02Mobile;
                 c.j02EmailSignature = v.RecJ02.j02EmailSignature;
-                c.j02ModalWindowsFlag = (BO.j02ModalWindowsFlagENUM)v.RecJ02.j02ModalWindowsFlag;
                 
                 c.j02SkinBackColor = v.RecJ02.j02SkinBackColor;
                 c.j02SkinForeColor = v.RecJ02.j02SkinForeColor;
@@ -424,7 +403,7 @@ namespace UI.Controllers
             }
         }
 
-        public BO.Result SaveCurrentUserHomePage(string homepageurl,string device)
+        public BO.Result SaveCurrentUserHomePage(string homepageurl)
         {
             
             if (!String.IsNullOrEmpty(homepageurl))
@@ -450,17 +429,9 @@ namespace UI.Controllers
                 //vyčištění homepage stránky
             }
             
-            if (device == "Phone")
-            {
-                Factory.CBL.SetUserParam("j02-homepageurl-mobile",homepageurl); //mobilní homepage se ukládá do userparams
-            }
-            else
-            {
-                
-                var c = Factory.j02UserBL.Load(Factory.CurrentUser.pid);
-                c.j02HomePageUrl = homepageurl;
-                Factory.j02UserBL.Save(c, null);
-            }
+            var c = Factory.j02UserBL.Load(Factory.CurrentUser.pid);
+            c.j02HomePageUrl = homepageurl;
+            Factory.j02UserBL.Save(c, null);
             
             return new BO.Result(false);
         }
@@ -526,13 +497,6 @@ namespace UI.Controllers
 
             var c = Factory.j02UserBL.Load(Factory.CurrentUser.pid);
             c.j02GridCssBitStream = x;
-            Factory.j02UserBL.Save(c, null);
-            return new BO.Result(false);
-        }
-        public BO.Result SaveCurrentUserModalWindowsFlag(int flag)
-        {
-            var c = Factory.j02UserBL.Load(Factory.CurrentUser.pid);
-            c.j02ModalWindowsFlag = (BO.j02ModalWindowsFlagENUM) flag;
             Factory.j02UserBL.Save(c, null);
             return new BO.Result(false);
         }

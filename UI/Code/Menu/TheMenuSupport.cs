@@ -133,10 +133,6 @@ namespace UI.Menu
         public string FlushResult_UL(List<MenuItem> menuitems, bool bolSupportIcons, bool bolRenderUlContainer, string source = null,string device=null)
         {
             var sb = new System.Text.StringBuilder();
-            if (menuitems.Count()>19 && device == "Phone")
-            {
-                sb.Append($"<button class='btn cog' style='width:90%;text-align:center;' type='button'><span class='material-icons-outlined-btn'>close</span>Zavřít</button>");
-            }
             if (bolRenderUlContainer)
             {
                 sb.AppendLine("<ul class='cm_menu' style='border:0px;'>");
@@ -312,10 +308,6 @@ namespace UI.Menu
             if (bolRenderUlContainer)
             {
                 sb.Append("</ul>");
-            }
-            if (device == "Phone")
-            {
-                sb.Append($"<hr><button class='btn cog' style='width:90%;text-align:center;' type='button'><span class='material-icons-outlined-btn'>close</span>Zavřít</button>");
             }
             return sb.ToString();
         }

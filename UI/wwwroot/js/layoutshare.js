@@ -258,11 +258,7 @@ function _recpage_from_grid(prefix) {       //přejít na stránku záznamu vybr
         _notify_message("Musíte vybrat záznam v Přehledu.", "error");
         return;
     }
-    if (_device == "Phone") {
-        location.href = "/Record/RecPageMobile?prefix=" + prefix + "&pid=" + pid;
-    } else {
-        location.href = "/Record/RecPage?prefix=" + prefix + "&pid=" + pid;
-    }
+    location.href = "/Record/RecPage?prefix=" + prefix + "&pid=" + pid;
     
     
 }
@@ -467,12 +463,7 @@ function _handle_mywrk_mouseover(td)
         var prefix = $("#cmdWrkRecPage").attr("data-prefix");
         var pid = $("#cmdWrkRecPage").attr("data-pid");
         
-        if (_device == "Phone") {
-            $("#cmdWrkRecPage").attr("href", "/Record/RecPageMobile?prefix=" + prefix + "&pid=" + pid);
-        } else
-        {
-            $("#cmdWrkRecPage").attr("href", "/Record/RecPage?prefix=" + prefix + "&pid=" + pid);
-        }
+        $("#cmdWrkRecPage").attr("href", "/Record/RecPage?prefix=" + prefix + "&pid=" + pid);
         $("#cmdWrkRecPage").css("visibility", "visible");
         
         
@@ -509,14 +500,7 @@ function _copy_recpage_to_clipboard(prefix, pid)
 {
     var s = window.location.origin;
 
-    if (_device == "Phone")
-    {
-        s = s + "/Record/RecPageMobile?prefix=" + prefix + "&pid=" + pid;
-    }
-    else
-    {
-        s=s+"/Record/RecPage?prefix=" + prefix + "&pid=" + pid;
-    }
+    s = s + "/Record/RecPage?prefix=" + prefix + "&pid=" + pid;
 
 
     navigator.clipboard.writeText(s).then(() => {
@@ -586,13 +570,6 @@ function _search1_on_change(pid, prefix) {
        
         return;
     }
-    if (_device.isMobile) {
-        
-        location.href = "/Record/RecPageMobile?prefix=" + prefix + "&pid=" + pid;
-    }
-    else
-    {
-        location.href = "/Record/RecPage?prefix=" + prefix + "&pid=" + pid;
-    }
+    location.href = "/Record/RecPage?prefix=" + prefix + "&pid=" + pid;
     
 }

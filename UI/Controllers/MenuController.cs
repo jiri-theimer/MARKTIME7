@@ -80,7 +80,6 @@ namespace UI.Controllers
 
         public string ContextMenu(string entity, int pid,string source,string master_entity,string period,string device)
         {
-            if (Factory.CurrentUser.IsMobileDisplay()) device = "Phone";
             if (device == "Phone")
             {
                 _menusup.IsMobile = true;

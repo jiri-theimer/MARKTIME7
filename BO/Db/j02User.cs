@@ -16,8 +16,7 @@ namespace BO
     {
         Default = 1,
         FullScreen = 2,
-        KeepMobileUI=3,
-        KeepDesktopUI=4
+        //verze 8: sloupec j02ModalWindowsFlag se v UI už nečte (volba „Detekce mobilních zařízení“ zrušena), zůstává jen kvůli ukládání do DB
     }
     public enum j02TwoFactorVerifyFlagENUM
     {

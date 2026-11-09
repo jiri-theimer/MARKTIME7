@@ -1,19 +1,32 @@
-﻿//na úvod detekce mobilního zařízení přes _device
+﻿//detekce telefonu přes _device – podle aktuální velikosti HLAVNÍHO okna (ne obrazovky, ne iframe), přepočítává se při každém čtení
+//telefon = šířka okna < 768 px (Bootstrap md), nebo dotykové zařízení s výškou < 500 px (telefon na šířku); stejný dotaz používá CSS (.nonmobile, .mobileonly)
+var _DEVICE_PHONE_MQ = "(max-width: 767.98px), (pointer: coarse) and (max-height: 499.98px)";
 var _device = {
-    isMobile: false,
-    type: "Desktop",
-    availHeight: screen.availHeight,
-    availWidth: screen.availWidth,
-    innerWidth: window.innerWidth,
-    innerHeight: window.innerHeight
-}
+    get isMobile() {
+        let w = window;
+        try { if (window.top && window.top.matchMedia) w = window.top; } catch (e) { }  //iframe: rozhoduje hlavní okno
+        return w.matchMedia(_DEVICE_PHONE_MQ).matches;
+    },
+    get type() { return this.isMobile ? "Phone" : "Desktop"; },
+    get innerWidth() { return window.innerWidth; },     //rozměry vlastního okna (v iframe = iframe)
+    get innerHeight() { return window.innerHeight; },
+    get availWidth() { return screen.availWidth; },
+    get availHeight() { return screen.availHeight; }
+};
 
-if (screen.availHeight > screen.availWidth || screen.availWidth < 800 || screen.availHeight < 500) {   //mobilní zařízení výšku vyšší než šířku
-    _device.isMobile = true;
-    _device.type = "Phone";
-    
-
+//třída mt-phone na <html> pro CSS (.nonmobile, .mobileonly) – stejně jako _device rozhoduje hlavní okno, takže úzký iframe na desktopu se za telefon nepovažuje
+function _device_apply_css_class() {
+    document.documentElement.classList.toggle("mt-phone", _device.isMobile);
 }
+function _device_on_change(fn) {     //zavolat fn při přepnutí telefon ↔ desktop (změna šířky hlavního okna, otočení)
+    let w = window;
+    try { if (window.top && window.top.matchMedia) w = window.top; } catch (e) { }
+    const mq = w.matchMedia(_DEVICE_PHONE_MQ);
+    if (mq.addEventListener) mq.addEventListener("change", fn);
+    else if (mq.addListener) mq.addListener(fn);
+}
+_device_apply_css_class();
+_device_on_change(_device_apply_css_class);
 
 
 document.onkeydown = function (e) {
@@ -640,8 +653,7 @@ function _init_elements_for_mobile()
         $("#form1").css("overflow-x", "hidden");
     }
 
-    $(".div-over-table-scrolling").css("width", _device.availWidth);
-    $(".div-over-table-scrolling").css("overflow", "scroll");
+    //.div-over-table-scrolling: šířku a posuv řeší CSS (site.css, @media telefon)
     
 }
 
@@ -927,9 +939,6 @@ function _resize_iframe_onpage(iframe_id) {
     var offset = $("#" + iframe_id).offset();
     var remain_height = _device.innerHeight - offset.top;
     remain_height = parseInt(remain_height) - 20;
-    if (_device.type === "Phone") {
-        h_vertical = 400;
-    }
     if (remain_height < 100)
     {
         remain_height = 100;
