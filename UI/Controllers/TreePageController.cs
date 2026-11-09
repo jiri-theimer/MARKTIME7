@@ -1,6 +1,4 @@
-﻿using Markdig.Extensions.Alerts;
-using Microsoft.AspNetCore.Mvc;
-using SQLitePCL;
+﻿using Microsoft.AspNetCore.Mvc;
 using UI.Models;
 
 namespace UI.Controllers
@@ -107,8 +105,7 @@ namespace UI.Controllers
 
             if (v.periodinput.PeriodValue > 0)
             {
-                mq.period_field = v.periodinput.PeriodField;
-                mq.period_field = "p31Date";
+                mq.period_field = "p31Date";   //strom: projekty s úkony v období (v liště to říká tooltip)
                 mq.global_d1 = v.periodinput.d1;
                 mq.global_d2 = v.periodinput.d2;
 
@@ -136,289 +133,83 @@ namespace UI.Controllers
                 mq.explicit_orderby = "a.p41NameShort,a.p41Name";
             }
 
-            var lisP41 = Factory.p41ProjectBL.GetList(mq);   //.OrderBy(p => p.p41TreeIndex);
+            var lisP41 = Factory.p41ProjectBL.GetList(mq).ToList();
 
 
             var lisflat = new List<UI.Models.Asi.TreeNode>();
-            lisflat.Add(new UI.Models.Asi.TreeNode() { Id = 999999, IdParent = 0, Name = "-----------------" });
-
             v.TabName = Factory.tra("Strom");
-
 
             switch (v.groupby)
             {
-                case "p41":
-                    v.TabName = $"{v.TabName}:{Factory.tra("Projekty")}";
-                    foreach (var c in lisP41)
-                    {
-                        if (c.p41ParentID == 0 && c.p41TreeNext == c.p41TreePrev)
-                        {
-                            lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = 999999, Name = GetBrachName(c, v), Prefix = "p41" });
-                        }
-                        else
-                        {
-                            lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = c.p41ParentID, Name = GetBrachName(c, v), Prefix = "p41" });
-                        }
-
-                    }
+                case "p28":
+                    v.TabName = $"{v.TabName}: {Factory.tra("Klient->Projekt")}";
+                    AddGrouped(lisflat, lisP41, "p28", p => p.p28ID_Client, p => p.Client, Factory.tra("Bez klienta"), p => p.PrefferedName, null);
                     break;
                 case "j18":
-                    v.TabName = $"{v.TabName}:{Factory.tra("Středisko->Projekt")}";
-
-                    var lisJ18 = lisP41.Select(p => new { p.j18ID, p.j18Name, p.j18Ordinary }).Distinct().OrderBy(p => p.j18Ordinary);
-
-                    foreach (var rec in lisJ18)
-                    {
-                        bool bolStredisko = true;
-                        if (rec.j18ID > 0)
-                        {
-                            var recJ18 = Factory.j18CostUnitBL.Load(rec.j18ID);
-                            if (!recJ18.isclosed)
-                            {
-                                lisflat.Add(new UI.Models.Asi.TreeNode() { Id = -1 * rec.j18ID, IdParent = 0, Name = rec.j18Name, Prefix = "j18" });
-                                bolStredisko = true;
-                            }
-                            else
-                            {
-                                bolStredisko = false;
-                            }
-
-                        }
-                        if (bolStredisko)
-                        {
-                            var qryP41 = lisP41.Where(p => p.j18ID == rec.j18ID);
-                            foreach (var c in qryP41)
-                            {
-
-                                if (c.p41ParentID == 0 && c.p41TreeNext == c.p41TreePrev)
-                                {
-                                    if (c.j18ID == 0)
-                                    {
-                                        lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = 999999, Name = GetBrachName(c, v) });
-                                    }
-                                    else
-                                    {
-                                        lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = -1 * c.j18ID, Name = GetBrachName(c, v) });
-                                    }
-
-
-                                }
-                                else
-                                {
-                                    var recParent = lisP41.FirstOrDefault(p => p.pid == c.p41ParentID && p.j18ID == rec.j18ID);
-                                    if (recParent != null)
-                                    {
-                                        lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = c.p41ParentID, Name = GetBrachName(c, v) });
-                                    }
-                                    else
-                                    {
-                                        if (c.j18ID == 0)
-                                        {
-                                            lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = 999999, Name = GetBrachName(c, v) });
-                                        }
-                                        else
-                                        {
-                                            lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = -1 * c.j18ID, Name = GetBrachName(c, v) });
-                                        }
-
-                                    }
-
-                                }
-
-
-
-                            }
-                        }
-
-                    }
-
+                    //i projekty archivovaných (uzavřených) středisek – nesmí ze stromu zmizet
+                    v.TabName = $"{v.TabName}: {Factory.tra("Středisko->Projekt")}";
+                    AddGrouped(lisflat, lisP41, "j18", p => p.j18ID, p => p.j18Name, Factory.tra("Bez střediska"), p => GetBrachName(p, v), p => p.j18Ordinary);
                     break;
                 case "p42":
-                    v.TabName = $"{v.TabName}:{Factory.tra("Typ projektu->Projekt")}";
-                    var lisP42 = lisP41.Select(p => new { p.p42ID, p.p42Name }).Distinct();
-                    foreach (var rec in lisP42)
-                    {
-                        if (rec.p42ID > 0)
-                        {
-                            lisflat.Add(new UI.Models.Asi.TreeNode() { Id = -1 * rec.p42ID, IdParent = 0, Name = rec.p42Name, Prefix = "p42" });
-                        }
-
-                        var qryP41 = lisP41.Where(p => p.p42ID == rec.p42ID);
-                        foreach (var c in qryP41)
-                        {
-
-
-
-                            if (c.p41ParentID == 0 && c.p41TreeNext == c.p41TreePrev)
-                            {
-                                if (c.p42ID == 0)
-                                {
-                                    lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = 999999, Name = GetBrachName(c, v) });
-                                }
-                                else
-                                {
-                                    lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = -1 * c.p42ID, Name = GetBrachName(c, v) });
-                                }
-                                
-                            }
-                            else
-                            {
-                                var recParent = lisP41.FirstOrDefault(p => p.pid == c.p41ParentID && p.p42ID == rec.p42ID);
-                                if (recParent != null)
-                                {
-                                    lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = c.p41ParentID, Name = GetBrachName(c, v) });
-                                }
-                                else
-                                {
-                                    if (c.p42ID == 0)
-                                    {
-                                        lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = 999999, Name = GetBrachName(c, v) });
-                                    }
-                                    else
-                                    {
-                                        lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = -1 * c.p42ID, Name = GetBrachName(c, v) });
-                                    }
-                                    
-                                }
-
-                            }
-
-
-
-
-                        }
-                    }
-
+                    v.TabName = $"{v.TabName}: {Factory.tra("Typ projektu->Projekt")}";
+                    AddGrouped(lisflat, lisP41, "p42", p => p.p42ID, p => p.p42Name, Factory.tra("Bez typu"), p => GetBrachName(p, v), null);
                     break;
                 case "p51":
-                    v.TabName = $"{v.TabName}:{Factory.tra("Ceník sazeb->Projekt")}";
-                    var lisP51 = lisP41.Select(p => new { p.p51ID_Billing, p.p51Name_Billing }).Distinct();
-                    foreach (var rec in lisP51)
-                    {
-                        if (rec.p51ID_Billing > 0)
-                        {
-                            lisflat.Add(new UI.Models.Asi.TreeNode() { Id = -1 * rec.p51ID_Billing, IdParent = 0, Name = rec.p51Name_Billing, Prefix = "p51" });
-                        }
-
-                        var qryP41 = lisP41.Where(p => p.p51ID_Billing == rec.p51ID_Billing);
-                        foreach (var c in qryP41)
-                        {
-
-                            if (c.p41ParentID == 0 && c.p41TreeNext == c.p41TreePrev)
-                            {
-                                if (c.p51ID_Billing == 0)
-                                {
-                                    lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = 999999, Name = GetBrachName(c, v) });
-                                }
-                                else
-                                {
-                                    lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = -1 * c.p51ID_Billing, Name = GetBrachName(c, v) });
-                                }
-                                
-                            }
-                            else
-                            {
-                                var recParent = lisP41.FirstOrDefault(p => p.pid == c.p41ParentID && p.p51ID_Billing == rec.p51ID_Billing);
-                                if (recParent != null)
-                                {
-                                    lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = c.p41ParentID, Name = GetBrachName(c, v) });
-                                }
-                                else
-                                {
-                                    if (c.p51ID_Billing == 0)
-                                    {
-                                        lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = 999999, Name = GetBrachName(c, v) });
-                                    }
-                                    else
-                                    {
-                                        lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = -1 * c.p51ID_Billing, Name = GetBrachName(c, v) });
-                                    }
-                                    
-                                }
-
-                            }
-
-
-
-
-                           
-
-
-
-                        }
-                    }
-
+                    v.TabName = $"{v.TabName}: {Factory.tra("Ceník sazeb->Projekt")}";
+                    AddGrouped(lisflat, lisP41, "p51", p => p.p51ID_Billing, p => p.p51Name_Billing, Factory.tra("Bez ceníku"), p => GetBrachName(p, v), null);
                     break;
-
-
-
-                case "p28":
-                    v.TabName = $"{v.TabName}:{Factory.tra("Klient->Projekt")}";
-                    var lisP28 = lisP41.Select(p => new { p.p28ID_Client, p.Client }).Distinct();
-
-
-                    foreach (var recP28 in lisP28)
+                default:    //p41 – strom projektů
+                    v.groupby = "p41";
+                    v.TabName = $"{v.TabName}: {Factory.tra("Projekty")}";
+                    //projekty bez viditelných podřízených (a podřízené, jejichž nadřízený je odfiltrovaný) jsou pohromadě ve skupině na začátku
+                    lisflat.Add(new UI.Models.Asi.TreeNode() { Id = NoneGroupId, IdParent = 0, Name = Factory.tra("Samostatné projekty"), Prefix = "none" });
+                    var ids = lisP41.Select(p => p.pid).ToHashSet();
+                    var parentsWithVisibleChildren = lisP41.Where(p => p.p41ParentID > 0 && ids.Contains(p.p41ParentID)).Select(p => p.p41ParentID).ToHashSet();
+                    foreach (var c in lisP41)
                     {
-                        if (recP28.p28ID_Client > 0)
-                        {
-                            var n = new UI.Models.Asi.TreeNode() { Id = -1 * recP28.p28ID_Client, IdParent = 0, Name = recP28.Client, Prefix = "p28" };
-                            //n.Url = $"/Record/RecPage?prefix=p28&pid={recP28.p28ID_Client}";
-                            lisflat.Add(n);
-                        }
-
-                        var qryP41 = lisP41.Where(p => p.p28ID_Client == recP28.p28ID_Client);
-                        foreach (var c in qryP41)
-                        {
-                                                       
-                            if (c.p41ParentID == 0 && c.p41TreeNext == c.p41TreePrev)
-                            {
-                                if (c.p28ID_Client == 0)
-                                {
-                                    lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = 999999, Name = c.PrefferedName });
-                                }
-                                else
-                                {
-                                    lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = -1 * c.p28ID_Client, Name = c.PrefferedName });
-                                }
-                                
-                            }
-                            else
-                            {
-                                var recParent = lisP41.FirstOrDefault(p => p.pid == c.p41ParentID && p.p28ID_Client == recP28.p28ID_Client);
-                                if (recParent != null)
-                                {
-                                    lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = c.p41ParentID, Name = c.PrefferedName });
-                                }
-                                else
-                                {
-                                    if (c.p28ID_Client == 0)
-                                    {
-                                        lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = 999999, Name = c.PrefferedName });
-                                    }
-                                    else
-                                    {
-                                        lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = -1 * c.p28ID_Client, Name = c.PrefferedName });
-                                    }
-                                    
-                                }
-
-                            }
-
-                        }
+                        int idParent;
+                        if (c.p41ParentID > 0 && ids.Contains(c.p41ParentID)) idParent = c.p41ParentID;
+                        else if (parentsWithVisibleChildren.Contains(c.pid)) idParent = 0;
+                        else idParent = NoneGroupId;
+                        lisflat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = idParent, Name = GetBrachName(c, v), Prefix = "p41" });
                     }
-
                     break;
             }
-            if (!lisflat.Any(p => p.IdParent == 999999))
+
+            if (!lisflat.Any(p => p.IdParent == NoneGroupId))
             {
-                lisflat.RemoveAll(p => p.Id == 999999);
+                lisflat.RemoveAll(p => p.Id == NoneGroupId);
             }
-
-
-
 
             v.lisTreeNodes = UI.Code.basTree.BuildTree(lisflat);
+        }
 
+        /// <summary>Id uzlu skupiny „Bez klienta / Bez střediska / Samostatné projekty“ (nekoliduje s pid projektu ani se zápornými id skupin).</summary>
+        private const int NoneGroupId = int.MinValue;
+
+        /// <summary>
+        /// Strom Skupina → Projekt (klient, středisko, typ, ceník). Podřízený projekt visí pod nadřízeným, pokud je nadřízený ve stejné skupině
+        /// a prošel filtrem; jinak přímo pod skupinou. Projekty bez skupiny (id 0) jdou do skupiny „Bez …“ na konci.
+        /// </summary>
+        private void AddGrouped(List<UI.Models.Asi.TreeNode> flat, List<BO.p41Project> lisP41, string prefix,
+            Func<BO.p41Project, int> groupId, Func<BO.p41Project, string> groupName, string noneName,
+            Func<BO.p41Project, string> projectName, Func<BO.p41Project, int> groupOrder)
+        {
+            var groups = lisP41.GroupBy(groupId).Select(g => new { Id = g.Key, Name = groupName(g.First()), Order = groupOrder == null ? 0 : groupOrder(g.First()), Items = g.ToList() });
+            groups = groups.OrderBy(g => g.Id == 0 ? 1 : 0).ThenBy(g => g.Order).ThenBy(g => g.Name, StringComparer.CurrentCultureIgnoreCase).ToList();
+
+            foreach (var g in groups)
+            {
+                int groupNodeId = g.Id > 0 ? -1 * g.Id : NoneGroupId;
+                flat.Add(new UI.Models.Asi.TreeNode() { Id = groupNodeId, IdParent = 0, Name = g.Id > 0 ? g.Name : noneName, Prefix = g.Id > 0 ? prefix : "none" });
+
+                var ids = g.Items.Select(p => p.pid).ToHashSet();
+                foreach (var c in g.Items)
+                {
+                    int idParent = (c.p41ParentID > 0 && ids.Contains(c.p41ParentID)) ? c.p41ParentID : groupNodeId;
+                    flat.Add(new UI.Models.Asi.TreeNode() { Id = c.pid, IdParent = idParent, Name = projectName(c), Prefix = "p41" });
+                }
+            }
         }
 
 

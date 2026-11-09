@@ -210,7 +210,7 @@
             @foreach (var tab in Model.NavTabs)
             {
                 <li class="nav-item onetab">
-                    <a class="@tab.CssClass" id="@tab.ClientID" href="@tab.Url" target="fra_subgrid" onclick="tabclick(this)" title="@(tab.Tooltip)">
+                    <a class="@tab.CssClass" id="@tab.ClientID" href="@tab.Url" target="fra_subgrid" onclick="return tabclick(this)" title="@(tab.Tooltip)">
                         @{
                             @Html.Raw(tab.Name)
                             if (tab.Badge != null)
@@ -280,6 +280,7 @@
 <input type="hidden" id="cur_pid" asp-for="@Model.gridinput.go2pid" />
 
 
+<script src="~/js/recpage.js" asp-append-version="true"></script>
 <script type="text/javascript">
     let _offcanvasIsLoaded = false;
     var _pageprefix = "@Model.prefix";
@@ -291,6 +292,13 @@
 
 
     $(document).ready(function () {
+        //záložky: adresy, počty, skryté načtené záložky, go2pid v adrese prohlížeče (wwwroot/js/recpage.js); výšku řídí splitter
+        RecTabs.init({
+            tabsPrefix: _pageprefix, pid: "@(Model.gridinput != null ? Model.gridinput.go2pid : 0)",
+            tabParamKey: "masterview-tab-" + _pageprefix,
+            extraParams: _rez != "" ? { rez: _rez } : null,
+            history: { pid: "go2pid", tab: null }
+        });
 
 
         $("#offcanvas_more").on("show.bs.offcanvas", function () {
@@ -375,92 +383,15 @@
 
 
     function thegrid_handle_rowselect(pid) {
-
         $("#cur_pid").val(pid);
-
-        var tabUrl = "";
-
-        @foreach (var tab in Model.NavTabs)
-        {
-
-                        <text>
-                                tabUrl = $("#tab@(@tab.Entity)").attr("href");
-
-                            if (tabUrl.indexOf("master_pid=") > 0) {
-                                tabUrl = _removeUrlParam("master_pid", tabUrl);
-                                tabUrl = tabUrl + "&master_pid=" + pid;
-                            } else {
-                                if (tabUrl.indexOf("pid=") > 0) {
-                                    tabUrl = _removeUrlParam("pid", tabUrl);
-                                    if (tabUrl.indexOf("?") > 0) {
-                                        tabUrl = tabUrl + "&pid=" + pid;
-                                    } else {
-                                        tabUrl = tabUrl + "?pid=" + pid;
-                                    }
-                                }
-                            }
-
-                            if (_rez != "") tabUrl = tabUrl + "&rez=" + _rez;
-
-                            $("#tab@(@tab.Entity)").attr("href", tabUrl);
-                        </text>
-        }
-
-                    var selectedtab = $("#navtabs").find(".active");
-        tabUrl = $(selectedtab).attr("href");
-
-        document.getElementById("fra_subgrid").src = tabUrl;
-
-        handle_render_tabs(pid);
-
-
+        RecTabs.select(pid);        //adresy záložek (pid / master_pid, rez), obsah aktivní záložky, počty
     }
 
-    function handle_render_tabs(pid) {
-        //Aktualizovat záložky
-        if (_currentloadingtabs) {
-            $("#tabtab1").html("Load...");
-        } else {
-            _currentloadingtabs = true;
+    function handle_render_tabs(pid) { RecTabs.renderBadges(pid); }     //zpětná kompatibilita
+    function callback_render_tabs(data) { RecTabs.applyBadges(data); }
 
-            $.post("/TheGrid/getTabs", { prefix: _pageprefix, pid: pid }, function (data) {
-                callback_render_tabs(data);
-
-            });
-            //_load_ajax_async("/TheGrid/getTabs", { prefix: _pageprefix, pid: pid }, callback_render_tabs);
-        }
-    }
-
-    function callback_render_tabs(data) {
-        //vykreslení obsahu záložek načtených přes load_ajax_async
-        _currentloadingtabs = false;
-        $("#tabtab1").html(data[0].name);
-        for (var i = 1; i < data.length; i++) {
-            if (document.getElementById("tab" + data[i].entity)) {
-                if (data[i].badge != null) {
-                    $("#tab" + data[i].entity).html(data[i].name + data[i].badge);
-                } else {
-                    $("#tab" + data[i].entity).html(data[i].name);
-                }
-            }
-
-        }
-    }
-
-
-
-
-    function tabclick(tab) {    //uložit aktuální záložku do profilu uživatele
-        $("#navtabs .nav-link").removeClass("active");
-        $(tab).addClass("active");
-
-        $.post("/Common/SetUserParam", { key: "masterview-tab-" + _pageprefix, value: tab.id.replace("tab", "") }, function (data) {
-            //nic
-
-        });
-
-        //_load_ajax_async("/Common/SetUserParam", { key: "masterview-tab-" + _pageprefix, value: tab.id.replace("tab", "") })
-
+    function tabclick(tab) {    //uložit aktuální záložku do profilu uživatele + zobrazit (RecTabs)
+        return RecTabs.tabClick(tab);
     }
 
     function tab_overgrid_click(tab) {    //uložit aktuální záložku do profilu uživatele

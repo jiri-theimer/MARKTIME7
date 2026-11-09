@@ -1,0 +1,45 @@
+/* Pevné tiskové sestavy (Views/ReportsClient/ReportNoContextFramework.cshtml) */
+:root { --left-panel-w: 360px; }
+
+.rf-bar { display: flex; align-items: center; gap: 12px; padding: 6px 10px; min-height: 46px; }
+.rf-toggle { display: inline-flex; align-items: center; gap: 4px; }
+.rf-toggle .material-icons-outlined-btn { margin-top: 0; color: inherit; }
+.rf-current { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.rf-current-name { font-weight: 600; font-size: 1.05rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rf-current-code { font-size: .78rem; color: #6c757d; white-space: nowrap; }
+
+/* levý panel */
+.rf-panel.offcanvas-start { width: var(--left-panel-w); }
+.rf-panel .offcanvas-header { padding: 10px 14px 6px; }
+.rf-search { padding: 0 14px 8px; border-bottom: 1px solid #e3e6ea; }
+.rf-search input { padding-left: 30px; }
+.rf-search-ico { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); font-size: 18px; color: #8a939c; pointer-events: none; }
+.rf-search-info { display: none; margin-top: 4px; font-size: .78rem; color: #59636e; }
+.rf-empty { padding: 14px; color: #6c757d; }
+
+.rf-list { padding: 4px 0 16px; }
+.rf-cat > summary { list-style: none; display: flex; align-items: center; gap: 6px; padding: 8px 14px; font-weight: 600; font-size: .85rem; color: #1f2328; cursor: pointer; border-left: 3px solid transparent; user-select: none; }
+.rf-cat > summary::-webkit-details-marker { display: none; }
+.rf-cat > summary::before { content: ""; flex: 0 0 auto; width: 7px; height: 7px; margin: 0 6px 0 2px; border-right: 2px solid #8a939c; border-bottom: 2px solid #8a939c; transform: rotate(-45deg); transition: transform .15s ease; }
+.rf-cat[open] > summary::before { transform: rotate(45deg); }
+.rf-cat > summary:hover { background: #f3f5f8; }
+.rf-cat[open] > summary { border-left-color: var(--pozadi, #0b4b92); }
+.rf-cat ul { list-style: none; margin: 0 0 4px; padding: 0; }
+
+.rf-item { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; width: 100%; padding: 6px 14px 6px 38px; border: 0; background: transparent; text-align: left; color: #1f2328; font-size: .875rem; line-height: 1.3; cursor: pointer; }
+.rf-item:hover { background: #eef2f7; }
+.rf-item:focus-visible { outline: 2px solid var(--pozadi, #0b4b92); outline-offset: -2px; }
+.rf-item-name { flex: 1 1 auto; min-width: 0; }
+.rf-item-desc { flex-basis: 100%; font-size: .76rem; color: #6c757d; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rf-item.oznaceno { background-color: var(--oznaceno) !important; color: var(--popredi) !important; }
+.rf-item.oznaceno .rf-item-desc { color: inherit; opacity: .85; }
+
+/* pravá část */
+.report-area { height: calc(100vh - 120px); margin-left: 0; transition: margin-left .25s ease; }
+body.offcanvas-push .report-area { margin-left: var(--left-panel-w); }
+#fra1 { width: 100%; height: 100%; border: 0; display: block; }
+
+@media (max-width: 700px) {
+    body.offcanvas-push .report-area { margin-left: 0; }
+    .rf-panel.offcanvas-start { width: 100%; }
+}

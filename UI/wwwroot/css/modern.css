@@ -242,14 +242,14 @@ html.mt-modern #tabgrid1 tr:hover {
     background-color: var(--mt-hover);
 }
 
-/* vybraný řádek: jemně podbarvený, proužek v barvě motivu vlevo, běžné písmo */
+/* vybraný řádek: výrazně podbarvený (16 % bylo místy málo vidět – splývalo s hover a proužkováním), silnější proužek vlevo */
 html.mt-modern #tabgrid1 tr.selrow > td {
-    background-color: color-mix(in srgb, var(--oznaceno, #4169e1) 16%, #ffffff);
+    background-color: color-mix(in srgb, var(--oznaceno, #4169e1) 32%, #ffffff);
     color: var(--mt-text);
 }
 
     html.mt-modern #tabgrid1 tr.selrow > td:first-child {
-        box-shadow: inset 3px 0 0 var(--pozadi, #0b4b92);
+        box-shadow: inset 4px 0 0 var(--pozadi, #0b4b92);
     }
 
 html.mt-modern #tabgrid1 tr.highlight {

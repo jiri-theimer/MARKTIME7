@@ -4,187 +4,194 @@
 @{
     Layout = null;
 
-    
-    
+    var _lisJ72 = _f.j72TheGridTemplateBL.GetList(BO.Code.Entity.GetEntity(Model.Prefix), _f.CurrentUser.pid, null)
+        .Where(p => p.j72SystemFlag == BO.j72SystemFlagEnum.QueryOnly)
+        .OrderBy(p => p.GetName(), StringComparer.CurrentCultureIgnoreCase)
+        .ToList();
 
-    IEnumerable<BO.j72TheGridTemplate> _lisJ72 = _f.j72TheGridTemplateBL.GetList(BO.Code.Entity.GetEntity(Model.Prefix), _f.CurrentUser.pid, null).Where(p => p.j72SystemFlag == BO.j72SystemFlagEnum.QueryOnly);
-
-
-    BO.j72TheGridTemplate _curQuery = null;
-
-    if (Model.j72id > 0)
-    {
-        _curQuery = _lisJ72.First(p => p.pid == Model.j72id);
-    }
-
+    //aktuální filtr nemusí být v nabídce (smazaný, už nesdílený) – nesmí shodit menu
+    BO.j72TheGridTemplate _curQuery = Model.j72id > 0 ? _lisJ72.FirstOrDefault(p => p.pid == Model.j72id) : null;
+    int _me = _f.CurrentUser.pid;
+    bool _isAdmin = _f.CurrentUser.IsAdmin;
+    var _mine = _lisJ72.Where(p => p.j02ID == _me).ToList();
+    var _shared = _lisJ72.Where(p => p.j02ID != _me).ToList();
+    bool _canEditCur = _curQuery != null && (_curQuery.j02ID == _me || _isAdmin);
 }
 
 @addTagHelper *, UI
 
+@{
+    void RenderRow(BO.j72TheGridTemplate c, bool isShared)
+    {
+        bool canEdit = c.j02ID == _me || _isAdmin;
+        bool isActive = c.pid == Model.j72id;
+        string who = c.UserInsert != null ? $"{c.UserInsert} / {c.DateInsert}" : null;
 
-<div id="divContainerGridQueryMenu" class="dynamicmenu_container" style="min-width:350px;">
+        <li class="gq-row@(isActive ? " gq-active" : "")" data-name="@c.GetName().ToLower()">
+            <a class="gq-name" id="linquery@(c.pid)" href="javascript:local_runquery(@(c.pid))" title="@(who != null ? (isShared ? _f.tra("Sdílí") : _f.tra("Založeno")) + ": " + who : null)">
+                <span class="material-icons-outlined-nosize gq-ico">@(isActive ? "check_circle" : (isShared ? "group" : "filter_alt"))</span>
+                <span class="gq-text">@c.GetName()</span>
+                @if (!isShared && c.j72IsPublic)
+                {
+                    <span class="gq-tag" title="@_f.tra("Filtr vidí i ostatní uživatelé")">@_f.tra("sdílený")</span>
+                }
+                @if (c.j72IsQueryNegation)
+                {
+                    <span class="gq-tag gq-tag-neg" title="@_f.tra("Negace – zobrazí záznamy, které podmínkám NEodpovídají")">NOT</span>
+                }
+            </a>
+            <span class="gq-acts">
+                @if (canEdit)
+                {
+                    <button type="button" class="gq-btn" title="@_f.tra("Upravit")" onclick="lnf(@(c.pid))"><span class="material-icons-outlined-nosize">edit</span></button>
+                }
+                <button type="button" class="gq-btn" title="@_f.tra("Uložit jako")" onclick="lnfsaveas(@(c.pid))"><span class="material-icons-outlined-nosize">content_copy</span></button>
+            </span>
+        </li>
+    }
+}
 
-    <div style="padding-left:10px;padding-bottom:10px;">
-        
-        @if(Model.j72id>0)
-        {           
+<style>
+    /* nabídka pojmenovaných filtrů (Views/Menu/grid_query.cshtml) – styly zde, menu se načítá na mnoha stránkách (grid, kanban, dayline, souhrny) */
+    #divContainerGridQueryMenu { min-width: 340px; max-width: 460px; padding: 4px 2px 6px; font-size: .9rem; }
+    .gq-cur { margin: 0 6px 8px; padding: 8px 10px; border-radius: 8px; background: color-mix(in srgb, var(--oznaceno, #4169e1) 14%, #ffffff); }
+    .gq-cur-label { font-size: .72rem; text-transform: uppercase; letter-spacing: .03em; color: #59636e; }
+    .gq-cur-name { font-weight: 600; margin: 1px 0 6px; overflow-wrap: anywhere; }
+    .gq-cur-none { color: #59636e; }
+    .gq-cur .btn { padding: 1px 8px; font-size: .8rem; margin-right: 4px; }
+    .gq-cur .material-icons-outlined-btn, .gq-new .material-icons-outlined-btn { margin-top: 0; font-size: 17px; color: inherit; }
+    .gq-new { display: inline-flex; align-items: center; gap: 4px; margin: 0 6px 6px; padding: 3px 10px; border-radius: 6px; text-decoration: none; font-weight: 500; }
+    .gq-new:hover { background: #f3f5f8; }
+    .gq-search { margin: 0 6px 6px; }
+    .gq-search input { font-size: .85rem; }
+    .gq-h { margin: 8px 8px 2px; font-size: .72rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: #6c757d; }
+    .gq-list { list-style: none; margin: 0; padding: 0; }
+    .gq-row { display: flex; align-items: center; gap: 4px; padding: 0 4px 0 2px; border-radius: 6px; }
+    .gq-row:hover { background: #f3f5f8; }
+    .gq-name { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 6px; padding: 5px 6px; color: #1f2328 !important; text-decoration: none; }
+    .gq-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .gq-ico { font-size: 18px; color: #8a939c; flex: 0 0 auto; }
+    .gq-active { background: color-mix(in srgb, var(--oznaceno, #4169e1) 14%, #ffffff); }
+    .gq-active .gq-name { font-weight: 600; }
+    .gq-active .gq-ico { color: var(--pozadi, #0b4b92); }
+    .gq-tag { flex: 0 0 auto; font-size: .68rem; padding: 0 6px; border-radius: 8px; background: #eef1f4; color: #3d444d; }
+    .gq-tag-neg { background: #fff3cd; color: #664d03; font-weight: 600; }
+    .gq-acts { display: flex; gap: 1px; flex: 0 0 auto; opacity: .35; transition: opacity .1s; }
+    .gq-row:hover .gq-acts, .gq-row:focus-within .gq-acts { opacity: 1; }
+    .gq-btn { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; padding: 0; border: 0; border-radius: 5px; background: transparent; color: #59636e; cursor: pointer; }
+    .gq-btn .material-icons-outlined-nosize { font-size: 17px; }
+    .gq-btn:hover { background: rgba(0,0,0,.07); color: #1f2328; }
+    .gq-empty { margin: 4px 8px; color: #6c757d; font-size: .85rem; }
+    .gq-nohit { display: none; margin: 4px 8px; color: #6c757d; font-size: .85rem; }
+</style>
 
-            <button class="btn btn-outline-danger" style="margin-left:3px;" type="button" onclick="local_runquery(0)">
-                @_f.tra("Zrušit aktuální filtr")
-            </button>
+<div id="divContainerGridQueryMenu" class="dynamicmenu_container">
 
-            
-        }
-        <a href="javascript:lnf(0)">
-            @_f.tra("Nový filtr")
-        </a>
+    @* aktuální stav *@
+    <div class="gq-cur">
         @if (Model.j72id > 0)
         {
-            @if (_curQuery != null && (_curQuery.j02ID == _f.CurrentUser.pid || _f.CurrentUser.IsAdmin))
+            <div class="gq-cur-label">@_f.tra("Zapnutý filtr")</div>
+            <div class="gq-cur-name">@(_curQuery != null ? _curQuery.GetName() : _f.tra("(filtr už není k dispozici)"))</div>
+            <button class="btn btn-outline-danger" type="button" onclick="local_runquery(0)"><span class="material-icons-outlined-btn">filter_alt_off</span> @_f.tra("Vypnout filtr")</button>
+            @if (_canEditCur)
             {
-                <a style="margin-left:3px;" href="javascript: lnf(@(Model.j72id))">
-                    @_f.tra("Upravit")
-                </a>
+                <button class="btn btn-light bog" type="button" onclick="lnf(@(Model.j72id))"><span class="material-icons-outlined-btn">edit</span> @_f.tra("Upravit")</button>
             }
+        }
+        else
+        {
+            <div class="gq-cur-none">@_f.tra("Žádný pojmenovaný filtr není zapnutý.")</div>
         }
     </div>
 
-   
-    <table cellpadding="4" cellspacing="4" onmouseout="localtablemouseout()">
-        @foreach (var c in _lisJ72)
+    <a class="gq-new" href="javascript:lnf(0)"><span class="material-icons-outlined-btn">add</span> @_f.tra("Nový filtr")</a>
+
+    @if (_lisJ72.Count > 8)
+    {
+        <div class="gq-search">
+            <input type="search" id="gq_search" class="form-control form-control-sm" placeholder="@_f.tra("Hledat filtr…")" autocomplete="off" />
+        </div>
+    }
+
+    @if (_lisJ72.Count == 0)
+    {
+        <div class="gq-empty">@_f.tra("Zatím tu není žádný pojmenovaný filtr. Uložte si podmínky, které často používáte, a pak je zapnete jedním klikem.")</div>
+    }
+
+    @if (_mine.Count > 0)
+    {
+        @if (_shared.Count > 0)
         {
-
-            <tr class="tr@(c.pid)" onmouseover="localtrmouseover(@(c.pid))">
-                <td style="width:20px;">
-                    @if (c.j02ID !=_f.CurrentUser.pid)
-                    {
-                        <span style="color:orange;" class="material-icons-outlined-btn">filter_alt</span>
-                    }
-                    else
-                    {
-                        <span style="color:gray;" class="material-icons-outlined-btn">filter_alt</span>
-                    }
-
-
-                </td>
-                
-
-                <td>
-                    <a style="color:gray;" id="linquery@(c.pid)" href="javascript:local_runquery(@(c.pid))">
-                        @(c.GetName())
-                    </a>
-                    @if (c.j02ID == _f.CurrentUser.pid || _f.CurrentUser.IsAdmin)
-                    {
-                        <button class="btn btn-sm py-0 bog cmd0 cmd@(c.pid)" style="visibility:hidden;margin-left:3px;" type="button" onclick="lnf(@(c.pid))">
-                            @_f.tra("Upravit")
-                        </button>
-                    }
-                    
-                    <button class="btn btn-sm py-0 bog cmd0 cmd@(c.pid)" style="visibility:hidden;" type="button" onclick="lnfsaveas(@(c.pid))">
-                        @_f.tra("Uložit jako")
-                    </button>
-
-                    @if (c.UserInsert !=null)
-                    {
-                        <small class="cmd0" style="visibility:hidden;">
-                            @(c.UserInsert)<var>/</var>@(c.DateInsert)
-                        </small>
-                    }
-                    
-                    
-                </td>
-
-            </tr>
+            <div class="gq-h">@_f.tra("Moje filtry")</div>
         }
+        <ul class="gq-list">
+            @foreach (var c in _mine) { RenderRow(c, false); }
+        </ul>
+    }
 
+    @if (_shared.Count > 0)
+    {
+        <div class="gq-h">@_f.tra("Sdílené od ostatních")</div>
+        <ul class="gq-list">
+            @foreach (var c in _shared) { RenderRow(c, true); }
+        </ul>
+    }
 
-    </table>
-
-
-
+    <div id="gq_nohit" class="gq-nohit">@_f.tra("Nic nenalezeno.")</div>
 </div>
 
 
 <script type="text/javascript">
-    var _j72id_query = "@Model.j72id";
-
     $(document).ready(function () {
-        
         _adjust_divheight_small_display("divContainerGridQueryMenu");
 
-        if (_j72id_query != "0")
-        {
-            $("#linquery" + _j72id_query).addClass("active");
+        // hledání (jen při více než 8 filtrech); Enter zapne první nalezený
+        const s = document.getElementById("gq_search");
+        if (s) {
+            setTimeout(() => s.focus(), 50);
+            s.addEventListener("input", () => {
+                const q = s.value.trim().toLowerCase();
+                let n = 0;
+                document.querySelectorAll("#divContainerGridQueryMenu .gq-row").forEach(li => {
+                    const hit = q === "" || li.dataset.name.includes(q);
+                    li.style.display = hit ? "" : "none";
+                    if (hit) n++;
+                });
+                document.querySelectorAll("#divContainerGridQueryMenu .gq-list").forEach(ul => {
+                    const any = Array.from(ul.children).some(li => li.style.display !== "none");
+                    ul.style.display = any ? "" : "none";
+                    const h = ul.previousElementSibling;
+                    if (h && h.classList.contains("gq-h")) h.style.display = any ? "" : "none";
+                });
+                document.getElementById("gq_nohit").style.display = n === 0 ? "block" : "none";
+            });
+            s.addEventListener("keydown", (e) => {
+                if (e.key !== "Enter") return;
+                e.preventDefault();
+                const first = Array.from(document.querySelectorAll("#divContainerGridQueryMenu .gq-row")).find(li => li.style.display !== "none");
+                if (first) first.querySelector(".gq-name").click();
+            });
         }
-        
-       
-        if (window !== top) {   //voláno uvnitř iframe
-            //nic
-        }
-    })
+    });
 
-    
     function lnf(j72id) {
-        var s = location.pathname;
-        var prefix = "@Model.Prefix";
-        
-        _window_open("/TheQueryDesigner/Index?j72id=" + j72id + "&prefix=" + prefix + "&pathname=" + s, 2);        
+        _window_open("/TheQueryDesigner/Index?j72id=" + j72id + "&prefix=@(Model.Prefix)&pathname=" + encodeURIComponent(location.pathname), 2);
     }
 
-    function lnfsaveas(j72id){
-        var s = location.pathname;
-        var prefix = "@Model.Prefix";
-
-        _window_open("/TheQueryDesigner/Index?j72id=" + j72id + "&prefix=" + prefix + "&saveas=true&pathname=" + s, 2);
+    function lnfsaveas(j72id) {
+        _window_open("/TheQueryDesigner/Index?j72id=" + j72id + "&prefix=@(Model.Prefix)&saveas=true&pathname=" + encodeURIComponent(location.pathname), 2);
     }
 
-    
-
-    function local_get_querybuilder_key(prefix, rez) {
-        var k = "";
-        var url = location.href;
-        if (url.toLowerCase().indexOf("slaveview") > 0) {
-            k = "slaveview-query-j72id-" + prefix + "-" + _thegrid.master_entity.substring(0, 3) + "-" + rez;
-        }
-        if (url.toLowerCase().indexOf("masterview") > 0 || url.toLowerCase().indexOf("recpage") > 0) {
-            k = "masterview-query-j72id-" + prefix + "-" + rez;
-        }
-        if (url.toLowerCase().indexOf("flatview") > 0 || url.toLowerCase().indexOf("mobileview") > 0) {
-            k = "flatview-query-j72id-" + prefix + "-" + rez;
-        }
-        return k;
-    }
-
-    function local_runquery(j72id)
-    {        
-        var url = location.href;
-        var prefix = "@Model.Prefix";
-        var rez = "@Model.Rez";
-        var k = $("#TheGridQueryParamKey").val();
-       
-
-        if (k == "") {
+    function local_runquery(j72id) {
+        const url = location.href;
+        const k = $("#TheGridQueryParamKey").val();
+        if (!k) {
             location.replace(url);
             return;
         }
-
-
-        $.post(_ep("/Common/SetUserParam"), { key: k, value: j72id }, function (data) {
-
+        $.post(_ep("/Common/SetUserParam"), { key: k, value: j72id }, function () {
             location.replace(url);
-
-
-
         });
-    }
-
-
-    function localtrmouseover(pid) {
-        $(".cmd0").css("visibility", "hidden");
-        $(".cmd" + pid).css("visibility", "visible");
-
-    }
-    function localtablemouseout() {
-        $(".cmd0").css("visibility", "hidden");
     }
 </script>
