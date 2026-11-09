@@ -1,9 +1,8 @@
-﻿/* „Začínáme“ (Views/Onboarding/_Checklist.cshtml; stránka /Onboarding a karta na /Home/Index) – třídy ob-* */
+﻿/* Úvodní stránka /Home/Index – „Onboarding (začínáme)“ (Views/Home/Index.cshtml, Views/Onboarding/_Checklist.cshtml) – třídy ob-* */
 .ob-page { max-width: 760px; padding: 4px 10px 24px; }
 .ob-intro { margin: 4px 0 12px; color: #59636e; }
 
 .ob { max-width: 760px; border: 1px solid #e3e6ea; border-radius: 10px; background: #fff; box-shadow: 0 1px 2px rgba(16,24,40,.05); }
-.ob-home { margin: 10px 0 16px; }
 
 .ob-head { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-bottom: 1px solid #eef0f3; }
 .ob-title { display: flex; align-items: center; gap: 6px; font-weight: 600; color: #1f2328; }
@@ -12,9 +11,6 @@
 .ob-bar { width: 140px; height: 6px; border-radius: 3px; background: #e6e9ed; overflow: hidden; }
 .ob-bar span { display: block; height: 100%; border-radius: 3px; background: var(--pozadi, #0b4b92); transition: width .3s; }
 .ob-count { font-size: .8rem; color: #59636e; white-space: nowrap; font-variant-numeric: tabular-nums; }
-.ob-close { width: 28px; height: 28px; padding: 0; border: 1px solid transparent; border-radius: 50%; background: transparent; color: #8a939c; display: flex; align-items: center; justify-content: center; }
-.ob-close:hover { border-color: #ced4da; background: #f1f3f5; color: #1f2328; }
-.ob-close .material-icons-outlined-nosize { font-size: 18px; }
 
 .ob-list { list-style: none; margin: 0; padding: 4px 0; }
 .ob-step { display: flex; align-items: center; gap: 10px; padding: 7px 12px; }
@@ -38,11 +34,6 @@
 
 .ob-empty { display: flex; align-items: center; gap: 8px; padding: 10px 12px; color: #59636e; }
 .ob-empty .material-icons-outlined-nosize { color: #198754; font-size: 22px; }
-.ob-foot { padding: 6px 12px 9px; border-top: 1px solid #eef0f3; font-size: .82rem; }
-.ob-switch { margin: 12px 2px 0; }
-
-/* úvodní stránka: hotové kroky jen jako přehled, ať karta nepřekáží */
-.ob-home .ob-done { padding-top: 4px; padding-bottom: 4px; }
 
 /* telefon: akce pod text (ikona + text zůstávají vedle sebe) */
 html.mt-phone .ob-step:not(.ob-done) { flex-wrap: wrap; }
@@ -55,8 +46,6 @@ html.mt-phone .ob-bar { width: 70px; }
     .ob-step:not(.ob-done) .ob-act { flex-basis: 100%; padding-left: 40px; }
     .ob-bar { width: 70px; }
 }
-.ob-more { display: flex; align-items: center; gap: 6px; margin: 14px 2px 0; color: #59636e; }
-.ob-more .material-icons-outlined-nosize { font-size: 18px; }
 
 /* záložky stránky /Onboarding */
 .ob-tabs { margin-bottom: 10px; }

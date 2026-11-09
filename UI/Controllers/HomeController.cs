@@ -41,8 +41,11 @@ namespace UI.Controllers
                 }
             }
 
-            
-            return View(new BaseViewModel());
+
+            var llm = HttpContext.RequestServices.GetRequiredService<BL.AI.Core.ILlmClient>();
+            var v = UI.Code.OnboardingSupport.Build(Factory, llm);     //úvodní stránka = Onboarding (začínáme)
+            v.PageTitle = Factory.tra("Začínáme");
+            return View(v);
         }
 
 

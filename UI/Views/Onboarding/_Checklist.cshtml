@@ -4,11 +4,10 @@
     int _total = Model.Steps.Count;
     int _done = Model.DoneCount;
     int _pct = _total == 0 ? 0 : (int)Math.Round(100.0 * _done / _total);
-    bool _home = Model.Mode == "home";
     var _next = Model.Steps.FirstOrDefault(p => !p.IsDone);
 }
 
-@* „Začínáme“ – obsah obnovuje onboarding.js (/Onboarding/Checklist?mode=…) *@
+@* checklist úvodní stránky – obsah obnovuje onboarding.js (/Onboarding/Checklist) *@
 <div class="ob-head">
     <div class="ob-title">
         <span class="material-icons-outlined-nosize">rocket_launch</span>
@@ -18,10 +17,6 @@
         <div class="ob-bar"><span style="width:@(_pct)%"></span></div>
         <span class="ob-count">@_done / @_total</span>
     </div>
-    @if (_home)
-    {
-        <button type="button" class="ob-close" data-ob-hide title="@_f.tra("Skrýt – znovu zapnete v osobním menu (Začínáme)")"><span class="material-icons-outlined-nosize">close</span></button>
-    }
 </div>
 
 @if (_total == 0)
@@ -55,7 +50,7 @@ else if (_next == null)
                 }
                 else
                 {
-                    if (s.Code == "mo" && !_home)
+                    if (s.Code == "mo")
                     {
                         <img class="ob-qr nonmobile" src="@UI.Code.basQRCoder.GetUrlQrDataUri(s.Href)" width="56" height="56" alt="QR: @s.Href" />
                     }
@@ -69,8 +64,3 @@ else if (_next == null)
         </li>
     }
 </ol>
-
-@if (_home)
-{
-    <div class="ob-foot"><a href="/Onboarding">@_f.tra("Otevřít Začínáme")</a></div>
-}

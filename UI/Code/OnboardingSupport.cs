@@ -1,7 +1,7 @@
 ﻿namespace UI.Code
 {
     /// <summary>
-    /// „Začínáme“ – checklist prvních kroků uživatele (/Onboarding, karta na /Home/Index).
+    /// „Onboarding (začínáme)“ – úvodní stránka /Home/Index: checklist prvních kroků, klávesové zkratky, videonávody.
     /// Kroky podle modulů a oprávnění role; splnění se pozná z dat (žádné ruční odškrtávání, kromě volby „Hotovo“ u kroků,
     /// které z dat poznat nejde). Jednou splněný krok zůstává splněný (uživatelský parametr <see cref="ParamDone"/>),
     /// takže se dotazuje jen na nesplněné kroky. Bez změn v DB.
@@ -10,11 +10,6 @@
     {
         /// <summary>Kódy splněných kroků (čárkami). Zapisuje se při zjištění splnění z dat i při ručním „Hotovo“.</summary>
         public const string ParamDone = "onboarding-done";
-        /// <summary>"on" / "off" = volba uživatele; prázdné = automaticky (karta jen u nového uživatele, viz <see cref="NewUserDays"/>).</summary>
-        public const string ParamVisible = "onboarding";
-        /// <summary>Uživatel založený před méně než N dny dostane kartu na úvodní stránce sám od sebe.</summary>
-        public const int NewUserDays = 30;
-
         public const string MobileUrl = "https://mobile.marktime.net";
 
         private class StepDef
@@ -109,8 +104,8 @@
             };
         }
 
-        /// <summary>Checklist pro stránku /Onboarding (vždy).</summary>
-        public static OnboardingViewModel Build(BL.Factory f, BL.AI.Core.ILlmClient llm, string mode)
+        /// <summary>Checklist pro /Home/Index (a jeho obnovení přes /Onboarding/Checklist).</summary>
+        public static OnboardingViewModel Build(BL.Factory f, BL.AI.Core.ILlmClient llm)
         {
             var defs = Definitions(f, llm).Where(p => p.IsAvailable()).ToList();
             var done = LoadDone(f);
@@ -128,8 +123,6 @@
 
             var v = new OnboardingViewModel
             {
-                Mode = mode,
-                IsOnHome = mode == "home" || IsVisibleOnHome(f, null),     //přepínač jen na stránce /Onboarding
                 Steps = defs.Select(p => new OnboardingStep
                 {
                     Code = p.Code,
@@ -144,26 +137,6 @@
             };
             return v;
         }
-
-        /// <summary>Karta na úvodní stránce: null = nezobrazovat (vypnuto, není nový uživatel, nebo je vše hotovo).</summary>
-        public static OnboardingViewModel ForHome(BL.Factory f, BL.AI.Core.ILlmClient llm, BO.j02User recJ02)
-        {
-            if (!IsVisibleOnHome(f, recJ02)) return null;
-            var v = Build(f, llm, "home");
-            if (v.Steps.Count == 0 || v.DoneCount == v.Steps.Count) return null;
-            return v;
-        }
-
-        public static bool IsVisibleOnHome(BL.Factory f, BO.j02User recJ02)
-        {
-            string s = f.CBL.LoadUserParam(ParamVisible);
-            if (s == "on") return true;
-            if (s == "off") return false;
-            recJ02 ??= f.j02UserBL.Load(f.CurrentUser.pid);
-            return recJ02?.DateInsert != null && recJ02.DateInsert > DateTime.Now.AddDays(-NewUserDays);
-        }
-
-        public static void SetVisibleOnHome(BL.Factory f, bool visible) => f.CBL.SetUserParam(ParamVisible, visible ? "on" : "off");
 
         /// <summary>Ruční „Hotovo“ (jen kód dostupného kroku).</summary>
         public static bool MarkDone(BL.Factory f, BL.AI.Core.ILlmClient llm, string code)
@@ -259,9 +232,6 @@
 
     public class OnboardingViewModel : UI.Models.BaseViewModel
     {
-        /// <summary>"page" = /Onboarding, "home" = karta na úvodní stránce.</summary>
-        public string Mode { get; set; }
-        public bool IsOnHome { get; set; }
         public List<OnboardingStep> Steps { get; set; } = new();
         public int DoneCount => Steps.Count(p => p.IsDone);
     }

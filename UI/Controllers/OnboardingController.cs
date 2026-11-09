@@ -4,8 +4,8 @@ using UI.Code;
 namespace UI.Controllers
 {
     /// <summary>
-    /// „Začínáme“ – checklist prvních kroků uživatele (UI.Code.OnboardingSupport).
-    /// URL: /Onboarding (stránka), /Onboarding/Checklist?mode=page|home (partial pro obnovení), /Onboarding/Mark (POST), /Onboarding/SetVisible (POST)
+    /// AJAX k úvodní stránce /Home/Index („Onboarding (začínáme)“, UI.Code.OnboardingSupport).
+    /// URL: /Onboarding/Checklist (partial pro obnovení), /Onboarding/Mark (POST)
     /// </summary>
     public class OnboardingController : BaseController
     {
@@ -16,19 +16,10 @@ namespace UI.Controllers
             _llm = llm;     //Options se čtou líně až v akci (viz AiConfig.CreateClient)
         }
 
-        public IActionResult Index()
-        {
-            var v = OnboardingSupport.Build(Factory, _llm, "page");
-            v.PageTitle = Factory.tra("Začínáme");
-            return View(v);
-        }
-
         /// <summary>Aktuální stav checklistu (po návratu z dialogu / jiné záložky).</summary>
-        public IActionResult Checklist(string mode)
+        public IActionResult Checklist()
         {
-            if (mode != "home") mode = "page";
-            var v = OnboardingSupport.Build(Factory, _llm, mode);
-            return PartialView("_Checklist", v);
+            return PartialView("_Checklist", OnboardingSupport.Build(Factory, _llm));
         }
 
         /// <summary>Ruční „Hotovo“ u kroku, který z dat poznat nejde (např. aplikace nainstalovaná dřív).</summary>
@@ -36,14 +27,6 @@ namespace UI.Controllers
         public IActionResult Mark(string code)
         {
             return Json(new { ok = OnboardingSupport.MarkDone(Factory, _llm, code) });
-        }
-
-        /// <summary>Zobrazovat checklist na úvodní stránce (uživatelský parametr "onboarding").</summary>
-        [HttpPost]
-        public IActionResult SetVisible(bool visible)
-        {
-            OnboardingSupport.SetVisibleOnHome(Factory, visible);
-            return Json(new { ok = true });
         }
     }
 }
