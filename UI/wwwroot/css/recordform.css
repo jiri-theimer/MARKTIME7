@@ -1,4 +1,4 @@
-﻿/* Moderní formulář záznamu (verze 8) – obecné třídy rf-*: Views/j02/Record.cshtml, Views/p28/Record.cshtml, Views/p41/Record.cshtml, Views/p91/Record.cshtml, Views/p56/Record.cshtml.
+﻿/* Moderní formulář záznamu (verze 8) – obecné třídy rf-*: Views/j02/Record.cshtml, Views/p28/Record.cshtml, Views/p41/Record.cshtml, Views/p91/Record.cshtml, Views/p56/Record.cshtml, Views/o23/Record.cshtml.
    Karty s nadpisem, řádky „popisek | hodnota“, na úzké obrazovce popisek nad hodnotou. Barvy navazují na skin. */
 .rf { max-width: 1200px; padding: 4px 0 8px; }
 .rf-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 12px; align-items: start; margin-bottom: 12px; }
@@ -99,6 +99,20 @@
 .rf-project { margin-top: 6px; padding-top: 6px; border-top: 1px solid #eef0f3; }
 .rf-w-half { max-width: 440px; }
 .rf-w-ord { width: 90px; flex: 0 0 auto; }
+
+
+/* dokument (o23): vazby, dynamická pole typu dokumentu */
+.rf-req { color: #b02a37; }
+.rf-req::after { content: " *"; }
+.rf-binds { display: flex; flex-direction: column; gap: 4px; }
+.rf-bind { display: flex; align-items: center; gap: 10px; padding: 4px 6px 4px 10px; border: 1px solid #eef0f3; border-radius: 8px; background: #fafbfc; }
+.rf-bind-kind { flex: 0 0 150px; font-size: .82rem; color: #59636e; }
+.rf-bind-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+.rf-del { flex: 0 0 auto; width: 26px; height: 26px; padding: 0; border: 1px solid transparent; border-radius: 50%; background: transparent; color: #8a939c; display: flex; align-items: center; justify-content: center; }
+.rf-del:hover { border-color: #f1aeb5; background: #fdecec; color: #b02a37; }
+.rf-del .material-icons-outlined-nosize { font-size: 16px; }
+.rf-w-pwd { width: 190px; }
+.rf-notepad { margin-bottom: 12px; }
 
 /* úzká obrazovka / telefon: popisek nad hodnotou, jméno pod sebou */
 @media (max-width: 900px) { .rf-grid-main { grid-template-columns: minmax(0, 1fr); } }

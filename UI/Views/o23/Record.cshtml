@@ -18,6 +18,7 @@
 
 @section header_content
     {
+    <link rel="stylesheet" href="~/css/recordform.css" asp-append-version="true" />
 
     @if (Model.Notepad != null && Model.Notepad.SelectedX04ID > 0)
     {
@@ -80,277 +81,217 @@
 
 
 <div class="tab-pane" id="tab1" role="tabpanel">
-    <!-- Tab1 -->
-    <div class="input-group">
-        @if (Model.lisO20.Count() > 0)
-        {
-            <div>
-                <button class="btn btn-sm bog dropdown-toggle" type="button" id="cmdCollapseO20">
-                    @_f.tra("Vazby")
-                </button>
-            </div>
-            @if (Model.RecO18.o18BarcodeFlag == BO.o18BarcodeFlagEnum.BarcodeSupport)
-            {
-                <div style="margin-left:20px;">
-                @Html.EditorFor(m => m.barcodes, "~/Views/Shared/_Barcodes.cshtml")
-                </div>
-            }
-        }
-
-    </div>
+    <!-- Tab1 – verze 8: moderní vzhled (třídy rf-*, css/recordform.css), názvy polí a id beze změny.
+         Obsah je dynamický podle typu dokumentu (o18): vazby o20, pole o16, kód, notepad, šifrování, štítky. -->
+    <div class="rf">
 
     @if (Model.lisO20.Count() > 0)
     {
-        <div id="divCollapseO20" class="alert alert-primary" role="alert" style="display:none;">
-            <div class="card-body">
-                <div>
-                    <myradiolist asp-for="SelectedO20ID" repeat-horizontal="true" datasource="@Model.lisO20" textfield="BindName" valuefield="pid" event_after_changevalue="o20id_onchange"></myradiolist>
-                </div>
+        <section class="rf-card">
+            <div class="rf-cardbar">
+                <h2><span class="material-icons-outlined-nosize">link</span>@_f.tra("Vazby")</h2>
+                <button class="btn btn-sm bog dropdown-toggle" type="button" id="cmdCollapseO20">@_f.tra("Přidat vazbu")</button>
+                @if (Model.RecO18.o18BarcodeFlag == BO.o18BarcodeFlagEnum.BarcodeSupport)
+                {
+                    <div class="ms-auto">
+                        @Html.EditorFor(m => m.barcodes, "~/Views/Shared/_Barcodes.cshtml")
+                    </div>
+                }
+            </div>
 
-                <div style="background-color:white;">
-                    @if (Model.SelectedO20ID > 0)
-                    {
+            <div id="divCollapseO20" class="rf-box" style="display:none;">
+                <myradiolist asp-for="SelectedO20ID" repeat-horizontal="true" datasource="@Model.lisO20" textfield="BindName" valuefield="pid" event_after_changevalue="o20id_onchange"></myradiolist>
+                @if (Model.SelectedO20ID > 0)
+                {
+                    <div class="mt-1 mb-2">
                         <mycombo entity="@Model.SelectedBindEntity" asp-for="SelectedBindPid" placeholder="@Model.SelectedBindName" selectedtext="@Model.SelectedBindText" myqueryinline="@Model.SelectedBindMyQueryInline" filter-flag="1" view-flag="1" event_after_changevalue="bindrec_onchange"></mycombo>
-
-                        
-                        
-                    }
-                </div>
-
-
+                    </div>
+                }
             </div>
 
-        </div>
-    }
-
-
-    <table class="table table-hover" style="table-layout: fixed;">
-        @for (int i = 0; i < Model.lisO19.Count; i++)
-        {
-            <tr style="@(Model.lisO19[i].CssTempDisplay)">
-                <td style="width:150px;">
-                    @(Model.lisO19[i].SelectedO20Name + ":")
-                </td>
-                <td>
-                    <strong>@Model.lisO19[i].SelectedBindText</strong>
-                    <input type="hidden" asp-for="lisO19[i].IsTempDeleted" value="@Model.lisO19[i].IsTempDeleted" />
-                    <input type="hidden" asp-for="lisO19[i].TempGuid" value="@Model.lisO19[i].TempGuid" />
-                    <input type="hidden" asp-for="lisO19[i].pid" value="@Model.lisO19[i].pid" />
-                    <input type="hidden" asp-for="lisO19[i].SelectedBindText" value="@Model.lisO19[i].SelectedBindText" />
-                    <input type="hidden" asp-for="lisO19[i].o19RecordPid" value="@Model.lisO19[i].o19RecordPid" />
-                    <input type="hidden" asp-for="lisO19[i].o20ID" value="@Model.lisO19[i].o20ID" />
-                    <input type="hidden" asp-for="lisO19[i].SelectedO20Name" value="@Model.lisO19[i].SelectedO20Name" />
-                    
-                </td>
-
-                <td style="width:70px;">
-                    <button type="button" class="btn btn-sm btn-danger" title="@_f.tra("Odstranit řádek")" onclick="handle_delete_o19('@(Model.lisO19[i].TempGuid)')">x</button>
-                </td>
-            </tr>
-        }
-    </table>
-
-    @if (Model.RecO18.o18EntryNameFlag == BO.o18EntryNameENUM.Manual)
-    {
-        <div class="row my-2">
-            <div class="col-sm-12 col-md-12">
-                <input class="form-control record_name" asp-for="Rec.o23Name" placeholder="@_f.tra("Název")" />
+            @if (!Model.lisO19.Any(p => !p.IsTempDeleted))
+            {
+                <div class="rf-hint">@_f.tra("Dokument zatím není navázaný na žádný záznam.")</div>
+            }
+            <div class="rf-binds">
+                @for (int i = 0; i < Model.lisO19.Count; i++)
+                {
+                    <div class="rf-bind" style="@(Model.lisO19[i].CssTempDisplay)">
+                        <span class="rf-bind-kind">@Model.lisO19[i].SelectedO20Name</span>
+                        <strong class="rf-bind-name">@Model.lisO19[i].SelectedBindText</strong>
+                        <input type="hidden" asp-for="lisO19[i].IsTempDeleted" value="@Model.lisO19[i].IsTempDeleted" />
+                        <input type="hidden" asp-for="lisO19[i].TempGuid" value="@Model.lisO19[i].TempGuid" />
+                        <input type="hidden" asp-for="lisO19[i].pid" value="@Model.lisO19[i].pid" />
+                        <input type="hidden" asp-for="lisO19[i].SelectedBindText" value="@Model.lisO19[i].SelectedBindText" />
+                        <input type="hidden" asp-for="lisO19[i].o19RecordPid" value="@Model.lisO19[i].o19RecordPid" />
+                        <input type="hidden" asp-for="lisO19[i].o20ID" value="@Model.lisO19[i].o20ID" />
+                        <input type="hidden" asp-for="lisO19[i].SelectedO20Name" value="@Model.lisO19[i].SelectedO20Name" />
+                        <button type="button" class="rf-del" title="@_f.tra("Odstranit vazbu")" onclick="handle_delete_o19('@(Model.lisO19[i].TempGuid)')"><span class="material-icons-outlined-nosize">close</span></button>
+                    </div>
+                }
             </div>
-        </div>
+        </section>
     }
 
-
-    @for (int i = 0; i < Model.lisFields.Count(); i++)
+    @if (Model.RecO18.o18EntryNameFlag == BO.o18EntryNameENUM.Manual || Model.lisFields.Count() > 0 || Model.RecO18.o18EntryCodeFlag == BO.o18EntryCodeENUM.Manual || (Model.RecO18.o18EntryCodeFlag == BO.o18EntryCodeENUM.X38ID && Model.rec_pid > 0))
     {
-        <div class="row my-2" style="max-width:1050px;">
-            @if (Model.lisFields[i].FieldType == BO.x24IdENUM.tBoolean)
+        <section class="rf-card">
+            @if (Model.RecO18.o18EntryNameFlag == BO.o18EntryNameENUM.Manual)
             {
-                <div class="col-sm-1 col-md-2"></div>
-                <div class="col-sm-7 col-md-7">
-                    <input type="checkbox" asp-for="@Model.lisFields[i].CheckInput" />
-                    <mylabel class="col-sm-1 col-md-2 col-form-label" bez-dvojtecky="true" explicit-for="lisFields_@(i)__CheckInput" text="@(Model.lisFields[i].o16Name)" tooltip="@(Model.lisFields[i].o16HelpText)">                                                           
-                    </mylabel>
+                <div class="rf-field">
+                    <label for="Rec_o23Name">@_f.tra("Název")</label>
+                    <input class="form-control record_name" asp-for="Rec.o23Name" />
                 </div>
-            }
-            else
-            {
-                <mylabel class="col-sm-1 col-md-2 col-form-label" style="color:@(Model.lisFields[i].o16IsEntryRequired ? "red" : "black")" text="@(Model.lisFields[i].o16Name)" tooltip="@(Model.lisFields[i].o16HelpText)"></mylabel>
             }
 
-
-            @if (Model.lisFields[i].FieldType == BO.x24IdENUM.tDate)
+            @for (int i = 0; i < Model.lisFields.Count(); i++)
             {
-                <div class="col-sm-3 col-md-3">
-                    <mydate asp-for="@Model.lisFields[i].DateInput"></mydate>
-                </div>
-
-            }
-            @if (Model.lisFields[i].FieldType == BO.x24IdENUM.tDateTime)
-            {
-                <div class="col-sm-3 col-md-3">
-                    <mydate asp-for="@Model.lisFields[i].DateInput" include-time="true"></mydate>
-                </div>
-
-            }
-            @if ((Model.lisFields[i].FieldType == BO.x24IdENUM.tDateTime || Model.lisFields[i].FieldType == BO.x24IdENUM.tDate) && Model.lisFields[i].o16ReminderNotifyBefore > 0)
-            {
-                <div class="col-sm-1 col-md-1">
-                    <small>reminder:-@(Model.lisFields[i].o16ReminderNotifyBefore)h</small>
-                </div>
-            }
-            @if (Model.lisFields[i].FieldType == BO.x24IdENUM.tDecimal)
-            {
-                <div class="col-sm-3 col-md-3">
-                    <mynumber asp-for="@Model.lisFields[i].NumInput" decimal-digits="2"></mynumber>
-                </div>
-            }
-            
-            @if (Model.lisFields[i].FieldType == BO.x24IdENUM.tString)
-            {
-                <div class="col-sm-11 col-md-10">
-                    @if (Model.lisFields[i].o16DataSource == null)
+                var fld = Model.lisFields[i];
+                <div class="rf-row">
+                    @if (fld.FieldType == BO.x24IdENUM.tBoolean)
                     {
-                        if (Model.lisFields[i].o16TextboxHeight > 0 || Model.lisFields[i].o16Field == "o23BigText")
-                        {
-                            <textarea class="form-control" asp-for="@Model.lisFields[i].StringInput"></textarea>
-
-                        }
-                        else
-                        {
-                            <input class="form-control" asp-for="@Model.lisFields[i].StringInput" />
-                        }
-
+                        <span class="rf-label"></span>
+                        <div class="rf-value form-check">
+                            <input type="checkbox" class="form-check-input" asp-for="@Model.lisFields[i].CheckInput" />
+                            <mylabel class="form-check-label" bez-dvojtecky="true" explicit-for="lisFields_@(i)__CheckInput" text="@(fld.o16Name)" tooltip="@(fld.o16HelpText)"></mylabel>
+                        </div>
                     }
                     else
                     {
-                        @if (Model.lisFields[i].o16IsFixedDataSource)
-                        {
-                            <select class="form-select" asp-for="@Model.lisFields[i].StringInput">
-                                <option value=""></option>
-                                @foreach (string ss in BO.Code.Bas.ConvertString2List(Model.lisFields[i].o16DataSource, ";"))
+                        <mylabel class="rf-label @(fld.o16IsEntryRequired ? "rf-req" : null)" bez-dvojtecky="true" text="@(fld.o16Name)" tooltip="@(fld.o16HelpText)"></mylabel>
+                        <div class="rf-value">
+                            @if (fld.FieldType == BO.x24IdENUM.tDate)
+                            {
+                                <div class="rf-inline"><div class="rf-w-date"><mydate asp-for="@Model.lisFields[i].DateInput"></mydate></div>
+                                @if (fld.o16ReminderNotifyBefore > 0)
                                 {
-                                    <option value="@ss">@ss</option>
+                                    <small class="rf-hint m-0" title="@_f.tra("Připomenutí před termínem")"><span class="material-icons-outlined-nosize" style="font-size:15px;vertical-align:-3px;">notifications</span> -@(fld.o16ReminderNotifyBefore) h</small>
                                 }
+                                </div>
+                            }
+                            @if (fld.FieldType == BO.x24IdENUM.tDateTime)
+                            {
+                                <div class="rf-inline"><div class="rf-w-date"><mydate asp-for="@Model.lisFields[i].DateInput" include-time="true"></mydate></div>
+                                @if (fld.o16ReminderNotifyBefore > 0)
+                                {
+                                    <small class="rf-hint m-0" title="@_f.tra("Připomenutí před termínem")"><span class="material-icons-outlined-nosize" style="font-size:15px;vertical-align:-3px;">notifications</span> -@(fld.o16ReminderNotifyBefore) h</small>
+                                }
+                                </div>
+                            }
+                            @if (fld.FieldType == BO.x24IdENUM.tDecimal)
+                            {
+                                <div class="rf-w-num"><mynumber asp-for="@Model.lisFields[i].NumInput" decimal-digits="2"></mynumber></div>
+                            }
+                            @if (fld.FieldType == BO.x24IdENUM.tString)
+                            {
+                                if (fld.o16DataSource == null)
+                                {
+                                    if (fld.o16TextboxHeight > 0 || fld.o16Field == "o23BigText")
+                                    {
+                                        <textarea class="form-control" asp-for="@Model.lisFields[i].StringInput" rows="3"></textarea>
+                                    }
+                                    else
+                                    {
+                                        <input class="form-control" asp-for="@Model.lisFields[i].StringInput" />
+                                    }
+                                }
+                                else if (fld.o16IsFixedDataSource)
+                                {
+                                    <select class="form-select" asp-for="@Model.lisFields[i].StringInput">
+                                        <option value=""></option>
+                                        @foreach (string ss in BO.Code.Bas.ConvertString2List(fld.o16DataSource, ";"))
+                                        {
+                                            <option value="@ss">@ss</option>
+                                        }
+                                    </select>
+                                }
+                                else
+                                {
+                                    <input list="list@(i)" class="form-control" asp-for="@Model.lisFields[i].StringInput" />
+                                    <datalist id="list@(i)">
+                                        @foreach (string ss in BO.Code.Bas.ConvertString2List(fld.o16DataSource, ";"))
+                                        {
+                                            <option value="@ss">@ss</option>
+                                        }
+                                    </datalist>
+                                }
+                            }
+                        </div>
+                    }
+                </div>
+                <input type="hidden" asp-for="lisFields[i].o16Field" />
+                <input type="hidden" asp-for="lisFields[i].o16Name" />
+                <input type="hidden" asp-for="lisFields[i].o16DataSource" />
+                <input type="hidden" asp-for="lisFields[i].o16IsFixedDataSource" />
+                <input type="hidden" asp-for="lisFields[i].o16IsEntryRequired" />
+                <input type="hidden" asp-for="lisFields[i].o16TextboxHeight" />
+                <input type="hidden" asp-for="lisFields[i].o16HelpText" />
+                <input type="hidden" asp-for="lisFields[i].o16ReminderNotifyBefore" />
+            }
 
-                            </select>
+            @if (Model.RecO18.o18EntryCodeFlag == BO.o18EntryCodeENUM.Manual)
+            {
+                <div class="rf-row">
+                    <label for="Rec_o23Code" class="rf-label">@_f.tra("Kód")</label>
+                    <div class="rf-value rf-w-half"><input class="form-control record_code" asp-for="Rec.o23Code" /></div>
+                </div>
+            }
+            @if (Model.RecO18.o18EntryCodeFlag == BO.o18EntryCodeENUM.X38ID && Model.rec_pid > 0)
+            {
+                <div class="rf-row">
+                    <span class="rf-label">@_f.tra("Kód")</span>
+                    <div class="rf-value">
+                        @if (Model.CanEditRecordCode)
+                        {
+                            <myval value="@Model.Rec.o23Code" hoversymol="@_f.tra("Upravit kód")" hoveronclick="true" hoverurl="javascript:_edit_code('o23',@Model.rec_pid)"></myval>
                         }
                         else
                         {
-                            <input list="list@(i)" class="form-control" asp-for="@Model.lisFields[i].StringInput" />
-                            <datalist id="list@(i)">
-                                @foreach (string ss in BO.Code.Bas.ConvertString2List(Model.lisFields[i].o16DataSource, ";"))
-                                {
-                                    <option value="@ss">@ss</option>
-                                }
-                            </datalist>
-
+                            <myval value="@Model.Rec.o23Code"></myval>
                         }
-                    }
+                    </div>
                 </div>
             }
-
-        </div>
-        <input type="hidden" asp-for="lisFields[i].o16Field" />
-        <input type="hidden" asp-for="lisFields[i].o16Name" />
-        <input type="hidden" asp-for="lisFields[i].o16DataSource" />
-        <input type="hidden" asp-for="lisFields[i].o16IsFixedDataSource" />
-        <input type="hidden" asp-for="lisFields[i].o16IsEntryRequired" />
-        <input type="hidden" asp-for="lisFields[i].o16TextboxHeight" />
-        <input type="hidden" asp-for="lisFields[i].o16HelpText" />
-        <input type="hidden" asp-for="lisFields[i].o16ReminderNotifyBefore" />
-        
-
+        </section>
     }
-
-    @if (Model.RecO18.o18EntryCodeFlag == BO.o18EntryCodeENUM.Manual)
-    {
-        <div class="row my-2" style="max-width:1050px;">
-            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Kód"):</label>
-            <div class="col-sm-3 col-md-3">
-                <input class="form-control record_code" asp-for="Rec.o23Code" />
-            </div>
-        </div>
-    }
-    
-    @if (Model.RecO18.o18EntryCodeFlag == BO.o18EntryCodeENUM.X38ID)
-    {
-        <div class="row my-2" style="max-width:1050px;">
-                
-                <div class="col-sm-1 col-md-2">
-                    @if (Model.rec_pid > 0)
-                    {
-                        @_f.tra("Kód")<span>:</span>
-                    }                    
-                </div>
-                <div class="col-sm-3 col-md-3">
-                    @if (Model.CanEditRecordCode)
-                    {
-                        <myval value="@Model.Rec.o23Code" hoversymol="@_f.tra("Upravit kód")" hoveronclick="true" hoverurl="javascript:_edit_code('o23',@Model.rec_pid)"></myval>
-                    }
-                    else
-                    {
-                        <myval value="@Model.Rec.o23Code"></myval>
-                    }
-                </div>
-            </div>
-    }
-
-
-
 
     @if (Model.disp.IsNotepad && !Model.RecO18.o18IsSeparatedNotepadTab)
     {
-        @Html.EditorFor(m => m.Notepad, "~/Views/Shared/_Notepad.cshtml")
-
-    }
-
-
-
-    @if (Model.RecO18.o18IsAllowEncryption)
-    {
-        <table>
-            <tr>
-                <td>
-                    <input type="checkbox" asp-for="@Model.Rec.o23IsEncrypted" onchange="_postback('encrypt')" />
-                    <label for="Rec_o23IsEncrypted" style="padding-left:6px;">@_f.tra("Notepad zašifrovat a ochránit heslem")</label>
-                </td>
-
-                @if (Model.Rec.o23IsEncrypted)
-                {
-                    <td>
-                        <input type="text" asp-for="@Model.PasswordNew" class="form-control" placeholder="Heslo pro zašifrování" />
-                    </td>
-                    <td>
-                        <input type="text" asp-for="@Model.PasswordVerify" class="form-control" placeholder="Ověření hesla" />
-                    </td>
-                }
-
-            </tr>
-        </table>
-
-
-    }
-
-    @if (Model.disp.IsTags)
-    {
-        <div class="my-2">
-            <mystitky entity="o23Doc" asp-for="@Model.TagPids" tagnames="@Model.TagNames" taghtml="@Model.TagHtml" buttontext="@_f.tra("Oštítkovat")"></mystitky>
+        <div class="rf-notepad">
+            @Html.EditorFor(m => m.Notepad, "~/Views/Shared/_Notepad.cshtml")
         </div>
     }
 
-    @Html.EditorFor(m => m.reminder, "~/Views/Shared/_Reminder.cshtml")
-
-
-
-
-
-    @if (Model.disp.IsFiles && Model.UploadGuid !=null)
+    @if (Model.RecO18.o18IsAllowEncryption)
     {
-        <iframe id="fraUpload" src="/Dropzone/UploadInFrame?recpid=@Model.rec_pid&entity=o23&guid=@Model.UploadGuid" frameborder="0" scrolling="yes" style="max-width:1200px;height:60px;"></iframe>
+        <section class="rf-card">
+            <div class="rf-cardbar">
+                <div class="form-check form-switch m-0">
+                    <input type="checkbox" class="form-check-input" role="switch" asp-for="@Model.Rec.o23IsEncrypted" onchange="_postback('encrypt')" />
+                    <label class="form-check-label" for="Rec_o23IsEncrypted"><span class="material-icons-outlined-nosize" style="font-size:18px;vertical-align:-4px;">lock</span> @_f.tra("Notepad zašifrovat a ochránit heslem")</label>
+                </div>
+                @if (Model.Rec.o23IsEncrypted)
+                {
+                    <input type="text" asp-for="@Model.PasswordNew" class="form-control form-control-sm rf-w-pwd" placeholder="@_f.tra("Heslo pro zašifrování")" />
+                    <input type="text" asp-for="@Model.PasswordVerify" class="form-control form-control-sm rf-w-pwd" placeholder="@_f.tra("Ověření hesla")" />
+                }
+            </div>
+        </section>
     }
 
+    <div class="rf-extras">
+        @if (Model.disp.IsTags)
+        {
+            <mystitky entity="o23Doc" asp-for="@Model.TagPids" tagnames="@Model.TagNames" taghtml="@Model.TagHtml" buttontext="@_f.tra("Oštítkovat")"></mystitky>
+        }
+        @Html.EditorFor(m => m.reminder, "~/Views/Shared/_Reminder.cshtml")
+    </div>
 
-
+    @if (Model.disp.IsFiles && Model.UploadGuid != null)
+    {
+        <iframe id="fraUpload" src="/Dropzone/UploadInFrame?recpid=@Model.rec_pid&entity=o23&guid=@Model.UploadGuid" frameborder="0" scrolling="yes" style="max-width:1200px;width:100%;height:60px;"></iframe>
+    }
+    </div>
 </div>
 
 
@@ -370,11 +311,13 @@
     <div class="tab-pane tab-pane-fixed" id="tab3" role="tabpanel">
         <!-- Tab3 -->
 
-        <div class="row my-2">
-            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Vlastník záznamu"):</label>
-            <div class="col-sm-11 col-md-10">
-                <mycombo entity="j02User" asp-for="Rec.j02ID_Owner" selectedtext="@Model.SelectedComboOwner" view-flag="2"></mycombo>
-            </div>
+        <div class="rf">
+            <section class="rf-card">
+                <div class="rf-row">
+                    <label for="cmdComboRec_j02ID_Owner" class="rf-label">@_f.tra("Vlastník záznamu")</label>
+                    <div class="rf-value rf-w-half"><mycombo entity="j02User" asp-for="Rec.j02ID_Owner" selectedtext="@Model.SelectedComboOwner" view-flag="2"></mycombo></div>
+                </div>
+            </section>
         </div>
 
 
