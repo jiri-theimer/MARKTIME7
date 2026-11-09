@@ -18,6 +18,23 @@ namespace BL.Code
             
             
         }
+        /// <summary>Řetězec pro JavaScript: JSON (výchozí encoder escapuje i &lt; &gt; &amp; → nelze ukončit &lt;script&gt;).</summary>
+        private static string JsStr(string s) => System.Text.Json.JsonSerializer.Serialize(s ?? "");
+
+        /// <summary>Číslo pro JavaScript; cokoli jiného než číslo → 0 (dříve se hodnota vkládala do skriptu bez kontroly).</summary>
+        private static string JsNum(object o)
+        {
+            if (o == null || o == System.DBNull.Value) return "0";
+            double d;
+            try { d = Convert.ToDouble(o, System.Globalization.CultureInfo.InvariantCulture); }
+            catch
+            {
+                string t = o.ToString().Replace(",", ".");
+                if (!double.TryParse(t, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out d)) return "0";
+            }
+            return double.IsFinite(d) ? d.ToString("R", System.Globalization.CultureInfo.InvariantCulture) : "0";
+        }
+
         public string CreateGoogleChartHtml(System.Data.DataTable dt, BO.x55Widget rec)
         {
 
@@ -36,7 +53,8 @@ namespace BL.Code
             wr("[");
 
 
-            wr("['" + string.Join("','", _headers) + "']");
+            //názvy i popisky jako JSON řetězce (escapované uvozovky, apostrofy i </script>) – nález 14
+            wr("[" + string.Join(",", _headers.Select(h => JsStr(h))) + "]");
 
             int x = 0;
 
@@ -60,7 +78,7 @@ namespace BL.Code
                         }
                         else
                         {
-                            _sb.Append("'" + BO.Code.Bas.OM2(dbRow[i].ToString(), 25) + "'");
+                            _sb.Append(JsStr(BO.Code.Bas.OM2(dbRow[i].ToString(), 25)));
                         }
 
 
@@ -73,7 +91,7 @@ namespace BL.Code
                         }
                         else
                         {
-                            _sb.Append(dbRow[i].ToString().Replace(",", "."));
+                            _sb.Append(JsNum(dbRow[i]));
                         }
 
                     }

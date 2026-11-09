@@ -73,6 +73,20 @@
 .aiw-table thead th { font-weight: 600; color: #59636e; border-bottom-width: 1px; white-space: nowrap; }
 .aiw-table td { font-variant-numeric: tabular-nums; }
 .aiw-table tfoot td { font-weight: 600; border-top: 2px solid #dee2e6; }
+.aiw-kpis { display: grid; gap: 10px; margin: 4px 0 8px; }
+.aiw-kpis-1 { grid-template-columns: 1fr; }
+.aiw-kpis-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.aiw-kpis-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.aiw-kpi { padding: 10px 12px; border-radius: 8px; background: #f6f8fa; min-width: 0; }
+.aiw-kpi-name { font-size: .78rem; color: #6c757d; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.aiw-kpi-value { font-size: 1.9rem; font-weight: 700; line-height: 1.2; color: #1f2328; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.aiw-kpis-2 .aiw-kpi-value { font-size: 1.6rem; }
+.aiw-kpis-3 .aiw-kpi-value { font-size: 1.3rem; }
+.aiw-kpi-cmp { margin-top: 2px; font-size: .8rem; cursor: help; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* směr bez hodnocení – u nákladů či nevyfakturovaných hodin růst není „dobře“ */
+.aiw-kpi-up, .aiw-kpi-down { color: #3d444d; font-weight: 600; }
+.aiw-kpi-flat, .aiw-kpi-prev { color: #6c757d; }
+@media (max-width: 500px) { .aiw-kpis-2, .aiw-kpis-3 { grid-template-columns: 1fr; } }
 .aiw-foot { display: flex; align-items: center; gap: 12px; margin-top: 6px; font-size: .8rem; }
 .aiw-foot a { display: inline-flex; align-items: center; gap: 3px; text-decoration: none; }
 .aiw-foot .material-icons-outlined-btn { margin-top: 0; font-size: 16px; }

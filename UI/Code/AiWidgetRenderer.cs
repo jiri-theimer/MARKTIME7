@@ -140,7 +140,11 @@ namespace UI.Code
             if (!string.IsNullOrEmpty(t.Description))
                 sb.Append($"<div class='aiw-desc'>{E(t.Description)}</div>");
 
-            if (t.Rows.Count == 0)
+            if (task.Kind != "list" && task.Agg.Dims.Count == 0 && t.Rows.Count > 0)
+            {
+                sb.Append(Kpi(task, t));        //souhrn bez dimenzí = jedno číslo → KPI dlaždice
+            }
+            else if (t.Rows.Count == 0)
             {
                 sb.Append($"<div class='aiw-empty'>{E(_f.tra("Nic nenalezeno."))}</div>");
             }
@@ -175,6 +179,90 @@ namespace UI.Code
             sb.Append("</div>");
             sb.Append("</div>");
             return sb.ToString();
+        }
+
+        // ------------------------------------------------------------------ KPI (souhrn bez dimenzí)
+
+        /// <summary>
+        /// Velká čísla (max. 3 měřítka) a porovnání s předchozím obdobím stejné délky – stejné zadání, jen posunuté období
+        /// (jeden SQL dotaz navíc, bez AI). Bez období v zadání se porovnání nezobrazí.
+        /// </summary>
+        private string Kpi(BO.AI.AiWidgetTask task, BO.AI.AiAskTable t)
+        {
+            var row = t.Rows[0];
+            var measures = t.Columns.Select((c, i) => (c, i)).Where(x => x.c.Measure).Take(MaxChartSeries).ToList();
+
+            object[] prevRow = null;
+            string prevLabel = null;
+            var prev = PreviousPeriod(task.Agg.Period);
+            if (prev != null)
+            {
+                try
+                {
+                    var pt = BO.AI.AiWidgetTask.Parse(task.ToJson());
+                    pt.PeriodPid = 0;
+                    pt.Agg.Period.D1 = prev.Value.d1.ToString("yyyy-MM-dd");
+                    pt.Agg.Period.D2 = prev.Value.d2.ToString("yyyy-MM-dd");
+                    var tp = ComputeTable(pt, new List<string>());
+                    if (tp != null && tp.Rows.Count > 0) prevRow = tp.Rows[0];
+                    prevLabel = $"{prev.Value.d1:d.M.} – {prev.Value.d2:d.M.yyyy}";
+                }
+                catch { prevRow = null; }
+            }
+
+            var sb = new StringBuilder();
+            sb.Append($"<div class='aiw-kpis aiw-kpis-{measures.Count}'>");
+            foreach (var m in measures)
+            {
+                double v = D(row[m.i]);
+                sb.Append("<div class='aiw-kpi'>");
+                sb.Append($"<div class='aiw-kpi-name'>{E(m.c.Name)}</div>");
+                sb.Append($"<div class='aiw-kpi-value'>{E(KpiFmt(row[m.i], m.c))}</div>");
+                if (prevRow != null)
+                {
+                    double p = D(prevRow[m.i]);
+                    string cmp;
+                    if (Math.Abs(p) < 0.000001) cmp = $"<span class='aiw-kpi-flat'>{E(_f.tra("předchozí období"))}: 0</span>";
+                    else
+                    {
+                        double pct = (v - p) / Math.Abs(p) * 100;
+                        string arrow = pct > 0.05 ? "▲" : (pct < -0.05 ? "▼" : "•");
+                        string cls = pct > 0.05 ? "aiw-kpi-up" : (pct < -0.05 ? "aiw-kpi-down" : "aiw-kpi-flat");
+                        cmp = $"<span class='{cls}'>{arrow} {E(Math.Abs(pct).ToString("N0", _cz))} %</span> <span class='aiw-kpi-prev'>{E(_f.tra("proti"))} {E(KpiFmt(prevRow[m.i], m.c))}</span>";
+                    }
+                    sb.Append($"<div class='aiw-kpi-cmp' title='{E(_f.tra("Předchozí období"))}: {E(prevLabel)}'>{cmp}</div>");
+                }
+                sb.Append("</div>");
+            }
+            sb.Append("</div>");
+            return sb.ToString();
+        }
+
+        /// <summary>KPI číslo: od 1 000 bez desetinných míst (velké částky se jinak nevejdou).</summary>
+        private string KpiFmt(object v, BO.AI.AiAskColumn c)
+        {
+            double d = D(v);
+            return d.ToString("N" + (Math.Abs(d) >= 1000 ? 0 : c.Decimals), _cz);
+        }
+
+        /// <summary>
+        /// Předchozí období stejné délky: celé měsíce od 1. dne (i rozpracovaný měsíc / rok k dnešku) → posun o stejný počet měsíců
+        /// (listopad 1.–9. → říjen 1.–9.; Q4 → Q3; rok → rok); jinak posun o počet dní. null = zadání bez období / otevřené období.
+        /// </summary>
+        public static (DateTime d1, DateTime d2)? PreviousPeriod(BO.AI.AiAggPeriod per)
+        {
+            if (per == null || !BL.AI.Grid.AiGridFilterCodec.TryDate(per.D1, out var d1) || !BL.AI.Grid.AiGridFilterCodec.TryDate(per.D2, out var d2)) return null;
+            if (d1.Year < 1990 || d2.Year > 2090 || d2 < d1) return null;     //otevřené meze (2000-01-01 / 2099-12-31) nemají „předchozí“
+            if (d1.Day == 1)
+            {
+                int months = (d2.Year * 12 + d2.Month) - (d1.Year * 12 + d1.Month) + 1;
+                bool fullLastMonth = d2.Day == DateTime.DaysInMonth(d2.Year, d2.Month);
+                var p1 = d1.AddMonths(-months);
+                var p2 = fullLastMonth ? p1.AddMonths(months).AddDays(-1) : d2.AddMonths(-months);
+                return (p1, p2);
+            }
+            int days = (d2 - d1).Days + 1;
+            return (d1.AddDays(-days), d1.AddDays(-1));
         }
 
         /// <summary>

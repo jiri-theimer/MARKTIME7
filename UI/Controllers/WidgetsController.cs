@@ -685,18 +685,20 @@ namespace UI.Controllers
 
 
         //načtení html obsahu jednoho boxu
-        public BO.x55Widget GetWidgetHtmlContent(int x55id, int columnsperpage, string d,int j02id,int p28id)
+        //Bezpečnost (nález 14): widget smí uživatel spustit jen ze své skupiny (nebo osobní vlastní); do prohlížeče jde jen název a HTML –
+        //nikdy x55TableSql / x55ChartSql / x55AiTask.
+        public IActionResult GetWidgetHtmlContent(int x55id, int columnsperpage, string d,int j02id,int p28id)
         {
             var rec = Factory.x55WidgetBL.Load(x55id);
-            if (rec == null || (rec.IsPersonal && rec.j02ID_Owner != Factory.CurrentUser.pid))
+            if (rec == null || !CanRunWidget(rec, ref j02id))
             {
-                return new BO.x55Widget() { x55ID = x55id, x55Name = "?", x55Code = "x", x55Content = Factory.tra("Widget nebyl nalezen.") };
+                return Json(WidgetDto(new BO.x55Widget() { x55Name = "?", x55Code = "x", x55Content = Factory.tra("Widget nebyl nalezen.") }));
             }
             if (rec.IsAiWidget)
             {
                 //AI widget: zadání → SQL přes AiAggregate, bez volání AI
                 rec.x55Content = AiRenderer().Render(rec);
-                return rec;
+                return Json(WidgetDto(rec));
             }
             string strHtml = rec.x55Content;
             if (strHtml != null)
@@ -800,10 +802,44 @@ namespace UI.Controllers
             }
 
             rec.x55Content = sb.ToString();
-            return rec;
+            return Json(WidgetDto(rec));
+        }
 
+        /// <summary>Odpověď pro widgets.js – jen to, co prohlížeč potřebuje.</summary>
+        private static object WidgetDto(BO.x55Widget rec) => new
+        {
+            x55Name = rec.x55Name,
+            x55Content = rec.x55Content,
+            x55Code = rec.x55Code,
+            isUseDatatables = rec.IsUseDatatables,
+            x55DataTablesButtons = (int)rec.x55DataTablesButtons
+        };
 
+        /// <summary>
+        /// Smí přihlášený spustit widget? Osobní = jen vlastník. Sdílený = je v x57 některé skupiny role přihlášeného
+        /// (při prohlížení cizí plochy i skupiny role jejího uživatele). Cizí plocha (j02id) jen pro uživatele, které smí vidět
+        /// (MyRecordsDisponible); jinak se j02id přepne na přihlášeného – @j02id v SQL widgetu nesmí jít libovolně podstrčit.
+        /// </summary>
+        private bool CanRunWidget(BO.x55Widget rec, ref int j02id)
+        {
+            int me = Factory.CurrentUser.pid;
+            if (rec.IsPersonal) { j02id = me; return rec.j02ID_Owner == me; }
 
+            var j04ids = new List<int> { Factory.CurrentUser.j04ID };
+            if (j02id > 0 && j02id != me)
+            {
+                var other = Factory.j02UserBL.GetList(new BO.myQueryJ02() { pids = new List<int> { j02id }, MyRecordsDisponible = true }).FirstOrDefault();
+                if (other == null) j02id = me;
+                else j04ids.Add(other.j04ID);
+            }
+            foreach (int j04id in j04ids.Distinct())
+            {
+                foreach (var g in Factory.j04UserRoleBL.GetList_x54(j04id).Where(p => !p.isclosed))
+                {
+                    if (Factory.x54WidgetGroupBL.GetList_x57(g.pid).Any(p => p.x55ID == rec.pid)) return true;
+                }
+            }
+            return false;
         }
     }
 }
