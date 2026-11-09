@@ -142,6 +142,10 @@ namespace UI.Controllers
                 case BO.Model.TimesheetCostRateEnum.SimulacniSazbaUzivatel:
                     strSQL = strSQL.Replace("a.p31Rate_Internal_Orig", "j02.j02Plan_Internal_Rate");    //simulační sazba uživatele
                     break;
+                case BO.Model.TimesheetCostRateEnum.NakladovaPlusRezijniSazba:
+                    //N1+N2 – dříve chyběla a podrobná výsledovka počítala jen nákladovou sazbu (box v záznamu N1+N2)
+                    strSQL = strSQL.Replace("a.p31Rate_Internal_Orig", "(isnull(a.p31Rate_Internal_Orig,0)+isnull(a.p31Rate_Overhead,0))");
+                    break;
             }
             
             var ret = new BL.Code.HtmlTable() { HeaderBgColor = "#add8e6" };

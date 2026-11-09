@@ -690,7 +690,7 @@ namespace BL
                 case BO.Model.TimesheetCostRateEnum.NakladovaPlusRezijniSazba:
                     //nákladová sazba + režijní sazba
                     sb(",SUM(case when p34.p33ID=1 then a.p31Hours_Orig*(isnull(a.p31Rate_Internal_Orig,0)+isnull(a.p31Rate_Overhead,0)) end) as Honorar_Naklad");
-                    sb(",SUM(case when a.p91ID IS NOT NULL AND p34.p33ID=1 then a.p31Hours_Orig*(isnull(a.p31Rate_Overhead,0)+isnull(a.p31Rate_Overhead,0)) end) as Vyuctovano_Honorar_Naklad");
+                    sb(",SUM(case when a.p91ID IS NOT NULL AND p34.p33ID=1 then a.p31Hours_Orig*(isnull(a.p31Rate_Internal_Orig,0)+isnull(a.p31Rate_Overhead,0)) end) as Vyuctovano_Honorar_Naklad");   //opraveno 9. 11. 2026: dříve 2× režijní sazba
                     break;
                 case BO.Model.TimesheetCostRateEnum.SimulacniSazbaProjekt:
                     sb(",SUM(case when p34.p33ID=1 then a.p31Hours_Orig*p41.p41Plan_Internal_Rate end) as Honorar_Naklad");
