@@ -519,7 +519,7 @@ a.calmenu_btn {
 
 /* --- měsíc / týden --- */
 #mt_scheduler_calendar { border-collapse: collapse; background: #fff; }
-#mt_scheduler_calendar th { padding: 6px 4px; font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: #6c757d; background: #fafbfc; border-bottom: 1px solid #e3e6ea; }
+#mt_scheduler_calendar th { padding: 6px 4px; font-size: .88rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: #6c757d; background: #fafbfc; border-bottom: 1px solid #e3e6ea; }
 #mt_scheduler_calendar td { border: 1px solid #e9ecef; padding: 2px 3px 4px; color: #3d444d; transition: background-color .1s; }
 #mt_scheduler_calendar td:hover { background-color: #f7fafd; }
 #mt_scheduler_calendar td.mt_scheduler-day-out-month { background-color: #f6f7f9; }
@@ -530,21 +530,21 @@ a.calmenu_btn {
 
 div.mt_scheduler-day-header { display: flex; align-items: center; gap: 6px; background-color: transparent; padding: 1px 2px 2px; }
 div.mt_scheduler-day-header.mt-edge { background-color: #fff6d9 !important; border-radius: 4px; }
-a.cislodne, .cislodne { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; height: 24px; padding: 0 5px; border-radius: 12px; color: #3d444d; font-weight: 600; font-size: .85rem; text-decoration: none; }
+a.cislodne, .cislodne { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; height: 24px; padding: 0 5px; border-radius: 12px; color: #3d444d; font-weight: 600; font-size: 1rem; text-decoration: none; }
 a.cislodne:hover { background: #e9eef4; color: #000; }
 .cislodne-today, a.cislodne.cislodne-today { background: var(--pozadi, #0b4b92); color: var(--popredi, #fff) !important; border-radius: 12px; padding: 0 7px; }
-.cal-holiday { padding: 0 6px; border-radius: 8px; background: #fde2e7; color: #a3324a; font-size: .72rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.odchod-prichod { margin-left: auto; margin-right: 2px; float: none; font-size: .75rem; color: #8a5a8a; }
+.cal-holiday { padding: 0 6px; border-radius: 8px; background: #fde2e7; color: #a3324a; font-size: .86rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.odchod-prichod { margin-left: auto; margin-right: 2px; float: none; font-size: .88rem; color: #8a5a8a; }
 
 div.mt_scheduler-day { min-height: 56px; }
 
 /* součet hodin dne – „pilulka“ (barva textu zůstává z markupu: zelená = vše fakturovatelné, červená = nic) */
-a.mt_scheduler_valuelink { display: inline-block; margin: 1px 0 3px 2px !important; padding: 0 7px; border-radius: 10px; background: #eef2f6; font-size: .82rem; font-variant-numeric: tabular-nums; }
+a.mt_scheduler_valuelink { display: inline-block; margin: 1px 0 3px 2px !important; padding: 0 7px; border-radius: 10px; background: #eef2f6; font-size: 1rem; font-variant-numeric: tabular-nums; }
 a.mt_scheduler_valuelink:hover { background: #e1e8f0; text-decoration: none; }
-span.mt_scheduler_money, a.mt_scheduler_valuelink_money, span.mt_scheduler_kusovnik, a.mt_scheduler_valuelink_kusovnik { border-radius: 10px; padding: 0 6px; font-size: .78rem; }
+span.mt_scheduler_money, a.mt_scheduler_valuelink_money, span.mt_scheduler_kusovnik, a.mt_scheduler_valuelink_kusovnik { border-radius: 10px; padding: 0 6px; font-size: .92rem; }
 
 /* řádky záznamů v buňce (úkony, úkoly, termíny) */
-.cal-row { display: flex; align-items: center; gap: 2px; margin: 1px 0; padding: 0 3px; border-radius: 4px; font-size: .82rem; line-height: 1.45; min-width: 0; }
+.cal-row { display: flex; align-items: center; gap: 2px; margin: 1px 0; padding: 0 3px; border-radius: 4px; font-size: 1rem; line-height: 1.45; min-width: 0; }
 .cal-row:hover { background-color: #eef3f8; }
 .cal-row.cal-colored { background-color: color-mix(in srgb, var(--c) 30%, #ffffff) !important; box-shadow: inset 3px 0 0 var(--c); padding-left: 5px; }
 .cal-row.cal-colored:hover { background-color: color-mix(in srgb, var(--c) 45%, #ffffff) !important; }
@@ -561,13 +561,13 @@ span.mt_scheduler_money, a.mt_scheduler_valuelink_money, span.mt_scheduler_kusov
 .calmenu { background-color: #fff; border: 1px solid #dfe3e8; border-radius: 10px; padding: 3px; box-shadow: 0 6px 18px rgba(16,24,40,.14); }
 .calmenu td { padding: 0; }
 a.calmenu_btn { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 7px; cursor: pointer; color: #3d444d; }
-a.calmenu_btn:hover { background-color: var(--oznaceno, #e7f1ff); color: var(--popredi, #000); }
+a.calmenu_btn:hover { background-color: color-mix(in srgb, var(--oznaceno, #4169e1) 14%, #ffffff); color: #1f2328; }
 #divC24 a, #divFUT a { display: inline-flex; align-items: center; gap: 4px; padding: 3px 6px !important; border-radius: 6px; text-decoration: none; color: #1f2328; }
 #divC24 a:hover, #divFUT a:hover { background: #f1f3f5; }
 
 /* --- agenda --- */
 #mt_scheduler_agenda { border-collapse: collapse; background: #fff; }
-#mt_scheduler_agenda th { font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: #6c757d; background: #fafbfc; border-bottom: 1px solid #e3e6ea; padding: 6px 4px; }
+#mt_scheduler_agenda th { font-size: .88rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: #6c757d; background: #fafbfc; border-bottom: 1px solid #e3e6ea; padding: 6px 4px; }
 #mt_scheduler_agenda td { color: #3d444d; padding: 3px 4px; border-bottom: 1px solid #f0f2f4; }
 #mt_scheduler_agenda tr:hover { background-color: #f7fafd; }
 .agenda_row_licha { background-color: #fafbfc; }
@@ -575,28 +575,28 @@ a.calmenu_btn:hover { background-color: var(--oznaceno, #e7f1ff); color: var(--p
 .agenda_row_divider_month { border-top: 3px solid #f1d98a; }
 
 /* --- přesný den (časová osa) --- */
-.hour_slot { background-color: #fafbfc; color: #6c757d; font-size: .78rem; font-weight: 600; border-top: 1px solid #e3e6ea; padding-top: 2px; }
+.hour_slot { background-color: #fafbfc; color: #6c757d; font-size: .92rem; font-weight: 600; border-top: 1px solid #e3e6ea; padding-top: 2px; }
 .minute_slot { background-color: #fff; border: 0; border-bottom: 1px solid #f0f2f4; border-right: 1px solid #e3e6ea; cursor: crosshair; }
 .minute_slot:hover { background-color: color-mix(in srgb, var(--oznaceno, #cfe2ff) 35%, #ffffff); }
 .bunka_selected { border: 0 !important; background-color: color-mix(in srgb, var(--oznaceno, #cfe2ff) 70%, #ffffff) !important; box-shadow: inset 3px 0 0 var(--pozadi, #0b4b92); }
-.data_slot { background-color: #fff; border: 1px solid #dfe3e8; border-radius: 6px; padding: 2px 6px; font-size: .85rem; box-shadow: 0 1px 2px rgba(16,24,40,.06); }
+.data_slot { background-color: #fff; border: 1px solid #dfe3e8; border-radius: 6px; padding: 2px 6px; font-size: 1rem; box-shadow: 0 1px 2px rgba(16,24,40,.06); }
 .data_slot.cal-slot-b { border-left: 4px solid #2f9e44; }
 .data_slot.cal-slot-nb { border-left: 4px solid #e03131; }
 .data_slot[style*="--c"] { background-color: color-mix(in srgb, var(--c) 18%, #ffffff); }
 .nodata_slot { color: #59636e; padding: 6px; }
-.cal-day-hint { display: flex; align-items: center; gap: 6px; margin: 2px 0 6px 55px; font-size: .8rem; color: #59636e; }
+.cal-day-hint { display: flex; align-items: center; gap: 6px; margin: 2px 0 6px 55px; font-size: .94rem; color: #59636e; }
 .cal-day-hint .material-icons-outlined-nosize { font-size: 17px; color: var(--pozadi, #0b4b92); }
 .cal-sel-log { display: none; }
 .cal-sel-log.cal-sel-on { display: inline-block !important; padding: 1px 10px; border-radius: 10px; background: var(--pozadi, #0b4b92); color: var(--popredi, #fff); font-variant-numeric: tabular-nums; }
 
 /* --- docházka (Views/Absence/Index.cshtml) – třídy abs-* --- */
-table.abs-table { border-collapse: separate; border-spacing: 0; font-size: .85rem; font-variant-numeric: tabular-nums; }
+table.abs-table { border-collapse: separate; border-spacing: 0; font-size: 1rem; font-variant-numeric: tabular-nums; }
 table.abs-table th, table.abs-table td { border-color: #e9ecef !important; padding: 3px 6px; vertical-align: middle; }
-table.abs-table thead th { background: #fafbfc; color: #59636e; font-size: .75rem; font-weight: 600; line-height: 1.25; vertical-align: bottom; border-bottom: 1px solid #dfe3e8 !important; z-index: 2; }
+table.abs-table thead th { background: #fafbfc; color: #59636e; font-size: .88rem; font-weight: 600; line-height: 1.25; vertical-align: bottom; border-bottom: 1px solid #dfe3e8 !important; z-index: 2; }
 table.abs-table thead th.abs-th-fut { background-color: color-mix(in srgb, var(--c) 35%, #ffffff) !important; color: #1f2328; }
 table.abs-table th.abs-th-date { text-align: left; }
-.abs-sum { display: block; color: #8a939c; font-size: .85rem; }
-.abs-fa { display: inline-block; margin-bottom: 2px; padding: 0 5px; border-radius: 4px; font-size: .68rem; }
+.abs-sum { display: block; color: #8a939c; font-size: 1rem; }
+.abs-fa { display: inline-block; margin-bottom: 2px; padding: 0 5px; border-radius: 4px; font-size: .82rem; }
 .abs-fa + * { display: block; }
 table.abs-table tbody tr.agenda_row_suda, table.abs-table tbody tr.agenda_row_licha { background-color: #fff; }
 table.abs-table tbody tr.mt_scheduler-day-weekend td { background-color: #faf7fa; }
@@ -608,7 +608,7 @@ table.abs-table tbody tr.bunka_selected td:first-child { box-shadow: inset 3px 0
 table.abs-table td:first-child { text-align: left; white-space: nowrap; }
 a.abs-day { display: inline-flex; align-items: center; gap: 6px; color: #1f2328; text-decoration: none; }
 .abs-dnum { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; height: 22px; padding: 0 4px; border-radius: 11px; font-weight: 600; }
-.abs-dname { color: #6c757d; font-size: .8rem; }
+.abs-dname { color: #6c757d; font-size: .94rem; }
 .mt_scheduler-day-weekend .abs-dname { color: #a0659b; }
 .abs-holiday { margin-left: 4px; }
 table.abs-table a.mt_scheduler_valuelink { margin: 0 !important; }

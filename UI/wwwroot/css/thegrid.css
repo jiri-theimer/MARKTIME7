@@ -599,7 +599,7 @@ table.tg-one {
         border-radius: 8px;
         background-color: var(--pozadi, #0b4b92);
         color: var(--popredi, #ffffff);
-        font-size: .75rem;
+        font-size: .88rem;
         font-weight: 700;
         line-height: 1.3;
     }

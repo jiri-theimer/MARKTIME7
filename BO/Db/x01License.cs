@@ -9,6 +9,12 @@ namespace BO
         VypnutyRobot=4,
         PouzeAdminPlusVypnutyRobot = 6
     }
+    public enum x01AiUsageFlagEnum
+    {
+        None=0,
+        GlobalApiKey=1,
+        PrivateApiKey=2
+    }
     public class x01License:BaseBO
     {
         public Guid x01Guid { get; }    //raději pouze pro čtení, hodnota se generuje v SP
@@ -55,6 +61,12 @@ namespace BO
 
         
        public string x01InfosoudToken { get; set; }
+
+        public x01AiUsageFlagEnum x01AiUsageFlag { get; set; }
+        public string x01AiApikey { get; set; }
+        public string x01AiModel { get; set; }
+        public int x01AiMaxTokens { get; set; }
+        public int x01AiTimeoutSeconds { get; set; }
 
         public string GetBillingLang(int intLangIndex)
         {

@@ -126,8 +126,12 @@ namespace BL
             p.AddBool("x01IsAllowDuplicity_p86", rec.x01IsAllowDuplicity_p86);
 
             p.AddString("x01InfosoudToken", rec.x01InfosoudToken);
-            
-           
+            p.AddEnumInt("x01AiUsageFlag", rec.x01AiUsageFlag);
+            p.AddString("x01AiApikey", rec.x01AiApikey);
+            p.AddString("x01AiModel", rec.x01AiModel);
+            p.AddInt("x01AiMaxTokens", rec.x01AiMaxTokens);
+            p.AddInt("x01AiTimeoutSeconds", rec.x01AiTimeoutSeconds);
+
             _db.CurrentUser.j02Login = "guru";
 
             _db.SaveRecord("x01License", p, rec);   //x01ID není identity

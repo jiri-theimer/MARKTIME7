@@ -231,15 +231,15 @@ a.calmenu_btn {
    Moderní vzhled DAYLINE (MARKTIME 8) – navazuje na kalendář a docházku (calendar.css).
    Inline barvy (hodiny dne, barva dne) zůstávají kvůli „Odeslat přes e-mail“.
    ===================================================================================== */
-table.timeline_table { font-size: .85rem; font-variant-numeric: tabular-nums; background: #fff; }
+table.timeline_table { font-size: 1rem; font-variant-numeric: tabular-nums; background: #fff; }
 .timeline_table td { border-right: 1px solid #edf0f2; border-bottom: 1px solid #edf0f2; padding: 3px 1px; color: #1f2328; }
 .timeline_table th { border-right: 1px solid #e3e6ea; border-bottom: 1px solid #dfe3e8; background-color: #fafbfc; color: #59636e; font-weight: 600; padding: 3px 1px; line-height: 1.15; }
 .timeline_table tr:hover td { background-color: #f3f7fb; }
 .timeline_table tr:hover td.td_weekend { background-color: #f1eef4; }
 
 th.th_day, th.th_day_week, th.th_day_wide { position: relative; }
-.dl-dnum { display: inline-block; min-width: 22px; padding: 1px 3px; border-radius: 11px; font-size: .85rem; color: #1f2328; }
-.dl-dname { display: block; font-size: .7rem; font-weight: normal; color: #8a939c; text-transform: lowercase; }
+.dl-dnum { display: inline-block; min-width: 22px; padding: 1px 3px; border-radius: 11px; font-size: 1rem; color: #1f2328; }
+.dl-dname { display: block; font-size: .84rem; font-weight: normal; color: #8a939c; text-transform: lowercase; }
 th.th_weekend { background-color: #f8f3f8; }
 th.th_weekend .dl-dname { color: #a0659b; }
 th.th_today { background-color: color-mix(in srgb, var(--oznaceno, #cfe2ff) 25%, #ffffff); box-shadow: inset 0 -3px 0 var(--pozadi, #0b4b92); }
@@ -249,18 +249,18 @@ th.th_holiday { background-color: #fff3f5; }
 td.td_weekend { background-color: #fbf8fb; }
 
 td.td_person { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-td.td_position { color: #8a939c; font-size: .78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+td.td_position { color: #8a939c; font-size: .92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 tr.tr_person_projekty td { background-color: #f6f8fa; font-weight: 600; }
-td.td_project, td.td_client { font-style: normal; color: #3d5a80; padding-left: 20px; font-size: .82rem; }
-td.td_sum { font-size: .82rem; }
-td.td_sum var { font-style: normal; color: #8a939c; font-size: .75rem; }
+td.td_project, td.td_client { font-style: normal; color: #3d5a80; padding-left: 20px; font-size: 1rem; }
+td.td_sum { font-size: 1rem; }
+td.td_sum var { font-style: normal; color: #8a939c; font-size: .88rem; }
 
 /* hodnoty: denní součet a odkazy na úkony
    POZOR: hlavička a tělo jsou samostatné bloky (tbody display:block) – šířky a vodorovné
    paddingy th/td musí zůstat shodné, jinak se sloupce rozjedou. */
 a.hz { display: inline-block; padding: 0 4px; border-radius: 8px; }
 a.hz:hover { background: #e7eef6; text-decoration: none; }
-a.afa, a.anefa { display: inline-block; min-width: 30px; border: 0; border-radius: 8px; padding: 0 5px; font-size: .78rem; font-weight: 600; text-decoration: none; }
+a.afa, a.anefa { display: inline-block; min-width: 30px; border: 0; border-radius: 8px; padding: 0 5px; font-size: .92rem; font-weight: 600; text-decoration: none; }
 a.afa { background: #e6f4ea; color: #1e7b34; }
 a.anefa { background: #fdecec; color: #b02a37; }
 a.afa:hover, a.anefa:hover { text-decoration: none; filter: brightness(.95); }
@@ -268,15 +268,17 @@ div.dd { margin-top: 2px; }
 
 /* úkoly a termíny v buňce */
 .dl-item { display: flex; align-items: center; gap: 1px; margin-top: 2px; }
-.dl-item a.cm { opacity: .3; text-decoration: none; font-size: .75rem; }
+.dl-item a.cm { opacity: .3; text-decoration: none; font-size: .88rem; }
 .dl-item:hover a.cm { opacity: 1; }
 .dl-item .material-icons-outlined { font-size: 14px; }
 .dl-item a { color: #2b3138; text-decoration: none; }
 
 /* plovoucí nabídka dne */
 .calmenu.dl-calmenu { background-color: #fff; border: 1px solid #dfe3e8; border-radius: 10px; padding: 2px; box-shadow: 0 6px 18px rgba(16,24,40,.14); }
-.dl-calmenu a.calmenu_btn { display: inline-flex; align-items: center; gap: 4px; padding: 3px 6px; border-radius: 7px; color: #3d444d; }
-.dl-calmenu a.calmenu_btn:hover { background-color: var(--oznaceno, #e7f1ff); color: var(--popredi, #000); }
+.dl-calmenu a.calmenu_btn { display: inline-flex; align-items: center; gap: 4px; min-height: 30px; min-width: 30px; justify-content: center; padding: 3px 6px; border-radius: 7px; color: #3d444d; }
+/* ikony mají v site.css line-height: 0 → bez min-height by podbarvení při hoveru bylo jen tenká čára přes ikonu */
+.dl-calmenu a.calmenu_btn .material-icons-outlined-btn { line-height: 1; margin-top: 0; }
+.dl-calmenu a.calmenu_btn:hover { background-color: color-mix(in srgb, var(--oznaceno, #4169e1) 14%, #ffffff); color: #1f2328; }
 .dl-pop { padding: 8px 10px; min-width: 260px; }
 .dl-pop a { display: inline-flex; align-items: center; gap: 4px; border-radius: 6px; text-decoration: none; color: #1f2328; }
 .dl-pop a:hover { background: #f1f3f5; }

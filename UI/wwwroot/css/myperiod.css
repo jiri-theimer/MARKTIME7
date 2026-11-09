@@ -44,18 +44,18 @@
 }
 
 #cmdPeriodMore.mp-on .mp-field {
-    font-size: .68rem;
+    font-size: .82rem;
     opacity: .8;
 }
 
 #cmdPeriodMore.mp-on .mp-val {
     font-weight: 600;
-    font-size: .8rem;
+    font-size: .94rem;
 }
 
 .mp-range {
     font-weight: normal;
-    font-size: .72rem;
+    font-size: .86rem;
     opacity: .85;
     margin-left: 3px;
 }
@@ -78,10 +78,10 @@
 }
 
 #myPeriodSelector.mp-sel {
-    width: 600px;
+    width: 720px;
     max-width: calc(100vw - 24px);
     padding: 10px 12px 12px;
-    font-size: .85rem;
+    font-size: 1rem;
 }
 
 .mp-top {
@@ -96,7 +96,7 @@
 
 .mp-top-lab {
     color: #59636e;
-    font-size: .8rem;
+    font-size: .94rem;
 }
 
 .mp-fieldsel {
@@ -117,7 +117,7 @@
 }
 
 .mp-gh {
-    font-size: .72rem;
+    font-size: .86rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: .04em;
@@ -141,9 +141,9 @@
     }
 
 .mp-rl {
-    padding-top: 6px;
+    padding-top: 3px;
     color: #59636e;
-    font-size: .78rem;
+    font-size: .92rem;
     font-weight: 600;
 }
 
@@ -161,11 +161,14 @@
 /* štítek období */
 .mp-chip {
     display: inline-flex;
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row;          /* rozsah jako štítek vedle názvu; když se nevejde, zalomí se pod něj */
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 5px;
+    row-gap: 1px;
     min-width: 0;
     max-width: 100%;
-    padding: 3px 8px;
+    padding: 2px 6px 2px 8px;
     border: 1px solid #dfe3e8;
     border-radius: 8px;
     background: #fff;
@@ -185,8 +188,11 @@
 }
 
 .mp-chip-int {
-    font-size: .72rem;
-    color: #6c757d;
+    padding: 0 5px;
+    border-radius: 6px;
+    background: rgba(16, 24, 40, .06);
+    font-size: .86rem;
+    color: #59636e;
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
 }
@@ -219,8 +225,8 @@
 }
 
     .mp-chip.active .mp-chip-int {
+        background: rgba(255, 255, 255, .25);
         color: inherit;
-        opacity: .85;
     }
 
 /* vlastní rozsah, moje období */
@@ -233,7 +239,7 @@
 .mp-sec-h {
     margin-bottom: 4px;
     color: #59636e;
-    font-size: .72rem;
+    font-size: .86rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: .04em;
