@@ -28,6 +28,7 @@
 
 @section header_content
 {
+    <link rel="stylesheet" href="~/css/recordform.css" asp-append-version="true" />
 
     @if (Model.Notepad.SelectedX04ID > 0)
     {
@@ -71,58 +72,48 @@
 @Html.Raw("<div class='tab-content'>")
 
 <div class="tab-pane tab-pane-fixed" id="tab1" role="tabpanel">
-    <!-- Tab1 -->
-
-    <div class="row my-2">
-        <div class="col-sm-9 col-md-9">
-            <input class="form-control record_name" asp-for="Rec.p56Name" required placeholder="@_f.tra("Název úkolu")" />
+    <!-- Tab1 – verze 8: moderní vzhled (třídy rf-*, css/recordform.css), názvy polí a id beze změny -->
+    <div class="rf">
+    <section class="rf-card">
+        <div class="rf-task">
+            <div class="rf-field">
+                <label for="Rec_p56Name">@_f.tra("Název úkolu")</label>
+                <input class="form-control record_name" asp-for="Rec.p56Name" required />
+            </div>
+            @if (Model.RecP57 != null && Model.RecP57.p57PlanScope != BO.p57PlanScopeEnum.NenabizetPlanAniTermin)
+            {
+                <div class="rf-field" title="@_f.tra("Plán dokončení/Termin")">
+                    <label for="Rec_p56PlanUntilhelper">@_f.tra("Termín")</label>
+                    <mydate asp-for="Rec.p56PlanUntil" include-time="true"></mydate>
+                </div>
+            }
         </div>
-        @if(Model.RecP57 !=null && Model.RecP57.p57PlanScope != BO.p57PlanScopeEnum.NenabizetPlanAniTermin)
+        @if (Model.IsShowP57Combo)
         {
-            <div class="col-sm-3 col-md-3" title="@_f.tra("Plán dokončení/Termin")">
-                <mydate asp-for="Rec.p56PlanUntil" include-time="true"></mydate>
+            <div class="rf-row">
+                <label for="cmdComboRec_p57ID" class="rf-label">@_f.tra("Typ úkolu")</label>
+                <div class="rf-value rf-w-half"><mycombo entity="p57TaskType" asp-for="Rec.p57ID" selectedtext="@Model.ComboP57" event_after_changevalue="change_p57id"></mycombo></div>
             </div>
         }
-        
-
-    </div>
-
-    @if (Model.IsShowP57Combo)
-    {
-        <div class="row my-2">
-            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Typ úkolu"):</label>
-            <div class="col-sm-4 col-md-4">
-                <mycombo entity="p57TaskType" asp-for="Rec.p57ID" selectedtext="@Model.ComboP57" event_after_changevalue="change_p57id"></mycombo>
-
+        else
+        {
+            <input type="hidden" asp-for="Rec.p57ID" value="@Model.Rec.p57ID" />
+        }
+        @if (Model.RecP57 != null && Model.RecP57.p57ProjectFlag != BO.p57ProjectFlagEnum.ProjectHidden)
+        {
+            <div class="rf-project">
+                @Html.EditorFor(m => m.ProjectCombo, "~/Views/Shared/_ProjectCombo.cshtml")
             </div>
-        </div>
-    }
-    else
-    {
-        <input type="hidden" asp-for="Rec.p57ID" value="@Model.Rec.p57ID" />
-    }
-
-    
+        }
+    </section>
 
     @Html.EditorFor(m => m.roles, "~/Views/Shared/_RoleAssign.cshtml")
 
-
-    @if (Model.RecP57 != null && Model.RecP57.p57ProjectFlag != BO.p57ProjectFlagEnum.ProjectHidden)
-    {
-        <div class="my-2">
-            @Html.EditorFor(m => m.ProjectCombo, "~/Views/Shared/_ProjectCombo.cshtml")
-        </div>
-    }
 
     @if (Model.ff1.VisibleInputsCount > 0)
     {
         @Html.EditorFor(m => m.ff1, "~/Views/Shared/_FreeFields.cshtml")
     }
-
-    @Html.EditorFor(m => m.reminder, "~/Views/Shared/_Reminder.cshtml")
-
-
-
 
     @if (Model.rec_pid == 0)
     {
@@ -134,14 +125,18 @@
         </a>
     }
 
-    <mystitky entity="p56Task" asp-for="@Model.TagPids" tagnames="@Model.TagNames" taghtml="@Model.TagHtml" buttontext="@_f.tra("Oštítkovat")"></mystitky>
+    <div class="rf-extras">
+        @Html.EditorFor(m => m.reminder, "~/Views/Shared/_Reminder.cshtml")
 
+        <mystitky entity="p56Task" asp-for="@Model.TagPids" tagnames="@Model.TagNames" taghtml="@Model.TagHtml" buttontext="@_f.tra("Oštítkovat")"></mystitky>
+    </div>
 
     @if (Model.UploadGuid != null)
     {
        
         <iframe id="fraUpload" src="/Dropzone/UploadInFrame?recpid=@Model.rec_pid&entity=p56&guid=@Model.UploadGuid" frameborder="0" scrolling="yes" style="max-width:1200px;height:60px;"></iframe>
     }
+    </div>
 
 </div>
 
@@ -154,67 +149,44 @@
 {
     <div class="tab-pane tab-pane-fixed" id="tab3" role="tabpanel">
         <!-- Tab3 -->
-        <div class="row my-2">
-
-
-            <label class="col-sm-1 col-md-2 col-form-label recpagelabel">@(_f.tra("Plánované zahájení")):</label>
-            <div class="col-sm-3 col-md-3">
-                <mydate asp-for="Rec.p56PlanFrom" include-time="true"></mydate>
-
-            </div>
-
-
-        </div>
-
-        <div class="card my-2">
-            <div class="card-body">
-                <div class="card-header">
-                    <span>Plán/Limit rozpracovaných hodin a výdajů</span>
+        <div class="rf">
+            <section class="rf-card">
+                <h2><span class="material-icons-outlined-nosize">event</span>@_f.tra("Termíny")</h2>
+                <div class="rf-row">
+                    <label for="Rec_p56PlanFromhelper" class="rf-label">@(_f.tra("Plánované zahájení"))</label>
+                    <div class="rf-value rf-w-date"><mydate asp-for="Rec.p56PlanFrom" include-time="true"></mydate></div>
                 </div>
-                <div class="card-body">
-                    <div class="row my-2">
-                        <label class="col-sm-1 col-md-2 col-form-label">@(_f.tra("Plán hodin")):</label>
-                        <div class="col-sm-2 col-md-2">
-                            <mynumber asp-for="Rec.p56Plan_Hours" decimal-digits="2"></mynumber>
-                        </div>
-
-
-                    </div>
-                    <div class="row my-2">
-                        <label class="col-sm-1 col-md-2 col-form-label">@(_f.tra("Plán nákladového honoráře")):</label>
-                        <div class="col-sm-2 col-md-2">
-                            <mynumber asp-for="Rec.p56Plan_Internal_Fee" decimal-digits="2"></mynumber>
-                        </div>
-
-
-                    </div>
-                    <div class="row my-2">
-                        <label class="col-sm-1 col-md-2 col-form-label recpagelabel">@(_f.tra("Plán peněžních výdajů")):</label>
-                        <div class="col-sm-2 col-md-2">
-                            <mynumber asp-for="Rec.p56Plan_Expenses" decimal-digits="2"></mynumber>
-                        </div>
-
-                    </div>
-
-                    <div class="row my-2">
-                        <label class="col-sm-1 col-md-2 col-form-label recpagelabel">@(_f.tra("Plán fakturace")):</label>
-                        <div class="col-sm-2 col-md-2">
-                            <mynumber asp-for="Rec.p56Plan_Revenue" decimal-digits="2"></mynumber>
-                        </div>
-                    </div>
-
-                    <div class="row my-2">
+            </section>
+            <section class="rf-card">
+                <h2><span class="material-icons-outlined-nosize">savings</span>@_f.tra("Plán/Limit rozpracovaných hodin a výdajů")</h2>
+                <div class="rf-row">
+                    <label class="rf-label">@(_f.tra("Plán hodin"))</label>
+                    <div class="rf-value rf-w-num"><mynumber asp-for="Rec.p56Plan_Hours" decimal-digits="2"></mynumber></div>
+                </div>
+                <div class="rf-row">
+                    <label class="rf-label">@(_f.tra("Plán nákladového honoráře"))</label>
+                    <div class="rf-value rf-w-num"><mynumber asp-for="Rec.p56Plan_Internal_Fee" decimal-digits="2"></mynumber></div>
+                </div>
+                <div class="rf-row">
+                    <label class="rf-label">@(_f.tra("Plán peněžních výdajů"))</label>
+                    <div class="rf-value rf-w-num"><mynumber asp-for="Rec.p56Plan_Expenses" decimal-digits="2"></mynumber></div>
+                </div>
+                <div class="rf-row">
+                    <label class="rf-label">@(_f.tra("Plán fakturace"))</label>
+                    <div class="rf-value rf-w-num"><mynumber asp-for="Rec.p56Plan_Revenue" decimal-digits="2"></mynumber></div>
+                </div>
+                <div class="rf-row">
+                    <label for="Rec_p56PlanFlag" class="rf-label">@_f.tra("Limit")</label>
+                    <div class="rf-value">
                         <select asp-for="@Model.Rec.p56PlanFlag" class="form-select">
-                            <option value="0"></option>
+                            <option value="0">@_f.tra("Bez omezení")</option>
                             <option value="ZastropovatHodiny">@_f.tra("Zákaz vykázat hodiny nad Plán")</option>
                             <option value="ZastropovatVydaje">@_f.tra("Zákaz vykázat výdaje nad Plán")</option>
                             <option value="ZastropovatHodinyVydaje">@_f.tra("Zákaz vykázat hodiny i výdaje nad Plán")</option>
                         </select>
                     </div>
                 </div>
-            </div>
-
-
+            </section>
         </div>
     </div>
 }
@@ -222,50 +194,45 @@
 
 <div class="tab-pane tab-pane-fixed" id="tab4" role="tabpanel">
     <!-- Tab4 -->
-    
-    <div class="row my-2">
-        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Zadavatel (Vlastník záznamu)"):</label>
-        <div class="col-sm-4 col-md-4">
-            <mycombo entity="j02User" asp-for="Rec.j02ID_Owner" selectedtext="@Model.ComboOwner" view-flag="2"></mycombo>
-        </div>
-
-    </div>
-    <div class="row my-2">
-        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Todo-list"):</label>
-        <div class="col-sm-5 col-md-4">
-            <mycombo entity="p55TodoList" asp-for="Rec.p55ID" selectedtext="@Model.ComboP55" view-flag="2"></mycombo>
-        </div>
-        <label class="col-auto col-form-label">#@_f.tra("Pořadí v Todo-list"):</label>
-        <div class="col-sm-1 col-md-1">
-            <mynumber asp-for="Rec.p56Ordinary" class="record_ordinary" decimal-digits="0"></mynumber>
-        </div>
-
-    </div>
-    <div class="row my-2">
-        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Kód úkolu"):</label>
-        <div class="col-sm-5 col-md-4">
-            @if (Model.CanEditRecordCode)
-            {
-                <myval value="@Model.Rec.p56Code" hoversymol="@_f.tra("Upravit kód")" hoveronclick="true" hoverurl="javascript:_edit_code('p56',@Model.rec_pid)"></myval>
-            }
-            else
-            {
-                <myval value="@Model.Rec.p56Code"></myval>
-            }
-        </div>
-        
-    </div>
-
-    <div class="row my-2">
-        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Lokalita"):</label>
-        <div class="col-sm-5 col-md-4">
-            <mycombo entity="p15Locality" asp-for="Rec.p15ID" selectedtext="@Model.ComboP15"></mycombo>
-        </div>
-    </div>
-
-    <div class="my-2">
-        <input type="checkbox" asp-for="Rec.p56IsStopNotify" />
-        <label for="Rec_p56IsStopNotify">@_f.tra("V úkolu vypnout automatické notifikace")</label>
+    <div class="rf">
+        <section class="rf-card">
+            <div class="rf-row">
+                <label for="cmdComboRec_j02ID_Owner" class="rf-label">@_f.tra("Zadavatel (Vlastník záznamu)")</label>
+                <div class="rf-value rf-w-half"><mycombo entity="j02User" asp-for="Rec.j02ID_Owner" selectedtext="@Model.ComboOwner" view-flag="2"></mycombo></div>
+            </div>
+            <div class="rf-row">
+                <label for="cmdComboRec_p55ID" class="rf-label">@_f.tra("Todo-list")</label>
+                <div class="rf-value rf-inline">
+                    <div class="rf-w-half flex-grow-1"><mycombo entity="p55TodoList" asp-for="Rec.p55ID" selectedtext="@Model.ComboP55" view-flag="2"></mycombo></div>
+                    <span class="rf-label">#@_f.tra("Pořadí")</span>
+                    <div class="rf-w-ord"><mynumber asp-for="Rec.p56Ordinary" class="record_ordinary" decimal-digits="0"></mynumber></div>
+                </div>
+            </div>
+            <div class="rf-row">
+                <span class="rf-label">@_f.tra("Kód úkolu")</span>
+                <div class="rf-value">
+                    @if (Model.CanEditRecordCode)
+                    {
+                        <myval value="@Model.Rec.p56Code" hoversymol="@_f.tra("Upravit kód")" hoveronclick="true" hoverurl="javascript:_edit_code('p56',@Model.rec_pid)"></myval>
+                    }
+                    else
+                    {
+                        <myval value="@Model.Rec.p56Code"></myval>
+                    }
+                </div>
+            </div>
+            <div class="rf-row">
+                <label for="cmdComboRec_p15ID" class="rf-label">@_f.tra("Lokalita")</label>
+                <div class="rf-value rf-w-half"><mycombo entity="p15Locality" asp-for="Rec.p15ID" selectedtext="@Model.ComboP15"></mycombo></div>
+            </div>
+            <div class="rf-row">
+                <span class="rf-label"></span>
+                <div class="rf-value form-check">
+                    <input type="checkbox" class="form-check-input" asp-for="Rec.p56IsStopNotify" />
+                    <label class="form-check-label" for="Rec_p56IsStopNotify">@_f.tra("V úkolu vypnout automatické notifikace")</label>
+                </div>
+            </div>
+        </section>
     </div>
 </div>
 
