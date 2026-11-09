@@ -234,7 +234,7 @@
                     </td>
 
                     <td>
-                        <span class="badge-light" style="background-color:white;color:red;" id="statPenizeCZKMinus">@(Model.InitStatistic.penize_czk_minus)</span>
+                        <span class="badge-light" style="background-color:white;color:red;" id="statPenizeCZKMinus" title="@_f.tra("Korekce bez DPH")">@(Model.InitStatistic.penize_czk_minus)</span>
                         
                     </td>
                     <td>
@@ -246,7 +246,7 @@
                     </td>
 
                     <td>
-                        <span class="badge-a4" id="statBezDPH4CZK" title="@_f.tra("K fakturaci bez DPH CZK")">@(Html.Raw(Model.InitStatistic.bezdph4czk))</span>
+                        <span class="badge-a4" id="statBezDPH4CZK" title="@_f.tra("K fakturaci bez DPH")">@(Html.Raw(Model.InitStatistic.bezdph4czk))</span>
                         
                     </td>
                     <td>

@@ -289,11 +289,24 @@ namespace UI.Controllers.p31approve
             int x = 0;
             var errs = new List<string>();
 
+            //výkon: dočasné záznamy dávky jedním dotazem (dříve 2 dotazy Load + LoadTempRecord na každý úkon);
+            //ostrý záznam se načítá jen když je potřeba jako záloha nulové sazby/hodnoty – výsledek je stejný jako dřív
+            var dictTemp = Factory.p31WorksheetBL.GetList(new myQueryP31() { tempguid = guid })
+                .GroupBy(p => p.pid).ToDictionary(g => g.Key, g => g.First());
+
             foreach (int p31id in p31ids)
             {
                 x += 1;
-                var rec = Factory.p31WorksheetBL.Load(p31id);
-                var recTemp = Factory.p31WorksheetBL.LoadTempRecord(p31id, guid);
+                BO.p31Worksheet recTemp;
+                if (!dictTemp.TryGetValue(p31id, out recTemp))
+                {
+                    recTemp = Factory.p31WorksheetBL.LoadTempRecord(p31id, guid);       //mimo hromadný seznam – načíst jednotlivě jako dřív
+                }
+                if (recTemp == null)
+                {
+                    errs.Add("#" + x.ToString() + ": " + Factory.tra("Záznam nebyl nalezen v rozpracovaném schvalování."));
+                    continue;
+                }
                 var c = new p31WorksheetApproveInput() { p31ID = p31id, Guid = guid, p33ID = recTemp.p33ID, p31Date = recTemp.p31Date };
                 c.p71id = (p71IdENUM)p71id;
                 c.p31ApprovingLevel = recTemp.p31ApprovingLevel;
@@ -320,8 +333,15 @@ namespace UI.Controllers.p31approve
                             c.Value_Approved_Billing = recTemp.p31Value_Orig;
                             c.VatRate_Approved = recTemp.p31VatRate_Approved;
 
-                            if (c.Rate_Billing_Approved == 0) c.Rate_Billing_Approved = rec.p31Rate_Billing_Orig;
-                            if (c.Value_Approved_Billing == 0) c.Value_Approved_Billing = rec.p31Value_Orig;
+                            if (c.Rate_Billing_Approved == 0 || c.Value_Approved_Billing == 0)
+                            {
+                                var rec = Factory.p31WorksheetBL.Load(p31id);   //záloha z ostrého záznamu (jako dřív)
+                                if (rec != null)
+                                {
+                                    if (c.Rate_Billing_Approved == 0) c.Rate_Billing_Approved = rec.p31Rate_Billing_Orig;
+                                    if (c.Value_Approved_Billing == 0) c.Value_Approved_Billing = rec.p31Value_Orig;
+                                }
+                            }
 
                         }
                         if (!Factory.p31WorksheetBL.Save_Approving(c, true, true))
@@ -470,7 +490,7 @@ namespace UI.Controllers.p31approve
             if (lis.Where(p => p.p71ID == BO.p71IdENUM.Nic).Count() > 0)
             {
                 ret.hodiny9 = RenderStatValue(lis.Where(p => p.p71ID == BO.p71IdENUM.Nic).Sum(p => p.p31Hours_Orig), "h");
-                ret.honorar_hodiny9 = $"{BO.Code.Bas.Num2StringNull(lis.Where(p => p.p71ID == BO.p71IdENUM.Nic && p.p33ID == BO.p33IdENUM.Cas).Sum(p => p.p31Amount_WithoutVat_Orig))}";
+                ret.honorar_hodiny9 = SumByCurrency(lis.Where(p => p.p71ID == BO.p71IdENUM.Nic && p.p33ID == BO.p33IdENUM.Cas), p => p.p31Amount_WithoutVat_Orig, false, false);   //po měnách (dříve součet napříč měnami bez kódu)
             }
             var qry = lis.Where(p => p.p71ID == BO.p71IdENUM.Schvaleno);
             ret.hodiny0 = RenderStatValue(qry.Sum(p => p.p31Hours_Orig),"h");
@@ -485,55 +505,42 @@ namespace UI.Controllers.p31approve
             {
                 ret.hodiny6 += "/" + RenderStatValue(qry.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.ZahrnoutDoPausalu).Sum(p => p.p31Value_FixPrice), "h");
             }
-            if (qry.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.Fakturovat && p.j27ID_Billing_Orig == 2).Count() > 0)
-            {
-                ret.bezdph4czk = BO.Code.Bas.Num2StringNull(qry.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.Fakturovat && p.j27ID_Billing_Orig == 2).Sum(p => p.p31Amount_WithoutVat_Approved)) + " czk";
-            }
-            if (qry.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.Fakturovat && p.j27ID_Billing_Orig == 3).Count() > 0)
-            {
-                ret.bezdph4eur = BO.Code.Bas.Num2StringNull(qry.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.Fakturovat && p.j27ID_Billing_Orig == 3).Sum(p => p.p31Amount_WithoutVat_Approved)) + " eur";
-            }
+            //peněžní souhrny po měnách – všechny měny ve výběru (dříve napevno jen CZK = j27ID 2 a EUR = j27ID 3; ostatní měny chyběly).
+            //Kvůli zpětné kompatibilitě (Inline.cshtml, p31approve.js) jde vše do polí *czk, pole *eur zůstávají prázdná (skrytá).
+            ret.bezdph4czk = SumByCurrency(qry.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.Fakturovat), p => p.p31Amount_WithoutVat_Approved, true, false);
+            ret.penize_czk0 = SumByCurrency(qry, p => p.p31Amount_WithoutVat_Orig, false, false);
 
-            
-            double n = qry.Where(p => p.j27ID_Billing_Orig == 2).Sum(p => p.p31Amount_WithoutVat_Orig);
-            if (n > 0)
-            {
-                ret.penize_czk0 = $"{BO.Code.Bas.Num2StringNull(n)} czk";
-            }
-            n = qry.Where(p => p.j27ID_Billing_Orig == 3).Sum(p => p.p31Amount_WithoutVat_Orig);
-            if (n > 0)
-            {
-                ret.penize_eur0 = $"{BO.Code.Bas.Num2StringNull(n)} eur";
-            }
-            
             if (qry.Where(p =>p.p71ID==BO.p71IdENUM.Schvaleno && p.p31Amount_WithoutVat_Orig != p.p31Amount_WithoutVat_Approved).Count() > 0)
             {
-                n = qry.Where(p => p.p33ID == BO.p33IdENUM.Cas && p.p31Amount_WithoutVat_Orig != p.p31Amount_WithoutVat_Approved).Sum(p => p.p31Hours_Orig - p.p31Hours_Approved_Billing);
+                double n = qry.Where(p => p.p33ID == BO.p33IdENUM.Cas && p.p31Amount_WithoutVat_Orig != p.p31Amount_WithoutVat_Approved).Sum(p => p.p31Hours_Orig - p.p31Hours_Approved_Billing);
                 if (n > 0)
                 {
                     ret.hodiny_minus = $"-{BO.Code.Time.FormatNumeric(n,false)}";
-                }                
-
-                n = qry.Where(p => p.j27ID_Billing_Orig == 2).Sum(p => p.p31Amount_WithoutVat_Orig - p.p31Amount_WithoutVat_Approved);
-                if (n > 0)
-                {
-                    ret.penize_czk_minus = BO.Code.Bas.Num2StringNull(n);
-                    ret.penize_czk_minus = $"-{ret.penize_czk_minus} czk";
                 }
-                
-                n = qry.Where(p => p.p72ID_AfterApprove == BO.p72IdENUM.Fakturovat && p.j27ID_Billing_Orig == 3).Sum(p => p.p31Amount_WithVat_Orig - p.p31Amount_WithoutVat_Approved);
-                if (n > 0)
-                {
-                    ret.penize_eur_minus = BO.Code.Bas.Num2StringNull(n);
-                    ret.penize_eur_minus = $"-{ret.penize_eur_minus} eur";
-                }
-                
+                //korekce bez DPH po měnách – stejný vzorec pro všechny měny (dříve EUR počítalo s DPH: WithVat_Orig - WithoutVat_Approved, a jen u „Fakturovat“)
+                ret.penize_czk_minus = SumByCurrency(qry, p => p.p31Amount_WithoutVat_Orig - p.p31Amount_WithoutVat_Approved, false, true);
             }
 
 
             return ret;
         }
         
+        /// <summary>
+        /// Součet po měnách úkonu (j27ID_Billing_Orig), např. „18 750 czk · 400 eur“; domácí měna licence první.
+        /// includezero: zobrazit i nulový součet, pokud v měně nějaké úkony jsou (původní chování u „K fakturaci“), jinak jen kladné.
+        /// minus: zobrazit se znaménkem minus (korekce).
+        /// </summary>
+        private string SumByCurrency(IEnumerable<BO.p31Worksheet> lis, Func<BO.p31Worksheet, double> val, bool includezero, bool minus)
+        {
+            var parts = lis.GroupBy(p => p.j27ID_Billing_Orig)
+                .Select(g => new { j27id = g.Key, code = (g.First().j27Code_Billing_Orig ?? "").ToLower(), sum = g.Sum(val) })
+                .Where(x => includezero ? true : x.sum > 0)
+                .OrderBy(x => x.j27id == Factory.Lic.j27ID ? 0 : 1).ThenBy(x => x.code)
+                .Select(x => $"{(minus ? "-" : "")}{BO.Code.Bas.Num2StringNull(x.sum)} {System.Net.WebUtility.HtmlEncode(x.code)}".Trim())
+                .ToList();
+            return parts.Count == 0 ? null : string.Join(" · ", parts);
+        }
+
         private ApproveStat GenerateStat(string guid)
         {            
             var mq = new BO.myQueryP31() { tempguid = guid };

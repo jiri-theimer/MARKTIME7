@@ -378,14 +378,11 @@
                         return;
                     }
 
-                    var millis = new Date().getTime();
-
-                    var url = "/p31approveinput/Index?prefix=" + _localprefix + "&p71id=" + p71id + "&p72id=" + p72id + "&millis=" + millis;
+                    var url = "/p31approveinput/Index?prefix=" + _localprefix + "&p71id=" + p71id + "&p72id=" + p72id;
                     url = url + "&p31statequery=" + _local_p31statequery + "&p31tabquery=" + _local_p31tabquery;
-                    url = url + "&period=" + _period_get_as_string();
-                    url = url + "&pids=" + pids;
-
-                    _window_open(url, 2);
+                    //období + millis doplní tg_approve_open_finalurl (layoutshare.js); nad 90 vybraných záznamů předá pids přes p85 temp (guid_pids),
+                    //dříve vždy v URL → při stovkách vybraných projektů/klientů přetekla délka adresy
+                    tg_approve_open_finalurl(url, _localprefix, pids);
 
 
                 }

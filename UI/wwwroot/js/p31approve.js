@@ -541,9 +541,9 @@ function inline_update_colors()
 {
     var rows = $(".tabrow");
     
-    for (var x = 0; x < rows.length; x++)
+    for (var r = 0; r < rows.length; r++)      //dříve „x“ – přepisovalo se uvnitř cyklu hodnotou data-x
     {
-        var tr = $(rows[x]);
+        var tr = $(rows[r]);
         var trid = $(tr).attr("id");
         var pid = $(tr).attr("id").replace("tr", "");
         var x = $(tr).attr("data-x");
@@ -649,6 +649,7 @@ function show_stat_val(element_id, val)
 
 
 
+// Uloží jeden řádek do p31worksheet_temp a obnoví jeho hodnoty. Vrací Promise<bool> (true = uloženo) – hromadné akce čekají na dokončení.
 function inline_save_temp_record(x,pid,isbatch,isupdate_stat) {
     var p31guid = $("#p31guid").val();
     
@@ -683,10 +684,12 @@ function inline_save_temp_record(x,pid,isbatch,isupdate_stat) {
     };
     //alert("pid: " + pid + ", guid: " + p31guid + ", popis: " + c.popis);
     
+    return new Promise(function (resolve) {
     $.post(_ep("/p31approve/SaveTempRecord"), { rec: c, p31id: pid, guid: p31guid,isbatch: isbatch }, function (data) {
 
         if (data.message != null) {
             _notify_message(data.message);
+            resolve(false);
             return;
         }
                
@@ -696,7 +699,7 @@ function inline_save_temp_record(x,pid,isbatch,isupdate_stat) {
 
         $.post(_ep("/p31approve/LoadGridRecord"), { p31id: pid, guid: p31guid }, function (data) {
             
-            if (c.p33id = 1 || c.p33id == 3)
+            if (c.p33id == 1 || c.p33id == 3)     //opraveno: dříve přiřazení „c.p33id = 1“ → u výdajů/odměn se nikdy neobnovily částky
             {                
                 $("#honorar_schvaleno" + x).text(data.honorar_schvaleno);
                 
@@ -727,15 +730,46 @@ function inline_save_temp_record(x,pid,isbatch,isupdate_stat) {
                     $("#tr" + pid + " .schvaleno").text(data.bezdph);
                 }
             }
-        });
+            resolve(true);
+        }).fail(function () { resolve(true); });     //uloženo, jen se nepodařilo načíst přepočet řádku
 
-
+    }).fail(function (xhr) {
+        _notify_message("Úkon se nepodařilo uložit (HTTP " + (xhr ? xhr.status : "?") + "). Zkuste akci zopakovat.");
+        resolve(false);
+    });
     });
 }
 
 
 
-function batch(cmd, p71id, p72id) {
+// Hromadné uložení vybraných řádků: nejvýš 4 požadavky současně, souhrn a barvy až po dokončení všech (dříve stovky
+// paralelních požadavků a obnova souhrnu napevno po 400 ms – před doběhnutím uložení).
+async function inline_save_many(items) {
+    const queue = items.slice();
+    let failed = 0;
+    async function worker() {
+        while (queue.length > 0) {
+            const it = queue.shift();
+            const ok = await inline_save_temp_record(it.x, it.pid, true, false);
+            if (!ok) failed++;
+        }
+    }
+    const workers = [];
+    for (let i = 0; i < Math.min(4, queue.length); i++) workers.push(worker());
+    await Promise.all(workers);
+    return failed;
+}
+
+function inline_checked_rows() {
+    const ret = [];
+    $(".tabrow").each(function () {
+        const pid = this.id.replace("tr", "");
+        if ($("#chk" + pid).prop("checked")) ret.push({ pid: pid, x: $(this).attr("data-x") });
+    });
+    return ret;
+}
+
+async function batch(cmd, p71id, p72id) {
     var pids = $("#CheckedPids").val();
     if (pids === "") {
         _notify_message(_tg_musite_vybrat_zaznam);
@@ -743,54 +777,22 @@ function batch(cmd, p71id, p72id) {
     }
     $("#batchpids").val(pids);
 
+    const items = inline_checked_rows();
+    items.forEach(function (it) {
+        $("#tr" + it.pid + " .p71id").val(p71id);
+        $("#tr" + it.pid + " .p72id").val(p72id);
+        showhide_inline("p72id", it.pid, p71id == 1 ? "visible" : "hidden");
+    });
+
     _loading_show("postback");
-   
-
-    var rows = $(".tabrow");
-    var xx = 0;
-    for (var x = 0; x < rows.length; x++)
-    {
-        var tr = $(rows[x]);        
-        var pid = $(tr).attr("id").replace("tr", "");
-        var x = $(tr).attr("data-x");
-
-        if ($("#chk" + pid).prop("checked"))
-        {
-            $("#tr" + pid + " .p71id").val(p71id);
-            $("#tr" + pid + " .p72id").val(p72id);
-
-            if (p71id == 1)
-            {
-                showhide_inline("p72id", pid, "visible");
-            }
-            else
-            {
-                showhide_inline("p72id", pid, "hidden");
-            }
-
-            
-            inline_save_temp_record(x, pid,true,false);
-
-
-            xx = xx + 1;
-        }
-    }
-
-    setTimeout(() => {
-        //počkej 400 milisekund
+    try {
+        const failed = await inline_save_many(items);
+        if (failed > 0) _notify_message("Neuloženo: " + failed + " z " + items.length + ".");
+    } finally {
         inline_refresh_stat();
-
         inline_update_colors();
-
         _loading_hide();
-
-    }, 400);
-
-    
-    
-
-    
-    
+    }
 }
 
 function refresh_selected_rowscount_info()
@@ -823,7 +825,7 @@ function refresh_selected_rowscount_info()
     
 }
 
-function batch_uroven()
+async function batch_uroven()
 {
     var uroven = $("#BatchApproveLevel").val();
     var pids = $("#CheckedPids").val();
@@ -831,56 +833,39 @@ function batch_uroven()
         _notify_message(_tg_musite_vybrat_zaznam);
         return;
     }
-   
-    var rows = $(".tabrow");
-    
-    for (var x = 0; x < rows.length; x++) {
-        var tr = $(rows[x]);
-        var pid = $(tr).attr("id").replace("tr", "");
-        var x = $(tr).attr("data-x");
+    const items = inline_checked_rows();
+    items.forEach(function (it) { $("#tr" + it.pid + " .uroven").val(uroven); });
 
-        if ($("#chk" + pid).prop("checked"))
-        {            
-            $("#tr" + pid + " .uroven").val(uroven);
-          
-            inline_save_temp_record(x, pid, true,false);
-
-
-        }
+    _loading_show("postback");
+    try {
+        const failed = await inline_save_many(items);
+        if (failed > 0) _notify_message("Neuloženo: " + failed + " z " + items.length + ".");
+    } finally {
+        inline_update_colors();
+        inline_refresh_stat();
+        _loading_hide();
     }
-
-    inline_update_colors();
-    inline_refresh_stat();
-    
 }
 
-function batch_sazba() {
+async function batch_sazba() {
     var sazba = $("#BatchInvoiceRate").val();
     var pids = $("#CheckedPids").val();
     if (pids === "") {
         _notify_message(_tg_musite_vybrat_zaznam);
         return;
     }
+    const items = inline_checked_rows();
+    items.forEach(function (it) { $("#tr" + it.pid + " .sazba").val(sazba); });
 
-    var rows = $(".tabrow");
-
-    for (var x = 0; x < rows.length; x++) {
-        var tr = $(rows[x]);
-        var pid = $(tr).attr("id").replace("tr", "");
-        var x = $(tr).attr("data-x");
-
-        if ($("#chk" + pid).prop("checked")) {
-            $("#tr" + pid + " .sazba").val(sazba);
-
-            inline_save_temp_record(x, pid, true,false);
-
-
-        }
+    _loading_show("postback");
+    try {
+        const failed = await inline_save_many(items);
+        if (failed > 0) _notify_message("Neuloženo: " + failed + " z " + items.length + ".");
+    } finally {
+        inline_update_colors();
+        inline_refresh_stat();
+        _loading_hide();
     }
-
-    inline_update_colors();
-    inline_refresh_stat();
-
 }
 
 function statistika(cmd,e,guid)
