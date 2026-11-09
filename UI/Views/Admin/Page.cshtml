@@ -10,7 +10,6 @@
         _MenuTitle = Model.entityTitle;
     }
     Layout = "~/Views/Shared/_Layout.cshtml";
-    bool _isMobile = _f.CurrentUser.IsMobileDisplay();
 
 }
 
@@ -43,49 +42,20 @@
         </li>
     </ul>
 
-    @if (_isMobile)
+    @Html.EditorFor(m => Model.PageTitle, "~/Views/Shared/_ButtonGridDesigner.cshtml")
+
+    @Html.EditorFor(m => Model.PageTitle,"~/Views/Shared/_ButtonGridSelMenu.cshtml")
+
+    @if (Model.recordbinquery != null)
     {
-        <myshowmore></myshowmore>
-        <div class="showmore">
-            @Html.EditorFor(m => Model.PageTitle, "~/Views/Shared/_ButtonGridDesigner.cshtml")
-        </div>
-        
-        <div class="showmore">
-            @Html.EditorFor(m => Model.PageTitle,"~/Views/Shared/_ButtonGridSelMenu.cshtml")
-        </div>
-        
-
-        @if (Model.recordbinquery != null)
-        {
-            <div class="showmore">
-                @Html.EditorFor(m => Model.recordbinquery,"~/Views/Shared/_RecordBinQuery.cshtml")
-            </div>
-            
-        }
-
-
-
-        <div class="showmore">
-            <a class="btn descreet_link_over_grid nonmobile" href="/Admin/Page?area=@(Model.area)&prefix=@(Model.prefix)" title="@_f.tra("Občerstvit")"><span class="material-icons-outlined-btn">refresh</span></a>
-        </div>
+        @Html.EditorFor(m => Model.recordbinquery,"~/Views/Shared/_RecordBinQuery.cshtml")
     }
-    else
-    {
-        @Html.EditorFor(m => Model.PageTitle, "~/Views/Shared/_ButtonGridDesigner.cshtml")
-
-        @Html.EditorFor(m => Model.PageTitle,"~/Views/Shared/_ButtonGridSelMenu.cshtml")
-
-        @if (Model.recordbinquery != null)
-        {
-            @Html.EditorFor(m => Model.recordbinquery,"~/Views/Shared/_RecordBinQuery.cshtml")
-        }
 
 
 
-        <div>
-            <a class="btn descreet_link_over_grid nonmobile" href="/Admin/Page?area=@(Model.area)&prefix=@(Model.prefix)" title="@_f.tra("Občerstvit")"><span class="material-icons-outlined-btn">refresh</span></a>
-        </div>
-    }
+    <div>
+        <a class="btn descreet_link_over_grid nonmobile" href="/Admin/Page?area=@(Model.area)&prefix=@(Model.prefix)" title="@_f.tra("Občerstvit")"><span class="material-icons-outlined-btn">refresh</span></a>
+    </div>
 
     
 
@@ -107,7 +77,7 @@
 
 </div>
 
-<div id="layout_sidebar" style="overflow:auto;width:230px !important;@(!_isMobile ? "top: 40px;": null)">
+<div id="layout_sidebar" style="overflow:auto;width:230px !important;top: 40px;">
     @await Html.PartialAsync("~/Views/Shared/_TreeAdminMenu.cshtml", Model)
 </div>
 
@@ -151,10 +121,6 @@
     let _offcanvasIsLoaded = false;
     var _prefix = "@(Model.prefix)";
     var _area = "@(Model.area)";
-    var _local_ismobile = "@(_isMobile)";
-    if (_device.isMobile) {
-        _local_ismobile = "True";
-    }
     $(document.body).css("overflow", "hidden");
 
     $(document).ready(function () {
@@ -214,7 +180,7 @@
         $("#layout_sidebar").css("height", h_vertical + "px");
 
         
-        if (_local_ismobile == "True") {
+        if (_device.isMobile) {
             $("#layout_sidebar").css("display", "none");
             $("#layout_main").css("margin-left", "0px");
             $("#cmdShowHideTreeMenu").css("display", "block");

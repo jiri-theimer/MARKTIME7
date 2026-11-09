@@ -13,7 +13,6 @@
     Model.PageTitle = "Schvalování All-in-one";
 
 
-    bool _isMobile = _f.CurrentUser.IsMobileDisplay();
 }
 
 @addTagHelper *,UI
@@ -258,7 +257,6 @@
                 var _local_p31tabquery = "@Model.p31tabquery.Value";
                 var _local_j72id_query = "@Model.TheGridQueryButton.j72id";
                 var _j27id = "@Model.j27id_query";
-                var _ismobile = "@_isMobile";
 
                 //$(document.body).css("overflow", "hidden");
 
@@ -298,7 +296,7 @@
 
                     $(".gogo").css("display", "none");
 
-                    if (_ismobile == "True")
+                    if (_device.isMobile)
                     {
             
                         tg_adjust_for_screen();

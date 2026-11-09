@@ -650,7 +650,7 @@ function _init_elements_for_mobile()
     
     if (document.getElementById("form1")) {
         
-        $("#form1").css("overflow-x", "hidden");
+        $("#form1").css("overflow-x", "clip");     //clip (ne hidden): hidden by z form1 udělal posuvný kontejner a nefungovala by přilepená lišta .toolbar-box
     }
 
     //.div-over-table-scrolling: šířku a posuv řeší CSS (site.css, @media telefon)

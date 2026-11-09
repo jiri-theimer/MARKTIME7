@@ -319,23 +319,6 @@ namespace BO
             return BO.Code.Bas.bit_compare_or(this.j02HesBitStream, hesOneValue);
         }
         
-        public bool IsMobileDisplay()
-        {
-            //if (j02Login.Contains("admin@") || j02Login.Contains("mobile"))
-            //{
-            //    return true;    //testování - vyhodit!!
-            //}
-
-            if (j02Ping_InnerWidth >0 && (j02Ping_InnerHeight>j02Ping_InnerWidth || j02Ping_InnerHeight<500 || j02Ping_InnerWidth < 800))
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-
         public bool IsPortalUserOnly()
         {
             if (this.j04IsModule_Widgets && !this.j04IsModule_p31 && this.RoleValue== "00000000000000000000000000000000000000000000000000")

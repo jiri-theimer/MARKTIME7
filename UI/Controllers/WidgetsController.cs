@@ -536,21 +536,12 @@ namespace UI.Controllers
             }
 
             v.lisUserWidgets = new List<BO.x55Widget>();
-            if (Factory.CurrentUser.IsMobileDisplay())
+            v.ColumnsPerPage = Factory.CBL.LoadUserParamInt($"Widgets-ColumnsPerPage-{v.Skin}-{v.SelectedX54ID}", 2);
+            if (v.RecX54.x54IsAllowAutoRefresh)
             {
-                v.ColumnsPerPage = 1;
-                v.PageAutoRefreshPerSeconds = 0;
-                Factory.CurrentUser.j02GridCssBitStream = 564;   //napevno grid nastavení
+                v.PageAutoRefreshPerSeconds = Factory.CBL.LoadUserParamInt($"Widgets-PageAutoRefresh-{v.Skin}-{v.SelectedX54ID}", 0);
             }
-            else
-            {
-                v.ColumnsPerPage = Factory.CBL.LoadUserParamInt($"Widgets-ColumnsPerPage-{v.Skin}-{v.SelectedX54ID}", 2);
-                if (v.RecX54.x54IsAllowAutoRefresh)
-                {
-                    v.PageAutoRefreshPerSeconds = Factory.CBL.LoadUserParamInt($"Widgets-PageAutoRefresh-{v.Skin}-{v.SelectedX54ID}", 0);
-                }
-                
-            }
+            
             
             
             if (v.IsAiGroup)

@@ -18,7 +18,7 @@ namespace UI.Menu
 
         public string GetMainmenuEntityUrl(string prefix)
         {
-            if (prefix=="p31" || prefix=="p49" || (_f.CurrentUser.j02Ping_InnerHeight<600 && _f.CurrentUser.j02Ping_InnerHeight>0)) return $"/TheGrid/FlatView?prefix={prefix}";
+            if (prefix=="p31" || prefix=="p49") return $"/TheGrid/FlatView?prefix={prefix}";     //malá obrazovka už nerozhoduje – MasterView se na telefonu přepne na jeden panel sám
 
             if (BL.Code.UserUI.IsShowLeftPanel(prefix, _f.CurrentUser.j02UIBitStream))
             {

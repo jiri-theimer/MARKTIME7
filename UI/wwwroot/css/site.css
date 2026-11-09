@@ -610,15 +610,15 @@ hr.hr-mini { /*používá se v kontextovém menu*/
 
 /* telefon: třídu mt-phone na <html> nastavuje site.js (_device – šířka hlavního okna < 768 px, nebo dotykový displej s výškou < 500 px) */
 html.mt-phone .nonmobile {
-    display: none;
+    display: none !important;     /* !important: musí přebít d-block, d-flex apod. */
 }
 
 .mobileonly {
-    display: none;
+    display: none !important;
 }
 
 html.mt-phone .mobileonly {
-    display: revert;
+    display: revert !important;
 }
 
 html.mt-phone .div-over-table-scrolling {
@@ -2280,3 +2280,15 @@ html.mt-phone #divOverGrid { display: none; }     /* horní grid s jedním (aktu
 html.mt-phone .splitter-container-left2right { touch-action: auto; }
 html.mt-phone .splitter-container-left2right > #splitter_panel1,
 html.mt-phone .splitter-container-left2right > #splitter_resizer { display: none; }
+
+/* formuláře na telefonu: pole nepřetečou šířku (cca 400× pevná šířka v px přes inline style), lišta Uložit/Zavřít (_MyToolbar v _LayoutRecord) přilepená nahoře v jednom posuvném řádku */
+html.mt-phone input:not([type=checkbox]):not([type=radio]),
+html.mt-phone select,
+html.mt-phone textarea,
+html.mt-phone .form-control,
+html.mt-phone .form-select { max-width: 100%; }
+html.mt-phone div.toolbar-box { position: sticky; top: 0; z-index: 20; }
+html.mt-phone div.toolbar-box > .input-group { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+html.mt-phone div.toolbar-box > .input-group::-webkit-scrollbar { display: none; }
+html.mt-phone div.toolbar-box > .input-group > div { flex: 0 0 auto; }
+html.mt-phone div.toolbar-box .btn { white-space: nowrap; }

@@ -655,7 +655,7 @@ namespace UI.Controllers
             }
 
             //nový úkon bez projektu: nabídka naposledy použitých kombinací projekt + sešit + aktivita (jedním klikem, jeden postback)
-            if (v.rec_pid == 0 && v.Rec.p41ID == 0 && v.lisRecent == null && !Factory.CurrentUser.IsMobileDisplay())
+            if (v.rec_pid == 0 && v.Rec.p41ID == 0 && v.lisRecent == null)
             {
                 v.lisRecent = LoadRecentCombos(v);
             }
@@ -807,7 +807,7 @@ namespace UI.Controllers
                     v.lisKusovnik.Add(new KusovnikInline());
                     break;
                 case "multidate":
-                    if (v.IsMultiDate && !Factory.CurrentUser.IsMobileDisplay())
+                    if (v.IsMultiDate)
                     {
                         this.AddMessage("Můžete vykazovat hodiny za více dnů najednou", "info");
                     }

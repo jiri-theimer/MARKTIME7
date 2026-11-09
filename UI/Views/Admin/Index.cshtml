@@ -13,7 +13,6 @@
     }
 
     var _treemenu = new UI.Models.Admin.AdminPage();
-    var _isMobile = _f.CurrentUser.IsMobileDisplay();
     var _x01 = Model.RecX01;
 
     string _mena = _x01.j27ID switch { 2 => "CZK", 3 => "EUR", 58 => "USD", 59 => "GBP", 56 => "CHF", 50 => "PLN", _ => _x01.j27ID.ToString() };
@@ -70,7 +69,7 @@
 </div>
 
 
-<div id="layout_sidebar" style="overflow:auto;width:230px !important;@(!_isMobile ? "top: 40px;": null) )">
+<div id="layout_sidebar" style="overflow:auto;width:230px !important;top: 40px;">
 
     @await Html.PartialAsync("~/Views/Shared/_TreeAdminMenu.cshtml", _treemenu)
 
@@ -326,10 +325,6 @@
 
 
 <script type="text/javascript">
-    var _local_ismobile = "@(_isMobile)";
-    if (_device.isMobile) {
-        _local_ismobile = "True";
-    }
 
     $(document).ready(function () {
 
@@ -342,7 +337,7 @@
         $("#layout_sidebar").css("height", h_vertical + "px");
 
 
-        if (_local_ismobile == "True") {
+        if (_device.isMobile) {
             $("#layout_sidebar").css("display", "none");
             $("#layout_main").css("margin-left", "0px");
             $("#cmdShowHideTreeMenu").css("display", "block");

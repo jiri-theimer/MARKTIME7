@@ -33,10 +33,9 @@
                 <option value="9">@_f.tra("Neschválené")</option>
             </select>
         </div>
-        @if (_f.CurrentUser.IsMobileDisplay())
-        {
+        <div class="mobileonly">
             <myshowmore classname_target="gogo"></myshowmore>
-        }
+        </div>
         
         <div class="gogo" style="margin-left:20px;">
             @await Component.InvokeAsync("myPeriod",Model.periodinput)
@@ -87,14 +86,13 @@
 
 
 <script type="text/javascript">
-    var _ismobile = "@_f.CurrentUser.IsMobileDisplay()";
     var _isskip = "@Model.IsSkipGateway";
 
     $(document).ready(function () {
 
         $("#p31statequery").val("@Model.p31statequery");
 
-        if (_ismobile == "True")
+        if (_device.isMobile)
         {
             $(".gogo").css("display", "none");
         }

@@ -250,11 +250,6 @@ namespace BL
 
                 }
                 
-                if (CurrentUser.IsMobileDisplay())  //mobilní rozhraní
-                {
-                    CurrentUser.j02GridCssBitStream = 564;   //napevno grid nastavení
-                }
-                
             }            
         }
 

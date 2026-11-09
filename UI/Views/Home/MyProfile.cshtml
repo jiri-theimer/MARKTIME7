@@ -10,7 +10,6 @@
     string _initials = ((_me.j02FirstName ?? "").Trim().Length > 0 ? _me.j02FirstName.Trim().Substring(0, 1) : "")
                      + ((_me.j02LastName ?? "").Trim().Length > 0 ? _me.j02LastName.Trim().Substring(0, 1) : "");
     if (_initials == "") { _initials = "?"; }
-    bool _mobile = _f.CurrentUser.IsMobileDisplay();
     const string _mobileUrl = "https://mobile.marktime.net";
 }
 
@@ -195,36 +194,27 @@
                 <section class="mp-card">
                     <h2><span class="material-icons-outlined-nosize">smartphone</span>@_f.tra("Mobilní aplikace")</h2>
                     <div class="mp-mobile">
-                        @if (!_mobile)
-                        {
-                            <img src="@UI.Code.basQRCoder.GetUrlQrDataUri(_mobileUrl)" width="112" height="112" alt="QR: @_mobileUrl" />
-                        }
+                        <img class="nonmobile" src="@UI.Code.basQRCoder.GetUrlQrDataUri(_mobileUrl)" width="112" height="112" alt="QR: @_mobileUrl" />
                         <div>
                             <p>@_f.tra("Vykazujte hodiny a výdaje z telefonu. Přihlásíte se stejným jménem a heslem.")</p>
                             <a href="@_mobileUrl" target="_blank" rel="noopener" class="btn btn-sm bog"><span class="material-icons-outlined-btn">open_in_new</span> mobile.marktime.net</a>
-                            @if (!_mobile)
-                            {
-                                <small class="d-block mt-1">@_f.tra("Naskenujte QR kód fotoaparátem telefonu.")</small>
-                            }
+                            <small class="d-block mt-1 nonmobile">@_f.tra("Naskenujte QR kód fotoaparátem telefonu.")</small>
                         </div>
                     </div>
                 </section>
 
                 <section class="mp-card">
                     <h2><span class="material-icons-outlined-nosize">build</span>@_f.tra("Údržba")</h2>
-                    @if (!_mobile)
-                    {
-                        <div class="mp-maint">
-                            <div>
-                                <b>@_f.tra("MENU odkazy")</b>
-                                <small>@_f.tra("Vrátí odkazy v hlavním menu do výchozího stavu, nebo je všechny odebere.")</small>
-                            </div>
-                            <div class="mp-maint-btns">
-                                <button type="button" id="cmdDefaultMenuLinks" class="btn btn-sm bog">@_f.tra("Výchozí stav")</button>
-                                <button type="button" id="cmdClearMenuLinks" class="btn btn-sm btn-outline-danger">@_f.tra("Vyčistit")</button>
-                            </div>
+                    <div class="mp-maint nonmobile">
+                        <div>
+                            <b>@_f.tra("MENU odkazy")</b>
+                            <small>@_f.tra("Vrátí odkazy v hlavním menu do výchozího stavu, nebo je všechny odebere.")</small>
                         </div>
-                    }
+                        <div class="mp-maint-btns">
+                            <button type="button" id="cmdDefaultMenuLinks" class="btn btn-sm bog">@_f.tra("Výchozí stav")</button>
+                            <button type="button" id="cmdClearMenuLinks" class="btn btn-sm btn-outline-danger">@_f.tra("Vyčistit")</button>
+                        </div>
+                    </div>
                     <div class="mp-maint">
                         <div>
                             <b>@_f.tra("Paměť uživatelského profilu")</b>

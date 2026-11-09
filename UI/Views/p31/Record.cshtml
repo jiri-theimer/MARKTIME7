@@ -23,7 +23,6 @@
 
     //historie workflow a FieldBag existují jen u uloženého úkonu – u nového (a při každém postbacku) se nedotazovat
     var _lisB05 = Model.rec_pid > 0 ? _f.WorkflowBL.GetList_b05("p31", Model.rec_pid, 0, 0, 0) : Enumerable.Empty<BO.b05Workflow_History>();
-    bool _isMobile = _f.CurrentUser.IsMobileDisplay();
 
     var _lisFieldBagParams = Model.rec_pid > 0 ? _f.FBL.GetList_FieldBagParam("p31", Model.rec_pid) : null;
 }
@@ -140,9 +139,9 @@
 
 </div>
 
-@if (!_isMobile && Model.Rec.j02ID != _f.CurrentUser.pid)
+@if (Model.Rec.j02ID != _f.CurrentUser.pid)
 {
-    <div class="row my-2">
+    <div class="row my-2 nonmobile">
         <div class="col-sm-1 col-md-1">
         </div>
         <div class="col-sm-5 col-md-5">
@@ -193,9 +192,9 @@ else
     else
     {
         <input type="hidden" asp-for="SelectedLevelIndex" value="@Model.SelectedLevelIndex" />
-        @if (!_isMobile && Model.p61Name != null)
+        @if (Model.p61Name != null)
         {
-            <div class="col-sm-1 col-md-2" title="Klastr aktivit">                
+            <div class="col-sm-1 col-md-2 nonmobile" title="Klastr aktivit">                
                 @if (Model.RecP41 != null && (_f.CurrentUser.j04IsModule_x31 || _f.CurrentUser.TestPermission(BO.PermValEnum.GR_x31_Project)))
                 {
                     <button type="button" class="btn btn-sm bog" onclick="report('p41',@(Model.RecP41.pid))"><myicon symbol="print"></myicon></button>
@@ -277,12 +276,13 @@ else
 
 <div class="row my-2">
 
-    @if (_isMobile || Model.p31Date == null)
+    @if (Model.p31Date == null)
     {
         <label for="p31Datehelper" class="col-sm-1 col-md-1 col-form-label">@_f.tra("Datum"):</label>
     }
     else
     {
+        <label for="p31Datehelper" class="col-sm-1 col-md-1 col-form-label mobileonly">@_f.tra("Datum"):</label>
         <label for="p31Datehelper" class="col-sm-1 col-md-1 col-form-label rowvalhover nonmobile">@_f.tra("Datum"):<a class="reczoom" id="linkZoomDay" data-rel="/p31/Day?d=@Model.p31Date.Value&hover_by_reczoom=1&j02id=@Model.Rec.j02ID" data-height="270">ℹ</a></label>
     }
 
@@ -301,12 +301,9 @@ else
             <input type="hidden" asp-for="MultiDate" />
         </div>
     }
-    @if (!_isMobile)
-    {
-        <div class="col-auto nonmobile">
-            <span id="p31_daysum" class="p31-daysum" title="@_f.tra("Vykázáno za den – celý přehled po najetí na ℹ u data")"></span>
-        </div>
-    }
+    <div class="col-auto nonmobile">
+        <span id="p31_daysum" class="p31-daysum" title="@_f.tra("Vykázáno za den – celý přehled po najetí na ℹ u data")"></span>
+    </div>
     @if (Model.rec_pid == 0 && Model.RecP34 != null && Model.RecP34.p33ID == BO.p33IdENUM.Cas)
     {
         <div class="col-sm-1 col-md-1 col-6">
@@ -471,34 +468,31 @@ else
 
 
 
-    @if (!_isMobile)
+
+    <button id="cmdFindText" tabindex="-1" type="button" onmouseout="cmdFindText_mouseout(this)" class="btn btn-sm btn-light my-0 nonmobile" style="visibility:hidden;float:left;" onclick="_najit_text(this,event,'p31text',@(Model.Rec.j02ID))">
+        <myicon symbol="search"></myicon>
+        @_f.tra("Najít text")
+    </button>
+
+
+    @if (_lisB05.Count() > 0)
     {
 
-        <button id="cmdFindText" tabindex="-1" type="button" onmouseout="cmdFindText_mouseout(this)" class="btn btn-sm btn-light my-0" style="visibility:hidden;float:left;" onclick="_najit_text(this,event,'p31text',@(Model.Rec.j02ID))">
-            <myicon symbol="search"></myicon>
-            @_f.tra("Najít text")
-        </button>
+        <div class="nonmobile" style="padding:6px;float:right;">
+            <button type="button" class="btn btn-sm btn-light dropdown-toggle" onclick="toggle_history()">
+                <myicon symbol="speaker_notes"></myicon>
+                <span class="badge-def">
+                    @(_lisB05.Count())
+                </span>
+            </button>
+        </div>
+
+        <div id="history" style="display:none;">
 
 
-        @if (_lisB05.Count() > 0)
-        {
+            @await Html.PartialAsync("~/Views/Shared/_lisB05.cshtml", _lisB05)
+        </div>
 
-            <div style="padding:6px;float:right;">
-                <button type="button" class="btn btn-sm btn-light dropdown-toggle" onclick="toggle_history()">
-                    <myicon symbol="speaker_notes"></myicon>
-                    <span class="badge-def">
-                        @(_lisB05.Count())
-                    </span>
-                </button>
-            </div>
-
-            <div id="history" style="display:none;">
-
-
-                @await Html.PartialAsync("~/Views/Shared/_lisB05.cshtml", _lisB05)
-            </div>
-
-        }
     }
 
     @if (Model.lisP30 != null && Model.lisP30.Count() > 0)

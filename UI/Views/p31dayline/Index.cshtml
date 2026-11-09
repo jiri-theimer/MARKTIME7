@@ -14,7 +14,6 @@
     string strStyle = null;
     string strDatum = null;
 
-    bool _bolMobile = _f.CurrentUser.IsMobileDisplay();
 
     bool _isCanSeeAllUsers = _f.CurrentUser.TestPermission(BO.PermValEnum.GR_P31_Reader);
 }
@@ -233,7 +232,7 @@
                         {
                             strClass += " td_weekend";
                         }
-                        if (qry.Count() == 0 || _bolMobile) strClass += " dc";
+                        if (qry.Count() == 0) strClass += " dc";     //telefon: dc doplní JS na všechny buňky dne
 
                         strStyle = null;
                         strTitle = null;
@@ -708,7 +707,6 @@
     var _j11ids = "@Model.j11IDs";
     var _j07ids = "@Model.j07IDs";
     var _statequery = "@Model.p31statequery.Value";
-    var _ismobile = "@_f.CurrentUser.IsMobileDisplay()";
     var _scaleindex = "@Model.ScaleIndex";
     var _j72id = "@Model.TheGridQueryButton.j72id";
     var _isxls = "@Model.IsJustXlsExporting";
@@ -725,13 +723,15 @@
     reload();
     });
 
+    if (_device.isMobile) $("td[data-j02id][data-d]").addClass("dc");     //telefon: dvojklik (dvojí klepnutí) na kterýkoli den = nový úkon
+
     $(".dc").dblclick(function () {
     var j02id = $(this).attr("data-j02id");
     var d = $(this).attr("data-d");
     _window_open("/p31/Record?j02id=" + j02id + "&d=" + d, 3);
     });
 
-    if (_ismobile == "True") {
+    if (_device.isMobile) {
     $(".hz").attr("onclick", "");
     $(".hz").css("cursor", "default");
     $(".hz").css("text-decoration", "none");

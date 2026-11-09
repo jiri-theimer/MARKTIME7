@@ -5,7 +5,6 @@
     Layout = "~/Views/Shared/_LayoutModal.cshtml";
     Model.PageTitle = _f.tra("Schvalování nevyúčtovaných úkonů");
     Model.PageSymbol = "approval";
-    bool _IsMobile = _f.CurrentUser.IsMobileDisplay();
     bool _IsUrovenSchvalovani = _f.CurrentUser.IsHes(65536);
     bool _IsHodinyPausal = _f.CurrentUser.IsHes(32768);
     bool _IsInterniHodiny = _f.CurrentUser.IsHes(16384);
@@ -410,10 +409,7 @@
                 <tr class="tabrow @(Model.lisRecs[i].cssclass) @(Model.lisRecs[i].tabquery)" id="tr@(Model.lisRecs[i].pid)" data-x="@i">
                     <td class="td30">
                         <input type="checkbox" id="chk@(Model.lisRecs[i].pid)" name="selrow" value="@Model.lisRecs[i].pid" tabindex="-1" />
-                        @if (!_IsMobile)
-                        {
-                            <a class="cm" data-id="@(Model.lisRecs[i].pid)"></a>
-                        }
+                        <a class="cm nonmobile" data-id="@(Model.lisRecs[i].pid)"></a>
                         
                     </td>
                     <td>
@@ -612,7 +608,6 @@
     var _IsHodinyPausal = "@_IsHodinyPausal";
     var _IsInterniHodiny = "@_IsInterniHodiny";
     var _IsUrovenSchvalovani = "@_IsUrovenSchvalovani";
-    var _IsMobile = "@_IsMobile";
     var _isZafixovat="@Model.Approve_ZafixovatAkce";
 
     $(document).ready(function () {

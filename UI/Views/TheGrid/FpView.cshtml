@@ -13,7 +13,6 @@
     Model.PageTitle = "Statistiky finačních plánů";
 
 
-    bool _isMobile = _f.CurrentUser.IsMobileDisplay();
 }
 
 @addTagHelper *,UI
@@ -121,7 +120,6 @@
     
     
     var _j27id = "@Model.j27id_query";
-    var _ismobile = "@_isMobile";
 
     //$(document.body).css("overflow", "hidden");
 
@@ -143,7 +141,7 @@
 
         $(".gogo").css("display", "none");
 
-        if (_ismobile == "True") {
+        if (_device.isMobile) {
 
             tg_adjust_for_screen();
         }
