@@ -1,0 +1,30 @@
+﻿/* Kontextová tisková sestava (Views/ReportsClient/ReportContext.cshtml) – třídy rc-*. Pod lištou je prohlížeč Telerik (#reportViewer1). */
+body { margin: 0; background: #fff; }
+.rc { padding: 6px 8px 4px; }
+.rc-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 8px; }
+.rc-report { flex: 1 1 340px; max-width: 520px; min-width: 220px; }
+.rc-right { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+.rc-bar .btn { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.rc-menu { min-width: 260px; }
+.rc-menu .dropdown-item { display: flex; align-items: center; gap: 6px; }
+.rc-menu-check { display: flex; align-items: center; gap: 8px; padding: 4px 16px; font-size: .9rem; }
+.rc-menu-check .form-check-input { margin: 0; }
+.rc-menu-check label { margin: 0; cursor: pointer; }
+
+.rc-row { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 8px; margin-top: 6px; }
+.rc-row:empty { display: none; }
+.rc-multi { font-size: .9rem; color: #3d444d; }
+
+.rc-merge { margin-top: 8px; padding: 8px 10px; border: 1px solid #e3e6ea; border-radius: 10px; background: #fafbfc; }
+.rc-merge-head { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 8px; margin-bottom: 6px; }
+.rc-merge-head .material-icons-outlined-nosize { font-size: 20px; color: var(--pozadi, #0b4b92); }
+.rc-hint { color: #6c757d; font-size: .82rem; }
+.rc-merge-grid { display: grid; grid-template-columns: 150px minmax(0, 520px); gap: 4px 10px; align-items: center; }
+.rc-merge-grid label { margin: 0; font-size: .875rem; color: #59636e; }
+.rc-merge-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.rc-merge-actions .btn { display: inline-flex; align-items: center; gap: 4px; }
+
+@media (max-width: 575.98px) {
+    .rc-report { flex-basis: 100%; max-width: none; }
+    .rc-merge-grid { grid-template-columns: minmax(0, 1fr); }
+}

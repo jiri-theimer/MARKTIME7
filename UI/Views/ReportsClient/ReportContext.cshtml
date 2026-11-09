@@ -4,6 +4,8 @@
 @{
     Layout = null;
 
+    var _langs = new (string Code, string Name)[] { ("", "Česky (originál)"), ("en", "English"), ("de", "Deutsch"), ("sk", "Slovenčina") };
+    string _langCurrent = _langs.FirstOrDefault(p => p.Code == (Model.Translate ?? "")).Name ?? _langs[0].Name;
     bool _bolComboX31 = true;
     if (Model.rec_prefix == "p91" && !_f.CurrentUser.j04IsModule_p91)
     {
@@ -20,7 +22,7 @@
 
 <!DOCTYPE html>
 
-<html lang="cs">
+<html lang="cs" class="@(UI.Code.UiLook.CssClass(_f))">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -37,7 +39,12 @@
         }
     </style>
     <link rel="stylesheet" href="~/css/@_f.CurrentUser.getFontSizeCss()" />
-    <link rel="stylesheet" href="~/css/site.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    @if (UI.Code.UiLook.IsModern(_f))
+    {
+        <link rel="stylesheet" href="~/css/modern.css" asp-append-version="true" />
+    }
+    <link rel="stylesheet" href="~/css/reportcontext.css" asp-append-version="true" />
 
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
@@ -131,11 +138,10 @@
         <input type="hidden" asp-for="Guid_MultipleReport" value="@Model.Guid_MultipleReport" />
         <input type="hidden" asp-for="p31guid" />
 
-        <div class="modal_record_container">
-            <div class="row my-2">
-
-
-                <div class="col-sm-6 col-md-5 mx-0 px-0">
+        <div class="modal_record_container rc">
+            @* verze 8: lišta – výběr sestavy, akce, překlad, zavřít; prohlížeč Telerik se posouvá pod lištu sám (rc_layout) *@
+            <div class="rc-bar">
+                <div class="rc-report">
                     @if (_bolComboX31)
                     {
                         <mycombo entity="x31Report" asp-for="@Model.SelectedX31ID" combo-height="600" selectedtext="@Model.SelectedReport" myqueryinline="ishidesubreports|bool|1|MyRecordsDisponible|bool|1|entity|string|@Model.rec_prefix" event_after_changevalue="x31id_change" placeholder="@(_f.tra("Vyberte tiskovou sestavu..."))"></mycombo>
@@ -145,121 +151,92 @@
                         <span class="form-control">@Model.SelectedReport</span>
                         <input type="hidden" asp-for="SelectedX31ID" />
                     }
-
-
-
                 </div>
-
-
-
-                @if (_bolComboX31)
-                {
-                    <div class="col-auto">
-                        <button id="cmdMerge" type="button" class="btn btn-sm bog dropdown-toggle">
-                            <span class="material-icons-outlined-btn">picture_as_pdf</span>
-                            PDF MERGE
-                        </button>
-                        @if (!string.IsNullOrEmpty(Model.FinalMergedPdfFileName))
-                        {
-                            <div>
-                                <a href="/FileUpload/FileDownloadTempFile?tempfilename=@Model.FinalMergedPdfFileName" target="_blank">Otevřít PDF-MERGE výstup</a>
-                            </div>
-
-                        }
-                    </div>
-                }
-
 
                 @if (Model.lisJ61 == null || Model.lisJ61.Count() == 0)
                 {
-                    <div class="col-auto">
-                        <button type="button" onclick="sendbymail()" class="btn btn-sm bog">
-                            <span class="material-icons-outlined-btn">email</span>
-                            @_f.tra("Odeslat poštou")
-                        </button>
-
-                    </div>
+                    <button type="button" onclick="sendbymail()" class="btn btn-sm bog">
+                        <span class="material-icons-outlined-btn">email</span>
+                        @_f.tra("Odeslat poštou")
+                    </button>
                 }
                 else
                 {
-                    <div class="col-auto">
-                        <div class="dropdown">
-                            <button class="btn btn-sm bog dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <span class="material-icons-outlined-btn">email</span>
-                                @_f.tra("Odeslat poštou")
-                            </button>
-                            <ul class="dropdown-menu">
-
-
-                                <li><a class="dropdown-item" href="javascript:sendbymail()">@_f.tra("Odeslat poštou") (PDF)</a></li>
-                                @if (Model.lisJ61 != null && !_f.CurrentUser.IsPortalUserOnly())
-                                {
-                                    @foreach (var c in Model.lisJ61)
-                                    {
-                                        <li><a class="dropdown-item" href="javascript:sendbymail(@c.pid)">E-mail šablona <span class="badge-light">@(c.j61Name)</span></a></li>
-                                    }
-                                }
-
-                                @if (Model.rec_prefix == "p91" && _f.CurrentUser.j04IsModule_p91)
-                                {
-                                    <li>
-                                        <hr />
-                                        <input type="checkbox" asp-for="IsIncludeISDOC" onchange="save_local_param('IsIncludeISDOC')" />
-                                        <label for="IsIncludeISDOC">@_f.tra("Odesílat jako ISDOC.PDF")</label>
-                                    </li>
-
-                                    <li style="min-width:200px;">
-                                        <hr />
-                                        <input type="checkbox" asp-for="IsPfxSignature" onchange="save_local_param('IsPfxSignature')" />
-                                        <label for="IsPfxSignature">@_f.tra("Do PDF vložit elektronický podpis")</label>
-                                    </li>
-                                }
-
-
-                            </ul>
-                        </div>
-                    </div>
-                }
-
-
-                <div class="col-auto">
                     <div class="dropdown">
-                        <button class="btn btn-sm bog dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            @_f.tra("Překlad sestavy")
+                        <button class="btn btn-sm bog dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                            <span class="material-icons-outlined-btn">email</span>
+                            @_f.tra("Odeslat poštou")
                         </button>
-                        <ul class="dropdown-menu">
-                            <li id="litrans_"><a class="dropdown-item" href="javascript:dotrans('')">Česky (originál)</a></li>
-                            <li id="litrans_en"><a class="dropdown-item" href="javascript:dotrans('en')">English</a></li>
-                            <li id="litrans_de"><a class="dropdown-item" href="javascript:dotrans('de')">Deutsch</a></li>
-                            <li id="litrans_sk"><a class="dropdown-item" href="javascript:dotrans('sk')">Slovenčina</a></li>
-
+                        <ul class="dropdown-menu rc-menu">
+                            <li><a class="dropdown-item" href="javascript:sendbymail()"><span class="material-icons-outlined-btn">picture_as_pdf</span> @_f.tra("Odeslat poštou") (PDF)</a></li>
+                            @if (Model.lisJ61 != null && !_f.CurrentUser.IsPortalUserOnly())
+                            {
+                                <li><h6 class="dropdown-header">@_f.tra("E-mail šablona")</h6></li>
+                                @foreach (var c in Model.lisJ61)
+                                {
+                                    <li><a class="dropdown-item" href="javascript:sendbymail(@c.pid)"><span class="material-icons-outlined-btn">mail</span> @(c.j61Name)</a></li>
+                                }
+                            }
+                            @if (Model.rec_prefix == "p91" && _f.CurrentUser.j04IsModule_p91)
+                            {
+                                <li><hr class="dropdown-divider" /></li>
+                                <li class="rc-menu-check">
+                                    <input type="checkbox" class="form-check-input" asp-for="IsIncludeISDOC" onchange="save_local_param('IsIncludeISDOC')" />
+                                    <label for="IsIncludeISDOC">@_f.tra("Odesílat jako ISDOC.PDF")</label>
+                                </li>
+                                <li class="rc-menu-check">
+                                    <input type="checkbox" class="form-check-input" asp-for="IsPfxSignature" onchange="save_local_param('IsPfxSignature')" />
+                                    <label for="IsPfxSignature">@_f.tra("Do PDF vložit elektronický podpis")</label>
+                                </li>
+                            }
                         </ul>
                     </div>
-
-                </div>
-
-                <div class="col-auto">
-                    <button id="cmdClose" type="button" onclick="local_close()" class="btn btn-sm bog"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
-
-                </div>
-                @if (_f.CurrentUser.IsAdmin && Model.SelectedX31ID > 0)
-                {
-                    <div class="nonmobile col-auto" style="width:40px;">
-                        <button id="cmdAdmin" type="button" class="btn btn-sm bog" title="@_f.tra("Administrace sestavy")"><span class="material-icons-outlined-btn">settings</span></button>
-                    </div>
                 }
+
+                @if (_bolComboX31)
+                {
+                    <button id="cmdMerge" type="button" class="btn btn-sm bog dropdown-toggle" aria-expanded="false" title="@_f.tra("Sloučit tuto sestavu s dalšími do jednoho PDF")">
+                        <span class="material-icons-outlined-btn">picture_as_pdf</span>
+                        PDF MERGE
+                    </button>
+                    @if (!string.IsNullOrEmpty(Model.FinalMergedPdfFileName))
+                    {
+                        <a class="btn btn-sm btn-success" href="/FileUpload/FileDownloadTempFile?tempfilename=@Model.FinalMergedPdfFileName" target="_blank"><span class="material-icons-outlined-btn">download</span> @_f.tra("Otevřít PDF-MERGE výstup")</a>
+                    }
+                }
+
+                <div class="dropdown">
+                    <button class="btn btn-sm bog dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="@_f.tra("Překlad sestavy")">
+                        <span class="material-icons-outlined-btn">translate</span>
+                        @_langCurrent
+                    </button>
+                    <ul class="dropdown-menu">
+                        @foreach (var l in _langs)
+                        {
+                            <li id="litrans_@(l.Code)"><a class="dropdown-item @(l.Code == (Model.Translate ?? "") ? "active" : null)" href="javascript:dotrans('@l.Code')">@l.Name</a></li>
+                        }
+                    </ul>
+                </div>
+
+                <div class="rc-right">
+                    @if (_f.CurrentUser.IsAdmin && Model.SelectedX31ID > 0)
+                    {
+                        <button id="cmdAdmin" type="button" class="btn btn-sm bog nonmobile" title="@_f.tra("Administrace sestavy")"><span class="material-icons-outlined-btn">settings</span></button>
+                    }
+                    <button id="cmdClose" type="button" onclick="local_close()" class="btn btn-sm bog"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
+                </div>
             </div>
 
 
-            <div class="input-group" id="divRowButtons" style="margin-left:0px;padding-left:0px;">
+            <div class="rc-row" id="divRowButtons">
 
                 @if (Model.rec_pids != null)
                 {
-                    <div>@_f.tra("Náhled na Multiple report") <span class="badge-def">1/@(Model.rec_pids_count)</span></div>
+                    <div class="rc-multi">@_f.tra("Náhled na Multiple report") <span class="badge-def">1/@(Model.rec_pids_count)</span></div>
 
                     <div>
 
-                        <button type="button" class="btn btn-sm bog" onclick="multireport()" style="margin:5px;">
+                        <button type="button" class="btn btn-sm bog" onclick="multireport()">
                             <span class="material-icons-outlined-btn">picture_as_pdf</span>
                             @_f.tra("Vygenerovat PDF Multi Report")
                             <span class="badge-def">@(Model.rec_pids_count)</span>
@@ -267,7 +244,7 @@
 
                     </div>
                     <div>
-                        <button type="button" class="btn btn-sm bog" onclick="multizip()" style="margin:5px;">
+                        <button type="button" class="btn btn-sm bog" onclick="multizip()">
                             <span class="material-icons-outlined-btn">folder_zip</span>
                             @_f.tra("Vygenerovat ZIP archiv")
                             <span class="badge-def">@(Model.rec_pids_count)</span>
@@ -290,7 +267,7 @@
                 }
                 @if (!string.IsNullOrEmpty(Model.GeneratedTempFileName))
                 {
-                    <a type="button" class="btn btn-sm btn-success" href="/FileUpload/FileDownloadTempFile?tempfilename=@Model.GeneratedTempFileName" target="_blank" style="margin:6px;">@_f.tra("Stáhnout výsledek")</a>
+                    <a type="button" class="btn btn-sm btn-success" href="/FileUpload/FileDownloadTempFile?tempfilename=@Model.GeneratedTempFileName" target="_blank">@_f.tra("Stáhnout výsledek")</a>
                     @if (Model.AllGeneratedTempFileNames != null && Model.AllGeneratedTempFileNames.Count() > 1)
                     {
                         @for (int i = 1; i < Model.AllGeneratedTempFileNames.Count(); i++)
@@ -310,85 +287,61 @@
             @if (_bolComboX31)
             {
 
-                <div id="divMerge" style="display:none;">
-
-                    <div class="row my-2">
-                        <label class="col-sm-2 col-md-2 col-form-label">@_f.tra("Slučovaný report") #1:</label>
-                        <div class="col-sm-6 col-md-5">
-                            <mycombo entity="x31Report" asp-for="@Model.MergedX31ID_1" selectedtext="@Model.MergedX31Name_1" myqueryinline="MyRecordsDisponible|bool|1|entity|string|@Model.rec_prefix"></mycombo>
-                        </div>
-
+                <div id="divMerge" class="rc-merge" style="display:none;">
+                    <div class="rc-merge-head">
+                        <span class="material-icons-outlined-nosize">merge</span>
+                        <b>PDF MERGE</b>
+                        <span class="rc-hint">@_f.tra("Aktuální sestava se sloučí s vybranými sestavami do jednoho PDF.")</span>
                     </div>
-                    <div class="row my-2">
-                        <label class="col-sm-2 col-md-2 col-form-label">@_f.tra("Slučovaný report") #2:</label>
-                        <div class="col-sm-6 col-md-5">
-                            <mycombo entity="x31Report" asp-for="@Model.MergedX31ID_2" selectedtext="@Model.MergedX31Name_2" myqueryinline="MyRecordsDisponible|bool|1|entity|string|@Model.rec_prefix"></mycombo>
-                        </div>
-                        @if (Model.rec_pids == null)
-                        {
-                            <div class="col-auto">
-                                <button type="button" class="btn btn-sm bog" onclick="generate_merge()">@_f.tra("Připravit PDF-MERGE")</button>
-                            </div>
-
-                            <div class="col-auto">
-                                <button type="button" class="btn btn-sm bog" onclick="generate_merge_and_download()">@_f.tra("Stáhnout PDF-MERGE")</button>
-                            </div>
-                            <div class="col-auto">
-                                <button type="button" class="btn btn-sm bog" onclick="generate_merge_and_preview()">@_f.tra("Náhled PDF-MERGE")</button>
-                            </div>
-                        }
-
-
-
+                    <div class="rc-merge-grid">
+                        <label>@_f.tra("Slučovaný report") #1</label>
+                        <mycombo entity="x31Report" asp-for="@Model.MergedX31ID_1" selectedtext="@Model.MergedX31Name_1" myqueryinline="MyRecordsDisponible|bool|1|entity|string|@Model.rec_prefix"></mycombo>
+                        <label>@_f.tra("Slučovaný report") #2</label>
+                        <mycombo entity="x31Report" asp-for="@Model.MergedX31ID_2" selectedtext="@Model.MergedX31Name_2" myqueryinline="MyRecordsDisponible|bool|1|entity|string|@Model.rec_prefix"></mycombo>
+                        <label>@_f.tra("Slučovaný report") #3</label>
+                        <mycombo entity="x31Report" asp-for="@Model.MergedX31ID_3" selectedtext="@Model.MergedX31Name_3" myqueryinline="MyRecordsDisponible|bool|1|entity|string|@Model.rec_prefix"></mycombo>
                     </div>
-                    <div class="row my-2">
-                        <label class="col-sm-2 col-md-2 col-form-label">@_f.tra("Slučovaný report") #3:</label>
-                        <div class="col-sm-6 col-md-5">
-                            <mycombo entity="x31Report" asp-for="@Model.MergedX31ID_3" selectedtext="@Model.MergedX31Name_3" myqueryinline="MyRecordsDisponible|bool|1|entity|string|@Model.rec_prefix"></mycombo>
+                    @if (Model.rec_pids == null)
+                    {
+                        <div class="rc-merge-actions">
+                            <button type="button" class="btn btn-sm bog" onclick="generate_merge_and_preview()"><span class="material-icons-outlined-btn">visibility</span> @_f.tra("Náhled PDF-MERGE")</button>
+                            <button type="button" class="btn btn-sm bog" onclick="generate_merge_and_download()"><span class="material-icons-outlined-btn">download</span> @_f.tra("Stáhnout PDF-MERGE")</button>
+                            <button type="button" class="btn btn-sm bog" onclick="generate_merge_and_mail()"><span class="material-icons-outlined-btn">email</span> @_f.tra("Odeslat PDF-MERGE poštou")</button>
+                            <button type="button" class="btn btn-sm bog" onclick="generate_merge()"><span class="material-icons-outlined-btn">build</span> @_f.tra("Připravit PDF-MERGE")</button>
                         </div>
-                        @if (Model.rec_pids == null)
-                        {
-                            <div class="col-auto">
-                                <button type="button" class="btn btn-sm bog" onclick="generate_merge_and_mail()">@_f.tra("Odeslat PDF-MERGE poštou")</button>
-
-                            </div>
-                        }
-
-
-                    </div>
-
-
+                    }
+                    else
+                    {
+                        <div class="rc-hint">@_f.tra("U více záznamů se PDF MERGE použije při generování Multi Reportu nebo ZIP archivu.")</div>
+                    }
                 </div>
             }
         </div>
 
     </form>
-    <div id="offset1"></div>
 
     <script type="text/javascript">
-        var _topx = $("#offset1").offset().top;
+        //prohlížeč Telerik (position:absolute) začíná pod lištou – výška lišty se mění (zalomení, PDF MERGE, okno)
+        function rc_layout() {
+            const f = document.getElementById("form1");
+            const v = document.getElementById("reportViewer1");
+            if (f && v) v.style.top = Math.ceil(f.getBoundingClientRect().bottom + window.scrollY + 4) + "px";
+        }
         var _final_merged_pdffilename = "@(Model.FinalMergedPdfFileName)";
         var _final_merged_download = "@(Model.FinalMergedPdfFileName_Download)";
         var _final_merged_preview = "@(Model.FinalMergedPdfFileName_Preview)";
         
 
         $(document).ready(function () {
-            $("#reportViewer1").css("top", _topx);
+            rc_layout();
+            if (window.ResizeObserver) new ResizeObserver(rc_layout).observe(document.getElementById("form1"));
+            window.addEventListener("resize", rc_layout);
 
             $("#cmdMerge").click(function () {
-
                 $("#divMerge").toggle();
-                if ($("#divMerge").css("display") == "none") {
-                    $("#reportViewer1").css("top", _topx)
-                } else {
-                    var posun = $("#divMerge").height() + 50;
-
-                    $("#reportViewer1").css("top", (_topx + posun));
-                }
-
+                $(this).attr("aria-expanded", $("#divMerge").is(":visible"));
+                rc_layout();
             });
-
-            $("#litrans_@Model.Translate").css("background-color", "lightblue");
 
             $("#cmdAdmin").on("click", function () {
                 window.open(_ep("/x31/Record?pid=@Model.SelectedX31ID"));
