@@ -282,7 +282,10 @@
             <div style="margin-top:20px;">
                 @if (Model.rec_pid > 0)
                 {
-                    <button type="button" class="bog" onclick="fp()">@_f.tra("Napsat další fakturační poznámku (Neomezený Notepad)")</button>
+                    if (Model.BillingMemo != null && !string.IsNullOrWhiteSpace(Model.BillingMemo.HtmlValue))
+                    {
+                        <button type="button" class="bog" onclick="fp()">@_f.tra("Napsat další fakturační poznámku (Neomezený Notepad)")</button>
+                    }
                     @if (_lisB05 != null)
                     {
                         @await Html.PartialAsync("~/Views/Shared/_lisB05.cshtml", _lisB05)
