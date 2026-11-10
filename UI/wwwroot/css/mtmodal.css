@@ -1,0 +1,72 @@
+﻿/* Modální okno aplikace (wwwroot/js/mtmodal.js) – společné pro _Layout, _LayoutModal a _LayoutRecord.
+   Okno je nativní <dialog id="myModalContainer">: ztmavené pozadí je samotný dialog přes celou plochu,
+   uvnitř je rám okna #myModalContent se záhlavím a s iframe #fraModalContent.
+   Selektory jsou záměrně silnější než starší pravidla v site.css, která se tím přebíjejí. */
+
+dialog#myModalContainer.mtm {
+    position: fixed; inset: 0; z-index: 2000;
+    width: 100vw; height: 100vh; height: 100dvh; max-width: none; max-height: none;
+    margin: 0; padding: 0; border: 0; overflow: hidden;
+    background-color: rgba(0, 0, 0, .4);
+    color: inherit;
+    user-select: none; -webkit-user-select: none;   /* výběr textu na stránce pod oknem (dvojklik v gridu, tažení myší) nesmí „obarvit“ okno a iframe v něm */
+}
+dialog#myModalContainer.mtm #notify_container { user-select: text; -webkit-user-select: text; }
+dialog#myModalContainer.mtm::backdrop { background: transparent; }
+dialog#myModalContainer.mtm:not([open]) { display: none !important; }
+html.mt-modern dialog#myModalContainer.mtm { background-color: rgba(15, 23, 42, .45); }
+html.mtm-open { overflow: hidden; }      /* stránka pod oknem se neposouvá */
+
+/* rám okna: velikost určuje CSS, takže se přizpůsobí změně velikosti prohlížeče */
+dialog#myModalContainer.mtm #myModalContent {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: min(1100px, calc(100vw - 16px)); height: min(800px, calc(100vh - 16px)); height: min(800px, calc(100dvh - 16px));
+    display: flex; flex-direction: column;
+    margin: 0; padding: 0; cursor: default;
+    background-color: #fff; border: 1px solid #888; overflow: hidden; outline: none;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, .3);
+}
+html.mt-modern dialog#myModalContainer.mtm #myModalContent { border: none; border-radius: var(--mt-radius-lg, 10px); box-shadow: 0 24px 60px rgba(15, 23, 42, .35); }
+
+/* okno přesunuté uživatelem: pozici nastavuje skript v pixelech */
+dialog#myModalContainer.mtm.mtm-moved #myModalContent { transform: none; }
+
+/* maximalizované okno, telefon a okno otevřené z jiného okna (vnořené) */
+dialog#myModalContainer.mtm.mtm-max #myModalContent,
+html.mt-phone dialog#myModalContainer.mtm #myModalContent {
+    left: 0 !important; top: 0 !important; transform: none; width: 100vw; height: 100vh; height: 100dvh; border: 0; border-radius: 0 !important;
+}
+dialog#myModalContainer.mtm.mtm-nested:not(.mtm-moved) #myModalContent { width: calc(100vw - 16px); height: calc(100vh - 16px); height: calc(100dvh - 16px); }
+dialog#myModalContainer.mtm.mtm-nested.mtm-moved #myModalContent { width: calc(100vw - 16px); height: calc(100vh - 16px); height: calc(100dvh - 16px); }
+
+/* záhlaví: za něj se okno přesouvá */
+dialog#myModalContainer.mtm #myModalContentContainerHeader {
+    flex: none; display: flex; align-items: center; gap: 2px; min-height: 34px; padding: 2px 4px 2px 12px;
+    background-color: var(--pozadi, #0b4b92); color: var(--popredi, #fff);
+    cursor: move; user-select: none; -webkit-user-select: none; touch-action: none;
+}
+dialog#myModalContainer.mtm.mtm-max #myModalContentContainerHeader,
+html.mt-phone dialog#myModalContainer.mtm #myModalContentContainerHeader { cursor: default; }
+dialog#myModalContainer.mtm #myModalContentHeader { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: inherit; }
+dialog#myModalContainer.mtm .mtm-btn {
+    flex: none; width: 30px; height: 28px; padding: 0; border: 0; border-radius: 6px; background: transparent; color: inherit; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+}
+dialog#myModalContainer.mtm .mtm-btn:hover { background: rgba(255, 255, 255, .18); }
+dialog#myModalContainer.mtm .mtm-btn:focus-visible { outline: 2px solid currentColor; outline-offset: -2px; }
+dialog#myModalContainer.mtm .mtm-btn .material-icons-outlined-btn { color: inherit; margin-top: 0; }
+dialog#myModalContainer.mtm.mtm-nested #cmdModalToggle { display: none; }
+
+/* obsah */
+/* levý okraj 10 px jako v původním okně – stránky v okně s ním počítají */
+dialog#myModalContainer.mtm #myModalFrame { flex: 1; min-height: 0; position: relative; box-sizing: border-box; margin: 0 !important; padding: 0 0 0 10px !important; overflow: hidden !important; background: #fff; }
+dialog#myModalContainer.mtm #fraModalContent { display: block; width: 100%; height: 100%; border: 0; background: #fff; }
+dialog#myModalContainer.mtm.mtm-loading #fraModalContent { visibility: hidden; }
+dialog#myModalContainer.mtm.mtm-dragging #fraModalContent { pointer-events: none; }    /* při přesouvání okna nesmí myš „spadnout“ do stránky v okně */
+
+/* indikátor načítání */
+dialog#myModalContainer.mtm .mtm-loader { display: none; position: absolute; inset: 0; align-items: center; justify-content: center; background: #fff; }
+dialog#myModalContainer.mtm.mtm-loading .mtm-loader { display: flex; }
+dialog#myModalContainer.mtm .mtm-spinner { width: 34px; height: 34px; border-radius: 50%; border: 3px solid #e3e6ea; border-top-color: var(--oznaceno, #4169e1); animation: mtmspin .8s linear infinite; }
+@keyframes mtmspin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { dialog#myModalContainer.mtm .mtm-spinner { animation-duration: 2.4s; } }

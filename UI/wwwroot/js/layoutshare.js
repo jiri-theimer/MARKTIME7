@@ -424,7 +424,7 @@ function _chat_badge(n) {
 function _chat_badge_refresh() {
     $.ajax({ url: _ep("/Chat/UnreadCount"), type: "GET", dataType: "json", cache: false }).done(function (data) { _chat_badge(data.count); });
 }
-// je okno chatu právě vidět? (modální okno se při zavření jen skrývá)
+// je okno chatu právě vidět? (po zavření modálního okna se stránka z iframe uvolní)
 function _chat_window_visible() {
     try {
         var fra = document.getElementById("fraModalContent");

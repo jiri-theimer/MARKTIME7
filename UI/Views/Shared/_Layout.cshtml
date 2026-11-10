@@ -83,6 +83,7 @@
         }
     </style>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/mtmodal.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/contextmenu.css" />
     <link rel="stylesheet" href="~/css/thegrid.css" asp-append-version="true" />
     @if (UI.Code.UiLook.IsModern(_f))
@@ -113,6 +114,7 @@
     <script src="~/lib/datepicker/bootstrap-datepicker.min.js"></script>
     <script src="~/lib/datepicker/bootstrap-datepicker.cs.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/mtmodal.js" asp-append-version="true"></script>
     <script src="~/js/mycombo.js" asp-append-version="true"></script>
     <script src="~/js/thegrid.js" asp-append-version="true"></script>
     <script src="~/js/contextmenu.js" asp-append-version="true"></script>
@@ -634,34 +636,7 @@
         </main>
     </div>
 
-    <div id="myModalContainer" style="display:none;">
-        <div id="myModalContent">
-            <div id="myModalContentContainerHeader" ondblclick="_window_toggle()">
-                <table style="width:100%;" cellpadding="0" cellspacing="0">
-                    <tr>
-                        <td style="width:20px;">
-                            <a href="javascript:_window_close()" style="margin-left:3px;margin-right:3px;"><span class="material-icons-outlined-btn" style="color:white;">close</span></a>
-                        </td>
-                        <td>
-                            <span id="myModalContentHeader"></span>
-                        </td>
-                        <td class="nonmobile" style="width:30px;">
-                            <a href="javascript:_window_toggle()"><span id="spanToggle" class="material-icons-outlined-btn" style="color:white;">crop_landscape</span></a>
-                        </td>
-                        <td style="width:30px;">
-                            <a class="modal-close-right" href="javascript:_window_close()"><span class="material-icons-outlined-btn" style="color:white;">close</span></a>
-                        </td>
-                    </tr>
-                </table>
-
-
-            </div>
-            <div id="myModalFrame" style="padding: 0px; margin:0px 0px 0px 10px; overflow: auto; -webkit-overflow-scrolling: touch;">
-                <iframe id="fraModalContent" name="fraModalContent" frameborder="0"></iframe>
-            </div>
-
-        </div>
-    </div>
+    @* modální okno (dialog#myModalContainer) vytváří wwwroot/js/mtmodal.js *@
 
 
 
@@ -748,9 +723,13 @@
         let _offcanvasMainIsLoaded = false;
         let _offcanvasMyprofileIsLoaded = false;
 
-        var _modal = document.getElementById("myModalContainer");
+        MtModal.init({
+            confirmText: "@_f.tra("Chcete x zavřít okno bez uložení změn?")",
+            closeTitle: "@_f.tra("Zavřít")",
+            toggleTitle: "@_f.tra("Maximalizovat")"
+        });
+        var _modal = MtModal.element();     //dialog#myModalContainer
         var _modal_current_layout = null;   //používá podformulář k otevírání modálního okna
-        var _header_uschova = "";
 
 
         $(document).ready(function () {
@@ -777,17 +756,6 @@
                 _offcanvasMyprofileIsLoaded = true;
 
                 render_menu("cmdme","offcanvas_myprofile_body","/Menu/main_me");
-            });
-
-            $("#fraModalContent").on("load", function () {
-                $("#myModalContentHeader").text(_header_uschova);
-                $("#myModalFrame").css("visibility", "visible");
-            });
-
-            $(document).on("click", function (e) {
-                if (e.target == _modal) {
-                    _window_close();
-                }
             });
 
             $(document).on("keydown", function (e) {
@@ -1007,31 +975,13 @@
 
 
         //-----------------modální okno------------------------------------------
+        //okno samotné (dialog, velikost, přesouvání, indikátor načítání) je v wwwroot/js/mtmodal.js a css/mtmodal.css
         function _window_toggle() {
-            var okno = $("#myModalContent");
-            var s = $("#myModalContentHeader").text();
-
-            if (_device.innerWidth - $(okno).width() < 30) {
-                _window_open("", 1);
-            } else {
-                _window_open("", 2);
-            }
-            $("#myModalContentHeader").text(s);
-
+            MtModal.toggle();
         }
 
         function _window_close() {
-            var iframe = document.getElementById("fraModalContent");
-            var elmnt = iframe.contentWindow.document.getElementById("toolbar_changeinfo");
-            if ($(elmnt).text() !== "") {
-                if (confirm("@_f.tra("Chcete x zavřít okno bez uložení změn?")")) {
-                    $(_modal).css("display", "none");
-                } else {
-                    return;
-                }
-            }
-            $(_modal).css("display", "none");
-            window.focus();
+            MtModal.close();    //při neuložených změnách se nejdřív zeptá
         }
 
 
@@ -1076,58 +1026,14 @@
 
         function _window_open(url, flag, header, layout) {
             //flag=1: normální velikost, flag=2: maximalizovaná, flag=3: za každou cenu normální velikost
-            if (url != "") {
-                $("#myModalFrame").css("visibility", "hidden");
-            }
             _modal_current_layout = layout;
-            if (typeof header === "undefined") header = "";
             if (typeof flag === "undefined") flag = 1;   //automaticky ne-maximalovazné okno
             if (url != "" && _device.isMobile) {
                 flag = 2; //telefon: okno vždy na celou obrazovku
             }
 
-            if (!$(_modal).attr("initialized") && flag !== 2) {
-                _make_element_draggable(document.getElementById("myModalContent"), document.getElementById("myModalFrame")); //předávání nefunguje přes jquery
-                $(_modal).attr("initialized", true);
-            }
-            $("#myModalContentHeader").text(header);
-            _header_uschova = $("#myModalContentHeader").text();
-            $("#myModalContentHeader").text("LOADING CONTENT....");
-
-
-            var okno = $("#myModalContent");
-            var fra = $("#fraModalContent");
-
-            var w = 1100;
-            var h = 800;
-            var x = 0;
-            var y = 0;
-
-            if (flag === 1 || flag === 3) {   //centralizovat, max rozměr 1000x800
-                if (_device.innerWidth < w) w = _device.innerWidth;
-                if (_device.innerHeight < h) h = _device.innerHeight;
-                x = (_device.innerWidth - w) / 2;
-                y = (_device.innerHeight - h) / 2;
-                $("#spanToggle").text("crop_landscape");
-            }
-            if (flag === 2) {   //okno na fullsreen 100%
-                $("#myModalFrame").css("padding", "0");
-                w = _device.innerWidth;
-                h = _device.innerHeight;
-                x = 0;
-                y = 0;
-                $("#spanToggle").text("close_fullscreen");
-            }
-
-            $(okno).css("width", w);
-            $(okno).css("height", h);
-            $(okno).css("left", x);
-            $(okno).css("top", y);
-            $(fra).css("width", w - 15);
-            $(fra).css("height", h - 30 - 10);    //10 padding dole, 30 div header
-
-
             if (url !== "") {
+                if (typeof header === "undefined") header = "";
                 if (layout != undefined && layout != null)    //předat volané stránce informaci o zdroji volání
                 {
                     if (url.indexOf("?") > 0) {
@@ -1139,15 +1045,15 @@
                 }
 
                 url = _ep(url);
-                $(fra).attr("src", url);
+            } else {
+                header = null;  //bez adresy se mění jen velikost okna, titulek zůstává
             }
 
             if (document.getElementById("divZoomContainer")) {
                 $("#divZoomContainer").css("display", "none");
             }
 
-
-            $(_modal).css("display", "block");
+            MtModal.open(url, header, flag === 2);
         }
 
 
