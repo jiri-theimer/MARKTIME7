@@ -8,7 +8,16 @@
     Layout = "~/Views/Shared/_LayoutSubform.cshtml";
     if (Model == null) return;
 
-    var _items = UI.Code.RecordTimeline.Build(_f, Model.prefix, Model.pid);
+    // období: ?od=yyyy-MM-dd | ?od=all; výchozí podle entity (uživatel 6 měsíců, ostatní vše)
+    string _odPar = Context.Request.Query["od"];
+    DateTime? _from = UI.Code.RecordTimeline.DefaultFrom(Model.prefix);
+    if (_odPar == "all") _from = null;
+    else if (DateTime.TryParseExact(_odPar ?? "", "yyyy-MM-dd", null, System.Globalization.DateTimeStyles.None, out var _odDate)) _from = _odDate;
+    var _items = UI.Code.RecordTimeline.Build(_f, Model.prefix, Model.pid, _from);
+    const int _pageSize = 50;
+    string _recAlias = null;
+    try { _recAlias = _f.CBL.GetObjectAlias(Model.prefix, Model.pid); } catch { }
+    Model.PageTitle = "Timeline" + (string.IsNullOrEmpty(_recAlias) ? "" : ": " + _recAlias);
     bool _canAddNote = Model.prefix == "p28" || Model.prefix == "p31" || BO.Code.Entity.GetPrefixDb(Model.prefix) == "p41" || Model.prefix == "p91" || Model.prefix == "p56" || Model.prefix == "o23" || Model.prefix == "p90";
 
     var _kinds = new List<(string key, string label, string icon)>
@@ -19,6 +28,7 @@
         ("task", _f.tra("Úkoly"), "task_alt"),
         ("term", _f.tra("Termíny"), "event"),
         ("project", _f.tra("Projekty"), "work_outline"),
+        ("invoice", _f.tra("Vyúčtování"), "receipt_long"),
         ("pay", _f.tra("Úhrady"), "payments"),
         ("proforma", _f.tra("Zálohy"), "link"),
         ("dun", _f.tra("Upomínky"), "notification_important"),
@@ -65,6 +75,8 @@
 }
 
 <div class="tl">
+    @* nadpis jen při otevření v samostatné záložce prohlížeče (ne v iframe stránky záznamu) *@
+    <h1 class="tl-pagetitle" id="tl_pagetitle" hidden><span class="material-icons-outlined-nosize">timeline</span>@Model.PageTitle</h1>
     <div class="tl-top">
         @if (_canAddNote)
         {
@@ -85,6 +97,7 @@
             </div>
             <input type="search" class="form-control form-control-sm tl-search" placeholder="@_f.tra("Hledat v timeline…")" oninput="tl_apply()" />
         }
+        <a class="tl-newtab" id="tl_newtab" href="javascript:tl_newtab()" title="@_f.tra("Otevřít timeline v nové záložce prohlížeče")"><span class="material-icons-outlined-nosize">open_in_new</span></a>
     </div>
 
     @if (_items.Count == 0)
@@ -99,7 +112,7 @@
         </div>
     }
 
-    <div class="tl-list" id="tl_list">
+    <div class="tl-list" id="tl_list" data-page="@_pageSize">
         @{ string _lastGroup = null; }
         @foreach (var it in _items)
         {
@@ -318,6 +331,20 @@
             </div>
         }
     </div>
+
+    <div class="tl-foot">
+        <button type="button" class="btn btn-light btn-sm" id="tl_morebtn" onclick="tl_page_more()" hidden>@_f.tra("Zobrazit další")</button>
+        @if (_from != null)
+        {
+            <span class="tl-range">
+                @_f.tra("Zobrazeno od") @_from.Value.ToString("d.M.yyyy").
+                @_f.tra("Načíst starší:")
+                <a href="javascript:tl_range('@(_from.Value.AddMonths(-6).ToString("yyyy-MM-dd"))')">@_f.tra("o 6 měsíců")</a> ·
+                <a href="javascript:tl_range('@(_from.Value.AddYears(-2).ToString("yyyy-MM-dd"))')">@_f.tra("o 2 roky")</a> ·
+                <a href="javascript:tl_range('all')">@_f.tra("vše")</a>
+            </span>
+        }
+    </div>
 </div>
 
 <script type="text/javascript">
@@ -350,18 +377,49 @@
         tl_apply();
     }
 
+    // stránkování: prvních N událostí (budoucí vždy), další po kliknutí; při filtru/hledání se nestránkuje
+    var _tl_limit = parseInt(document.getElementById("tl_list").dataset.page || "50");
+    function tl_page_more() { _tl_limit += parseInt(document.getElementById("tl_list").dataset.page || "50"); tl_apply(); }
+    function tl_range(od) {
+        const u = new URL(location.href);
+        u.searchParams.set("od", od);
+        location.replace(u.toString());
+    }
+
     function tl_apply() {
         const q = (document.querySelector(".tl-search") || {}).value;
         const words = (q || "").toLowerCase().split(/\s+/).filter(Boolean);
-        let lastGroup = null, groupHasVisible = false;
+        let lastGroup = null, groupHasVisible = false, shown = 0, hiddenByPage = 0;
+        const paging = !_tl_kind && words.length === 0;
         const finishGroup = function () { if (lastGroup) lastGroup.hidden = !groupHasVisible; };
         document.querySelectorAll("#tl_list > div").forEach(function (el) {
             if (el.classList.contains("tl-group")) { finishGroup(); lastGroup = el; groupHasVisible = false; return; }
-            const ok = (!_tl_kind || el.dataset.kind === _tl_kind) && words.every(function (w) { return el.dataset.search.indexOf(w) >= 0; });
+            let ok = (!_tl_kind || el.dataset.kind === _tl_kind) && words.every(function (w) { return el.dataset.search.indexOf(w) >= 0; });
+            if (ok && paging && !el.classList.contains("tl-future")) {
+                if (shown >= _tl_limit) { ok = false; hiddenByPage++; } else { shown++; }
+            }
             el.hidden = !ok;
             if (ok) groupHasVisible = true;
         });
         finishGroup();
+        const btn = document.getElementById("tl_morebtn");
+        if (btn) { btn.hidden = hiddenByPage === 0; btn.dataset.rest = hiddenByPage; }
+    }
+
+    tl_apply();
+
+    // otevření v nové záložce prohlížeče: stejná adresa (prefix, záznam, období)
+    function tl_newtab() {
+        window.open(location.href, "_blank", "noopener");
+    }
+    if (window.self === window.top) {
+        document.getElementById("tl_pagetitle").hidden = false;
+        document.getElementById("tl_newtab").hidden = true;
+        // samostatná záložka: _window_open z _LayoutSubform volá window.parent (= samo sebe) → dialogy otevírat v nové záložce.
+        // Přepsat až po načtení – layout funkci definuje ve skriptu za obsahem stránky.
+        document.addEventListener("DOMContentLoaded", function () {
+            window._window_open = function (url) { window.open(url, "_blank"); };
+        });
     }
 
     function hardrefresh(pid, flag) {

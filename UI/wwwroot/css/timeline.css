@@ -14,6 +14,12 @@
 .tl-chip-on .material-icons-outlined-nosize { color: var(--pozadi, #0b4b92); }
 .tl-search { width: 220px; margin-left: auto; }
 
+.tl-newtab { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 8px; color: #6c757d; text-decoration: none; }
+.tl-newtab:hover { background: #eef1f4; color: var(--pozadi, #0b4b92); }
+.tl-newtab .material-icons-outlined-nosize { font-size: 19px; }
+.tl-pagetitle { display: flex; align-items: center; gap: 8px; margin: 2px 0 12px; font-size: 1.3rem; font-weight: 600; color: #1f2328; }
+.tl-pagetitle[hidden] { display: none; }
+.tl-pagetitle .material-icons-outlined-nosize { font-size: 24px; color: var(--pozadi, #0b4b92); }
 .tl-empty { padding: 40px 10px; text-align: center; color: #6c757d; }
 .tl-empty .material-icons-outlined-nosize { font-size: 40px; color: #c5ccd3; }
 
@@ -33,6 +39,7 @@
 .tl-k-term .tl-dot { --tl-c: #c2410c; }
 .tl-k-project .tl-dot { --tl-c: #0e7490; }
 .tl-k-file .tl-dot { --tl-c: #6c757d; }
+.tl-k-invoice .tl-dot { --tl-c: #b7791f; }
 .tl-k-pay .tl-dot { --tl-c: #198754; }
 .tl-k-proforma .tl-dot { --tl-c: #0e7490; }
 .tl-k-dun .tl-dot { --tl-c: #b02a37; }
@@ -94,6 +101,11 @@ a.tl-title:hover { color: var(--pozadi, #0b4b92); text-decoration: underline; }
 .tl-open { position: absolute; right: 8px; bottom: 6px; color: #b0b7bf; opacity: 0; }
 .tl-item:hover .tl-open { opacity: 1; }
 .tl-open .material-icons-outlined-nosize { font-size: 16px; }
+
+/* stránkování a období */
+.tl-foot { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 14px; margin: 8px 0 0 46px; color: #6c757d; font-size: .82rem; }
+.tl-range a { text-decoration: none; }
+.tl-range a:hover { text-decoration: underline; }
 
 /* telefon */
 @media (max-width: 575.98px) {

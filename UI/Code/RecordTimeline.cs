@@ -7,7 +7,7 @@
     /// </summary>
     public class TimelineItem
     {
-        public string Kind { get; set; }        // rec | note | wrk | task | term | project | file | pay | proforma | dun | mail
+        public string Kind { get; set; }        // rec | note | wrk | task | term | project | file | pay | proforma | dun | mail | invoice
         public DateTime When { get; set; }      // řazení a seskupení
         public bool IsFuture { get; set; }
         public string Icon { get; set; }
@@ -51,7 +51,14 @@
         }
         private class LoginName { public string Login { get; set; } public string Name { get; set; } }
 
-        public static List<TimelineItem> Build(BL.Factory f, string prefix, int pid)
+        /// <summary>Výchozí začátek období podle entity: uživatel má velmi mnoho úkolů → posledních 6 měsíců; ostatní záznamy vše.</summary>
+        public static DateTime? DefaultFrom(string prefix)
+        {
+            return BO.Code.Entity.GetPrefixDb(prefix ?? "") == "j02" ? DateTime.Today.AddMonths(-6) : (DateTime?)null;
+        }
+
+        /// <param name="from">začátek období (null = vše); budoucí události se zobrazují vždy</param>
+        public static List<TimelineItem> Build(BL.Factory f, string prefix, int pid, DateTime? from = null)
         {
             var ret = new List<TimelineItem>();
             if (string.IsNullOrEmpty(prefix) || pid == 0) return ret;
@@ -119,8 +126,9 @@
             // projekt: úkoly a termíny
             if (prefixDb == "p41")
             {
-                AddTasks(f, ret, new BO.myQueryP56() { p41id = pid, IsRecordValid = null, TopRecordsOnly = MaxPerKind });
-                AddTerms(f, ret, new BO.myQueryO22() { p41id = pid, IsRecordValid = null, TopRecordsOnly = MaxPerKind });
+                AddTasks(f, ret, Period(new BO.myQueryP56() { p41id = pid, IsRecordValid = null }, from));
+                AddTerms(f, ret, new BO.myQueryO22() { p41id = pid, IsRecordValid = null });
+                AddInvoices(f, ret, new BO.myQueryP91() { p41id = pid }, 0);
             }
 
             // vyúčtování: úhrady, spárované zálohy, upomínky, elektronické odeslání
@@ -132,12 +140,13 @@
             // uživatel: přidělené úkoly a termíny, vlastní projekty
             if (prefixDb == "j02")
             {
-                AddUserActivity(f, ret, pid);
+                AddUserActivity(f, ret, pid, from);
             }
 
             // kontakt: projekty
             if (prefixDb == "p28")
             {
+                AddInvoices(f, ret, new BO.myQueryP91() { p28id = pid }, pid);     // odběratel faktury nebo klient fakturovaného projektu
                 foreach (var p in f.p41ProjectBL.GetList(new BO.myQueryP41("p41") { p28id = pid, IsRecordValid = null, TopRecordsOnly = MaxPerKind }))
                 {
                     ret.Add(new TimelineItem
@@ -175,15 +184,31 @@
                 catch { }
             }
 
+            if (from != null)
+            {
+                ret = ret.Where(p => p.When >= from.Value || p.IsFuture).ToList();
+            }
             return ret.OrderByDescending(p => p.When).ThenByDescending(p => p.Kind == "rec" ? 0 : 1).ThenByDescending(p => p.Pid).ToList();
         }
 
         /// <summary>Stránka uživatele: úkoly a termíny, kde je řešitelem, jeho projekty; Vykázané úkony a přihlášení záměrně ne (příliš mnoho událostí; přihlášení mají vlastní záložky LOGIN/PING log).</summary>
-        private static void AddUserActivity(BL.Factory f, List<TimelineItem> ret, int j02id)
+        // úkoly omezit na období už v dotazu (p56TaskBL nepoužívá TopRecordsOnly)
+        private static BO.myQueryP56 Period(BO.myQueryP56 q, DateTime? from)
+        {
+            if (from != null)
+            {
+                q.period_field = "p56DateInsert";
+                q.global_d1 = from;
+                q.global_d2 = new DateTime(2999, 12, 31);
+            }
+            return q;
+        }
+
+        private static void AddUserActivity(BL.Factory f, List<TimelineItem> ret, int j02id, DateTime? from)
         {
             // úkoly a termíny, kde je uživatel v roli (řešitel apod.)
-            AddTasks(f, ret, new BO.myQueryP56() { j02id = j02id, IsRecordValid = null, TopRecordsOnly = MaxPerKind });
-            AddTerms(f, ret, new BO.myQueryO22() { j02id = j02id, IsRecordValid = null, TopRecordsOnly = MaxPerKind });
+            AddTasks(f, ret, Period(new BO.myQueryP56() { j02id = j02id, IsRecordValid = null }, from));
+            AddTerms(f, ret, new BO.myQueryO22() { j02id = j02id, IsRecordValid = null });
 
             // projekty, které vlastní
             foreach (var p in f.p41ProjectBL.GetList(new BO.myQueryP41("p41") { j02id_owner = j02id, IsRecordValid = null, TopRecordsOnly = MaxPerKind }))
@@ -280,6 +305,43 @@
                     Author = c.UserInsert, Prefix = "x40", Pid = c.pid, HideMenu = true,
                     TitleHref = $"javascript:_window_open('/Mail/Record?pid={c.pid}')", Tags = tags,
                     SearchText = $"email e-mail odesláno {c.x40Subject} {c.x40Recipient} {c.x40CC}"
+                });
+            }
+        }
+
+        /// <summary>Nová vyúčtování: u projektu faktury s úkony projektu, u kontaktu jako odběratel faktury nebo klient fakturovaného projektu.</summary>
+        private static void AddInvoices(BL.Factory f, List<TimelineItem> ret, BO.myQueryP91 q, int p28id_contact)
+        {
+            if (!f.CurrentUser.j04IsModule_p91) return;
+            q.IsRecordValid = null;
+            foreach (var c in f.p91InvoiceBL.GetList(q) ?? Enumerable.Empty<BO.p91Invoice>())
+            {
+                var tags = new List<TimelineTag>();
+                tags.Add(new TimelineTag { Text = BO.Code.Bas.Number2String(c.p91Amount_WithoutVat) + " " + c.j27Code + " " + f.tra("bez DPH"), Icon = "payments" });
+                if (p28id_contact > 0)
+                {
+                    tags.Add(c.p28ID == p28id_contact
+                        ? new TimelineTag { Text = f.tra("odběratel faktury"), Icon = "person" }
+                        : new TimelineTag { Text = f.tra("klient projektu") + (string.IsNullOrWhiteSpace(c.p91Client) ? "" : " · " + f.tra("odběratel") + " " + c.p91Client), Icon = "work_outline" });
+                }
+                else if (!string.IsNullOrWhiteSpace(c.p91Client))
+                {
+                    tags.Add(new TimelineTag { Text = c.p91Client, Icon = "person" });
+                }
+                if (c.p91IsDraft) tags.Add(new TimelineTag { Text = f.tra("koncept"), Icon = "edit" });
+                else if (c.p91Amount_Debt > 0.009 && c.p91DateMaturity < DateTime.Today) tags.Add(new TimelineTag { Text = f.tra("po splatnosti") + " · " + BO.Code.Bas.Number2String(c.p91Amount_Debt) + " " + c.j27Code, Icon = "schedule", Css = "tl-tag-late" });
+                else if (c.p91Amount_Debt > 0.009) tags.Add(new TimelineTag { Text = f.tra("splatnost") + " " + c.p91DateMaturity.ToString("d.M.yyyy"), Icon = "schedule" });
+                else tags.Add(new TimelineTag { Text = f.tra("uhrazeno"), Icon = "done", Css = "tl-tag-ok" });
+                if (!string.IsNullOrWhiteSpace(c.b02Name)) tags.Add(new TimelineTag { Text = c.b02Name, Icon = "flag" });
+                ret.Add(new TimelineItem
+                {
+                    Kind = "invoice",
+                    Action = c.p91IsDraft ? f.tra("Koncept vyúčtování") : f.tra("Vyúčtování"),
+                    When = c.DateInsert ?? c.p91Date,
+                    Icon = "receipt_long",
+                    Title = string.IsNullOrWhiteSpace(c.p91Code) ? f.tra("(bez čísla)") : c.p91Code,
+                    Author = c.UserInsert, Prefix = "p91", Pid = c.pid, Tags = tags,
+                    SearchText = $"vyúčtování faktura {c.p91Code} {c.p91Client} {c.b02Name}"
                 });
             }
         }
