@@ -15,6 +15,8 @@ var ChatApp = (function () {
     var reloadTimer = null;
     var hub = null;
 
+    var filter = "all";         //filtr seznamu konverzací: all, unread, people nebo prefix entity (p41, p56...)
+    var ENTITY_ICONS = { p41: "work_outline", p56: "task_alt", p28: "business", p91: "receipt_long", o23: "description" };
     var REACTIONS = [["like", "👍"], ["heart", "❤️"], ["laugh", "😂"], ["wow", "😮"], ["sad", "😢"], ["thanks", "🙏"], ["done", "✅"]];
     var MAX_FILES = 5, MAX_BYTES = 20 * 1024 * 1024;
 
@@ -138,12 +140,36 @@ var ChatApp = (function () {
         if (c.type != 1 && c.lastsender) return c.lastsender.split(" ")[0] + ": " + s;
         return s;
     }
+    function inFilter(c, f) {
+        if (f == "all") return true;
+        if (f == "unread") return c.unread > 0;
+        if (f == "people") return c.type != 3;
+        return c.type == 3 && c.entity == f;
+    }
+    // filtr se nabízí jen pro druhy konverzací, které uživatel opravdu má; dokud má jen pár konverzací, lišta se neukazuje
+    function renderFilter() {
+        var keys = ["all", "unread", "people", "p41", "p56", "p28", "p91", "o23"], html = "", kinds = 0;
+        $.each(keys, function (i, k) {
+            var n = $.grep(channels, function (c) { return inFilter(c, k); }).length;
+            if (k != "all" && n == 0 && k != filter) return;
+            if (k != "all" && k != "unread") kinds++;
+            html += "<button type='button' class='ch-fil" + (filter == k ? " on" : "") + "' data-fil='" + k + "'>" + esc(T["f_" + k] || k) + (k == "all" ? "" : "<small>" + n + "</small>") + "</button>";
+        });
+        if (kinds < 2 && channels.length < 8 && filter == "all") html = "";
+        $("#chFilter").html(html);
+    }
+    function avatarHtml(c) {
+        if (c.type == 3) return "<i class='ch-ico'>" + (ENTITY_ICONS[c.entity] || "link") + "</i>";
+        return esc(initials(c.name));
+    }
     function renderChannels() {
         var q = $.trim($("#chSearch").val()).toLowerCase(), html = "";
+        renderFilter();
         $.each(channels, function (i, c) {
+            if (!inFilter(c, filter)) return;
             if (q && c.name.toLowerCase().indexOf(q) == -1) return;
             html += "<div class='ch-item" + (cur && cur.id == c.id ? " sel" : "") + (c.unread > 0 ? " unread" : "") + "' data-id='" + c.id + "' tabindex='0' role='button'>";
-            html += "<div class='ch-ava" + (c.type != 1 ? " grp" : "") + "'>" + (c.type == 3 ? "<i class='ch-ico'>link</i>" : esc(initials(c.name))) + "</div>";
+            html += "<div class='ch-ava" + (c.type != 1 ? " grp" : "") + "'>" + avatarHtml(c) + "</div>";
             html += "<div class='ch-item-name'>" + esc(c.name) + "</div>";
             html += "<div class='ch-item-time'>" + fmtShort(pd(c.lastdate)) + "</div>";
             html += "<div class='ch-item-last'>" + esc(lastLine(c)) + "</div>";
@@ -154,7 +180,7 @@ var ChatApp = (function () {
             }
             html += "</div>";
         });
-        $("#chList").html(html || "<div class='ch-empty'>" + esc(T.empty) + "</div>");
+        $("#chList").html(html || "<div class='ch-empty'>" + esc(channels.length ? T.emptyfilter : T.empty) + "</div>");
     }
 
     // ── vlákno ──────────────────────────────────────────────────────────────────
@@ -185,7 +211,7 @@ var ChatApp = (function () {
     function renderHead() {
         if (!cur) return;
         $("#chHeadName").text(cur.name);
-        $("#chHeadAva").attr("class", "ch-ava" + (cur.type != 1 ? " grp" : "")).html(cur.type == 3 ? "<i class='ch-ico'>link</i>" : esc(initials(cur.name)));
+        $("#chHeadAva").attr("class", "ch-ava" + (cur.type != 1 ? " grp" : "")).html(avatarHtml(cur));
         var sub = T.direct;
         if (cur.type != 1) {
             var names = $.map(cur.memberlist || [], function (m) { return m.name; });
@@ -592,6 +618,12 @@ var ChatApp = (function () {
 
     function bind() {
         $("#chSearch").on("input", renderChannels);
+        try { filter = window.localStorage.getItem("chat_filter") || "all"; } catch (e) { }
+        $("#chFilter").on("click", "[data-fil]", function () {
+            filter = $(this).data("fil");
+            try { window.localStorage.setItem("chat_filter", filter); } catch (e) { }
+            renderChannels();
+        });
         $("#chList").on("click", ".ch-item", function () { openChannel($(this).data("id")); })
             .on("keydown", ".ch-item", function (e) { if (e.key == "Enter") openChannel($(this).data("id")); });
         $("#chNew, #chNew2").on("click", function () { openDialog("new"); });

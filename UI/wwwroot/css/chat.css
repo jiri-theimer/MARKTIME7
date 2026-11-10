@@ -14,6 +14,12 @@
 #chat .ch-search { flex: 1; min-width: 0; border: 1px solid var(--ch-line); border-radius: 6px; padding: 5px 9px; background: var(--ch-soft); }
 #chat .ch-search:focus { outline: none; border-color: var(--ch-accent); background: #fff; }
 #chat .ch-new { border: 0; border-radius: 6px; background: var(--ch-accent); color: #fff; width: 34px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+#chat .ch-filter { display: flex; flex-wrap: wrap; gap: 5px; padding: 7px 10px; border-bottom: 1px solid var(--ch-line); flex: none; }
+#chat .ch-filter:empty { display: none; }
+#chat .ch-fil { border: 1px solid var(--ch-line); background: #fff; border-radius: 12px; padding: 1px 9px; font-size: 12px; cursor: pointer; white-space: nowrap; color: var(--ch-muted); flex: none; }
+#chat .ch-fil:hover { border-color: var(--ch-accent); color: var(--mt-text, #1f2328); }
+#chat .ch-fil.on { background: var(--ch-accent); border-color: var(--ch-accent); color: #fff; }
+#chat .ch-fil small { margin-left: 4px; opacity: .75; }
 #chat .ch-list { flex: 1; overflow-y: auto; min-height: 0; }
 #chat .ch-item { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; gap: 2px 10px; padding: 9px 10px; cursor: pointer; border-bottom: 1px solid #f1f2f4; align-items: center; }
 #chat .ch-item:hover { background: var(--ch-soft); }
