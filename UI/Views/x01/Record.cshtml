@@ -282,13 +282,8 @@
     </div>
 
 
-    <div class="row my-2">
-        <label class="col-sm-2 col-md-3 col-form-label">@_f.tra("Výchozí Notepad editor"):</label>
-        <div class="col-sm-5 col-md-4">
-            <mycombo entity="x04NotepadConfig" asp-for="Rec.x04ID_Default" selectedtext="@Model.ComboX04" filter-flag="1"></mycombo>
-        </div>
-
-    </div>
+    @* Výchozí Notepad editor (x04) se už nenastavuje – editor má pevnou konfiguraci; hodnota se jen zachovává (příznak HTML obsahu) *@
+    <input type="hidden" asp-for="Rec.x04ID_Default" />
 
     <div class="my-2">
         <input type="checkbox" asp-for="@Model.Rec.x01IsCapacityFaNefa" />

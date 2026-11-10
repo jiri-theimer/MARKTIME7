@@ -1,0 +1,19 @@
+﻿/* Notepad editor (Views/Shared/_Notepad.cshtml) – lehký vzhled Froaly navázaný na skin. */
+.fr-box.fr-basic { margin: 6px 0 8px; }
+.fr-box.fr-basic .fr-toolbar { border: 1px solid #dfe3e8; border-bottom: 0; border-radius: 8px 8px 0 0; background: #fafbfc; }
+.fr-box.fr-basic .fr-toolbar.fr-top { box-shadow: none; }
+.fr-box.fr-basic .fr-toolbar .fr-btn-grp { margin: 0 6px 0 4px; }
+.fr-box.fr-basic .fr-toolbar .fr-command.fr-btn { height: 34px; margin: 2px 1px; border-radius: 6px; }
+.fr-box.fr-basic .fr-toolbar .fr-command.fr-btn svg { margin: 5px 6px; width: 20px; }
+.fr-box.fr-basic .fr-toolbar .fr-command.fr-btn.fr-active svg path { fill: var(--pozadi, #0b4b92); }
+.fr-box.fr-basic .fr-toolbar .fr-more-toolbar { background: #f3f5f7; }
+.fr-box.fr-basic .fr-wrapper { border: 1px solid #dfe3e8 !important; border-top: 1px solid #eef0f3 !important; border-bottom: 0 !important; background: #fff; }
+.fr-box.fr-basic .fr-element { padding: 10px 14px; color: #1f2328; font-family: inherit; font-size: .95rem; line-height: 1.5; }
+.fr-box.fr-basic .fr-placeholder { padding: 10px 14px !important; font-family: inherit; color: #9aa3ad; }
+.fr-box.fr-basic .second-toolbar { border: 1px solid #dfe3e8; border-top: 0; border-radius: 0 0 8px 8px; min-height: 6px; background: #fff; }
+.fr-box.fr-basic.fr-top .fr-wrapper { box-shadow: none; }
+.fr-box.fr-basic:focus-within .fr-toolbar,
+.fr-box.fr-basic:focus-within .fr-wrapper,
+.fr-box.fr-basic:focus-within .second-toolbar { border-color: color-mix(in srgb, var(--oznaceno, #4169e1) 45%, #dfe3e8) !important; }
+.fr-element table td, .fr-element table th { border: 1px solid #dfe3e8; padding: 4px 6px; }
+.fr-element blockquote { border-left: 3px solid #c9d1da; margin-left: 0; padding-left: 10px; color: #3d444d; }

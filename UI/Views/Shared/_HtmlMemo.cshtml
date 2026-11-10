@@ -1,0 +1,118 @@
+﻿@model UI.Models.PellEditorViewModel
+@inject BL.Factory _f
+@inject Microsoft.AspNetCore.Mvc.ViewFeatures.IFileVersionProvider _fvp
+@{
+    // Krátký HTML text (fakturační poznámka v p28/p41): zobrazení jako náhled, Notepad editor (js/notepad.js) se načte až po kliknutí na „Upravit“.
+    // Hodnota se posílá v skrytém poli HtmlValue (název BillingMemo.HtmlValue) – beze změny proti dřívějšímu _PellEditor.
+    if (Model == null)
+    {
+        return;
+    }
+    string _id = Html.IdFor(m => m.HtmlValue).ToString();
+    string _lang = _f.CurrentUser.LangName?.ToLower();
+    bool _empty = string.IsNullOrWhiteSpace(Model.HtmlValue);
+    string _ver = _fvp.AddFileVersionToPath(Context.Request.PathBase, "/js/notepad.js");
+    _ver = _ver.Contains("?v=") ? _ver.Substring(_ver.IndexOf("?v=") + 3) : "";
+}
+
+@addTagHelper *, UI
+
+<div class="hm" id="@(_id)_box">
+    <input type="hidden" asp-for="HtmlValue" />
+
+    <div class="hm-bar">
+        <button type="button" class="btn btn-light btn-sm hm-edit" id="@(_id)_cmdedit" onclick="hm_edit('@_id')">
+            <span class="material-icons-outlined-nosize">@(_empty ? "add" : "edit")</span>@(_empty ? _f.tra("Napsat poznámku") : _f.tra("Upravit"))
+        </button>
+        <button type="button" class="btn btn-light btn-sm hm-cancel" id="@(_id)_cmdcancel" onclick="hm_cancel('@_id')" hidden>@_f.tra("Zrušit úpravy")</button>
+    </div>
+
+    <div class="hm-empty" id="@(_id)_empty" @(_empty ? "" : "hidden")>@_f.tra("Poznámka zatím není.")</div>
+    <div class="hm-view" id="@(_id)_view" @(_empty ? "hidden" : "")></div>
+    <div class="hm-editor" id="@(_id)_editor" hidden></div>
+</div>
+
+<script type="text/javascript">
+    (function () {
+        // náhled uloženého HTML přímo ve stránce – přes mtNotepad.safeHtml (bez skriptů, událostí a nebezpečných odkazů)
+        const id = "@_id";
+        const html = document.getElementById(id).value;
+        if (html) document.getElementById(id + "_view").replaceChildren(mtNotepad.safeHtml(html));
+    })();
+
+    var _hm_editors = _hm_editors || {};
+    var _hm_original = _hm_original || {};
+
+    function hm_edit(id) {
+        if (_hm_editors[id]) return;
+        const btn = document.getElementById(id + "_cmdedit");
+        btn.disabled = true;
+        mtNotepad.setup({
+            version: "@_ver",
+            lang: "@(_lang != null && _lang != "en" ? _lang : "")",
+            texts: {
+                placeholder: @Json.Serialize(_f.tra("Text…")),
+                normal: @Json.Serialize(_f.tra("Normální")), heading: @Json.Serialize(_f.tra("Nadpis")), subheading: @Json.Serialize(_f.tra("Podnadpis")),
+                noFiles: @Json.Serialize(_f.tra("Obrázky a soubory vkládejte do přílohy (FILEBOX), ne do textu."))
+            }
+        });
+        mtNotepad.load().then(function () {
+            const hidden = document.getElementById(id);
+            const host = document.getElementById(id + "_editor");
+            _hm_original[id] = hidden.value;
+            host.hidden = false;
+            document.getElementById(id + "_view").hidden = true;
+            document.getElementById(id + "_empty").hidden = true;
+            btn.hidden = true;
+            document.getElementById(id + "_cmdcancel").hidden = false;
+            host.innerHTML = "";
+            const ta = document.createElement("div");
+            host.appendChild(ta);
+            _hm_editors[id] = mtNotepad.create(ta, {
+                events: {
+                    "initialized": function () {
+                        this.html.set(hidden.value || "");
+                        this.events.focus();
+                    },
+                    "contentChanged": function () {
+                        hidden.value = this.html.get();
+                    },
+                    "blur": function () {
+                        hidden.value = this.html.get();
+                    },
+                    "keyup": function () {
+                        hidden.value = this.html.get();
+                    },
+                    "commands.after": function (cmd) {
+                        // úpravy v zobrazení HTML (code view) průběžně do skrytého pole
+                        if (cmd === "html") {
+                            const code = this.$box[0].querySelector("textarea.fr-code");
+                            if (code && !code.dataset.hm) { code.dataset.hm = "1"; code.addEventListener("input", function () { hidden.value = code.value; }); }
+                        }
+                        hidden.value = this.html.get();
+                    }
+                }
+            });
+        }).catch(function () {
+            btn.disabled = false;
+            if (typeof _notify_message === "function") _notify_message(@Json.Serialize(_f.tra("Editor se nepodařilo načíst.")), "error");
+        });
+    }
+
+    function hm_cancel(id) {
+        const ed = _hm_editors[id];
+        if (!ed) return;
+        document.getElementById(id).value = _hm_original[id] || "";
+        ed.destroy();
+        delete _hm_editors[id];
+        document.getElementById(id + "_editor").hidden = true;
+        document.getElementById(id + "_editor").innerHTML = "";
+        const has = !!(_hm_original[id] || "").trim();
+        document.getElementById(id + "_view").replaceChildren(mtNotepad.safeHtml(_hm_original[id] || ""));
+        document.getElementById(id + "_view").hidden = !has;
+        document.getElementById(id + "_empty").hidden = has;
+        document.getElementById(id + "_cmdcancel").hidden = true;
+        const btn = document.getElementById(id + "_cmdedit");
+        btn.hidden = false; btn.disabled = false;
+    }
+</script>

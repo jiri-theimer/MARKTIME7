@@ -28,9 +28,7 @@
     <link rel="stylesheet" href="~/css/recordform.css" asp-append-version="true" />
 
 
-    <link rel="stylesheet" href="/lib/pell/pell.css" asp-append-version="true" />
-
-    <script src="~/lib/pell/pell.min.js"></script>
+    <script src="~/js/notepad.js" asp-append-version="true"></script>
 }
 
 
@@ -270,7 +268,7 @@
 
 <div class="tab-pane tab-pane-fixed" id="tab3" role="tabpanel">
     <!-- Tab3 -->
-    @Html.EditorFor(m => m.BillingMemo, "~/Views/Shared/_PellEditor.cshtml")
+    @Html.EditorFor(m => m.BillingMemo, "~/Views/Shared/_HtmlMemo.cshtml")
 
     <div style="margin-top:20px;">
         @if (Model.rec_pid > 0)

@@ -122,6 +122,20 @@
 .rf-w-auto { width: auto; flex: 0 0 auto; }
 .rf-calc { font-weight: 500; }
 
+/* krátký HTML text s editorem až po kliknutí (_HtmlMemo: fakturační poznámka p28/p41) */
+.hm { max-width: 1000px; }
+.hm-bar { display: flex; gap: 6px; margin-bottom: 6px; }
+.hm-bar .btn { display: inline-flex; align-items: center; gap: 4px; }
+.hm-bar .material-icons-outlined-nosize { font-size: 17px; }
+.hm-view { padding: 8px 12px; border: 1px solid #e3e6ea; border-radius: 8px; background: #fff; color: #1f2328; font-size: .95rem; line-height: 1.5; overflow-wrap: anywhere; overflow-x: auto; }
+.hm-view p { margin: 0 0 .6em; }
+.hm-view > :last-child { margin-bottom: 0; }
+.hm-view table { border-collapse: collapse; }
+.hm-view td, .hm-view th { border: 1px solid #dfe3e8; padding: 3px 6px; }
+.hm-view img { max-width: 100%; height: auto; }
+.hm-view blockquote { border-left: 3px solid #c9d1da; margin: 0 0 .6em; padding-left: 10px; color: #3d444d; }
+.hm-empty { padding: 10px 12px; border: 1px dashed #dfe3e8; border-radius: 8px; color: #8a939c; font-size: .875rem; }
+
 /* úzká obrazovka / telefon: popisek nad hodnotou, jméno pod sebou */
 @media (max-width: 900px) { .rf-grid-main { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 575.98px) {
