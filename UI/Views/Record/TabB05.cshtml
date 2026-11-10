@@ -82,7 +82,7 @@
         @if (_canAddNote)
         {
             <button type="button" class="btn btn-light tl-add" onclick="_window_open('/workflow_dialog/Index?record_prefix=@(Model.prefix)&record_pid=@(Model.pid)')">
-                <span class="material-icons-outlined-nosize">add_comment</span>@_f.tra("Doplnit poznámku")
+                <span class="material-icons-outlined-nosize">note_add</span>@_f.tra("Doplnit poznámku")
             </button>
         }
         @if (_items.Count > 0)

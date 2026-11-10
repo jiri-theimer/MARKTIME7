@@ -18,6 +18,8 @@ namespace BL
         public int OpenDirect(int j02id_other);
         public int CreateGroup(string strName, List<int> j02ids);
         public int OpenRecordChannel(string entity, int pid);
+        public int GetRecordMessagesCount(string entity, int pid);
+        public int SaveMessageAsNote(int u02id);
         public bool RenameGroup(int u01id, string strName);
         public bool AddMembers(int u01id, List<int> j02ids);
         public bool Leave(int u01id);
@@ -237,9 +239,68 @@ namespace BL
         }
 
         /// <summary>Konverzace k záznamu: kdo má právo záznam číst, může se připojit.</summary>
-        public int OpenRecordChannel(string entity, int pid)
+        /// <summary>Projektové úrovně le1-le5 jsou z pohledu chatu projekt (p41).</summary>
+        private static string NormalizeEntity(string entity)
         {
             entity = (entity ?? "").ToLower();
+            return (entity.Length == 3 && entity.StartsWith("le")) ? "p41" : entity;
+        }
+
+        /// <summary>Počet zpráv v konverzaci k záznamu - pro ikonu chatu u záznamu. Vrací 0, pokud konverzace neexistuje.</summary>
+        public int GetRecordMessagesCount(string entity, int pid)
+        {
+            entity = NormalizeEntity(entity);
+            if (pid <= 0 || !_recordEntities.Contains(entity)) return 0;
+            sb("SELECT COUNT(*) as Value FROM u02Message a INNER JOIN u01Channel b ON a.u01ID=b.u01ID");
+            sb(" WHERE b.x01ID=@x01id AND b.u01RecordEntity=@e AND b.u01RecordPid=@pid AND b.u01ValidUntil>GETDATE() AND a.u02TypeFlag=1 AND a.u02IsDeleted=0");
+            return GetInt(sbret(), new { x01id = _mother.CurrentUser.x01ID, e = entity, pid = pid });
+        }
+
+        /// <summary>Zprávu z konverzace k záznamu uloží jako poznámku záznamu (b05Workflow_History). Vrací b05ID.</summary>
+        public int SaveMessageAsNote(int u02id)
+        {
+            var msg = LoadMessage(u02id);   //ověřuje členství
+            if (msg == null || msg.u02IsDeleted || msg.u02TypeFlag != 1 || string.IsNullOrWhiteSpace(msg.u02Text))
+            {
+                this.AddMessage("Tuto zprávu nelze uložit jako poznámku."); return 0;
+            }
+            var rec = LoadChannel(msg.u01ID);
+            if (rec == null || rec.u01TypeFlag != BO.u01TypeFlagENUM.Record || rec.u01RecordPid == 0)
+            {
+                this.AddMessage("Jako poznámku lze uložit pouze zprávu z konverzace k záznamu."); return 0;
+            }
+            bool bolAccess = false;
+            try
+            {
+                bolAccess = HasRecordReadAccess(rec.u01RecordEntity, rec.u01RecordPid);
+            }
+            catch
+            {
+                bolAccess = false;
+            }
+            if (!bolAccess)
+            {
+                this.AddMessage("K záznamu nemáte přístup."); return 0;
+            }
+
+            string strText = System.Net.WebUtility.HtmlEncode(msg.u02Text).Replace("\r\n", "<br>").Replace("\n", "<br>");
+            string strHtml = $"<p><em>{_mother.tra("Z chatu")} · {System.Net.WebUtility.HtmlEncode(msg.SenderName)} · {msg.u02DateInsert.ToString("d.M.yyyy HH:mm")}</em></p><p>{strText}</p>";
+            var recB05 = new BO.b05Workflow_History()
+            {
+                b05IsCommentOnly = true,
+                b05IsManualStep = true,
+                b05RecordEntity = rec.u01RecordEntity,
+                b05RecordPid = rec.u01RecordPid,
+                j02ID_Sys = Me,
+                b05Notepad = strHtml,
+                x04ID = _mother.Lic == null ? 0 : _mother.Lic.x04ID_Default
+            };
+            return _mother.WorkflowBL.Save2History(recB05);
+        }
+
+        public int OpenRecordChannel(string entity, int pid)
+        {
+            entity = NormalizeEntity(entity);
             if (pid <= 0 || !_recordEntities.Contains(entity))
             {
                 this.AddMessage("K tomuto typu záznamu nelze vést konverzaci."); return 0;

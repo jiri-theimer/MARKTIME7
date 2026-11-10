@@ -276,6 +276,13 @@ namespace UI.Controllers
         }
 
         [HttpPost]
+        public IActionResult SaveAsNote(int u02id)
+        {
+            if (Factory.ChatBL.SaveMessageAsNote(u02id) == 0) return Fail();
+            return Json(new { ok = true });
+        }
+
+        [HttpPost]
         public IActionResult Read(int u01id, int u02id)
         {
             if (Factory.ChatBL.MarkRead(u01id, u02id))

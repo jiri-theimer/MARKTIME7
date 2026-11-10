@@ -181,7 +181,7 @@
                         @if (Model.lisFakturacniPoznamky != null && Model.lisFakturacniPoznamky.Where(p => (p.b05RecordEntity == "p28" && p.b05RecordPid == Model.lisP91_Scale1[i].p28ID) || (p.b05RecordEntity == "p41" && p.b05RecordPid == Model.lisP91_Scale1[i].p41ID)).Count() > 0)
                         {
                             <button type="button" class="btn btn-light" onclick="memos(this,event,@(Model.lisP91_Scale1[i].p28ID),@(Model.lisP91_Scale1[i].p41ID))" title="@_f.tra("Fakturační poznámky")">
-                                <span class="material-icons-outlined-btn" style="color:limegreen;">speaker_notes</span>
+                                <span class="material-icons-outlined-btn" style="color:limegreen;">sticky_note_2</span>
                             </button>
 
                         }
@@ -259,7 +259,7 @@
                         @if (Model.lisFakturacniPoznamky != null && Model.lisFakturacniPoznamky.Where(p => (p.b05RecordEntity == "p28" && p.b05RecordPid == Model.lisP91_Scale2[i].p28ID) || (p.b05RecordEntity == "p41" && p.b05RecordPid == Model.lisP91_Scale2[i].p41ID)).Count() > 0)
                         {
                             <button type="button" class="btn btn-light" onclick="memos(this,event,@(Model.lisP91_Scale2[i].p28ID),@(Model.lisP91_Scale2[i].p41ID))" title="@_f.tra("Fakturační poznámka")">
-                                <span class="material-icons-outlined-btn" style="color:limegreen;">speaker_notes</span>
+                                <span class="material-icons-outlined-btn" style="color:limegreen;">sticky_note_2</span>
                             </button>
                         }
                     </td>
@@ -345,7 +345,7 @@
                         {
 
                             <button tabindex="-1" type="button" class="btn btn-light" onclick="memos(this,event,@(Model.lisP91_Scale3[i].p28ID),@(Model.lisP91_Scale3[i].p41ID))" title="@_f.tra("Fakturační poznámky")">
-                                <span class="material-icons-outlined-btn" style="color:limegreen;">speaker_notes</span>
+                                <span class="material-icons-outlined-btn" style="color:limegreen;">sticky_note_2</span>
                             </button>
 
 

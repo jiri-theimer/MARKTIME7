@@ -63,3 +63,21 @@
 {
     <a class="btn btn-light" href="javascript:_window_open('/p31/Record?pid=0&newrec_prefix=@(Model.prefix)&newrec_pid=@(Model.pid)',3)" title="@_f.tra("Vykázat úkon")"><span class="material-icons-outlined-btn">more_time</span></a>
 }
+
+@* interní chat: konverzace k záznamu (počet zpráv u ikony), u uživatele přímá zpráva *@
+@if (_f.ChatBL.IsAvailable())
+{
+    string _chatPrefix = (Model.prefix != null && Model.prefix.Length == 3 && Model.prefix.StartsWith("le")) ? "p41" : Model.prefix;
+    if (_bolPageAccess && (_chatPrefix == "p41" || _chatPrefix == "p56" || _chatPrefix == "p28" || _chatPrefix == "p91" || _chatPrefix == "o23"))
+    {
+        int _chatCount = _f.ChatBL.GetRecordMessagesCount(_chatPrefix, Model.pid);
+        <a class="btn btn-light" style="position:relative;" href="javascript:_window_open('/Chat/Index?entity=@(_chatPrefix)&pid=@(Model.pid)',3,'Chat')" title="@_f.tra("Chat k záznamu")@(_chatCount > 0 ? $" ({_chatCount})" : "")">
+            <span class="material-icons-outlined-btn">forum</span>@if (_chatCount > 0)
+            {<span style="position:absolute;top:1px;right:1px;min-width:15px;height:15px;padding:0 4px;border-radius:8px;background:#e5484d;color:#fff;font-size:10px;font-weight:600;line-height:15px;text-align:center;">@(_chatCount > 99 ? "99+" : _chatCount.ToString())</span>}
+        </a>
+    }
+    if (Model.prefix == "j02" && Model.pid != _f.CurrentUser.pid)
+    {
+        <a class="btn btn-light" href="javascript:_window_open('/Chat/Index?j02id=@(Model.pid)',3,'Chat')" title="@_f.tra("Napsat zprávu")"><span class="material-icons-outlined-btn">forum</span></a>
+    }
+}

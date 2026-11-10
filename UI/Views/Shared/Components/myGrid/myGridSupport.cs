@@ -681,7 +681,7 @@ namespace UI.Views.Shared.Components.myGrid
                         _s.Append(UI.Code.TheGridRowSymbol.p31_td_inner(dbRow));
                         if (dbRow["b05ID_Last"] != System.DBNull.Value)
                         {
-                            _s.Append($"<span class='material-icons-outlined-nosize'>speaker_notes</span>");
+                            _s.Append($"<span class='material-icons-outlined-nosize'>sticky_note_2</span>");
                         }
                         
                         if (dbRow["o27ID_Last"] != System.DBNull.Value)
@@ -799,7 +799,7 @@ namespace UI.Views.Shared.Components.myGrid
                                 break;
                             case "b05":
                                 _s.Append(" style='width:20px;'>");
-                                _s.Append("<span class='material-icons-outlined-nosize'>speaker_notes</span>");
+                                _s.Append("<span class='material-icons-outlined-nosize'>sticky_note_2</span>");
                                 break;
                             default:
                                 _s.Append(" style='width:20px;'>");

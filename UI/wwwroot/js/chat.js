@@ -193,6 +193,7 @@ var ChatApp = (function () {
         $("#chHeadSub").text(sub).attr("title", sub);
         $("#chLeave, #chMembers").toggle(cur.type != 1);
         $("#chDelete").toggle(isAdmin());
+        $("#chOpenRec").toggle(cur.type == 3 && !!cur.entity && cur.recpid > 0);
         $("#chAdd").attr("title", cur.type == 1 ? T.addtodirect : T.addmembers);
         $("#chRename").toggle(cur.type == 2);
         $("#chMute").toggleClass("on", cur.muted).attr("title", cur.muted ? T.unmute : T.mute).find(".ch-ico").text(cur.muted ? "notifications_off" : "notifications");
@@ -247,6 +248,7 @@ var ChatApp = (function () {
             html += "</div>";
             html += "<button type='button' class='ch-btn' data-act='react' title='" + esc(T.react) + "'><i class='ch-ico'>add_reaction</i></button>";
             html += "<button type='button' class='ch-btn' data-act='reply' title='" + esc(T.reply) + "'><i class='ch-ico'>reply</i></button>";
+            if (cur.type == 3 && m.text) html += "<button type='button' class='ch-btn' data-act='note' title='" + esc(T.note) + "'><i class='ch-ico'>sticky_note_2</i></button>";
             if (mine) {
                 html += "<button type='button' class='ch-btn' data-act='edit' title='" + esc(T.edit) + "'><i class='ch-ico'>edit</i></button>";
                 html += "<button type='button' class='ch-btn' data-act='delete' title='" + esc(T["delete"]) + "'><i class='ch-ico'>delete</i></button>";
@@ -470,9 +472,20 @@ var ChatApp = (function () {
     // ověří celou cestu: server -> SignalR -> tento prohlížeč -> zvuk mimo kliknutí uživatele
 
     var lastEvent = null, pingTimer = null, pingInfo = "";
+    function transportName() {
+        try {
+            var t = hub && hub.connection ? hub.connection.transport : null;
+            if (!t) return "žádný";
+            for (var k in t) {
+                if (window.WebSocket && t[k] instanceof window.WebSocket) return "WebSocket";
+                if (window.EventSource && t[k] instanceof window.EventSource) return "Server-Sent Events";
+            }
+            return "long polling";
+        } catch (e) { return "?"; }
+    }
     function diagLine() {
         var a = audioCtx ? audioCtx.state : "nevytvořen";
-        return "spojení: " + (hub ? hub.state : "žádné") + " · zvuk: " + (soundOn() ? "zapnutý" : "VYPNUTÝ") + " · audio: " + a
+        return "spojení: " + (hub ? hub.state + " (" + transportName() + ")" : "ŽÁDNÉ – chybí knihovna SignalR") + " · zvuk: " + (soundOn() ? "zapnutý" : "VYPNUTÝ") + " · audio: " + a
             + " · poslední událost: " + (lastEvent ? lastEvent : "žádná") + " · já: " + cfg.me;
     }
     function diagShow(s, template) { if (typeof _notify_message === "function") _notify_message(esc(s), template || "info"); else window.alert(s); }
@@ -518,8 +531,15 @@ var ChatApp = (function () {
         queueReload();  //seznam vlevo (pořadí, náhled, nepřečtené, "přečteno") se vždy srovná ze serveru
     }
     function connect() {
-        if (typeof signalR === "undefined") return;
-        hub = new signalR.HubConnectionBuilder().withUrl(url("/chathub")).withAutomaticReconnect([0, 2000, 5000, 10000, 30000, 60000]).build();
+        if (typeof signalR === "undefined") {
+            //na serveru chybí soubor knihovny: chat by vypadal funkčně, ale nic by nechodilo živě
+            $("#chStatus").text("Na serveru chybí knihovna SignalR (wwwroot/lib/signalr/signalr.min.js) – zprávy nechodí živě.").addClass("on");
+            return;
+        }
+        //Server-Sent Events se vynechávají: IIS s dynamickou kompresí je zadržuje a události pak nedorazí včas.
+        //Použije se WebSocket, a kde na IIS není zapnutý, long polling.
+        var transports = signalR.HttpTransportType.WebSockets | signalR.HttpTransportType.LongPolling;
+        hub = new signalR.HubConnectionBuilder().withUrl(url("/chathub"), { transport: transports }).withAutomaticReconnect([0, 2000, 5000, 10000, 30000, 60000]).build();
         hub.on("chat", onEvent);
         hub.onreconnecting(function () { $("#chStatus").addClass("on"); });
         hub.onreconnected(function () { $("#chStatus").removeClass("on"); resync(); });
@@ -584,6 +604,11 @@ var ChatApp = (function () {
             post("/Chat/Leave", { u01id: cur.id }).done(function (data) { if (data.ok) { closeThread(); loadChannels(); } else { notify(data.message); } });
         });
 
+        $("#chOpenRec").on("click", function () {
+            //stránka záznamu se otevírá v hlavním okně aplikace, ne uvnitř okna chatu
+            var u = url("/Record/RecPage?prefix=" + encodeURIComponent(cur.entity) + "&pid=" + cur.recpid);
+            try { window.top.location.href = u; } catch (e) { window.open(u, "_blank"); }
+        });
         $("#chDelete").on("click", function () {
             if (!window.confirm(T.confirmdeletechannel + "\n\n" + cur.name)) return;
             post("/Chat/DeleteChannel", { u01id: cur.id }).done(function (data) { if (data.ok) { closeThread(); loadChannels(); } else { notify(data.message); } }).fail(function () { notify(); });
@@ -609,6 +634,13 @@ var ChatApp = (function () {
                 if (!m) return;
                 if (act == "react") { row.addClass("pick"); return; }
                 if (act == "reply") { setReply(m); return; }
+                if (act == "note") {
+                    row.removeClass("tools");
+                    post("/Chat/SaveAsNote", { u02id: m.id }).done(function (data) {
+                        if (data.ok) { if (typeof _notify_message === "function") _notify_message(esc(T.notesaved), "success"); } else { notify(data.message); }
+                    }).fail(function () { notify(); });
+                    return;
+                }
                 if (act == "edit") { setEdit(m); return; }
                 if (act == "delete" && window.confirm(T.confirmdelete)) {
                     post("/Chat/Delete", { u02id: m.id }).done(function (data) { if (data.ok) { updateMessage(data.message); queueReload(); } else { notify(data.message); } });

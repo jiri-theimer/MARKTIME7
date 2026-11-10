@@ -25,6 +25,11 @@ namespace UI.Views.Shared.TagHelpers
 
         [HtmlAttributeName("showcopyurl")]
         public bool isshowcopyurl { get; set; }
+
+        //kvůli internímu chatu: přístup k BL.Factory aktuálního požadavku
+        [HtmlAttributeNotBound]
+        [Microsoft.AspNetCore.Mvc.ViewFeatures.ViewContext]
+        public Microsoft.AspNetCore.Mvc.Rendering.ViewContext ViewContext { get; set; }
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
             string s = "Doplnit poznámku";
@@ -87,7 +92,9 @@ namespace UI.Views.Shared.TagHelpers
             //{
             //    strStyle = strStyle.Replace("hidden", "visible");
             //}
-            output.Content.AppendHtml($"<button id='cmdWrkButton' type='button' class='btn btn-light px-1' style='{strStyle}' title='{s}' onclick=\"_window_open('/workflow_dialog/Index?record_prefix={prefix}&record_pid={pid}')\"><span class='material-icons-outlined-btn'>speaker_notes</span>{strBadgeB05}</button>");
+            output.Content.AppendHtml($"<button id='cmdWrkButton' type='button' class='btn btn-light px-1' style='{strStyle}' title='{s}' onclick=\"_window_open('/workflow_dialog/Index?record_prefix={prefix}&record_pid={pid}')\"><span class='material-icons-outlined-btn'>sticky_note_2</span>{strBadgeB05}</button>");
+
+            AppendChatButton(output, strDbPrefix);
 
 
             //output.Content.AppendHtml("<br>");
@@ -95,6 +102,38 @@ namespace UI.Views.Shared.TagHelpers
             
             //output.Content.AppendHtml("</div>");
 
+        }
+
+        /// <summary>
+        /// Interní chat: u projektu, úkolu, kontaktu, vyúčtování a dokumentu tlačítko konverzace k záznamu (s počtem zpráv),
+        /// u uživatele tlačítko pro přímou zprávu. Zobrazí se jen tam, kde jsou v databázi tabulky chatu.
+        /// </summary>
+        private void AppendChatButton(TagHelperOutput output, string strDbPrefix)
+        {
+            try
+            {
+                if (this.ViewContext == null) return;
+                var f = (BL.Factory)this.ViewContext.HttpContext.RequestServices.GetService(typeof(BL.Factory));
+                if (f == null || f.CurrentUser == null || !f.ChatBL.IsAvailable()) return;
+                int intPID = BO.Code.Bas.InInt(this.pid);
+                if (intPID <= 0) return;
+                string strStyle = "float:right;margin-left:4px;position:relative;visibility:hidden;";   //jako ostatní tlačítka: zobrazí se až při najetí myší (_handle_mywrk_mouseover)
+
+                if (strDbPrefix == "p41" || strDbPrefix == "p56" || strDbPrefix == "p28" || strDbPrefix == "p91" || strDbPrefix == "o23")
+                {
+                    int intCount = f.ChatBL.GetRecordMessagesCount(strDbPrefix, intPID);
+                    string strBadge = intCount > 0 ? $"<span class='badge-def'>{(intCount > 99 ? "99+" : intCount.ToString())}</span>" : null;
+                    output.Content.AppendHtml($"<button id='cmdWrkChat' type='button' class='btn btn-light px-1' style='{strStyle}' title='{f.tra("Chat k záznamu")}' onclick=\"_window_open('/Chat/Index?entity={strDbPrefix}&pid={intPID}',3,'Chat')\"><span class='material-icons-outlined-btn'>forum</span>{strBadge}</button>");
+                }
+                else if (strDbPrefix == "j02" && intPID != f.CurrentUser.pid)
+                {
+                    output.Content.AppendHtml($"<button id='cmdWrkChat' type='button' class='btn btn-light px-1' style='{strStyle}' title='{f.tra("Napsat zprávu")}' onclick=\"_window_open('/Chat/Index?j02id={intPID}',3,'Chat')\"><span class='material-icons-outlined-btn'>forum</span></button>");
+                }
+            }
+            catch
+            {
+                //tlačítko chatu je doplněk: jeho chyba nesmí rozbít záhlaví záznamu
+            }
         }
     }
 }

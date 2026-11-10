@@ -470,7 +470,8 @@ function _chat_init(j02id_me) {
     });
     $.ajax({ url: _ep("/lib/signalr/signalr.min.js"), dataType: "script", cache: true }).done(function () {
         if (typeof signalR === "undefined") return;
-        var hub = new signalR.HubConnectionBuilder().withUrl(_ep("/chathub")).withAutomaticReconnect([0, 5000, 15000, 30000, 60000]).build();
+        // bez Server-Sent Events: IIS s dynamickou kompresí je zadržuje; použije se WebSocket nebo long polling
+        var hub = new signalR.HubConnectionBuilder().withUrl(_ep("/chathub"), { transport: signalR.HttpTransportType.WebSockets | signalR.HttpTransportType.LongPolling }).withAutomaticReconnect([0, 5000, 15000, 30000, 60000]).build();
         hub.on("chat", function (e) {
             if (e.type === "ping") return;     // zkušební událost diagnostiky patří oknu chatu
             if (_chat_timer) window.clearTimeout(_chat_timer);
@@ -540,6 +541,9 @@ function _handle_mywrk_mouseover(td)
         $("#cmdWrkTotals").css("visibility", "visible");
     }
   
+    if (document.getElementById("cmdWrkChat")) {
+        $("#cmdWrkChat").css("visibility", "visible");
+    }
     if (document.getElementById("cmdWrkQuickStat")) {
         $("#cmdWrkQuickStat").css("visibility", "visible");
     }
@@ -575,6 +579,9 @@ function _handle_mywrk_mouseout(td) {
         $("#cmdWrkTotals").css("visibility", "hidden");
     }
     
+    if (document.getElementById("cmdWrkChat")) {
+        $("#cmdWrkChat").css("visibility", "hidden");
+    }
     if (document.getElementById("cmdWrkQuickStat")) {
         $("#cmdWrkQuickStat").css("visibility", "hidden");
     }
