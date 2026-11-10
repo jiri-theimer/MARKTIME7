@@ -14,6 +14,7 @@
     if (_f.CurrentUser.j02Ping_DeviceTypeFlag == BO.DeviceTypeFlag.Desktop) _bolRowHover = true;
     
     string _lastActivity = _f.j02UserBL.LoadLastActivityByUser(Model.pid);
+    bool _bolNoStatus = (ViewData["j02_nostatus"] as bool?) == true;    //stavy účtu vykresluje volající view (j02/Tab1 je má ve štítcích hlavičky)
 
 }
 
@@ -21,13 +22,6 @@
 @addTagHelper *, UI
 
 <table class="table table-hover">
-
-    <tr>
-        <td colspan="2" class="tdval">
-            <span class="material-icons-outlined">person</span>
-            @Model.j04Name
-        </td>
-    </tr>
 
     <tr>
         <td class="tdlab">
@@ -41,7 +35,7 @@
         <td class="tdlab">
             @_f.tra("Aplikační role"):
         </td>
-        <td class="tdval">   
+        <td class="tdval">
             @if (_bolRowHover)
             {
                 <myval value="@Model.j04Name" hoverprefix="j04" hoverpid="@Model.j04ID"></myval>
@@ -54,7 +48,7 @@
         </td>
     </tr>
 
-    @if (Model.j02IsLoginAutoLocked)
+    @if (Model.j02IsLoginAutoLocked && !_bolNoStatus)
     {
         <tr>
             <td colspan="2">
@@ -62,7 +56,7 @@
             </td>
         </tr>
     }
-    @if (Model.j02IsLoginManualLocked)
+    @if (Model.j02IsLoginManualLocked && !_bolNoStatus)
     {
         <tr>
             <td colspan="2">
@@ -70,7 +64,7 @@
             </td>
         </tr>
     }
-    @if (Model.j02IsMustChangePassword)
+    @if (Model.j02IsMustChangePassword && !_bolNoStatus)
     {
         <tr>
             <td colspan="2">
@@ -82,7 +76,7 @@
     @if (Model.j02Ping_TimeStamp != null)
     {
         <tr>
-            <td>
+            <td class="tdlab">
                 @_f.tra("Poslední PING"):
             </td>
             <td class="tdval">

@@ -148,6 +148,23 @@ namespace UI.Controllers
             this.Notify_RecNotSaved();
             return View(v);
         }
+        //odblokování účtu po automatickém zablokování (tlačítko na stránce uživatele j02/Tab1)
+        [HttpPost]
+        public IActionResult Unlock(int pid)
+        {
+            if (!Factory.CurrentUser.IsAdmin)
+            {
+                return Json(new { flag = 0, message = Factory.tra("Účet může odblokovat pouze administrátor.") });
+            }
+            var rec = Factory.j02UserBL.Load(pid);
+            if (rec == null)
+            {
+                return Json(new { flag = 0, message = Factory.tra("Uživatel nebyl nalezen.") });
+            }
+            Factory.j02UserBL.UpdateAccessFailedCount(pid, 0);
+            return Json(new { flag = 1, message = "" });
+        }
+
         public IActionResult Info(int pid)
         {
             return Tab1(pid, "info");

@@ -15,12 +15,16 @@
     var lis = _f.j11TeamBL.GetList(mq);
     string _Teams = string.Join(", ", lis.Select(p => p.j11Name));
     //int _b05Count = _f.WorkflowBL.GetB05CommentsCount("j02", Model.pid);
+    bool _bolNoName = (ViewData["j02_noname"] as bool?) == true;    //jméno vykresluje volající view (j02/Tab1 má vlastní hlavičku uživatele se jménem, pozicí a střediskem)
 }
 
 @addTagHelper *, UI
 
 <table class="table table-hover">
-    @if (_bolRowHover)
+    @if (_bolNoName)
+    {
+    }
+    else if (_bolRowHover)
     {
         <tr>
             <td colspan="2" class="@(Model.isclosed ? "tdarchiv": "tdval")" onmouseover="_handle_mywrk_mouseover(this)" onmouseout="_handle_mywrk_mouseout(this)">
@@ -36,7 +40,7 @@
                 @Model.FullNameAsc
                 @if(Model.j02Code != null)
                 {
-                    <sup title="Kód">@Model.j02Code</sup>
+                    <sup title="@_f.tra("Kód")">@Model.j02Code</sup>
                 }
                 
 
@@ -48,7 +52,7 @@
     {
         <tr>
             <td class="tdlab">
-                Jméno:
+                @_f.tra("Jméno"):
             </td>
             <td class="tdval">
                 @Model.FullnameDesc
@@ -58,14 +62,17 @@
 
     <tr>
         <td class="tdlab">
-            E-mail:
+            @_f.tra("E-mail"):
         </td>
         <td class="tdval">
-            @Model.j02Email
+            @if (!string.IsNullOrEmpty(Model.j02Email))
+            {
+                <a href="mailto:@Model.j02Email">@Model.j02Email</a>
+            }
         </td>
     </tr>
    
-    @if (Model.j07ID > 0)
+    @if (Model.j07ID > 0 && !_bolNoName)
     {
         <tr>
             <td class="tdlab">
@@ -91,7 +98,7 @@
         </tr>
     }
 
-    @if (Model.j18ID > 0)
+    @if (Model.j18ID > 0 && !_bolNoName)
     {
         <tr>
             <td class="tdlab">

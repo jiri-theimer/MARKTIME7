@@ -6,10 +6,6 @@
     Layout = "~/Views/Shared/_LayoutSubform.cshtml";
     if (Model.Rec == null) return;
 
-    string _Teams = Model.GetTeams();
-    
-
-    
     BO.TaggingHelper _tg = null;
     if (Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.tags))
     {
@@ -17,6 +13,17 @@
     }
 
     var dropzonemodel = new DropzoneViewModel() { IsAutoSave = true, RecPid = Model.pid, RecPrefix = Model.prefix };
+
+    //hlavička uživatele: iniciály, jméno, stavové štítky a akce
+    var _rec = Model.Rec;
+    string _initials = ((string.IsNullOrWhiteSpace(_rec.j02FirstName) ? "" : _rec.j02FirstName.Trim().Substring(0, 1)) + (string.IsNullOrWhiteSpace(_rec.j02LastName) ? "" : _rec.j02LastName.Trim().Substring(0, 1))).ToUpper();
+    string _subtitle = string.Join(" · ", new[] { _rec.j07Name, _rec.j18Name }.Where(p => !string.IsNullOrEmpty(p)));
+    bool _bolHover = UI.Code.basUI.DetectIfCanRowHover(_f, Context, _f.CurrentUser.j04IsModule_j02);
+    bool _bolIsAccount = (_rec.j02VirtualParentID == 0);
+    bool _bolUnlock = _rec.j02IsLoginAutoLocked && _f.CurrentUser.IsAdmin;
+
+    //boxy pod hlavičkou už jméno ani stavy účtu neopakují
+    var _vd = new ViewDataDictionary(ViewData) { { "j02_noname", true }, { "j02_nostatus", true } };
 }
 
 @addTagHelper *, UI
@@ -27,36 +34,98 @@
     <link rel="stylesheet" href="~/lib/dropzone/dropzone.css" asp-append-version="true" />
     <script src="~/lib/dropzone/dropzone-min.js" asp-append-version="true"></script>
 
-}
+    <style>
+        .j02-head { display: flex; align-items: flex-start; gap: 12px; padding: 4px 2px 10px 2px; }
+        .j02-ava { flex: none; width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 600; background: var(--oznaceno, #4169e1); color: #fff; }
+        .j02-ava.j02-closed { background: #9aa0a6; }
+        .j02-main { flex: 1; min-width: 0; }
+        .j02-name { font-size: 1.15rem; font-weight: 600; line-height: 1.3; }
+        .j02-name.j02-closed { text-decoration: line-through; }
+        .j02-sub { color: #6c757d; font-size: .9em; }
+        .j02-badges { display: flex; flex-wrap: wrap; gap: 4px; }
+        .j02-badges > * { margin-top: 4px; }
+        .j02-badge { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: .8em; font-weight: 600; white-space: nowrap; }
+        .j02-badge-danger { background: #f8d7da; color: #842029; }
+        .j02-badge-warning { background: #fff3cd; color: #664d03; }
+        .j02-badge-info { background: #cfe2ff; color: #084298; }
+        .j02-badge-muted { background: #e9ecef; color: #495057; }
+        .j02-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+        .j02-actions > * { margin-top: 8px; }
+        .j02-actions .btn .material-icons-outlined-btn { font-size: 18px; vertical-align: middle; }
+    </style>
 
-@if (Model.Rec.j02IsLoginAutoLocked)
-{
-    <div class="alert alert-danger" role="alert">
-        <myicon symbol="warning"></myicon>
-        <span class="badge-def">@(Model.Rec.j02AutoLockedWhen)</span>
-        <a href="javascript:_edit('j02',@Model.Rec.pid)">
-            Došlo k automatickému zablokování účtu po neúspěšných pokusech o přihlášení do aplikace!
-        </a>
-        
-    </div>
-}
-@if (Model.Rec.j02IsLoginManualLocked)
-{
-    <div class="alert alert-warning" role="alert">
-        <myicon symbol="warning"></myicon>
-        Účet je uzavřený pro přihlašování.
-    </div>
 }
 
 @await Html.PartialAsync("~/Views/Shared/_Tab1ButtonSetting.cshtml",Model.prefix)
 
-@Html.Raw("<div class='info_record_container'>")
+<div class="info_record_container">
 
 @if (Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.recheader))
 {
     <div class="card recpagebox400" id="divRecPageBox1">
         <div class="card-body">
-            @await Html.PartialAsync("~/Views/Shared/_j02RecHeaderBox.cshtml",Model.Rec)
+            <div class="j02-head" onmouseover="_handle_mywrk_mouseover(this)" onmouseout="_handle_mywrk_mouseout(this)">
+                <div class="j02-ava @(_rec.isclosed ? "j02-closed" : "")">
+                    @if (_initials != "")
+                    {
+                        @_initials
+                    }
+                    else
+                    {
+                        <span class="material-icons-outlined">@(_bolIsAccount ? "face" : "domino_mask")</span>
+                    }
+                </div>
+                <div class="j02-main">
+                    <div class="j02-name @(_rec.isclosed ? "j02-closed" : "")">
+                        @_rec.FullNameAsc
+                        @if (_rec.j02Code != null)
+                        {
+                            <sup title="@_f.tra("Kód")">@_rec.j02Code</sup>
+                        }
+                        @if (_bolHover)
+                        {
+                            <mywrkbutton prefix="j02" showcopyurl="true" pid="@_rec.pid" langindex="@_f.CurrentUser.j02LangIndex"></mywrkbutton>
+                        }
+                    </div>
+                    @if (_subtitle != "")
+                    {
+                        <div class="j02-sub">@_subtitle</div>
+                    }
+                    <div class="j02-badges">
+                        @if (_rec.isclosed)
+                        {
+                            <span class="j02-badge j02-badge-muted">@_f.tra("V archivu")</span>
+                        }
+                        @if (!_bolIsAccount)
+                        {
+                            <span class="j02-badge j02-badge-muted">@_f.tra("Virtuální uživatel")</span>
+                        }
+                        @if (_rec.j02IsLoginAutoLocked)
+                        {
+                            <span class="j02-badge j02-badge-danger" title="@_f.tra("Došlo k automatickému zablokování účtu po neúspěšných pokusech o přihlášení do aplikace!")">
+                                @_f.tra("Účet automaticky zablokován")
+                                @BO.Code.Bas.ObjectDateTime2String(_rec.j02AutoLockedWhen)
+                            </span>
+                        }
+                        @if (_rec.j02IsLoginManualLocked)
+                        {
+                            <span class="j02-badge j02-badge-warning">@_f.tra("Účet je uzavřený pro přihlašování.")</span>
+                        }
+                        @if (_rec.j02IsMustChangePassword)
+                        {
+                            <span class="j02-badge j02-badge-info">@_f.tra("Uživatel si musí změnit heslo.")</span>
+                        }
+                    </div>
+                    <div class="j02-actions">
+                        @if (_bolUnlock)
+                        {
+                            <button type="button" class="btn btn-outline-danger btn-sm" id="cmdUnlock" onclick="j02_unlock()"><span class="material-icons-outlined-btn">lock_open</span> @_f.tra("Odblokovat účet")</button>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            @await Html.PartialAsync("~/Views/Shared/_j02RecHeaderBox.cshtml", Model.Rec, _vd)
 
             @await Html.PartialAsync("~/Views/Shared/_FreeFieldsRO.cshtml",Model.ff1)
 
@@ -67,9 +136,9 @@
 
     @if (Model.Rec.j02VirtualParentID == 0)
     {
-        <div class="card recpagebox400" id="divRecPageBox1">
+        <div class="card recpagebox400" id="divRecPageBox2">
             <div class="card-body">
-                @await Html.PartialAsync("~/Views/Shared/_j02RecUserBox.cshtml", Model.Rec)
+                @await Html.PartialAsync("~/Views/Shared/_j02RecUserBox.cshtml", Model.Rec, _vd)
 
                 @if (_tg != null && _tg.TagHtml != null)
                 {
@@ -112,7 +181,7 @@
 }
 
 
-@Html.Raw("</div>")
+</div>
 
 <div style="clear:both;"></div>
 
@@ -121,6 +190,25 @@
 
     if (document.getElementById("divRecPageBox1")) {
         _adjust_divheight_small_display("divRecPageBox1");
+    }
+    if (document.getElementById("divRecPageBox2")) {
+        _adjust_divheight_small_display("divRecPageBox2");
+    }
+
+    //odblokování účtu po automatickém zablokování; po úspěchu se stránka načte znovu
+    function j02_unlock() {
+        $("#cmdUnlock").prop("disabled", true);
+        $.post(_ep("/j02/Unlock"), { pid: @_rec.pid }, function (data) {
+            if (data.flag === 1) {
+                location.reload();
+            } else {
+                $("#cmdUnlock").prop("disabled", false);
+                _notify_message(data.message, "error");
+            }
+        }).fail(function () {
+            $("#cmdUnlock").prop("disabled", false);
+            _notify_message("@_f.tra("Operaci se nepodařilo provést.")", "error");
+        });
     }
 </script>
 
