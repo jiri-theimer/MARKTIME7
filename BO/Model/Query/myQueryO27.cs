@@ -25,6 +25,10 @@ namespace BO
 
         public string entity { get; set; }
         public int recpid { get; set; }
+
+        // přílohy poznámek (b05) daného záznamu – zobrazují se i ve FILEBOXu záznamu (verze 8)
+        public string b05_recordentity { get; set; }
+        public int b05_recordpid { get; set; }
         public string tempguid { get; set; }
         public string notepadguid { get; set; }
 
@@ -43,6 +47,10 @@ namespace BO
             if (!string.IsNullOrEmpty(this.entity) && this.recpid>0)
             {
                 AQ("a.o27Entity=@entity AND a.o27RecordPid=@recpid", "entity", this.entity,"AND",null,null,"recpid",this.recpid);
+            }
+            if (!string.IsNullOrEmpty(this.b05_recordentity) && this.b05_recordpid > 0)
+            {
+                AQ("a.o27Entity='b05' AND a.o27RecordPid IN (SELECT b05ID FROM b05Workflow_History WHERE b05RecordEntity=@b05ent AND b05RecordPid=@b05pid)", "b05ent", this.b05_recordentity, "AND", null, null, "b05pid", this.b05_recordpid);
             }
           
             if (this.x40id > 0)

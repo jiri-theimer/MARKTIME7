@@ -32,67 +32,58 @@
 @addTagHelper *, UI
 
 
-@if (Model.Notepad != null && Model.Notepad.SelectedX04ID > 0)
-{
-    @section header_content{
-    <link href="~/lib/froala-editor/css/froala_editor.pkgd.min.css" rel="stylesheet" type="text/css" />
+@section header_content{
+    @if (Model.Notepad != null)
+    {
+        <link href="~/lib/froala-editor/css/froala_editor.pkgd.min.css" rel="stylesheet" type="text/css" />
     }
+    <link rel="stylesheet" href="~/css/workflowdialog.css" asp-append-version="true" />
+}
+
+@{
+    // kroky workflow (bez „Doplnit poznámku“ = pid 0) + cílové stavy pro dlaždice
+    var _steps = Model.lisB06 == null ? new List<BO.b06WorkflowStep>() : Model.lisB06.Where(p => p.pid > 0).ToList();
+    var _targets = new Dictionary<int, BO.b02WorkflowStatus>();
+    foreach (var c in _steps.Where(p => p.b02ID_Target > 0))
+    {
+        if (!_targets.ContainsKey(c.b02ID_Target)) _targets[c.b02ID_Target] = _f.b02WorkflowStatusBL.Load(c.b02ID_Target);
+    }
+    bool _isNoteOnly = Model.SelectedB06ID == 0;
 }
 
 
-<div class="bg-light input-group" style="padding:10px;">
-    <div>
-        <button id="cmdSave" class="btn btn-success" onclick="_submit()">
-            <span class="material-icons-outlined-btn" style="color:lime;">save</span>
-            @_f.tra("Uložit a zavřít")
-        </button>
-
-    </div>
+<div class="wd-bar">
+    <button id="cmdSave" class="btn btn-success" onclick="_submit()">
+        <span class="material-icons-outlined-btn">save</span>
+        @_f.tra("Uložit a zavřít")
+    </button>
     @if (Model.RecordPid > 0 && Model.RecordEntity != "j02")
     {
-        <div style="margin-left:10px;">
-            <button id="cmdSaveAndNotify" class="btn btn-info" onclick="_postback('mail')">
-                <span class="material-icons-outlined-btn">alternate_email</span>
-                @_f.tra("Uložit a notifikovat")
-            </button>
-
-
-        </div>
+        <button id="cmdSaveAndNotify" class="btn btn-light" onclick="_postback('mail')">
+            <span class="material-icons-outlined-btn">alternate_email</span>
+            @_f.tra("Uložit a notifikovat")
+        </button>
     }
-    @if (_f.CurrentUser.IsAdmin && Model.RecB01 !=null)
+    <button id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+    @if (_f.CurrentUser.IsAdmin && Model.RecB01 != null)
     {
-        <div>
-            <myshowmore></myshowmore>
-        </div>
-        <div class="showmore" style="margin-left:10px;">
-            <button id="cmdSaveAndNotify" class="btn btn-warning" onclick="_postback('restart')">
+        <myshowmore></myshowmore>
+        <span class="showmore">
+            <button id="cmdSaveAndNotify" class="btn btn-light wd-restart" onclick="_postback('restart')">
                 <span class="material-icons-outlined-btn">restart_alt</span>
                 @_f.tra("Nahodit do úvodního stavu workflow šablony")
             </button>
-
-
-        </div>
+        </span>
     }
 
-    <div style="margin-left:20px;">
-        <button id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
-    </div>
-    <div style="margin-left:50px;">
-        @if (Model.RecB02 != null)
-        {
-            <label>@_f.tra("Aktuální stav"):</label>
-            
-
-            <strong>
-                @Model.RecB02.b02Name
-                
-            </strong>
-            @Html.Raw(UI.Code.basUI.HtmlColorStrip(Model.RecB02.b02Color))
-
-        }
-    </div>
-
-
+    @if (Model.RecB02 != null)
+    {
+        <div class="wd-state" title="@_f.tra("Aktuální stav")">
+            <span class="wd-state-label">@_f.tra("Aktuální stav"):</span>
+            <span class="wd-dot" style="background:@(string.IsNullOrEmpty(Model.RecB02.b02Color) ? "#c5ccd3" : Model.RecB02.b02Color)"></span>
+            <strong>@Model.RecB02.b02Name</strong>
+        </div>
+    }
 </div>
 
 <div id="divMail" style="display:none;margin:10px;">
@@ -105,14 +96,46 @@
 
 <form id="form1" asp-controller="workflow_dialog" asp-action="Index" method="POST">
 
-    <div id="divRadioList">
-        <myradiolist asp-for="@Model.SelectedB06ID" datasource="@Model.lisB06" valuefield="pid" textfield="b06Name" event_after_changevalue="b06id_onchange"></myradiolist>
-    </div>
+    <div class="wd">
+    @* volba kroku: dlaždice místo seznamu přepínačů; stejné id/name jako dřív (hidden SelectedB06ID, chkSelectedB06ID_{pid}, myradiolist_checked → b06id_onchange) *@
+    <input type="hidden" id="SelectedB06ID" name="SelectedB06ID" value="@Model.SelectedB06ID" />
+    @if (_steps.Count > 0)
+    {
+        <div id="divRadioList" class="wd-steps" role="radiogroup" aria-label="@_f.tra("Krok")">
+            <label class="wd-step wd-step-note@(_isNoteOnly ? " wd-on" : "")" for="chkSelectedB06ID_0">
+                <input type="radio" class="form-check-input" id="chkSelectedB06ID_0" name="mySelectedB06ID" onclick="myradiolist_checked('SelectedB06ID','0','b06id_onchange')" @(_isNoteOnly ? "checked" : "") />
+                <span class="material-icons-outlined-nosize">edit_note</span>
+                <span class="wd-step-text"><span class="wd-step-name">@_f.tra("Doplnit poznámku")</span><span class="wd-step-sub">@_f.tra("stav se nemění")</span></span>
+            </label>
+            <span class="wd-steps-or">@_f.tra("nebo posunout")</span>
+            @foreach (var c in _steps)
+            {
+                BO.b02WorkflowStatus t = c.b02ID_Target > 0 && _targets.ContainsKey(c.b02ID_Target) ? _targets[c.b02ID_Target] : null;
+                string name = !string.IsNullOrWhiteSpace(c.b06Name) ? c.b06Name : (t != null ? t.b02Name : c.NameWithTargetStatus);
+                bool on = Model.SelectedB06ID == c.pid;
+                <label class="wd-step@(on ? " wd-on" : "")" for="chkSelectedB06ID_@(c.pid)">
+                    <input type="radio" class="form-check-input" id="chkSelectedB06ID_@(c.pid)" name="mySelectedB06ID" onclick="myradiolist_checked('SelectedB06ID','@(c.pid)','b06id_onchange')" @(on ? "checked" : "") />
+                    <span class="wd-step-text">
+                        <span class="wd-step-name">@name</span>
+                        @if (t != null && !string.IsNullOrWhiteSpace(c.b06Name) && !string.Equals(c.b06Name.Trim(), t.b02Name?.Trim(), StringComparison.OrdinalIgnoreCase))
+                        {
+                            <span class="wd-step-sub"><span class="material-icons-outlined-nosize">arrow_forward</span><span class="wd-dot" style="background:@(string.IsNullOrEmpty(t.b02Color) ? "#c5ccd3" : t.b02Color)"></span>@t.b02Name</span>
+                        }
+                        else if (t != null)
+                        {
+                            <span class="wd-step-sub"><span class="wd-dot" style="background:@(string.IsNullOrEmpty(t.b02Color) ? "#c5ccd3" : t.b02Color)"></span>@_f.tra("nový stav")</span>
+                        }
+                    </span>
+                </label>
+            }
+        </div>
+    }
 
     @if (Model.RecB06 != null && (Model.RecB06.b06NomineeFlag == BO.b06NomineeFlagENum.RucniPovinna || Model.RecB06.b06NomineeFlag == BO.b06NomineeFlagENum.RucniNepovinna))
     {
-        <div class="card">
+        <div class="card wd-card">
             <div class="card-header">
+                <span class="material-icons-outlined-nosize">how_to_reg</span>
                 @_f.tra("Nominace")
                 @if (Model.RecB06.x67ID_Nominee > 0)
                 {
@@ -157,7 +180,13 @@
 
     @if (Model.Notepad != null)
     {
-        @Html.EditorFor(m => m.Notepad, "~/Views/Shared/_Notepad.cshtml")
+        <div class="wd-note">
+            @if (Model.RecB06 != null && Model.RecB06.b06NotepadFlag == BO.b06NotepadFlagEnum.NotepadIsRequired && !_isNoteOnly)
+            {
+                <span class="wd-note-req">@_f.tra("Poznámka je u tohoto kroku povinná.")</span>
+            }
+            @Html.EditorFor(m => m.Notepad, "~/Views/Shared/_Notepad.cshtml")
+        </div>
     }
 
     @if (Model.RecB06.b06GeoFlag == BO.b06GeoFlagEnum.LoadFromCurrentUser)
@@ -166,58 +195,39 @@
     }
     @if (Model.SelectedB06ID == 0 && Model.RecordEntity !="p91")
     {
-        <div class="row my-2">
-            <div class="col-sm-6 col-md-5">
-                <input type="text" asp-for="b05Name" placeholder="@_f.tra("Název")" class="form-control" />
+        <div class="wd-meta">
+            <div class="wd-meta-name">
+                <input type="text" asp-for="b05Name" placeholder="@_f.tra("Název / předmět")" class="form-control" />
             </div>
-
-
-            <div class="col-sm-2 col-md-2" title="Datum záznamu">
+            <div class="wd-meta-date" title="@_f.tra("Datum záznamu")">
                 <mydate asp-for="b05Date" include-time="false"></mydate>
             </div>
-            <div class="col-sm-4 col-md-5">
+            <div class="wd-flags">
                 @if (Model.SelectedB02ID == 0 && Model.RecordEntity != null && Model.RecordEntity != "j02" && Model.RecordEntity != "p31")
                 {
-                    <div>
-                        <input id="chkIsTab1" type="checkbox" asp-for="IsTab1" />
-                        <label for="chkIsTab1" style="font-size:90%;">
-                            @_f.tra("Připnout na první záložku")
-                            <code>@(BO.Code.Entity.GetAlias(Model.RecordEntity))</code>
-                        </label>
-                    </div>
+                    <label class="wd-flag" for="chkIsTab1">
+                        <input id="chkIsTab1" type="checkbox" class="form-check-input" asp-for="IsTab1" />
+                        <span>@_f.tra("Připnout na první záložku") <span class="wd-flag-ent">@(BO.Code.Entity.GetAlias(Model.RecordEntity))</span></span>
+                    </label>
                 }
                 @if (Model.SelectedB02ID == 0 && (BO.Code.Entity.GetPrefixDb(Model.RecordEntity) == "p41" || Model.RecordEntity == "p28"))
                 {
-                    <div>
-                        <input id="chkIsBillingMemo" type="checkbox" asp-for="IsBillingMemo" />
-                        <label for="chkIsBillingMemo" style="font-size:90%;">
-                            @_f.tra("Fakturační poznámka")
-
-                        </label>
-
-                    </div>
+                    <label class="wd-flag" for="chkIsBillingMemo">
+                        <input id="chkIsBillingMemo" type="checkbox" class="form-check-input" asp-for="IsBillingMemo" />
+                        <span>@_f.tra("Fakturační poznámka")</span>
+                    </label>
                 }
                 @if (Model.SelectedB02ID == 0 && (Model.RecordEntity == "p28" || Model.RecordEntity == "p91" || Model.IsPortalAccess))
                 {
-                    <div>
-                        <input id="chkIsPortalAccess" type="checkbox" asp-for="IsPortalAccess" />
-                        <label for="chkIsPortalAccess" style="font-size:90%;">@_f.tra("Publikovatelné na klientském portálu")</label>
-
-                    </div>
+                    <label class="wd-flag" for="chkIsPortalAccess">
+                        <input id="chkIsPortalAccess" type="checkbox" class="form-check-input" asp-for="IsPortalAccess" />
+                        <span>@_f.tra("Publikovatelné na klientském portálu")</span>
+                    </label>
                 }
             </div>
-
-            
-
-
-            
-
         </div>
-
-        
-
     }
-    
+    </div>
 
     <input type="hidden" asp-for="RecordEntity" />
     <input type="hidden" asp-for="RecordPid" />
@@ -235,6 +245,7 @@
 
 @Html.Raw("</div>")
 
+<div class="wd-extra">
 @if (Model.UploadGuid != null)
 {
     <iframe id="fraUpload" src="/Dropzone/UploadInFrame?entity=b05&guid=@Model.UploadGuid" frameborder="0" scrolling="yes" style="max-width:1200px;height:60px;"></iframe>
@@ -246,13 +257,12 @@
 
 @if (_lisB05 !=null && _lisB05.Count() > 0)
 {
-    <div style="padding:6px;">
-        <button type="button" class="btn btn-sm dropdown-toggle bog" onclick="toggle_history()">
+    <div class="wd-history">
+        <button type="button" class="btn btn-sm btn-light wd-history-btn" onclick="toggle_history()">
+            <span class="material-icons-outlined-nosize">history</span>
             @_f.tra("Historie")
-            <span class="badge-def">
-                @(_lisB05.Count())
-            </span>
-
+            <span class="wd-count">@(_lisB05.Count())</span>
+            <span class="material-icons-outlined-nosize wd-chev">expand_more</span>
         </button>
     </div>
 
@@ -261,6 +271,7 @@
     </div>
 
 }
+</div>
 
 
 
@@ -295,6 +306,7 @@
 
     function toggle_history() {
         $("#history").toggle();
+        $(".wd-history-btn").toggleClass("wd-open", $("#history").is(":visible"));
     }
 
     function b06id_onchange(b06id) {

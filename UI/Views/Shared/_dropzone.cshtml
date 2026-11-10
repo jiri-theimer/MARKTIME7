@@ -19,6 +19,33 @@
         _lisO27 = _f.o27AttachmentBL.GetList(new BO.myQueryO27() { entity = Model.RecPrefix, recpid = Model.RecPid });
     }
 
+    // přílohy poznámek záznamu (b05) – v jednom seznamu se soubory záznamu, s odkazem na poznámku; vložené obrázky Notepadu se nezobrazují
+    bool _isNoteBox = Model.RecPrefix == "b05";
+    Dictionary<int, BO.b05Workflow_History> _notes = null;
+    if (Model.RecPrefix != null && Model.RecPid > 0 && !_isNoteBox)
+    {
+        string strEnt = BO.Code.Entity.GetPrefixDb(Model.RecPrefix);
+        var lisFromNotes = _f.o27AttachmentBL.GetList(new BO.myQueryO27() { b05_recordentity = strEnt, b05_recordpid = Model.RecPid })
+            .Where(p => !(p.o27CallerFlag == BO.o27CallerFlagENUM.Notepad && p.o27WwwRootFolder != null)).ToList();
+        if (lisFromNotes.Count > 0)
+        {
+            _notes = new Dictionary<int, BO.b05Workflow_History>();
+            foreach (var b in _f.WorkflowBL.GetList_b05(strEnt, Model.RecPid, 0, 0, 0))
+            {
+                _notes[b.pid] = b;
+            }
+            _lisO27 = (_lisO27 ?? Enumerable.Empty<BO.o27Attachment>()).Concat(lisFromNotes).OrderByDescending(p => p.pid).ToList();
+        }
+    }
+    string NoteLabel(int b05id)
+    {
+        if (_notes == null || !_notes.TryGetValue(b05id, out var b)) return _f.tra("z poznámky");
+        string s = !string.IsNullOrWhiteSpace(b.b05Name) ? b.b05Name : (!string.IsNullOrWhiteSpace(b.b05NotepadText200) ? b.b05NotepadText200 : null);
+        if (s != null && s.Length > 40) s = s.Substring(0, 38) + "…";
+        DateTime? d = b.b05Date ?? b.DateInsert;
+        return _f.tra("z poznámky") + (s != null ? ": " + s : "") + (d != null ? ", " + d.Value.ToString("d.M.yyyy") : "");
+    }
+
     //ikona souboru podle přípony (material icons)
     string FileIcon(string ext, bool isMail)
     {
@@ -72,10 +99,14 @@
 
         <div class="d-flex align-items-center justify-content-center gap-1 flex-wrap">
 
-            <span class="badge bg-light text-dark border px-3 py-1">
+            <span class="badge bg-light text-dark border px-3 py-1" @(_isNoteBox ? Html.Raw("title=\"" + _f.tra("Soubory uložené k poznámce najdete i v přílohách záznamu.") + "\"") : null)>
                 <span class="material-icons-outlined align-middle me-1">attachment</span>
-                FILEBOX
+                @(_isNoteBox ? _f.tra("Přílohy k této poznámce") : "FILEBOX")
             </span>
+            @if (_isNoteBox && Model.IsInIframe)
+            {
+                <small class="text-muted fb-notehint">@_f.tra("najdete je i v přílohách záznamu")</small>
+            }
             @if (!Model.IsInIframe)
             {
                 <div class="text-muted">
@@ -145,6 +176,10 @@
                                 <span class="fb-dot">·</span><span>@(BO.Code.Time.GetTimestamp(c.o27MailDateMessage))</span>
                             }
                         </div>
+                        @if (c.o27Entity == "b05" && !_isNoteBox)
+                        {
+                            <div class="fb-meta"><a class="fb-fromnote" href="javascript:_edit('b05',@(c.o27RecordPid))" title="@_f.tra("Otevřít poznámku")"><span class="material-icons-outlined-nosize">sticky_note_2</span>@NoteLabel(c.o27RecordPid)</a></div>
+                        }
                         @if (c.o27MailAttachmentsCount > 0)
                         {
                             <div class="fb-atts">
@@ -167,9 +202,13 @@
                         {
                             <a class="fb-name" target="_blank" href="/FileUpload/FileDownloadInline?guid=@c.o27Guid">@c.o27OriginalFileName</a>
                         }
-                        @if (c.o27Name != null || c.o27CallerFlag == BO.o27CallerFlagENUM.Notepad)
+                        @if (c.o27Name != null || c.o27CallerFlag == BO.o27CallerFlagENUM.Notepad || (c.o27Entity == "b05" && !_isNoteBox))
                         {
                             <div class="fb-meta">
+                                @if (c.o27Entity == "b05" && !_isNoteBox)
+                                {
+                                    <a class="fb-fromnote" href="javascript:_edit('b05',@(c.o27RecordPid))" title="@_f.tra("Otevřít poznámku")"><span class="material-icons-outlined-nosize">sticky_note_2</span>@NoteLabel(c.o27RecordPid)</a>
+                                }
                                 @if (c.o27CallerFlag == BO.o27CallerFlagENUM.Notepad)
                                 {
                                     <span class="fb-tag">Notepad@(c.o27WwwRootFolder != null ? " · image" : "")</span>

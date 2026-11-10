@@ -8,7 +8,7 @@ namespace UI.Controllers.wrk
     {
         public IActionResult Index(int record_pid, string record_prefix, int run_b02id, string caller, bool povinnynazev)
         {            
-            var v = new WorkflowDialogViewModel() { RecordPid = record_pid, RecordEntity = record_prefix, Caller = caller, NameIsRequired = povinnynazev };
+            var v = new WorkflowDialogViewModel() { RecordPid = record_pid, RecordEntity = record_prefix, Caller = caller, NameIsRequired = povinnynazev, UploadGuid = BO.Code.Bas.GetGuid() };   //UploadGuid: FILEBOX příloh jako ve workflow_dialog
             if (caller == "portal")
             {
                 v.NameIsRequired = true; v.IsPortalAccess = true;
@@ -156,6 +156,11 @@ namespace UI.Controllers.wrk
                 if (v.Notepad != null)
                 {
                     Factory.o27AttachmentBL.CommitNotepdChanges(v.Notepad.TempGuid, "b05", intB05ID);
+                }
+
+                if (v.UploadGuid != null)
+                {
+                    Factory.o27AttachmentBL.SaveDropzoneFromTemp(v.UploadGuid, "b05", intB05ID);
                 }
 
                 if (v.reminder != null)

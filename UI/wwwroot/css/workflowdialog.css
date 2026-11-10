@@ -1,0 +1,66 @@
+﻿/* Workflow dialog (Views/workflow_dialog/Index.cshtml) – poznámka / posun workflow stavu. Třídy wd-*, barvy navazují na skin. */
+
+/* horní lišta */
+.wd-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 8px; padding: 8px 12px; margin-bottom: 4px; border-bottom: 1px solid #eef0f3; background: #fafbfc; }
+.wd-bar .btn { display: inline-flex; align-items: center; gap: 4px; }
+.wd-state { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; padding: 3px 10px; border: 1px solid #e3e6ea; border-radius: 999px; background: #fff; font-size: .875rem; color: #1f2328; }
+.wd-state-label { color: #6c757d; }
+.wd-dot { display: inline-block; flex: 0 0 auto; width: 10px; height: 10px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
+
+.wd { max-width: 1100px; padding: 6px 12px 4px; }
+
+/* kroky jako dlaždice */
+.wd-steps { display: flex; flex-wrap: wrap; align-items: stretch; gap: 6px; margin: 4px 0 12px; }
+.wd-steps-or { align-self: center; padding: 0 4px; color: #8a939c; font-size: .8rem; }
+.wd-step { position: relative; display: flex; align-items: center; gap: 8px; min-width: 150px; max-width: 280px; margin: 0; padding: 7px 12px 7px 10px; border: 1px solid #dfe3e8; border-radius: 10px; background: #fff; cursor: pointer; user-select: none; transition: border-color .12s, background .12s; }
+.wd-step:hover { border-color: #c5ccd3; background: #fbfcfd; }
+.wd-step input { position: absolute; opacity: 0; pointer-events: none; }
+.wd-step input:focus-visible + * { outline: 2px solid var(--oznaceno, #4169e1); outline-offset: 2px; }
+.wd-step > .material-icons-outlined-nosize { font-size: 20px; color: #8a939c; }
+.wd-step-text { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
+.wd-step-name { font-weight: 500; color: #1f2328; overflow-wrap: anywhere; }
+.wd-step-sub { display: inline-flex; align-items: center; gap: 4px; margin-top: 2px; font-size: .78rem; color: #6c757d; }
+.wd-step-sub .material-icons-outlined-nosize { font-size: 14px; }
+.wd-step.wd-on { border-color: var(--oznaceno, #4169e1); background: color-mix(in srgb, var(--oznaceno, #4169e1) 8%, #ffffff); box-shadow: 0 0 0 1px var(--oznaceno, #4169e1) inset; }
+.wd-step.wd-on > .material-icons-outlined-nosize { color: var(--pozadi, #0b4b92); }
+.wd-step-note { border-style: dashed; }
+.wd-step-note.wd-on { border-style: solid; }
+
+/* nominace */
+.wd-card { margin-bottom: 10px; border-radius: 10px; border-color: #e3e6ea; }
+.wd-card > .card-header { display: flex; align-items: center; gap: 6px; padding: 7px 12px; background: #fafbfc; font-weight: 600; font-size: .9rem; }
+.wd-card > .card-header .material-icons-outlined-nosize { font-size: 19px; color: var(--pozadi, #0b4b92); }
+
+/* poznámka + údaje */
+.wd-note-req { display: block; margin: 2px 0 -2px; font-size: .8rem; color: #8a5a00; }
+.wd-meta { display: grid; grid-template-columns: minmax(200px, 1fr) 170px; gap: 6px 10px; align-items: center; margin: 2px 0 8px; }
+.wd-flags { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; }
+.wd-flag { display: inline-flex; align-items: center; gap: 6px; margin: 0; padding: 4px 10px 4px 8px; border: 1px solid #e3e6ea; border-radius: 999px; background: #fff; font-size: .85rem; color: #3d444d; cursor: pointer; }
+.wd-flag .form-check-input { margin: 0; }
+.wd-flag:has(input:checked) { border-color: color-mix(in srgb, var(--oznaceno, #4169e1) 50%, #ffffff); background: color-mix(in srgb, var(--oznaceno, #4169e1) 7%, #ffffff); color: #1f2328; }
+.wd-flag-ent { color: #8a939c; font-size: .78rem; }
+
+/* přílohy, upozornění, historie */
+.wd-extra { max-width: 1100px; padding: 0 12px 12px; }
+.wd-extra #fraUpload { display: block; width: 100%; }
+.wd-history { margin-top: 6px; }
+.wd-history-btn { display: inline-flex; align-items: center; gap: 5px; }
+.wd-history-btn .material-icons-outlined-nosize { font-size: 17px; }
+.wd-count { padding: 0 6px; border-radius: 9px; background: #e6e9ed; color: #3d444d; font-size: .75rem; line-height: 17px; }
+.wd-history-btn.wd-open .wd-chev { transform: rotate(180deg); }
+
+/* telefon */
+@media (max-width: 575.98px) {
+    .wd-state { margin-left: 0; }
+    .wd-step { flex: 1 1 100%; max-width: none; }
+    .wd-steps-or { flex: 1 1 100%; padding: 0; }
+    .wd-meta { grid-template-columns: minmax(0, 1fr); }
+}
+html.mt-phone .wd-state { margin-left: 0; }
+html.mt-phone .wd-step { flex: 1 1 100%; max-width: none; }
+html.mt-phone .wd-meta { grid-template-columns: minmax(0, 1fr); }
+
+/* workflow_status: nabídka stavů */
+.wd-step > .wd-dot { width: 12px; height: 12px; }
+.wd-step.wd-current:not(.wd-on) { background: #f6f7f9; }
+.wd-reminder { margin: 4px 0 6px; }

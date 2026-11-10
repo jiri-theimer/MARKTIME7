@@ -1,6 +1,8 @@
 ﻿@model UI.Models.wrk.WorkflowDialogViewModel
 @inject BL.Factory _f
 
+@* Workflow bez krokového mechanismu: nahození stavu z nabídky + poznámka. Verze 8: vzhled jako workflow_dialog (css/workflowdialog.css, třídy wd-*),
+   názvy polí, postbacky (b02id, mail) a JS funkce beze změny. *@
 
 @{
     if (Model.b02ID > 0 || Model.b01ID > 0)
@@ -26,56 +28,45 @@
         _lisB05 = _f.WorkflowBL.GetList_b05(Model.RecordEntity, Model.RecordPid, 0, 0, 0);
     }
 
+    // nabídka stavů (bez „Doplnit poznámku“ = pid 0)
+    var _statuses = Model.lisB02 == null ? new List<BO.b02WorkflowStatus>() : Model.lisB02.Where(p => p.pid > 0).ToList();
+    bool _isNoteOnly = Model.SelectedB02ID == 0;
+    int _currentB02 = Model.b02ID;
 }
 
 @addTagHelper *, UI
 
-
-@if (Model.Notepad != null && Model.Notepad.SelectedX04ID > 0)
-{
-    @section header_content {
-    <link href="~/lib/froala-editor/css/froala_editor.pkgd.min.css" rel="stylesheet" type="text/css" />
+@section header_content {
+    @if (Model.Notepad != null)
+    {
+        <link href="~/lib/froala-editor/css/froala_editor.pkgd.min.css" rel="stylesheet" type="text/css" />
     }
+    <link rel="stylesheet" href="~/css/workflowdialog.css" asp-append-version="true" />
 }
 
 
-<div class="bg-light input-group" style="padding:10px;">
-    <div>
-        <button id="cmdSave" class="btn btn-success" onclick="_submit()">
-            <span class="material-icons-outlined-btn" style="color:lime;">save</span>
-            @_f.tra("Uložit a zavřít")
-        </button>
-
-    </div>
+<div class="wd-bar">
+    <button id="cmdSave" class="btn btn-success" onclick="_submit()">
+        <span class="material-icons-outlined-btn">save</span>
+        @_f.tra("Uložit a zavřít")
+    </button>
     @if (Model.RecordPid > 0 && Model.RecordEntity != "j02")
     {
-        <div style="margin-left:10px;">
-            <button id="cmdSaveAndNotify" class="btn btn-info" onclick="_postback('mail')">
-                <span class="material-icons-outlined-btn">alternate_email</span>
-                @_f.tra("Uložit a notifikovat")
-            </button>
+        <button id="cmdSaveAndNotify" class="btn btn-light" onclick="_postback('mail')">
+            <span class="material-icons-outlined-btn">alternate_email</span>
+            @_f.tra("Uložit a notifikovat")
+        </button>
+    }
+    <button id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
 
-
+    @if (Model.RecB02 != null)
+    {
+        <div class="wd-state" title="@_f.tra("Aktuální stav")">
+            <span class="wd-state-label">@_f.tra("Aktuální stav"):</span>
+            <span class="wd-dot" style="background:@(string.IsNullOrEmpty(Model.RecB02.b02Color) ? "#c5ccd3" : Model.RecB02.b02Color)"></span>
+            <strong>@Model.RecB02.b02Name</strong>
         </div>
     }
-
-    <div style="margin-left:20px;">
-        <button id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
-    </div>
-    <div style="margin-left:50px;">
-        @if (Model.RecB02 != null)
-        {
-            <label>@_f.tra("Aktuální stav"):</label>
-            @Html.Raw(UI.Code.basUI.HtmlColorStrip(Model.RecB02.b02Color))
-
-            <strong>
-                @Model.RecB02.b02Name
-            </strong>
-
-        }
-    </div>
-
-
 </div>
 
 <div id="divMail" style="display:none;margin:10px;">
@@ -87,71 +78,83 @@
 
 <form id="form1" asp-controller="workflow_status" asp-action="Index" method="POST">
 
-    <div id="divRadioList">
-        <myradiolist asp-for="SelectedB02ID" datasource="@Model.lisB02" valuefield="pid" textfield="b02Name" event_after_changevalue="b02id_onchange"></myradiolist>
-    </div>
-
-   
-
-
-    @if (Model.Notepad != null)
-    {
-        @Html.EditorFor(m => m.Notepad, "~/Views/Shared/_Notepad.cshtml")
-    }
-
-    <div class="input-group" style="margin-top:2px;">
-        @if (Model.Caller == "portal")
+    <div class="wd">
+        @* volba stavu: dlaždice místo seznamu přepínačů; stejné id/name jako dřív (hidden SelectedB02ID, chkSelectedB02ID_{pid}, myradiolist_checked → b02id_onchange) *@
+        <input type="hidden" id="SelectedB02ID" name="SelectedB02ID" value="@Model.SelectedB02ID" />
+        @if (_statuses.Count > 0)
         {
-            <div style="width:340px;">
-                <input type="text" asp-for="b05Name" placeholder="@_f.tra("Název/Předmět")" class="form-control" />
+            <div id="divRadioList" class="wd-steps" role="radiogroup" aria-label="@_f.tra("Stav")">
+                <label class="wd-step wd-step-note@(_isNoteOnly ? " wd-on" : "")" for="chkSelectedB02ID_0">
+                    <input type="radio" class="form-check-input" id="chkSelectedB02ID_0" name="mySelectedB02ID" onclick="myradiolist_checked('SelectedB02ID','0','b02id_onchange')" @(_isNoteOnly ? "checked" : "") />
+                    <span class="material-icons-outlined-nosize">edit_note</span>
+                    <span class="wd-step-text"><span class="wd-step-name">@_f.tra("Doplnit poznámku")</span><span class="wd-step-sub">@_f.tra("stav se nemění")</span></span>
+                </label>
+                <span class="wd-steps-or">@_f.tra("nebo nastavit stav")</span>
+                @foreach (var c in _statuses)
+                {
+                    bool on = Model.SelectedB02ID == c.pid;
+                    bool current = c.pid == _currentB02;
+                    <label class="wd-step@(on ? " wd-on" : "")@(current ? " wd-current" : "")" for="chkSelectedB02ID_@(c.pid)">
+                        <input type="radio" class="form-check-input" id="chkSelectedB02ID_@(c.pid)" name="mySelectedB02ID" onclick="myradiolist_checked('SelectedB02ID','@(c.pid)','b02id_onchange')" @(on ? "checked" : "") />
+                        <span class="wd-dot" style="background:@(string.IsNullOrEmpty(c.b02Color) ? "#c5ccd3" : c.b02Color)"></span>
+                        <span class="wd-step-text">
+                            <span class="wd-step-name">@c.b02Name</span>
+                            @if (current)
+                            {
+                                <span class="wd-step-sub">@_f.tra("aktuální stav")</span>
+                            }
+                        </span>
+                    </label>
+                }
             </div>
         }
-        else
+
+        @if (Model.Notepad != null)
         {
-            <div>
+            <div class="wd-note">
+                @Html.EditorFor(m => m.Notepad, "~/Views/Shared/_Notepad.cshtml")
+            </div>
+        }
+
+        <div class="wd-meta">
+            <div class="wd-meta-name">
+                <input type="text" asp-for="b05Name" placeholder="@_f.tra("Název / předmět")" class="form-control" />
+            </div>
+            <div class="wd-meta-date" title="@_f.tra("Datum záznamu")">
+                <mydate asp-for="b05Date" include-time="false"></mydate>
+            </div>
+            <div class="wd-flags">
+                @if ((Model.SelectedB02ID == 0 && Model.RecordEntity != "j02" && Model.RecordEntity != "p31") || Model.IsTab1)
+                {
+                    <label class="wd-flag" for="chkIsTab1">
+                        <input id="chkIsTab1" type="checkbox" class="form-check-input" asp-for="IsTab1" />
+                        <span>@_f.tra("Připnout na první záložku") <span class="wd-flag-ent">@(BO.Code.Entity.GetAlias(Model.RecordEntity))</span></span>
+                    </label>
+                }
+                @if (Model.SelectedB02ID == 0 && (BO.Code.Entity.GetPrefixDb(Model.RecordEntity) == "p41" || Model.RecordEntity == "p28"))
+                {
+                    <label class="wd-flag" for="chkIsBillingMemo">
+                        <input id="chkIsBillingMemo" type="checkbox" class="form-check-input" asp-for="IsBillingMemo" />
+                        <span>@_f.tra("Fakturační poznámka")</span>
+                    </label>
+                }
+                @if (Model.RecordEntity == "p28" || Model.RecordEntity == "p91" || Model.IsPortalAccess)
+                {
+                    <label class="wd-flag" for="chkIsPortalAccess">
+                        <input id="chkIsPortalAccess" type="checkbox" class="form-check-input" asp-for="IsPortalAccess" />
+                        <span>@_f.tra("Publikovatelné na klientském portálu")</span>
+                    </label>
+                }
+            </div>
+        </div>
+
+        @if (Model.Caller != "portal")
+        {
+            <div class="wd-reminder">
                 @Html.EditorFor(m => m.reminder, "~/Views/Shared/_Reminder.cshtml")
             </div>
-            <div style="margin-left:auto;width:340px;">
-                <input type="text" asp-for="b05Name" placeholder="@_f.tra("Název/Předmět")" class="form-control" />
-            </div>
         }
-
-
-        <div style="margin-left:auto;" title="Datum záznamu">
-            <mydate asp-for="b05Date" include-time="false"></mydate>
-        </div>
-        @if ((Model.SelectedB02ID == 0 && Model.RecordEntity != "j02" && Model.RecordEntity != "p31") || Model.IsTab1)
-        {
-            <div style="margin-left:auto">
-                <input id="chkIsTab1" type="checkbox" asp-for="IsTab1" />
-                <label for="chkIsTab1" style="font-size:80%;">
-                @_f.tra("Připnout na první záložku")
-                <code>@(BO.Code.Entity.GetAlias(Model.RecordEntity))</code>
-                </label>
-            </div>
-        }
-        @if (Model.SelectedB02ID == 0 && (BO.Code.Entity.GetPrefixDb(Model.RecordEntity) == "p41" || Model.RecordEntity == "p28"))
-        {
-            <div style="margin-left:auto">
-                <input id="chkIsBillingMemo" type="checkbox" asp-for="IsBillingMemo" />
-                <label for="chkIsBillingMemo" style="font-size:90%;">
-                    @_f.tra("Fakturační poznámka")
-
-                </label>
-
-            </div>
-        }
-        @if (Model.RecordEntity == "p28" || Model.RecordEntity == "p91" || Model.IsPortalAccess)
-        {
-            <div style="margin-left:auto">
-                <label for="chkIsPortalAccess" style="font-size:80%;">@_f.tra("Publikovatelné na klientském portálu")</label>
-                <input id="chkIsPortalAccess" type="checkbox" asp-for="IsPortalAccess" />
-            </div>
-        }
-
     </div>
-
-
 
     <input type="hidden" asp-for="RecordEntity" />
     <input type="hidden" asp-for="RecordPid" />
@@ -161,57 +164,53 @@
     <input type="hidden" asp-for="current_cuser_lat" />
     <input type="hidden" asp-for="NameIsRequired" />
     <input type="hidden" asp-for="Caller" />
+    <input type="hidden" asp-for="UploadGuid" />
 </form>
-
-
 
 
 @Html.Raw("</div>")
 
-@if (_lisB05 != null && _lisB05.Count() > 0)
+@if (Model.UploadGuid != null)
 {
-    <div style="padding:6px;">
-        <button type="button" class="btn btn-sm dropdown-toggle bog" onclick="toggle_history()">
-            @_f.tra("Historie")
-            <span class="badge-def">
-                @(_lisB05.Count())
-            </span>
-
-        </button>
+    <div class="wd-extra">
+        <iframe id="fraUpload" src="/Dropzone/UploadInFrame?entity=b05&guid=@Model.UploadGuid" frameborder="0" scrolling="yes" style="max-width:1200px;height:60px;"></iframe>
     </div>
-
-    <div id="history" style="display:none;">
-        @await Html.PartialAsync("~/Views/Shared/_lisB05.cshtml", _lisB05)
-    </div>
-
 }
 
+@if (_lisB05 != null && _lisB05.Count() > 0)
+{
+    <div class="wd-extra">
+        <div class="wd-history">
+            <button type="button" class="btn btn-sm btn-light wd-history-btn" onclick="toggle_history()">
+                <span class="material-icons-outlined-nosize">history</span>
+                @_f.tra("Historie")
+                <span class="wd-count">@(_lisB05.Count())</span>
+                <span class="material-icons-outlined-nosize wd-chev">expand_more</span>
+            </button>
+        </div>
 
+        <div id="history" style="display:none;">
+            @await Html.PartialAsync("~/Views/Shared/_lisB05.cshtml", _lisB05)
+        </div>
+    </div>
+}
 
 
 <script type="text/javascript">
     $(document).ready(function () {
-
-   
-
-            $("#cmdMail").click(function () {
-                $("#divMail").toggle();
-            });
-
-
+        $("#cmdMail").click(function () {
+            $("#divMail").toggle();
+        });
     })
 
     function toggle_history() {
         $("#history").toggle();
+        $(".wd-history-btn").toggleClass("wd-open", $("#history").is(":visible"));
     }
 
     function b02id_onchange(b02id) {
         _postback("b02id");
     }
-
-
-  
-
 
     function hardrefresh(pid, flag) {
         location.replace(location.href);

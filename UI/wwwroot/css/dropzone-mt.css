@@ -15,6 +15,11 @@
 .fb-arrow, .fb-dot { color: #adb5bd; }
 .fb-tag { padding: 0 6px; border-radius: 6px; background: #eef1f4; color: #495057; }
 .fb-note { padding: 0 6px; border-radius: 6px; background: #fff8d6; color: #5c4a00; }
+/* soubor z poznámky záznamu (b05) – odkaz na poznámku */
+.fb-fromnote { display: inline-flex; align-items: center; gap: 3px; padding: 0 6px; border-radius: 6px; background: #eef4ff; color: #0b4b92; text-decoration: none; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fb-fromnote:hover { background: #dcebff; }
+.fb-fromnote .material-icons-outlined-nosize { font-size: 14px; }
+.fb-notehint { margin-left: 6px; }
 .fb-atts { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 3px; }
 .fb-att { display: inline-flex; align-items: center; gap: 3px; padding: 0 8px 0 4px; border: 1px solid #dfe3e8; border-radius: 12px; background: #fff; color: #3d444d; font-size: .78rem; text-decoration: none; }
 .fb-att:hover { border-color: var(--pozadi, #0b4b92); color: var(--pozadi, #0b4b92); }
