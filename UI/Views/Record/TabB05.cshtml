@@ -1,26 +1,370 @@
 ﻿@model UI.Models.Tab1.BaseTab1ViewModel
 @inject BL.Factory _f
 
-@{
+@* Záložka „Timeline“ stránky záznamu (dříve Poznámky): časová stopa poznámek, posunů workflow, souborů a u projektu úkolů a termínů, u kontaktu projektů.
+   Data: UI.Code.RecordTimeline (přes BL, platí oprávnění). Styl css/timeline.css (třídy tl-*), HTML poznámek jde v atributu data-html (kódované) a zobrazuje se přes mtNotepad.safeHtml. *@
 
+@{
     Layout = "~/Views/Shared/_LayoutSubform.cshtml";
     if (Model == null) return;
 
-    var _lisB05 = _f.WorkflowBL.GetList_b05(Model.prefix, Model.pid, 0, 0,0);
+    var _items = UI.Code.RecordTimeline.Build(_f, Model.prefix, Model.pid);
+    bool _canAddNote = Model.prefix == "p28" || Model.prefix == "p31" || BO.Code.Entity.GetPrefixDb(Model.prefix) == "p41" || Model.prefix == "p91" || Model.prefix == "p56" || Model.prefix == "o23" || Model.prefix == "p90";
 
-    
-    
+    var _kinds = new List<(string key, string label, string icon)>
+    {
+        ("rec", _f.tra("Záznam"), "history"),
+        ("note", _f.tra("Poznámky"), "sticky_note_2"),
+        ("wrk", _f.tra("Workflow"), "swap_horiz"),
+        ("task", _f.tra("Úkoly"), "task_alt"),
+        ("term", _f.tra("Termíny"), "event"),
+        ("project", _f.tra("Projekty"), "work_outline"),
+        ("pay", _f.tra("Úhrady"), "payments"),
+        ("proforma", _f.tra("Zálohy"), "link"),
+        ("dun", _f.tra("Upomínky"), "notification_important"),
+        ("mail", _f.tra("Odeslání"), "forward_to_inbox"),
+        ("file", _f.tra("Soubory"), "attach_file")
+    };
+
+    string KindLabel(UI.Code.TimelineItem it) => it.Action != null ? it.Action : it.Kind switch
+    {
+        "rec" => _f.tra("Záznam"),
+        "note" => _f.tra("Poznámka"),
+        "wrk" => _f.tra("Workflow"),
+        "task" => _f.tra("Úkol") + (it.P56?.p57Name != null && !string.Equals(it.P56.p57Name, _f.tra("Úkol"), StringComparison.OrdinalIgnoreCase) ? " · " + it.P56.p57Name : ""),
+        "term" => it.O22?.o21Name ?? _f.tra("Termín"),
+        "project" => _f.tra("Projekt") + (it.P41?.p42Name != null ? " · " + it.P41.p42Name : ""),
+        "file" => it.O27 != null && it.O27.IsMail ? _f.tra("E-mail") : _f.tra("Soubor"),
+        _ => ""
+    };
+    string Initials(string s)
+    {
+        if (string.IsNullOrWhiteSpace(s)) return "?";
+        var parts = s.Split(new[] { ' ', '.', '@' }, StringSplitOptions.RemoveEmptyEntries);
+        return parts.Length >= 2 ? $"{char.ToUpper(parts[0][0])}{char.ToUpper(parts[1][0])}" : char.ToUpper(parts[0][0]).ToString();
+    }
+    string Rel(DateTime d)
+    {
+        var span = DateTime.Now - d;
+        if (span.TotalSeconds < 0) return null;
+        if (span.TotalMinutes < 60) return $"{Math.Max(1, (int)span.TotalMinutes)} min";
+        if (span.TotalHours < 24) return $"{(int)span.TotalHours} h";
+        return null;
+    }
+    string Dt(DateTime d) => d.TimeOfDay.TotalSeconds < 1 ? d.ToString("d.M.yyyy") : d.ToString("d.M.yyyy HH:mm");
+    string FileUrl(BO.o27Attachment a) => a.o27WwwRootFolder != null
+        ? "/_users/" + _f.Lic.x01Guid + "/" + a.o27WwwRootFolder.Replace("\\", "/") + "/" + a.o27ArchiveFileName
+        : "/FileUpload/FileDownloadInline?guid=" + a.o27Guid;
 }
 
 @addTagHelper *, UI
 
-@if (Model.prefix == "p28" || Model.prefix == "p31" || BO.Code.Entity.GetPrefixDb(Model.prefix) == "p41" || Model.prefix == "p91" || Model.prefix == "p56" || Model.prefix == "o23" || Model.prefix == "p90")
-{
-    <div style="padding:10px;">
-        <button type="button" class="btn btn-light" onclick="_window_open('/workflow_dialog/Index?record_prefix=@(Model.prefix)&record_pid=@(Model.pid)')"><myicon symbol="speaker_notes"></myicon>Doplnit poznámku</button>
-
-    </div>
+@section header_content {
+    <link rel="stylesheet" href="~/css/timeline.css" asp-append-version="true" />
+    <script src="~/js/notepad.js" asp-append-version="true"></script>
 }
 
+<div class="tl">
+    <div class="tl-top">
+        @if (_canAddNote)
+        {
+            <button type="button" class="btn btn-light tl-add" onclick="_window_open('/workflow_dialog/Index?record_prefix=@(Model.prefix)&record_pid=@(Model.pid)')">
+                <span class="material-icons-outlined-nosize">add_comment</span>@_f.tra("Doplnit poznámku")
+            </button>
+        }
+        @if (_items.Count > 0)
+        {
+            <div class="tl-filters" role="tablist">
+                <button type="button" class="tl-chip tl-chip-on" data-kind="" onclick="tl_filter(this)">@_f.tra("Vše") <span>@_items.Count</span></button>
+                @foreach (var k in _kinds)
+                {
+                    int n = _items.Count(p => p.Kind == k.key);
+                    if (n == 0) continue;
+                    <button type="button" class="tl-chip" data-kind="@k.key" onclick="tl_filter(this)"><span class="material-icons-outlined-nosize">@k.icon</span>@k.label <span>@n</span></button>
+                }
+            </div>
+            <input type="search" class="form-control form-control-sm tl-search" placeholder="@_f.tra("Hledat v timeline…")" oninput="tl_apply()" />
+        }
+    </div>
 
-@await Html.PartialAsync("~/Views/Shared/_lisB05.cshtml",_lisB05)
+    @if (_items.Count == 0)
+    {
+        <div class="tl-empty">
+            <span class="material-icons-outlined-nosize">timeline</span>
+            <div>@_f.tra("Zatím tu nic není.")</div>
+            @if (_canAddNote)
+            {
+                <small>@_f.tra("Poznámky, posuny workflow a soubory se budou zobrazovat tady, od nejnovějších.")</small>
+            }
+        </div>
+    }
+
+    <div class="tl-list" id="tl_list">
+        @{ string _lastGroup = null; }
+        @foreach (var it in _items)
+        {
+            string grp = UI.Code.RecordTimeline.GroupLabel(_f, it);
+            if (grp != _lastGroup)
+            {
+                _lastGroup = grp;
+                <div class="tl-group@(it.IsFuture ? " tl-group-future" : "")"><span>@grp</span></div>
+            }
+            var b = it.B05;
+            <div class="tl-item tl-k-@(it.Kind)@(it.IsFuture ? " tl-future" : "")@((it.P56 != null && it.P56.isclosed) || (it.P41 != null && it.P41.isclosed) || (it.O22 != null && it.O22.isclosed) ? " tl-closed" : "")" data-kind="@it.Kind" data-search="@((it.Title + " " + it.SearchText + " " + it.Author).ToLowerInvariant())">
+                <div class="tl-dot" style="@(it.Color != null ? "--tl-c:" + it.Color : null)"><span class="material-icons-outlined-nosize">@it.Icon</span></div>
+                <div class="tl-card">
+                    <div class="tl-head">
+                        <span class="tl-kind">@KindLabel(it)</span>
+                        @if (!string.IsNullOrWhiteSpace(it.Title))
+                        {
+                            @if (it.TitleHref != null)
+                            {
+                                <a class="tl-title" href="@it.TitleHref">@it.Title</a>
+                            }
+                            else if (it.Kind == "file" && it.O27 != null && !it.O27.IsMail)
+                            {
+                                <a class="tl-title" target="_blank" href="@FileUrl(it.O27)">@it.Title</a>
+                            }
+                            else if (it.Kind == "file" && it.O27 != null)
+                            {
+                                <a class="tl-title" href="javascript:_edit('o27',@it.Pid)">@it.Title</a>
+                            }
+                            else if (it.Kind == "rec" || it.HideMenu)
+                            {
+                                <strong class="tl-title">@it.Title</strong>
+                            }
+                            else if (it.Prefix != "b05")
+                            {
+                                <a class="tl-title" href="javascript:void(0)" onclick="_cm(event,'@it.Prefix',@it.Pid)">@it.Title</a>
+                            }
+                            else
+                            {
+                                <strong class="tl-title">@it.Title</strong>
+                            }
+                        }
+                        <span class="tl-when" title="@it.When.ToString("d.M.yyyy HH:mm")">
+                            @if (!string.IsNullOrEmpty(it.Author))
+                            {
+                                <span class="tl-ava">@Initials(it.Author)</span><span class="tl-author">@it.Author</span><span class="tl-sep">·</span>
+                            }
+                            @(Rel(it.When) != null ? Rel(it.When) : Dt(it.When))
+                        </span>
+                        @if (!it.HideMenu)
+                        {
+                            <a class="tl-menu" onclick="_cm(event,'@it.Prefix',@it.Pid)" title="MENU"><span class="material-icons-outlined-nosize">more_vert</span></a>
+                        }
+                    </div>
+
+                    @* štítky *@
+                    <div class="tl-chips">
+                        @if (it.Tags != null)
+                        {
+                            foreach (var tg in it.Tags)
+                            {
+                                <span class="tl-tag @tg.Css">@if (tg.Icon != null) {<span class="material-icons-outlined-nosize">@tg.Icon</span>}@tg.Text</span>
+                            }
+                        }
+                        @if (b != null)
+                        {
+                            if (b.b02ID_To > 0 && b.b02ID_To != b.b02ID_From)
+                            {
+                                <span class="tl-status">
+                                    @if (b.b02ID_From > 0)
+                                    {
+                                        <span class="tl-from">@b.b02Name_From</span><span class="material-icons-outlined-nosize">arrow_forward</span>
+                                    }
+                                    <span class="tl-sdot" style="background:@(b.b02Color ?? "#c5ccd3")"></span><strong>@b.b02Name_To</strong>
+                                </span>
+                            }
+                            else if (b.b06ID > 0 && b.b02ID_To > 0)
+                            {
+                                <span class="tl-status"><span class="tl-sdot" style="background:@(b.b02Color ?? "#c5ccd3")"></span>@b.b02Name_To</span>
+                            }
+                            if (it.Kind == "wrk" && !string.IsNullOrWhiteSpace(b.b05Name) && b.b05Name != it.Title)
+                            {
+                                <span class="tl-tag">@b.b05Name</span>
+                            }
+                            if (b.b05Date != null && (b.DateInsert == null || b.b05Date.Value.Date != b.DateInsert.Value.Date))
+                            {
+                                <span class="tl-tag" title="@_f.tra("Datum záznamu")"><span class="material-icons-outlined-nosize">calendar_today</span>@b.b05Date.Value.ToString("d.M.yyyy")</span>
+                            }
+                            if (BO.Code.Bas.bit_compare_or(b.b05Tab1Flag, 4))
+                            {
+                                <span class="tl-tag tl-tag-bill">@_f.tra("Fakturační poznámka")</span>
+                            }
+                            if (BO.Code.Bas.bit_compare_or(b.b05Tab1Flag, 2))
+                            {
+                                <span class="tl-tag"><span class="material-icons-outlined-nosize">push_pin</span>@_f.tra("Připnuto")</span>
+                            }
+                            if (b.b05PortalFlag == 1)
+                            {
+                                <span class="tl-tag"><span class="material-icons-outlined-nosize">public</span>@_f.tra("Portál")</span>
+                            }
+                            if (it.HasReminder)
+                            {
+                                <span class="tl-tag tl-tag-rem"><span class="material-icons-outlined-nosize">notifications</span>@_f.tra("Upozornění")</span>
+                            }
+                            if (b.p56ID > 0)
+                            {
+                                <a class="tl-tag tl-link" href="javascript:void(0)" onclick="_cm(event,'p56',@b.p56ID)"><span class="material-icons-outlined-nosize">task_alt</span>@b.p56Name</a>
+                            }
+                            if (b.o22ID > 0)
+                            {
+                                <a class="tl-tag tl-link" href="javascript:void(0)" onclick="_cm(event,'o22',@b.o22ID)"><span class="material-icons-outlined-nosize">event</span>@(b.o21Name) @(b.o22Name)</a>
+                            }
+                        }
+                        @if (it.P56 != null)
+                        {
+                            var t = it.P56;
+                            if (!string.IsNullOrEmpty(t.Owner))
+                            {
+                                <span class="tl-tag"><span class="material-icons-outlined-nosize">person</span>@_f.tra("řeší") @t.Owner</span>
+                            }
+                            if (!string.IsNullOrEmpty(t.b02Name))
+                            {
+                                <span class="tl-status"><span class="tl-sdot" style="background:@(t.b02Color ?? "#c5ccd3")"></span>@t.b02Name</span>
+                            }
+                            if (t.p56PlanUntil != null)
+                            {
+                                bool late = !t.isclosed && t.p56PlanUntil < DateTime.Now;
+                                <span class="tl-tag@(late ? " tl-tag-late" : "")"><span class="material-icons-outlined-nosize">schedule</span>@_f.tra("termín") @Dt(t.p56PlanUntil.Value)@(late ? " · " + _f.tra("po termínu") : "")</span>
+                            }
+                            if (t.isclosed)
+                            {
+                                <span class="tl-tag">@_f.tra("uzavřeno")</span>
+                            }
+                        }
+                        @if (it.O22 != null)
+                        {
+                            var m = it.O22;
+                            <span class="tl-tag"><span class="material-icons-outlined-nosize">schedule</span>@(m.o22PlanFrom != null ? Dt(m.o22PlanFrom.Value) : "")@(m.o22PlanUntil != null && m.o22PlanUntil != m.o22PlanFrom ? " – " + Dt(m.o22PlanUntil.Value) : "")</span>
+                            if (!string.IsNullOrWhiteSpace(m.o22Location))
+                            {
+                                <span class="tl-tag"><span class="material-icons-outlined-nosize">place</span>@m.o22Location</span>
+                            }
+                            if (m.Duration != null)
+                            {
+                                <span class="tl-tag">@m.Duration</span>
+                            }
+                        }
+                        @if (it.P41 != null)
+                        {
+                            var p = it.P41;
+                            if (!string.IsNullOrEmpty(p.p41Code))
+                            {
+                                <span class="tl-tag">@p.p41Code</span>
+                            }
+                            if (!string.IsNullOrEmpty(p.b02Name))
+                            {
+                                <span class="tl-status"><span class="tl-sdot" style="background:@(p.b02Color ?? "#c5ccd3")"></span>@p.b02Name</span>
+                            }
+                            if (p.isclosed)
+                            {
+                                <span class="tl-tag">@_f.tra("uzavřeno")</span>
+                            }
+                        }
+                        @if (it.O27 != null)
+                        {
+                            var a = it.O27;
+                            if (a.IsMail && (a.o27MailSenderName ?? a.o27MailSenderAddress) != null)
+                            {
+                                <span class="tl-tag"><span class="material-icons-outlined-nosize">person</span>@(a.o27MailSenderName ?? a.o27MailSenderAddress)</span>
+                            }
+                            if (!string.IsNullOrEmpty(a.o27Name))
+                            {
+                                <span class="tl-tag tl-tag-desc">@a.o27Name</span>
+                            }
+                            <span class="tl-tag">@(BO.Code.Bas.FormatFileSize(a.o27FileSize))</span>
+                        }
+                        @if (b != null && b.j95Longitude > 0 && b.j95Latitude > 0)
+                        {
+                            <a class="tl-tag tl-link" target="_blank" href="@(b.getMapUrlClassic())"><span class="material-icons-outlined-nosize">place</span>@(b.j95Location ?? _f.tra("Mapa"))</a>
+                            if (!string.IsNullOrEmpty(b.j95Description))
+                            {
+                                <span class="tl-tag">@b.j95Description, @(BO.Code.Bas.Number2String(b.j95Temp)) ℃</span>
+                            }
+                        }
+                    </div>
+
+                    @* text poznámky – HTML až po vyčištění v prohlížeči *@
+                    @if (b != null && !string.IsNullOrWhiteSpace(b.b05Notepad))
+                    {
+                        if (b.x04ID == 0 && !System.Text.RegularExpressions.Regex.IsMatch(b.b05Notepad, @"<\s*/?\s*[a-zA-Z][^>]*>"))
+                        {
+                            <div class="tl-body tl-plain">@b.b05Notepad</div>
+                        }
+                        else
+                        {
+                            <div class="tl-body" data-html="@b.b05Notepad"></div>
+                        }
+                        <a class="tl-more" href="javascript:void(0)" onclick="tl_more(this)" hidden>@_f.tra("Zobrazit celé")</a>
+                    }
+
+                    @if (it.Files != null && it.Files.Count > 0)
+                    {
+                        <div class="tl-files">
+                            @foreach (var a in it.Files)
+                            {
+                                <a class="tl-file" target="_blank" href="@(a.IsMail ? "javascript:_edit('o27'," + a.pid + ")" : FileUrl(a))" title="@a.o27Name"><span class="material-icons-outlined-nosize">@(a.IsMail ? "mail" : "attach_file")</span>@(a.IsMail ? (a.o27MailSubject ?? a.o27OriginalFileName) : a.o27OriginalFileName)</a>
+                            }
+                        </div>
+                    }
+
+                    @if (b != null && !string.IsNullOrWhiteSpace(b.b05Notepad))
+                    {
+                        <a class="tl-open" href="javascript:_window_open('/Record/NotepadPreview?prefix=b05&pid=@b.pid')" title="@_f.tra("Náhled v novém okně")"><span class="material-icons-outlined-nosize">open_in_new</span></a>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<script type="text/javascript">
+    // text poznámek: vyčištěné HTML, dlouhé texty sbalené
+    (function () {
+        document.querySelectorAll("#tl_list .tl-body").forEach(function (body) {
+            if (body.dataset.html !== undefined) {
+                body.replaceChildren(mtNotepad.safeHtml(body.dataset.html));
+                body.removeAttribute("data-html");
+            }
+            const item = body.closest(".tl-item");
+            item.dataset.search += " " + body.textContent.toLowerCase();
+            if (body.scrollHeight > 190) {
+                body.classList.add("tl-clip");
+                body.nextElementSibling.hidden = false;
+            }
+        });
+    })();
+
+    function tl_more(a) {
+        const body = a.previousElementSibling;
+        const open = body.classList.toggle("tl-clip") === false;
+        a.textContent = open ? @Json.Serialize(_f.tra("Sbalit")) : @Json.Serialize(_f.tra("Zobrazit celé"));
+    }
+
+    var _tl_kind = "";
+    function tl_filter(btn) {
+        _tl_kind = btn.dataset.kind;
+        document.querySelectorAll(".tl-chip").forEach(function (b) { b.classList.toggle("tl-chip-on", b === btn); });
+        tl_apply();
+    }
+
+    function tl_apply() {
+        const q = (document.querySelector(".tl-search") || {}).value;
+        const words = (q || "").toLowerCase().split(/\s+/).filter(Boolean);
+        let lastGroup = null, groupHasVisible = false;
+        const finishGroup = function () { if (lastGroup) lastGroup.hidden = !groupHasVisible; };
+        document.querySelectorAll("#tl_list > div").forEach(function (el) {
+            if (el.classList.contains("tl-group")) { finishGroup(); lastGroup = el; groupHasVisible = false; return; }
+            const ok = (!_tl_kind || el.dataset.kind === _tl_kind) && words.every(function (w) { return el.dataset.search.indexOf(w) >= 0; });
+            el.hidden = !ok;
+            if (ok) groupHasVisible = true;
+        });
+        finishGroup();
+    }
+
+    function hardrefresh(pid, flag) {
+        location.replace(location.href);
+    }
+</script>

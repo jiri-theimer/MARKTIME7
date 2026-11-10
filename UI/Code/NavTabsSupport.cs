@@ -137,6 +137,7 @@ namespace UI.Code
                     {
                         _tabs.Add(AddTab("Kapacity", "capacity", "/j02/TabR01?prefix=j02"));
                     }
+                    _tabs.Add(AddTab("<span class='material-icons-outlined-btn'>timeline</span>" + "Timeline", "b05", "/Record/TabB05?prefix=j02", false, null, _f.tra("Úkoly, termíny a projekty uživatele v čase")));
                     
                     Handle_DocsTabs(lisO17, null);
 
@@ -145,7 +146,6 @@ namespace UI.Code
                     
                     
                     _tabs.Add(AddTab("PING Log", "j92PingLog", "/TheGrid/SlaveView?prefix=j92"));
-                    _tabs.Add(AddTab("LOGIN Log", "j90LoginAccessLog", "/TheGrid/SlaveView?prefix=j90"));
 
                     break;
 
@@ -191,7 +191,7 @@ namespace UI.Code
                     
                     
                         
-                    _tabs.Add(AddTab("<span class='material-icons-outlined-btn'>speaker_notes</span>", "b05", "/Record/TabB05?prefix=p28",false, Badge1(cp28.b05_Count),"Notepad, workflow historie"));
+                    _tabs.Add(AddTab("<span class='material-icons-outlined-btn'>timeline</span>" + "Timeline", "b05", "/Record/TabB05?prefix=p28",false, null, _f.tra("Poznámky, workflow a další události záznamu v čase")));
                     break;
                 case "p41":
                 case "le1":
@@ -241,7 +241,7 @@ namespace UI.Code
                    
                     
                     
-                    _tabs.Add(AddTab("<span class='material-icons-outlined-btn'>speaker_notes</span>", "b05", "/Record/TabB05?prefix=p41", false, Badge1(cp41.b05_Count),"Poznámky, workflow historie"));
+                    _tabs.Add(AddTab("<span class='material-icons-outlined-btn'>timeline</span>" + "Timeline", "b05", "/Record/TabB05?prefix=p41", false, null, _f.tra("Poznámky, workflow a další události záznamu v čase")));
                     break;
                 case "o23":
                     var cpo23 = _f.o23DocBL.LoadSumRow(pid);
@@ -260,7 +260,7 @@ namespace UI.Code
                     }
                     
                    
-                    _tabs.Add(AddTab("<span class='material-icons-outlined-btn'>speaker_notes</span>", "b05", "/Record/TabB05?prefix=o23", false,null,"Notepad, workflow historie"));
+                    _tabs.Add(AddTab("<span class='material-icons-outlined-btn'>timeline</span>" + "Timeline", "b05", "/Record/TabB05?prefix=o23", false,null, _f.tra("Poznámky, workflow a další události záznamu v čase")));
                     
                     break;
                 case "p51":
@@ -303,7 +303,7 @@ namespace UI.Code
                     }
                    
                     
-                    _tabs.Add(AddTab("<span class='material-icons-outlined-btn'>speaker_notes</span>", "b05", "/Record/TabB05?prefix=p56", false, Badge1(cp56.b05_Count),"Notepad, workflow historie"));
+                    _tabs.Add(AddTab("<span class='material-icons-outlined-btn'>timeline</span>" + "Timeline", "b05", "/Record/TabB05?prefix=p56", false, null, _f.tra("Poznámky, workflow a další události záznamu v čase")));
                     break;
                 case "p55":
                     _tabs.Add(AddTab("Todo-list", "tab1", "/p55/Tab1?pid=" + AppendPid2Url(pid), false));
@@ -329,7 +329,7 @@ namespace UI.Code
                         co22 = _f.o22MilestoneBL.LoadSumRow(pid);
                     }
                     _tabs.Add(AddTab("Termín", "tab1", "/o22/Tab1?pid=" + AppendPid2Url(pid), false));
-                    _tabs.Add(AddTab("<span class='material-icons-outlined-btn'>speaker_notes</span>", "b05", "/Record/TabB05?prefix=o22", false, Badge1(co22.b05_Count),"Poznámky, workflow historie"));
+                    _tabs.Add(AddTab("<span class='material-icons-outlined-btn'>timeline</span>" + "Timeline", "b05", "/Record/TabB05?prefix=o22", false, null, _f.tra("Poznámky, workflow a další události záznamu v čase")));
                     break;
                 case "o27":
                     _tabs.Add(AddTab("FILEBOX", "tab1", "/o27/Tab1?pid=" + AppendPid2Url(pid), false));
@@ -383,7 +383,7 @@ namespace UI.Code
                     _tabs.Add(AddTab(cp90.p89Name, "tab1", "/p90/Tab1?pid=" + AppendPid2Url(pid)));
                     _tabs.Add(AddTab("Faktury (Vyúčtování)", "p91Invoice", "/TheGrid/SlaveView?prefix=p91", true, Badge1(cp90.p91_Count)));
                     
-                    _tabs.Add(AddTab("<span class='material-icons-outlined-btn'>speaker_notes</span>", "b05", "/Record/TabB05?prefix=p90", false, Badge1(cp90.b05_Count),"Poznámky, workflow historie"));
+                    _tabs.Add(AddTab("<span class='material-icons-outlined-btn'>timeline</span>" + "Timeline", "b05", "/Record/TabB05?prefix=p90", false, null, _f.tra("Poznámky, workflow a další události záznamu v čase")));
 
 
                     break;
@@ -406,22 +406,20 @@ namespace UI.Code
                     _tabs.Add(AddTab("Outbox", "x40MailQueue", "/TheGrid/SlaveView?prefix=x40", true));
                     
                     
-                    _tabs.Add(AddTab("<span class='material-icons-outlined-btn'>speaker_notes</span>", "b05", "/Record/TabB05?prefix=p91",false, Badge1(cp91.b05_count),"Poznámky, workflow historie"));
+                    _tabs.Add(AddTab("<span class='material-icons-outlined-btn'>timeline</span>" + "Timeline", "b05", "/Record/TabB05?prefix=p91",false, null, _f.tra("Poznámky, workflow a další události záznamu v čase")));
 
 
                     break;
                 case "p84":
-                    var lisB05a = _f.WorkflowBL.GetList_b05("p84", pid, 0, 0, 0);
                     _tabs.Add(AddTab("Upomínka", "tab1", "/p84/Tab1?pid=" + AppendPid2Url(pid), false));
                     _tabs.Add(AddTab("Outbox", "x40MailQueue", "/TheGrid/SlaveView?prefix=x40", true));
-                    _tabs.Add(AddTab("<span class='material-icons-outlined-btn'>speaker_notes</span>", "b05", "/Record/TabB05?prefix=p84", false, Badge1(lisB05a.Count()), "Poznámky"));
+                    _tabs.Add(AddTab("<span class='material-icons-outlined-btn'>timeline</span>" + "Timeline", "b05", "/Record/TabB05?prefix=p84", false, null, _f.tra("Poznámky, workflow a další události záznamu v čase")));
 
                     break;
                 case "p78":
-                    var lisB05b = _f.WorkflowBL.GetList_b05("p78", pid, 0, 0, 0);
                     _tabs.Add(AddTab("Hromadná upomínka", "tab1", "/p78/Tab1?pid=" + AppendPid2Url(pid), false));
                     _tabs.Add(AddTab("Outbox", "x40MailQueue", "/TheGrid/SlaveView?prefix=x40", true));
-                    _tabs.Add(AddTab("<span class='material-icons-outlined-btn'>speaker_notes</span>", "b05", "/Record/TabB05?prefix=p78", false, Badge1(lisB05b.Count()), "Poznámky"));
+                    _tabs.Add(AddTab("<span class='material-icons-outlined-btn'>timeline</span>" + "Timeline", "b05", "/Record/TabB05?prefix=p78", false, null, _f.tra("Poznámky, workflow a další události záznamu v čase")));
 
                     break;
 
