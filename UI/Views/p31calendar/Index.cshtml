@@ -284,6 +284,16 @@ else
             </button>
         </div>
 
+        @if (_f.CurrentUser.j04IsModule_p31)
+        {
+            <div style="padding:6px;">
+                <button type="button" class="btn bog" onclick="_window_open('/OutlookP31/Index',2)">
+                    <span class="material-icons-outlined-btn">event_available</span>
+                    @_f.tra("Vykázat z Outlooku")
+                </button>
+            </div>
+        }
+
        
         <div class="card" style="margin:5px;">
 

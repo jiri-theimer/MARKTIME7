@@ -1,0 +1,118 @@
+﻿/* Průvodce „Vykázat z Outlooku“ (Views/OutlookP31/Index.cshtml) – třídy ol-*. Barvy navazují na skin (--pozadi, --oznaceno). */
+.ol { padding: 8px 12px 80px; max-width: 1500px; }
+
+/* drop zóna */
+.ol-drop { display: flex; align-items: center; gap: 16px; padding: 22px 20px; margin-bottom: 14px; border: 2px dashed #c9d1da; border-radius: 12px; background: #fafbfc; transition: border-color .15s, background .15s; }
+.ol-drop-icon { font-size: 44px; color: var(--pozadi, #0b4b92); flex: 0 0 auto; }
+.ol-drop-text { display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto; min-width: 0; color: #3d444d; font-size: .9rem; }
+.ol-drop-text strong { font-size: 1.05rem; color: #1f2328; }
+.ol-drop-hint { color: #6c757d; font-size: .82rem; }
+.ol-drop .btn { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 4px; }
+.ol-drop-compact { padding: 8px 14px; gap: 12px; }
+.ol-drop-compact .ol-drop-icon { font-size: 28px; }
+.ol-drop-compact .ol-drop-text strong { font-size: .95rem; }
+body.ol-dragging .ol-drop { border-color: var(--oznaceno, #4169e1); background: color-mix(in srgb, var(--oznaceno, #4169e1) 8%, #ffffff); }
+body.ol-dragging::after { content: ""; position: fixed; inset: 0; border: 3px solid var(--oznaceno, #4169e1); pointer-events: none; z-index: 2000; }
+
+/* sekce */
+.ol-sec { margin-bottom: 14px; border: 1px solid #e3e6ea; border-radius: 10px; background: #fff; }
+.ol-sec-head, .ol-skipped > summary { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 16px; padding: 9px 12px; border-bottom: 1px solid #eef0f3; }
+.ol-sec h2 { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 1rem; font-weight: 600; color: #2b3138; }
+.ol-count { padding: 0 7px; border-radius: 9px; background: #eef1f4; color: #59636e; font-size: .78rem; line-height: 18px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.ol-sel { display: flex; gap: 10px; font-size: .85rem; }
+.ol-sel a, .ol-sec-link { text-decoration: none; color: var(--pozadi, #0b4b92); }
+.ol-sel a:hover, .ol-sec-link:hover { text-decoration: underline; }
+.ol-bulk { display: flex; align-items: center; gap: 6px; margin-left: auto; font-size: .82rem; color: #59636e; }
+.ol-bulk-combo { width: 260px; }
+.ol-bulk-act { width: 190px; }
+.ol-skipped > summary { cursor: pointer; list-style: none; }
+.ol-skipped > summary::-webkit-details-marker { display: none; }
+.ol-skipped > summary::before { content: "chevron_right"; font-family: "Material Icons Outlined", "Material Icons"; font-size: 20px; color: #8a939c; transition: transform .15s; }
+.ol-skipped[open] > summary::before { transform: rotate(90deg); }
+.ol-skipped:not([open]) > summary { border-bottom: 0; }
+.ol-sec-hint { color: #6c757d; font-size: .8rem; }
+
+/* řádky návrhů */
+.ol-head, .ol-row { display: grid; grid-template-columns: 26px 168px minmax(150px, 1fr) minmax(220px, 1.3fr) minmax(150px, .8fr) minmax(200px, 1.3fr); gap: 4px 10px; padding: 8px 12px; }
+.ol-head { padding-top: 6px; padding-bottom: 4px; font-size: .74rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: #8a939c; border-bottom: 1px solid #eef0f3; }
+.ol-row { align-items: start; border-bottom: 1px solid #f0f2f4; }
+.ol-row:last-child { border-bottom: 0; }
+.ol-row:hover { background: #fbfcfd; }
+.ol-row.ol-off > div:not(.ol-chk) { opacity: .55; }
+.ol-row.ol-has-err { background: #fdf3f4; }
+.ol-chk { padding-top: 6px; }
+.ol-chk .form-check-input { margin: 0; width: 1.1em; height: 1.1em; }
+
+.ol-when { display: flex; flex-direction: column; gap: 3px; }
+.ol-times { display: flex; align-items: center; gap: 3px; }
+.ol-times .form-control { padding-left: 4px; padding-right: 2px; min-width: 0; }
+.ol-dur { font-size: .78rem; color: #59636e; font-variant-numeric: tabular-nums; }
+
+.ol-event { min-width: 0; padding-top: 4px; }
+.ol-subj { font-weight: 600; color: #1f2328; overflow-wrap: anywhere; }
+.ol-att, .ol-warn, .ol-err, .ol-note { display: flex; gap: 4px; align-items: flex-start; margin-top: 3px; font-size: .8rem; line-height: 1.3; }
+.ol-att { color: #6c757d; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.ol-att .material-icons-outlined-nosize { font-size: 15px; vertical-align: -3px; margin-right: 3px; }
+.ol-warn .material-icons-outlined-nosize, .ol-err .material-icons-outlined-nosize, .ol-note .material-icons-outlined-nosize { font-size: 15px; flex: 0 0 auto; }
+.ol-warn { color: #8a5a00; }
+.ol-err { color: #b02a37; font-weight: 500; }
+.ol-note { color: #59636e; }
+
+.ol-proj, .ol-act, .ol-text { min-width: 0; }
+.ol-why { display: flex; align-items: center; gap: 5px; margin-top: 3px; font-size: .78rem; color: #6c757d; line-height: 1.25; }
+.ol-conf { flex: 0 0 auto; width: 8px; height: 8px; border-radius: 50%; background: #c5ccd3; }
+.ol-conf3 { background: #198754; }
+.ol-conf2 { background: #e0a100; }
+.ol-conf1 { background: #e06c00; }
+.ol-conf0 { background: #c5ccd3; }
+.ol-confm { background: var(--oznaceno, #4169e1); }
+.ol-text textarea { resize: vertical; font-size: .875rem; }
+.ol-intlink { display: inline-block; margin-top: 2px; font-size: .78rem; color: #6c757d; text-decoration: none; }
+.ol-intlink:hover { color: var(--pozadi, #0b4b92); }
+.ol-int { margin-top: 3px; background: #fffdf5; }
+
+/* zapsané */
+.ol-donerow { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 12px; padding: 6px 12px; border-bottom: 1px solid #f0f2f4; font-size: .875rem; }
+.ol-donerow:last-child { border-bottom: 0; }
+.ol-donerow .material-icons-outlined-nosize { font-size: 18px; }
+.ol-ok { color: #198754; }
+.ol-dup { color: #8a939c; }
+.ol-done-when { flex: 0 0 150px; color: #59636e; font-variant-numeric: tabular-nums; }
+.ol-done-subj { flex: 1 1 200px; min-width: 0; font-weight: 500; }
+.ol-done-proj { flex: 1 1 200px; min-width: 0; color: #3d444d; }
+.ol-done-state { color: #6c757d; font-size: .8rem; }
+.ol-done-link { font-size: .8rem; text-decoration: none; }
+
+/* prázdný stav */
+.ol-empty { max-width: 720px; padding: 4px 4px 0; color: #3d444d; font-size: .9rem; }
+.ol-empty h2 { font-size: 1rem; font-weight: 600; margin: 4px 0 8px; }
+.ol-empty ol { padding-left: 1.3em; margin-bottom: 8px; }
+.ol-empty li { margin-bottom: 4px; }
+.ol-empty p { color: #6c757d; font-size: .82rem; }
+
+/* spodní lišta */
+.ol-foot { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-top: 1px solid #e3e6ea; background: rgba(255,255,255,.97); box-shadow: 0 -2px 8px rgba(0,0,0,.05); }
+.ol-foot-sum { margin-right: auto; font-size: .9rem; color: #3d444d; font-variant-numeric: tabular-nums; }
+.ol-foot .btn { display: inline-flex; align-items: center; gap: 4px; }
+
+/* užší okno: řádek jako karta */
+@media (max-width: 1100px) {
+    .ol-head { display: none; }
+    .ol-row { grid-template-columns: 26px 168px minmax(0, 1fr); }
+    .ol-proj { grid-column: 2 / span 2; }
+    .ol-act { grid-column: 2 / span 2; max-width: 360px; }
+    .ol-text { grid-column: 2 / span 2; }
+    .ol-bulk { margin-left: 0; width: 100%; flex-wrap: wrap; }
+}
+@media (max-width: 575.98px) {
+    .ol-drop { flex-wrap: wrap; }
+    .ol-row { grid-template-columns: 26px minmax(0, 1fr); }
+    .ol-when, .ol-event, .ol-proj, .ol-act, .ol-text { grid-column: 2; }
+    .ol-act { max-width: none; }
+    .ol-bulk-combo, .ol-bulk-act { width: 100%; }
+}
+html.mt-phone .ol-head { display: none; }
+html.mt-phone .ol-row { grid-template-columns: 26px minmax(0, 1fr); }
+html.mt-phone .ol-when, html.mt-phone .ol-event, html.mt-phone .ol-proj, html.mt-phone .ol-act, html.mt-phone .ol-text { grid-column: 2; }
+html.mt-phone .ol-bulk { margin-left: 0; width: 100%; flex-wrap: wrap; }
+html.mt-phone .ol-bulk-combo { width: 100%; }

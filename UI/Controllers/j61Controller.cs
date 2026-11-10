@@ -15,6 +15,7 @@ namespace UI.Controllers
         public j61Controller(BL.TheColumnsProvider cp)
         {
             _colsProvider = cp;
+            
         }
         public IActionResult Info(int pid)
         {
