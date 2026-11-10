@@ -23,7 +23,7 @@
     var _kinds = new List<(string key, string label, string icon)>
     {
         ("rec", _f.tra("Záznam"), "history"),
-        ("note", _f.tra("Poznámky"), "sticky_note_2"),
+        ("note", _f.tra("Poznámky"), "waves"),
         ("wrk", _f.tra("Workflow"), "swap_horiz"),
         ("task", _f.tra("Úkoly"), "task_alt"),
         ("term", _f.tra("Termíny"), "event"),
@@ -82,7 +82,7 @@
         @if (_canAddNote)
         {
             <button type="button" class="btn btn-light tl-add" onclick="_window_open('/workflow_dialog/Index?record_prefix=@(Model.prefix)&record_pid=@(Model.pid)')">
-                <span class="material-icons-outlined-nosize">note_add</span>@_f.tra("Doplnit poznámku")
+                <span class="material-icons-outlined-nosize">waves</span>@_f.tra("Doplnit poznámku")
             </button>
         }
         @if (_items.Count > 0)

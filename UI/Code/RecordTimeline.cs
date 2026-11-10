@@ -93,7 +93,7 @@
                 {
                     Kind = isWrk ? "wrk" : "note",
                     When = c.DateInsert ?? c.b05Date ?? DateTime.MinValue,
-                    Icon = isWrk ? "swap_horiz" : (c.p56ID > 0 ? "task_alt" : (c.o22ID > 0 ? "event" : "sticky_note_2")),
+                    Icon = isWrk ? "swap_horiz" : (c.p56ID > 0 ? "task_alt" : (c.o22ID > 0 ? "event" : "waves")),
                     Color = isWrk && !string.IsNullOrEmpty(c.b02Color) ? c.b02Color : null,
                     Title = title,
                     Author = c.j02ID_Sys > 0 ? c.Person : c.UserInsert,

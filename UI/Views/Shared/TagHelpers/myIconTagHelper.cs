@@ -93,7 +93,7 @@ namespace UI.Views.Shared.TagHelpers
                         this.Symbol = "hourglass_top";
                         break;
                     case "b05":
-                        this.Symbol = "sticky_note_2";
+                        this.Symbol = "waves";
                         break;
                     case "p84":
                         this.Symbol = "gavel";

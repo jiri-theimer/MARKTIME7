@@ -178,7 +178,7 @@
                         </div>
                         @if (c.o27Entity == "b05" && !_isNoteBox)
                         {
-                            <div class="fb-meta"><a class="fb-fromnote" href="javascript:_edit('b05',@(c.o27RecordPid))" title="@_f.tra("Otevřít poznámku")"><span class="material-icons-outlined-nosize">sticky_note_2</span>@NoteLabel(c.o27RecordPid)</a></div>
+                            <div class="fb-meta"><a class="fb-fromnote" href="javascript:_edit('b05',@(c.o27RecordPid))" title="@_f.tra("Otevřít poznámku")"><span class="material-icons-outlined-nosize">waves</span>@NoteLabel(c.o27RecordPid)</a></div>
                         }
                         @if (c.o27MailAttachmentsCount > 0)
                         {
@@ -207,7 +207,7 @@
                             <div class="fb-meta">
                                 @if (c.o27Entity == "b05" && !_isNoteBox)
                                 {
-                                    <a class="fb-fromnote" href="javascript:_edit('b05',@(c.o27RecordPid))" title="@_f.tra("Otevřít poznámku")"><span class="material-icons-outlined-nosize">sticky_note_2</span>@NoteLabel(c.o27RecordPid)</a>
+                                    <a class="fb-fromnote" href="javascript:_edit('b05',@(c.o27RecordPid))" title="@_f.tra("Otevřít poznámku")"><span class="material-icons-outlined-nosize">waves</span>@NoteLabel(c.o27RecordPid)</a>
                                 }
                                 @if (c.o27CallerFlag == BO.o27CallerFlagENUM.Notepad)
                                 {

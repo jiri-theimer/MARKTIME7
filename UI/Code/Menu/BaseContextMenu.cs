@@ -199,13 +199,13 @@ namespace UI.Menu
 
                 }
 
-                AMI("Doplnit poznámku", $"javascript: _window_open('/workflow_dialog/Index?record_prefix={prefix}&record_pid={pid}')", "sticky_note_2", "wrk");
+                AMI("Doplnit poznámku", $"javascript: _window_open('/workflow_dialog/Index?record_prefix={prefix}&record_pid={pid}')", "waves", "wrk");
 
 
             }
             else
             {
-                AMI("Doplnit poznámku", $"javascript: _window_open('/workflow_dialog/Index?record_prefix={prefix}&record_pid={pid}')", "sticky_note_2", parentmenuid);
+                AMI("Doplnit poznámku", $"javascript: _window_open('/workflow_dialog/Index?record_prefix={prefix}&record_pid={pid}')", "waves", parentmenuid);
             }
 
 

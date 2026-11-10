@@ -92,7 +92,7 @@ namespace UI.Views.Shared.TagHelpers
             //{
             //    strStyle = strStyle.Replace("hidden", "visible");
             //}
-            output.Content.AppendHtml($"<button id='cmdWrkButton' type='button' class='btn btn-light px-1' style='{strStyle}' title='{s}' onclick=\"_window_open('/workflow_dialog/Index?record_prefix={prefix}&record_pid={pid}')\"><span class='material-icons-outlined-btn'>sticky_note_2</span>{strBadgeB05}</button>");
+            output.Content.AppendHtml($"<button id='cmdWrkButton' type='button' class='btn btn-light px-1' style='{strStyle}' title='{s}' onclick=\"_window_open('/workflow_dialog/Index?record_prefix={prefix}&record_pid={pid}')\"><span class='material-icons-outlined-btn'>waves</span>{strBadgeB05}</button>");
 
             AppendChatButton(output, strDbPrefix);
 
@@ -123,7 +123,14 @@ namespace UI.Views.Shared.TagHelpers
                 {
                     int intCount = f.ChatBL.GetRecordMessagesCount(strDbPrefix, intPID);
                     string strBadge = intCount > 0 ? $"<span class='badge-def'>{(intCount > 99 ? "99+" : intCount.ToString())}</span>" : null;
-                    output.Content.AppendHtml($"<button id='cmdWrkChat' type='button' class='btn btn-light px-1' style='{strStyle}' title='{f.tra("Chat k záznamu")}' onclick=\"_window_open('/Chat/Index?entity={strDbPrefix}&pid={intPID}',3,'Chat')\"><span class='material-icons-outlined-btn'>forum</span>{strBadge}</button>");
+                    string strKeep = null;
+                    if (intCount > 0)
+                    {
+                        //v konverzaci k záznamu už jsou zprávy: tlačítko je vidět trvale, ne až při najetí myší
+                        strStyle = strStyle.Replace("visibility:hidden;", "");
+                        strKeep = " data-keep='1'";
+                    }
+                    output.Content.AppendHtml($"<button id='cmdWrkChat'{strKeep} type='button' class='btn btn-light px-1' style='{strStyle}' title='{f.tra("Chat k záznamu")}' onclick=\"_window_open('/Chat/Index?entity={strDbPrefix}&pid={intPID}',3,'Chat')\"><span class='material-icons-outlined-btn'>forum</span>{strBadge}</button>");
                 }
                 else if (strDbPrefix == "j02" && intPID != f.CurrentUser.pid)
                 {

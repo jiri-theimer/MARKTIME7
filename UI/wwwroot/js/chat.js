@@ -248,7 +248,7 @@ var ChatApp = (function () {
             html += "</div>";
             html += "<button type='button' class='ch-btn' data-act='react' title='" + esc(T.react) + "'><i class='ch-ico'>add_reaction</i></button>";
             html += "<button type='button' class='ch-btn' data-act='reply' title='" + esc(T.reply) + "'><i class='ch-ico'>reply</i></button>";
-            if (cur.type == 3 && m.text) html += "<button type='button' class='ch-btn' data-act='note' title='" + esc(T.note) + "'><i class='ch-ico'>sticky_note_2</i></button>";
+            if (cur.type == 3 && m.text) html += "<button type='button' class='ch-btn' data-act='note' title='" + esc(T.note) + "'><i class='ch-ico'>waves</i></button>";
             if (mine) {
                 html += "<button type='button' class='ch-btn' data-act='edit' title='" + esc(T.edit) + "'><i class='ch-ico'>edit</i></button>";
                 html += "<button type='button' class='ch-btn' data-act='delete' title='" + esc(T["delete"]) + "'><i class='ch-ico'>delete</i></button>";

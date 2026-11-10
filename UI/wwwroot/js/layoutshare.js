@@ -579,7 +579,7 @@ function _handle_mywrk_mouseout(td) {
         $("#cmdWrkTotals").css("visibility", "hidden");
     }
     
-    if (document.getElementById("cmdWrkChat")) {
+    if (document.getElementById("cmdWrkChat") && !$("#cmdWrkChat").attr("data-keep")) {     // se zprávami v konverzaci zůstává tlačítko chatu vidět trvale
         $("#cmdWrkChat").css("visibility", "hidden");
     }
     if (document.getElementById("cmdWrkQuickStat")) {
