@@ -129,91 +129,116 @@
 
 @addTagHelper *, UI
 
+@* Verze 8: role jako řádky s přepínačem Neobsazeno | Vybraní | Všichni uživatelé (css/roleassign.css, třídy ra-*).
+   Postované hodnoty beze změny: lisRepeator[i].IsNone, .x69IsAllUsers (skrytá pole), .j02IDs, .j11IDs (mycombochecklist), x67*.
+   Id prvků mají předponu podle HtmlFieldPrefix – partial může být na stránce víckrát. Funkce isnone_change/allpersons_change zachovány. *@
+@{
+    string _ra = "ra" + System.Text.RegularExpressions.Regex.Replace(ViewData.TemplateInfo.HtmlFieldPrefix ?? "", "[^A-Za-z0-9]", "_");
+    int _filled = Model.lisRepeator.Count(p => !p.IsNone);
+}
+
+<link rel="stylesheet" href="~/css/roleassign.css" asp-append-version="true" />
+
 <input type="hidden" asp-for="RolePrefix" />
 <input type="hidden" asp-for="RolePrefixSecond" />
 <input type="hidden" asp-for="RecPrefix" />
 <input type="hidden" asp-for="RecPid" />
 <input type="hidden" asp-for="Header" />
 
+<section class="ra" id="@(_ra)">
+    <div class="ra-head">
+        <span class="material-icons-outlined-nosize">group</span>
+        @if (_lang_header != null && _lang_header != ".")
+        {
+            <h2>@(_lang_header)</h2>
+        }
+        else
+        {
+            <h2>@_f.tra("Role")</h2>
+        }
+        @if (Model.lisRepeator.Count > 1)
+        {
+            <span class="ra-sum" id="@(_ra)sum">@_f.tra("obsazeno") <strong>@_filled</strong> / @Model.lisRepeator.Count</span>
+        }
+    </div>
 
-<div class="card my-2">
-   
-    @if (_lang_header !=null && _lang_header !=".")
+    @for (int i = 0; i < Model.lisRepeator.Count(); i++)
     {
-        <div class="card-header">
-            @(_lang_header)
+        var c = Model.lisRepeator[i];
+        string mode = c.IsNone ? "none" : (c.x69IsAllUsers ? "all" : "sel");
+        <div class="ra-row ra-@mode@(c.x67IsRequired ? " ra-req" : "")" id="@(_ra)row@(i)" data-ra="@(_ra)" data-i="@i">
+            <div class="ra-name" role="button" tabindex="0" title="@_f.tra("Kliknutím obsadit / zrušit obsazení role")" onclick="ra_toggle('@(_ra)',@i)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();ra_toggle('@(_ra)',@i);}">
+                <strong>@c.x67Name</strong>
+                @if (c.x67IsRequired)
+                {
+                    <span class="ra-badge" title="@_f.tra("Role musí být obsazena")">@_f.tra("povinná")</span>
+                }
+            </div>
+
+            <div class="ra-seg" role="radiogroup" aria-label="@c.x67Name">
+                <input type="radio" name="@(_ra)mode@(i)" id="@(_ra)none@(i)" value="none" @(mode == "none" ? "checked" : "") onchange="ra_mode('@(_ra)',@i,'none')" /><label for="@(_ra)none@(i)">@(_lang_neobsazeno)</label>
+                <input type="radio" name="@(_ra)mode@(i)" id="@(_ra)sel@(i)" value="sel" @(mode == "sel" ? "checked" : "") onchange="ra_mode('@(_ra)',@i,'sel')" /><label for="@(_ra)sel@(i)">@_f.tra("Vybraní")</label>
+                <input type="radio" name="@(_ra)mode@(i)" id="@(_ra)all@(i)" value="all" @(mode == "all" ? "checked" : "") onchange="ra_mode('@(_ra)',@i,'all')" /><label for="@(_ra)all@(i)">@(_lang_vsichni)</label>
+            </div>
+
+            <div class="ra-who">
+                <div class="ra-pick" id="@(_ra)pick@(i)">
+                    <div class="ra-combo" id="divJ02@(i)" title="@_lang_uzivatele">
+                        <span class="material-icons-outlined-nosize">person</span>
+                        <mycombochecklist placeholder="@_lang_uzivatele" asp-for="@Model.lisRepeator[i].j02IDs" elementid-prefix="@(Model.elementidprefix)" entity="j02User" selectedtext="@Model.lisRepeator[i].Persons"></mycombochecklist>
+                    </div>
+                    <div class="ra-combo" id="divJ11@(i)" title="@_lang_tymy">
+                        <span class="material-icons-outlined-nosize">groups</span>
+                        <mycombochecklist placeholder="@_lang_tymy" asp-for="@Model.lisRepeator[i].j11IDs" entity="j11Team" elementid-prefix="@(Model.elementidprefix)" selectedtext="@Model.lisRepeator[i].Teams"></mycombochecklist>
+                    </div>
+                </div>
+                <div class="ra-allnote"><span class="material-icons-outlined-nosize">public</span>@_f.tra("Roli mají všichni uživatelé")</div>
+                <div class="ra-nonenote">@(c.x67IsRequired ? _f.tra("Povinnou roli je třeba obsadit.") : "–")</div>
+            </div>
+
+            <input type="hidden" asp-for="@Model.lisRepeator[i].IsNone" id="@(_ra)IsNone@(i)" value="@(c.IsNone ? "true" : "false")" />
+            <input type="hidden" asp-for="@Model.lisRepeator[i].x69IsAllUsers" id="@(_ra)IsAll@(i)" value="@(c.x69IsAllUsers ? "true" : "false")" />
+            <input type="hidden" asp-for="@Model.lisRepeator[i].x67ID" />
+            <input type="hidden" asp-for="@Model.lisRepeator[i].x67Name" />
+            <input type="hidden" asp-for="@Model.lisRepeator[i].x67Entity" />
+            <input type="hidden" asp-for="@Model.lisRepeator[i].x67IsRequired" />
         </div>
     }
-    <div class="card-body">
-        <table class="table table-hover table-borderless" style="min-width:600px;">
-            @for (int i = 0; i < Model.lisRepeator.Count(); i++)
-            {
-                <tr style="border-bottom:solid 1px #F5F5F5;">
-                    <td>
-                        <strong>@(Model.lisRepeator[i].x67Name):</strong>
-                        <div>
-                            <input type="checkbox" id="chkNone@(i)" asp-for="@Model.lisRepeator[i].IsNone" onchange="isnone_change(this,@(i))" />
-                            <label for="chkNone@(i)">@(_lang_neobsazeno)</label>
-                        </div>
-
-
-                        <input type="hidden" asp-for="@Model.lisRepeator[i].x67ID" />
-                        <input type="hidden" asp-for="@Model.lisRepeator[i].x67Name" />
-                        <input type="hidden" asp-for="@Model.lisRepeator[i].x67Entity" />
-                        <input type="hidden" asp-for="@Model.lisRepeator[i].x67IsRequired" />
-
-                    </td>
-                    <td style="min-width:180px;">
-                        <div id="divJ02@(i)" style="visibility:@(Model.lisRepeator[i].CssVisibility_j02)">
-                            <mycombochecklist placeholder="@_lang_uzivatele" asp-for="@Model.lisRepeator[i].j02IDs" elementid-prefix="@(Model.elementidprefix)" entity="j02User" selectedtext="@Model.lisRepeator[i].Persons"></mycombochecklist>
-                        </div>
-
-
-                    </td>
-                    <td style="min-width:150px;">
-                        <div id="divJ11@(i)" style="visibility: @(Model.lisRepeator[i].CssVisibility_j11)">
-                            <mycombochecklist placeholder="@_lang_tymy" asp-for="@Model.lisRepeator[i].j11IDs" entity="j11Team" elementid-prefix="@(Model.elementidprefix)" selectedtext="@Model.lisRepeator[i].Teams"></mycombochecklist>
-                        </div>
-
-                    </td>
-                    <td style="min-width:150px;">
-                        <div id="divAll@(i)" style="visibility: @(Model.lisRepeator[i].CssVisibility_all)">
-                            <input type="checkbox" id="chkAll@(i)" asp-for="@Model.lisRepeator[i].x69IsAllUsers" onchange="allpersons_change(this,@(i))" />
-                            <label for="chkAll@(i)">@(_lang_vsichni)</label>
-                        </div>
-
-                    </td>
-
-                </tr>
-
-            }
-        </table>
-    </div>
-    
-</div>
+</section>
 
 <script type="text/javascript">
-
-    function allpersons_change(chk, index) {
-        var s = "visible";
-        if ($(chk).prop("checked") == true) {
-            s = "hidden";
+    // přepnutí režimu role: none = neobsazeno, sel = vybraní uživatelé/týmy, all = všichni uživatelé
+    function ra_mode(ra, i, mode) {
+        const row = document.getElementById(ra + "row" + i);
+        if (!row) return;
+        row.classList.remove("ra-none", "ra-sel", "ra-all");
+        row.classList.add("ra-" + mode);
+        document.getElementById(ra + "IsNone" + i).value = mode === "none" ? "true" : "false";
+        document.getElementById(ra + "IsAll" + i).value = mode === "all" ? "true" : "false";
+        const sum = document.getElementById(ra + "sum");
+        if (sum) {
+            const host = document.getElementById(ra);
+            sum.querySelector("strong").textContent = host.querySelectorAll(".ra-row:not(.ra-none)").length;
         }
-        $("#divJ02" + index).css("visibility", s);
-        $("#divJ11" + index).css("visibility", s);
     }
-
-    function isnone_change(chk, index) {
-        var s = "visible";
-        if ($(chk).prop("checked") == true) {
-            $("#divJ02" + index).css("visibility", "hidden");
-            $("#divJ11" + index).css("visibility", "hidden");
-            $("#divAll" + index).css("visibility", "hidden");
-        } else {
-            $("#divAll" + index).css("visibility", "visible");
-            allpersons_change($("#chkAll" + index), index);
+    // klik na název role: neobsazeno → vybraní (otevře výběr uživatelů), obsazeno → neobsazeno (výběr zůstane uložený v poli, jen se nepoužije)
+    function ra_toggle(ra, i) {
+        const row = document.getElementById(ra + "row" + i);
+        if (!row) return;
+        const mode = row.classList.contains("ra-none") ? "sel" : "none";
+        document.getElementById(ra + mode + i).checked = true;
+        ra_mode(ra, i, mode);
+        if (mode === "sel") {
+            const btn = row.querySelector(".ra-combo .mcl-button");
+            const hasVal = Array.from(row.querySelectorAll(".ra-pick input[type=hidden]")).some(x => x.value);
+            if (btn && !hasVal) setTimeout(() => btn.click(), 0);
         }
-
-
+    }
+    // zpětná kompatibilita (dříve zaškrtávátka chkNone/chkAll)
+    function isnone_change(chk, index) {
+        ra_mode("@(_ra)", index, $(chk).prop("checked") ? "none" : "sel");
+    }
+    function allpersons_change(chk, index) {
+        ra_mode("@(_ra)", index, $(chk).prop("checked") ? "all" : "sel");
     }
 </script>

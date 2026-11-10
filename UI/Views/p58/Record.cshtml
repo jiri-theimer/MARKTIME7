@@ -1,9 +1,12 @@
 ﻿@model UI.Models.Record.p58Record
 @inject BL.Factory _f
 
+@* Předpis opakovaného úkolu. Verze 8: záložky jako p56/Record (třídy rf-*, css/recordform.css + css/p58record.css),
+   živý náhled nejbližších termínů (js níže, orientační – přesný plán vytváří p58_aftersave, viz karta záznamu).
+   Názvy polí a id beze změny; „Více“ už není postback – všechny části jsou v záložkách (IsShowMore = true → ukládá se vše). *@
+
 @{
     Model.PageTitle = _f.tra("Předpis opakovaného úkolu");
-
 
     if (Model.Rec.p41ID > 0)
     {
@@ -18,353 +21,403 @@
     }
 
     Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+
+    bool _showPlan = Model.RecP57 != null && Model.RecP57.p57PlanScope != BO.p57PlanScopeEnum.NenabizetPlan;
+    bool _hasFee = Model.Rec.p34ID > 0 || Model.Rec.p58FeeAmount != 0;
+    bool _hasNote = !string.IsNullOrEmpty(Model.Notepad?.HtmlContent);
+    bool _hasPlan = Model.Rec.p58Plan_Hours > 0 || Model.Rec.p58Plan_Expenses > 0 || Model.Rec.p58Plan_Revenue > 0;
+
+    var _types = new (string val, string id, string text)[] {
+        ("Week", "chkWeek", _f.tra("Týden")),
+        ("Weeks2", "chkWeeks2", _f.tra("2 týdny")),
+        ("Month", "chkMonth", _f.tra("Měsíc")),
+        ("Quarter", "chkQuarter", _f.tra("Čtvrtletí")),
+        ("Year", "chkYear", _f.tra("Rok"))
+    };
 }
 
 @addTagHelper *, UI
 
-
-
-
 @section header_content
 {
-
-    @if (Model.IsShowMore && Model.Notepad.SelectedX04ID > 0)
+    <link rel="stylesheet" href="~/css/recordform.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/p58record.css" asp-append-version="true" />
+    @if (Model.Notepad.SelectedX04ID > 0)
     {
         <link href="~/lib/froala-editor/css/froala_editor.pkgd.min.css" rel="stylesheet" type="text/css" />
     }
 }
 
-@if (Model.IsShowMore && Model.Notepad.SelectedX04ID > 0)
-{
-    <link href="~/lib/froala-editor/css/froala_editor.pkgd.min.css" rel="stylesheet" type="text/css" />
-}
-
-
-@Html.Raw("<div class='modal_record_container'>")
-
-
-<div class="my-2">
-    <input class="form-control record_name" asp-for="Rec.p58Name" placeholder="@_f.tra("Maska názvu úkolu")" />
-</div>
-
-<div class="card">
-    <div class="card-header">
-        @_f.tra("Opakování")
-    </div>
-    <div class="card-body">
-        <table>
-            <tr>
-                <td style="padding-right:40px;">
-
-                    <input type="radio" value="Week" id="chkWeek" asp-for="@Model.Rec.p58RecurrenceType" />
-                    <label for="chkWeek">@_f.tra("Týdenní opakování")</label>
-                    <p></p>
-
-                    <input type="radio" value="Weeks2" id="chkWeeks2" asp-for="@Model.Rec.p58RecurrenceType" />
-                    <label for="chkWeeks2">@_f.tra("2-týdenní opakování")</label>
-                    <p></p>
-
-                    <input type="radio" value="Month" id="chkMonth" asp-for="@Model.Rec.p58RecurrenceType" />
-                    <label for="chkMonth">@_f.tra("Měsíční opakování")</label>
-                    <p></p>
-                    <input type="radio" value="Quarter" id="chkQuarter" asp-for="@Model.Rec.p58RecurrenceType" />
-                    <label for="chkQuarter">@_f.tra("Čtvrtletní opakování")</label>
-                    <p></p>
-                    <input type="radio" value="Year" id="chkYear" asp-for="@Model.Rec.p58RecurrenceType" />
-                    <label for="chkYear">@_f.tra("Roční opakování")</label>
-                    <p></p>
-                </td>
-                <td>
-                    <div class="row">
-                        <label class="col-sm-5 col-md-6 col-form-label recpagelabel">@(_f.tra("První rozhodné datum (RD)")):</label>
-                        <div class="col-sm-3 col-md-4">
-                            <mydate asp-for="Rec.p58BaseDateStart" include-time="false"></mydate>
-
-                        </div>
-
-                    </div>
-                    <div class="row my-2">
-                        <mylabel class="col-sm-6 col-md-7 col-form-label" text="@(_f.tra("Datum generování bude o X dní před/po RD (-/+)"))" tooltip="Mínus číslo: dny před RD, Plus číslo: dny po RD"></mylabel>
-                        <div class="col-sm-2 col-md-3">
-                            <mynumber asp-for="Rec.p58Generate_DaysToBase_D" class="record_ordinary" decimal-digits="0"></mynumber>
-                        </div>
-                        
-                    </div>
-                    <div class="row my-2">
-                        <mylabel class="col-sm-6 col-md-7 col-form-label" text="@(_f.tra("Datum generování bude o X měsíců před/po RD (-/+)"))" tooltip="Mínus číslo: měsíce před RD, Plus číslo: měsíce po RD"></mylabel>
-                        <div class="col-sm-2 col-md-3">
-                            <mynumber asp-for="Rec.p58Generate_DaysToBase_M" class="record_ordinary" decimal-digits="0"></mynumber>
-                        </div>
-                        
-                    </div>
-                    <div class="row">
-                        <mylabel class="col-sm-5 col-md-6 col-form-label" text="@(_f.tra("Poslední rozhodné datum"))" tooltip="Datum, kdy má skončit generování úkolů podle této šablony.<hr>Generování skoční i v případě, že tento záznam přesunuete do archivu."></mylabel>
-                        <div class="col-sm-3 col-md-4">
-                            <mydate asp-for="Rec.p58BaseDateEnd" include-time="false"></mydate>
-
-                        </div>
-                       
-                    </div>
-                </td>
-            </tr>
-        </table>
-
-
-    </div>
-</div>
-
-<dv class="my-2">
-    @Html.EditorFor(m => m.reminder, "~/Views/Shared/_Reminder.cshtml")
-</dv>
-
-<div class="my-2">
-    <input type="checkbox" asp-for="Rec.p58IsPlanUntil" onchange="_postback('refresh')" />
-    <label for="Rec_p58IsPlanUntil">@_f.tra("V úkolu má být datum termínu (plán dokončení)")</label>
-</div>
-
-
-
-@if (Model.Rec.p58IsPlanUntil)
-{
-    <div class="row my-2">
-        <mylabel class="col-sm-2 col-md-3 col-form-label" text="@(_f.tra("Termín bude o X dní před/po RD (-/+)"))" tooltip="Mínus číslo: dny před RD, Plus číslo: dny po RD"></mylabel>
-        <div class="col-sm-1 col-md-1">
-            <mynumber asp-for="Rec.p58PlanUntil_D2Base" class="record_ordinary" decimal-digits="0"></mynumber>
-        </div>
-      
-    </div>
-    <div class="row my-2">
-        <mylabel class="col-sm-2 col-md-3 col-form-label" text="@(_f.tra("Termín bude o X měsíců před/po RD (-/+)"))" tooltip="Mínus číslo: měsíce před RD, Plus číslo: měsíce po RD"></mylabel>
-        <div class="col-sm-1 col-md-1">
-            <mynumber asp-for="Rec.p58PlanUntil_M2Base" class="record_ordinary" decimal-digits="0"></mynumber>
-        </div>
-       
-    </div>
-}
-
-<div class="my-2">
-    <input type="checkbox" asp-for="Rec.p58IsPlanFrom" onchange="_postback('refresh')" />
-    <label for="Rec_p58IsPlanFrom">@_f.tra("V úkolu má být datum plánovaného zahájení")</label>
-</div>
-
-
-@if (Model.Rec.p58IsPlanFrom)
-{
-    <div class="row my-2">
-        <mylabel class="col-sm-2 col-md-3 col-form-label" text="@(_f.tra("Zahájení bude o X dní před/po RD (-/+)"))" tooltip="Mínus číslo: dny před RD, Plus číslo: dny po RD"></mylabel>
-        <div class="col-sm-1 col-md-1">
-            <mynumber asp-for="Rec.p58PlanFrom_D2Base" class="record_ordinary" decimal-digits="0"></mynumber>
-        </div>
-        
-    </div>
-    <div class="row my-2">
-        <mylabel class="col-sm-2 col-md-3 col-form-label" text="@(_f.tra("Zahájení bude o X měsíců před/po RD (-/+)"))" tooltip="Mínus číslo: měsíce před RD, Plus číslo: měsíce po RD"></mylabel>
-        <div class="col-sm-1 col-md-1">
-            <mynumber asp-for="Rec.p58PlanFrom_M2Base" class="record_ordinary" decimal-digits="0"></mynumber>
-        </div>
-        
-    </div>
-}
-
-
-@Html.EditorFor(m => m.roles, "~/Views/Shared/_RoleAssign.cshtml")
-
-@Html.EditorFor(m => m.ProjectCombo, "~/Views/Shared/_ProjectCombo.cshtml")
-
-<div class="input-group" style="padding-top:5px;">
-    <div>
-        <button id="cmdMore" type="button" class="btn dropdown-toggle bog" onclick="_postback('more')">@_f.tra("Více")</button>
-    </div>
-
-</div>
-
-<div class="divMore">
-
-
-    @if (Model.IsShowMore)
-    {
-
-
-        <div class="card my-2">
-                <div class="card-body">
-                    <div class="card-title" style="text-decoration: underline;">
-                        <span>Opakovaná odměna</span>
-                    </div>
-
-                    <table>
-                    <tr>
-                        <th>Bez DPH</th>
-                        <td>DPH</td>
-                        <th>Sešit</th>
-                        <th>Aktivita</th>
-                        <th>Měna</th>
-                    </tr>
-                    <tr>
-                        <td>
-                            <mynumber asp-for="Rec.p58FeeAmount" decimal-digits="2" placeholder="Bez dph"></mynumber>
-                        </td>
-                        <td>
-                            <select asp-for="@Model.Rec.x15ID" class="form-select">
-                                <option value="Nic"></option>
-                                <option value="BezDPH">@_f.tra("0% (Bez DPH)")</option>
-                                <option value="SnizenaSazba">@_f.tra("Snížená sazba DPH")</option>
-                                <option value="ZakladniSazba">@_f.tra("Základní sazba DPH")</option>
-                                <option value="SpecialniSazba">@_f.tra("Speciální sazba DPH")</option>
-                            </select>
-                        </td>
-                        <td style="min-width:250px;">
-                            <mycombo entity="p34ActivityGroup" asp-for="Rec.p34ID" myqueryinline="isfeeinput|bool|true" selectedtext="@Model.ComboP34" event_after_changevalue="_postback()"></mycombo>
-                        </td>
-                        <td style="min-width:350px;">
-                            <mycombo entity="p32Activity" asp-for="Rec.p32ID" selectedtext="@Model.ComboP32" myqueryinline="p34id|int|@Model.Rec.p34ID"></mycombo>
-                        </td>
-                        <td>
-                            <mycombo entity="j27Currency" asp-for="Rec.j27ID" selectedtext="@Model.ComboJ27Code"></mycombo>
-                        </td>
-                    </tr>
-                    </table>
-                    
-                    
-                    <div class="form-floating my-2">
-                        <textarea class="form-control" asp-for="Rec.p58FeeText"></textarea>
-                        <label for="Rec_p58FeeText">@_f.tra("Maska textu generované odměny (úkonu)") [YYYY]: Rok, [MM] nebo [M]:Měsíc, [QQ] nebo [Q]: Čtvrtletí</label>
-                    </div>
-                    <table>
-                        <tr>
-                            <td>
-                            <label>@_f.tra("Fa hodiny v odměně zdarma"):</label>
-                            </td>
-                            <td>
-                            <mynumber asp-for="Rec.p58FreeHours" decimal-digits="2"></mynumber>
-                            </td>
-                            
-                        </tr>
-                    </table>
-               
-             
-
-                </div>
-
-
-        </div>
-
-
-
-        
-
-
-        
-
-
-
-        @if (Model.RecP57 != null && Model.RecP57.p57PlanScope != BO.p57PlanScopeEnum.NenabizetPlan)
+<div class="tabs_container_record">
+    <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab1" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab1">@_f.tra("Opakování")</a>
+        </li>
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab2" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab2">@_f.tra("Notepad")@if (_hasNote)
+                {
+                    <span class="p58-dot" title="@_f.tra("Vyplněno")"></span>
+                }</a>
+        </li>
+        @if (_showPlan)
         {
-            <div class="card my-2">
-                <div class="card-body">
-                    <div class="card-title" style="text-decoration: underline;">
-                        <span>Plán/Limit rozpracovaných hodin a výdajů</span>
-                    </div>
-                    <div class="card-body row">
-                        <label class="col-auto col-form-label recpagelabel">@(_f.tra("Plán hodin")):</label>
-                        <div class="col-sm-1 col-md-1">
-                            <mynumber asp-for="Rec.p58Plan_Hours" decimal-digits="2"></mynumber>
-                        </div>
+            <li class="nav-item onetab" role="presentation">
+                <a id="link_tab3" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab3">@_f.tra("Plán/Rozpočet")@if (_hasPlan)
+                    {
+                        <span class="p58-dot" title="@_f.tra("Vyplněno")"></span>
+                    }</a>
+            </li>
+        }
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab5" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab5">@_f.tra("Opakovaná odměna")@if (_hasFee)
+                {
+                    <span class="p58-dot" title="@_f.tra("Vyplněno")"></span>
+                }</a>
+        </li>
+        <li class="nav-item onetab" role="presentation">
+            <a id="link_tab4" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab4">@_f.tra("Různé")</a>
+        </li>
+    </ul>
+</div>
 
-                        <label class="col-auto col-form-label recpagelabel">@(_f.tra("Plán výdajů")):</label>
-                        <div class="col-sm-2 col-md-2">
-                            <mynumber asp-for="Rec.p58Plan_Expenses" decimal-digits="2"></mynumber>
-                        </div>
+@Html.Raw("<div class='modal_record_container_flexi'>")
+@Html.Raw("<div class='tab-content'>")
 
-                        <label class="col-auto col-form-label recpagelabel">@(_f.tra("Plán odměn")):</label>
-                        <div class="col-sm-2 col-md-2">
-                            <mynumber asp-for="Rec.p58Plan_Revenue" decimal-digits="2"></mynumber>
-                        </div>
+<div class="tab-pane tab-pane-fixed" id="tab1" role="tabpanel">
+    <div class="rf">
+        <section class="rf-card">
+            <div class="rf-field">
+                <label for="Rec_p58Name">@_f.tra("Maska názvu úkolu")</label>
+                <input class="form-control record_name" asp-for="Rec.p58Name" placeholder="@_f.tra("Maska názvu úkolu")" />
+                <span class="rf-hint">@_f.tra("Zástupné symboly podle rozhodného data"): <code>[YYYY]</code> @_f.tra("rok"), <code>[MM]</code> / <code>[M]</code> @_f.tra("měsíc"), <code>[QQ]</code> / <code>[Q]</code> @_f.tra("čtvrtletí")</span>
+            </div>
+            <div class="rf-row">
+                <label for="cmdComboRec_p57ID" class="rf-label">@_f.tra("Typ úkolu")</label>
+                <div class="rf-value rf-w-half"><mycombo entity="p57TaskType" asp-for="@Model.Rec.p57ID" selectedtext="@Model.ComboP57" filter-flag="1" event_after_changevalue="change_p57id"></mycombo></div>
+            </div>
+            <div class="rf-project">
+                @Html.EditorFor(m => m.ProjectCombo, "~/Views/Shared/_ProjectCombo.cshtml")
+            </div>
+        </section>
 
-                        <div class="col-auto">
-                            <select asp-for="@Model.Rec.p58PlanFlag" class="form-select">
-                                <option value="0"></option>
-                                <option value="ZastropovatHodiny">@_f.tra("Zákaz vykázat hodiny nad Plán")</option>
-                                <option value="ZastropovatVydaje">@_f.tra("Zákaz vykázat výdaje nad Plán")</option>
-                                <option value="ZastropovatHodinyVydaje">@_f.tra("Zákaz vykázat hodiny i výdaje nad Plán")</option>
-                            </select>
+        <div class="p58-grid">
+            <section class="rf-card">
+                <h2><span class="material-icons-outlined-nosize">event_repeat</span>@_f.tra("Opakování")</h2>
+                <div class="rf-row">
+                    <span class="rf-label">@_f.tra("Opakovat každý")</span>
+                    <div class="rf-value">
+                        <div class="rf-seg p58-seg" role="radiogroup" aria-label="@_f.tra("Opakování")">
+                            @foreach (var t in _types)
+                            {
+                                <input type="radio" value="@t.val" id="@t.id" asp-for="@Model.Rec.p58RecurrenceType" /><label for="@t.id">@t.text</label>
+                            }
                         </div>
                     </div>
                 </div>
+                <div class="rf-row">
+                    <label for="Rec_p58BaseDateStarthelper" class="rf-label" title="@_f.tra("Rozhodné datum (RD) – od něj se odvíjí název, termín i datum generování úkolu.")">@_f.tra("První rozhodné datum (RD)")</label>
+                    <div class="rf-value rf-w-date"><mydate asp-for="Rec.p58BaseDateStart" include-time="false"></mydate></div>
+                </div>
+                <div class="rf-row">
+                    <label for="Rec_p58BaseDateEndhelper" class="rf-label" title="@_f.tra("Datum, kdy má skončit generování úkolů podle této šablony. Generování skončí i v případě, že záznam přesunete do archivu.")">@_f.tra("Poslední rozhodné datum")</label>
+                    <div class="rf-value rf-w-date"><mydate asp-for="Rec.p58BaseDateEnd" include-time="false"></mydate></div>
+                </div>
 
+                <div class="p58-offsets">
+                    <div class="p58-off">
+                        <span class="p58-off-title"><span class="material-icons-outlined-nosize">auto_awesome</span>@_f.tra("Úkol se vygeneruje")</span>
+                        <div class="p58-off-inputs">
+                            <div class="p58-num"><mynumber asp-for="Rec.p58Generate_DaysToBase_D" class="record_ordinary" decimal-digits="0"></mynumber></div><span>@_f.tra("dní")</span>
+                            <div class="p58-num"><mynumber asp-for="Rec.p58Generate_DaysToBase_M" class="record_ordinary" decimal-digits="0"></mynumber></div><span>@_f.tra("měsíců")</span>
+                            <span class="p58-rel">@_f.tra("od RD")</span>
+                        </div>
+                    </div>
 
-            </div>
-        }
+                    <div class="p58-off">
+                        <label class="p58-off-title form-check-label" for="Rec_p58IsPlanUntil">
+                            <input type="checkbox" class="form-check-input" asp-for="Rec.p58IsPlanUntil" onchange="p58_toggle(this,'divPlanUntil')" />
+                            @_f.tra("Úkol má termín (plán dokončení)")
+                        </label>
+                        <div id="divPlanUntil" class="p58-off-inputs" @(Model.Rec.p58IsPlanUntil ? "" : "hidden")>
+                            <div class="p58-num"><mynumber asp-for="Rec.p58PlanUntil_D2Base" class="record_ordinary" decimal-digits="0"></mynumber></div><span>@_f.tra("dní")</span>
+                            <div class="p58-num"><mynumber asp-for="Rec.p58PlanUntil_M2Base" class="record_ordinary" decimal-digits="0"></mynumber></div><span>@_f.tra("měsíců")</span>
+                            <span class="p58-rel">@_f.tra("od RD")</span>
+                        </div>
+                    </div>
 
+                    <div class="p58-off">
+                        <label class="p58-off-title form-check-label" for="Rec_p58IsPlanFrom">
+                            <input type="checkbox" class="form-check-input" asp-for="Rec.p58IsPlanFrom" onchange="p58_toggle(this,'divPlanFrom')" />
+                            @_f.tra("Úkol má plánované zahájení")
+                        </label>
+                        <div id="divPlanFrom" class="p58-off-inputs" @(Model.Rec.p58IsPlanFrom ? "" : "hidden")>
+                            <div class="p58-num"><mynumber asp-for="Rec.p58PlanFrom_D2Base" class="record_ordinary" decimal-digits="0"></mynumber></div><span>@_f.tra("dní")</span>
+                            <div class="p58-num"><mynumber asp-for="Rec.p58PlanFrom_M2Base" class="record_ordinary" decimal-digits="0"></mynumber></div><span>@_f.tra("měsíců")</span>
+                            <span class="p58-rel">@_f.tra("od RD")</span>
+                        </div>
+                    </div>
+                    <span class="rf-hint">@_f.tra("Záporné číslo = před RD, kladné = po RD.")</span>
+                </div>
+            </section>
 
-        @Html.EditorFor(m => m.Notepad, "~/Views/Shared/_Notepad.cshtml")
-
-
-        <div class="row my-2">
-            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Zadavatel (Vlastník záznamu)"):</label>
-            <div class="col-sm-6 col-md-5">
-                <mycombo entity="j02User" asp-for="Rec.j02ID_Owner" selectedtext="@Model.ComboOwner" view-flag="2"></mycombo>
-            </div>
-            <label class="col-sm-1 col-md-1 col-form-label">@_f.tra("Typ úkolu"):</label>
-            <div class="col-sm-4 col-md-4">
-                <mycombo entity="p57TaskType" asp-for="@Model.Rec.p57ID" selectedtext="@Model.ComboP57" filter-flag="1" event_after_changevalue="change_p57id"></mycombo>
-
-            </div>
-
+            <section class="rf-card p58-preview">
+                <h2><span class="material-icons-outlined-nosize">preview</span>@_f.tra("Náhled")</h2>
+                <div id="p58Preview"></div>
+                <span class="rf-hint">@_f.tra("Orientační výpočet. Přesný plán generování je po uložení na kartě opakovaného úkolu.")</span>
+            </section>
         </div>
-        <div class="my-2">
-            <input type="checkbox" asp-for="@Model.Rec.p58IsStopNotify" />
-            <label for="Rec_p58IsStopNotify">@_f.tra("V úkolu vypnout notifikační zprávy")</label>
+
+        @Html.EditorFor(m => m.roles, "~/Views/Shared/_RoleAssign.cshtml")
+
+        <div class="rf-extras">
+            @Html.EditorFor(m => m.reminder, "~/Views/Shared/_Reminder.cshtml")
         </div>
-
-    }
-    else
-    {
-        <input type="hidden" asp-for="Rec.p57ID" value="@Model.Rec.p57ID" />
-        <input type="hidden" asp-for="Rec.p58IsStopNotify" value="@Model.Rec.p58IsStopNotify" />
-
-
-        <input type="hidden" asp-for="Rec.j02ID_Owner" value="@Model.Rec.j02ID_Owner" />
-        <input type="hidden" asp-for="ComboOwner" value="@Model.ComboOwner" />
-        <input type="hidden" asp-for="b05RecordPid" />
-        <input type="hidden" asp-for="b05RecordEntity" />
-    }
-
-
-
-
+    </div>
 </div>
 
+<div class="tab-pane tab-pane-fixed" id="tab2" role="tabpanel">
+    @Html.EditorFor(m => m.Notepad, "~/Views/Shared/_Notepad.cshtml")
+</div>
+
+@if (_showPlan)
+{
+    <div class="tab-pane tab-pane-fixed" id="tab3" role="tabpanel">
+        <div class="rf">
+            <section class="rf-card">
+                <h2><span class="material-icons-outlined-nosize">savings</span>@_f.tra("Plán/Limit rozpracovaných hodin a výdajů")</h2>
+                <div class="rf-row">
+                    <label class="rf-label">@(_f.tra("Plán hodin"))</label>
+                    <div class="rf-value rf-w-num"><mynumber asp-for="Rec.p58Plan_Hours" decimal-digits="2"></mynumber></div>
+                </div>
+                <div class="rf-row">
+                    <label class="rf-label">@(_f.tra("Plán výdajů"))</label>
+                    <div class="rf-value rf-w-num"><mynumber asp-for="Rec.p58Plan_Expenses" decimal-digits="2"></mynumber></div>
+                </div>
+                <div class="rf-row">
+                    <label class="rf-label">@(_f.tra("Plán odměn"))</label>
+                    <div class="rf-value rf-w-num"><mynumber asp-for="Rec.p58Plan_Revenue" decimal-digits="2"></mynumber></div>
+                </div>
+                <div class="rf-row">
+                    <label for="Rec_p58PlanFlag" class="rf-label">@_f.tra("Limit")</label>
+                    <div class="rf-value">
+                        <select asp-for="@Model.Rec.p58PlanFlag" class="form-select">
+                            <option value="0">@_f.tra("Bez omezení")</option>
+                            <option value="ZastropovatHodiny">@_f.tra("Zákaz vykázat hodiny nad Plán")</option>
+                            <option value="ZastropovatVydaje">@_f.tra("Zákaz vykázat výdaje nad Plán")</option>
+                            <option value="ZastropovatHodinyVydaje">@_f.tra("Zákaz vykázat hodiny i výdaje nad Plán")</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+}
+else
+{
+    <input type="hidden" asp-for="Rec.p58Plan_Hours" value="@Model.Rec.p58Plan_Hours" />
+    <input type="hidden" asp-for="Rec.p58Plan_Expenses" value="@Model.Rec.p58Plan_Expenses" />
+    <input type="hidden" asp-for="Rec.p58Plan_Revenue" value="@Model.Rec.p58Plan_Revenue" />
+    <input type="hidden" asp-for="Rec.p58PlanFlag" value="@Model.Rec.p58PlanFlag" />
+}
+
+<div class="tab-pane tab-pane-fixed" id="tab5" role="tabpanel">
+    <div class="rf">
+        <section class="rf-card">
+            <h2><span class="material-icons-outlined-nosize">payments</span>@_f.tra("Opakovaná odměna")</h2>
+            <p class="p58-intro">@_f.tra("S každým vygenerovaným úkolem vznikne v projektu i úkon opakované odměny. Vyžaduje projekt, aktivitu, částku a text úkonu; 2-týdenní opakování není podporováno.")</p>
+            <div class="rf-row">
+                <label for="cmdComboRec_p34ID" class="rf-label">@_f.tra("Sešit")</label>
+                <div class="rf-value rf-w-half"><mycombo entity="p34ActivityGroup" asp-for="Rec.p34ID" myqueryinline="isfeeinput|bool|true" selectedtext="@Model.ComboP34" event_after_changevalue="_postback()"></mycombo></div>
+            </div>
+            <div class="rf-row">
+                <label for="cmdComboRec_p32ID" class="rf-label">@_f.tra("Aktivita")</label>
+                <div class="rf-value rf-w-half"><mycombo entity="p32Activity" asp-for="Rec.p32ID" selectedtext="@Model.ComboP32" myqueryinline="p34id|int|@Model.Rec.p34ID"></mycombo></div>
+            </div>
+            <div class="rf-row">
+                <label class="rf-label">@_f.tra("Částka bez DPH")</label>
+                <div class="rf-value rf-inline p58-fee">
+                    <div class="rf-w-num"><mynumber asp-for="Rec.p58FeeAmount" decimal-digits="2"></mynumber></div>
+                    <div class="p58-cur"><mycombo entity="j27Currency" asp-for="Rec.j27ID" selectedtext="@Model.ComboJ27Code"></mycombo></div>
+                </div>
+            </div>
+            <div class="rf-row">
+                <label for="Rec_x15ID" class="rf-label">@_f.tra("DPH")</label>
+                <div class="rf-value rf-w-half">
+                    <select asp-for="@Model.Rec.x15ID" class="form-select">
+                        <option value="Nic"></option>
+                        <option value="BezDPH">@_f.tra("0% (Bez DPH)")</option>
+                        <option value="SnizenaSazba">@_f.tra("Snížená sazba DPH")</option>
+                        <option value="ZakladniSazba">@_f.tra("Základní sazba DPH")</option>
+                        <option value="SpecialniSazba">@_f.tra("Speciální sazba DPH")</option>
+                    </select>
+                </div>
+            </div>
+            <div class="rf-row p58-top">
+                <label for="Rec_p58FeeText" class="rf-label">@_f.tra("Maska textu úkonu")</label>
+                <div class="rf-value">
+                    <textarea class="form-control" asp-for="Rec.p58FeeText" rows="3"></textarea>
+                    <span class="rf-hint"><code>[YYYY]</code> @_f.tra("rok"), <code>[MM]</code> / <code>[M]</code> @_f.tra("měsíc"), <code>[QQ]</code> / <code>[Q]</code> @_f.tra("čtvrtletí")</span>
+                </div>
+            </div>
+            <div class="rf-row">
+                <label class="rf-label">@_f.tra("Fa hodiny v odměně zdarma")</label>
+                <div class="rf-value rf-w-num"><mynumber asp-for="Rec.p58FreeHours" decimal-digits="2"></mynumber></div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<div class="tab-pane tab-pane-fixed" id="tab4" role="tabpanel">
+    <div class="rf">
+        <section class="rf-card">
+            <div class="rf-row">
+                <label for="cmdComboRec_j02ID_Owner" class="rf-label">@_f.tra("Zadavatel (Vlastník záznamu)")</label>
+                <div class="rf-value rf-w-half"><mycombo entity="j02User" asp-for="Rec.j02ID_Owner" selectedtext="@Model.ComboOwner" view-flag="2"></mycombo></div>
+            </div>
+            <div class="rf-row">
+                <span class="rf-label"></span>
+                <div class="rf-value form-check">
+                    <input type="checkbox" class="form-check-input" asp-for="@Model.Rec.p58IsStopNotify" />
+                    <label class="form-check-label" for="Rec_p58IsStopNotify">@_f.tra("V úkolu vypnout notifikační zprávy")</label>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
 
 @Html.Raw("</div>")
+@Html.Raw("</div>")
 
-<input type="hidden" asp-for="@Model.IsShowMore" value="@Model.IsShowMore" />
-
+@* všechny části jsou ve formuláři vždy → ukládat i plán, notepad a příznaky (dříve jen po rozbalení „Více“) *@
+<input type="hidden" name="IsShowMore" value="true" />
 <input type="hidden" asp-for="Rec.p41ID" value="@Model.Rec.p41ID" />
-
-
-
+<input type="hidden" asp-for="ComboOwner" value="@Model.ComboOwner" />
+<input type="hidden" asp-for="b05RecordPid" />
+<input type="hidden" asp-for="b05RecordEntity" />
 
 <script type="text/javascript">
-    $(document).ready(function () {
-
-
-
-
-
-
-    });
-
-
     function hardrefresh(pid, flag) {
-
-
         _postback();
     }
-
-
-
 
     function change_p57id(p57id) {
         _postback("p57id");
     }
+
+    function p58_toggle(chk, divid) {
+        document.getElementById(divid).hidden = !chk.checked;
+        p58_preview();
+    }
+
+    // náhled: posun data stejně jako BO.Code.Bas.get_posun_datum (měsíce se zachováním konce měsíce, pak dny)
+    const p58_txt = @Json.Serialize(new {
+        rd = _f.tra("RD"), gen = _f.tra("Generování"), until = _f.tra("Termín"), from = _f.tra("Zahájení"),
+        count = _f.tra("Počet úkolů v období"), toomany = _f.tra("Příliš dlouhé období – nejvýše 200 úkolů. Snižte poslední rozhodné datum."),
+        weeks2fee = _f.tra("U opakované odměny není podpora 2-týdenního opakování."), missing = _f.tra("Vyplňte první rozhodné datum."),
+        more = _f.tra("… a další"), past = _f.tra("datum generování už uplynulo")
+    });
+
+    function p58_date(id) {
+        const el = document.getElementById(id);
+        if (!el || !el.value) return null;
+        const m = el.value.trim().match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})/);
+        if (!m) return null;
+        return new Date(+m[3], +m[2] - 1, +m[1]);
+    }
+    function p58_num(id) {
+        const el = document.getElementById("num" + id) || document.getElementById(id);
+        if (!el) return 0;
+        const n = parseInt(String(el.value).replace(/\s/g, "").replace(",", "."), 10);
+        return isNaN(n) ? 0 : n;
+    }
+    function p58_addMonths(d, months) {
+        const r = new Date(d.getFullYear(), d.getMonth() + months, 1);
+        const last = new Date(r.getFullYear(), r.getMonth() + 1, 0).getDate();
+        r.setDate(Math.min(d.getDate(), last));
+        return r;
+    }
+    function p58_shift(d, days, months) {
+        let r = new Date(d);
+        if (months !== 0) {
+            const isEom = d.getDate() === new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+            r = p58_addMonths(r, months);
+            if (isEom) r = new Date(r.getFullYear(), r.getMonth() + 1, 0);
+        }
+        r.setDate(r.getDate() + days);
+        return r;
+    }
+    function p58_next(d, type, step) {
+        switch (type) {
+            case "Week": return new Date(d.getFullYear(), d.getMonth(), d.getDate() + 7 * step);
+            case "Weeks2": return new Date(d.getFullYear(), d.getMonth(), d.getDate() + 14 * step);
+            case "Quarter": return p58_addMonths(d, 3 * step);
+            case "Year": return p58_addMonths(d, 12 * step);
+            default: return p58_addMonths(d, step);
+        }
+    }
+    function p58_fmt(d) {
+        return d.toLocaleDateString("cs-CZ", { weekday: "short", day: "numeric", month: "numeric", year: "numeric" });
+    }
+    function p58_esc(s) {
+        return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+
+    let p58_last = "";
+    function p58_preview() {
+        const host = document.getElementById("p58Preview");
+        if (!host) return;
+        const typeEl = document.querySelector("input[name='Rec.p58RecurrenceType']:checked");
+        const type = typeEl ? typeEl.value : "Month";
+        const d1 = p58_date("Rec_p58BaseDateStart") || p58_date("Rec_p58BaseDateStarthelper");
+        const d2 = p58_date("Rec_p58BaseDateEnd") || p58_date("Rec_p58BaseDateEndhelper");
+        const g = [p58_num("Rec_p58Generate_DaysToBase_D"), p58_num("Rec_p58Generate_DaysToBase_M")];
+        const isUntil = document.getElementById("Rec_p58IsPlanUntil").checked;
+        const isFrom = document.getElementById("Rec_p58IsPlanFrom").checked;
+        const u = [p58_num("Rec_p58PlanUntil_D2Base"), p58_num("Rec_p58PlanUntil_M2Base")];
+        const f = [p58_num("Rec_p58PlanFrom_D2Base"), p58_num("Rec_p58PlanFrom_M2Base")];
+        const fee = document.getElementById("Rec_p34ID");
+        const sig = [type, d1 && d1.getTime(), d2 && d2.getTime(), g, isUntil, u, isFrom, f, fee && fee.value].join("|");
+        if (sig === p58_last) return;
+        p58_last = sig;
+
+        if (!d1) {
+            host.innerHTML = "<div class='p58-warn'>" + p58_esc(p58_txt.missing) + "</div>";
+            return;
+        }
+
+        // počet cyklů jako BO.Code.Recurrence.GetPocetCyklu: while (d < d2) units++
+        let count = 0;
+        if (d2) {
+            let t = new Date(d1);
+            while (t < d2 && count <= 201) { count++; t = p58_next(d1, type, count); }
+        }
+
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        let html = "<ol class='p58-list'>";
+        const max = 4;
+        for (let i = 0; i < max; i++) {
+            const rd = p58_next(d1, type, i);
+            if (d2 && rd > d2) break;
+            const gen = p58_shift(rd, g[0], g[1]);
+            html += "<li><div class='p58-li-rd'><span>" + p58_esc(p58_txt.rd) + "</span><strong>" + p58_esc(p58_fmt(rd)) + "</strong></div><div class='p58-li-meta'>";
+            html += "<span" + (gen < today ? " class='p58-past' title='" + p58_esc(p58_txt.past) + "'" : "") + "><span class='material-icons-outlined-nosize'>auto_awesome</span>" + p58_esc(p58_txt.gen) + " " + p58_esc(p58_fmt(gen)) + "</span>";
+            if (isFrom) html += "<span><span class='material-icons-outlined-nosize'>play_arrow</span>" + p58_esc(p58_txt.from) + " " + p58_esc(p58_fmt(p58_shift(rd, f[0], f[1]))) + "</span>";
+            if (isUntil) html += "<span><span class='material-icons-outlined-nosize'>flag</span>" + p58_esc(p58_txt.until) + " " + p58_esc(p58_fmt(p58_shift(rd, u[0], u[1]))) + "</span>";
+            html += "</div></li>";
+        }
+        html += "</ol>";
+        if (count > max) html += "<div class='p58-more'>" + p58_esc(p58_txt.more) + "</div>";
+        if (d2) html += "<div class='p58-count'>" + p58_esc(p58_txt.count) + ": <strong>" + (count > 200 ? "200+" : count) + "</strong></div>";
+        if (count > 200) html += "<div class='p58-warn'>" + p58_esc(p58_txt.toomany) + "</div>";
+        if (type === "Weeks2" && fee && fee.value && fee.value !== "0") html += "<div class='p58-warn'>" + p58_esc(p58_txt.weeks2fee) + "</div>";
+        host.innerHTML = html;
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        p58_preview();
+        document.addEventListener("input", p58_preview);
+        document.addEventListener("change", p58_preview);
+        // datepicker a mynumber mění skrytá pole bez události → krátká kontrola změn (jen porovnání podpisu)
+        setInterval(p58_preview, 600);
+    });
 </script>

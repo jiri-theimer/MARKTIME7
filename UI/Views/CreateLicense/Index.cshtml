@@ -1,540 +1,798 @@
-﻿@model UI.Models.Guru.CreateLicenseViewModel
-@inject BL.Factory _f
+﻿@model UI.Models.Guru.DbCreateViewModel
 
 @{
-    Model.PageTitle = "Založení nové licence";
-
     Layout = "~/Views/Shared/_LayoutAnonym.cshtml";
-
-
+    int _year = DateTime.Now.Year;
 }
 
-<script src="~/js/rejstriky.js" asp-append-version="true"></script>
-
-<div style="margin:auto;max-width:900px;">
-
-    @if (Model.Message != null)
+@section header_content {
+    <style>
+        #dbc { max-width: 1080px; margin: 0 auto; --dbc-accent: #0d6efd; --dbc-ok: #198754; --dbc-warn: #b7791f; --dbc-err: #dc3545; --dbc-line: #e3e6ea; --dbc-muted: #6c757d; }
+        #dbc h1 { font-size: 1.7rem; font-weight: 600; margin: 0; }
+        #dbc .dbc-lead { color: var(--dbc-muted); margin: 4px 0 24px 0; }
+        #dbc .dbc-layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; align-items: start; }
+        #dbc .dbc-card { background: #fff; border: 1px solid var(--dbc-line); border-radius: 10px; padding: 20px 22px; margin-bottom: 16px; }
+        #dbc .dbc-card > h2 { font-size: 1.05rem; font-weight: 600; margin: 0 0 4px 0; display: flex; align-items: center; gap: 10px; }
+        #dbc .dbc-num { display: inline-flex; width: 26px; height: 26px; border-radius: 50%; background: var(--dbc-accent); color: #fff; font-size: .85rem; align-items: center; justify-content: center; flex: none; }
+        #dbc .dbc-hint { color: var(--dbc-muted); font-size: .875rem; margin: 0 0 14px 0; }
+        #dbc .dbc-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px 14px; }
+        #dbc .c2 { grid-column: span 2; } #dbc .c3 { grid-column: span 3; } #dbc .c4 { grid-column: span 4; } #dbc .c6 { grid-column: span 6; }
+        #dbc label.dbc-l { display: block; font-size: .8rem; font-weight: 600; color: #495057; margin-bottom: 3px; }
+        #dbc label.dbc-l .req { color: var(--dbc-err); }
+        #dbc .dbc-err { color: var(--dbc-err); font-size: .8rem; margin-top: 3px; display: none; }
+        #dbc .has-error .form-control, #dbc .has-error .form-select, #dbc .has-error .input-group { border-color: var(--dbc-err); }
+        #dbc .has-error .dbc-err { display: block; }
+        #dbc .dbc-note { font-size: .8rem; color: var(--dbc-muted); margin-top: 3px; }
+        #dbc .dbc-note.ok { color: var(--dbc-ok); } #dbc .dbc-note.bad { color: var(--dbc-err); } #dbc .dbc-note.warn { color: var(--dbc-warn); }
+        #dbc .dbc-login { display: flex; align-items: stretch; }
+        #dbc .dbc-login input:first-child { border-top-right-radius: 0; border-bottom-right-radius: 0; text-align: right; }
+        #dbc .dbc-login .at { display: flex; align-items: center; padding: 0 8px; background: #f1f3f5; border-top: 1px solid #ced4da; border-bottom: 1px solid #ced4da; color: var(--dbc-muted); }
+        #dbc .dbc-login input:last-child { border-top-left-radius: 0; border-bottom-left-radius: 0; }
+        #dbc .dbc-toggle { display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; }
+        #dbc .dbc-toggle input { width: 18px; height: 18px; }
+        #dbc details.dbc-card > summary { cursor: pointer; font-size: 1.05rem; font-weight: 600; list-style: none; display: flex; align-items: center; gap: 10px; }
+        #dbc details.dbc-card > summary::-webkit-details-marker { display: none; }
+        #dbc details.dbc-card > summary::after { content: "▾"; margin-left: auto; color: var(--dbc-muted); transition: transform .15s; }
+        #dbc details.dbc-card[open] > summary::after { transform: rotate(180deg); }
+        #dbc details.dbc-card[open] > summary { margin-bottom: 14px; }
+        #dbc .dbc-aside { position: sticky; top: 16px; }
+        #dbc .dbc-summary { background: #f8f9fb; border: 1px solid var(--dbc-line); border-radius: 10px; padding: 18px; }
+        #dbc .dbc-summary h3 { font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; color: var(--dbc-muted); margin: 0 0 12px 0; }
+        #dbc .dbc-summary dl { margin: 0 0 16px 0; }
+        #dbc .dbc-summary dt { font-size: .75rem; font-weight: 600; color: var(--dbc-muted); }
+        #dbc .dbc-summary dd { margin: 0 0 10px 0; font-family: Consolas, Menlo, monospace; font-size: .9rem; word-break: break-all; min-height: 1.3em; }
+        #dbc .dbc-summary dd.empty { color: #adb5bd; font-family: inherit; }
+        #dbc .dbc-steps { list-style: none; margin: 0; padding: 0; }
+        #dbc .dbc-steps > li { display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; gap: 4px 10px; padding: 11px 0; border-bottom: 1px solid var(--dbc-line); }
+        #dbc .dbc-steps > li:last-child { border-bottom: 0; }
+        #dbc .dbc-steps .ico { width: 24px; height: 24px; border-radius: 50%; border: 2px solid #ced4da; display: flex; align-items: center; justify-content: center; font-size: .8rem; font-weight: 700; color: #fff; }
+        #dbc .dbc-steps .tit { font-weight: 600; }
+        #dbc .dbc-steps .ms { color: var(--dbc-muted); font-size: .8rem; font-variant-numeric: tabular-nums; }
+        #dbc .dbc-steps .msg { grid-column: 2 / 4; font-size: .875rem; color: var(--dbc-muted); }
+        #dbc .dbc-steps .msg details { margin-top: 4px; }
+        #dbc .dbc-steps .msg details ul { margin: 6px 0 0 0; padding-left: 18px; font-family: Consolas, Menlo, monospace; font-size: .78rem; word-break: break-word; }
+        #dbc .dbc-steps > li.pending .tit { color: #adb5bd; }
+        #dbc .dbc-steps > li.running .ico { border-color: var(--dbc-accent); border-top-color: transparent; animation: dbcspin .8s linear infinite; }
+        #dbc .dbc-steps > li.ok .ico, #dbc .dbc-steps > li.skipped .ico { background: var(--dbc-ok); border-color: var(--dbc-ok); }
+        #dbc .dbc-steps > li.warn .ico { background: var(--dbc-warn); border-color: var(--dbc-warn); }
+        #dbc .dbc-steps > li.error .ico { background: var(--dbc-err); border-color: var(--dbc-err); }
+        #dbc .dbc-steps > li.error .msg { color: var(--dbc-err); }
+        #dbc .dbc-bar { height: 6px; background: #e9ecef; border-radius: 3px; overflow: hidden; margin: 14px 0 6px 0; }
+        #dbc .dbc-bar > div { height: 100%; width: 0; background: var(--dbc-accent); transition: width .3s; }
+        #dbc .dbc-cred { width: 100%; border-collapse: collapse; margin: 14px 0; }
+        #dbc .dbc-cred th { text-align: left; font-weight: 600; font-size: .85rem; color: var(--dbc-muted); padding: 8px 14px 8px 0; white-space: nowrap; width: 1%; }
+        #dbc .dbc-cred td { padding: 8px 0; font-family: Consolas, Menlo, monospace; word-break: break-all; }
+        #dbc .dbc-cred tr + tr th, #dbc .dbc-cred tr + tr td { border-top: 1px solid var(--dbc-line); }
+        #dbc .dbc-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+        #dbc .dbc-hp { position: absolute; left: -5000px; width: 1px; height: 1px; overflow: hidden; }
+        @@keyframes dbcspin { to { transform: rotate(360deg); } }
+        @@media (max-width: 900px) {
+            #dbc .dbc-layout { grid-template-columns: minmax(0, 1fr); }
+            #dbc .dbc-aside { position: static; }
+            #dbc .dbc-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            #dbc .c2, #dbc .c3 { grid-column: span 1; } #dbc .c4, #dbc .c6 { grid-column: span 2; }
+        }
+        @@media (prefers-reduced-motion: reduce) { #dbc .dbc-steps > li.running .ico { animation: none; } }
+    </style>
+    @if (!Model.IsAccessDenied && !string.IsNullOrEmpty(Model.RecaptchaSiteKey))
     {
-        <div class="alert alert-danger" role="alert">
-            <h4>@Html.Raw(Model.Message)</h4>
+        <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    }
+}
+
+<div id="dbc">
+    @if (Model.IsAccessDenied)
+    {
+        <div class="dbc-card" style="max-width:560px;margin:0 auto;text-align:center;">
+            <h1>Nová databáze</h1>
+            <p class="dbc-lead">@Model.DeniedMessage</p>
+            <a class="btn btn-primary" href="@Url.Action("UserLogin", "Login")">Přihlásit se</a>
         </div>
     }
-    @if(Model.guru != null)
+    else
     {
-        <div>
-            <a href="/Guru/CreateDb">Založit <mark>CLOUD</mark> nebo <mark>LOCAL</mark> sql databázi</a>
-        </div>
-    }
-   
+        <div id="dbcForm">
+            <h1>Nová databáze</h1>
+            <p class="dbc-lead">
+                @if (Model.IsGuru)
+                {
+                    <span>Vyplňte firmu a prvního uživatele. Průvodce založí SQL databázi, naplní ji výchozím nastavením a připraví přihlášení.</span>
+                }
+                else
+                {
+                    <span>Vyplňte svou firmu a přihlašovací údaje. Během chvilky vám připravíme vlastní MARKTIME.</span>
+                }
+            </p>
 
-    <form id="form1" asp-controller="CreateLicense" asp-action="Index" method="post">
-        <input type="hidden" asp-for="guru" />
-        <input type="hidden" asp-for="Rec.x01LangIndex" />
-        <h4>Založit novou licenci</h4>
+            <div id="dbcAlert" class="alert alert-danger" role="alert" style="display:none;"></div>
 
-        <div class="row">
-            <label class="col-sm-1 col-md-2 col-form-label">Fyzický název databáze:</label>
-            <div class="col-sm-5 col-md-4">
-                <input class="form-control" asp-for="DestDbName" />
-            </div>
+            <form id="frmDbc" autocomplete="off" novalidate onsubmit="return false;">
+                @Html.AntiForgeryToken()
+                <div class="dbc-hp" aria-hidden="true">
+                    <label>Web: <input type="text" name="Website" tabindex="-1" autocomplete="off" /></label>
+                </div>
 
-        </div>
+                <div class="dbc-layout">
+                    <div>
+                        @* ── 1. firma ─────────────────────────────────────────────── *@
+                        <section class="dbc-card">
+                            <h2><span class="dbc-num">1</span>Firma</h2>
+                            <p class="dbc-hint">Zadejte IČO a údaje se načtou z rejstříku. Firma se použije jako vystavovatel faktur.</p>
+                            <div class="dbc-grid">
+                                <div class="c2" data-field="CountryCode">
+                                    <label class="dbc-l" for="CountryCode">Země</label>
+                                    <select class="form-select" id="CountryCode" name="CountryCode">
+                                        <option value="CZ">Česko</option>
+                                        <option value="SK">Slovensko</option>
+                                        @if (Model.IsGuru)
+                                        {
+                                            <option value="AT">Rakousko</option>
+                                            <option value="DE">Německo</option>
+                                            <option value="PL">Polsko</option>
+                                            <option value="GB">Velká Británie</option>
+                                            <option value="CH">Švýcarsko</option>
+                                            <option value="US">USA</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="c4" data-field="RegID">
+                                    <label class="dbc-l" for="RegID">IČO</label>
+                                    <div class="input-group">
+                                        <input class="form-control" id="RegID" name="RegID" inputmode="numeric" maxlength="14" />
+                                        <button type="button" class="btn btn-outline-primary" id="cmdRejstrik">Načíst z rejstříku</button>
+                                    </div>
+                                    <div class="dbc-note" id="noteRejstrik"></div>
+                                </div>
+                                <div class="c6" data-field="CompanyName">
+                                    <label class="dbc-l" for="CompanyName">Název firmy <span class="req">*</span></label>
+                                    <input class="form-control" id="CompanyName" name="CompanyName" maxlength="200" />
+                                    <div class="dbc-err"></div>
+                                </div>
+                                <div class="c3" data-field="VatID">
+                                    <label class="dbc-l" for="VatID">DIČ</label>
+                                    <input class="form-control" id="VatID" name="VatID" maxlength="20" />
+                                </div>
+                                <div class="c3 dbc-sk" data-field="IcDphSk" style="display:none;">
+                                    <label class="dbc-l" for="IcDphSk">IČ DPH</label>
+                                    <input class="form-control" id="IcDphSk" name="IcDphSk" maxlength="20" />
+                                </div>
+                                <div class="c6" data-field="Street">
+                                    <label class="dbc-l" for="Street">Ulice</label>
+                                    <input class="form-control" id="Street" name="Street" maxlength="100" />
+                                </div>
+                                <div class="c4" data-field="City">
+                                    <label class="dbc-l" for="City">Obec</label>
+                                    <input class="form-control" id="City" name="City" maxlength="100" />
+                                </div>
+                                <div class="c2" data-field="Zip">
+                                    <label class="dbc-l" for="Zip">PSČ</label>
+                                    <input class="form-control" id="Zip" name="Zip" maxlength="10" />
+                                </div>
+                                @if (Model.IsGuru)
+                                {
+                                    <div class="c6" data-field="Registration">
+                                        <label class="dbc-l" for="Registration">Zápis v obchodním rejstříku</label>
+                                        <input class="form-control" id="Registration" name="Registration" maxlength="200" placeholder="nepovinné – tiskne se na faktury" />
+                                    </div>
+                                }
+                            </div>
+                        </section>
 
-        <div class="row">
-            <label class="col-sm-1 col-md-2 col-form-label">Název licence:</label>
-            <div class="col-sm-5 col-md-4">
-                <input class="form-control" placeholder="x01Name" asp-for="Rec.x01Name" />
-            </div>
+                        @* ── 2. první uživatel ────────────────────────────────────── *@
+                        <section class="dbc-card">
+                            <h2><span class="dbc-num">2</span>První uživatel</h2>
+                            <p class="dbc-hint">Dostane oprávnění administrátora a další uživatele si založí sám.</p>
+                            <div class="dbc-grid">
+                                <div class="c3" data-field="FirstName">
+                                    <label class="dbc-l" for="FirstName">Jméno <span class="req">*</span></label>
+                                    <input class="form-control" id="FirstName" name="FirstName" maxlength="50" />
+                                    <div class="dbc-err"></div>
+                                </div>
+                                <div class="c3" data-field="LastName">
+                                    <label class="dbc-l" for="LastName">Příjmení <span class="req">*</span></label>
+                                    <input class="form-control" id="LastName" name="LastName" maxlength="50" />
+                                    <div class="dbc-err"></div>
+                                </div>
+                                <div class="c4" data-field="Email">
+                                    <label class="dbc-l" for="Email">E-mail <span class="req">*</span></label>
+                                    <input class="form-control" id="Email" name="Email" type="email" maxlength="100" />
+                                    <div class="dbc-err"></div>
+                                </div>
+                                <div class="c2" data-field="LangIndex">
+                                    <label class="dbc-l" for="LangIndex">Jazyk aplikace</label>
+                                    <select class="form-select" id="LangIndex" name="LangIndex">
+                                        <option value="0">Česky</option>
+                                        <option value="1">English</option>
+                                        <option value="4">Slovenčina</option>
+                                    </select>
+                                </div>
+                                <div class="c6" data-field="LoginName" data-field2="LoginDomain">
+                                    <label class="dbc-l" for="LoginName">Přihlašovací jméno <span class="req">*</span></label>
+                                    <div class="dbc-login">
+                                        <input class="form-control" id="LoginName" name="LoginName" maxlength="40" placeholder="jmeno" spellcheck="false" autocapitalize="none" />
+                                        <span class="at">@@</span>
+                                        <input class="form-control" id="LoginDomain" name="LoginDomain" maxlength="60" placeholder="nasefirma.cz" spellcheck="false" autocapitalize="none" />
+                                    </div>
+                                    <div class="dbc-err"></div>
+                                    <div class="dbc-note" id="noteDomain">Část za zavináčem je doména licence – mají ji společnou všichni uživatelé firmy. Nemusí to být skutečná e-mail adresa.</div>
+                                </div>
+                                <div class="c6" data-field="Password">
+                                    <label class="dbc-l" for="Password">Heslo <span class="req">*</span></label>
+                                    <div class="input-group">
+                                        <input class="form-control" id="Password" name="Password" type="@(Model.IsGuru ? "text" : "password")" value="@Model.GeneratedPassword" maxlength="@(Model.PwdMaxLength > 0 ? Model.PwdMaxLength : 50)" autocomplete="new-password" spellcheck="false" style="font-family:Consolas,Menlo,monospace;" />
+                                        <button type="button" class="btn btn-outline-secondary" id="cmdPwdShow">@(Model.IsGuru ? "Skrýt" : "Zobrazit")</button>
+                                        <button type="button" class="btn btn-outline-secondary" id="cmdPwdNew">Vygenerovat</button>
+                                    </div>
+                                    <div class="dbc-err"></div>
+                                    <div class="dbc-note" id="notePwd"></div>
+                                </div>
+                            </div>
+                        </section>
 
-        </div>
-        <div class="row mt-2">
-            <label class="col-sm-1 col-md-2 col-form-label">Doména:</label>
-            <div class="col-sm-5 col-md-4">
-                <input class="form-control" placeholder="x01LoginDomain: nasefirma.cz" asp-for="Rec.x01LoginDomain" />
+                        @if (Model.IsGuru)
+                        {
+                            @* ── 3. nastavení licence ─────────────────────────────── *@
+                            <details class="dbc-card" id="secLicense">
+                                <summary><span class="dbc-num">3</span>Nastavení licence <span class="dbc-note" style="margin:0;font-weight:400;">– doplněno automaticky, upravte jen když je potřeba</span></summary>
+                                <div class="dbc-grid">
+                                    <div class="c3" data-field="LicenseName">
+                                        <label class="dbc-l" for="LicenseName">Název licence</label>
+                                        <input class="form-control" id="LicenseName" name="LicenseName" maxlength="200" />
+                                        <div class="dbc-err"></div>
+                                    </div>
+                                    <div class="c3" data-field="AppName">
+                                        <label class="dbc-l" for="AppName">Název aplikace v menu</label>
+                                        <input class="form-control" id="AppName" name="AppName" maxlength="50" />
+                                        <div class="dbc-err"></div>
+                                    </div>
+                                    <div class="c6" data-field="AppHost">
+                                        <label class="dbc-l" for="AppHost">Adresa aplikace</label>
+                                        <input class="form-control" id="AppHost" name="AppHost" maxlength="200" value="@Model.DefaultAppHost" />
+                                        <div class="dbc-err"></div>
+                                    </div>
+                                    <div class="c2" data-field="CurrencyID">
+                                        <label class="dbc-l" for="CurrencyID">Domácí měna</label>
+                                        <select class="form-select" id="CurrencyID" name="CurrencyID">
+                                            <option value="2">CZK</option>
+                                            <option value="3">EUR</option>
+                                            <option value="58">USD</option>
+                                            <option value="59">GBP</option>
+                                            <option value="56">CHF</option>
+                                            <option value="50">PLN</option>
+                                        </select>
+                                    </div>
+                                    <div class="c2" data-field="Round2Minutes">
+                                        <label class="dbc-l" for="Round2Minutes">Zaokrouhlovat čas na (min)</label>
+                                        <input class="form-control" id="Round2Minutes" name="Round2Minutes" type="number" min="1" max="60" value="5" />
+                                        <div class="dbc-err"></div>
+                                    </div>
+                                    <div class="c2" data-field="LimitUsers">
+                                        <label class="dbc-l" for="LimitUsers">Limit uživatelů</label>
+                                        <input class="form-control" id="LimitUsers" name="LimitUsers" type="number" min="1" value="99" />
+                                        <div class="dbc-err"></div>
+                                    </div>
+                                    @if (!Model.IsSharedApp)
+                                    {
+                                        <div class="c6" data-field="DbName">
+                                            <label class="dbc-l" for="DbName">Název SQL databáze</label>
+                                            <input class="form-control" id="DbName" name="DbName" maxlength="60" value="@Model.DefaultDbName" spellcheck="false" />
+                                            <div class="dbc-err"></div>
+                                            <div class="dbc-note">Výchozí je databáze z AppConnection této aplikace.</div>
+                                        </div>
+                                    }
+                                </div>
+                            </details>
 
-            </div>
-            <div class="col-auto">
-                <i>Formát uživatelských účtů v licenci: login+@(Html.Raw("@"))+doména</i>
-            </div>
-        </div>        
-
-        <div class="row mt-2">
-            <label class="col-sm-1 col-md-2 col-form-label">Název aplikace:</label>
-            <div class="col-sm-5 col-md-4">
-                <input class="form-control" placeholder="x01AppName" asp-for="Rec.x01AppName" />
-
-            </div>
-            <div class="col-auto">
-                <i>V hlavním menu vlevo nahoře link [HOME] s tímto názvem.</i>
-            </div>
-        </div>
-        <div class="row mt-2">
-            <label class="col-sm-1 col-md-2 col-form-label">Aplikační url:</label>
-            <div class="col-sm-5 col-md-4">
-                <input class="form-control" placeholder="x01AppHost" asp-for="Rec.x01AppHost" />
-
-            </div>
-            <div class="col-auto">
-                <i>Oficiální aplikační URL.</i>
-            </div>
-        </div>
-        
-
-        
-
-
-
-        <div class="row mt-4">
-            <label class="col-sm-1 col-md-2 col-form-label">ISO kód země:</label>
-            <div class="col-sm-5 col-md-4">
-                <select class="form-select" asp-for="Rec.x01CountryCode">
-                    <option value="CZ">CZ</option>
-                    <option value="SK">SK</option>
-                    <option value="AT">AT</option>
-                    <option value="DE">DE</option>
-                    <option value="PL">PL</option>
-                    <option value="GB">GB</option>
-                    <option value="CH">CH</option>
-                    <option value="US">US</option>
-
-                </select>
-            </div>
-
-        </div>
-
-        <div class="row mt-2">
-            <label class="col-sm-1 col-md-2 col-form-label">Domácí měna:</label>
-            <div class="col-sm-5 col-md-4">
-                <select class="form-select" asp-for="Rec.j27ID">
-                    <option value="2">CZK</option>
-                    <option value="3">EUR</option>
-                    <option value="58">USD</option>
-                    <option value="59">GBP</option>
-                    <option value="56">CHF</option>
-                    <option value="50">PLN</option>
-
-                </select>
-            </div>
-
-        </div>
-
-
-        <div class="row mt-4">
-            <label class="col-sm-1 col-md-2 col-form-label">Kontaktní e-mail:</label>
-            <div class="col-sm-5 col-md-4">
-                <input class="form-control" asp-for="Rec.x01ContactEmail" />
-            </div>
-
-        </div>
-        <div class="row mt-2">
-            <label class="col-sm-1 col-md-2 col-form-label">Kontakt licence:</label>
-            <div class="col-sm-5 col-md-4">
-                <input class="form-control" asp-for="Rec.x01ContactName" />
-            </div>
-            <div class="col-auto">
-                <i>Jméno firmy, fyzické osoby apod.</i>
-            </div>
-        </div>
-
-        <div class="row mt-2">
-            <label class="col-sm-1 col-md-2 col-form-label">Zaokrouhlovat čas:</label>
-            <div class="col-sm-5 col-md-4">
-                <input class="form-control" type="number" value="5" asp-for="Rec.x01Round2Minutes" />
-            </div>
-            <div class="col-auto">
-                Na kolik minut systém bude zaokrouhlovat vykázané hodiny pracovníků.
-            </div>
-        </div>
-
-        <div class="row mt-2">
-            <label class="col-sm-1 col-md-2 col-form-label">Limit uživatelů:</label>
-            <div class="col-sm-5 col-md-4">
-                <input class="form-control" type="number" value="99" asp-for="Rec.x01LimitUsers" />
-            </div>
-
-        </div>
-
-       
-
-        <div class="card mt-4">
-            <div class="card-header">
-                První uživatel (admin oprávnění)
-            </div>
-            <div class="card-body">
-                <div class="row mt-2">
-                    <label class="col-sm-1 col-md-2 col-form-label">Login:</label>
-                    <div class="col-sm-5 col-md-4">
-                        <input class="form-control" placeholder="josef.svejk@nasefirma.cz" asp-for="UserName" />
-
+                            @* ── 4. první klient ──────────────────────────────────── *@
+                            <section class="dbc-card">
+                                <label class="dbc-toggle" for="CreateClient">
+                                    <input type="checkbox" id="CreateClient" name="CreateClient" value="true" checked />
+                                    <span>Založit prvního klienta a jeho projekty</span>
+                                </label>
+                                <div id="secClient" style="margin-top:14px;">
+                                    <div class="dbc-grid">
+                                        <div class="c2" data-field="ClientRegID">
+                                            <label class="dbc-l" for="ClientRegID">IČO klienta</label>
+                                            <div class="input-group">
+                                                <input class="form-control" id="ClientRegID" name="ClientRegID" value="47123737" maxlength="14" />
+                                                <button type="button" class="btn btn-outline-primary" id="cmdRejstrikClient" title="Načíst z rejstříku">Načíst</button>
+                                            </div>
+                                        </div>
+                                        <div class="c4" data-field="ClientCompanyName">
+                                            <label class="dbc-l" for="ClientCompanyName">Název klienta</label>
+                                            <input class="form-control" id="ClientCompanyName" name="ClientCompanyName" maxlength="200" placeholder="doplní se z rejstříku podle IČO" />
+                                            <div class="dbc-err"></div>
+                                        </div>
+                                        <input type="hidden" id="ClientVatID" name="ClientVatID" />
+                                        <input type="hidden" id="ClientStreet" name="ClientStreet" />
+                                        <input type="hidden" id="ClientCity" name="ClientCity" />
+                                        <input type="hidden" id="ClientZip" name="ClientZip" />
+                                        <div class="c6 dbc-note" id="noteClient" style="margin:0;"></div>
+                                        <div class="c3" data-field="Project1">
+                                            <label class="dbc-l" for="Project1">Projekt 1</label>
+                                            <input class="form-control" id="Project1" name="Project1" value="DPPO + Poradenství" maxlength="100" />
+                                        </div>
+                                        <div class="c3" data-field="Project2">
+                                            <label class="dbc-l" for="Project2">Projekt 2</label>
+                                            <input class="form-control" id="Project2" name="Project2" value="Audit @_year" maxlength="100" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+                        }
                     </div>
-                    <div class="col-auto">
-                        <i>Formát uživatelských účtů v licenci: login+@(Html.Raw("@"))+doména. Nemusí se jednat o platnou e-mail adresu!</i>
 
-                    </div>
-                    <div class="row mt-2">
-                        <label class="col-sm-1 col-md-2 col-form-label">Heslo:</label>
-                        <div class="col-sm-5 col-md-4">
-                            <input class="form-control" asp-for="UserPassword" />
-
+                    @* ── souhrn + tlačítko ────────────────────────────────────────── *@
+                    <aside class="dbc-aside">
+                        <div class="dbc-summary">
+                            <h3>Co vznikne</h3>
+                            <dl>
+                                <dt>Přihlášení</dt>
+                                <dd id="sumLogin" class="empty">doplní se z formuláře</dd>
+                                <dt>Adresa aplikace</dt>
+                                <dd id="sumHost">@Model.DefaultAppHost</dd>
+                                @if (Model.IsGuru)
+                                {
+                                    <dt>SQL databáze</dt>
+                                    <dd id="sumDb" class="empty">doplní se z domény</dd>
+                                    <dt>SQL server</dt>
+                                    <dd>@Model.ServerName</dd>
+                                }
+                            </dl>
+                            @if (Model.IsGuru)
+                            {
+                                <label class="dbc-toggle" for="SendWelcomeMail" style="font-weight:400;font-size:.875rem;margin-bottom:14px;">
+                                    <input type="checkbox" id="SendWelcomeMail" name="SendWelcomeMail" value="true" />
+                                    <span>Poslat uživateli e-mail s adresou a přihlašovacím jménem (bez hesla)</span>
+                                </label>
+                            }
+                            else if (!string.IsNullOrEmpty(Model.RecaptchaSiteKey))
+                            {
+                                <div class="g-recaptcha" data-sitekey="@Model.RecaptchaSiteKey" style="margin-bottom:14px;"></div>
+                            }
+                            <button type="button" class="btn btn-success w-100" id="cmdStart" style="padding:10px;font-weight:600;">Založit databázi</button>
+                            <div class="dbc-note" style="text-align:center;margin-top:8px;">Trvá to zhruba minutu.</div>
                         </div>
-                        
-                    </div>
-                    <div class="row mt-2">
-                        <label class="col-sm-1 col-md-2 col-form-label">Jméno:</label>
-                        <div class="col-sm-5 col-md-4">
-                            <input class="form-control" asp-for="FirstName" />
+                    </aside>
+                </div>
+            </form>
+        </div>
 
-                        </div>
+        @* ── průběh ───────────────────────────────────────────────────────────── *@
+        <div id="dbcProgress" style="display:none;max-width:720px;margin:0 auto;">
+            <h1 id="progTitle">Zakládám databázi…</h1>
+            <p class="dbc-lead" id="progLead">Nezavírejte prosím toto okno.</p>
+            <div class="dbc-card">
+                <div class="dbc-bar"><div id="progBar"></div></div>
+                <ul class="dbc-steps" id="progSteps"></ul>
+                <div id="progError" class="dbc-actions" style="display:none;margin-top:14px;">
+                    <button type="button" class="btn btn-primary" id="cmdRetry">Zkusit krok znovu</button>
+                    <button type="button" class="btn btn-outline-secondary" id="cmdBack">Zpět k formuláři</button>
+                </div>
+            </div>
 
-                    </div>
-                    <div class="row mt-2">
-                        <label class="col-sm-1 col-md-2 col-form-label">Příjmení:</label>
-                        <div class="col-sm-5 col-md-4">
-                            <input class="form-control" asp-for="LastName" />
-
-                        </div>
-
-                    </div>
-                    <div class="row mt-2">
-                        <label class="col-sm-1 col-md-2 col-form-label">E-mail:</label>
-                        <div class="col-sm-5 col-md-4">
-                            <input class="form-control" asp-for="Email" />
-
-                        </div>
-
-                    </div>
-
+            <div class="dbc-card" id="dbcDone" style="display:none;">
+                <h2 style="font-size:1.2rem;">Přístupové údaje</h2>
+                <table class="dbc-cred">
+                    <tr><th>Adresa</th><td id="doneHost"></td></tr>
+                    <tr><th>Přihlašovací jméno</th><td id="doneLogin"></td></tr>
+                    @if (Model.IsGuru)
+                    {
+                        <tr><th>Heslo</th><td id="donePwd"></td></tr>
+                        <tr><th>SQL databáze</th><td id="doneDb"></td></tr>
+                    }
+                </table>
+                <div class="dbc-actions">
+                @if (Model.IsGuru)
+                {
+                    <button type="button" class="btn btn-primary" id="cmdCopy">Zkopírovat přístupové údaje</button>
+                }
+                <a class="btn @(Model.IsGuru ? "btn-outline-primary" : "btn-primary")" id="cmdLogin" href="#" target="_blank" rel="noopener">Přihlásit se</a>
+                @if (Model.IsGuru)
+                {
+                    <a class="btn btn-outline-secondary" href="@Url.Action("Index", "CreateLicense")">Založit další databázi</a>
+                }
                 </div>
             </div>
         </div>
 
+        <script type="text/javascript">
+            (function () {
+                var CFG = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(new
+                     {
+                         guru = Model.IsGuru,
+                         shared = Model.IsSharedApp,
+                         urlStart = Url.Action("Start", "CreateLicense"),
+                         urlStep = Url.Action("RunStep", "CreateLicense"),
+                         urlDomain = Url.Action("CheckDomain", "CreateLicense"),
+                         urlRejstrik = Url.Action("LoadRejstrik", "CreateLicense"),
+                         urlPwd = Url.Action("NewPassword", "CreateLicense"),
+                         pwd = new { min = Model.PwdMinLength, max = Model.PwdMaxLength, digit = Model.PwdRequireDigit, lower = Model.PwdRequireLowercase, upper = Model.PwdRequireUppercase, special = Model.PwdRequireNonAlphanumeric }
+                     }));
 
-        <div class="card mt-4">
-            <div class="card-header">
-                Hlavička vystavovatele faktur a interní kontakt organizace
-                
-                <span id="loadingp93"></span>
-            </div>
-            <div class="card-body">
-                <table style="min-width:700px;">
-                    <tr>
-                        <td>
-                            Název firmy:
-                        </td>
-                        <td>
-                            <input class="form-control" asp-for="p93Company" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            IČ:
-                        </td>
-                        <td>
-                            <div class="input-group">
-                                <div style="width:200px;">
-                                    <input class="form-control" asp-for="p93RegID" />
-                                </div>
-                                <div>
-                                    <button type="button" onclick="load_rejstrik('ico')">@_f.tra("Načíst z rejstříku podle IČ")</button>
-                                    <button type="button" onclick="_rejstrik_justice('p93RegID')">Justice</button>
-                                </div>
-                                
-                            </div>
-                            
-                        </td>
-                       
-                    </tr>
-                    <tr>
-                        <td>
-                            DIČ:
-                        </td>
-                        <td>
-                            <input class="form-control" asp-for="p93VatID" style="width:200px;" />
-                        </td>
+                var touched = {};       //pole, která uživatel upravil ručně - ta už automaticky nepřepisujeme
+                var job = null;         //odpověď ze Start
+                var steps = [];
+                var current = 0;
+                var running = false;
+                var domainTimer = null;
+                var lastPwd = "";
 
-                    </tr>
-                    <tr>
-                        <td>
-                            IČ-DPH:
-                        </td>
-                        <td>
-                            <input class="form-control" asp-for="p93ICDPH_SK" style="width:200px;" />
-                        </td>
+                function val(id) { var c = document.getElementById(id); return c ? $.trim(c.value) : ""; }
+                function token() { return $("#frmDbc input[name='__RequestVerificationToken']").val(); }
+                function esc(s) { return $("<div>").text(s == null ? "" : s).html(); }
 
-                    </tr>
-                    <tr>
-                        <td>
-                            Ulice:
-                        </td>
-                        <td>
-                            <input class="form-control" asp-for="p93Street" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            Obec:
-                        </td>
-                        <td>
-                            <input class="form-control" asp-for="p93City" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            PSČ:
-                        </td>
-                        <td>
-                            <input class="form-control" asp-for="p93Zip" />
-                        </td>
-                    </tr>
-                    
-                    <tr>
-                        <td>
-                            Registrace v OR:
-                        </td>
-                        <td>
-                            <input class="form-control" asp-for="p93Registration" />
-                        </td>
-                    </tr>
-                </table>
-               
+                function slug(s) {
+                    return (s || "").normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
+                }
+                function bezPravniFormy(s) {
+                    s = (s || "").replace(/,?\s*spol\.\s*s\s*r\.\s*o\./ig, "").replace(/,?\s*s\.\s*r\.\s*o\./ig, "").replace(/,?\s*a\.\s*s\./ig, "").replace(/,?\s*v\.\s*o\.\s*s\./ig, "").replace(/,?\s*k\.\s*s\./ig, "").replace(/,?\s*z\.\s*s\./ig, "");
+                    return $.trim(s);
+                }
+                function slugCompany(s) {
+                    return slug(bezPravniFormy(s)).substring(0, 30);
+                }
+                function post(url, data) {
+                    data = data || {};
+                    data.__RequestVerificationToken = token();
+                    return $.ajax({ url: url, type: "POST", data: data, dataType: "json" });
+                }
+                function failText(xhr) {
+                    if (xhr && xhr.status == 403) return "Přihlášení vypršelo nebo k akci nemáte oprávnění. Načtěte stránku znovu.";
+                    if (xhr && xhr.status == 400) return "Platnost stránky vypršela. Načtěte ji prosím znovu.";
+                    if (xhr && xhr.status == 0) return "Server neodpovídá. Zkontrolujte připojení a zkuste to znovu.";
+                    return "Server vrátil chybu" + (xhr && xhr.status ? " (" + xhr.status + ")" : "") + ". Zkuste to znovu.";
+                }
 
-            </div>
-        </div>
+                // ── automatické doplňování ──────────────────────────────────────────
 
-        <div class="card mt-4">
-            <div class="card-header">
-                <input type="checkbox" asp-for="IsZakladatKlientaPlusProjekty" />
-                <label for="IsZakladatKlientaPlusProjekty">Zakládat prvního klienta a jeho projekty</label>
+                function suggest() {
+                    var company = val("CompanyName");
+                    var country = val("CountryCode") || "CZ";
 
-                
-                <span id="loadingp28"></span>
-            </div>
-            <div class="card-body">
-                <table style="min-width:700px;">
-                    <tr>
-                        <td>
-                            Název firmy:
-                        </td>
-                        <td>
-                            <input class="form-control" asp-for="p28CompanyName" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            IČ:
-                        </td>
-                        <td>
-                            <div class="input-group">
-                                <div style="width:200px;">
-                                    <input class="form-control" asp-for="p28RegID" />
-                                </div>
-                                <div>
-                                    <button type="button" onclick="load_rejstrik_klient('ico')">@_f.tra("Načíst z rejstříku podle IČ")</button>
-                                    <button type="button" onclick="_rejstrik_justice('p28RegID')">Justice</button>
-                                </div>
+                    if (!touched.LoginDomain) {
+                        var prefix = slugCompany(company);
+                        $("#LoginDomain").val(prefix ? prefix + "." + country.toLowerCase() : "");
+                    }
+                    if (!touched.LoginName) {
+                        var s = val("Email").split("@@")[0].normalize("NFKD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9._-]/g, "");
+                        if (!s) s = slug(val("FirstName"));
+                        $("#LoginName").val(s);
+                    }
+                    if (CFG.guru) {
+                        if (!touched.LicenseName) $("#LicenseName").val(company);
+                        if (!touched.AppName) $("#AppName").val($.trim((bezPravniFormy(company) || company).substring(0, 20)));
+                    }
+                    refreshSummary();
+                    queueDomainCheck();
+                }
 
-                            </div>
+                function refreshSummary() {
+                    var name = val("LoginName"), dom = val("LoginDomain");
+                    if (name && dom) {
+                        $("#sumLogin").text(name + "@@" + dom).removeClass("empty");
+                    } else {
+                        $("#sumLogin").text("doplní se z formuláře").addClass("empty");
+                    }
+                    if (CFG.guru) {
+                        $("#sumHost").text(val("AppHost"));
+                        var db = CFG.shared ? (dom ? "a7" + dom.split(".")[0] : "") : val("DbName");
+                        if (db) { $("#sumDb").text(db).removeClass("empty"); } else { $("#sumDb").text("doplní se z domény").addClass("empty"); }
+                    }
+                }
 
-                        </td>
+                function queueDomainCheck() {
+                    if (domainTimer) window.clearTimeout(domainTimer);
+                    domainTimer = window.setTimeout(checkDomain, 500);
+                }
+                function checkDomain() {
+                    var dom = val("LoginDomain").toLowerCase();
+                    var note = $("#noteDomain");
+                    if (!dom) {
+                        note.attr("class", "dbc-note").text("Část za zavináčem je doména licence – mají ji společnou všichni uživatelé firmy. Nemusí to být skutečná e-mail adresa.");
+                        return;
+                    }
+                    post(CFG.urlDomain, { domain: dom, dbname: val("DbName") }).done(function (data) {
+                        if (val("LoginDomain").toLowerCase() != dom) return;     //mezitím se doména změnila
+                        note.attr("class", "dbc-note " + (data.ok ? (data.exists ? "warn" : "ok") : "bad")).text(data.message);
+                    });
+                }
 
-                    </tr>
-                    <tr>
-                        <td>
-                            DIČ:
-                        </td>
-                        <td>
-                            <input class="form-control" asp-for="p28VatID" style="width:200px;" />
-                        </td>
+                function applyCountry() {
+                    var country = val("CountryCode");
+                    $(".dbc-sk").toggle(country == "SK");
+                    if (!touched.LangIndex) $("#LangIndex").val(country == "SK" ? "4" : (country == "CZ" ? "0" : "1"));
+                    if (CFG.guru && !touched.CurrencyID) {
+                        var cur = { CZ: "2", US: "58", GB: "59", CH: "56", PL: "50" }[country] || "3";
+                        $("#CurrencyID").val(cur);
+                    }
+                    suggest();
+                }
 
-                    </tr>
-                    <tr>
-                        <td>
-                            IČ-DPH:
-                        </td>
-                        <td>
-                            <input class="form-control" asp-for="p28ICDPH_SK" style="width:200px;" />
-                        </td>
+                function loadRejstrik(prefix, noteId, cmdId, done) {
+                    var ico = val(prefix + "RegID").replace(/\s/g, "");
+                    var note = $("#" + noteId);
+                    if (!ico) {
+                        note.attr("class", "dbc-note bad").text("Nejdříve zadejte IČO.");
+                        if (done) done(false);
+                        return;
+                    }
+                    var cmd = $("#" + cmdId).prop("disabled", true);
+                    note.attr("class", "dbc-note").text("Načítám z rejstříku…");
+                    post(CFG.urlRejstrik, { ico: ico, country: val("CountryCode") }).done(function (data) {
+                        if (!data.ok) {
+                            note.attr("class", "dbc-note bad").text(data.message);
+                            if (done) done(false);
+                            return;
+                        }
+                        $("#" + prefix + "CompanyName").val(data.name || "");
+                        $("#" + prefix + "VatID").val(data.dic || "");
+                        $("#" + prefix + "Street").val(data.street || "");
+                        $("#" + prefix + "City").val(data.city || "");
+                        $("#" + prefix + "Zip").val(data.zip || "");
+                        if (prefix == "") {
+                            note.attr("class", "dbc-note ok").text("Načteno z rejstříku.");
+                            clearError("CompanyName");
+                            suggest();
+                        } else {
+                            note.attr("class", "dbc-note ok").text([data.street, data.zip, data.city].filter(function (x) { return x; }).join(", "));
+                            clearError("ClientCompanyName");
+                        }
+                        if (done) done(true);
+                    }).fail(function (xhr) {
+                        note.attr("class", "dbc-note bad").text(failText(xhr));
+                        if (done) done(false);
+                    }).always(function () {
+                        cmd.prop("disabled", false);
+                    });
+                }
 
-                    </tr>
-                    <tr>
-                        <td>
-                            Ulice:
-                        </td>
-                        <td>
-                            <input class="form-control" asp-for="p28Street1" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            Obec:
-                        </td>
-                        <td>
-                            <input class="form-control" asp-for="p28City1" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            PSČ:
-                        </td>
-                        <td>
-                            <input class="form-control" asp-for="p28PostCode1" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td colspan="2">
-                            <hr />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            Projekt #1:
-                        </td>
-                        <td>
-                            <input class="form-control" asp-for="Project1" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            Projekt #2:
-                        </td>
-                        <td>
-                            <input class="form-control" asp-for="Project2" />
-                        </td>
-                    </tr>
-                </table>
-                
+                // ── heslo ───────────────────────────────────────────────────────────
 
-            </div>
-        </div>
+                function pwdProblem(p) {
+                    var r = CFG.pwd;
+                    if (!p) return "Vyplňte heslo.";
+                    if (r.min > 0 && p.length < r.min) return "Heslo musí mít alespoň " + r.min + " znaků.";
+                    if (r.max > 0 && p.length > r.max) return "Heslo smí mít nejvýše " + r.max + " znaků.";
+                    if (p.indexOf(" ") > -1) return "Heslo nesmí obsahovat mezeru.";
+                    if (r.upper && !/[A-ZÁ-Ž]/.test(p)) return "Heslo musí obsahovat velké písmeno.";
+                    if (r.lower && !/[a-zá-ž]/.test(p)) return "Heslo musí obsahovat malé písmeno.";
+                    if (r.digit && !/[0-9]/.test(p)) return "Heslo musí obsahovat číslici.";
+                    return null;
+                }
+                function pwdHint() {
+                    var r = CFG.pwd, a = [];
+                    if (r.min > 0) a.push("alespoň " + r.min + " znaků");
+                    if (r.upper) a.push("velké písmeno");
+                    if (r.lower) a.push("malé písmeno");
+                    if (r.digit) a.push("číslici");
+                    if (r.special) a.push("speciální znak (např. ! . $ _ * #)");
+                    return a.length ? "Heslo musí obsahovat: " + a.join(", ") + "." : "";
+                }
 
-        <div class="row mt-2">
-            <label class="col-sm-1 col-md-2 col-form-label">Výchozí aplikační jazyk:</label>
-            <div class="col-sm-10 col-md-9">
-                <input type="radio" value="0" id="chkLang0" checked name="langindex" onchange="changelang(this)" />
-                <label for="chkLang0">
-                    Česky<img src="/images/czechrepublic.gif" alt="" />
-                </label>
+                // ── chyby ve formuláři ──────────────────────────────────────────────
 
-                <input type="radio" value="1" id="chkLang1" name="langindex" onchange="changelang(this)" style="margin-left:30px;" />
-                <label for="chkLang1">
-                    English<img src="/images/uk.gif" alt="" />
-                </label>
+                function clearError(field) {
+                    $("#frmDbc [data-field='" + field + "'], #frmDbc [data-field2='" + field + "']").removeClass("has-error");
+                }
+                function clearErrors() {
+                    $("#frmDbc .has-error").removeClass("has-error");
+                    $("#dbcAlert").hide();
+                }
+                function showErrors(message, errors) {
+                    var first = null;
+                    $.each(errors || [], function (i, e) {
+                        var box = $("#frmDbc [data-field='" + e.field + "'], #frmDbc [data-field2='" + e.field + "']").first();
+                        if (!box.length) return;
+                        box.addClass("has-error").find(".dbc-err").text(e.message);
+                        box.closest("details").prop("open", true);
+                        if (!first) first = box;
+                    });
+                    $("#dbcAlert").text(message || "Opravte prosím označená pole.").show();
+                    var target = first || $("#dbcAlert");
+                    $("html, body").animate({ scrollTop: Math.max(target.offset().top - 90, 0) }, 200);
+                    if (first) first.find("input, select").first().trigger("focus");
+                }
 
-                <input type="radio" value="4" id="chkLang4" name="langindex" onchange="changelang(this)" style="margin-left:30px;" />
-                <label for="chkLang4">
-                    Slovenčina<img src="/images/slovakia.gif" alt="" />
-                </label>
-            </div>
+                function validateLocal() {
+                    var errors = [];
+                    function req(field, message) { if (!val(field)) errors.push({ field: field, message: message }); }
+                    req("CompanyName", "Vyplňte název firmy.");
+                    req("FirstName", "Vyplňte jméno.");
+                    req("LastName", "Vyplňte příjmení.");
+                    if (!/^[^@@\s]+@@[^@@\s]+\.[^@@\s]+$/.test(val("Email"))) errors.push({ field: "Email", message: "Vyplňte platnou e-mail adresu." });
+                    if (!/^[a-z0-9][a-z0-9._-]*$/.test(val("LoginName"))) {
+                        errors.push({ field: "LoginName", message: "Přihlašovací jméno smí obsahovat malá písmena bez diakritiky, číslice, tečku, pomlčku a podtržítko." });
+                    } else if (!/^[a-z0-9]{2,40}(\.[a-z0-9]{2,20})+$/.test(val("LoginDomain"))) {
+                        errors.push({ field: "LoginDomain", message: "Doména má mít tvar nasefirma.cz (malá písmena bez diakritiky a číslice)." });
+                    }
+                    var p = pwdProblem($("#Password").val());
+                    if (p) errors.push({ field: "Password", message: p });
+                    return errors;
+                }
 
-        </div>
+                // ── start + kroky ───────────────────────────────────────────────────
 
+                function start() {
+                    if (running) return;
+                    clearErrors();
+                    $("#LoginName").val(val("LoginName").toLowerCase());
+                    $("#LoginDomain").val(val("LoginDomain").toLowerCase());
 
-        
-        <div class="row" style="margin-top:10px;">
-            <div class="col-auto">
-                <input type="submit" value="Uložit změny a pokračovat" class="btn btn-default btn-success" />
-            </div>
-            <div class="col-auto">
-                <a href="/Guru/Import" class="btn btn-secondary">Importovat data do licence</a>
-            </div>
+                    var errors = validateLocal();
+                    if (errors.length) { showErrors(null, errors); return; }
 
-            
-        </div>
+                    //klient má IČO, ale chybí název -> nejdříve ho načíst z rejstříku
+                    if (CFG.guru && $("#CreateClient").prop("checked") && !val("ClientCompanyName")) {
+                        if (!val("ClientRegID")) {
+                            showErrors(null, [{ field: "ClientCompanyName", message: "Vyplňte název prvního klienta, nebo jeho založení vypněte." }]);
+                            return;
+                        }
+                        loadRejstrik("Client", "noteClient", "cmdRejstrikClient", function (ok) {
+                            if (ok) { start(); } else { showErrors(null, [{ field: "ClientCompanyName", message: "Klienta se nepodařilo načíst z rejstříku. Vyplňte název ručně, nebo jeho založení vypněte." }]); }
+                        });
+                        return;
+                    }
 
-        <hr />
-        <button type="button" onclick="Handle_Import_Tabulky()">Opakovat Handle_Import_Tabulky</button>
-    </form>
+                    running = true;
+                    lastPwd = $("#Password").val();
+                    var cmd = $("#cmdStart").prop("disabled", true).text("Kontroluji…");
 
+                    $.ajax({ url: CFG.urlStart, type: "POST", data: $("#frmDbc").serialize(), dataType: "json" }).done(function (data) {
+                        if (!data.ok) {
+                            running = false;
+                            showErrors(data.message, data.errors);
+                            if (window.grecaptcha) { try { grecaptcha.reset(); } catch (e) { } }
+                            return;
+                        }
+                        job = data;
+                        steps = data.steps;
+                        current = 0;
+                        renderProgress();
+                        runNext();
+                    }).fail(function (xhr) {
+                        running = false;
+                        showErrors(failText(xhr), []);
+                    }).always(function () {
+                        cmd.prop("disabled", false).text("Založit databázi");
+                    });
+                }
 
+                function renderProgress() {
+                    var html = "";
+                    $.each(steps, function (i, s) {
+                        html += "<li class='pending' id='step" + i + "'><span class='ico'></span><span class='tit'>" + esc(s.title) + "</span><span class='ms'></span><span class='msg'></span></li>";
+                    });
+                    $("#progSteps").html(html);
+                    $("#progTitle").text("Zakládám databázi…");
+                    $("#progLead").text("Nezavírejte prosím toto okno. " + (CFG.guru ? "Databáze: " + job.dbname : ""));
+                    $("#progBar").css("width", "0").css("background", "");
+                    $("#progError, #dbcDone").hide();
+                    $("#dbcForm").hide();
+                    $("#dbcProgress").show();
+                    window.scrollTo(0, 0);
+                }
 
+                function setStep(i, status, message, details, ms) {
+                    var li = $("#step" + i).attr("class", status);
+                    li.find(".ico").text(status == "ok" || status == "skipped" ? "✓" : (status == "warn" ? "!" : (status == "error" ? "×" : "")));
+                    li.find(".ms").text(ms ? (ms >= 1000 ? (ms / 1000).toFixed(1).replace(".", ",") + " s" : ms + " ms") : "");
+                    var html = esc(message);
+                    if (details && details.length) {
+                        html += "<details" + (status == "error" ? " open" : "") + "><summary>" + (status == "error" ? "Podrobnosti" : "Upozornění (" + details.length + ")") + "</summary><ul>";
+                        $.each(details, function (x, d) { html += "<li>" + esc(d) + "</li>"; });
+                        html += "</ul></details>";
+                    }
+                    li.find(".msg").html(html);
+                }
 
+                function runNext() {
+                    if (current >= steps.length) { finish(); return; }
+                    var i = current;
+                    $("#progError").hide();
+                    setStep(i, "running", "", null, 0);
+
+                    post(CFG.urlStep, { job: job.job, step: i }).done(function (data) {
+                        setStep(i, data.status || "error", data.message, data.details, data.ms);
+                        if (!data.ok) { stepFailed(); return; }
+                        current = i + 1;
+                        $("#progBar").css("width", Math.round(current * 100 / steps.length) + "%");
+                        runNext();
+                    }).fail(function (xhr) {
+                        setStep(i, "error", failText(xhr), null, 0);
+                        stepFailed();
+                    });
+                }
+
+                function stepFailed() {
+                    $("#progTitle").text("Zakládání se zastavilo");
+                    $("#progLead").text("Krok se nepodařil. Po odstranění příčiny ho můžete spustit znovu – hotové kroky se neopakují.");
+                    $("#progError").css("display", "flex");
+                }
+
+                function finish() {
+                    running = false;
+                    var warn = $("#progSteps li.warn").length;
+                    $("#progTitle").text("Databáze je připravená");
+                    $("#progLead").text(warn ? "Hotovo, ale některé kroky hlásí upozornění – projděte si je níže." : (CFG.guru ? "Vše proběhlo bez chyb." : "Vše je připraveno, můžete se přihlásit."));
+                    $("#progBar").css("width", "100%").css("background", "var(--dbc-ok)");
+                    $("#doneHost").text(job.apphost);
+                    $("#doneLogin").text(job.login);
+                    $("#donePwd").text(lastPwd);
+                    $("#doneDb").text(job.dbname);
+                    $("#cmdLogin").attr("href", job.apphost);
+                    $("#dbcDone").show();
+                }
+
+                // ── události ────────────────────────────────────────────────────────
+
+                $("#frmDbc").on("input change", "input, select", function () {
+                    var id = this.id;
+                    if (!id) return;
+                    clearError(id);
+                    if (id == "CompanyName" || id == "Email" || id == "FirstName") { suggest(); return; }
+                    if (id == "CountryCode") { applyCountry(); return; }
+                    if (id == "LoginDomain" || id == "DbName") { touched[id] = true; refreshSummary(); queueDomainCheck(); return; }
+                    if (id == "Password") { $("#notePwd").text(pwdProblem(this.value) ? pwdHint() : ""); return; }
+                    touched[id] = true;
+                    refreshSummary();
+                });
+
+                $("#RegID").on("keydown", function (e) { if (e.key == "Enter") { e.preventDefault(); $("#cmdRejstrik").trigger("click"); } });
+                $("#cmdRejstrik").on("click", function () { loadRejstrik("", "noteRejstrik", "cmdRejstrik"); });
+                $("#cmdRejstrikClient").on("click", function () { loadRejstrik("Client", "noteClient", "cmdRejstrikClient"); });
+                $("#ClientRegID").on("input", function () { $("#ClientCompanyName, #ClientVatID, #ClientStreet, #ClientCity, #ClientZip").val(""); $("#noteClient").text(""); });
+                $("#CreateClient").on("change", function () { $("#secClient").toggle(this.checked); });
+
+                $("#cmdPwdShow").on("click", function () {
+                    var c = document.getElementById("Password");
+                    c.type = (c.type == "password" ? "text" : "password");
+                    $(this).text(c.type == "password" ? "Zobrazit" : "Skrýt");
+                });
+                $("#cmdPwdNew").on("click", function () {
+                    post(CFG.urlPwd, {}).done(function (data) {
+                        if (!data.ok) return;
+                        var c = document.getElementById("Password");
+                        c.value = data.password; c.type = "text";
+                        $("#cmdPwdShow").text("Skrýt");
+                        $("#notePwd").text(CFG.guru ? "" : "Heslo si poznamenejte, e-mailem ho neposíláme.");
+                        clearError("Password");
+                    });
+                });
+
+                $("#cmdStart").on("click", start);
+                $("#cmdRetry").on("click", function () {
+                    $("#progTitle").text("Zakládám databázi…");
+                    $("#progLead").text("Nezavírejte prosím toto okno.");
+                    runNext();
+                });
+                $("#cmdBack").on("click", function () {
+                    running = false;
+                    $("#dbcProgress").hide();
+                    $("#dbcForm").show();
+                    queueDomainCheck();
+                });
+                $("#cmdCopy").on("click", function () {
+                    var s = "MARKTIME – přístupové údaje\r\nAdresa: " + job.apphost + "\r\nPřihlašovací jméno: " + job.login + "\r\nHeslo: " + lastPwd;
+                    var cmd = $(this);
+                    function ok() { cmd.text("Zkopírováno"); window.setTimeout(function () { cmd.text("Zkopírovat přístupové údaje"); }, 2000); }
+                    if (navigator.clipboard && window.isSecureContext) {
+                        navigator.clipboard.writeText(s).then(ok);
+                    } else {
+                        var ta = $("<textarea>").val(s).css({ position: "fixed", left: "-5000px" }).appendTo("body");
+                        ta[0].select();
+                        try { document.execCommand("copy"); ok(); } catch (e) { }
+                        ta.remove();
+                    }
+                });
+
+                window.addEventListener("beforeunload", function (e) {
+                    if (running) { e.preventDefault(); e.returnValue = ""; }
+                });
+
+                $("#notePwd").text(CFG.guru ? "" : pwdHint());
+                applyCountry();
+            })();
+        </script>
+    }
 </div>
-
-
-
-
-
-
-<script type="text/javascript">
-    $(document).ready(function () {
-
-
-
-
-
-    });
-
-    function Handle_Import_Tabulky() {
-
-        form1.action = "/CreateLicense/Index?oper=Handle_Import_Tabulky";
-        form1.submit();
-    }
-
-    function postback()
-    {
-
-        form1.action = "/CreateLicense/Index?oper=postback";
-        form1.submit();
-    }
-
-    function changelang(opg)
-    {
-        $("#Rec_x01LangIndex").val(opg.value);
-    }
-
-
-    function load_rejstrik(pole) {
-        var hodnota = $("#p93RegID").val();
-        if (pole == "dic") {
-            hodnota = $("#p93VatID").val();
-        }
-        var country = $("#Rec_x01CountryCode").val();
-        if (hodnota == "") {
-            _notify_message("Musíte zadat IČO nebo DIČ.");
-            return;
-        }
-
-        $("#loadingp93").text("Loading...");
-
-        $.post("/Guru/LoadRejstrikSubjekt", { strPole: pole, strHodnota: hodnota, strCountryCode: country }, function (data) {
-            var subjekt = data;
-            $("#p93Company").val(subjekt.name);
-            $("#p93City").val(subjekt.city);
-            $("#p93Zip").val(subjekt.zipcode);
-            $("#p93Street").val(subjekt.street);
-            if (pole == "ico") {
-                $("#p93VatID").val(subjekt.dic);
-            }
-            if (pole == "dic") {
-                $("#p93RegID").val(subjekt.ico);
-            }
-
-            $("#loadingp93").text("");
-
-        });
-    }
-
-    function load_rejstrik_klient() {
-        var hodnota = $("#p28RegID").val();
-       
-        var country = $("#Rec_x01CountryCode").val();
-        if (hodnota == "") {
-            _notify_message("Musíte zadat IČO.");
-            return;
-        }
-
-        $("#loadingp28").text("Loading...");
-
-        $.post("/Guru/LoadRejstrikSubjekt", { strPole: "ico", strHodnota: hodnota, strCountryCode: country }, function (data) {
-            var subjekt = data;
-            $("#p28CompanyName").val(subjekt.name);
-            $("#p28City1").val(subjekt.city);
-            $("#p28PostCode1").val(subjekt.zipcode);
-            $("#p28Street1").val(subjekt.street);
-            $("#p28VatID").val(subjekt.dic);
-
-            $("#loadingp28").text("");
-
-        });
-    }
-</script>

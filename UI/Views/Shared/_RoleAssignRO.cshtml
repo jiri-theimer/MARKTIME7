@@ -20,19 +20,12 @@
 
 @addTagHelper *, UI
 
-<table class="table table-hover">
+@* Verze 8: obsazení rolí jen pro čtení jako seznam „role – kdo“ (css/roleassign.css, .ra-ro). *@
+<link rel="stylesheet" href="~/css/roleassign.css" asp-append-version="true" />
+<dl class="ra-ro">
     @foreach (var c in _lisRoles)
     {
-        <tr>
-            <td class="tdlab">
-                @(c.x67Name):
-            </td>
-            <td class="tdval">
-                @c.Receivers
-
-            </td>
-
-        </tr>
+        <dt>@c.x67Name</dt>
+        <dd>@c.Receivers</dd>
     }
-
-</table>
+</dl>

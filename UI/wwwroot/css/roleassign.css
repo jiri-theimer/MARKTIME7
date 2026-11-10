@@ -1,0 +1,59 @@
+﻿/* Obsazení rolí (Views/Shared/_RoleAssign.cshtml, _RoleAssignRO.cshtml) – třídy ra-*. Barvy navazují na skin. */
+.ra { max-width: 1200px; margin: 8px 0 12px; padding: 10px 14px 6px; border: 1px solid #e3e6ea; border-radius: 10px; background: #fff; }
+.ra-head { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+.ra-head h2 { margin: 0; font-size: 1rem; font-weight: 600; color: #2b3138; }
+.ra-head > .material-icons-outlined-nosize { font-size: 20px; color: var(--pozadi, #0b4b92); }
+.ra-sum { margin-left: auto; font-size: .8rem; color: #6c757d; }
+.ra-sum strong { color: #1f2328; }
+
+.ra-row { display: grid; grid-template-columns: minmax(140px, 200px) auto minmax(0, 1fr); align-items: center; gap: 6px 14px; padding: 7px 0; border-top: 1px solid #f1f3f5; }
+.ra-name { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 6px; min-width: 0; cursor: pointer; user-select: none; border-radius: 6px; }
+.ra-name:hover strong { color: var(--pozadi, #0b4b92); }
+.ra-name:focus-visible { outline: 2px solid var(--oznaceno, #4169e1); outline-offset: 2px; }
+.ra-name strong { font-weight: 600; color: #1f2328; overflow-wrap: anywhere; }
+.ra-badge { padding: 0 7px; border-radius: 999px; background: #fff3cd; color: #8a5a00; font-size: .72rem; line-height: 1.6; }
+
+/* přepínač režimu */
+/* výška přepínače = výška výběru uživatelů/týmů (form-control), aby se řádek při přepnutí neposouval */
+.ra { --ra-h: calc(1.5em + .75rem + 2px); }
+.ra-seg { justify-self: start; display: inline-flex; align-items: stretch; box-sizing: border-box; height: var(--ra-h); padding: 3px; border-radius: 8px; background: #e6e9ed; white-space: nowrap; }
+.ra-seg input { position: absolute; opacity: 0; pointer-events: none; }
+.ra-seg label { display: flex; align-items: center; margin: 0; padding: 0 11px; border-radius: 6px; font-size: .82rem; color: #3d444d; cursor: pointer; }
+.ra-seg input:checked + label { background: #fff; color: #1f2328; font-weight: 500; box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+.ra-seg input:focus-visible + label { outline: 2px solid var(--oznaceno, #4169e1); }
+
+/* kdo */
+.ra-who { display: flex; align-items: center; min-width: 0; min-height: var(--ra-h); }
+.ra-pick { display: flex; flex-wrap: wrap; gap: 6px 16px; }
+.ra-combo { display: flex; align-items: center; gap: 4px; flex: 0 1 auto; max-width: 320px; min-width: 0; }
+.ra-combo > .material-icons-outlined-nosize { flex: 0 0 auto; font-size: 18px; color: #8a939c; }
+.ra-combo .mcl { flex: 1 1 auto; min-width: 0; max-width: none !important; }
+.ra-allnote, .ra-nonenote { display: none; align-items: center; gap: 5px; font-size: .85rem; color: #3d444d; }
+.ra-allnote .material-icons-outlined-nosize { font-size: 17px; color: #198754; }
+.ra-nonenote { color: #b0b7bf; }
+
+.ra-sel .ra-pick { display: flex; }
+.ra-all .ra-pick, .ra-none .ra-pick { display: none; }
+.ra-all .ra-allnote { display: inline-flex; }
+.ra-none .ra-nonenote { display: inline-flex; }
+.ra-none .ra-name strong { color: #6c757d; font-weight: 500; }
+.ra-none.ra-req .ra-nonenote { color: #b02a37; }
+.ra-none.ra-req .ra-badge { background: #fde2e1; color: #b02a37; }
+
+@media (max-width: 760px) {
+    .ra-row { grid-template-columns: minmax(0, 1fr) auto; }
+    .ra-who { grid-column: 1 / -1; }
+    .ra-combo { max-width: none; }
+}
+html.mt-phone .ra-row { grid-template-columns: minmax(0, 1fr); }
+html.mt-phone .ra-who { grid-column: auto; }
+html.mt-phone .ra-combo { max-width: none; }
+
+/* jen pro čtení (_RoleAssignRO) */
+.ra-ro { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 14px; margin: 4px 0 8px; font-size: .9rem; }
+.ra-ro dt { margin: 0; font-weight: 400; color: #59636e; }
+.ra-ro dd { margin: 0; color: #1f2328; overflow-wrap: anywhere; }
+@media (max-width: 575.98px) {
+    .ra-ro { grid-template-columns: minmax(0, 1fr); gap: 0; }
+    .ra-ro dd { margin-bottom: 6px; }
+}

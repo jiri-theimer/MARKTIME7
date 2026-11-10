@@ -1,0 +1,52 @@
+﻿/* Předpis opakovaného úkolu (Views/p58/Record.cshtml) – doplněk k recordform.css, třídy p58-*. */
+.p58-dot { display: inline-block; width: 7px; height: 7px; margin-left: 6px; border-radius: 50%; background: var(--oznaceno, #4169e1); vertical-align: middle; }
+
+.p58-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(260px, 1fr); gap: 12px; align-items: start; margin-bottom: 12px; }
+.p58-grid > .rf-card { margin-bottom: 0; }
+.p58-seg { flex-wrap: wrap; }
+.p58-seg label { padding: 4px 12px; }
+
+.p58-offsets { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #eef0f3; }
+.p58-off { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 12px; }
+.p58-off-title { display: inline-flex; align-items: center; gap: 6px; min-width: 250px; margin: 0; font-size: .875rem; color: #3d444d; cursor: pointer; }
+.p58-off-title .form-check-input { margin: 0; }
+span.p58-off-title { cursor: default; }
+.p58-off-title .material-icons-outlined-nosize { font-size: 18px; color: var(--pozadi, #0b4b92); }
+.p58-off-inputs { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 6px; font-size: .875rem; color: #59636e; }
+.p58-off-inputs[hidden] { display: none; }
+.p58-num { width: 72px; }
+.p58-num input { text-align: right; }
+.p58-rel { margin-left: 2px; }
+
+/* náhled */
+.p58-preview { position: sticky; top: 0; background: #fafbfc; }
+.p58-list { list-style: none; margin: 0; padding: 0; counter-reset: p58; }
+.p58-list li { position: relative; padding: 6px 0 7px 30px; border-bottom: 1px solid #eef0f3; counter-increment: p58; }
+.p58-list li::before { content: counter(p58); position: absolute; left: 0; top: 7px; width: 20px; height: 20px; border-radius: 50%; background: #e6e9ed; color: #3d444d; font-size: .72rem; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+.p58-li-rd { display: flex; align-items: baseline; gap: 6px; }
+.p58-li-rd span { font-size: .72rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: #8a939c; }
+.p58-li-rd strong { color: #1f2328; font-weight: 600; }
+.p58-li-meta { display: flex; flex-wrap: wrap; gap: 2px 12px; margin-top: 2px; font-size: .8rem; color: #59636e; }
+.p58-li-meta > span { display: inline-flex; align-items: center; gap: 3px; }
+.p58-li-meta .material-icons-outlined-nosize { font-size: 14px; color: #8a939c; }
+.p58-past { color: #b7791f; }
+.p58-past .material-icons-outlined-nosize { color: #b7791f !important; }
+.p58-more { padding: 4px 0 0 30px; font-size: .8rem; color: #8a939c; }
+.p58-count { margin-top: 8px; font-size: .85rem; color: #3d444d; }
+.p58-warn { margin-top: 8px; padding: 6px 10px; border-radius: 8px; background: #fde2e1; color: #b02a37; font-size: .85rem; }
+
+/* odměna */
+.p58-intro { margin: -2px 0 10px; font-size: .85rem; color: #6c757d; }
+.p58-fee { flex-wrap: wrap; }
+.p58-cur { width: 130px; }
+.p58-top { align-items: start; }
+.p58-top > .rf-label { padding-top: 7px; }
+
+@media (max-width: 760px) {
+    .p58-grid { grid-template-columns: minmax(0, 1fr); }
+    .p58-preview { position: static; }
+    .p58-off-title { min-width: 0; flex: 1 1 100%; }
+}
+html.mt-phone .p58-grid { grid-template-columns: minmax(0, 1fr); }
+html.mt-phone .p58-preview { position: static; }
+html.mt-phone .p58-off-title { min-width: 0; flex: 1 1 100%; }
