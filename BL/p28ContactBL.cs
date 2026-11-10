@@ -528,7 +528,7 @@ namespace BL
 
             if (s != null && File.Exists(_mother.App.WwwRootFolder + "\\images\\flags\\" + s))
             {
-                return $"<strong>{_mother.Lic.GetBillingLang(rec.p28BillingLangIndex)}</strong><img src='/images/flags/{s}'/>";
+                return $"<strong>{_mother.Lic.GetBillingLang(rec.p28BillingLangIndex)}</strong><img src='/images/flags/{s}' style='height:1.1em;margin-left:6px;vertical-align:-0.15em;border:1px solid #e3e6ea;border-radius:2px;'/>";
             }
             else
             {

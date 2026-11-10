@@ -11,5 +11,8 @@
         public IEnumerable<BO.p39WorkSheet_Recurrence_Plan> lisP39 { get; set; }
 
         public int PlusMinusp39Mesice { get; set; }
+
+        public HashSet<int> P31Existing { get; set; } = new HashSet<int>();     //vygenerované úkony, které existují (i v archivu)
+        public HashSet<int> P31Archived { get; set; } = new HashSet<int>();     //z toho v archivu (p31Worksheet_Del)
     }
 }

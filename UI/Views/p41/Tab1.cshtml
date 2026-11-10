@@ -38,7 +38,7 @@
         }
         else
         {
-            _strBadgeHeader = $"{_strBadgeHeader} + {(_lisP41.Count() - intOtevrene)})";
+            _strBadgeHeader = $"{intOtevrene}+{(_lisP41.Count() - intOtevrene)}";
         }
     }
     else
@@ -76,6 +76,8 @@
     {
         _lisP75 = _f.p75InvoiceRecurrenceBL.GetList(new BO.myQueryP75() { p41id = Model.pid });
     }
+
+    var _j27Codes = new Dictionary<int, string>();     //kód měny opakovaného vyúčtování – načíst jednou na měnu
 
     IEnumerable<BO.p56Task> _lisP56 = null;
     if (_f.CurrentUser.j04IsModule_p56)
@@ -170,12 +172,11 @@
     {
         <ul class="mytreeview">
             <li>
-                <a class="mytreeview-toggle-kontejner" onclick="_treeview_toggle(this,'tab1-p41-toggle-p28')">
+                <span class="mytreeview-toggle-kontejner" style="cursor:pointer;color:#0b4b92;" onclick="_treeview_toggle(this,'tab1-p41-toggle-p28')">
                     <span class="material-icons-outlined-btn mytreeview-toggle-sipka">@(UI.Code.basKendoTreeViewSupport.Get_Arrow_LastState(_f, "tab1-p41-toggle-p28", "expanded"))</span>
                     <span class="material-icons-outlined-btn">contacts</span>
-                    <a class="treeview-link" target="_top" href="/Record/@(_strRecPage)?prefix=p28&pid=@(Model.Rec.p28ID_Client)">@(BO.Code.Bas.OM2(Model.Rec.Client, 25)) (@_strBadgeHeader)</a>
-
-                </a>
+                </span>
+                <a class="treeview-link" target="_top" title="@(Model.Rec.Client != null && Model.Rec.Client.Length > 25 ? Model.Rec.Client : null)" href="/Record/@(_strRecPage)?prefix=p28&pid=@(Model.Rec.p28ID_Client)">@(BO.Code.Bas.OM2(Model.Rec.Client, 25)) (@_strBadgeHeader)</a>
 
                 <ul style="display:@(UI.Code.basKendoTreeViewSupport.Get_UL_LastState(_f, "tab1-p41-toggle-p28", "expanded"))">
                     @foreach (var c in _lisP41)
@@ -294,7 +295,7 @@
                         </small>
                         @if (c.p40LastSupplyDate < DateTime.Now)
                         {
-                            <small class="badge text-bg-warning">Expirovalo</small>
+                            <small class="badge text-bg-warning">@_f.tra("Expirovalo")</small>
                         }
                     </li>
                 }
@@ -325,12 +326,12 @@
                             <small style="color:green;">
                                 @(BO.Code.Bas.Number2String(c.p75Value_Ukon))
                             </small>
-                            @_f.FBL.LoadCurrencyByID(c.j27ID_Ukon).j27Code
+                            @(_j27Codes.TryGetValue(c.j27ID_Ukon, out var j27c) ? j27c : (_j27Codes[c.j27ID_Ukon] = _f.FBL.LoadCurrencyByID(c.j27ID_Ukon)?.j27Code))
                         }
                         
                         @if (c.p75BaseDateEnd < DateTime.Now)
                         {
-                            <small class="badge text-bg-warning">Expirovalo</small>
+                            <small class="badge text-bg-warning">@_f.tra("Expirovalo")</small>
                         }
                     </li>
                 }
@@ -355,7 +356,7 @@
                 @foreach (var c in _lisP56)
                 {
                     <li>
-                        <a class="treeview-link" target="_top" href="/Record/@(_strRecPage)?prefix=p56&pid=@(c.pid)">@(BO.Code.Bas.OM2(c.p56Name, 25))</a>
+                        <a class="treeview-link" target="_top" title="@(c.p56Name != null && c.p56Name.Length > 25 ? c.p56Name : null)" href="/Record/@(_strRecPage)?prefix=p56&pid=@(c.pid)">@(BO.Code.Bas.OM2(c.p56Name, 25))</a>
 
                         @if (c.b02Color != null)
                         {
@@ -420,7 +421,7 @@
                         @foreach (var c in _lisP91)
                         {
                             <tr>
-                                <td style="background-color: @(c.p91Amount_Debt > 1 && DateTime.Today > c.p91DateMaturity ? "red" : "none")">
+                                <td style="@(UI.Code.TheGridRowSymbol.p91_td_style(c))">
                                     <a class="treeview-link" target="_top" href="/Record/@(_strRecPage)?prefix=p91&pid=@(c.pid)">@c.p91Code</a>
                                 </td>
                                 <td>
@@ -520,12 +521,13 @@
 
     $(document).ready(function () {
 
+        if (document.getElementById("divTree1Container")) {
+            _adjust_divheight_small_display("divTree1Container");   //výška vždy (i když aktuální projekt v seznamu není)
+        }
+
         if (document.getElementById("divTree1Container") && document.getElementById("p41@(Model.pid)")) {
 
             $("#p41@(Model.pid)").addClass("active");
-
-            _adjust_divheight_small_display("divTree1Container");
-
 
             $("#divTree1Container").animate(
                 {

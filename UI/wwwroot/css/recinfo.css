@@ -1,0 +1,117 @@
+﻿/* Stránky záznamů – informační záložka (Views/*/Tab1.cshtml), verze 8. Společné třídy ri-*, barvy navazují na skin (--pozadi, --oznaceno).
+   Vzor: p40/Tab1 (opakovaná odměna). */
+.ri { max-width: 1240px; padding: 10px 12px 16px; }
+.ri a { text-decoration: none; }
+.ri a:hover { text-decoration: underline; }
+.ri-muted { color: #6c757d; }
+.ri-card { margin-bottom: 12px; padding: 12px 14px; border: 1px solid #e3e6ea; border-radius: 10px; background: #fff; }
+.ri-card > h2 { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; margin: 0 0 10px; font-size: 1rem; font-weight: 600; color: #2b3138; }
+.ri-card > h2 > .material-icons-outlined-nosize { font-size: 20px; color: var(--pozadi, #0b4b92); }
+.ri-card > h2 .ri-h2-tools { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; font-size: .82rem; font-weight: 400; color: #59636e; }
+.ri-card > h2 .ri-h2-tools .form-select { width: auto; padding-top: 2px; padding-bottom: 2px; font-size: .82rem; }
+
+/* hlavička záznamu */
+.ri-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px 16px; align-items: start; }
+.ri-title { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; margin: 0; font-size: 1.25rem; font-weight: 600; line-height: 1.3; color: #1f2328; overflow-wrap: anywhere; }
+.ri-sub { margin-top: 3px; font-size: .9rem; color: #59636e; }
+.ri-big { text-align: right; line-height: 1.15; }
+.ri-big strong { display: block; font-size: 1.6rem; font-weight: 600; color: #1f2328; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ri-big span { font-size: .85rem; color: #6c757d; }
+.ri-chip { display: inline-flex; align-items: center; gap: 4px; padding: 1px 9px; border: 1px solid #e3e6ea; border-radius: 999px; background: #fff; font-size: .78rem; font-weight: 500; color: #3d444d; white-space: nowrap; }
+.ri-chip .material-icons-outlined-nosize { font-size: 14px; }
+.ri-chip-arch { background: #f1f3f5; color: #6c757d; }
+.ri-chip-link { border-color: color-mix(in srgb, var(--oznaceno, #4169e1) 35%, #ffffff); background: color-mix(in srgb, var(--oznaceno, #4169e1) 8%, #ffffff); color: var(--pozadi, #0b4b92); }
+
+/* údaje: popisek nad hodnotou, mřížka */
+.ri-facts { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px 18px; margin: 0; padding-top: 10px; border-top: 1px solid #eef0f3; }
+.ri-facts > div { min-width: 0; }
+.ri-facts dt { margin: 0 0 1px; font-size: .75rem; font-weight: 400; color: #6c757d; }
+.ri-facts dd { margin: 0; font-size: .92rem; color: #1f2328; overflow-wrap: anywhere; }
+.ri-facts .ri-wide { grid-column: 1 / -1; }
+.ri-text { white-space: pre-line; }
+
+/* upozornění */
+.ri-alerts { display: flex; flex-direction: column; gap: 6px; grid-column: 1 / -1; }
+.ri-alert { display: flex; align-items: center; gap: 8px; padding: 7px 12px; border-radius: 8px; font-size: .88rem; }
+.ri-alert .material-icons-outlined-nosize { font-size: 19px; }
+.ri-alert-warn { background: #fff3cd; color: #6b4a00; }
+.ri-alert-warn .material-icons-outlined-nosize { color: #b7791f; }
+.ri-alert-bad { background: #fde2e1; color: #8a1c26; }
+.ri-alert-bad .material-icons-outlined-nosize { color: #b02a37; }
+
+/* souhrn (počty) */
+.ri-stats { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.ri-stat { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 8px; background: #f6f8fa; font-size: .82rem; color: #3d444d; }
+.ri-stat strong { font-variant-numeric: tabular-nums; color: #1f2328; }
+.ri-stat .ri-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+/* tabulka */
+.ri-tablewrap { overflow-x: auto; margin: 0 -14px -12px; }
+.ri-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+.ri-table th { padding: 6px 10px; border-bottom: 1px solid #e3e6ea; background: #fafbfc; font-size: .74rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: #8a939c; text-align: left; white-space: nowrap; }
+.ri-table td { padding: 7px 10px; border-bottom: 1px solid #f1f3f5; vertical-align: top; color: #1f2328; }
+.ri-table tr:last-child td { border-bottom: 0; }
+.ri-table tbody tr:hover td { background: #fbfcfd; }
+.ri-table .ri-nowrap { white-space: nowrap; }
+.ri-table .ri-sub2 { display: block; font-size: .8rem; color: #6c757d; }
+.ri-table .ri-err { display: block; margin-top: 3px; font-size: .8rem; color: #b02a37; white-space: pre-line; }
+.ri-row-next td { background: color-mix(in srgb, var(--oznaceno, #4169e1) 6%, #ffffff); }
+.ri-row-next td:first-child { box-shadow: inset 3px 0 0 var(--oznaceno, #4169e1); }
+
+/* stav v tabulce */
+.ri-state { display: inline-flex; align-items: center; gap: 5px; padding: 1px 9px; border-radius: 999px; font-size: .78rem; font-weight: 500; white-space: nowrap; }
+.ri-state .material-icons-outlined-nosize { font-size: 14px; }
+.ri-ok { background: #d1f2dd; color: #146c43; }
+.ri-wait { background: #eef1f4; color: #3d444d; }
+.ri-late { background: #fff3cd; color: #6b4a00; }
+.ri-bad { background: #fde2e1; color: #8a1c26; }
+.ri-dot.ri-ok { background: #198754; }
+.ri-dot.ri-wait { background: #8a939c; }
+.ri-dot.ri-late { background: #d4a400; }
+.ri-dot.ri-bad { background: #b02a37; }
+.ri-acts { display: flex; flex-wrap: wrap; gap: 4px; justify-content: flex-end; }
+.ri-acts .btn { white-space: nowrap; }
+
+/* úzké okno: řádky tabulky jako karty (datum + stav nahoře, text, akce) */
+@media (max-width: 640px) {
+    .ri-head { grid-template-columns: minmax(0, 1fr); }
+    .ri-big { text-align: left; }
+    .ri-stack thead { display: none; }
+    .ri-stack, .ri-stack tbody { display: block; }
+    .ri-stack tr { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 10px; padding: 8px 14px; border-bottom: 1px solid #f1f3f5; }
+    .ri-stack td { padding: 0; border: 0; }
+    .ri-stack .ri-c-date { font-weight: 600; }
+    .ri-stack .ri-c-state { text-align: right; }
+    .ri-stack .ri-c-gen { grid-column: 1 / -1; font-size: .8rem; color: #6c757d; }
+    .ri-stack .ri-c-gen::before { content: attr(data-label) ": "; }
+    .ri-stack .ri-c-text, .ri-stack .ri-c-acts { grid-column: 1 / -1; }
+    .ri-stack .ri-acts { justify-content: flex-start; flex-wrap: wrap; margin-top: 4px; }
+    .ri-stack .ri-c-text { min-width: 0; }
+    .ri-stack .ri-row-next { background: color-mix(in srgb, var(--oznaceno, #4169e1) 6%, #ffffff); box-shadow: inset 3px 0 0 var(--oznaceno, #4169e1); }
+    .ri-stack .ri-row-next td { background: none; box-shadow: none; }
+}
+html.mt-phone .ri-head { grid-template-columns: minmax(0, 1fr); }
+html.mt-phone .ri-big { text-align: left; }
+
+/* rozložení vedle sebe: box vlastností (recpagebox400) vlevo, hlavní obsah vpravo – šetří výšku */
+.ri-wide-layout { display: flex; align-items: flex-start; gap: 10px; }
+.ri-wide-layout > .recpagebox400 { float: none; flex: 0 0 440px; margin: 4px 0 0 0; }
+.ri-wide-layout > .ri-card { flex: 1 1 520px; min-width: 0; margin: 4px 0 0 0; }
+.ri-plan { padding: 8px 12px; }
+.ri-plan > h2 { margin-bottom: 6px; }
+.ri-plan .ri-stats { margin-bottom: 6px; }
+.ri-plan .ri-stat { padding: 1px 8px; }
+.ri-plan .ri-tablewrap { margin: 0 -12px -8px; }
+.ri-plan .ri-table th { padding: 4px 8px; }
+.ri-plan .ri-table td { padding: 4px 8px; vertical-align: middle; }
+.ri-plan .ri-acts .btn { padding-top: 0; padding-bottom: 0; }
+.ri-plan .ri-c-text { min-width: 240px; }
+.ri-plan .ri-c-state { white-space: nowrap; }
+.ri-plan .ri-c-acts { width: 1%; }
+.ri-plan .ri-acts { flex-wrap: wrap; }
+@media (max-width: 1000px) {
+    .ri-wide-layout { flex-wrap: wrap; }
+    .ri-wide-layout > .recpagebox400 { flex: 1 1 440px; max-width: 100%; }
+}
+html.mt-phone .ri-wide-layout { flex-wrap: wrap; }
+html.mt-phone .ri-wide-layout > .recpagebox400 { flex: 1 1 100%; }

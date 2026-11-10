@@ -1,22 +1,45 @@
 ﻿@model UI.Models.Tab1.p40Tab1
 @inject BL.Factory _f
 
-@{
+@* Opakovaná odměna – informační záložka. Verze 8: původní box vlastností (recpagebox400) vlevo + plán generování se stavy vpravo (málo místa na výšku, hodně na šířku) (css/recinfo.css, třídy ri-*).
+   Existence vygenerovaných úkonů se zjišťuje v controlleru dvěma dotazy (Model.P31Existing / P31Archived), ne Load() na řádek.
+   Funkce change_plusminus / generate_manually / generate_clear / p31_record beze změny. *@
 
+@{
     Layout = "~/Views/Shared/_LayoutSubform.cshtml";
     if (Model.Rec == null) return;
 
+    var r = Model.Rec;
     bool _bolRowHover = UI.Code.basUI.DetectIfCanRowHover(_f, Context, true);
+    bool _isMoney = r.p33ID == 2 || r.p33ID == 5;
+    var _now = DateTime.Now;
+    var _lis = Model.lisP39 ?? new List<BO.p39WorkSheet_Recurrence_Plan>();
 
+    // stav řádku plánu: ok = vygenerováno, gone = úkon odstraněn, wait = čeká, late = po termínu (robot to ještě zkusí), dead = robot to už nezkusí
+    string State(BO.p39WorkSheet_Recurrence_Plan c)
+    {
+        if (c.p31ID_NewInstance > 0) return Model.P31Existing.Contains(c.p31ID_NewInstance) ? "ok" : "gone";
+        if (c.p39DateCreate >= _now) return "wait";
+        return c.p39DateCreate.AddDays(31) < _now ? "dead" : "late";
+    }
+    var _states = _lis.Select(c => State(c)).ToList();
+    var _next = _lis.Where(c => c.p31ID_NewInstance == 0 && c.p39DateCreate >= _now).OrderBy(c => c.p39DateCreate).FirstOrDefault();
 
+    bool _expired = !r.isclosed && r.p40LastSupplyDate < _now;
+    bool _robotMiss = !r.isclosed && _lis.Any(p => p.p31ID_NewInstance == 0 && p.p39DateCreate < _now.AddDays(-10));
+
+    string ErrText(string s) => string.IsNullOrEmpty(s) ? null : System.Text.RegularExpressions.Regex.Replace(System.Text.RegularExpressions.Regex.Replace(s, @"<br\s*/?>", "\n", System.Text.RegularExpressions.RegexOptions.IgnoreCase), "<[^>]+>", "");
 }
 
 @addTagHelper *, UI
 
-
+@section header_content {
+    <link rel="stylesheet" href="~/css/recinfo.css" asp-append-version="true" />
+}
 
 @Html.Raw("<div class='info_record_container'>")
 
+<div class="ri-wide-layout">
 
 <div class="card recpagebox400">
     <div class="card-body">
@@ -188,212 +211,154 @@
     </div>
 </div>
 
+    @if (Model.lisP39 != null)
+    {
+        <section class="ri-card ri-plan">
+            <h2>
+                <span class="material-icons-outlined-nosize">event_repeat</span>@_f.tra("Přesný plán generování úkonů")
+                <label class="ri-h2-tools" for="PlusMinusp39Mesice">
+                    @_f.tra("Zobrazit")
+                    <select class="form-select" onchange="change_plusminus(this)" asp-for="@Model.PlusMinusp39Mesice">
+                        <option value="3">± 3</option>
+                        <option value="6">± 6</option>
+                        <option value="12">± 12</option>
+                        <option value="24">± 24</option>
+                        <option value="0">@_f.tra("Celý plán")</option>
+                    </select>
+                    @_f.tra("měsíců zpět i dopředu")
+                </label>
+            </h2>
 
-@if (Model.lisP39 != null)
-{
-    <div class="card" style="float: left;margin-left:10px;">
-        <div class="card-body">
-            <div class="card-title recpagetitle bgp51">
-
-                @_f.tra("Přesný plán generování úkonů")
-
-
-            </div>
-            <table>
-                <tr>
-                    <td>
-                        @_f.tra("Zobrazovat historii"):
-                    </td>
-                    <td>
-                        <select class="form-select" onchange="change_plusminus(this)" asp-for="@Model.PlusMinusp39Mesice">
-                            <option value="3">3</option>
-                            <option value="6">6</option>
-                            <option value="12">12</option>
-                            <option value="24">24</option>
-                            <option value="0">@_f.tra("Bez omezení")</option>
-                        </select>
-                    </td>
-                    <td>
-                        @_f.tra("(max počet měsíců dozadu)")
-                    </td>
-                </tr>
-            </table>
-
-            <table class="table table-hover">
-                <tr>
-                    <th>@_f.tra("Vzor textu")</th>
-                    <th>@_f.tra("Datum úkonu")</th>
-                    <th>@_f.tra("Kdy generovat")</th>
-                    <th colspan="3">@_f.tra("Již vygenerováno")</th>
-
-                    <th></th>
-                    <th></th>
-                </tr>
-                @foreach (var c in Model.lisP39)
+            @{
+                int nOk = _states.Count(s => s == "ok"), nWait = _states.Count(s => s == "wait"), nLate = _states.Count(s => s == "late"), nBad = _states.Count(s => s == "dead" || s == "gone");
+            }
+            <div class="ri-stats">
+                <span class="ri-stat"><span class="ri-dot ri-ok"></span>@_f.tra("Vygenerováno") <strong>@nOk</strong></span>
+                <span class="ri-stat"><span class="ri-dot ri-wait"></span>@_f.tra("Čeká") <strong>@nWait</strong></span>
+                @if (nLate > 0)
                 {
-                    <tr>
-                        <td>
-                            @c.p39Text
-                        </td>
-                        <td>
-                            @BO.Code.Bas.ObjectDate2String(c.p39Date)
-                        </td>
-                        <td>
-                            @BO.Code.Bas.ObjectDate2String(c.p39DateCreate)
-                        </td>
-                        <td>
-                            @if (c.p31ID_NewInstance > 0)
-                            {
-                                @(BO.Code.Bas.ObjectDateTime2String(c.p31DateInsert) + ": ")
-
-                                <i>
-                                    @c.p31Text
-                                </i>
-                            }
-                            else
-                            {
-                                if (c.p39DateCreate < DateTime.Now)
-                                {
-                                    <myicon symbol="priority_high" color="red"></myicon>
-                                }
-
-                                if (c.p39DateCreate.AddDays(31) < DateTime.Now)
-                                {
-                                    <code>@_f.tra("Robot se již nebude pokoušet úkon vygenerovat.")</code>
-
-                                }
-
-                            }
-
-                        </td>
-                        <td>
-                        </td>
-                        <td style="color:red;">
-                            @Html.Raw(c.p39ErrorMessage_NewInstance)
-
-                        </td>
-                        <td>
-                            @if (Model.Rec.p58ID == 0)
-                            {
-                                @if (c.p31ID_NewInstance > 0)
-                                {
-                                    @if (_f.p31WorksheetBL.Load(c.p31ID_NewInstance) == null)
-                                    {
-                                        <small style="color:brown">Vygenerovaný úkon neexistuje (byl odstraněn)</small>
-                                        <br />
-                                        <button type="button" class="btn btn-sm bog" style="color:red;" onclick="generate_manually(@c.p39ID)">@_f.tra("Vygenerovat úkon ručně")</button>
-                                        <br />
-                                        <button type="button" class="btn btn-sm bog" onclick="generate_clear(@c.p39ID)">@_f.tra("Vyčistit stopu generování")</button>
-                                    }
-                                    else
-                                    {
-                                        <button type="button" class="btn btn-sm bog" onclick="p31_record(@c.p31ID_NewInstance)">@_f.tra("Vygenerováno")</button>
-                                    }
-
-                                }
-                                else
-                                {
-                                    if (c.p39DateCreate.AddDays(31) < DateTime.Now)
-                                    {
-
-                                        <button type="button" class="btn btn-sm bog" style="color:red;" onclick="generate_manually(@c.p39ID)">@_f.tra("Vygenerovat úkon ručně")</button>
-                                    }
-                                    else
-                                    {
-                                        <button type="button" class="btn btn-sm bog" style="color:brown" onclick="generate_manually(@c.p39ID)">@_f.tra("Nečekat a vygenerovat ručně")</button>
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                @if (c.p31ID_NewInstance>0)
-                                {
-                                    @if(_f.p31WorksheetBL.Load(c.p31ID_NewInstance) != null)
-                                    {
-                                        <button type="button" class="btn btn-sm bog" onclick="p31_record(@c.p31ID_NewInstance)">@_f.tra("Vygenerováno")</button>
-                                    }
-                                    else
-                                    {
-                                        <small style="color:brown">Vygenerovaný úkon neexistuje (byl odstraněn)</small>
-                                        <br />
-                                        <button type="button" class="btn btn-sm bog" onclick="generate_clear(@c.p39ID)">@_f.tra("Vyčistit stopu generování")</button>
-                                    }
-
-                                }
-                            }
-
-                        </td>
-                    </tr>
-
-
+                    <span class="ri-stat"><span class="ri-dot ri-late"></span>@_f.tra("Po termínu") <strong>@nLate</strong></span>
                 }
-            </table>
+                @if (nBad > 0)
+                {
+                    <span class="ri-stat"><span class="ri-dot ri-bad"></span>@_f.tra("Vyžaduje zásah") <strong>@nBad</strong></span>
+                }
+                @if (_next != null)
+                {
+                    <span class="ri-stat"><span class="material-icons-outlined-nosize" style="font-size:15px">schedule</span>@_f.tra("Další generování") <strong>@BO.Code.Bas.ObjectDate2String(_next.p39DateCreate, "d.M.yyyy")</strong></span>
+                }
+            </div>
 
-
-        </div>
-    </div>
-}
-
-
-
-<div style="clear:both;"></div>
-
+            <div class="ri-tablewrap">
+                <table class="ri-table ri-stack">
+                    <thead>
+                        <tr>
+                            <th>@_f.tra("Datum úkonu")</th>
+                            <th>@_f.tra("Kdy generovat")</th>
+                            <th>@_f.tra("Text úkonu")</th>
+                            <th>@_f.tra("Stav")</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (int i = 0; i < _lis.Count(); i++)
+                        {
+                            var c = _lis.ElementAt(i);
+                            string st = _states[i];
+                            string err = ErrText(c.p39ErrorMessage_NewInstance);
+                            <tr class="@(c == _next ? "ri-row-next" : null)">
+                                <td class="ri-nowrap ri-c-date" data-label="@_f.tra("Datum úkonu")">@BO.Code.Bas.ObjectDate2String(c.p39Date, "d.M.yyyy")</td>
+                                <td class="ri-nowrap ri-c-gen" data-label="@_f.tra("Kdy generovat")">@BO.Code.Bas.ObjectDate2String(c.p39DateCreate, "d.M.yyyy")</td>
+                                <td class="ri-c-text">
+                                    @(st == "ok" && !string.IsNullOrEmpty(c.p31Text) ? c.p31Text : c.p39Text)
+                                    @if (err != null)
+                                    {
+                                        <span class="ri-err">@err</span>
+                                    }
+                                </td>
+                                <td class="ri-c-state">
+                                    @switch (st)
+                                    {
+                                        case "ok":
+                                            <span class="ri-state ri-ok" title="@(c.p31DateInsert == null ? null : _f.tra("vytvořeno") + " " + BO.Code.Bas.ObjectDate2String(c.p31DateInsert, "d.M.yyyy HH:mm"))"><span class="material-icons-outlined-nosize">check_circle</span>@_f.tra("Vygenerováno")</span>
+                                            @if (Model.P31Archived.Contains(c.p31ID_NewInstance))
+                                            {
+                                                <span class="ri-chip ri-chip-arch">@_f.tra("úkon v archivu")</span>
+                                            }
+                                            break;
+                                        case "gone":
+                                            <span class="ri-state ri-bad"><span class="material-icons-outlined-nosize">delete_forever</span>@_f.tra("Úkon odstraněn")</span>
+                                            break;
+                                        case "wait":
+                                            <span class="ri-state ri-wait"><span class="material-icons-outlined-nosize">schedule</span>@_f.tra("Čeká")</span>
+                                            break;
+                                        case "late":
+                                            <span class="ri-state ri-late"><span class="material-icons-outlined-nosize">priority_high</span>@_f.tra("Po termínu")</span>
+                                            break;
+                                        default:
+                                            <span class="ri-state ri-bad" title="@_f.tra("Robot se již nebude pokoušet úkon vygenerovat.")"><span class="material-icons-outlined-nosize">error</span>@_f.tra("Mimo dosah robota")</span>
+                                            break;
+                                    }
+                                </td>
+                                <td class="ri-c-acts">
+                                    <div class="ri-acts">
+                                        @if (st == "ok")
+                                        {
+                                            <button type="button" class="btn btn-sm bog" onclick="p31_record(@c.p31ID_NewInstance)"><span class="material-icons-outlined-btn">open_in_new</span>@_f.tra("Otevřít úkon")</button>
+                                        }
+                                        else if (st == "gone")
+                                        {
+                                            @if (r.p58ID == 0)
+                                            {
+                                                <button type="button" class="btn btn-sm bog" onclick="generate_manually(@c.p39ID)">@_f.tra("Vygenerovat úkon ručně")</button>
+                                            }
+                                            <button type="button" class="btn btn-sm bog" onclick="generate_clear(@c.p39ID)">@_f.tra("Vyčistit stopu generování")</button>
+                                        }
+                                        else if (r.p58ID == 0)
+                                        {
+                                            <button type="button" class="btn btn-sm bog" onclick="generate_manually(@c.p39ID)">@(st == "wait" ? _f.tra("Nečekat a vygenerovat ručně") : _f.tra("Vygenerovat úkon ručně"))</button>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    }
+</div>
 
 @Html.Raw("</div>")
 
-
 <script type="text/javascript">
-
-
-    $(document).ready(function() {
-
-
-
-
-
-    });
-
     function change_plusminus(cbx) {
-
-        $.post(_ep("/Common/SetUserParam"), { key: "p40-PlusMinusp39Mesice", value: cbx.value }, function(data) {
+        $.post(_ep("/Common/SetUserParam"), { key: "p40-PlusMinusp39Mesice", value: cbx.value }, function (data) {
             location.replace(window.location.href);
-
         });
     }
 
     function generate_manually(p39id) {
-
-        $.post("/p40/GenerateManually", { p39id: p39id }, function(data) {
-
+        $.post(_ep("/p40/GenerateManually"), { p39id: p39id }, function (data) {
             if (data == -1) {
-                alert("Nemáte vlastnické oprávnění k projektu.");
+                _notify_message(@Json.Serialize(_f.tra("Nemáte vlastnické oprávnění k projektu.")));
                 return;
             }
             if (data == 0) {
-                alert("Nedošlo k vygenerování záznamu úkonu.");
+                _notify_message(@Json.Serialize(_f.tra("Nedošlo k vygenerování záznamu úkonu.")));
                 return;
             }
             location.replace(window.location.href);
         });
-
-
     }
 
     function generate_clear(p39id) {
-
-        $.post("/p40/GenerateClear", { p39id: p39id }, function(data) {
-
-
+        $.post(_ep("/p40/GenerateClear"), { p39id: p39id }, function (data) {
             location.replace(window.location.href);
         });
-
-
     }
-
 
     function p31_record(p31id) {
         _edit("p31", p31id);
     }
-
-
 </script>

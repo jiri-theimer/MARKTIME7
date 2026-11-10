@@ -89,7 +89,8 @@ namespace BL
             if (days_inhistory > 0)
             {
                 //sb($" AND p39Date BETWEEN DATEADD(MONTH,{-1 * days_plusminus},GETDATE()) AND DATEADD(MONTH,{days_plusminus},GETDATE())");
-                sb($" AND (a.p39Date >= DATEADD(MONTH,{-1 * days_inhistory},GETDATE()) OR a.p31ID_NewInstance IS NULL AND a.p39DateCreate<GETDATE())");
+                //okno ± X měsíců od dneška (dříve jen do minulosti → budoucí řádky se zobrazovaly vždy všechny)
+                sb($" AND a.p39Date BETWEEN DATEADD(MONTH,{-1 * days_inhistory},GETDATE()) AND DATEADD(MONTH,{days_inhistory},GETDATE())");
             }
             return _db.GetList<BO.p39WorkSheet_Recurrence_Plan>(sbret(), new { p40id = p40id,p41id=p41id });
         }

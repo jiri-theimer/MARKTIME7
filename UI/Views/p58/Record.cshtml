@@ -295,6 +295,7 @@ else
 <input type="hidden" asp-for="b05RecordPid" />
 <input type="hidden" asp-for="b05RecordEntity" />
 
+<script src="~/js/recurrence.js" asp-append-version="true"></script>
 <script type="text/javascript">
     function hardrefresh(pid, flag) {
         _postback();
@@ -309,115 +310,26 @@ else
         p58_preview();
     }
 
-    // náhled: posun data stejně jako BO.Code.Bas.get_posun_datum (měsíce se zachováním konce měsíce, pak dny)
-    const p58_txt = @Json.Serialize(new {
-        rd = _f.tra("RD"), gen = _f.tra("Generování"), until = _f.tra("Termín"), from = _f.tra("Zahájení"),
-        count = _f.tra("Počet úkolů v období"), toomany = _f.tra("Příliš dlouhé období – nejvýše 200 úkolů. Snižte poslední rozhodné datum."),
-        weeks2fee = _f.tra("U opakované odměny není podpora 2-týdenního opakování."), missing = _f.tra("Vyplňte první rozhodné datum."),
-        more = _f.tra("… a další"), past = _f.tra("datum generování už uplynulo")
-    });
-
-    function p58_date(id) {
-        const el = document.getElementById(id);
-        if (!el || !el.value) return null;
-        const m = el.value.trim().match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})/);
-        if (!m) return null;
-        return new Date(+m[3], +m[2] - 1, +m[1]);
-    }
-    function p58_num(id) {
-        const el = document.getElementById("num" + id) || document.getElementById(id);
-        if (!el) return 0;
-        const n = parseInt(String(el.value).replace(/\s/g, "").replace(",", "."), 10);
-        return isNaN(n) ? 0 : n;
-    }
-    function p58_addMonths(d, months) {
-        const r = new Date(d.getFullYear(), d.getMonth() + months, 1);
-        const last = new Date(r.getFullYear(), r.getMonth() + 1, 0).getDate();
-        r.setDate(Math.min(d.getDate(), last));
-        return r;
-    }
-    function p58_shift(d, days, months) {
-        let r = new Date(d);
-        if (months !== 0) {
-            const isEom = d.getDate() === new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
-            r = p58_addMonths(r, months);
-            if (isEom) r = new Date(r.getFullYear(), r.getMonth() + 1, 0);
-        }
-        r.setDate(r.getDate() + days);
-        return r;
-    }
-    function p58_next(d, type, step) {
-        switch (type) {
-            case "Week": return new Date(d.getFullYear(), d.getMonth(), d.getDate() + 7 * step);
-            case "Weeks2": return new Date(d.getFullYear(), d.getMonth(), d.getDate() + 14 * step);
-            case "Quarter": return p58_addMonths(d, 3 * step);
-            case "Year": return p58_addMonths(d, 12 * step);
-            default: return p58_addMonths(d, step);
-        }
-    }
-    function p58_fmt(d) {
-        return d.toLocaleDateString("cs-CZ", { weekday: "short", day: "numeric", month: "numeric", year: "numeric" });
-    }
-    function p58_esc(s) {
-        return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-    }
-
-    let p58_last = "";
-    function p58_preview() {
-        const host = document.getElementById("p58Preview");
-        if (!host) return;
-        const typeEl = document.querySelector("input[name='Rec.p58RecurrenceType']:checked");
-        const type = typeEl ? typeEl.value : "Month";
-        const d1 = p58_date("Rec_p58BaseDateStart") || p58_date("Rec_p58BaseDateStarthelper");
-        const d2 = p58_date("Rec_p58BaseDateEnd") || p58_date("Rec_p58BaseDateEndhelper");
-        const g = [p58_num("Rec_p58Generate_DaysToBase_D"), p58_num("Rec_p58Generate_DaysToBase_M")];
-        const isUntil = document.getElementById("Rec_p58IsPlanUntil").checked;
-        const isFrom = document.getElementById("Rec_p58IsPlanFrom").checked;
-        const u = [p58_num("Rec_p58PlanUntil_D2Base"), p58_num("Rec_p58PlanUntil_M2Base")];
-        const f = [p58_num("Rec_p58PlanFrom_D2Base"), p58_num("Rec_p58PlanFrom_M2Base")];
-        const fee = document.getElementById("Rec_p34ID");
-        const sig = [type, d1 && d1.getTime(), d2 && d2.getTime(), g, isUntil, u, isFrom, f, fee && fee.value].join("|");
-        if (sig === p58_last) return;
-        p58_last = sig;
-
-        if (!d1) {
-            host.innerHTML = "<div class='p58-warn'>" + p58_esc(p58_txt.missing) + "</div>";
-            return;
-        }
-
-        // počet cyklů jako BO.Code.Recurrence.GetPocetCyklu: while (d < d2) units++
-        let count = 0;
-        if (d2) {
-            let t = new Date(d1);
-            while (t < d2 && count <= 201) { count++; t = p58_next(d1, type, count); }
-        }
-
-        const today = new Date(); today.setHours(0, 0, 0, 0);
-        let html = "<ol class='p58-list'>";
-        const max = 4;
-        for (let i = 0; i < max; i++) {
-            const rd = p58_next(d1, type, i);
-            if (d2 && rd > d2) break;
-            const gen = p58_shift(rd, g[0], g[1]);
-            html += "<li><div class='p58-li-rd'><span>" + p58_esc(p58_txt.rd) + "</span><strong>" + p58_esc(p58_fmt(rd)) + "</strong></div><div class='p58-li-meta'>";
-            html += "<span" + (gen < today ? " class='p58-past' title='" + p58_esc(p58_txt.past) + "'" : "") + "><span class='material-icons-outlined-nosize'>auto_awesome</span>" + p58_esc(p58_txt.gen) + " " + p58_esc(p58_fmt(gen)) + "</span>";
-            if (isFrom) html += "<span><span class='material-icons-outlined-nosize'>play_arrow</span>" + p58_esc(p58_txt.from) + " " + p58_esc(p58_fmt(p58_shift(rd, f[0], f[1]))) + "</span>";
-            if (isUntil) html += "<span><span class='material-icons-outlined-nosize'>flag</span>" + p58_esc(p58_txt.until) + " " + p58_esc(p58_fmt(p58_shift(rd, u[0], u[1]))) + "</span>";
-            html += "</div></li>";
-        }
-        html += "</ol>";
-        if (count > max) html += "<div class='p58-more'>" + p58_esc(p58_txt.more) + "</div>";
-        if (d2) html += "<div class='p58-count'>" + p58_esc(p58_txt.count) + ": <strong>" + (count > 200 ? "200+" : count) + "</strong></div>";
-        if (count > 200) html += "<div class='p58-warn'>" + p58_esc(p58_txt.toomany) + "</div>";
-        if (type === "Weeks2" && fee && fee.value && fee.value !== "0") html += "<div class='p58-warn'>" + p58_esc(p58_txt.weeks2fee) + "</div>";
-        host.innerHTML = html;
-    }
-
+    let p58_preview = function () { };
     document.addEventListener("DOMContentLoaded", function () {
-        p58_preview();
-        document.addEventListener("input", p58_preview);
-        document.addEventListener("change", p58_preview);
-        // datepicker a mynumber mění skrytá pole bez události → krátká kontrola změn (jen porovnání podpisu)
-        setInterval(p58_preview, 600);
+        const fee = () => document.getElementById("Rec_p34ID");
+        p58_preview = mtRecurrence.preview({
+            host: "p58Preview", type: "Rec.p58RecurrenceType", start: "Rec_p58BaseDateStart", end: "Rec_p58BaseDateEnd",
+            base: @Json.Serialize(_f.tra("RD")),
+            lines: [
+                { label: @Json.Serialize(_f.tra("Generování")), icon: "auto_awesome", d: "Rec_p58Generate_DaysToBase_D", m: "Rec_p58Generate_DaysToBase_M", gen: true },
+                { label: @Json.Serialize(_f.tra("Zahájení")), icon: "play_arrow", d: "Rec_p58PlanFrom_D2Base", m: "Rec_p58PlanFrom_M2Base", on: "Rec_p58IsPlanFrom" },
+                { label: @Json.Serialize(_f.tra("Termín")), icon: "flag", d: "Rec_p58PlanUntil_D2Base", m: "Rec_p58PlanUntil_M2Base", on: "Rec_p58IsPlanUntil" }
+            ],
+            warn: () => {
+                const t = document.querySelector("input[name='Rec.p58RecurrenceType']:checked");
+                const f = fee();
+                return t && t.value === "Weeks2" && f && f.value && f.value !== "0" ? @Json.Serialize(_f.tra("U opakované odměny není podpora 2-týdenního opakování.")) : null;
+            },
+            txt: @Json.Serialize(new {
+                count = _f.tra("Počet úkolů v období"), toomany = _f.tra("Příliš dlouhé období – nejvýše 200 úkolů. Snižte poslední rozhodné datum."),
+                missing = _f.tra("Vyplňte první rozhodné datum."), more = _f.tra("… a další"), past = _f.tra("datum generování už uplynulo")
+            })
+        });
     });
 </script>

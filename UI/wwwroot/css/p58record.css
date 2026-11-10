@@ -1,4 +1,4 @@
-﻿/* Předpis opakovaného úkolu (Views/p58/Record.cshtml) – doplněk k recordform.css, třídy p58-*. */
+﻿/* Opakování – předpis opakovaného úkolu (Views/p58/Record.cshtml) i úkonu (Views/p40/Record.cshtml); doplněk k recordform.css, třídy p58-*. Náhled js/recurrence.js. */
 .p58-dot { display: inline-block; width: 7px; height: 7px; margin-left: 6px; border-radius: 50%; background: var(--oznaceno, #4169e1); vertical-align: middle; }
 
 .p58-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(260px, 1fr); gap: 12px; align-items: start; margin-bottom: 12px; }
@@ -36,6 +36,7 @@ span.p58-off-title { cursor: default; }
 .p58-warn { margin-top: 8px; padding: 6px 10px; border-radius: 8px; background: #fde2e1; color: #b02a37; font-size: .85rem; }
 
 /* odměna */
+.p40-internal { background-color: #fff5ee; }
 .p58-intro { margin: -2px 0 10px; font-size: .85rem; color: #6c757d; }
 .p58-fee { flex-wrap: wrap; }
 .p58-cur { width: 130px; }

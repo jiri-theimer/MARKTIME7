@@ -47,6 +47,24 @@ namespace UI.Controllers
                 v.lisP39 = Factory.p40WorkSheet_RecurrenceBL.GetList_p39(v.pid,v.PlusMinusp39Mesice);
                 v.RecP41 = Factory.p41ProjectBL.Load(v.Rec.p41ID);
 
+                //existence vygenerovaných úkonů dvěma dotazy místo Load() na každý řádek plánu
+                var p31ids = v.lisP39.Where(p => p.p31ID_NewInstance > 0).Select(p => p.p31ID_NewInstance).Distinct().ToList();
+                if (p31ids.Count > 0)
+                {
+                    foreach (var c in Factory.p31WorksheetBL.GetList(new BO.myQueryP31() { pids = p31ids }))
+                    {
+                        v.P31Existing.Add(c.pid);
+                    }
+                    var missing = p31ids.Where(p => !v.P31Existing.Contains(p)).ToList();
+                    if (missing.Count > 0)
+                    {
+                        foreach (var c in Factory.p31WorksheetBL.GetList(new BO.myQueryP31() { pids = missing, IsRecordValid = false }))
+                        {
+                            v.P31Existing.Add(c.pid); v.P31Archived.Add(c.pid);
+                        }
+                    }
+                }
+
             }
 
             return View(v);

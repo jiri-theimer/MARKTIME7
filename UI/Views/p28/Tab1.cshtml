@@ -323,7 +323,7 @@
                                 </small>
                                 @if (c.p40LastSupplyDate < DateTime.Now)
                                 {
-                                    <small class="badge text-bg-warning">Expirovalo</small>
+                                    <small class="badge text-bg-warning">@_f.tra("Expirovalo")</small>
                                 }
                             </li>
                         }
@@ -512,7 +512,7 @@
                                 @foreach (var c in _lisP91)
                                 {
                                     <tr>
-                                        <td style="background-color: @(c.p91Amount_Debt > 1 && DateTime.Today>c.p91DateMaturity ? "red": "none")">
+                                        <td style="@(UI.Code.TheGridRowSymbol.p91_td_style(c))">
                                             <a class="treeview-link" target="_top" href="/Record/@(_strRecPage)?prefix=p91&pid=@(c.pid)">@c.p91Code</a>
                                         </td>
                                         <td>

@@ -226,6 +226,20 @@ namespace UI.Code
             return null;
 
         }
+        //stejná pravidla jako p91_td_style(DataRow) pro seznamy mimo grid (navigátor v Tab1 kontaktu a projektu):
+        //dluh do 1,- = uhrazeno; po splatnosti zcela neuhrazeno = červená (s upomínkou + modrý čárkovaný okraj), částečně uhrazeno = růžová; ve splatnosti neuhrazeno = žlutá
+        public static string p91_td_style(BO.p91Invoice c)
+        {
+            if (c == null || c.p91IsDraft || c.p91Amount_Debt <= 1) return null;
+            bool full = Math.Abs(c.p91Amount_TotalDue - c.p91Amount_Debt) < 10;
+            if (c.p91DateMaturity < DateTime.Today)
+            {
+                if (full) return c.p84ID_Last > 0 ? "background-color:red;border-left: 2px dashed blue;border-right: 2px dashed blue;" : "background-color:red;";
+                return "background-color:pink;";
+            }
+            return full ? "background-color:yellow;" : null;
+        }
+
         public static string p91_td_style(System.Data.DataRow dbrow)
         {
             if (!Convert.ToBoolean(dbrow["p91IsDraft"]))
