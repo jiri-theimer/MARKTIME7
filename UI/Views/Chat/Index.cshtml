@@ -1,0 +1,155 @@
+﻿@model UI.Models.ChatViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = null;     //okno chatu využívá celou plochu, nadpis je v záhlaví modálního okna
+}
+
+@section header_content {
+    <link rel="stylesheet" href="~/css/chat.css" asp-append-version="true" />
+}
+
+@if (!Model.IsAvailable)
+{
+    <div class="alert alert-warning" style="margin:20px;">
+        @_f.tra("Chat zatím není v této databázi k dispozici.")
+        <div><small>@_f.tra("Správce: v databázi chybí tabulky u01Channel, u02Message, u03ChannelMember a u04MessageReaction.")</small></div>
+    </div>
+    return;
+}
+
+<div id="chat">
+    <aside class="ch-side">
+        <div class="ch-side-top">
+            <input type="text" class="ch-search" id="chSearch" placeholder="@_f.tra("Hledat konverzaci")" autocomplete="off" />
+            <button type="button" class="ch-btn" id="chSound" title="@_f.tra("Zvuk nové zprávy")"><i class="ch-ico">volume_up</i></button>
+            <button type="button" class="ch-new" id="chNew" title="@_f.tra("Nová konverzace")"><i class="ch-ico">add</i></button>
+        </div>
+        <div class="ch-list" id="chList"></div>
+    </aside>
+
+    <section class="ch-main" id="chMain">
+        <div class="ch-status" id="chStatus">@_f.tra("Spojení se serverem je přerušené, obnovuji…")</div>
+
+        <div class="ch-welcome" id="chWelcome">
+            <i class="ch-ico">forum</i>
+            <div>@_f.tra("Vyberte konverzaci vlevo, nebo začněte novou.")</div>
+            <button type="button" class="btn btn-primary btn-sm" id="chNew2">@_f.tra("Nová konverzace")</button>
+        </div>
+
+        <div id="chThread" style="display:none;flex:1;min-height:0;flex-direction:column;">
+            <div class="ch-head">
+                <button type="button" class="ch-btn ch-back" id="chBack" title="@_f.tra("Zpět")"><i class="ch-ico">arrow_back</i></button>
+                <div class="ch-ava" id="chHeadAva"></div>
+                <div class="ch-head-text">
+                    <div class="ch-head-name" id="chHeadName"></div>
+                    <div class="ch-head-sub" id="chHeadSub"></div>
+                </div>
+                <button type="button" class="ch-btn" id="chMembers" title="@_f.tra("Členové konverzace")"><i class="ch-ico">group</i></button>
+                <button type="button" class="ch-btn" id="chAdd" title="@_f.tra("Přidat členy")"><i class="ch-ico">person_add</i></button>
+                <button type="button" class="ch-btn" id="chRename" title="@_f.tra("Přejmenovat skupinu")"><i class="ch-ico">edit</i></button>
+                <button type="button" class="ch-btn" id="chPin" title="@_f.tra("Připnout nahoru")"><i class="ch-ico">push_pin</i></button>
+                <button type="button" class="ch-btn" id="chMute" title="@_f.tra("Ztlumit upozornění")"><i class="ch-ico">notifications</i></button>
+                <button type="button" class="ch-btn" id="chLeave" title="@_f.tra("Opustit konverzaci")"><i class="ch-ico">logout</i></button>
+                <button type="button" class="ch-btn ch-danger" id="chDelete" title="@_f.tra("Smazat konverzaci")"><i class="ch-ico">delete_forever</i></button>
+            </div>
+
+            <div class="ch-msgs" id="chMsgs"></div>
+
+            <div class="ch-compose">
+                <div class="ch-ctx" id="chCtx">
+                    <div class="ch-ctx-text" id="chCtxText"></div>
+                    <button type="button" class="ch-btn" id="chCtxClose" title="@_f.tra("Zrušit")"><i class="ch-ico">close</i></button>
+                </div>
+                <div class="ch-pending" id="chPending"></div>
+                <div class="ch-row">
+                    <button type="button" class="ch-btn" id="chAttach" title="@_f.tra("Přiložit soubor")"><i class="ch-ico">attach_file</i></button>
+                    <input type="file" id="chFile" multiple style="display:none;" />
+                    <textarea class="ch-input" id="chInput" rows="1" maxlength="4000" placeholder="@_f.tra("Napište zprávu…")"></textarea>
+                    <button type="button" class="ch-send" id="chSend" title="@_f.tra("Odeslat (Enter)")"><i class="ch-ico">send</i></button>
+                </div>
+            </div>
+        </div>
+
+        <div class="ch-drop">@_f.tra("Přetáhněte soubory sem")</div>
+
+        <div class="ch-dlg-back" id="chDlg">
+            <div class="ch-dlg" role="dialog" aria-modal="true">
+                <h5 id="chDlgTitle"></h5>
+                <div class="ch-dlg-body">
+                    <input type="text" id="chDlgSearch" placeholder="@_f.tra("Hledat uživatele")" autocomplete="off" />
+                    <div class="ch-users" id="chDlgUsers"></div>
+                    <input type="text" id="chDlgName" maxlength="200" placeholder="@_f.tra("Název skupiny")" style="display:none;" />
+                    <div class="ch-dlg-err" id="chDlgErr"></div>
+                </div>
+                <div class="ch-dlg-foot">
+                    <button type="button" class="btn btn-light btn-sm" id="chDlgCancel">@_f.tra("Zrušit")</button>
+                    <button type="button" class="btn btn-primary btn-sm" id="chDlgOk"></button>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<script src="~/lib/signalr/signalr.min.js"></script>
+<script src="~/js/chat.js" asp-append-version="true"></script>
+<script type="text/javascript">
+    $(function () {
+        ChatApp.init(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new
+        {
+            me = _f.CurrentUser.pid,
+            initial = Model.InitialU01ID,
+            t = new Dictionary<string, string>
+            {
+                { "today", _f.tra("Dnes") },
+                { "yesterday", _f.tra("Včera") },
+                { "you", _f.tra("Vy") },
+                { "deleted", _f.tra("Zpráva byla smazána") },
+                { "edited", _f.tra("upraveno") },
+                { "seen", _f.tra("Přečteno") },
+                { "file", _f.tra("Příloha") },
+                { "older", _f.tra("Načíst starší zprávy") },
+                { "empty", _f.tra("Zatím žádná konverzace.") },
+                { "nomsg", _f.tra("Zatím žádná zpráva. Napište první.") },
+                { "members", _f.tra("členů") },
+                { "direct", _f.tra("Přímá konverzace") },
+                { "record", _f.tra("Konverzace k záznamu") },
+                { "reply", _f.tra("Odpovědět") },
+                { "react", _f.tra("Reagovat") },
+                { "edit", _f.tra("Upravit") },
+                { "delete", _f.tra("Smazat") },
+                { "confirmdelete", _f.tra("Opravdu smazat tuto zprávu?") },
+                { "confirmleave", _f.tra("Opravdu chcete konverzaci opustit?") },
+                { "confirmdeletechannel", _f.tra("Opravdu smazat celou konverzaci? Zmizí všem členům včetně zpráv a příloh.") },
+                { "replyto", _f.tra("Odpověď pro") },
+                { "editing", _f.tra("Úprava zprávy") },
+                { "newchat", _f.tra("Nová konverzace") },
+                { "addmembers", _f.tra("Přidat členy") },
+                { "addtodirect", _f.tra("Přidat další lidi – vznikne nová skupina") },
+                { "membersdlg", _f.tra("Členové konverzace") },
+                { "admin", _f.tra("správce") },
+                { "remove", _f.tra("Odebrat") },
+                { "confirmremove", _f.tra("Opravdu odebrat tohoto člena z konverzace?") },
+                { "close", _f.tra("Zavřít") },
+                { "create", _f.tra("Vytvořit skupinu") },
+                { "soundon", _f.tra("Zvuk nové zprávy je zapnutý") },
+                { "soundoff", _f.tra("Zvuk nové zprávy je vypnutý") },
+                { "start", _f.tra("Zahájit") },
+                { "add", _f.tra("Přidat") },
+                { "rename", _f.tra("Nový název skupiny") },
+                { "pickuser", _f.tra("Vyberte alespoň jednoho uživatele.") },
+                { "groupname", _f.tra("Zadejte název skupiny.") },
+                { "nousers", _f.tra("Žádný uživatel neodpovídá hledání.") },
+                { "toomany", _f.tra("Najednou lze přiložit nejvýše 5 souborů.") },
+                { "toobig", _f.tra("Soubor je větší než 20 MB") },
+                { "rejected", _f.tra("Některé soubory se nepodařilo přiložit") },
+                { "error", _f.tra("Operaci se nepodařilo provést.") },
+                { "mute", _f.tra("Ztlumit upozornění") },
+                { "unmute", _f.tra("Zapnout upozornění") },
+                { "pin", _f.tra("Připnout nahoru") },
+                { "unpin", _f.tra("Zrušit připnutí") }
+            }
+        })));
+    });
+</script>

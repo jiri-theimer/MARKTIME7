@@ -19,10 +19,8 @@
     IEnumerable<BO.b05Workflow_History> _lisB05 = _f.WorkflowBL.GetList_b05("p56", Model.pid, 0, 0, 0).Where(p => BO.Code.Bas.bit_compare_or(p.b05Tab1Flag, 2) == true);
 
     IEnumerable<BO.p56Task> _lisP56 = null;
-    BO.p41Project _recP41 = null;
     if (Model.Rec.p41ID > 0)
     {
-        _recP41 = _f.p41ProjectBL.Load(Model.Rec.p41ID);
         _lisP56 = _f.p56TaskBL.GetList(new BO.myQueryP56() { IsRecordValid = true, p41id = Model.Rec.p41ID, MyRecordsDisponible = true });
     }
 
@@ -81,12 +79,11 @@
 {
     <ul class="mytreeview">
         <li>
-            <a class="mytreeview-toggle-kontejner" onclick="_treeview_toggle(this,'tab1-p56-toggle-p41')">
+            <span class="mytreeview-toggle-kontejner" style="cursor:pointer;color:#0b4b92;" onclick="_treeview_toggle(this,'tab1-p56-toggle-p41')">
                 <span class="material-icons-outlined-btn mytreeview-toggle-sipka">@(UI.Code.basKendoTreeViewSupport.Get_Arrow_LastState(_f, "tab1-p56-toggle-p41", "expanded"))</span>
                 <span class="material-icons-outlined-btn">work</span>
-                <a class="treeview-link" target="_top" href="/Record/@(_strRecPage)?prefix=p41&pid=@(Model.Rec.p41ID)">@(BO.Code.Bas.OM2(Model.Rec.ProjectWithClient, 25)) (@_lisP56.Count())</a>
-
-            </a>
+            </span>
+            <a class="treeview-link" target="_top" title="@(Model.Rec.ProjectWithClient != null && Model.Rec.ProjectWithClient.Length > 25 ? Model.Rec.ProjectWithClient : null)" href="/Record/@(_strRecPage)?prefix=p41&pid=@(Model.Rec.p41ID)">@(BO.Code.Bas.OM2(Model.Rec.ProjectWithClient, 25)) (@_lisP56.Count())</a>
 
             <ul style="display:@(UI.Code.basKendoTreeViewSupport.Get_UL_LastState(_f,"tab1-p56-toggle-p41","expanded"))">
                 @foreach (var c in _lisP56)
@@ -99,7 +96,7 @@
                         }
                         else
                         {
-                            <small>@(BO.Code.Bas.OM2(c.p56Name, 25))</small>
+                            <small title="@(c.p56Name != null && c.p56Name.Length > 25 ? c.p56Name : null)">@(BO.Code.Bas.OM2(c.p56Name, 25))</small>
                         }
                         @if (c.b02Color != null)
                         {
@@ -126,17 +123,6 @@
     </ul>
 }
 @Html.Raw("</div>")
-
-@if (_f.CurrentUser.IsRatesAccess && 1==2)
-{
-    @Html.Raw("<div class='card' id='divRecBillingBox' style='float: left;vertical-align: top;margin-left:4px;margin-top:4px;'>")
-    <div class="card-body">
-        @await Html.PartialAsync("~/Views/Shared/_p56RecBillingBox.cshtml", Model.Rec)
-    </div>
-    @Html.Raw("</div>")
-}
-
-
 
 @if (Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.quickstat) && Model.Rec.p41ID > 0 && _f.CBL.LoadUserParamBool($"p56-quickstat-immediately", false))
 {
@@ -190,7 +176,10 @@
 
 
             _adjust_divheight_small_display("divTree1Container");
+        }
 
+        //posun na aktuální úkol jen když je v seznamu (uzavřený úkol v seznamu otevřených úkolů není → dříve chyba JS)
+        if (document.getElementById("divTree1Container") && document.getElementById("p56@(Model.pid)")) {
             $("#divTree1Container").animate(
                 {
                     scrollTop: $("#p56@(Model.pid)").offset().top - $("#divTree1Container").offset().top,

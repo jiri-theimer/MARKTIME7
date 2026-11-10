@@ -184,6 +184,8 @@ namespace UI
             services.AddScoped<BO.RunningUser, BO.RunningUser>();
             services.AddScoped<BL.Factory, BL.Factory>();
 
+            services.AddSignalR();  //interni chat: UI.Code.ChatHub
+
 
 
 
@@ -233,6 +235,7 @@ namespace UI
 
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapHub<UI.Code.ChatHub>("/chathub");   //interni chat
                 endpoints.MapControllers(); //kv li teleri reporting
 
                 //endpoints.MapAreaControllerRoute(

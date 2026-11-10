@@ -17,6 +17,7 @@
     if (!Model.Rec.p91IsDraft)
     {
         _lisP84 = _f.p84UpominkaBL.GetList(new BO.myQueryP84() { p91id = Model.pid });
+        _lisP84 = _lisP84.OrderBy(p => p.p84Index).ToList();
         if (_lisP84.Count() > 0 && Model.Rec.p83ID > 0)
         {
             _recP83 = _f.p83UpominkaTypeBL.Load(Model.Rec.p83ID);
@@ -26,7 +27,7 @@
         
     }
 
-    var _lisP91 = _f.p91InvoiceBL.GetList(new BO.myQueryP91() { p28id = Model.Rec.p28ID }).Where(p => p.p28ID != 0);
+    var _lisP91 = _f.p91InvoiceBL.GetList(new BO.myQueryP91() { p28id = Model.Rec.p28ID, MyRecordsDisponible = true }).Where(p => p.p28ID != 0);   //verze 8: jen faktury, ke kterým má uživatel přístup
 
 
     BO.TaggingHelper _tg = null;
@@ -91,7 +92,7 @@
                 <table>
                     @foreach (var c in _lisP84)
                     {
-                        <tr style="vertical-align:top;" title="Upomínka #@(c.p84Index): @BO.Code.Bas.ObjectDate2String(c.p84Date)">
+                        <tr style="vertical-align:top;" title="@_f.tra("Upomínka") #@(c.p84Index): @BO.Code.Bas.ObjectDate2String(c.p84Date, "d.M.yyyy")">
                             <td>
                                 <myicon symbol="gavel"></myicon>
                             </td>
@@ -345,7 +346,7 @@
                                 {
                                     <tr>
                                       
-                                        <td title="Splatnost: @c.p91DateMaturity.ToString("dd.MM.yyyy ddd"), @(c.p92Name)" style="width:80px;@(c.p91Amount_Debt>1 && DateTime.Today>c.p91DateMaturity && !c.p91IsDraft ? "background-color:red;" : "")">
+                                        <td title="Splatnost: @c.p91DateMaturity.ToString("dd.MM.yyyy ddd"), @(c.p92Name)" style="width:80px;@(UI.Code.TheGridRowSymbol.p91_td_style(c))">
                                             <a id="p91@(c.pid)" class="treeview-link" href="/Record/@(_strRecPage)?prefix=p91&pid=@c.pid" target="_top">
                                                 @c.p91Code
                                             </a>
@@ -418,41 +419,36 @@
 {
     @await Html.PartialAsync("~/Views/Shared/_lisB05.cshtml", _lisB05)
 }
-@if (_lisP41.Any(p => p.p28BillingMemo200 != null) || _lisP41.Any(p => p.p41BillingMemo200 != null))
+@{
+    //fakturační poznámky klientů a projektů faktury – každý klient i projekt jen jednou (dříve se poznámka klienta opakovala u každého jeho projektu)
+    var _memoP28 = _lisP41.Where(p => p.p28BillingMemo200 != null && p.p28ID_Client > 0).Select(p => p.p28ID_Client).Distinct().ToList();
+    if (Model.Rec.p28ID > 0 && !_memoP28.Contains(Model.Rec.p28ID) && !_lisP41.Any(p => p.p28ID_Client == Model.Rec.p28ID))
+    {
+        var recP28 = _f.p28ContactBL.Load(Model.Rec.p28ID);
+        if (recP28 != null && recP28.p28BillingMemo200 != null) _memoP28.Add(recP28.pid);
+    }
+    var _memoP41 = _lisP41.Where(p => p.p41BillingMemo200 != null).Select(p => p.pid).Distinct().ToList();
+}
+@if (_memoP28.Count > 0 || _memoP41.Count > 0)
 {
     <table class="table-sm table-hover table">
-        @foreach (var c in _lisP41.Where(p => p.p28BillingMemo200 != null))
+        @foreach (var p28id in _memoP28)
         {
             <tr style="background-color:#DFFFE9;">
                 <td>
-                    @Html.Raw(_f.p28ContactBL.LoadBillingMemo(c.p28ID_Client))
+                    @Html.Raw(_f.p28ContactBL.LoadBillingMemo(p28id))
                 </td>
             </tr>
         }
-        @foreach (var c in _lisP41.Where(p => p.p41BillingMemo200 != null))
+        @foreach (var p41id in _memoP41)
         {
             <tr style="background-color:#DFFFE9;">
                 <td>
-                    @Html.Raw(_f.p41ProjectBL.LoadBillingMemo(c.pid))
+                    @Html.Raw(_f.p41ProjectBL.LoadBillingMemo(p41id))
                 </td>
             </tr>
         }
-    </table>    
-    
-}
-@if (!_lisP41.Any(p => p.p28ID_Client==Model.Rec.p28ID))
-{
-    var recP28 = _f.p28ContactBL.Load(Model.Rec.p28ID);
-    if (recP28.p28BillingMemo200 != null)
-    {
-        <table class="table-sm table-hover table">
-            <tr style="background-color:#DFFFE9;">
-                <td>
-                    @Html.Raw(_f.p28ContactBL.LoadBillingMemo(recP28.pid))
-                </td>
-            </tr>
-        </table>
-    }
+    </table>
 }
 
 
@@ -517,7 +513,8 @@
     function converfromdraft(p91id) {
         $.post(_ep("/p91oper/converfromdraft"), { p91id: p91id }, function (data) {
             if (data == "0") {
-                alert("Error");
+                _notify_message(@Json.Serialize(_f.tra("Převod konceptu na fakturu se nezdařil.")));
+                return;
             }
             //location.reload(location.href);
             var strHref = window.parent.location.href;

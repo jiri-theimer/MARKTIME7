@@ -535,6 +535,17 @@
                                 </a>
                             </li>
                         }
+                        @if (_f.ChatBL.IsAvailable())
+                        {
+                            <li>
+                                @* interní chat: počet nepřečtených doplní _chat_init() a živě ho aktualizuje SignalR *@
+                                <a class="nav-link nav-bell" id="cmdChat" href="javascript:_chat()" title="@_f.tra("Chat")">
+                                    <span class="material-icons-outlined-btn">forum</span>
+                                    <span class="nav-bell-count" id="cmdChatCount" style="display:none;"></span>
+                                </a>
+                                <script type="text/javascript">$(function () { _chat_init(@_f.CurrentUser.pid); });</script>
+                            </li>
+                        }
                         <li>
                             @* zvoneček: jen když něco čeká; počet aktualizuje i okno Bells (bl_update_bell) *@
                             <a class="nav-link nav-bell" id="cmdBells" href="javascript:_bells()" title="@_f.tra("Co na mě čeká")" style="@(_f.CurrentUser.BellsCount > 0 ? null : "display:none;")">

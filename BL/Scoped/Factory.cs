@@ -66,6 +66,7 @@ namespace BL
         private Ip24ContactGroupBL _p24;
         private Ip27PctypeBL _p27;
         private Ij11TeamBL _j11;
+        private IChatBL _chat;
         
         private Ij18CostUnitBL _j18;
         private Ij25ReportCategoryBL _j25;
@@ -527,6 +528,14 @@ namespace BL
             {
                 if (_p24 == null) _p24 = new p24ContactGroupBL(this);
                 return _p24;
+            }
+        }
+        public IChatBL ChatBL   //interní chat mezi uživateli (tabulky u01-u04)
+        {
+            get
+            {
+                if (_chat == null) _chat = new ChatBL(this);
+                return _chat;
             }
         }
         public Ij11TeamBL j11TeamBL

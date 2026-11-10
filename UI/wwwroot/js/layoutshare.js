@@ -402,6 +402,90 @@ function _stopky_refresh() {
         _stopky_timer = setInterval(show, 15000);
     });
 }
+// ---------------------------------------------------------------- interní chat (ChatController, chat.js)
+// okno chatu; volitelně rovnou konkrétní konverzace
+function _chat(u01id) {
+    _window_open("/Chat/Index" + (u01id ? "?u01id=" + u01id : ""), 3, "Chat");
+}
+// přímá konverzace s uživatelem
+function _chat_user(j02id) {
+    _window_open("/Chat/Index?j02id=" + j02id, 3, "Chat");
+}
+// konverzace k záznamu: prefix p41, p56, p28, p91 nebo o23
+function _chat_record(prefix, pid) {
+    _window_open("/Chat/Index?entity=" + prefix + "&pid=" + pid, 3, "Chat");
+}
+// počet nepřečtených zpráv u ikony v horní liště (volá i okno chatu)
+function _chat_badge(n) {
+    var c = $("#cmdChatCount");
+    if (!c.length) return;
+    if (n > 0) { c.text(n > 99 ? "99+" : n).show(); } else { c.hide(); }
+}
+function _chat_badge_refresh() {
+    $.ajax({ url: _ep("/Chat/UnreadCount"), type: "GET", dataType: "json", cache: false }).done(function (data) { _chat_badge(data.count); });
+}
+// je okno chatu právě vidět? (modální okno se při zavření jen skrývá)
+function _chat_window_visible() {
+    try {
+        var fra = document.getElementById("fraModalContent");
+        return !!(fra && fra.getClientRects().length > 0 && fra.contentWindow && fra.contentWindow.ChatApp);
+    } catch (e) {
+        return false;
+    }
+}
+// zvuk nové zprávy: krátké dvoutónové pípnutí přes Web Audio; vypíná se v okně chatu (localStorage chat_sound)
+var _chat_audio = null;
+function _chat_beep() {
+    try {
+        if (window.localStorage.getItem("chat_sound") === "0") return;
+        var AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return;
+        if (!_chat_audio) _chat_audio = new AC();
+        if (_chat_audio.state === "suspended") _chat_audio.resume();   // prohlížeč povolí zvuk až po prvním kliknutí uživatele
+        var t = _chat_audio.currentTime;
+        [[880, 0], [1175, 0.13]].forEach(function (n) {
+            var o = _chat_audio.createOscillator(), g = _chat_audio.createGain();
+            o.type = "sine"; o.frequency.value = n[0];
+            g.gain.setValueAtTime(0.0001, t + n[1]);
+            g.gain.exponentialRampToValueAtTime(0.16, t + n[1] + 0.02);
+            g.gain.exponentialRampToValueAtTime(0.0001, t + n[1] + 0.22);
+            o.connect(g); g.connect(_chat_audio.destination);
+            o.start(t + n[1]); o.stop(t + n[1] + 0.24);
+        });
+    } catch (e) { }
+}
+// horní lišta: načíst počet nepřečtených a přes SignalR poslouchat nové zprávy
+var _chat_timer = null;
+function _chat_init(j02id_me) {
+    if (!document.getElementById("cmdChat")) return;
+    _chat_badge_refresh();
+    // prohlížeč dovolí zvuk až po zásahu uživatele: při prvním kliknutí nebo stisku klávesy si zvukový výstup odemknout
+    $(document).one("pointerdown keydown", function () {
+        try {
+            var AC = window.AudioContext || window.webkitAudioContext;
+            if (!AC) return;
+            if (!_chat_audio) _chat_audio = new AC();
+            if (_chat_audio.state === "suspended") _chat_audio.resume();
+        } catch (e) { }
+    });
+    $.ajax({ url: _ep("/lib/signalr/signalr.min.js"), dataType: "script", cache: true }).done(function () {
+        if (typeof signalR === "undefined") return;
+        var hub = new signalR.HubConnectionBuilder().withUrl(_ep("/chathub")).withAutomaticReconnect([0, 5000, 15000, 30000, 60000]).build();
+        hub.on("chat", function (e) {
+            if (e.type === "ping") return;     // zkušební událost diagnostiky patří oknu chatu
+            if (_chat_timer) window.clearTimeout(_chat_timer);
+            _chat_timer = window.setTimeout(_chat_badge_refresh, 600);
+            if (e.type === "message" && e.message && e.actorid !== j02id_me && !e.muted && !_chat_window_visible()) {
+                var s = $("<div>").text((e.message.sender || "") + ": " + (e.message.text || "📎")).html();
+                _notify_message("<a href='javascript:_chat(" + e.u01id + ")' style='color:inherit;'>" + s + "</a>", "info");
+                _chat_beep();
+            }
+        });
+        hub.onreconnected(_chat_badge_refresh);
+        hub.start().catch(function () { });   // bez spojení zůstává počet z načtení stránky
+    });
+}
+
 function _bells() {
 
     _window_open("/Home/Bells", 3);
