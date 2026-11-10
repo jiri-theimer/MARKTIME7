@@ -24,6 +24,12 @@ namespace BO
             this.Prefix = "o23";
         }
 
+        /// <summary>Dokumenty navázané (o19) na záznam libovolné entity – např. timeline záznamu (p91, p56, o22…).</summary>
+        public void SetBoundRecord(string entity, int recpid)
+        {
+            this.entity = entity; this.recpid = recpid;
+        }
+
         public override List<QRow> GetRows()
         {
             if (this.p31statequery > 0) this.Handle_p31StateQuery();

@@ -39,6 +39,7 @@
 .tl-k-term .tl-dot { --tl-c: #c2410c; }
 .tl-k-project .tl-dot { --tl-c: #0e7490; }
 .tl-k-file .tl-dot { --tl-c: #6c757d; }
+.tl-k-doc .tl-dot { --tl-c: #6f42c1; }
 .tl-k-invoice .tl-dot { --tl-c: #b7791f; }
 .tl-k-pay .tl-dot { --tl-c: #198754; }
 .tl-k-proforma .tl-dot { --tl-c: #0e7490; }

@@ -77,6 +77,9 @@
 
 /* vyúčtování (p91): data, texty faktury, zámky */
 .rf-w-date { max-width: 170px; }
+/* datum + čas (mydate include-time): datum a čas vedle sebe – širší, jinak se datum ořízne */
+.rf-w-date:has(input[type=time]) { max-width: 290px; }
+.rf-w-date .input-group > input[type=time] { flex: 0 0 auto; width: 112px; }
 .rf-link { font-size: .85rem; white-space: nowrap; }
 .rf-text textarea { resize: vertical; font-size: .95rem; }
 .rf-text-tools { display: flex; gap: 6px; }     /* vlevo u nadpisu: Html editor (_zoom) otevírá okno od tlačítka doprava */

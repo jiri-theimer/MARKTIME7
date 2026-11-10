@@ -7,7 +7,7 @@
     /// </summary>
     public class TimelineItem
     {
-        public string Kind { get; set; }        // rec | note | wrk | task | term | project | file | pay | proforma | dun | mail | invoice
+        public string Kind { get; set; }        // rec | note | wrk | task | term | project | file | pay | proforma | dun | mail | invoice | doc
         public DateTime When { get; set; }      // řazení a seskupení
         public bool IsFuture { get; set; }
         public string Icon { get; set; }
@@ -164,6 +164,9 @@
                     });
                 }
             }
+
+            // dokumenty navázané na záznam
+            AddDocs(f, ret, prefixDb, pid);
 
             // stopa samotného záznamu: založení, poslední úprava, archiv
             ret.AddRange(RecordStamps(f, prefix, prefixDb, pid));
@@ -342,6 +345,34 @@
                     Title = string.IsNullOrWhiteSpace(c.p91Code) ? f.tra("(bez čísla)") : c.p91Code,
                     Author = c.UserInsert, Prefix = "p91", Pid = c.pid, Tags = tags,
                     SearchText = $"vyúčtování faktura {c.p91Code} {c.p91Client} {c.b02Name}"
+                });
+            }
+        }
+
+        /// <summary>Dokumenty (o23) navázané na záznam přes o19DocTypeEntity_Binding: událost založení dokumentu.</summary>
+        private static void AddDocs(BL.Factory f, List<TimelineItem> ret, string prefixDb, int pid)
+        {
+            if (!f.CurrentUser.j04IsModule_o23 || prefixDb == "o23") return;
+            var q = new BO.myQueryO23() { IsRecordValid = null, MyRecordsDisponible = true };     // jako Tab1 projektu/kontaktu: jen dokumenty, ke kterým má uživatel přístup
+            q.SetBoundRecord(prefixDb, pid);
+            foreach (var d in f.o23DocBL.GetList(q) ?? Enumerable.Empty<BO.o23Doc>())
+            {
+                var tags = new List<TimelineTag>();
+                if (!string.IsNullOrWhiteSpace(d.o23Code)) tags.Add(new TimelineTag { Text = d.o23Code, Icon = "tag" });
+                if (!string.IsNullOrWhiteSpace(d.b02Name)) tags.Add(new TimelineTag { Text = d.b02Name, Icon = "flag" });
+                if (!string.IsNullOrWhiteSpace(d.Owner)) tags.Add(new TimelineTag { Text = f.tra("vlastník") + " " + d.Owner, Icon = "person" });
+                if (d.o23IsDraft) tags.Add(new TimelineTag { Text = f.tra("koncept"), Icon = "edit" });
+                if (d.isclosed) tags.Add(new TimelineTag { Text = f.tra("uzavřeno") });
+                ret.Add(new TimelineItem
+                {
+                    Kind = "doc",
+                    Action = f.tra("Založen dokument") + (string.IsNullOrWhiteSpace(d.o18Name) ? "" : " · " + d.o18Name),
+                    When = d.DateInsert ?? DateTime.MinValue,
+                    Icon = "description",
+                    Color = !string.IsNullOrEmpty(d.b02Color) ? d.b02Color : null,
+                    Title = !string.IsNullOrWhiteSpace(d.o23Name) ? d.o23Name : (d.o23Code ?? f.tra("(bez názvu)")),
+                    Author = d.UserInsert, Prefix = "o23", Pid = d.pid, Tags = tags,
+                    SearchText = $"dokument {d.o23Name} {d.o23Code} {d.o18Name} {d.b02Name} {d.Owner}"
                 });
             }
         }
