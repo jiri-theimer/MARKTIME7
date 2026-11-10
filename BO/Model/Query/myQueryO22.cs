@@ -50,7 +50,7 @@ namespace BO
 
             if (this.o21id > 0)
             {
-                AQ("a.o21ID=@o21id)", "o21id", this.o21id);
+                AQ("a.o21ID=@o21id", "o21id", this.o21id);
             }
             if (this.p41id > 0)
             {
@@ -64,7 +64,7 @@ namespace BO
 
             if (this.j02id_owner > 0)
             {
-                AQ("a.j02ID_Owner=@ownerid)", "ownerid", this.j02id_owner);
+                AQ("a.j02ID_Owner=@ownerid", "ownerid", this.j02id_owner);
             }
 
 

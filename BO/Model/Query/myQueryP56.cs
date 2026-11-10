@@ -98,7 +98,7 @@ namespace BO
 
             if (this.j02id_owner > 0)
             {
-                AQ("a.j02ID_Owner=@ownerid)", "ownerid", this.j02id_owner);
+                AQ("a.j02ID_Owner=@ownerid", "ownerid", this.j02id_owner);
             }
             
 
