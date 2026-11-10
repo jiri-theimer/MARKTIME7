@@ -10,6 +10,14 @@
     <link rel="stylesheet" href="~/css/chat.css" asp-append-version="true" />
 }
 
+@if (Model.IsDenied)
+{
+    <div class="alert alert-warning" style="margin:20px;">
+        @_f.tra("K chatu nemáte oprávnění.")
+        <div><small>@_f.tra("Oprávnění [Přístup k internímu chatu] nastavuje správce v aplikační roli.")</small></div>
+    </div>
+    return;
+}
 @if (!Model.IsAvailable)
 {
     <div class="alert alert-warning" style="margin:20px;">
@@ -80,6 +88,7 @@
                 <h5 id="chDlgTitle"></h5>
                 <div class="ch-dlg-body">
                     <input type="text" id="chDlgSearch" placeholder="@_f.tra("Hledat uživatele")" autocomplete="off" />
+                    <div class="ch-roles" id="chDlgRoles"></div>
                     <div class="ch-users" id="chDlgUsers"></div>
                     <input type="text" id="chDlgName" maxlength="200" placeholder="@_f.tra("Název skupiny")" style="display:none;" />
                     <div class="ch-dlg-err" id="chDlgErr"></div>
@@ -132,6 +141,7 @@
                 { "addtodirect", _f.tra("Přidat další lidi – vznikne nová skupina") },
                 { "membersdlg", _f.tra("Členové konverzace") },
                 { "admin", _f.tra("správce") },
+                { "roles", _f.tra("Role v záznamu") },
                 { "remove", _f.tra("Odebrat") },
                 { "confirmremove", _f.tra("Opravdu odebrat tohoto člena z konverzace?") },
                 { "close", _f.tra("Zavřít") },

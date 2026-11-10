@@ -53,6 +53,7 @@ namespace BO
 
         GR_P31_Vysledovky=41,               //přístup k výsledovkám
         GR_AI=42,                           //přístup k AI agentům      
+        GR_CHAT=43,                         //přístup k internímu chatu
         GR_AllowRates =34,                
 
         

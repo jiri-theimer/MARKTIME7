@@ -480,6 +480,10 @@ namespace BL
             {
                 _db.RunSql("UPDATE p31Worksheet set b05ID_Last=@b05id WHERE p31ID=@p31id", new { b05id = intB05ID, p31id = rec.b05RecordPid });
             }
+            if (intB05ID > 0)
+            {
+                _mother.ChatBL.PostWorkflowMessage(rec);    //interní chat: krok workflow oznámit v konverzaci k záznamu (pokud existuje)
+            }
             return intB05ID;
         }
 

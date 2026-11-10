@@ -220,6 +220,9 @@ namespace UI
 
             app.UseStaticFiles();
 
+            //interni chat: zpravy zapsane mimo ChatController (workflow) dorucit do prohlizecu pres SignalR
+            BL.ChatEvents.ChannelChanged = (logins, u01id) => UI.Code.ChatHub.NotifyChannel(app.ApplicationServices, logins, u01id);
+
             app.UseRouting();
             app.UseAuthentication();    //user-identity funguje pouze s app.UseAuthentication
             app.UseAuthorization();

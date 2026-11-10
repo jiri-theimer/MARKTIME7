@@ -11,6 +11,7 @@ var ChatApp = (function () {
     var sending = false;
     var users = null;           //uživatelé pro dialog
     var dlgMode = null;
+    var roles = [];             //obsazené role v záznamu (dialog přidání členů do konverzace k záznamu)
     var reloadTimer = null;
     var hub = null;
 
@@ -248,7 +249,7 @@ var ChatApp = (function () {
             html += "</div>";
             html += "<button type='button' class='ch-btn' data-act='react' title='" + esc(T.react) + "'><i class='ch-ico'>add_reaction</i></button>";
             html += "<button type='button' class='ch-btn' data-act='reply' title='" + esc(T.reply) + "'><i class='ch-ico'>reply</i></button>";
-            if (cur.type == 3 && m.text) html += "<button type='button' class='ch-btn' data-act='note' title='" + esc(T.note) + "'><i class='ch-ico'>waves</i></button>";
+            if (cur.type == 3 && (m.text || (m.files && m.files.length))) html += "<button type='button' class='ch-btn' data-act='note' title='" + esc(T.note) + "'><i class='ch-ico'>waves</i></button>";
             if (mine) {
                 html += "<button type='button' class='ch-btn' data-act='edit' title='" + esc(T.edit) + "'><i class='ch-ico'>edit</i></button>";
                 html += "<button type='button' class='ch-btn' data-act='delete' title='" + esc(T["delete"]) + "'><i class='ch-ico'>delete</i></button>";
@@ -406,7 +407,15 @@ var ChatApp = (function () {
         $("#chDlgSearch").toggle(mode != "members");
         $("#chDlg").addClass("on");
         $("#chDlgUsers").html("");
+        roles = []; renderRoles();
         if (mode == "members") { renderMembers(); return; }
+        if (mode == "add" && cur && cur.type == 3) {
+            get("/Chat/Roles", { u01id: cur.id }).done(function (data) {
+                if (dlgMode != "add" || !data.ok) return;
+                roles = data.roles || [];
+                renderRoles();
+            });
+        }
         get("/Chat/Users").done(function (data) {
             users = data.users || [];
             $.each(users, function (i, u) { u.sel = false; });
@@ -425,6 +434,19 @@ var ChatApp = (function () {
         });
         $("#chDlgUsers").html(html || "<div class='ch-empty'>" + esc(T.nousers) + "</div>");
         toggleName();
+    }
+    // role v záznamu: klepnutím se označí (nebo odznačí) všichni, kdo roli zastávají
+    function roleState(r) {
+        var n = 0;
+        $.each(users || [], function (i, u) { if (u.sel && $.inArray(u.id, r.ids) > -1) n++; });
+        return n == r.ids.length && n > 0;
+    }
+    function renderRoles() {
+        var html = "";
+        $.each(roles, function (i, r) {
+            html += "<button type='button' class='ch-role" + (roleState(r) ? " on" : "") + "' data-role='" + i + "'>" + esc(r.name) + "<small>" + r.ids.length + "</small></button>";
+        });
+        $("#chDlgRoles").html(html ? "<span>" + esc(T.roles) + ":</span>" + html : "");
     }
     function toggleName() {
         var n = $.grep(users || [], function (u) { return u.sel; }).length;
@@ -637,7 +659,9 @@ var ChatApp = (function () {
                 if (act == "note") {
                     row.removeClass("tools");
                     post("/Chat/SaveAsNote", { u02id: m.id }).done(function (data) {
-                        if (data.ok) { if (typeof _notify_message === "function") _notify_message(esc(T.notesaved), "success"); } else { notify(data.message); }
+                        if (!data.ok) { notify(data.message); return; }
+                        if (typeof _notify_message === "function") _notify_message(esc(T.notesaved), "success");
+                        if (data.warning) notify(data.warning);
                     }).fail(function () { notify(); });
                     return;
                 }
@@ -680,7 +704,7 @@ var ChatApp = (function () {
             var id = $(this).data("uid"), on = this.checked;
             $.each(users, function (i, u) { if (u.id == id) u.sel = on; });
             $("#chDlgErr").text("");
-            toggleName();
+            toggleName(); renderRoles();
         }).on("click", "[data-kick]", function () {
             if (!window.confirm(T.confirmremove)) return;
             var j02id = $(this).data("kick"), id = cur.id;
@@ -690,6 +714,14 @@ var ChatApp = (function () {
                 cur.members = cur.memberlist.length;
                 renderMembers(); renderHead();
             }).fail(function () { $("#chDlgErr").text(T.error); });
+        });
+        $("#chDlgRoles").on("click", "[data-role]", function () {
+            var r = roles[$(this).data("role")];
+            if (!r) return;
+            var on = !roleState(r);
+            $.each(users || [], function (i, u) { if ($.inArray(u.id, r.ids) > -1) u.sel = on; });
+            $("#chDlgErr").text("");
+            renderUsers(); renderRoles();
         });
         $("#chDlgOk").on("click", confirmDialog);
         $("#chDlgCancel").on("click", closeDialog);

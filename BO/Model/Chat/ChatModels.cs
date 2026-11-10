@@ -76,6 +76,13 @@
         public string PersonName { get; set; }
     }
 
+    /// <summary>Obsazená role v záznamu a uživatelé, kteří ji zastávají (nabídka při přidávání členů do konverzace k záznamu).</summary>
+    public class RoleItem
+    {
+        public string Name { get; set; }
+        public List<int> j02IDs { get; set; } = new List<int>();
+    }
+
     public class MemberItem
     {
         public int j02ID { get; set; }

@@ -22,6 +22,25 @@ namespace UI.Controllers
         };
         private static readonly HashSet<string> _inlineImages = new(StringComparer.OrdinalIgnoreCase) { ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp" };
 
+        // ── oprávnění ───────────────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Chat vyžaduje oprávnění aplikační role GR_CHAT (a tabulky chatu v databázi). Bez toho se žádná akce neprovede;
+        /// výjimkou je Index, který místo okna chatu zobrazí vysvětlení.
+        /// </summary>
+        public override void OnActionExecuting(Microsoft.AspNetCore.Mvc.Filters.ActionExecutingContext context)
+        {
+            base.OnActionExecuting(context);
+            if (context.Result != null || Factory == null || Factory.CurrentUser == null) return;
+
+            string strAction = context.RouteData.Values["action"]?.ToString();
+            if (string.Equals(strAction, "Index", StringComparison.OrdinalIgnoreCase)) return;
+            if (!Factory.ChatBL.IsAvailable())
+            {
+                context.Result = Json(new { ok = false, count = 0, message = Factory.tra(Factory.ChatBL.HasPermission() ? "Chat není v této databázi k dispozici." : "K chatu nemáte oprávnění.") });
+            }
+        }
+
         // ── převod na JSON ──────────────────────────────────────────────────────────
 
         private static string D(DateTime? d)
@@ -118,7 +137,7 @@ namespace UI.Controllers
 
         public IActionResult Index(int u01id, int j02id, string entity, int pid)
         {
-            var v = new ChatViewModel() { IsAvailable = Factory.ChatBL.IsAvailable() };
+            var v = new ChatViewModel() { IsAvailable = Factory.ChatBL.IsAvailable(), IsDenied = !Factory.ChatBL.HasPermission() };
             if (v.IsAvailable)
             {
                 if (j02id > 0)
@@ -162,6 +181,12 @@ namespace UI.Controllers
                 messages = lis.Select(p => ToJson(p)),
                 hasmore = lis.Count == TAKE
             });
+        }
+
+        /// <summary>Obsazené role v záznamu konverzace - rychlý výběr při přidávání členů.</summary>
+        public IActionResult Roles(int u01id)
+        {
+            return Json(new { ok = true, roles = Factory.ChatBL.GetRecordRoles(u01id).Select(p => new { name = p.Name, ids = p.j02IDs }) });
         }
 
         public IActionResult Users()
@@ -279,7 +304,7 @@ namespace UI.Controllers
         public IActionResult SaveAsNote(int u02id)
         {
             if (Factory.ChatBL.SaveMessageAsNote(u02id) == 0) return Fail();
-            return Json(new { ok = true });
+            return Json(new { ok = true, warning = Factory.CurrentUser.GetLastMessageNotify() });  //poznámka je uložená; warning = příloha, kterou se nepodařilo zkopírovat
         }
 
         [HttpPost]

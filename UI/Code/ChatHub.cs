@@ -18,6 +18,27 @@ namespace UI.Code
             return "chat:" + (strLogin ?? "").Trim().ToLower();
         }
 
+        /// <summary>
+        /// Oznámí členům konverzace, že se v ní něco změnilo mimo ChatController (zpráva od systému z workflow).
+        /// Prohlížeče si konverzaci a seznam načtou znovu. Registruje se ve Startup jako obsluha BL.ChatEvents.ChannelChanged.
+        /// </summary>
+        public static void NotifyChannel(IServiceProvider sp, List<string> logins, int u01id)
+        {
+            try
+            {
+                var hub = (IHubContext<ChatHub>)sp.GetService(typeof(IHubContext<ChatHub>));
+                if (hub == null || logins == null) return;
+                foreach (string strLogin in logins)
+                {
+                    _ = hub.Clients.Group(GroupName(strLogin)).SendAsync("chat", new { type = "channel", u01id = u01id, u02id = 0, actorid = 0, muted = false, message = (object)null });
+                }
+            }
+            catch (Exception e)
+            {
+                BO.Code.File.LogError(e.Message, null, "ChatHub.NotifyChannel");
+            }
+        }
+
         public override async Task OnConnectedAsync()
         {
             string strLogin = Context.User?.Identity?.Name;

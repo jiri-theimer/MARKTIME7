@@ -3,6 +3,16 @@
 namespace BL
 {
     /// <summary>
+    /// Události chatu, které vznikají mimo ChatController (např. zpráva o kroku workflow). UI vrstva si při startu
+    /// zaregistruje obsluhu, která je přes SignalR doručí do prohlížečů - BL o SignalR neví.
+    /// </summary>
+    public static class ChatEvents
+    {
+        /// <summary>Parametry: přihlašovací jména členů konverzace, u01ID.</summary>
+        public static Action<List<string>, int> ChannelChanged { get; set; }
+    }
+
+    /// <summary>
     /// Interní chat mezi uživateli: tabulky u01Channel, u02Message, u03ChannelMember, u04MessageReaction.
     /// Přílohy zpráv jsou v o27Attachment (o27Entity='u02').
     /// Každá metoda nejdříve ověřuje, že přihlášený uživatel je členem konverzace.
@@ -10,6 +20,7 @@ namespace BL
     public interface IChatBL
     {
         public bool IsAvailable();
+        public bool HasPermission();
         public IEnumerable<BO.j02User> GetUsers();
         public IEnumerable<BO.Chat.ChannelItem> GetMyChannels();
         public BO.Chat.ChannelItem LoadMyChannel(int u01id);
@@ -20,6 +31,8 @@ namespace BL
         public int OpenRecordChannel(string entity, int pid);
         public int GetRecordMessagesCount(string entity, int pid);
         public int SaveMessageAsNote(int u02id);
+        public void PostWorkflowMessage(BO.b05Workflow_History rec);
+        public List<BO.Chat.RoleItem> GetRecordRoles(int u01id);
         public bool RenameGroup(int u01id, string strName);
         public bool AddMembers(int u01id, List<int> j02ids);
         public bool Leave(int u01id);
@@ -73,10 +86,32 @@ namespace BL
             return c == null ? 0 : c.Value;
         }
 
-        /// <summary>Jsou v databázi licence tabulky chatu? Výsledek se drží v paměti, aby se netestoval při každé stránce.</summary>
+        /// <summary>Má přihlášený uživatel v aplikační roli oprávnění k chatu (GR_CHAT)?</summary>
+        public bool HasPermission()
+        {
+            try
+            {
+                return _mother.CurrentUser != null && _mother.CurrentUser.TestPermission(BO.PermValEnum.GR_CHAT);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Je chat pro přihlášeného uživatele k dispozici? Musí mít oprávnění role GR_CHAT a v databázi licence musí být tabulky chatu.
+        /// Existence tabulek se drží v paměti, aby se netestovala při každé stránce.
+        /// </summary>
         public bool IsAvailable()
         {
             if (_mother.CurrentUser == null || _db == null) return false;
+            if (!HasPermission()) return false;
+            return TablesExist();
+        }
+
+        private bool TablesExist()
+        {
             string strKey = $"{_mother.App.HostingMode}|{_mother.CurrentUser.x01LoginDomain}";
             if (_available.ContainsKey(strKey)) return true;
             if (_unavailable.TryGetValue(strKey, out DateTime d) && d > DateTime.Now) return false;
@@ -90,12 +125,20 @@ namespace BL
             return false;
         }
 
-        /// <summary>Uživatelé licence, se kterými lze chatovat: platný účet s přihlášením, bez virtuálních osob a bez sebe sama.</summary>
+        /// <summary>
+        /// Uživatelé licence, se kterými lze chatovat: platný účet s přihlášením, bez virtuálních osob a bez sebe sama.
+        /// Nabízejí se jen ti, jejichž aplikační role má oprávnění k chatu - jinak by zprávy chodily někomu, kdo je nemůže číst.
+        /// </summary>
         public IEnumerable<BO.j02User> GetUsers()
         {
             var lis = _mother.j02UserBL.GetList(new BO.myQueryJ02());
             if (lis == null) return new List<BO.j02User>();
-            return lis.Where(p => p.pid != Me && !p.isclosed && !string.IsNullOrEmpty(p.j02Login) && !p.j02IsLoginManualLocked && p.j02VirtualParentID == 0)
+
+            int intPos = (int)BO.PermValEnum.GR_CHAT;
+            var lisAllowed = _db.GetList<BO.GetInteger>($"SELECT a.j02ID as Value FROM j02User a INNER JOIN j04UserRole b ON a.j04ID=b.j04ID INNER JOIN x67EntityRole c ON b.x67ID=c.x67ID WHERE SUBSTRING(c.x67RoleValue,{intPos},1)='1'");
+            var allowed = lisAllowed == null ? new HashSet<int>() : new HashSet<int>(lisAllowed.Select(p => p.Value));
+
+            return lis.Where(p => p.pid != Me && allowed.Contains(p.pid) && !p.isclosed && !string.IsNullOrEmpty(p.j02Login) && !p.j02IsLoginManualLocked && p.j02VirtualParentID == 0)
                 .OrderBy(p => p.j02LastName).ThenBy(p => p.j02FirstName).ToList();
         }
 
@@ -260,7 +303,7 @@ namespace BL
         public int SaveMessageAsNote(int u02id)
         {
             var msg = LoadMessage(u02id);   //ověřuje členství
-            if (msg == null || msg.u02IsDeleted || msg.u02TypeFlag != 1 || string.IsNullOrWhiteSpace(msg.u02Text))
+            if (msg == null || msg.u02IsDeleted || msg.u02TypeFlag != 1 || (string.IsNullOrWhiteSpace(msg.u02Text) && msg.Attachments.Count == 0))
             {
                 this.AddMessage("Tuto zprávu nelze uložit jako poznámku."); return 0;
             }
@@ -283,8 +326,9 @@ namespace BL
                 this.AddMessage("K záznamu nemáte přístup."); return 0;
             }
 
-            string strText = System.Net.WebUtility.HtmlEncode(msg.u02Text).Replace("\r\n", "<br>").Replace("\n", "<br>");
-            string strHtml = $"<p><em>{_mother.tra("Z chatu")} · {System.Net.WebUtility.HtmlEncode(msg.SenderName)} · {msg.u02DateInsert.ToString("d.M.yyyy HH:mm")}</em></p><p>{strText}</p>";
+            string strText = System.Net.WebUtility.HtmlEncode(msg.u02Text ?? "").Replace("\r\n", "<br>").Replace("\n", "<br>");
+            string strHtml = $"<p><em>{_mother.tra("Z chatu")} · {System.Net.WebUtility.HtmlEncode(msg.SenderName)} · {msg.u02DateInsert.ToString("d.M.yyyy HH:mm")}</em></p>";
+            if (strText != "") strHtml += $"<p>{strText}</p>";
             var recB05 = new BO.b05Workflow_History()
             {
                 b05IsCommentOnly = true,
@@ -295,7 +339,42 @@ namespace BL
                 b05Notepad = strHtml,
                 x04ID = _mother.Lic == null ? 0 : _mother.Lic.x04ID_Default
             };
-            return _mother.WorkflowBL.Save2History(recB05);
+            int intB05ID = _mother.WorkflowBL.Save2History(recB05);
+            if (intB05ID > 0 && msg.Attachments.Count > 0)
+            {
+                CopyAttachmentsToNote(u02id, intB05ID);
+            }
+            return intB05ID;
+        }
+
+        /// <summary>Přílohy zprávy zkopíruje k poznámce (o27Entity='b05'). Soubory se kopírují, v chatu zůstávají.</summary>
+        private void CopyAttachmentsToNote(int u02id, int b05id)
+        {
+            var lisO27 = _db.GetList<BO.o27Attachment>($"SELECT a.*,{_db.GetSQL1_Ocas("o27")} FROM o27Attachment a WHERE a.o27Entity='u02' AND a.o27RecordPid=@pid ORDER BY a.o27ID", new { pid = u02id });
+            if (lisO27 == null) return;
+
+            foreach (var c in lisO27)
+            {
+                try
+                {
+                    string strSource = _mother.UploadFolder + "\\" + c.o27ArchiveFolder + "\\" + c.o27ArchiveFileName;
+                    if (!System.IO.File.Exists(strSource))
+                    {
+                        this.AddMessageWithPars("Přílohu [{0}] se nepodařilo zkopírovat k poznámce.", c.o27OriginalFileName, null, "warning"); continue;
+                    }
+                    var rec = new BO.o27Attachment() { o27Entity = "b05", o27RecordPid = b05id, o27ContentType = c.o27ContentType };
+                    string strArchiveName = BO.Code.Bas.GetGuid() + System.IO.Path.GetExtension(c.o27OriginalFileName ?? "");
+                    if (_mother.o27AttachmentBL.UploadAndSaveOneFile(rec, c.o27OriginalFileName, strSource, strArchiveName) == 0)
+                    {
+                        this.AddMessageWithPars("Přílohu [{0}] se nepodařilo zkopírovat k poznámce.", c.o27OriginalFileName, null, "warning");
+                    }
+                }
+                catch (Exception e)
+                {
+                    BO.Code.File.LogError(e.Message, _mother.CurrentUser.j02Login, "ChatBL.CopyAttachmentsToNote");
+                    this.AddMessageWithPars("Přílohu [{0}] se nepodařilo zkopírovat k poznámce.", c.o27OriginalFileName, null, "warning");
+                }
+            }
         }
 
         public int OpenRecordChannel(string entity, int pid)
@@ -560,9 +639,152 @@ namespace BL
             return intU02ID;
         }
 
-        private void SaveSystemMessage(int u01id, string strText)
+        private int SaveSystemMessage(int u01id, string strText)
         {
-            SaveMessage(u01id, strText, 0, 2);
+            return SaveMessage(u01id, strText, 0, 2);
+        }
+
+        // ── zprávy od systému: workflow ─────────────────────────────────────────────
+
+        /// <summary>
+        /// Krok workflow nebo změnu stavu záznamu oznámí v konverzaci k záznamu, pokud taková konverzace existuje.
+        /// Volá se z WorkflowBL.Save2History. Samotné poznámky (komentáře bez kroku) se do chatu nepíší.
+        /// Chyba chatu nesmí nikdy shodit workflow.
+        /// </summary>
+        public void PostWorkflowMessage(BO.b05Workflow_History rec)
+        {
+            try
+            {
+                if (rec == null || rec.b05IsCommentOnly || rec.b05RecordPid <= 0 || _mother.CurrentUser == null || _db == null) return;
+                if (rec.b06ID == 0 && rec.b02ID_To == 0) return;
+                string strEntity = NormalizeEntity(rec.b05RecordEntity);
+                if (!_recordEntities.Contains(strEntity) || !TablesExist()) return;
+
+                int intU01ID = GetInt("SELECT TOP 1 u01ID as Value FROM u01Channel WHERE x01ID=@x01id AND u01RecordEntity=@e AND u01RecordPid=@pid AND u01ValidUntil>GETDATE()", new { x01id = _mother.CurrentUser.x01ID, e = strEntity, pid = rec.b05RecordPid });
+                if (intU01ID == 0) return;
+
+                string strStep = rec.b06ID > 0 ? GetName("SELECT b06Name as Value FROM b06WorkflowStep WHERE b06ID=@pid", rec.b06ID) : null;
+                string strFrom = rec.b02ID_From > 0 ? GetName("SELECT b02Name as Value FROM b02WorkflowStatus WHERE b02ID=@pid", rec.b02ID_From) : null;
+                string strTo = rec.b02ID_To > 0 ? GetName("SELECT b02Name as Value FROM b02WorkflowStatus WHERE b02ID=@pid", rec.b02ID_To) : null;
+
+                string strWho = MyName();
+                if (strWho == "") strWho = _mother.CurrentUser.j02Login;
+                string strText = string.IsNullOrEmpty(strStep) ? $"{strWho} změnil(a) stav" : $"{strWho} provedl(a) krok „{strStep}“";
+                if (!string.IsNullOrEmpty(strTo))
+                {
+                    strText += string.IsNullOrEmpty(strFrom) ? $": {strTo}" : $": {strFrom} → {strTo}";
+                }
+                strText += ".";
+                string strNote = Text200(BO.Code.Bas.Html2Text(rec.b05Notepad));
+                if (!string.IsNullOrEmpty(strNote))
+                {
+                    strText += " " + strNote;
+                }
+
+                if (SaveSystemMessage(intU01ID, strText) > 0)
+                {
+                    var logins = GetMembers(intU01ID, true).Where(p => !string.IsNullOrEmpty(p.j02Login)).Select(p => p.j02Login).ToList();
+                    ChatEvents.ChannelChanged?.Invoke(logins, intU01ID);
+                }
+            }
+            catch (Exception e)
+            {
+                BO.Code.File.LogError(e.Message, _mother.CurrentUser?.j02Login, "ChatBL.PostWorkflowMessage");
+            }
+        }
+
+        private string GetName(string strSQL, int pid)
+        {
+            var c = _db.Load<BO.GetString>(strSQL, new { pid = pid });
+            return c == null ? null : c.Value;
+        }
+
+        // ── role v záznamu ──────────────────────────────────────────────────────────
+
+        private class TeamPerson
+        {
+            public int j11ID { get; set; }
+            public int j02ID { get; set; }
+        }
+
+        /// <summary>
+        /// Obsazené role v záznamu, ke kterému konverzace patří - nabídka při přidávání členů.
+        /// U každé role jsou jen uživatelé, kteří mohou chat používat a v konverzaci ještě nejsou.
+        /// </summary>
+        public List<BO.Chat.RoleItem> GetRecordRoles(int u01id)
+        {
+            var ret = new List<BO.Chat.RoleItem>();
+            if (!IsMember(u01id)) return ret;
+            var rec = LoadChannel(u01id);
+            if (rec == null || rec.u01TypeFlag != BO.u01TypeFlagENUM.Record || rec.u01RecordPid == 0) return ret;
+
+            IEnumerable<BO.x69EntityRole_Assign> lisX69 = null;
+            try
+            {
+                //včetně rolí zděděných z klienta nebo střediska, jak je vrací BL jednotlivých entit
+                switch (rec.u01RecordEntity)
+                {
+                    case "p41":
+                        var recP41 = _mother.p41ProjectBL.Load(rec.u01RecordPid);
+                        if (recP41 != null) lisX69 = _mother.x67EntityRoleBL.GetList_X69_OneProject(recP41, false);
+                        break;
+                    case "p56":
+                        var recP56 = _mother.p56TaskBL.Load(rec.u01RecordPid);
+                        if (recP56 != null) lisX69 = _mother.x67EntityRoleBL.GetList_X69_OneTask(recP56, false);
+                        break;
+                    case "p28":
+                        var recP28 = _mother.p28ContactBL.Load(rec.u01RecordPid);
+                        if (recP28 != null) lisX69 = _mother.x67EntityRoleBL.GetList_X69_OneContact(recP28, false);
+                        break;
+                    case "p91":
+                        var recP91 = _mother.p91InvoiceBL.Load(rec.u01RecordPid);
+                        if (recP91 != null) lisX69 = _mother.x67EntityRoleBL.GetList_X69_OneInvoice(recP91, false);
+                        break;
+                    case "o23":
+                        var recO23 = _mother.o23DocBL.Load(rec.u01RecordPid);
+                        if (recO23 != null) lisX69 = _mother.x67EntityRoleBL.GetList_X69_OneDoc(recO23, false);
+                        break;
+                }
+            }
+            catch
+            {
+                lisX69 = null;
+            }
+            if (lisX69 == null)
+            {
+                lisX69 = _mother.x67EntityRoleBL.GetList_X69(rec.u01RecordEntity, rec.u01RecordPid);
+            }
+            if (lisX69 == null) return ret;
+
+            var users = GetUsers().Select(p => p.pid).ToList();     //kdo může chat používat (bez mě)
+            var members = GetMembers(u01id, true).Select(p => p.j02ID).ToList();
+            var candidates = users.Where(p => !members.Contains(p)).ToList();
+            if (candidates.Count == 0) return ret;
+
+            var j11ids = lisX69.Where(p => p.j11ID > 0).Select(p => p.j11ID).Distinct().ToList();
+            var lisJ12 = new List<TeamPerson>();
+            if (j11ids.Count > 0)
+            {
+                var x = _db.GetList<TeamPerson>($"SELECT j11ID,j02ID FROM j12Team_Person WHERE j11ID IN ({string.Join(",", j11ids)})");
+                if (x != null) lisJ12 = x.ToList();
+            }
+
+            foreach (var grp in lisX69.Where(p => !string.IsNullOrEmpty(p.x67Name)).GroupBy(p => p.x67Name))
+            {
+                var ids = new List<int>();
+                foreach (var c in grp)
+                {
+                    if (c.x69IsAllUsers) ids.AddRange(candidates);
+                    if (c.j02ID > 0) ids.Add(c.j02ID);
+                    if (c.j11ID > 0) ids.AddRange(lisJ12.Where(p => p.j11ID == c.j11ID).Select(p => p.j02ID));
+                }
+                ids = ids.Distinct().Where(p => candidates.Contains(p)).ToList();
+                if (ids.Count > 0)
+                {
+                    ret.Add(new BO.Chat.RoleItem() { Name = grp.Key, j02IDs = ids });
+                }
+            }
+            return ret.OrderBy(p => p.Name).ToList();
         }
 
         public int SendMessage(int u01id, string strText, int u02id_replyto, bool hasattachments)
