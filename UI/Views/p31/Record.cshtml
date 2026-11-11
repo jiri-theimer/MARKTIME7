@@ -88,7 +88,7 @@
     </div>
 }
 
-<div id="divMore" class="card" style="display:none;background-color:#E6F0FF;width:100%;margin-top:2px;">
+<div id="divMore" data-soft-keep-display class="card" style="display:none;background-color:#E6F0FF;width:100%;margin-top:2px;">
 
     <div class="row" style="padding:10px">
         <div class="col-auto">
@@ -722,6 +722,8 @@ else
 </style>
 
 <script type="text/javascript">
+    window._softpostback = true;    //postbacky formuláře bez znovunačtení stránky (wwwroot/js/softpostback.js)
+
     var _theukon = {
         rec_pid: "@(Model.rec_pid)",
         p41id: "@(Model.Rec.p41ID)",

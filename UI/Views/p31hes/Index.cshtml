@@ -5,279 +5,299 @@
     Layout = "~/Views/Shared/_LayoutModal.cshtml";
     Model.PageTitle = _f.tra("Moje předvolby");
 
+    //oddělovač desetinných míst podle jazyka uživatele – stejně, jako ho vypisuje nabídka hodin (taghelper myhours)
+    string _decsep = (1.5).ToString().Substring(1, 1);
 }
 
 @addTagHelper *, UI
+@section header_content
+{
+    <link rel="stylesheet" href="~/css/p31hes.css" asp-append-version="true" />
+}
 
-<div class="bg-light" style="padding:10px;">
-    <button type="button" id="cmdOK" class="btn btn-success"><span class="material-icons-outlined-btn">done</span>OK</button>
-
-    
+<div class="hes-savebar">
+    <button type="button" id="cmdOK" class="btn btn-success"><span class="material-icons-outlined-btn" style="color:lime;">save</span>@_f.tra("Uložit změny")</button>
     <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
-
-
-
+    <span id="toolbar_changeinfo" class="hes-dirty"></span>
 </div>
-
-
 
 <form id="form1" asp-controller="p31hes" asp-action="Index" method="POST">
     <input type="hidden" asp-for="ActiveTabIndex" />
 
     <div class="tabs_container_record">
-        <!-- Tab panes -->
         <ul class="nav nav-tabs" role="tablist">
             <li class="nav-item onetab" role="presentation">
-                <a id="link_tab1" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab1">@_f.tra("Vykazování")</a>
+                <a id="link_tab1" class="nav-link @(Model.ActiveTabIndex == 2 ? "" : "active")" data-bs-toggle="tab" role="tab" href="#tab1">@_f.tra("Vykazování")</a>
             </li>
             <li class="nav-item onetab" role="presentation">
-                <a id="link_tab2" class="nav-link" data-bs-toggle="tab" role="tab" href="#tab2">@_f.tra("Schvalování")</a>
+                <a id="link_tab2" class="nav-link @(Model.ActiveTabIndex == 2 ? "active" : "")" data-bs-toggle="tab" role="tab" href="#tab2">@_f.tra("Schvalování")</a>
             </li>
         </ul>
     </div>
 
-    @Html.Raw("<div class='modal_record_container_flexi'>")
-    @Html.Raw("<div class='tab-content'>")
+    <div class="hes tab-content">
 
-    <div class="tab-pane tab-pane-fixed" id="tab1" role="tabpanel">
-        <div class="col-auto">
-            <div class="card">
-                <div class="card-header">
-                    @_f.tra("Preferovaný formát hodin")
-                </div>
-                <div class="card-body">
-                    <input type="radio" asp-for="@Model.HoursFormat" id="opgFormatN" value="N" />
-                    <label for="opgFormatN">@_f.tra("Dekadické číslo (např. 1,5)")</label>
-                    <br />
-                    <input type="radio" asp-for="@Model.HoursFormat" id="opgFormatT" value="T" />
-                    <label for="opgFormatT">@_f.tra("HH:MM (např. 01:30)")</label>
+        @* ------------------------------------------------------------------ Vykazování *@
+        <div class="tab-pane @(Model.ActiveTabIndex == 2 ? "" : "active")" id="tab1" role="tabpanel">
+            <div class="hes-grid">
 
-                </div>
-            </div>
+                <section class="hes-card">
+                    <h2><span class="material-icons-outlined-nosize">more_time</span>@_f.tra("Zápis hodin")</h2>
 
-        </div>
-        <div class="col-auto">
-            <div class="card" style="margin-top:6px;">
-                <div class="card-header">
-                    @_f.tra("Nabídka předvyplněných intervalů pro zápis hodin")
-                </div>
-                <div class="card-body">
-                    <input type="radio" asp-for="@Model.HoursInterval" id="opgInterval5" value="5" />
-                    <label for="opgInterval5">@_f.tra("Po 5ti minutách")</label>
-                    <br />
-                    <input type="radio" asp-for="@Model.HoursInterval" id="opgInterval6" value="6" />
-                    <label for="opgInterval6">@_f.tra("Po 6ti minutách")</label>
-                    <br />
-                    <input type="radio" asp-for="@Model.HoursInterval" id="opgInterval10" value="10" />
-                    <label for="opgInterval10">@_f.tra("Po 10ti minutách")</label>
-                    <br />
-                    <input type="radio" asp-for="@Model.HoursInterval" id="opgInterval15" value="15" />
-                    <label for="opgInterval15">@_f.tra("Po 15ti minutách")</label>
-                    <br />
-                    <input type="radio" asp-for="@Model.HoursInterval" id="opgInterval30" value="30" />
-                    <label for="opgInterval30">@_f.tra("Po 30ti minutách")</label>
-                    <br />
-                    <input type="radio" asp-for="@Model.HoursInterval" id="opgInterval60" value="60" />
-                    <label for="opgInterval60">@_f.tra("Po 60ti minutách")</label>
-                    <br />
-                </div>
-            </div>
-        </div>
+                    <div class="hes-row hes-stack">
+                        <span class="hes-label">@_f.tra("Preferovaný formát hodin")</span>
+                        <div class="hes-seg" role="radiogroup">
+                            <input type="radio" asp-for="HoursFormat" id="opgFormatN" value="N" />
+                            <label for="opgFormatN">@_f.tra("Dekadické číslo (např. 1,5)")</label>
+                            <input type="radio" asp-for="HoursFormat" id="opgFormatT" value="T" />
+                            <label for="opgFormatT">@_f.tra("HH:MM (např. 01:30)")</label>
+                        </div>
+                    </div>
 
-        <div class="col-auto">
-            <div class="card" style="margin-top:6px;">
-                <div class="card-header">
-                    @_f.tra("Předvyplněné intervaly pro Čas od - Čas do")
-                </div>
-                <div class="card-body">
-                    <table>
-                        <tr>
-                            <td>
-                                @_f.tra("Začátek pro Čas od"):
-                            </td>
-                            <td>
+                    <div class="hes-row hes-stack">
+                        <span class="hes-label">@_f.tra("Nabídka předvyplněných intervalů pro zápis hodin")</span>
+                        <div>
+                            <div class="hes-seg" role="radiogroup">
+                                <input type="radio" asp-for="HoursInterval" id="opgInterval5" value="5" />
+                                <label for="opgInterval5" title="@_f.tra("Po 5ti minutách")">5</label>
+                                <input type="radio" asp-for="HoursInterval" id="opgInterval6" value="6" />
+                                <label for="opgInterval6" title="@_f.tra("Po 6ti minutách")">6</label>
+                                <input type="radio" asp-for="HoursInterval" id="opgInterval10" value="10" />
+                                <label for="opgInterval10" title="@_f.tra("Po 10ti minutách")">10</label>
+                                <input type="radio" asp-for="HoursInterval" id="opgInterval15" value="15" />
+                                <label for="opgInterval15" title="@_f.tra("Po 15ti minutách")">15</label>
+                                <input type="radio" asp-for="HoursInterval" id="opgInterval30" value="30" />
+                                <label for="opgInterval30" title="@_f.tra("Po 30ti minutách")">30</label>
+                                <input type="radio" asp-for="HoursInterval" id="opgInterval60" value="60" />
+                                <label for="opgInterval60" title="@_f.tra("Po 60ti minutách")">60</label>
+                            </div>
+                            <span class="hes-unit">min</span>
+                        </div>
+                        <div class="hes-preview" id="hesPreviewHours"></div>
+                    </div>
+
+                    <label class="hes-row" for="chkTimesheetEntryByMinutes">
+                        <span class="hes-label">@_f.tra("Hodiny vykazovat pevně v minutách (např. 90)")</span>
+                        <span class="form-check form-switch"><input type="checkbox" class="form-check-input" role="switch" asp-for="TimesheetEntryByMinutes" id="chkTimesheetEntryByMinutes" /></span>
+                    </label>
+                </section>
+
+                <section class="hes-card">
+                    <h2><span class="material-icons-outlined-nosize">schedule</span>@_f.tra("Předvyplněné intervaly pro Čas od - Čas do")</h2>
+
+                    <div class="hes-row hes-stack">
+                        <div class="hes-times">
+                            <div>
+                                <label for="TimeInputFrom">@_f.tra("Začátek pro Čas od")</label>
                                 <select asp-for="TimeInputFrom" class="form-select">
                                     @for (var i = 7; i <= 14; i++)
                                     {
                                         <option value="@i">@BO.Code.Time.ShowAsHHMM(i.ToString())</option>
                                     }
                                 </select>
-                            </td>
-
-                        </tr>
-                        <tr>
-                            <td>
-                                @_f.tra("Konec pro Čas od"):
-                            </td>
-                            <td>
+                            </div>
+                            <div>
+                                <label for="TimeInputTo">@_f.tra("Konec pro Čas od")</label>
                                 <select asp-for="TimeInputTo" class="form-select">
                                     @for (var i = 11; i <= 22; i++)
                                     {
                                         <option value="@i">@BO.Code.Time.ShowAsHHMM(i.ToString())</option>
                                     }
                                 </select>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                @_f.tra("Interval"):
-                            </td>
-                            <td>
+                            </div>
+                            <div>
+                                <label for="TimeInputInterval">@_f.tra("Interval")</label>
                                 <select asp-for="TimeInputInterval" class="form-select">
                                     <option value="30">30 minut</option>
                                     <option value="60">60 minut</option>
                                 </select>
-                            </td>
-                        </tr>
-                    </table>
+                            </div>
+                        </div>
+                        <div class="hes-preview" id="hesPreviewTimes"></div>
+                    </div>
+                </section>
 
-                </div>
+                <section class="hes-card hes-wide" id="divTimesheetRecordOnly">
+                    <h2><span class="material-icons-outlined-nosize">tune</span>@_f.tra("Předvyplňovat sešit a aktivitu")</h2>
+
+                    <div class="hes-row">
+                        <div class="hes-opts" role="radiogroup">
+                            <label class="hes-opt" for="chk99"><input type="radio" id="chk99" value="99" asp-for="ActivityFlag" />@_f.tra("Bez předvyplněného sešitu")</label>
+                            <label class="hes-opt" for="chk0"><input type="radio" id="chk0" value="0" asp-for="ActivityFlag" />@_f.tra("Předvyplnit první sešit v nabídce sešitů")</label>
+                            <label class="hes-opt" for="chk1"><input type="radio" id="chk1" value="1" asp-for="ActivityFlag" />@_f.tra("Předvyplnit sešit z naposledy vykazovaného úkonu")</label>
+                            <label class="hes-opt" for="chk2"><input type="radio" id="chk2" value="2" asp-for="ActivityFlag" />@_f.tra("Předvyplnit aktivitu+sešit z naposledy vykazovaného úkonu")</label>
+                        </div>
+                    </div>
+
+                    <label class="hes-row" for="chkZrusit_p34id_for_p31_entry">
+                        <span class="hes-label">@_f.tra("Vypnout filtrování projektů podle vykazovaného sešitu")</span>
+                        <span class="form-check form-switch"><input type="checkbox" class="form-check-input" role="switch" asp-for="Zrusit_p34id_for_p31_entry" id="chkZrusit_p34id_for_p31_entry" /></span>
+                    </label>
+                </section>
+
             </div>
         </div>
 
-        <div class="card my-2" id="divTimesheetRecordOnly">
-            <div class="card-header">
-                @_f.tra("Další nastavení")
-            </div>
-            <div class="card-body">
+        @* ------------------------------------------------------------------ Schvalování *@
+        <div class="tab-pane @(Model.ActiveTabIndex == 2 ? "active" : "")" id="tab2" role="tabpanel">
+            <div class="hes-grid">
 
-                <input type="checkbox" asp-for="Zrusit_p34id_for_p31_entry" id="chkZrusit_p34id_for_p31_entry" />
-                <label for="chkZrusit_p34id_for_p31_entry">@_f.tra("Vypnout filtrování projektů podle vykazovaného sešitu")</label>
-               
-                <input type="checkbox" asp-for="TimesheetEntryByMinutes" id="chkTimesheetEntryByMinutes" style="margin-left:50px;"/>
-                <label for="chkTimesheetEntryByMinutes">@_f.tra("Hodiny vykazovat pevně v minutách (např. 90)")</label>
-                <hr />
+                <section class="hes-card">
+                    <h2><span class="material-icons-outlined-nosize">approval</span>@_f.tra("Schvalovací rozhraní")</h2>
 
+                    <div class="hes-row">
+                        <div class="hes-opts" role="radiogroup">
+                            <label class="hes-opt" for="opgUI0"><input type="radio" asp-for="Approve_Default_UI" id="opgUI0" value="Inline" />@_f.tra("Výchozí schvalovací rozhraní je [INLINE]")</label>
+                            <label class="hes-opt" for="opgUI1"><input type="radio" asp-for="Approve_Default_UI" id="opgUI1" value="Grid" />@_f.tra("Výchozí schvalovací rozhraní je [GRID]")</label>
+                        </div>
+                    </div>
 
-                <strong>@_f.tra("Předvyplňovat sešit a aktivitu"):</strong>
-                <div>
-                    <input type="radio" id="chk99" value="99" asp-for="ActivityFlag" />
-                    <label for="chk99">@_f.tra("Bez předvyplněného sešitu")</label>
-                </div>
-                <div>
-                    <input type="radio" id="chk0" value="0" asp-for="ActivityFlag" />
-                    <label for="chk0">@_f.tra("Předvyplnit první sešit v nabídce sešitů")</label>
-                </div>
-                <div>
-                    <input type="radio" id="chk1" value="1" asp-for="ActivityFlag" />
-                    <label for="chk1">@_f.tra("Předvyplnit sešit z naposledy vykazovaného úkonu")</label>
-                </div>
-                <div>
-                    <input type="radio" id="chk2" value="2" asp-for="ActivityFlag" />
-                    <label for="chk2">@_f.tra("Předvyplnit aktivitu+sešit z naposledy vykazovaného úkonu")</label>
-                </div>
+                    <label class="hes-row" for="Approve_IsSkipGateway">
+                        <span class="hes-label">@_f.tra("Přeskočit úvodní stránku před schvalovacím rozhraním")</span>
+                        <span class="form-check form-switch"><input type="checkbox" class="form-check-input" role="switch" asp-for="Approve_IsSkipGateway" /></span>
+                    </label>
+                    <label class="hes-row" for="chkApprove_ZafixovatAkce">
+                        <span class="hes-label">@_f.tra("Box [Akce pro vybrané] vždy zobrazen")</span>
+                        <span class="form-check form-switch"><input type="checkbox" class="form-check-input" role="switch" asp-for="Approve_ZafixovatAkce" id="chkApprove_ZafixovatAkce" /></span>
+                    </label>
+                </section>
+
+                <section class="hes-card">
+                    <h2><span class="material-icons-outlined-nosize">fact_check</span>@_f.tra("Funkce schvalování")</h2>
+
+                    <label class="hes-row" for="chkApprove_InterniHodiny">
+                        <span class="hes-label">@_f.tra("Využívat funkci [Interní schvalování hodin]")</span>
+                        <span class="form-check form-switch"><input type="checkbox" class="form-check-input" role="switch" asp-for="Approve_InterniHodiny" id="chkApprove_InterniHodiny" /></span>
+                    </label>
+                    <label class="hes-row" for="chkApprove_HodinyVPausalu">
+                        <span class="hes-label">@_f.tra("Využívat funkci [Hodiny v paušálu]")</span>
+                        <span class="form-check form-switch"><input type="checkbox" class="form-check-input" role="switch" asp-for="Approve_HodinyVPausalu" id="chkApprove_HodinyVPausalu" /></span>
+                    </label>
+                    <label class="hes-row" for="chkApprove_UrovenSchvalovani">
+                        <span class="hes-label">@_f.tra("Využívat funkci [Úroveň schvalování]")</span>
+                        <span class="form-check form-switch"><input type="checkbox" class="form-check-input" role="switch" asp-for="Approve_UrovenSchvalovani" id="chkApprove_UrovenSchvalovani" /></span>
+                    </label>
+                    <label class="hes-row" for="chkApprove_DoDefaultApproveState">
+                        <span class="hes-label">@_f.tra("Automaticky nahazovat výchozí fakturační status")</span>
+                        <span class="form-check form-switch"><input type="checkbox" class="form-check-input" role="switch" asp-for="Approve_DoDefaultApproveState" id="chkApprove_DoDefaultApproveState" /></span>
+                    </label>
+                </section>
+
+                <section class="hes-card hes-wide">
+                    <h2><span class="material-icons-outlined-nosize">view_sidebar</span>@_f.tra("GRID rozhraní")</h2>
+
+                    <div class="hes-row">
+                        <div class="hes-opts" role="radiogroup">
+                            <label class="hes-opt" for="opgGridBoxNone"><input type="radio" asp-for="Approve_GridBox_Position" id="opgGridBoxNone" value="0" />@_f.tra("V GRID rozhraní nezobrazovat panel záznamu")</label>
+                            <label class="hes-opt" for="opgGridBoxLeft"><input type="radio" asp-for="Approve_GridBox_Position" id="opgGridBoxLeft" value="1" />@_f.tra("V GRID rozhraní zobrazovat panel záznamu vlevo")</label>
+                            <label class="hes-opt" for="opgGridBoxRight"><input type="radio" asp-for="Approve_GridBox_Position" id="opgGridBoxRight" value="2" />@_f.tra("V GRID rozhraní zobrazovat panel záznamu vpravo")</label>
+                        </div>
+                    </div>
+
+                    <label class="hes-row" for="chkApprove_ShowRecZoom">
+                        <span class="hes-label">@_f.tra("V GRID rozhraní možnost schvalovat přes [Íčko]")</span>
+                        <span class="form-check form-switch"><input type="checkbox" class="form-check-input" role="switch" asp-for="Approve_ShowRecZoom" id="chkApprove_ShowRecZoom" /></span>
+                    </label>
+                </section>
+
             </div>
         </div>
 
     </div>
-
-    <div class="tab-pane tab-pane-fixed" id="tab2" role="tabpanel">
-        <p></p>
-        <div class="card-body">
-            <input type="checkbox" asp-for="Approve_IsSkipGateway" />
-            <label for="Approve_IsSkipGateway">@_f.tra("Přeskočit úvodní stránku před schvalovacím rozhraním")</label>
-        </div>
-        <div class="card-body">
-            <input type="radio" asp-for="Approve_Default_UI" id="opgUI0" value="Inline" />
-            <label for="opgUI0">@_f.tra("Výchozí schvalovací rozhraní je [INLINE]")</label>
-            <br />
-            <input type="radio" asp-for="Approve_Default_UI" id="opgUI1" value="Grid" />
-            <label for="opgUI1">@_f.tra("Výchozí schvalovací rozhraní je [GRID]")</label>
-            <hr />
-        </div>
-        <div class="card-body">
-
-            <input type="checkbox" asp-for="@Model.Approve_InterniHodiny" id="chkApprove_InterniHodiny" />
-            <label for="chkApprove_InterniHodiny">@_f.tra("Využívat funkci [Interní schvalování hodin]")</label>
-            <p></p>
-            <input type="checkbox" asp-for="@Model.Approve_HodinyVPausalu" id="chkApprove_HodinyVPausalu" />
-            <label for="chkApprove_HodinyVPausalu">@_f.tra("Využívat funkci [Hodiny v paušálu]")</label>
-            <p></p>
-            <input type="checkbox" asp-for="@Model.Approve_UrovenSchvalovani" id="chkApprove_UrovenSchvalovani" />
-            <label for="chkApprove_UrovenSchvalovani">@_f.tra("Využívat funkci [Úroveň schvalování]")</label>
-            <p></p>
-            <input type="checkbox" asp-for="@Model.Approve_DoDefaultApproveState" id="chkApprove_DoDefaultApproveState" />
-            <label for="chkApprove_DoDefaultApproveState">@_f.tra("Automaticky nahazovat výchozí fakturační status")</label>
-            <p></p>
-        </div>
-        <hr />
-        <div class="card-body">
-
-            <input type="radio" asp-for="@Model.Approve_GridBox_Position" id="opgGridBoxNone" value="0" />
-            <label for="opgGridBoxNone">@_f.tra("V GRID rozhraní nezobrazovat panel záznamu")</label>
-            <br />
-            <input type="radio" asp-for="@Model.Approve_GridBox_Position" id="opgGridBoxLeft" value="1" />
-            <label for="opgGridBoxLeft">@_f.tra("V GRID rozhraní zobrazovat panel záznamu vlevo")</label>
-            <br />
-            <input type="radio" asp-for="@Model.Approve_GridBox_Position" id="opgGridBoxRight" value="2" />
-            <label for="opgGridBoxRight">@_f.tra("V GRID rozhraní zobrazovat panel záznamu vpravo")</label>
-
-            <p></p>
-            <p></p>
-            <input type="checkbox" asp-for="@Model.Approve_ShowRecZoom" id="chkApprove_ShowRecZoom" />
-            <label for="chkApprove_ShowRecZoom">@_f.tra("V GRID rozhraní možnost schvalovat přes [Íčko]")</label>
-            <p></p>
-            <p></p>
-            <input type="checkbox" asp-for="@Model.Approve_ZafixovatAkce" id="chkApprove_ZafixovatAkce" />
-            <label for="chkApprove_ZafixovatAkce">@_f.tra("Box [Akce pro vybrané] vždy zobrazen")</label>
-            <p></p>
-        </div>
-    </div>
-
-
-    
-
-
-    
-
-    @Html.Raw("</div>")
-    @Html.Raw("</div>")
-
-
 </form>
 
-
-
 <script type="text/javascript">
+    var _hes = {
+        decsep: "@_decsep",
+        txtPreview: "@_f.tra("Náhled")",
+        txtDirty: "@_f.tra("Změny potvrďte tlačítkem [Uložit změny].")",
+        txtTimesWrong: "@_f.tra("Konec musí být později než začátek.")"
+    };
+
     $(document).ready(function () {
-
-        
-        $(".tab-pane").removeClass("active");
-
-        $("#tab@(Model.ActiveTabIndex)").addClass("active");
-        $("#link_tab@(Model.ActiveTabIndex)").attr("class", "nav-link active");
 
         $('a[data-bs-toggle="tab"]').on("shown.bs.tab", function (e) {
             // v e.target.id je id kliknutá záložka
-
             var tabindex = e.target.id.substring(e.target.id.length - 1, e.target.id.length);
             $("#ActiveTabIndex").val(tabindex);
-            _resize_textareas();
-        })
-
-
-       
-
-       
-
-        $("#cmdOK").click(function () {
-
-            $(this).text("Processing...");
-            $(this).attr("disabled", true);
-            form1.submit();
-
-
         });
 
+        $("#form1").on("change", "input, select", function () {
+            $("#toolbar_changeinfo").text(_hes.txtDirty);
+            $("#cmdOK").addClass("hes-save-pulse");
+            hes_preview_hours();
+            hes_preview_times();
+        });
 
+        $("#cmdOK").click(function () {
+            if (!hes_times_ok()) {
+                _notify_message(_hes.txtTimesWrong);
+                return;
+            }
+            $(this).attr("disabled", true);
+            $("#toolbar_changeinfo").text("");
+            form1.submit();
+        });
 
-    })
+        hes_preview_hours();
+        hes_preview_times();
+    });
 
+    function hes_chips(el, arr, limit) {
+        //prvních pár hodnot nabídky, pak poslední – ať je vidět krok i rozsah
+        var s = "<span class='hes-preview-cap'>" + _hes.txtPreview + ":</span>";
+        for (var i = 0; i < arr.length; i++) {
+            if (arr.length > limit + 1 && i == limit - 1) {
+                s += "<span class='hes-chip hes-chip-more'>…</span><span class='hes-chip'>" + arr[arr.length - 1] + "</span>";
+                break;
+            }
+            s += "<span class='hes-chip'>" + arr[i] + "</span>";
+        }
+        el.innerHTML = s;
+    }
 
+    function hes_hhmm(minutes) {
+        var h = Math.floor(minutes / 60), m = minutes % 60;
+        return (h < 10 ? "0" : "") + h + ":" + (m < 10 ? "0" : "") + m;
+    }
 
+    //nabídka u pole hodin – stejná pravidla jako taghelper myhours (Handle_Intervals)
+    function hes_preview_hours() {
+        var step = parseInt($("input[name='HoursInterval']:checked").val());
+        if (isNaN(step) || step <= 0) step = 30;
+        var krat = 8;
+        if (step == 60) krat = 10;
+        if (step == 15) krat = 4;
+        if (step == 5 || step == 6 || step == 10) krat = 3;
 
+        var format = $("input[name='HoursFormat']:checked").val();
+        var arr = [];
+        for (var i = step; i <= krat * 60; i += step) {
+            if (format == "T") {
+                arr.push(hes_hhmm(i));
+            } else {
+                arr.push(String(Math.round(i / 60 * 10000) / 10000).replace(".", _hes.decsep));
+            }
+        }
+        hes_chips(document.getElementById("hesPreviewHours"), arr, 6);
+    }
 
+    function hes_times_ok() {
+        return parseInt($("#TimeInputFrom").val()) < parseInt($("#TimeInputTo").val());
+    }
 
-
+    //nabídka u polí Čas od / Čas do – stejně ji skládá p31/Record
+    function hes_preview_times() {
+        var el = document.getElementById("hesPreviewTimes");
+        if (!hes_times_ok()) {
+            el.innerHTML = "<span class='hes-warn'>" + _hes.txtTimesWrong + "</span>";
+            return;
+        }
+        var from = parseInt($("#TimeInputFrom").val()) * 60, to = parseInt($("#TimeInputTo").val()) * 60, step = parseInt($("#TimeInputInterval").val());
+        var arr = [];
+        for (var i = from; i <= to; i += step) {
+            arr.push(hes_hhmm(i));
+        }
+        hes_chips(el, arr, 6);
+    }
 </script>
-

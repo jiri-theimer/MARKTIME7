@@ -1,0 +1,62 @@
+﻿/* Moje předvolby vykazování a schvalování (Views/p31hes/Index.cshtml) – třídy hes-*.
+   Navazuje na vzhled Můj profil (mp-* v myprofile.css). Barvy podle motivu uživatele: --pozadi, --oznaceno. */
+
+.hes { max-width: 980px; padding: 0 10px 20px; }
+
+/* lišta s uložením zůstává při posunu nahoře */
+.hes-savebar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 8px; padding: 8px 10px; margin-bottom: 8px; background: var(--bs-body-bg, #fff); border-bottom: 1px solid #e3e6ea; }
+.hes-dirty { margin-left: 6px; color: #b25b00; font-size: .875rem; }
+.hes-save-pulse { box-shadow: 0 0 0 3px rgba(25,135,84,.25); }
+
+.hes-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 14px; align-items: start; padding-top: 14px; }
+.hes-card { padding: 14px 16px; border: 1px solid #e3e6ea; border-radius: 10px; background: #fff; }
+.hes-card h2 { display: flex; align-items: center; gap: 6px; font-size: 1rem; font-weight: 600; margin: 0 0 6px; color: #2b3138; }
+.hes-card h2 .material-icons-outlined-nosize { color: var(--pozadi, #0b4b92); font-size: 20px; }
+.hes-wide { grid-column: 1 / -1; }
+
+/* řádek nastavení: popis vlevo, ovládací prvek vpravo */
+.hes-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 0; margin: 0; border-top: 1px solid #eef0f2; }
+.hes-card h2 + .hes-row { border-top: 0; }
+.hes-stack { flex-direction: column; align-items: flex-start; gap: 8px; }
+.hes-label { font-size: .9rem; font-weight: 500; color: #2b3138; }
+label.hes-row { cursor: pointer; }
+.hes-unit { margin-left: 6px; color: #6c757d; font-size: .85rem; }
+
+/* přepínač ano/ne */
+.hes .form-switch { margin: 0; padding-left: 0; flex: 0 0 auto; min-height: 0; line-height: 0; }
+.hes .form-switch .form-check-input { float: none; margin: 0; width: 2.4em; height: 1.3em; cursor: pointer; }
+.hes .form-check-input:checked { background-color: var(--pozadi, #0b4b92); border-color: var(--pozadi, #0b4b92); }
+.hes .form-check-input:focus { border-color: var(--oznaceno, #4169e1); box-shadow: 0 0 0 .2rem color-mix(in srgb, var(--oznaceno, #4169e1) 25%, transparent); }
+
+/* volba jedné z několika krátkých hodnot */
+.hes-seg { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 2px; border: 1px solid #d0d7de; border-radius: 8px; background: #f3f4f6; }
+.hes-seg input { position: absolute; opacity: 0; pointer-events: none; }
+.hes-seg label { min-width: 42px; margin: 0; padding: 4px 12px; border-radius: 6px; font-size: .875rem; color: #3d444d; text-align: center; cursor: pointer; user-select: none; font-variant-numeric: tabular-nums; transition: background-color .12s ease; }
+.hes-seg label:hover { background: #e6e8eb; }
+.hes-seg input:checked + label { background: #fff; color: var(--pozadi, #0b4b92); font-weight: 600; box-shadow: 0 1px 2px rgba(16,24,40,.18); }
+.hes-seg input:focus-visible + label { outline: 2px solid var(--oznaceno, #4169e1); outline-offset: 1px; }
+
+/* volba jedné z několika delších možností */
+.hes-opts { display: grid; gap: 4px; width: 100%; }
+.hes-opt { display: flex; align-items: center; gap: 10px; margin: 0; padding: 7px 10px; border: 1px solid transparent; border-radius: 8px; font-size: .9rem; color: #2b3138; cursor: pointer; }
+.hes-opt:hover { background: #f6f8fa; }
+.hes-opt input { flex: 0 0 auto; margin: 0; width: 16px; height: 16px; accent-color: var(--pozadi, #0b4b92); cursor: pointer; }
+.hes-opt:has(input:checked) { background: color-mix(in srgb, var(--oznaceno, #4169e1) 10%, #ffffff); border-color: color-mix(in srgb, var(--oznaceno, #4169e1) 40%, #ffffff); }
+
+/* čas od – do */
+.hes-times { display: flex; flex-wrap: wrap; gap: 12px; }
+.hes-times > div { display: flex; flex-direction: column; gap: 3px; }
+.hes-times label { margin: 0; font-size: .8rem; color: #59636e; }
+.hes-times .form-select { width: auto; min-width: 104px; }
+
+/* náhled toho, co uživatel uvidí v nabídce */
+.hes-preview { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; min-height: 24px; }
+.hes-preview-cap { margin-right: 4px; font-size: .8rem; color: #6c757d; }
+.hes-chip { padding: 1px 8px; border-radius: 10px; background: #eef1f4; color: #3d444d; font-size: .8rem; font-variant-numeric: tabular-nums; }
+.hes-chip-more { background: transparent; color: #6c757d; padding: 1px 2px; }
+.hes-warn { color: #b02a37; font-size: .85rem; }
+
+@media (max-width: 700px) {
+    .hes-grid { grid-template-columns: 1fr; }
+    .hes-row { gap: 10px; }
+}
