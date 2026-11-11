@@ -204,6 +204,17 @@ namespace UI.Code.DbCreate
             }
         }
 
+        /// <summary>
+        /// Najde podle názvu záznam mezi těmi, které tento běh právě založil. Hledá se přes nová ID, ne přes x01ID,
+        /// takže výsledek nezávisí na tom, zda distribuční soubor tabulky sloupec x01ID obsahuje.
+        /// </summary>
+        private int FindNewPid(string strTable, string strPK, string strNameField, string strName)
+        {
+            var ids = NewKeys(strPK);
+            if (ids.Count == 0) return 0;
+            return FindPid($"SELECT TOP 1 {strPK} FROM {strTable} WHERE {strPK} IN ({string.Join(",", ids)}) AND {strNameField} LIKE @name ORDER BY {strPK}", new { name = strName });
+        }
+
         private TableMeta GetMeta(string strTable)
         {
             if (_meta.ContainsKey(strTable)) return _meta[strTable];
@@ -343,6 +354,13 @@ namespace UI.Code.DbCreate
 
                 fields.Add($"[{strField}]");
                 values.Add(strValue);
+            }
+
+            if (strTable != "x01License" && meta.Columns.Contains("x01ID") && !dt.Columns.Contains("x01ID") && !meta.ReadOnlyColumns.Contains("x01ID"))
+            {
+                //tabulka patří licenci, ale distribuční soubor sloupec x01ID nemá (např. p42ProjectType)
+                fields.Add("[x01ID]");
+                values.Add(_x01ID.ToString());
             }
 
             if (overrides != null)
@@ -541,6 +559,11 @@ namespace UI.Code.DbCreate
                 Warn($"{strTable}: distribuční soubor obsahuje sloupce, které v tabulce nejsou ({string.Join(", ", lisMissing)}); byly vynechány.");
             }
 
+            if (strTable != "x01License" && meta.Columns.Contains("x01ID") && !dt.Columns.Contains("x01ID"))
+            {
+                wr_sql($"-- distribuční soubor {strTable}.dt nemá sloupec x01ID, doplňuje se x01ID nové licence");
+            }
+
             string strPK = strTable.Substring(0, 3) + "ID";
             bool bolHasOrigKey = dt.Columns.Contains(strPK);
             int intRows = 0; int intErrors = 0;
@@ -637,7 +660,7 @@ namespace UI.Code.DbCreate
         private void Step_Contacts()
         {
             //interní kontakt = firma uživatele
-            int intP29ID = FindPid("SELECT TOP 1 p29ID FROM p29ContactType WHERE x01ID=@x01id AND p29Name LIKE 'Interní'", new { x01id = _x01ID });
+            int intP29ID = FindNewPid("p29ContactType", "p29ID", "p29Name", "Interní");
             if (intP29ID == 0)
             {
                 Warn("Typ kontaktu [Interní] v distribuci chybí - interní kontakt a projekt Interní nebyly založeny.");
@@ -655,7 +678,7 @@ namespace UI.Code.DbCreate
 
             if (_p28ID_Interni > 0)
             {
-                int intP42ID = FindPid("SELECT TOP 1 a.p42ID FROM p42ProjectType a WHERE a.x01ID=@x01id AND a.p42Name LIKE 'Interní projekt'", new { x01id = _x01ID });
+                int intP42ID = FindNewPid("p42ProjectType", "p42ID", "p42Name", "Interní projekt");
                 if (intP42ID == 0)
                 {
                     Warn("Typ projektu [Interní projekt] v distribuci chybí - projekt Interní nebyl založen.");
@@ -672,7 +695,7 @@ namespace UI.Code.DbCreate
             }
 
             //ukázkový klient a projekty podle oboru
-            int intP29ID_Klient = FindPid("SELECT TOP 1 p29ID FROM p29ContactType WHERE x01ID=@x01id AND p29Name LIKE 'Klient'", new { x01id = _x01ID });
+            int intP29ID_Klient = FindNewPid("p29ContactType", "p29ID", "p29Name", "Klient");
             if (intP29ID_Klient == 0)
             {
                 Warn("Typ kontaktu [Klient] v distribuci chybí - ukázkový klient nebyl založen.");
@@ -686,7 +709,7 @@ namespace UI.Code.DbCreate
                 return;
             }
 
-            int intP42ID_Klient = FindPid("SELECT TOP 1 a.p42ID FROM p42ProjectType a INNER JOIN p07ProjectLevel b ON a.p07ID=b.p07ID WHERE b.x01ID=@x01id AND a.p42Name LIKE 'Klientský projekt'", new { x01id = _x01ID });
+            int intP42ID_Klient = FindNewPid("p42ProjectType", "p42ID", "p42Name", "Klientský projekt");
             if (intP42ID_Klient == 0)
             {
                 intP42ID_Klient = NewKeys("p42ID").FirstOrDefault();
@@ -711,7 +734,7 @@ namespace UI.Code.DbCreate
         private void Step_Finish()
         {
             //výchozí konfigurace editoru poznámek
-            int intX04ID = FindPid("SELECT TOP 1 x04ID FROM x04NotepadConfig WHERE x01ID=@x01id AND x04Name LIKE 'Výchozí Editor'", new { x01id = _x01ID });
+            int intX04ID = FindNewPid("x04NotepadConfig", "x04ID", "x04Name", "Výchozí Editor");
             if (intX04ID == 0)
             {
                 intX04ID = NewKeys("x04ID").FirstOrDefault();
@@ -743,6 +766,7 @@ namespace UI.Code.DbCreate
             //první uživatel: výchozí menu
             TryExecWarn("UPDATE j02User SET j02MyMenuLinks=@links,j02HomePageUrl=NULL,j02Mobile=NULL WHERE j02ID=@pid", new { links = _f.j02UserBL.GetDefaultMenuLinks(), pid = _j02ID });
 
+            Finish_AdminRole();
             Finish_InvoiceHeader();
             Finish_PriceLists();
             Finish_Calendars();
@@ -750,6 +774,42 @@ namespace UI.Code.DbCreate
 
             _f.App.RefreshP07List();
             _f.App.RefreshO17List();
+        }
+
+        /// <summary>
+        /// Aplikační role prvního uživatele (administrátor) dostane všechna oprávnění, která aplikace zná,
+        /// a modul FILEBOX. Seznam oprávnění se bere z BO.Code.Entity.GetAllPermissions, takže nové oprávnění
+        /// přidané do aplikace dostanou nové licence samy, bez úpravy distribučních souborů.
+        /// </summary>
+        private void Finish_AdminRole()
+        {
+            try
+            {
+                int intJ04ID = Db().Scalar<int>("SELECT ISNULL((SELECT j04ID FROM j02User WHERE j02ID=@pid),0)", new { pid = _j02ID });
+                if (intJ04ID == 0 || !NewKeys("j04ID").Contains(intJ04ID))
+                {
+                    Warn("Aplikační roli prvního uživatele se nepodařilo určit - oprávnění zůstala podle distribuce.");
+                    return;
+                }
+                var rec = _f.j04UserRoleBL.Load(intJ04ID);
+                if (rec == null || rec.x01ID != _x01ID)
+                {
+                    Warn("Aplikační role prvního uživatele nepatří do nové licence - oprávnění zůstala podle distribuce.");
+                    return;
+                }
+                rec.j04IsModule_o27 = true;
+                var perms = BO.Code.Entity.GetAllPermissions("j04").Select(p => (int)p.Value).Where(p => p > 0).Distinct().ToList();
+                if (_f.j04UserRoleBL.Save(rec, perms, null) == 0)   //x54ids=null: widgety role zůstávají podle distribuce
+                {
+                    Warn("Aplikační roli administrátora se nepodařilo uložit se všemi oprávněními: " + TakeMessages());
+                    return;
+                }
+                AttachUser();   //načíst uživatele znovu, už s úplnými oprávněními
+            }
+            catch (Exception e)
+            {
+                Warn("Aplikační role administrátora: " + e.Message);
+            }
         }
 
         /// <summary>Hlavička vystavovatele faktur dostane údaje firmy, aby první faktura nevyšla s údaji z distribuce.</summary>
