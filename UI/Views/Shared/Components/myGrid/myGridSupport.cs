@@ -540,6 +540,8 @@ namespace UI.Views.Shared.Components.myGrid
             }
             if (gridinput.tablelayout.Lineheight != null) strBaseClass = $"{strBaseClass} {gridinput.tablelayout.Lineheight}";    //výška řádku line-height, default je 1
 
+            TheGridColumn colAktivita = null;   //úkony: sloupec Aktivita se podbarvuje barvou aktivity (dohledá se jednou, v cyklu se jen porovnává odkaz)
+            if (mq.Prefix == "p31") colAktivita = _grid.Columns.FirstOrDefault(p => p.Entity == "p32Activity" && p.Field == "p32Name");
             for (int i = intStartIndex; i <= intEndIndex; i++)
             {
                 System.Data.DataRow dbRow = dt.Rows[i];
@@ -655,13 +657,18 @@ namespace UI.Views.Shared.Components.myGrid
 
 
 
+                string strTd0Style = null;
+                if (mq.Prefix == "p31" && colAktivita == null && dbRow["p32Color"] != System.DBNull.Value)
+                {
+                    strTd0Style = $" style='background-color:{dbRow["p32Color"]};'";   //úkon: tabulka bez sloupce Aktivita -> barva aktivity v první buňce
+                }
                 if (this.gridinput.is_enable_selecting)
                 {
-                    _s.Append(string.Format("<td class='td0'><input type='checkbox' style='padding:0px;' id='chk{0}'/></td>", dbRow["pid"]));
+                    _s.Append($"<td class='td0'{strTd0Style}><input type='checkbox' style='padding:0px;' id='chk{dbRow["pid"]}'/></td>");
                 }
                 else
                 {
-                    _s.Append("<td class='td0'></td>");
+                    _s.Append($"<td class='td0'{strTd0Style}></td>");
                 }
 
                 if (bolCanbeTecka && dbRow["b02Color"] != System.DBNull.Value)
@@ -979,7 +986,15 @@ namespace UI.Views.Shared.Components.myGrid
                     {
                         _s.Append(string.Format(" style='width:{0}'", GetColumnWidth(col)));
                     }
-                    _s.Append(string.Format(">{0}</td>", BO.Code.Bas.ParseCellValueFromDb(dbRow, col, null, _Factory.CurrentUser.j02DefaultHoursFormat)));
+                    if (col == colAktivita && dbRow["p32Color"] != System.DBNull.Value)
+                    {
+                        //úkon: název aktivity podbarvený barvou aktivity (jen text, ne celá buňka – třída p32c v thegrid.css)
+                        _s.Append($"><span class='p32c' style='background-color:{dbRow["p32Color"]};'>{BO.Code.Bas.ParseCellValueFromDb(dbRow, col, null, _Factory.CurrentUser.j02DefaultHoursFormat)}</span></td>");
+                    }
+                    else
+                    {
+                        _s.Append(string.Format(">{0}</td>", BO.Code.Bas.ParseCellValueFromDb(dbRow, col, null, _Factory.CurrentUser.j02DefaultHoursFormat)));
+                    }
 
 
                 }

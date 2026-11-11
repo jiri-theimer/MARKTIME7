@@ -1,0 +1,45 @@
+﻿/* Samoobslužná registrace (Views/CreateLicenseFree) - doplňuje login.css */
+.rg-card-wide { max-width: 520px; }
+
+.rg-note { font-size: .8rem; color: var(--lg-muted); text-align: center; margin: 12px 0 0; }
+.rg-note .lg-link { font-size: inherit; }
+.rg-sent { color: var(--lg-text); margin: 0 0 6px; overflow-wrap: anywhere; }
+.rg-captcha { display: flex; justify-content: center; margin-bottom: 14px; min-height: 78px; }
+
+.lg-hint b { color: var(--lg-text); font-weight: 600; overflow-wrap: anywhere; }
+.lg-back { font-size: .875rem; color: var(--lg-muted); }
+
+.rg-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.rg-row-ico { grid-template-columns: 130px 1fr; }
+.rg-ico { display: flex; gap: 8px; }
+.rg-ico .form-control { min-width: 0; }
+.rg-btn-light { flex: 0 0 auto; height: 42px; border: 1px solid #cfd5dc; border-radius: 8px; background: #fff; color: var(--lg-text); font-size: .875rem; white-space: nowrap; }
+.rg-btn-light:hover { background: #f6f8fa; border-color: #b9c1ca; }
+.rg-btn-light:disabled { opacity: .7; }
+.lg-field .form-select { height: 42px; border-radius: 8px; border-color: #cfd5dc; }
+
+.rg-optional { font-weight: 400; color: var(--lg-muted); font-size: .8rem; margin-left: 4px; }
+.rg-help { font-size: .8rem; color: var(--lg-muted); margin-top: 4px; }
+.rg-err { font-size: .8rem; color: #a61b1b; margin-top: 4px; }
+.rg-err:empty { display: none; }
+.rg-invalid, .lg-field .rg-invalid:focus { border-color: #d64545; box-shadow: 0 0 0 3px rgba(214,69,69,.15); }
+
+.rg-profiles { border: 0; padding: 0; min-width: 0; }
+.rg-profiles legend { float: none; width: auto; font-size: .875rem; font-weight: 500; color: var(--lg-text); margin-bottom: 6px; padding: 0; }
+.rg-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.lg-field .rg-chip { position: relative; display: inline-flex; margin: 0; font-weight: 400; cursor: pointer; }
+.rg-chip input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+.rg-chip span { display: block; padding: 7px 12px; border: 1px solid #cfd5dc; border-radius: 999px; font-size: .875rem; color: var(--lg-text); background: #fff; }
+.rg-chip:hover span { background: #f6f8fa; }
+.rg-chip input:checked + span { background: #eaf3fb; border-color: var(--lg-blue); color: var(--lg-blue-dark); font-weight: 500; }
+.rg-chip input:focus-visible + span { outline: 2px solid var(--lg-blue); outline-offset: 1px; }
+
+.rg-spinner { width: 44px; height: 44px; margin: 8px auto 18px; border: 4px solid #dbe7f2; border-top-color: var(--lg-blue); border-radius: 50%; animation: rg-spin .9s linear infinite; }
+@keyframes rg-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .rg-spinner { animation-duration: 3s; } }
+
+@media (max-width: 520px) {
+    .rg-row, .rg-row-ico { grid-template-columns: 1fr; gap: 0; }
+    .rg-ico { flex-wrap: wrap; }
+    .rg-btn-light { flex: 1 1 100%; }
+}

@@ -1,0 +1,158 @@
+﻿@model UI.Models.Guru.TotalCloudRegisterViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Dokončení registrace");
+    Layout = "~/Views/Shared/_LayoutAnonym.cshtml";
+    bool _form = !Model.IsClosed && !Model.IsLinkInvalid && !Model.IsAccountExists;
+}
+
+@section header_content
+{
+    <meta name="referrer" content="no-referrer" />
+    <link rel="stylesheet" href="~/css/login.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/register.css" asp-append-version="true" />
+}
+
+<div class="lg-wrap">
+    <div class="lg-card @(_form ? "rg-card-wide" : "")">
+        <a href="/Login/UserLogin"><img class="lg-logo" src="/images/logo_default.png" alt="MARKTIME" /></a>
+
+        @if (Model.IsClosed)
+        {
+            <h1 class="lg-title">@_f.tra("Registrace")</h1>
+            <div class="lg-alert" role="alert">@Model.Message</div>
+        }
+        else if (Model.IsLinkInvalid)
+        {
+            <h1 class="lg-title">@_f.tra("Odkaz už neplatí")</h1>
+            <p class="lg-hint">@_f.tra("Ověřovací odkaz vypršel nebo není úplný. Požádejte prosím o nový.")</p>
+            <a href="/CreateLicenseFree/Index" class="btn lg-submit">@_f.tra("Poslat nový odkaz")</a>
+        }
+        else if (Model.IsAccountExists)
+        {
+            <h1 class="lg-title">@_f.tra("Účet už existuje")</h1>
+            <p class="lg-hint">@_f.tra("Registrace pro tento e-mail už byla dokončena:") <b>@Model.Email</b></p>
+            <a href="/Login/UserLogin" class="btn lg-submit">@_f.tra("Přihlásit se")</a>
+        }
+        else
+        {
+            <div id="rgFormWrap">
+                <h1 class="lg-title">@_f.tra("Dokončení registrace")</h1>
+                <p class="lg-hint">
+                    @if (Model.IsGoogle)
+                    {
+                        @_f.tra("Google účet ověřen. Přihlašovat se budete přes Google jako")
+                    }
+                    else
+                    {
+                        @_f.tra("E-mail ověřen. Přihlašovat se budete jako")
+                    }
+                    <b>@Model.Email</b>
+                </p>
+
+                <div class="lg-alert" id="rgError" role="alert" hidden></div>
+
+                <form id="rgCreate" method="post" action="/CreateLicenseFree/Create" novalidate>
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="t" value="@Model.Token" />
+
+                    <div class="rg-row">
+                        <div class="lg-field">
+                            <label for="rgFirstName">@_f.tra("Jméno")</label>
+                            <input type="text" id="rgFirstName" name="firstname" class="form-control" value="@Model.FirstName" autocomplete="given-name" maxlength="50" autofocus />
+                            <div class="rg-err" data-for="firstname"></div>
+                        </div>
+                        <div class="lg-field">
+                            <label for="rgLastName">@_f.tra("Příjmení")</label>
+                            <input type="text" id="rgLastName" name="lastname" class="form-control" value="@Model.LastName" autocomplete="family-name" maxlength="50" />
+                            <div class="rg-err" data-for="lastname"></div>
+                        </div>
+                    </div>
+
+                    <div class="rg-row rg-row-ico">
+                        <div class="lg-field">
+                            <label for="rgCountry">@_f.tra("Země")</label>
+                            <select id="rgCountry" name="country" class="form-select">
+                                @if (Model.CountryCode == "SK")
+                                {
+                                    <option value="CZ">@_f.tra("Česko")</option>
+                                    <option value="SK" selected>@_f.tra("Slovensko")</option>
+                                }
+                                else
+                                {
+                                    <option value="CZ" selected>@_f.tra("Česko")</option>
+                                    <option value="SK">@_f.tra("Slovensko")</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="lg-field">
+                            <label for="rgRegID">@_f.tra("IČO") <span class="rg-optional">@_f.tra("nepovinné")</span></label>
+                            <div class="rg-ico">
+                                <input type="text" id="rgRegID" name="regid" class="form-control" inputmode="numeric" maxlength="12" autocomplete="off" />
+                                <button type="button" id="rgLoad" class="btn rg-btn-light" data-busy="@_f.tra("Hledám…")">@_f.tra("Načíst z rejstříku")</button>
+                            </div>
+                            <div class="rg-err" data-for="regid"></div>
+                        </div>
+                    </div>
+
+                    <div class="lg-field">
+                        <label for="rgCompany">@_f.tra("Název firmy")</label>
+                        <input type="text" id="rgCompany" name="company" class="form-control" autocomplete="organization" maxlength="100" />
+                        <div class="rg-help">@_f.tra("Podnikáte-li na sebe, zadejte své jméno.")</div>
+                        <div class="rg-err" data-for="company"></div>
+                    </div>
+
+                    <fieldset class="lg-field rg-profiles">
+                        <legend>@_f.tra("Váš obor")</legend>
+                        <div class="rg-chips">
+                            @for (int i = 0; i < Model.Profiles.Count; i++)
+                            {
+                                var c = Model.Profiles[i];
+                                <label class="rg-chip">
+                                    <input type="radio" name="profile" value="@c.Key" checked="@(i == Model.Profiles.Count - 1)" />
+                                    <span>@_f.tra(c.Name)</span>
+                                </label>
+                            }
+                        </div>
+                        <div class="rg-help">@_f.tra("Podle oboru vám připravíme ukázkového klienta, projekty a aktivity. Vše můžete později změnit.")</div>
+                    </fieldset>
+
+                    @if (!Model.IsGoogle)
+                    {
+                        <div class="lg-field">
+                            <label for="rgPassword">@_f.tra("Heslo")</label>
+                            <div class="lg-pwd">
+                                <input type="password" id="rgPassword" name="password" class="form-control" autocomplete="new-password" maxlength="100" />
+                                <button type="button" class="lg-eye" id="rgEye" tabindex="-1" title="@_f.tra("Zobrazit heslo")" aria-label="@_f.tra("Zobrazit heslo")">
+                                    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12 5C6.5 5 2.7 8.6 1 12c1.7 3.4 5.5 7 11 7s9.3-3.6 11-7c-1.7-3.4-5.5-7-11-7zm0 11.5A4.5 4.5 0 1 1 12 7.5a4.5 4.5 0 0 1 0 9zm0-7a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z" /></svg>
+                                </button>
+                            </div>
+                            <div class="rg-help">@Model.PasswordHint</div>
+                            <div class="rg-err" data-for="password"></div>
+                        </div>
+                    }
+
+                    <button type="submit" id="rgSubmit" class="btn lg-submit">@_f.tra("Vytvořit účet")</button>
+                </form>
+            </div>
+
+            <div id="rgBusy" class="lg-center" hidden>
+                <div class="rg-spinner" aria-hidden="true"></div>
+                <h1 class="lg-title">@_f.tra("Připravujeme vaše prostředí")</h1>
+                <p class="lg-hint" role="status">@_f.tra("Zakládáme číselníky, ukázkového klienta a projekty. Trvá to několik vteřin, okno prosím nezavírejte.")</p>
+            </div>
+        }
+
+        @if (!_form)
+        {
+            <div class="lg-back">
+                <a href="/Login/UserLogin" class="lg-link">← @_f.tra("Vrátit se na přihlášení")</a>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/register.js" asp-append-version="true"></script>
+}

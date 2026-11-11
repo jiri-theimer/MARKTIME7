@@ -434,24 +434,15 @@
 
 
     function local_rowcolor(colorindex) {
-        var prefix = _tg_entity.substr(0, 3);
         var pids = $("#tg_selected_pids").val();
-        $.post("/Common/UpdateRowColor", { prefix: prefix, pids: pids, colorindex: colorindex }, function (data) {
-
-            location.replace(location.href);
-
-
-        });
+        if (!pids) { _notify_message(_MusiteVybratZaznam); return; }
+        _rowcolor(_tg_entity.substr(0, 3), pids, colorindex);   //přebarví řádky na místě – bez nového načtení stránky (výběr i pozice zůstávají)
     }
 
     function local_clear_rowcolor() {
-        var prefix = _tg_entity.substr(0, 3);
         var pids = $("#tg_selected_pids").val();
-        $.post("/Common/ClearRowColor", { prefix: prefix, pids: pids }, function (data) {
-
-            location.replace(location.href);
-
-        });
+        if (!pids) { _notify_message(_MusiteVybratZaznam); return; }
+        _rowcolor_clear(_tg_entity.substr(0, 3), pids);
     }
 
     function local_p56_clone() {

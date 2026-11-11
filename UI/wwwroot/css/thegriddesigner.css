@@ -1,0 +1,446 @@
+﻿/* Návrhář sloupců tabulky (Views/TheGridDesigner/Index.cshtml, wwwroot/js/thegriddesigner.js) – bez Kendo.
+   Barvy přes proměnné moderního vzhledu (--mt-*) s náhradní hodnotou pro klasický vzhled; motiv uživatele --pozadi, --oznaceno. */
+
+.tgd-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 4px 0 6px;
+    font-size: 1.15rem;
+}
+
+    .tgd-title .material-icons-outlined {
+        font-size: 1.5rem;
+    }
+
+.tgd-toolbar {
+    padding: 8px 10px;
+    border-radius: var(--mt-radius, 4px);
+}
+
+/* název pro „Uložit jako“ / „Přejmenovat“ */
+.tgd-namebar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+    padding: 8px 10px;
+    border: 1px solid var(--pozadi, #0b4b92);
+    border-radius: var(--mt-radius, 4px);
+    background: color-mix(in srgb, var(--pozadi, #0b4b92) 6%, #ffffff);
+}
+
+    .tgd-namebar[hidden] {
+        display: none;
+    }
+
+    .tgd-namebar label {
+        margin: 0;
+        white-space: nowrap;
+        font-weight: 600;
+    }
+
+    .tgd-namebar input {
+        max-width: 420px;
+    }
+
+/* záložky */
+.tgd-tabs {
+    display: flex;
+    gap: 2px;
+    margin-top: 8px;
+    border-bottom: 1px solid var(--mt-line, #dee2e6);
+}
+
+.tgd-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    border: 0;
+    border-bottom: 3px solid transparent;
+    background: transparent;
+    color: var(--mt-muted, #59636e);
+    font-weight: 600;
+}
+
+    .tgd-tab:hover {
+        color: var(--mt-text, #1f2328);
+        background: var(--mt-hover, #f3f6fa);
+    }
+
+    .tgd-tab.active {
+        color: var(--mt-text, #1f2328);
+        border-bottom-color: var(--pozadi, #0b4b92);
+    }
+
+    .tgd-tab .material-icons-outlined-nosize {
+        font-size: 18px;
+    }
+
+.tgd-badge {
+    display: inline-block;
+    min-width: 20px;
+    padding: 0 6px;
+    border-radius: 10px;
+    background: var(--mt-line, #e3e6ea);
+    color: var(--mt-text, #1f2328);
+    font-size: .75rem;
+    font-weight: 600;
+    line-height: 18px;
+    text-align: center;
+}
+
+    .tgd-badge:empty {
+        display: none;
+    }
+
+.tgd-badge-on {
+    background: var(--pozadi, #0b4b92);
+    color: var(--popredi, #ffffff);
+}
+
+.tgd-pane {
+    padding-top: 8px;
+}
+
+    .tgd-pane[hidden] {
+        display: none;
+    }
+
+    .tgd-pane[data-pane="filter"] {
+        overflow-x: auto;
+    }
+
+.tgd-catalog {
+    line-height: 1.7;
+}
+
+/* dva panely vedle sebe: katalog | vybrané sloupce; výšku nastavuje skript podle okna, posouvá se uvnitř panelů */
+.tgd-cols {
+    display: flex;
+    gap: 10px;
+    height: 480px;
+    min-height: 280px;
+}
+
+.tgd-panel {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 0;
+    min-width: 0;
+    border: 1px solid var(--mt-line, #dee2e6);
+    border-radius: var(--mt-radius, 4px);
+    background: #ffffff;
+}
+
+/* katalog má pevnou šířku (jinak by se na širokém okně zbytečně roztáhl), zbytek patří vybraným sloupcům */
+#tgdCatalog {
+    flex: 0 1 400px;
+    max-width: 400px;
+}
+
+.tgd-panel-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--mt-line, #dee2e6);
+    background: var(--mt-head, #f7f8fa);
+    border-radius: var(--mt-radius, 4px) var(--mt-radius, 4px) 0 0;
+}
+
+    .tgd-panel-head h5 {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin: 0;
+        font-size: .95rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+.tgd-spacer {
+    flex: 1 1 auto;
+}
+
+.tgd-search {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 120px;
+}
+
+    .tgd-search .material-icons-outlined-nosize {
+        position: absolute;
+        left: 7px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 17px;
+        color: var(--mt-muted, #59636e);
+        pointer-events: none;
+    }
+
+    .tgd-search input {
+        padding-left: 28px;
+    }
+
+.tgd-search-info {
+    color: var(--mt-muted, #59636e);
+    font-size: .8rem;
+    white-space: nowrap;
+}
+
+.tgd-tree, .tgd-list {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: 4px;
+}
+
+.tgd-hint {
+    padding: 4px 8px;
+    border-top: 1px solid var(--mt-line-soft, #eef0f3);
+    color: var(--mt-muted, #59636e);
+    font-size: .78rem;
+}
+
+.tgd-empty {
+    padding: 14px 10px;
+    color: var(--mt-muted, #59636e);
+    text-align: center;
+}
+
+/* ikony uvnitř návrháře: vlastní výška řádku, aby měly skutečnou klikací plochu (material-icons-outlined-nosize má line-height 0) */
+.tgd-cols .material-icons-outlined-nosize {
+    line-height: 1;
+    margin-top: 0;
+    vertical-align: middle;
+}
+
+/* ---- strom katalogu */
+.tgd-g-head {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 4px;
+    line-height: 1.45;
+    border-radius: 4px;
+    cursor: pointer;
+    user-select: none;
+}
+
+    .tgd-g-head:hover {
+        background: var(--mt-hover, #f3f6fa);
+    }
+
+    .tgd-g-head img, .tgd-leaf img {
+        flex: 0 0 auto;
+        width: 16px;
+        height: 16px;
+    }
+
+.tgd-l0 > .tgd-g-head {
+    font-weight: 600;
+}
+
+.tgd-g-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tgd-chev {
+    flex: 0 0 auto;
+    font-size: 18px;
+    color: var(--mt-muted, #59636e);
+    transition: transform .12s ease;
+}
+
+.tgd-g.open > .tgd-g-head > .tgd-chev,
+.tgd-searching .tgd-chev {
+    transform: rotate(90deg);
+}
+
+.tgd-g-body {
+    display: none;
+    margin-left: 11px;
+    padding-left: 8px;
+    border-left: 1px solid var(--mt-line-soft, #eef0f3);
+}
+
+.tgd-g.open > .tgd-g-body,
+.tgd-searching .tgd-g-body {
+    display: block;
+}
+
+.tgd-leaf {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0 4px 0 6px;
+    line-height: 1.45;
+    border-radius: 4px;
+    cursor: pointer;
+    user-select: none;
+}
+
+    .tgd-leaf:hover {
+        background: var(--mt-hover, #f3f6fa);
+    }
+
+    .tgd-leaf.timestamp {
+        color: palevioletred;
+    }
+
+.tgd-leaf-text {
+    flex: 1 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tgd-leaf-act {
+    flex: 0 0 auto;
+    font-size: 17px;
+    color: var(--pozadi, #0b4b92);
+    visibility: hidden;
+}
+
+.tgd-leaf:hover .tgd-leaf-act {
+    visibility: visible;
+}
+
+.tgd-leaf.is-sel {
+    background: color-mix(in srgb, var(--oznaceno, #4169e1) 14%, #ffffff);
+}
+
+    .tgd-leaf.is-sel .tgd-leaf-act {
+        visibility: visible;
+        color: #1a7f37;
+    }
+
+.tgd-notfound {
+    display: none;
+}
+
+.tgd-nomatch .tgd-notfound {
+    display: block;
+}
+
+/* ---- vybrané sloupce */
+.tgd-sel {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 1px 4px;
+    line-height: 1.45;
+    border: 1px solid transparent;
+    border-bottom-color: var(--mt-line-soft, #eef0f3);
+    border-radius: 4px;
+    cursor: pointer;
+    user-select: none;
+}
+
+    .tgd-sel:hover {
+        background: var(--mt-hover, #f3f6fa);
+    }
+
+    .tgd-sel.active {
+        background: color-mix(in srgb, var(--oznaceno, #4169e1) 28%, #ffffff);
+        box-shadow: inset 4px 0 0 var(--pozadi, #0b4b92);
+    }
+
+.tgd-grip {
+    flex: 0 0 auto;
+    font-size: 18px;
+    color: #a0a7b0;
+    cursor: grab;
+}
+
+.tgd-sel-no {
+    flex: 0 0 22px;
+    color: var(--mt-muted, #59636e);
+    font-size: .78rem;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.tgd-sel-text {
+    flex: 1 1 auto;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+    .tgd-sel-text small {
+        color: var(--mt-muted, #59636e);
+    }
+
+.tgd-sel-x {
+    flex: 0 0 auto;
+    display: inline-flex;
+    padding: 1px;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--mt-muted, #59636e);
+}
+
+    .tgd-sel-x:hover {
+        background: #f8d7da;
+        color: #b02a37;
+    }
+
+    .tgd-sel-x .material-icons-outlined-nosize {
+        font-size: 17px;
+    }
+
+.tgd-dragging {
+    opacity: .45;
+}
+
+/* místo vložení při přetahování */
+.tgd-drop-before::before, .tgd-drop-after::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--pozadi, #0b4b92);
+}
+
+.tgd-drop-before::before {
+    top: -2px;
+}
+
+.tgd-drop-after::after {
+    bottom: -2px;
+}
+
+.tgd-drop-empty {
+    outline: 2px dashed var(--pozadi, #0b4b92);
+    outline-offset: -4px;
+}
+
+.tgd-armed {
+    outline: 2px solid #b02a37;
+    outline-offset: 1px;
+}
+
+/* úzké okno / telefon: panely pod sebou */
+@media (max-width: 700px) {
+    .tgd-cols {
+        flex-direction: column;
+        height: auto !important;
+    }
+
+    .tgd-panel, #tgdCatalog {
+        flex: 0 0 auto;
+        max-width: none;
+    }
+
+    .tgd-tree, .tgd-list {
+        max-height: 45vh;
+    }
+}

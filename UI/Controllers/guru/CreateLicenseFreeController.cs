@@ -1,907 +1,641 @@
-﻿using BL;
-using ceTe.DynamicPDF.PageElements.Charting.Values;
-using DocumentFormat.OpenXml.Drawing;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
+﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Mvc;
-using Rebex.Mime.Headers;
-using Serilog;
-using System.Data;
-using System.Net.Mail;
+using System.Net;
 using System.Security.Claims;
-using System.Security.Principal;
-using System.Text;
 using System.Text.RegularExpressions;
+using UI.Code.DbCreate;
 using UI.Models.Guru;
-
 
 namespace UI.Controllers.guru
 {
+    /// <summary>
+    /// Samoobslužná registrace v režimu TotalCloud (jedna databáze, každý zákazník má licenci v x01License).
+    ///
+    /// Průběh:
+    ///  1. /CreateLicenseFree/Index        - zadání e-mailu, nebo přihlášení přes Google
+    ///  2. SendLink                        - na e-mail odejde ověřovací odkaz (platí 24 hodin)
+    ///  3. /CreateLicenseFree/Complete?t=  - jméno, firma, obor, heslo
+    ///  4. Create                          - založení licence (TotalCloudRegisterEngine) a rovnou přihlášení
+    ///
+    /// Přihlašovacím jménem je vždy ověřený e-mail. Odkaz nese zašifrovaný, časově omezený token (Data Protection),
+    /// na serveru se k němu nic neukládá.
+    ///
+    /// Nastavení v appsettings.json (sekce "DbCreate", vše volitelné):
+    ///   "RecaptchaSiteKey": "", "RecaptchaSecret": ""  - reCAPTCHA v2 u zadání e-mailu; bez obou klíčů se nepoužije
+    ///   "AnonymousMaxPerHour": 10                      - kolik licencí lze celkem založit za hodinu
+    ///   "AnonymousMaxPerIpPerDay": 5                   - kolik licencí lze založit z jedné IP adresy za 24 hodin
+    ///   "PublicAppHost": ""                            - adresa aplikace do e-mailů a do licence, např. https://app.marktime.net; prázdné = adresa požadavku
+    ///   "NotifyEmail": ""                              - kam chodí zpráva o každé registraci
+    ///   "MailFrom": "noreply@marktime.net"
+    /// </summary>
     public class CreateLicenseFreeController : Controller
     {
-        private BL.Factory _f;
-        private System.Text.StringBuilder _sbLogSql { get; set; }
-        private string _captcha_secret = "6LcPbGwUAAAAAGaIm2I6D9ZRDZDgFse2pdnaKFnj";
+        private readonly BL.Factory _f;
+        private readonly IDataProtectionProvider _dp;
+        private const string _defaultNotifyEmail = "jiri.theimer@marktime.cz";
+        private const int _linkHours = 24;
 
-
-        public CreateLicenseFreeController(BL.Factory f)
+        public CreateLicenseFreeController(BL.Factory f, IDataProtectionProvider dp)
         {
             _f = f;
-
+            _dp = dp;
         }
 
-        public IActionResult Confirm(string username)
+        // ── pomocné ─────────────────────────────────────────────────────────────────
+
+        private Microsoft.Extensions.Configuration.IConfigurationSection Cfg
         {
-            var v = new LicenseFreeConfirmViewModel() { UserName = username };
-            if (string.IsNullOrEmpty(v.UserName))
+            get
             {
-                return View(v);
+                return _f.App.Configuration.GetSection("DbCreate");
             }
-            var dt = _f.FBL.GetDataTable($"select j02ID as pid from j02User where j02Login like '{username}'");
-            v.RecJ02 = _f.j02UserBL.Load(Convert.ToInt32(Convert.ToInt32(dt.Rows[0]["pid"])));
-            var recJ04 = _f.j04UserRoleBL.Load(v.RecJ02.j04ID);
-            v.RecX01 = _f.x01LicenseBL.Load(recJ04.x01ID);
-
-
-            return View(v);
         }
-        private BO.j02User LoadRecJ02(CreateLicenseViewModel v)
+
+        private bool IsTotalCloud
         {
-
-            var dt = _f.FBL.GetDataTable($"select j02ID as pid from j02User where j02Login like '{v.UserName}'");
-            var intJ02ID = Convert.ToInt32(Convert.ToInt32(dt.Rows[0]["pid"]));
-            return _f.j02UserBL.Load(intJ02ID);
-        }
-        public IActionResult Index(string countrycode, bool allowprefill)
-        {
-            var v = new CreateLicenseViewModel { AllowPrefill = allowprefill, Rec = new BO.x01License(), IsZakladatKlientaPlusProjekty = true, Project1 = "DPPO + Poradenství", Project2 = $"Audit {DateTime.Now.Year}" };
-
-
-            if (string.IsNullOrEmpty(countrycode)) countrycode = "CZ";
-            if (countrycode != "CZ" && countrycode != "SK") countrycode = "CZ";
-            v.Rec.x01CountryCode = countrycode;
-
-            if (_f.App.HostingMode != BL.Singleton.HostingModeEnum.TotalCloud)
+            get
             {
-                v.Message = "Aplikace není v režimu TotalCloud.";
-                return View(v);
+                return _f.App.HostingMode == BL.Singleton.HostingModeEnum.TotalCloud;
             }
-
-            if (TempData["GRegError"] is string gErr)
-                v.Message = gErr;
-
-            return View(v);
         }
 
-        private async Task<bool> OveritCaptcha(CreateLicenseViewModel v)
+        private string RemoteIp()
         {
-            string strUserResponse = Request.Form["g-Recaptcha-Response"];
-            if (string.IsNullOrEmpty(strUserResponse))
+            return HttpContext.Connection.RemoteIpAddress?.ToString() ?? "?";
+        }
+
+        private string MailFrom()
+        {
+            string s = Cfg["MailFrom"];
+            return string.IsNullOrEmpty(s) ? "noreply@marktime.net" : s;
+        }
+
+        private string AppHost()
+        {
+            string s = Cfg["PublicAppHost"];
+            if (string.IsNullOrEmpty(s))
             {
-                v.Message = "Musíte nám ověřit, že nejste robot!";
-                return false;
+                s = $"{Request.Scheme}://{Request.Host}";
             }
+            return s.TrimEnd('/');
+        }
 
-            using (var request = new HttpRequestMessage(new HttpMethod("GET"), $"https://www.google.com/recaptcha/api/siteverify?secret={_captcha_secret}&response={strUserResponse}"))
+        private string CaptchaSiteKey()
+        {
+            if (string.IsNullOrEmpty(Cfg["RecaptchaSecret"]) || string.IsNullOrEmpty(Cfg["RecaptchaSiteKey"]))
             {
-                try
-                {
-                    var client = new HttpClient();
-                    var response = await client.SendAsync(request);
-
-                    var strRet = await response.Content.ReadAsStringAsync();
-
-                    return true;
-                }
-                catch (Exception ex)
-                {
-                    v.Message = ex.Message;
-                    BO.Code.File.LogError(ex.Message, "anonym", "OveritCaptcha");
-                    return false;
-                }
-
-
+                return null;
             }
-
+            return Cfg["RecaptchaSiteKey"];
         }
 
-        [HttpPost]
-        public ActionResult Index(CreateLicenseViewModel v, string oper)
+        private static string NormalizeCountry(string s)
         {
-            //_f.CurrentUser = new BO.RunningUser() { j02Login = _f.App.GuruLogin };
-            _f.InhaleUserByLogin(_f.App.GuruLogin);
-
-            if (oper == "postback")
-            {
-                return View(v);
-            }
-            if (oper == "prefill")
-            {
-                int intX = GetMaxPidValue("x01License", v) + 1;
-                v.Email = "jiri.theimer@marktime.cz";
-                v.LoginName = "admin";
-                v.LoginDomainPrefix = $"pepik{intX}";
-                v.FirstName = "Já";
-                v.LastName = $"Pepík{intX}";
-                v.p93Company = $"Pepíci{intX} & partneři s.r.o.";
-                v.p93RegID = BO.Code.Bas.GetGuid().Substring(0, 8);
-                v.UserPassword = "Commander1.";
-                v.VerifyPassword = v.UserPassword;
-                return View(v);
-            }
-
-            if (ModelState.IsValid)
-            {
-                if (_f.App.HostingMode != BL.Singleton.HostingModeEnum.TotalCloud)
-                {
-                    v.Message = "Aplikace není v režimu TotalCloud.";
-                    return View(v);
-                }
-                if (!OveritCaptcha(v).Result)
-                {
-                    return View(v);
-                }
-
-                if (string.IsNullOrEmpty(v.p93Company))
-                {
-                    v.Message = "Chybí zadat název firmy!";
-                    return View(v);
-                }
-                if (string.IsNullOrEmpty(v.LoginDomainPrefix))
-                {
-                    v.Message = "Chybí zadat doména pro přihlašování!";
-                    return View(v);
-                }
-                if (string.IsNullOrEmpty(v.Email))
-                {
-                    v.Message = "Chybí zadat E-mail!";
-                    return View(v);
-                }
-                else
-                {
-                    if (!BO.Code.Bas.IsValidEmail(v.Email))
-                    {
-                        v.Message = $"E-mail adresa [{v.Email}] není platná!";
-                        return View(v);
-                    }
-                }
-
-                if (string.IsNullOrEmpty(v.UserPassword))
-                {
-                    v.Message = "Chybí zadat Heslo!";
-                    return View(v);
-                }
-                if (string.IsNullOrEmpty(v.FirstName) || string.IsNullOrEmpty(v.LastName))
-                {
-                    v.Message = "Chybí zadat Jméno nebo Příjmení!";
-                    return View(v);
-                }
-
-                if (string.IsNullOrEmpty(v.LoginName))
-                {
-
-                    v.LoginName = $"{BO.Code.Bas.RemoveDiacritics(v.FirstName)}";
-                    //v.Message = "Chybí zadat uživatelské jméno!";
-                    //return View(v);
-                }
-
-                string strLogin = $"{v.LoginName.ToLower()}@{v.LoginDomainPrefix.ToLower()}.{v.Rec.x01CountryCode.ToLower()}";
-                var dt = _f.FBL.GetDataTable($"select * from j02User where j02Login like '%{strLogin}%'");
-                if (dt.Rows.Count > 0)
-                {
-                    v.Message = $"V systému již existuje uživatelský účet [{strLogin}]!<hr>Pro vyřešení problému kontaktujte naší podporu.";
-                    return View(v);
-                }
-
-                string strDomain = $"{v.LoginDomainPrefix.ToLower()}";
-                dt = _f.FBL.GetDataTable($"select * from x01License where x01LoginDomain like '{strDomain}.cz%' OR x01LoginDomain like '{strDomain}.sk%'");
-                if (dt.Rows.Count > 0)
-                {
-                    v.Message = $"V systému již existuje licence pro doménu [{strDomain}]!<hr>Pro vyřešení problému kontaktujte naší podporu.";
-                    return View(v);
-                }
-
-                var res = new BL.Code.PasswordSupport().CheckPassword(v.UserPassword);
-                if (res.Flag == BO.ResultEnum.Failed)
-                {
-                    v.Message = res.Message; return View(v);
-                }
-                if (v.UserPassword != v.VerifyPassword)
-                {
-                    v.Message = "Heslo nesouhlasí s jeho ověřením."; return View(v);
-                }
-
-                v.UserName = strLogin;
-                v.Rec.x01LoginDomain = $"{v.LoginDomainPrefix.ToLower()}.{v.Rec.x01CountryCode.ToLower()}";
-                v.Rec.x01Name = v.p93Company;
-                v.Rec.x01AppName = v.p93Company;
-                if (v.Rec.x01AppName.Length > 20)
-                {
-                    v.Rec.x01AppName = v.Rec.x01AppName.Substring(0, 20);
-                }
-                v.Rec.x01AppHost = "https://app.marktime.net";
-                v.Rec.x01ContactEmail = v.Email;
-                v.Rec.x01Round2Minutes = 15;
-                v.Rec.x01ContactName = v.FirstName + " " + v.LastName;
-                if (v.Rec.x01CountryCode == "CZ")
-                {
-                    v.Rec.j27ID = 2;
-                }
-                else
-                {
-                    v.Rec.j27ID = 3;
-                }
-
-
-                SendInfoMail(v);    //zpráva o pokusu o založení nové licence - pro jistotu
-
-                Handle_ImportData(v);
-
-                if (v.DestX01ID > 0)
-                {
-
-                    dt = _f.FBL.GetDataTable($"select x04ID FROM x04NotepadConfig WHERE x01ID={v.DestX01ID} AND x04Name LIKE 'Výchozí Editor'");
-                    _f.FBL.RunSql($"UPDATE x01License set x01Guid=NEWID(),x04ID_Default={dt.Rows[0]["x04ID"]},x01RecordsCountP31=0,x01LimitUsers=99 WHERE x01ID={v.DestX01ID}");
-
-                    var recX01 = _f.x01LicenseBL.Load(v.DestX01ID);
-                    _f.x01LicenseBL.Save(recX01);
-
-                    var recJ02 = LoadRecJ02(v);
-                    _f.FBL.RunSql($"UPDATE j02User set j02MyMenuLinks='{_f.j02UserBL.GetDefaultMenuLinks()}',j02HomePageUrl=null,j02Mobile=null WHERE j02ID={recJ02.pid}");
-
-                    _f.App.RefreshP07List();
-
-                    SendConfirmMail(v, recJ02);
-
-                    return RedirectToAction("Confirm", new { username = recJ02.j02Login });
-                }
-
-                return View(v);
-
-
-
-
-            }
-
-
-            v.Message += "<br>Došlo k chybě.";
-
-            return View(v);
+            s = (s ?? "").Trim().ToUpper();
+            return s == "SK" ? "SK" : "CZ";
         }
 
-        private void SendConfirmMail(CreateLicenseViewModel v, BO.j02User recJ02)
+        private static string T(string s)
         {
-            string strHtml = BO.Code.File.GetFileContent(_f.App.RootUploadFolder + "\\_distribution\\mail\\send_message_template_cloud_confirm.html");
-            strHtml = strHtml.Replace("#username#", recJ02.j02Login);
-            string strTo = recJ02.j02Email;
-            //strTo = "billing@marktime.cz";
-            _f.MailBL.SendMessageWithoutFactory(strHtml, $"MARKTIME účet [{recJ02.j02Login}] založen", strTo, "info@marktime.cz", "noreply@marktime.net", "MARKTIME");
-
+            return string.IsNullOrWhiteSpace(s) ? null : s.Trim();
         }
 
-        private void SendInfoMail(CreateLicenseViewModel v)
+        private static string H(string s)
         {
-
-            string strTo = "jiri.theimer@marktime.cz";
-            string s = $"E-mail: {v.Email}<hr>Firma: {v.p93Company}<br> IČO: {v.p93RegID}<hr> Jméno: {v.FirstName}<br> Příjmení: {v.LastName}<br> doména: {v.LoginDomainPrefix}<br> Login: {v.LoginName}";
-            _f.MailBL.SendMessageWithoutFactory(s, "Pokus o založení FREE MARKTIME licence", strTo, null, "noreply@marktime.net", "MARKTIME");
-
-        }
-        private int Zalozit_Interni_Klient(CreateLicenseViewModel v)
-        {
-            var rec = new BO.p28Contact() { p28FirstName = v.FirstName, p28LastName = v.LastName, p28IsCompany = false, p28CountryCode = v.Rec.x01CountryCode };
-            var recJ02 = LoadRecJ02(v);
-            rec.j02ID_Owner = recJ02.pid;
-
-            var dt = _f.FBL.GetDataTable($"select p29ID FROM p29ContactType WHERE x01ID={v.DestX01ID} AND p29Name LIKE 'Interní'");
-            rec.p29ID = Convert.ToInt32(dt.Rows[0]["p29ID"]);
-
-            if (!string.IsNullOrEmpty(v.p93RegID))
-            {
-                var viesClient = HttpContext.RequestServices.GetRequiredService<BL.Code.IViesClient>();
-                var engine = new BL.Code.RejstrikySupport(viesClient);
-                var ret = engine.LoadDefaultZaznam("ico", v.p93RegID, v.Rec.x01CountryCode, new HttpClient());
-                try
-                {
-                    if (!string.IsNullOrEmpty(ret.Result.ico))
-                    {
-                        rec.p28RegID = ret.Result.ico;
-                        rec.p28IsCompany = true;
-                        rec.p28FirstName = null; rec.p28LastName = null;
-                        rec.p28CompanyName = ret.Result.name;
-                        rec.p28VatID = ret.Result.dic;
-                        rec.p28Street1 = ret.Result.street;
-                        rec.p28City1 = ret.Result.city;
-                        rec.p28PostCode1 = ret.Result.zipcode;
-                        if (ret.Result.country == "CZ")
-                        {
-                            rec.p28Country1 = "Česká republika";
-                        }
-                        if (ret.Result.country == "SK")
-                        {
-                            rec.p28Country1 = "Slovenská republika";
-                        }
-                    }
-                }
-                catch
-                {
-                    //nic
-                }
-            }
-            _f.InhaleUserByLogin(recJ02.j02Login);
-            return _f.p28ContactBL.Save(rec, null, null, null, null, null);
-
-        }
-        private int Zalozit_Interni_Projekt(CreateLicenseViewModel v)
-        {
-            var rec = new BO.p41Project() { p41Name = "Interní", p28ID_Client = v.DestP28ID_Interni };
-            var recJ02 = LoadRecJ02(v);
-            rec.j02ID_Owner = recJ02.pid;
-
-            var dt = _f.FBL.GetDataTable($"select a.p42ID FROM p42ProjectType a WHERE a.x01ID={v.DestX01ID} AND a.p42Name LIKE 'Interní projekt'");
-            rec.p42ID = Convert.ToInt32(dt.Rows[0]["p42ID"]);
-
-            _f.InhaleUserByLogin(recJ02.j02Login);
-            return _f.p41ProjectBL.Save(rec, null, null, null);
+            return WebUtility.HtmlEncode(s ?? "");
         }
 
-        private int Zalozit_Prvni_Klient(CreateLicenseViewModel v)
+        /// <summary>E-mail malými písmeny, nebo NULL, pokud adresa není platná. E-mail je zároveň login a název složky licence.</summary>
+        private static string NormalizeEmail(string s)
         {
-            var rec = new BO.p28Contact() { p28CompanyName = "Marktime Software s.r.o.", p28IsCompany = true, p28CountryCode = "CZ", p28RegID = "25722034", p28VatID = "CZ25722034", p28Street1 = "Slezská 2232/144", p28City1 = "Praha 3 Vinohrady", p28PostCode1 = "13000", p28Country1 = "Česká republika" };
-            var recJ02 = LoadRecJ02(v);
-            rec.j02ID_Owner = recJ02.pid;
-
-            var dt = _f.FBL.GetDataTable($"select p29ID FROM p29ContactType WHERE x01ID={v.DestX01ID} AND p29Name LIKE 'Klient'");
-            rec.p29ID = Convert.ToInt32(dt.Rows[0]["p29ID"]);
-
-            _f.InhaleUserByLogin(recJ02.j02Login);
-            return _f.p28ContactBL.Save(rec, null, null, null, null, null);
-
+            s = (s ?? "").Trim().ToLowerInvariant();
+            if (s.Length < 6 || s.Length > 100 || s.Contains("..")) return null;
+            if (!Regex.IsMatch(s, @"^[a-z0-9][a-z0-9._+\-]*@[a-z0-9][a-z0-9.\-]*\.[a-z]{2,}$")) return null;
+            if (!BO.Code.Bas.IsValidEmail(s)) return null;
+            return s;
         }
-        private int Zalozit_Klientsky_Projekt(CreateLicenseViewModel v, string strP41Name)
-        {
-            var rec = new BO.p41Project() { p41Name = strP41Name, p28ID_Client = v.DestP28ID_Klient };
-            var recJ02 = LoadRecJ02(v);
-            rec.j02ID_Owner = recJ02.pid;
 
-            var dt = _f.FBL.GetDataTable($"select a.p42ID FROM p42ProjectType a INNER JOIN p07ProjectLevel b ON a.p07ID=b.p07ID WHERE b.x01ID={v.DestX01ID} AND a.p42Name LIKE 'Klientský projekt'");
+        private bool AccountExists(string strEmail)
+        {
+            return new DL.DbCreateTasks(_f.App.ConnectString).Scalar<int>("SELECT COUNT(*) FROM j02User WHERE j02Login=@e OR j02Email=@e", new { e = strEmail }) > 0;
+        }
+
+        private ITimeLimitedDataProtector Protector()
+        {
+            return _dp.CreateProtector("MARKTIME.TotalCloud.Register.v1").ToTimeLimitedDataProtector();
+        }
+
+        private string MakeToken(TotalCloudRegisterToken c, int hours)
+        {
+            return Protector().Protect(Newtonsoft.Json.JsonConvert.SerializeObject(c), TimeSpan.FromHours(hours));
+        }
+
+        /// <summary>Vrací NULL, pokud odkaz není náš, někdo ho pozměnil nebo už vypršel.</summary>
+        private TotalCloudRegisterToken ReadToken(string t)
+        {
+            if (string.IsNullOrEmpty(t) || t.Length > 4000) return null;
             try
             {
-                rec.p42ID = Convert.ToInt32(dt.Rows[0]["p42ID"]);
+                string s = Protector().Unprotect(t, out DateTimeOffset expiration);
+                var c = Newtonsoft.Json.JsonConvert.DeserializeObject<TotalCloudRegisterToken>(s);
+                if (c == null || NormalizeEmail(c.Email) != c.Email) return null;
+                return c;
             }
             catch
             {
-                var lisP42 = _f.p42ProjectTypeBL.GetList(new BO.myQueryP42());
-                rec.p42ID = lisP42.First().pid;
+                return null;
             }
-
-
-            _f.InhaleUserByLogin(recJ02.j02Login);
-            return _f.p41ProjectBL.Save(rec, null, null, null);
         }
 
-        private void Handle_ImportData(CreateLicenseViewModel v)
+        private bool SendMail(string strTo, string strSubject, string strHtml)
         {
-            v.lisKeys = new List<CreateLicenseKey>();
-
-            Import_One_Table("x01License", v);
-            v.DestX01ID = GetMaxPidValue("x01License", v);
-            _f.App.RefreshX01List();
-            Import_One_Table("c24DayColor", v);
-            Import_One_Table("c21FondCalendar", v);
-            Import_One_Table("b20Hlidac", v);
-
-            Import_One_Table("x67EntityRole", v);
-            Import_One_Table("x68EntityRole_Permission", v);
-            Import_One_Table("j04UserRole", v);
-            Import_One_Table("j07PersonPosition", v);
-
-
-            Import_One_Table("b01WorkflowTemplate", v);
-            Import_One_Table("b02WorkflowStatus", v);
-            Import_One_Table("b06WorkflowStep", v);
-            Import_One_Table("b08WorkflowReceiverToStep", v);
-
-            Import_One_Table("r02CapacityVersion", v);
-            Import_One_Table("x04NotepadConfig", v);
-            Import_One_Table("o15AutoComplete", v);
-
-
-            Import_One_Table("p53VatRate", v);
-            Import_One_Table("x38CodeLogic", v);
-            Import_One_Table("o21MilestoneType", v);
-            Import_One_Table("p57TaskType", v);
-            Import_One_Table("p07ProjectLevel", v);
-            Import_One_Table("p42ProjectType", v);
-            Import_One_Table("p80InvoiceAmountStructure", v);
-
-
-            Import_One_Table("p35Unit", v);
-            Import_One_Table("p95InvoiceRow", v);
-
-            Import_One_Table("p38ActivityTag", v);
-            Import_One_Table("p34ActivityGroup", v);
-
-            Import_One_Table("p29ContactType", v);
-
-            Import_One_Table("j02User", v);
-
-            v.DestP28ID_Interni = Zalozit_Interni_Klient(v);
-            v.DestP41ID_Interni = Zalozit_Interni_Projekt(v);
-            v.DestP28ID_Klient = Zalozit_Prvni_Klient(v);
-            v.DestP41ID_Klient1 = Zalozit_Klientsky_Projekt(v, "General");
-            v.DestP41ID_Klient2 = Zalozit_Klientsky_Projekt(v, $"Účetnictví {DateTime.Now.Year}");
-
-
-            Import_One_Table("p32Activity", v);
-            Import_One_Table("o28ProjectRole_Workload", v);
-            Import_One_Table("p43ProjectType_Workload", v);
-            Import_One_Table("p61ActivityCluster", v);
-            Import_One_Table("p62ActivityCluster_Item", v);
-
-
-            Import_One_Table("j25ReportCategory", v);
-            Import_One_Table("x31Report", v);
-            Import_One_Table("o27Attachment", v);
-
-            Import_One_Table("p86BankAccount", v);
-            Import_One_Table("p93InvoiceHeader", v);
-            Import_One_Table("p88InvoiceHeader_BankAccount", v);
-
-            Import_One_Table("p92InvoiceType", v);
-            Import_One_Table("p89ProformaType", v);
-
-            Import_One_Table("x55Widget", v);
-            Import_One_Table("x54WidgetGroup", v);
-            Import_One_Table("x57WidgetToGroup", v);
-            Import_One_Table("x59WidgetToUser", v);
-
-
-            Import_One_Table("o53TagGroup", v);
-            Import_One_Table("o51Tag", v);
-
-            Import_One_Table("c26Holiday", v);
-
-
-
-            Import_One_Table("j40MailAccount", v);
-
-
-
-            Import_One_Table("p51PriceList", v);
-            Import_One_Table("p52PriceList_Item", v);
-
-
-            Import_One_Table("o17DocMenu", v);
-            Import_One_Table("o18DocType", v);
-            Import_One_Table("o16DocType_FieldSetting", v);
-            Import_One_Table("o20DocTypeEntity", v);
-
-
-            BO.Code.File.WriteText2File($"{_f.App.RootUploadFolder}\\{v.DestDbName}-{v.Rec.x01LoginDomain}-{BO.Code.Bas.GetGuid()}.sql", _sbLogSql.ToString());
-
-        }
-
-
-        private void Import_One_Table(string strTable, CreateLicenseViewModel v)
-        {
-
-            DataTable dt = null;
-
-            wr_sql($"------{v.DestDbName}.dbo.{strTable}");
             try
             {
-                dt = Code.basGuru.Load_DataTable_From_File(_f, strTable);
-            }
-            catch (Exception ex)
-            {
-                wr_sql($"------{v.DestDbName}.dbo.{strTable}: {ex.Message}");
-                return;
-            }
-
-            if (dt.Rows.Count == 0) return;
-            bool bolIdentity = true;
-            
-
-            if (strTable == "x01License")
-            {
-                bolIdentity = false;
-                //dt.Rows[0]["x01Guid"] = BO.Code.Bas.GetGuid();
-                dt.Rows[0]["x01ApiKey"] = BO.Code.Bas.GetGuid();
-                dt.Rows[0]["x01LoginDomain"] = v.Rec.x01LoginDomain;
-                dt.Rows[0]["x01Name"] = v.Rec.x01Name;
-                dt.Rows[0]["x01AppName"] = v.Rec.x01AppName;
-                dt.Rows[0]["x01AppHost"] = v.Rec.x01AppHost;
-                dt.Rows[0]["x01CountryCode"] = v.Rec.x01CountryCode;
-                dt.Rows[0]["x01LangIndex"] = v.Rec.x01LangIndex;
-                dt.Rows[0]["x01ContactEmail"] = v.Rec.x01ContactEmail;
-                dt.Rows[0]["x01ContactName"] = v.Rec.x01ContactName;
-                dt.Rows[0]["x01Round2Minutes"] = v.Rec.x01Round2Minutes;
-                dt.Rows[0]["x01LimitUsers"] = v.Rec.x01LimitUsers;
-                dt.Rows[0]["x01RobotLogin"] = v.LoginName + "@" + v.Rec.x01LoginDomain;
-                dt.Rows[0]["j27ID"] = v.Rec.j27ID;
-                dt.Rows[0]["x01IsAllowPasswordRecovery"] = true;
-            }
-            if (strTable == "j02User")
-            {
-                dt.Rows[0]["j02FirstName"] = v.FirstName;
-                dt.Rows[0]["j02LastName"] = v.LastName;
-                dt.Rows[0]["j02Email"] = v.Email;
-                dt.Rows[0]["j02Login"] = v.UserName;
-                dt.Rows[0]["j02LangIndex"] = v.UserLangIndex;
-
-            }
-
-            var cols = Code.basGuru.GetColumns(dt);
-            foreach (System.Data.DataRow dbRow in dt.Rows)
-            {
-                var sb = new System.Text.StringBuilder();
-                bool bolGO = true;
-                if (strTable == "c26Holiday" && dbRow["c26CountryCode"] != System.DBNull.Value && dbRow["c26CountryCode"].ToString() != v.Rec.x01CountryCode)
+                var res = _f.MailBL.SendMessageWithoutFactory(strHtml, strSubject, strTo, null, MailFrom(), "MARKTIME");
+                if (!res.issuccess)
                 {
-                    bolGO = false;
+                    BO.Code.File.LogError($"{strTo}: {res.Message}", "anonym", "CreateLicenseFree.SendMail");
                 }
-                if (bolGO)
-                {
-                    if (bolIdentity) sb.AppendLine($"SET IDENTITY_INSERT {v.DestDbName}.dbo.{strTable} ON;");
-
-                    sb.Append($" INSERT INTO {v.DestDbName}.dbo.{strTable} (");
-                    sb.Append(string.Join(",", cols.Select(p => p.Key)));
-                    sb.Append(")");
-                    sb.Append(" VALUES(");
-                    for (int i = 0; i < cols.Count(); i++)
-                    {
-                        if (i > 0) sb.Append(",");
-                        string strField = cols[i].Key;
-                        string strValue = Code.basGuru.GVN(dbRow[strField], strField, v.DestX01ID);
-                        if (strField == strTable.Substring(0, 3) + "ID")
-                        {
-                            strValue = (GetMaxPidValue(strTable, v) + 1).ToString();
-                        }
-
-                        if (dbRow[strField] != System.DBNull.Value && v.lisKeys.Where(p => p.Field == strField && p.OrigValue == Convert.ToInt32(dbRow[strField])).Count() > 0)
-                        {
-                            strValue = v.lisKeys.Where(p => p.Field == strField && p.OrigValue == Convert.ToInt32(dbRow[strField])).First().NewValue.ToString();    //cizí klíč
-                        }
-
-                        if (strTable == "o27Attachment" && strField == "o27RecordPid" && dbRow["o27RecordPid"] != System.DBNull.Value)
-                        {
-                            strValue = v.lisKeys.Where(p => p.Field == "x31ID" && p.OrigValue == Convert.ToInt32(dbRow["o27RecordPid"])).First().NewValue.ToString();    //cizí klíč
-                        }
-                        if (strTable == "p32Activity" && strField == "p41ID_Absence")
-                        {
-                            strValue = v.DestP41ID_Interni.ToString();
-                        }
-                        if (strTable == "b06WorkflowStep" && strField == "b02ID_Target" && dbRow["b02ID_Target"] != System.DBNull.Value)
-                        {
-                            strValue = v.lisKeys.Where(p => p.Field == "b02ID" && p.OrigValue == Convert.ToInt32(dbRow["b02ID_Target"])).First().NewValue.ToString();    //cizí klíč
-                        }
-                        if (strTable == "b06WorkflowStep" && strField == "x67ID_Direct" && dbRow["x67ID_Direct"] != System.DBNull.Value && Convert.ToInt32(dbRow["x67ID_Direct"]) != 0)
-                        {
-                            strValue = v.lisKeys.Where(p => p.Field == "x67ID" && p.OrigValue == Convert.ToInt32(dbRow["x67ID_Direct"])).First().NewValue.ToString();    //cizí klíč
-                        }
-
-                        sb.Append(strValue);
-                    }
-                    sb.Append(");");
-
-                    if (bolIdentity) sb.AppendLine($"; SET IDENTITY_INSERT {v.DestDbName}.dbo.{strTable} OFF");
-
-                    if (_f.FBL.RunSql(sb.ToString()))
-                    {
-
-                        var cc = new CreateLicenseKey { Table = strTable, Field = strTable.Substring(0, 3) + "ID" };
-                        cc.NewValue = GetMaxPidValue(strTable, v);
-                        cc.OrigValue = Convert.ToInt32(dbRow[strTable.Substring(0, 3) + "ID"]);
-                        v.lisKeys.Add(cc);
-
-                        if (strTable == "j02User")
-                        {
-                            string strHash = new BL.Code.PasswordSupport().GetPasswordHash(v.UserPassword, v.UserName, cc.NewValue);
-                            _f.FBL.RunSql($"UPDATE j02User set j02PasswordHash='{strHash}' WHERE j02ID={cc.NewValue}");
-
-                        }
-                    }
-
-                    wr_sql(sb.ToString());
-                }
-
+                return res.issuccess;
             }
-
+            catch (Exception e)
+            {
+                BO.Code.File.LogError($"{strTo}: {e.Message}", "anonym", "CreateLicenseFree.SendMail");
+                return false;
+            }
         }
 
-        private int GetMaxPidValue(string strTable, CreateLicenseViewModel v)
+        private static string MailLayout(string strBody)
         {
-            var dt = _f.FBL.GetDataTable($"select MAX({strTable.Substring(0, 3)}ID) as pid from {v.DestDbName}.dbo.{strTable}");
-            if (dt.Rows.Count > 0)
+            return "<div style=\"font-family:Segoe UI,Arial,sans-serif;font-size:15px;color:#1f2328;max-width:560px;\">" + strBody + "<p style=\"color:#626b74;font-size:13px;margin-top:28px;\">MARKTIME</p></div>";
+        }
+
+        private static string MailButton(string strUrl, string strText)
+        {
+            return $"<p style=\"margin:22px 0;\"><a href=\"{H(strUrl)}\" style=\"background:#1f87cf;color:#ffffff;text-decoration:none;padding:11px 22px;border-radius:8px;font-weight:600;display:inline-block;\">{H(strText)}</a></p>";
+        }
+
+        private async Task<bool> VerifyCaptcha()
+        {
+            if (CaptchaSiteKey() == null)
             {
-                if (dt.Rows[0]["pid"] == System.DBNull.Value)
+                return true;    //captcha není nastavená
+            }
+            string strResponse = Request.Form["g-recaptcha-response"];
+            if (string.IsNullOrEmpty(strResponse)) return false;
+
+            try
+            {
+                using (var client = new HttpClient())
                 {
-                    return 0;
+                    client.Timeout = TimeSpan.FromSeconds(10);
+                    var content = new FormUrlEncodedContent(new Dictionary<string, string> { { "secret", Cfg["RecaptchaSecret"] }, { "response", strResponse } });
+                    var response = await client.PostAsync("https://www.google.com/recaptcha/api/siteverify", content);
+                    string strRet = await response.Content.ReadAsStringAsync();
+                    var jo = Newtonsoft.Json.Linq.JObject.Parse(strRet);
+                    return jo.Value<bool?>("success") == true;
                 }
-                return (int)dt.Rows[0]["pid"];
+            }
+            catch (Exception e)
+            {
+                BO.Code.File.LogError(e.Message, "anonym", "CreateLicenseFree.VerifyCaptcha");
+                return false;
+            }
+        }
+
+        private static string GeneratePassword(BL.Code.PasswordSupport ps)
+        {
+            const string LOWER = "abcdefghijkmnpqrstuvwxyz";
+            const string UPPER = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+            const string DIGITS = "23456789";
+            const string SPECIALS = "!.$_*#";
+
+            int intLen = Math.Max(ps.MinLength, 16);
+            if (ps.MaxLength > 0 && intLen > ps.MaxLength) intLen = ps.MaxLength;
+
+            var chars = new List<char>();
+            chars.Add(Pick(LOWER));
+            chars.Add(Pick(UPPER));
+            chars.Add(Pick(DIGITS));
+            if (ps.RequireNonAlphanumeric) chars.Add(Pick(SPECIALS));
+            while (chars.Count < intLen)
+            {
+                chars.Add(Pick(LOWER + UPPER + DIGITS));
+            }
+            for (int i = chars.Count - 1; i > 0; i--)
+            {
+                int j = System.Security.Cryptography.RandomNumberGenerator.GetInt32(i + 1);
+                (chars[i], chars[j]) = (chars[j], chars[i]);
+            }
+            return new string(chars.Take(intLen).ToArray());
+        }
+        private static char Pick(string s)
+        {
+            return s[System.Security.Cryptography.RandomNumberGenerator.GetInt32(s.Length)];
+        }
+
+        private static string GetPasswordHint(BL.Code.PasswordSupport ps)
+        {
+            var lis = new List<string>();
+            lis.Add($"alespoň {ps.MinLength} znaků");
+            if (ps.RequireUppercase) lis.Add("velké písmeno");
+            if (ps.RequireLowercase) lis.Add("malé písmeno");
+            if (ps.RequireDigit) lis.Add("číslici");
+            if (ps.RequireNonAlphanumeric) lis.Add($"zvláštní znak ({BL.Code.PasswordSupport.SpecialChars})");
+            return "Heslo musí mít " + string.Join(", ", lis) + ".";
+        }
+
+        // ── 1. zadání e-mailu ───────────────────────────────────────────────────────
+
+        [HttpGet]
+        public IActionResult Index(string countrycode)
+        {
+            var v = new TotalCloudRegisterViewModel() { PageTitle = "Registrace", CountryCode = NormalizeCountry(countrycode) };
+            if (!IsTotalCloud)
+            {
+                v.IsClosed = true;
+                v.Message = "Aplikace není v režimu TotalCloud.";
+                return View(v);
+            }
+            v.RecaptchaSiteKey = CaptchaSiteKey();
+            v.AllowGoogle = _f.App.AllowGoogleLogin;
+            if (TempData["GRegError"] is string strErr)
+            {
+                v.Message = strErr;
+            }
+            return View(v);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SendLink(string email, string countrycode)
+        {
+            if (!IsTotalCloud)
+            {
+                return Json(new { ok = false, message = "Aplikace není v režimu TotalCloud." });
+            }
+            string strEmail = NormalizeEmail(email);
+            if (strEmail == null)
+            {
+                return Json(new { ok = false, message = "Zadejte platnou e-mailovou adresu." });
+            }
+            string strIP = RemoteIp();
+            int intMaxPerHour = Cfg.GetValue<int>("AnonymousMaxPerHour", 10);
+            if (TotalCloudRegisterGuard.Count(TotalCloudRegisterGuard.KindLink, 1, strIP) >= 10
+                || TotalCloudRegisterGuard.Count(TotalCloudRegisterGuard.KindLink, 1, null, strEmail) >= 3
+                || TotalCloudRegisterGuard.Count(TotalCloudRegisterGuard.KindLink, 1) >= intMaxPerHour * 5)
+            {
+                return Json(new { ok = false, message = "Příliš mnoho pokusů. Zkuste to prosím za hodinu." });
+            }
+            if (!await VerifyCaptcha())
+            {
+                return Json(new { ok = false, captcha = true, message = "Potvrďte prosím, že nejste robot." });
+            }
+            TotalCloudRegisterGuard.Add(TotalCloudRegisterGuard.KindLink, strIP, strEmail);
+
+            //odpověď je stejná, ať účet existuje nebo ne - z formuláře nesmí jít zjistit, kdo je u nás registrovaný
+            bool bolSent;
+            if (AccountExists(strEmail))
+            {
+                string s = "<p>Dobrý den,</p><p>někdo, nejspíš vy, se právě pokusil zaregistrovat do MARKTIME s touto e-mailovou adresou. Účet s ní už ale existuje.</p>";
+                s += MailButton(AppHost() + "/Login/UserLogin", "Přihlásit se");
+                s += $"<p>Přihlašovací jméno: <b>{H(strEmail)}</b><br>Pokud si nepamatujete heslo, použijte <a href=\"{H(AppHost())}/Password/Index\">obnovu hesla</a>.</p>";
+                s += "<p>Pokud jste o registraci nežádali, tuto zprávu ignorujte.</p>";
+                bolSent = SendMail(strEmail, "Váš účet MARKTIME už existuje", MailLayout(s));
             }
             else
             {
-                return 0;
+                string strToken = MakeToken(new TotalCloudRegisterToken() { Email = strEmail, CountryCode = NormalizeCountry(countrycode) }, _linkHours);
+                string strUrl = AppHost() + "/CreateLicenseFree/Complete?t=" + WebUtility.UrlEncode(strToken);
+                string s = "<p>Dobrý den,</p><p>děkujeme za zájem o MARKTIME. Registraci dokončíte kliknutím na tlačítko:</p>";
+                s += MailButton(strUrl, "Dokončit registraci");
+                s += $"<p>Odkaz platí {_linkHours} hodin. Pokud tlačítko nefunguje, zkopírujte do prohlížeče tuto adresu:<br><span style=\"font-size:12px;color:#626b74;word-break:break-all;\">{H(strUrl)}</span></p>";
+                s += "<p>Pokud jste o registraci nežádali, tuto zprávu ignorujte. Žádný účet bez kliknutí na odkaz nevznikne.</p>";
+                bolSent = SendMail(strEmail, "Dokončete registraci do MARKTIME", MailLayout(s));
+            }
+            if (!bolSent)
+            {
+                return Json(new { ok = false, message = "E-mail se nepodařilo odeslat. Zkuste to prosím za chvíli znovu." });
             }
 
+            return Json(new { ok = true, email = strEmail });
         }
 
-        private void wr_sql(string s)
+        // ── Google: e-mail ověřil Google ────────────────────────────────────────────
+
+        [HttpGet]
+        public IActionResult GoogleSignIn(string countrycode)
         {
-            if (_sbLogSql == null) _sbLogSql = new System.Text.StringBuilder(1000);
-
-            _sbLogSql.AppendLine(s);
-        }
-
-        // ════════════════════════════════════════════════════════════════════════
-        // Google registrace
-        // ════════════════════════════════════════════════════════════════════════
-
-        // GET /CreateLicenseFree/GoogleSignIn
-        public IActionResult GoogleSignIn()
-        {
-            if (_f.App.HostingMode != BL.Singleton.HostingModeEnum.TotalCloud)
+            if (!IsTotalCloud)
+            {
                 return RedirectToAction("Index");
-
+            }
             var properties = new AuthenticationProperties
             {
-                RedirectUri = Url.Action("GoogleCallback", "CreateLicenseFree")
+                RedirectUri = Url.Action("GoogleCallback", "CreateLicenseFree", new { countrycode = NormalizeCountry(countrycode) })
             };
             return Challenge(properties, GoogleDefaults.AuthenticationScheme);
         }
 
-        // GET /CreateLicenseFree/GoogleCallback
-        // Sem přesměruje Google middleware po úspěšné autentizaci.
-        public async Task<IActionResult> GoogleCallback()
+        [HttpGet]
+        public async Task<IActionResult> GoogleCallback(string countrycode)
         {
-            // Google middleware uložil claims do "ExternalCookie" (SignInScheme v Program.cs)
+            //Google middleware uložil claims do "ExternalCookie" (SignInScheme ve Startup.cs)
             var result = await HttpContext.AuthenticateAsync("ExternalCookie");
-
             if (result?.Succeeded != true)
             {
-                TempData["GRegError"] = "Nepodařilo se získat e-mail z Google účtu. Zkuste to prosím znovu.";
+                TempData["GRegError"] = "Přihlášení přes Google se nepodařilo. Zkuste to prosím znovu.";
                 return RedirectToAction("Index");
             }
 
-            var email = result.Principal.FindFirst(ClaimTypes.Email)?.Value;
-            var firstName = result.Principal.FindFirst(ClaimTypes.GivenName)?.Value;
-            var lastName = result.Principal.FindFirst(ClaimTypes.Surname)?.Value;
-
-            // Dočasnou ExternalCookie hned smazat — data přecházejí do TempData
+            string strEmail = NormalizeEmail(result.Principal.FindFirst(ClaimTypes.Email)?.Value);
+            string strFirstName = result.Principal.FindFirst(ClaimTypes.GivenName)?.Value;
+            string strLastName = result.Principal.FindFirst(ClaimTypes.Surname)?.Value;
             await HttpContext.SignOutAsync("ExternalCookie");
 
-            if (string.IsNullOrEmpty(email))
+            if (!IsTotalCloud)
             {
-                TempData["GRegError"] = "Google účet neobsahuje e-mailovou adresu.";
                 return RedirectToAction("Index");
             }
+            if (strEmail == null)
+            {
+                TempData["GRegError"] = "Google účet neposkytl použitelnou e-mailovou adresu.";
+                return RedirectToAction("Index");
+            }
+            if (AccountExists(strEmail))
+            {
+                return Redirect("/Login/GoogleLogin");  //účet už má - rovnou ho přihlásit
+            }
 
-            TempData["GReg_Email"] = email;
-            TempData["GReg_FirstName"] = firstName ?? string.Empty;
-            TempData["GReg_LastName"] = lastName ?? string.Empty;
-
-            return RedirectToAction("GoogleRegister");
+            string strToken = MakeToken(new TotalCloudRegisterToken() { Email = strEmail, IsGoogle = true, FirstName = T(strFirstName), LastName = T(strLastName), CountryCode = NormalizeCountry(countrycode) }, 2);
+            return RedirectToAction("Complete", new { t = strToken });
         }
 
-        // GET /CreateLicenseFree/GoogleRegister
+        // ── 3. dokončení registrace ─────────────────────────────────────────────────
+
         [HttpGet]
-        public IActionResult GoogleRegister()
+        public IActionResult Complete(string t)
         {
-            var email = TempData["GReg_Email"]?.ToString();
-            if (string.IsNullOrEmpty(email))
-                return RedirectToAction("Index");   // TempData vypršelo
+            Response.Headers["Referrer-Policy"] = "no-referrer";    //adresa stránky obsahuje ověřovací token
+            Response.Headers["Cache-Control"] = "no-store";
 
-            // Keep zajistí přežití hodnot i pro následující POST
-            TempData.Keep("GReg_Email");
-            TempData.Keep("GReg_FirstName");
-            TempData.Keep("GReg_LastName");
-
-            var v = new CreateLicenseFreeGoogleViewModel
+            var v = new TotalCloudRegisterViewModel() { PageTitle = "Dokončení registrace" };
+            if (!IsTotalCloud)
             {
-                PageTitle = "Registrace přes Google",
-                Email = email,
-                FirstName = TempData["GReg_FirstName"]?.ToString() ?? string.Empty,
-                LastName = TempData["GReg_LastName"]?.ToString() ?? string.Empty
-            };
+                v.IsClosed = true;
+                v.Message = "Aplikace není v režimu TotalCloud.";
+                return View(v);
+            }
+            var c = ReadToken(t);
+            if (c == null)
+            {
+                v.IsLinkInvalid = true;
+                return View(v);
+            }
+            v.Email = c.Email;
+            if (AccountExists(c.Email))
+            {
+                v.IsAccountExists = true;
+                return View(v);
+            }
+
+            v.Token = t;
+            v.IsGoogle = c.IsGoogle;
+            v.FirstName = c.FirstName;
+            v.LastName = c.LastName;
+            v.CountryCode = NormalizeCountry(c.CountryCode);
+            v.Profiles = TotalCloudProfile.GetList();
+            v.PasswordHint = GetPasswordHint(new BL.Code.PasswordSupport());
             return View(v);
         }
 
-        // POST /CreateLicenseFree/GoogleRegister
         [HttpPost]
-        public IActionResult GoogleRegister(CreateLicenseFreeGoogleViewModel gv)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> LoadRejstrik(string t, string regid, string country)
         {
-            // E-mail bereme ze serverem ověřeného TempData, ne z formuláře
-            var verifiedEmail = TempData["GReg_Email"]?.ToString();
-            if (string.IsNullOrEmpty(verifiedEmail))
+            if (!IsTotalCloud || ReadToken(t) == null)
             {
-                gv.Message = "Relace vypršela. Přihlaste se prosím znovu přes Google.";
-                return View(gv);
+                return Json(new { ok = false, message = "Platnost odkazu vypršela." });
             }
-            gv.Email = verifiedEmail;
+            string ico = Regex.Replace(regid ?? "", @"\s", "");
+            if (!Regex.IsMatch(ico, "^[0-9]{6,10}$"))
+            {
+                return Json(new { ok = false, message = "Zadejte platné IČO." });
+            }
+            if (TotalCloudRegisterGuard.Count("rejstrik", 1, RemoteIp()) >= 20)
+            {
+                return Json(new { ok = false, message = "Příliš mnoho dotazů do rejstříku, vyplňte prosím název ručně." });
+            }
+            TotalCloudRegisterGuard.Add("rejstrik", RemoteIp(), null);
 
-            _f.InhaleUserByLogin(_f.App.GuruLogin);
+            var c = await LoadFromRegistry(ico, NormalizeCountry(country));
+            if (c == null || string.IsNullOrEmpty(c.name))
+            {
+                return Json(new { ok = false, message = $"Subjekt s IČO {ico} se v rejstříku nepodařilo najít. Vyplňte prosím název ručně." });
+            }
+            return Json(new { ok = true, name = c.name, ico = c.ico });
+        }
 
-            if (_f.App.HostingMode != BL.Singleton.HostingModeEnum.TotalCloud)
+        /// <summary>Vrací NULL, pokud rejstřík neodpoví do 8 sekund nebo subjekt nezná.</summary>
+        private async Task<BO.Rejstrik.DefaultZaznam> LoadFromRegistry(string strICO, string strCountry)
+        {
+            try
             {
-                gv.Message = "Aplikace není v režimu TotalCloud.";
-                return View(gv);
+                var viesClient = HttpContext.RequestServices.GetRequiredService<BL.Code.IViesClient>();
+                var engine = new BL.Code.RejstrikySupport(viesClient);
+                var task = engine.LoadDefaultZaznam("ico", strICO, strCountry, new HttpClient());
+                if (await Task.WhenAny(task, Task.Delay(8000)) != task)
+                {
+                    return null;
+                }
+                return await task;
             }
-            if (string.IsNullOrWhiteSpace(gv.p93Company))
+            catch
             {
-                gv.Message = "Chybí zadat název firmy!";
-                return View(gv);
+                return null;
             }
-            if (string.IsNullOrWhiteSpace(gv.FirstName) || string.IsNullOrWhiteSpace(gv.LastName))
+        }
+
+        // ── 4. založení licence ─────────────────────────────────────────────────────
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(string t, string firstname, string lastname, string company, string regid, string country, string profile, string password)
+        {
+            if (!IsTotalCloud)
             {
-                gv.Message = "Chybí zadat Jméno nebo Příjmení!";
-                return View(gv);
+                return Json(new { ok = false, message = "Aplikace není v režimu TotalCloud." });
             }
-            if (!BO.Code.Bas.IsValidEmail(gv.Email))
+            var c = ReadToken(t);
+            if (c == null)
             {
-                gv.Message = $"E-mail [{gv.Email}] z Google účtu není platný.";
-                return View(gv);
+                return Json(new { ok = false, expired = true, message = "Platnost odkazu vypršela. Požádejte prosím o nový." });
             }
 
-            var v = Google_BuildProcessingModel(gv);
-            // Explicitně doplnit název firmy — stejný vzor jako v klasické Index POST
-            v.Rec.x01Name = gv.p93Company;
-            v.Rec.x01CountryCode = gv.CountryCode;
-            v.Rec.x01LoginDomain = gv.Email;
-           
-            v.Rec.x01AppName = gv.p93Company.Length > 20
-                                   ? gv.p93Company[..20]
-                                   : gv.p93Company;
-
-            v.Rec.x01AppHost = "https://app.marktime.net";
-            v.Rec.x01ContactEmail = v.Email;
-            v.Rec.x01Round2Minutes = 15;
-            v.Rec.x01ContactName = v.FirstName + " " + v.LastName;
-            if (v.Rec.x01CountryCode == "CZ")
+            var ps = new BL.Code.PasswordSupport();
+            var r = new TotalCloudRegisterRequest()
             {
-                v.Rec.j27ID = 2;
+                Email = c.Email,
+                IsGoogle = c.IsGoogle,
+                FirstName = T(firstname),
+                LastName = T(lastname),
+                CompanyName = T(company),
+                RegID = T(Regex.Replace(regid ?? "", @"\s", "")),
+                CountryCode = NormalizeCountry(country),
+                ProfileKey = profile,
+                Password = password,
+                AppHost = AppHost(),
+                RemoteIp = RemoteIp()
+            };
+
+            //kontrola zadání
+            var errors = new List<object>();
+            if (r.FirstName == null) errors.Add(new { field = "firstname", message = "Vyplňte jméno." });
+            if (r.LastName == null) errors.Add(new { field = "lastname", message = "Vyplňte příjmení." });
+            if (r.CompanyName == null) errors.Add(new { field = "company", message = "Vyplňte název firmy." });
+            if (r.RegID != null && !Regex.IsMatch(r.RegID, "^[0-9]{6,10}$")) errors.Add(new { field = "regid", message = "IČO tvoří jen číslice. Pole můžete nechat prázdné." });
+            if (r.IsGoogle)
+            {
+                r.Password = GeneratePassword(ps);  //přihlašuje se přes Google; vlastní heslo si může nastavit přes obnovu hesla
+            }
+            else if (string.IsNullOrEmpty(r.Password))
+            {
+                errors.Add(new { field = "password", message = "Zvolte si heslo." });
             }
             else
             {
-                v.Rec.j27ID = 3;
+                var res = ps.CheckPassword(r.Password);
+                if (res.Flag == BO.ResultEnum.Failed) errors.Add(new { field = "password", message = res.Message });
+            }
+            if (errors.Count > 0)
+            {
+                return Json(new { ok = false, errors = errors });
             }
 
-
-            var dt = _f.FBL.GetDataTable(
-                $"select * from j02User where j02Login like '%{v.UserName}%'");
-            if (dt.Rows.Count > 0)
+            if (TotalCloudRegisterGuard.Count(TotalCloudRegisterGuard.KindCreate, 24, r.RemoteIp) >= Cfg.GetValue<int>("AnonymousMaxPerIpPerDay", 5)
+                || TotalCloudRegisterGuard.Count(TotalCloudRegisterGuard.KindCreate, 1) >= Cfg.GetValue<int>("AnonymousMaxPerHour", 10))
             {
-                gv.Message = $"Uživatelský účet [{v.UserName}] již existuje!" +
-                             "<hr>Pro vyřešení problému kontaktujte naší podporu.";
-                return View(gv);
+                return Json(new { ok = false, message = "Z kapacitních důvodů teď nový účet založit nelze. Zkuste to prosím za hodinu, nebo nám napište." });
             }
 
-            string strDomain = v.LoginDomainPrefix;
-            dt = _f.FBL.GetDataTable(
-                $"select * from x01License" +
-                $" where x01LoginDomain like '{strDomain}.cz%'" +
-                $"    OR x01LoginDomain like '{strDomain}.sk%'");
-            if (dt.Rows.Count > 0)
+            //rejstřík jen doplňuje adresu a DIČ; když neodpoví, zakládá se bez nich
+            if (r.RegID != null)
             {
-                gv.Message = $"Licence pro doménu [{strDomain}] již existuje!" +
-                             "<hr>Pro vyřešení problému kontaktujte naší podporu.";
-                return View(gv);
-            }
-            
-            Google_SendInfoMail(v);
-            Handle_ImportData(v);
-
-            if (v.DestX01ID > 0)
-            {
-                dt = _f.FBL.GetDataTable(
-                    $"select x04ID FROM x04NotepadConfig" +
-                    $" WHERE x01ID={v.DestX01ID} AND x04Name LIKE 'Výchozí Editor'");
-                _f.FBL.RunSql(
-                    $"UPDATE x01License" +
-                    $"   SET x01Guid=NEWID()," +
-                    $"       x04ID_Default={dt.Rows[0]["x04ID"]}," +
-                    $"       x01RecordsCountP31=0," +
-                    $"       x01LimitUsers=99" +
-                    $" WHERE x01ID={v.DestX01ID}");
-
-                var recX01 = _f.x01LicenseBL.Load(v.DestX01ID);
-                _f.x01LicenseBL.Save(recX01);
-
-                var recJ02 = LoadRecJ02(v);
-                _f.FBL.RunSql(
-                    $"UPDATE j02User" +
-                    $"   SET j02MyMenuLinks='{_f.j02UserBL.GetDefaultMenuLinks()}'," +
-                    $"       j02HomePageUrl=null," +
-                    $"       j02Mobile=null" +
-                    $" WHERE j02ID={recJ02.pid}");
-
-                _f.App.RefreshP07List();
-                Google_SendConfirmMail(v, recJ02);
-
-                return RedirectToAction("Confirm", new { username = recJ02.j02Login });
-            }
-
-            gv.Message += "<br>Došlo k chybě při zakládání databáze.";
-            return View(gv);
-        }
-
-        // ── Google helpery ────────────────────────────────────────────────────────
-
-        private CreateLicenseViewModel Google_BuildProcessingModel(CreateLicenseFreeGoogleViewModel gv)
-        {
-            var countryCode = gv.CountryCode;
-            var domainPrefix = Google_GenerateDomainPrefix(gv.p93Company);
-            var loginName = BO.Code.Bas.RemoveDiacritics(gv.FirstName).ToLower();
-            var password = Google_GeneratePassword();
-
-            return new CreateLicenseViewModel
-            {
-                Rec = new BO.x01License
+                var z = await LoadFromRegistry(r.RegID, r.CountryCode);
+                if (z != null && !string.IsNullOrEmpty(z.name))
                 {
-                    // ...
-                },
-                Email = gv.Email,
-                FirstName = gv.FirstName,
-                LastName = gv.LastName,
-                p93Company = gv.p93Company,
-                p93RegID = null,
-                LoginDomainPrefix = domainPrefix,
-                LoginName = loginName,        // používá se pro x01RobotLogin → loginname@domainprefix.cz
-                UserName = gv.Email,         // ← Google e-mail jako j02Login (bylo: userLogin)
-                UserPassword = password,
-                VerifyPassword = password,
-                IsZakladatKlientaPlusProjekty = true,
-                Project1 = "DPPO + Poradenství",
-                Project2 = $"Audit {DateTime.Now.Year}",
-                lisKeys = new List<CreateLicenseKey>()
+                    r.VatID = T(z.dic);
+                    r.Street = T(z.street);
+                    r.City = T(z.city);
+                    r.Zip = T(z.zipcode);
+                }
+            }
+
+            if (!await TotalCloudRegisterGuard.EngineLock.WaitAsync(TimeSpan.FromSeconds(60)))
+            {
+                return Json(new { ok = false, message = "Server je teď vytížený. Zkuste to prosím za chvíli znovu." });
+            }
+            TotalCloudRegisterResult ret;
+            try
+            {
+                var engine = new TotalCloudRegisterEngine(_f, r);
+                string strInvalid = engine.Validate();
+                if (strInvalid != null)
+                {
+                    return Json(new { ok = false, exists = AccountExists(r.Email), message = strInvalid });
+                }
+                ret = engine.Run();
+            }
+            catch (Exception e)
+            {
+                ret = new TotalCloudRegisterResult() { Ok = false, Error = e.Message, Login = r.Login };
+                BO.Code.File.LogError(e.ToString(), r.Login, "CreateLicenseFree.Create");
+            }
+            finally
+            {
+                TotalCloudRegisterGuard.EngineLock.Release();
+            }
+
+            SendNotifyMail(r, ret);
+            if (!ret.Ok)
+            {
+                return Json(new { ok = false, message = "Účet se teď nepodařilo založit. Chybu jsme zaznamenali a ozveme se vám na e-mail. Můžete to také zkusit znovu." });
+            }
+            TotalCloudRegisterGuard.Add(TotalCloudRegisterGuard.KindCreate, r.RemoteIp, r.Email);
+
+            //rovnou přihlásit, stejně jako LoginController.SetClaim
+            var claims = new List<Claim>()
+            {
+                new Claim(ClaimTypes.Name, r.Login),
+                new Claim("access_token", "inspis_core_token"),
+                new Claim(ClaimTypes.Email, r.Email)
             };
+            var principal = new ClaimsPrincipal(new[] { new ClaimsIdentity(claims, "User Identity") });
+            await HttpContext.SignInAsync(principal, new AuthenticationProperties() { IsPersistent = true, ExpiresUtc = DateTime.Now.AddHours(168) });
+            Response.Cookies.Append("marktime.cookieexpiresinhours", "168", new CookieOptions() { Expires = DateTime.Now.AddDays(100) });
+
+            SendWelcomeMail(r);
+
+            return Json(new { ok = true, redirect = Url.Action("Index", "Home") });
         }
 
-        /// <summary>Serverová replika JS funkce change_p93company z Index.cshtml.</summary>
-        private static string Google_GenerateDomainPrefix(string companyName)
+        private void SendWelcomeMail(TotalCloudRegisterRequest r)
         {
-            var s = (companyName ?? string.Empty)
-                    .Replace("s.r.o.", string.Empty, StringComparison.OrdinalIgnoreCase)
-                    .Replace("a.s.", string.Empty, StringComparison.OrdinalIgnoreCase)
-                    .Replace("spol. s r.o.", string.Empty, StringComparison.OrdinalIgnoreCase);
-            s = BO.Code.Bas.RemoveDiacritics(s);
-            s = Regex.Replace(s, "[^a-z0-9]", string.Empty, RegexOptions.IgnoreCase);
-            return s.ToLower();
+            string strPassword = r.IsGoogle ? "přihlašujete se tlačítkem Přihlásit se přes Google" : "heslo jste si zvolili při registraci";
+            string strHtml = null;
+            try
+            {
+                string strPath = _f.App.RootUploadFolder + "\\_distribution\\mail\\send_message_template_cloud_confirm.html";
+                if (System.IO.File.Exists(strPath))
+                {
+                    strHtml = BO.Code.File.GetFileContent(strPath);
+                }
+            }
+            catch
+            {
+                strHtml = null;
+            }
+            if (!string.IsNullOrEmpty(strHtml))
+            {
+                strHtml = strHtml.Replace("#username#", H(r.Login)).Replace("#password#", strPassword);
+            }
+            else
+            {
+                string s = $"<p>Dobrý den,</p><p>váš účet MARKTIME pro <b>{H(r.CompanyName)}</b> je připravený.</p>";
+                s += MailButton(r.AppHost + "/Login/UserLogin", "Otevřít MARKTIME");
+                s += $"<p>Přihlašovací jméno: <b>{H(r.Login)}</b><br>Heslo: {strPassword}.</p>";
+                strHtml = MailLayout(s);
+            }
+            SendMail(r.Email, $"MARKTIME účet [{r.Login}] založen", strHtml);
         }
 
-        /// <summary>Vygeneruje silné heslo — zasílá se e-mailem, protože ho uživatel nenastavoval.</summary>
-        private static string Google_GeneratePassword()
+        /// <summary>Zpráva správci o výsledku každé registrace, včetně varování a chyb.</summary>
+        private void SendNotifyMail(TotalCloudRegisterRequest r, TotalCloudRegisterResult ret)
         {
-            var g = BO.Code.Bas.GetGuid().Replace("-", string.Empty);
-            return $"{char.ToUpper(g[0])}{g[1..3]}{g[3] % 10}{g[4] % 10}{g[5..9]}!{char.ToUpper(g[9])}{g[10] % 10}";
-        }
+            string strTo = Cfg["NotifyEmail"];
+            if (string.IsNullOrEmpty(strTo)) strTo = _defaultNotifyEmail;
 
-        private void Google_SendInfoMail(CreateLicenseViewModel v)
-        {
-            const string strTo = "jiri.theimer@marktime.cz";
-            string s = $"[GOOGLE REGISTRACE]<hr>E-mail: {v.Email}<hr>" +
-                       $"Firma: {v.p93Company}<br>Jméno: {v.FirstName}<br>" +
-                       $"Příjmení: {v.LastName}<br>Doména: {v.LoginDomainPrefix}<br>Login: {v.UserName}";
-            _f.MailBL.SendMessageWithoutFactory(
-                s, "Pokus o registraci FREE MARKTIME licence (Google)",
-                strTo, null, "noreply@marktime.net", "MARKTIME");
-        }
-
-        private void Google_SendConfirmMail(CreateLicenseViewModel v, BO.j02User recJ02)
-        {
-            string strHtml = BO.Code.File.GetFileContent(
-                _f.App.RootUploadFolder +
-                @"\_distribution\mail\send_message_template_cloud_confirm.html");
-            // Šablona musí obsahovat placeholder #password# pro vygenerované heslo
-            strHtml = strHtml.Replace("#username#", recJ02.j02Login)
-                             .Replace("#password#", v.UserPassword);
-            _f.MailBL.SendMessageWithoutFactory(
-                strHtml,
-                $"MARKTIME účet [{recJ02.j02Login}] založen",
-                recJ02.j02Email,
-                "info@marktime.cz", "noreply@marktime.net", "MARKTIME");
+            var sb = new System.Text.StringBuilder();
+            sb.Append($"<p><b>{(ret.Ok ? "Licence založena" : "ZALOŽENÍ SELHALO")}</b> ({(r.IsGoogle ? "Google" : "e-mail")})</p>");
+            sb.Append($"<p>Firma: {H(r.CompanyName)}<br>IČO: {H(r.RegID)}<br>Jméno: {H(r.FirstName)} {H(r.LastName)}<br>E-mail / login: {H(r.Email)}<br>Země: {H(r.CountryCode)}<br>Obor: {H(TotalCloudProfile.Find(r.ProfileKey).Name)}<br>IP: {H(r.RemoteIp)}<br>x01ID: {ret.x01ID}, tabulek: {ret.Tables}, řádků: {ret.Rows}</p>");
+            if (!ret.Ok)
+            {
+                sb.Append($"<p><b>Chyba:</b> {H(ret.Error)}</p><p>Rozpracovaná licence byla uzavřena a přejmenována (failed-…), e-mail je volný pro další pokus. SQL log je ve složce Logs (register-failed-…).</p>");
+            }
+            if (ret.Warnings.Count > 0)
+            {
+                sb.Append("<p><b>Varování:</b></p><ul>");
+                foreach (string s in ret.Warnings.Take(40))
+                {
+                    sb.Append($"<li>{H(s)}</li>");
+                }
+                sb.Append("</ul>");
+            }
+            string strSubject = ret.Ok ? $"Nová MARKTIME licence: {r.CompanyName}" : $"CHYBA registrace MARKTIME: {r.Email}";
+            if (ret.Ok && ret.Warnings.Count > 0) strSubject += $" ({ret.Warnings.Count} varování)";
+            SendMail(strTo, strSubject, sb.ToString());
         }
     }
 }

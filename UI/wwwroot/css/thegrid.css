@@ -500,25 +500,35 @@ a.groupvallink {
 }
 
 
-#tabgrid1 tr.trbg1 {
-    background-color: YellowGreen; /*barevný zázname*/
+/* barevné záznamy (p31/p41/p28/p91/o23 RowColorFlag, Alt+Shift+1-5)
+   Dva ID selektory záměrně: barva musí přebít proužkování (.stripped) i hover – včetně pravidel moderního vzhledu
+   (html.mt-modern #tabgrid1 tr.stripped / tr:hover v modern.css), která mají vyšší specificitu než prosté #tabgrid1 tr.trbgN. */
+#tabgrid1 tr.trbg1 { --trbg: YellowGreen; }
+#tabgrid1 tr.trbg2 { --trbg: yellow; }
+#tabgrid1 tr.trbg3 { --trbg: violet; }
+#tabgrid1 tr.trbg4 { --trbg: deepskyblue; }
+#tabgrid1 tr.trbg5 { --trbg: silver; }
+
+#tabgrid1 #tabgrid1_tbody tr:is(.trbg1, .trbg2, .trbg3, .trbg4, .trbg5) {
+    background-color: var(--trbg);
 }
 
-#tabgrid1 tr.trbg2 {
-    background-color: yellow; /*barevný zázname*/
+/* označený barevný řádek: barva zůstává vidět (smíchaná s barvou výběru), jinak by ji výběr celou překryl */
+#tabgrid1 #tabgrid1_tbody tr.selrow:is(.trbg1, .trbg2, .trbg3, .trbg4, .trbg5) > td {
+    background-color: color-mix(in srgb, var(--trbg-strong, var(--trbg)) 65%, var(--oznaceno, #4169e1));
+    color: #1f2328;
 }
 
-#tabgrid1 tr.trbg3 {
-    background-color: violet; /*barevný zázname*/
+
+/* úkony: název aktivity podbarvený barvou aktivity (p32Color) – jen text, ne celá buňka; zalomený název tvoří jeden blok */
+#tabgrid1 span.p32c {
+    display: inline-block;
+    padding: 0 4px;
+    border-radius: 3px;
 }
 
-#tabgrid1 tr.trbg4 {
-    background-color: deepskyblue; /*barevný zázname*/
-}
-
-#tabgrid1 tr.trbg5 {
-    background-color: silver; /*barevný zázname*/
-    
+#tabgrid1 tr.selrow span.p32c {
+    color: #1f2328;     /* označený řádek v klasickém vzhledu má bílý text – na barvě aktivity by nebyl čitelný */
 }
 
 

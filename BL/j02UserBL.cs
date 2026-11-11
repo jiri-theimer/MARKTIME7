@@ -290,7 +290,15 @@ namespace BL
             var arr = rec.j02Login.Split("@");
             if (_mother.Lic.x01LoginDomain != null)
             {
-                if (arr.Count() != 2 || arr[1] != _mother.Lic.x01LoginDomain || string.IsNullOrEmpty(arr[0]))
+                if (_mother.App.HostingMode == Singleton.HostingModeEnum.TotalCloud && _mother.Lic.x01LoginDomain.Contains("@"))
+                {
+                    //TotalCloud, licence založená samoobslužnou registrací: doménou licence je e-mail zakladatele, uživatelé se přihlašují svým e-mailem
+                    if (!BO.Code.Bas.IsValidEmail(rec.j02Login))
+                    {
+                        this.AddMessage("Přihlašovacím jménem musí být e-mailová adresa uživatele."); return false;
+                    }
+                }
+                else if (arr.Count() != 2 || arr[1] != _mother.Lic.x01LoginDomain || string.IsNullOrEmpty(arr[0]))
                 {
                     this.AddMessage("Přihlašovací jméno musí obsahovat doménu:" + " " + _mother.Lic.x01LoginDomain); return false;
                 }

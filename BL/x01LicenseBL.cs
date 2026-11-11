@@ -219,7 +219,15 @@ namespace BL
             }
 
             var lis = _mother.x01LicenseBL.GetList(new BO.myQuery("x01") { IsRecordValid = null });
-            if (lis.Any(p => p.pid != rec.pid && (p.x01Name.ToUpper() == rec.x01Name.ToUpper() || p.x01LoginDomain.ToUpper() == rec.x01LoginDomain.ToUpper())))
+            if (_mother.App.HostingMode == Singleton.HostingModeEnum.TotalCloud)
+            {
+                //TotalCloud: licence si zakládají zákazníci sami, dva zákazníci se mohou jmenovat stejně - unikátní musí být jen doména
+                if (lis.Any(p => p.pid != rec.pid && string.Equals(p.x01LoginDomain, rec.x01LoginDomain, StringComparison.OrdinalIgnoreCase)))
+                {
+                    this.AddMessage("Doména musí být unikátní v rámci všech licencí v databázi."); return false;
+                }
+            }
+            else if (lis.Any(p => p.pid != rec.pid && (p.x01Name.ToUpper() == rec.x01Name.ToUpper() || p.x01LoginDomain.ToUpper() == rec.x01LoginDomain.ToUpper())))
             {
                 this.AddMessage("Název a doména musí být unikátní v rámci všech licencí v databázi."); return false;
             }

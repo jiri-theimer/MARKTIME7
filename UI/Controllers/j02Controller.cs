@@ -317,7 +317,7 @@ namespace UI.Controllers
 
 
 
-            if (Factory.Lic.x01LoginDomain != null)
+            if (Factory.Lic.x01LoginDomain != null && !Factory.Lic.x01LoginDomain.Contains("@"))  //doména s @ = licence z registrace TotalCloud, loginem je e-mail uživatele
             {
                 v.Rec.j02Login = "@" + Factory.Lic.x01LoginDomain;
             }
@@ -455,7 +455,7 @@ namespace UI.Controllers
                     case "changelogin":
                         v.IsDefinePassword = true;
                         v.IsChangeLogin = true;
-                        if (Factory.Lic.x01LoginDomain != null)
+                        if (Factory.Lic.x01LoginDomain != null && !Factory.Lic.x01LoginDomain.Contains("@"))  //doména s @ = licence z registrace TotalCloud, loginem je e-mail uživatele
                         {
                             v.Rec.j02Login = "@" + Factory.Lic.x01LoginDomain;
                         }

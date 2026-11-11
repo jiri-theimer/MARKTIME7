@@ -134,29 +134,26 @@ document.onkeydown = function (e) {
         
     }
 
-    if (e.shiftKey && e.altKey) {   //shift+číslo barvy: zatím vypnuto       
+    if (e.shiftKey && e.altKey && typeof _thegrid !== "undefined" && _thegrid && document.getElementById("tg_selected_pids")) {   //Alt+Shift+1-5: barva záznamu, Alt+Shift+6: vyčistit barvu
+        //e.code = fyzická klávesa: e.key vrací podle rozložení klávesnice "1" (CZ), "!" (EN) nebo "+" – proto zkratka na některých klávesnicích nereagovala
+        var m = /^(?:Digit|Numpad)([1-6])$/.exec(e.code || "");
+        var cislo = m ? m[1] : (/^[1-6]$/.test(e.key) ? e.key : null);
         var prefix = _thegrid.entity.substr(0, 3);
-        var pids = $("#tg_selected_pids").val();
 
-        if ((prefix == "p31" || prefix == "p41" || prefix=="p28" || prefix=="p91" || prefix=="o23") && (e.key == "1" || e.key == "2" || e.key == "3" || e.key == "4" || e.key == "5")) {            
-            if (pids === "") {
+        if (cislo !== null && (prefix == "p31" || prefix == "p41" || prefix == "p28" || prefix == "p91" || prefix == "o23")) {
+            e.preventDefault();
+            var pids = $("#tg_selected_pids").val();
+            if (!pids) {
                 _notify_message("Musíte zaškrtnout/označit minimálně jeden záznam.");
                 return;
             }
-            
-            _rowcolor(prefix, pids, e.key);
-
-            _notify_message("Barevné záznamy #" + e.key + ".", "info");
-        }
-        if ((prefix == "p31" || prefix == "p41" || prefix == "p28" || prefix == "p91" || prefix=="o23") && e.key == "6") {            
-            if (pids === "") {
-                _notify_message("Musíte zaškrtnout/označit minimálně jeden záznam.");
-                return;
+            if (cislo == "6") {
+                _rowcolor_clear(prefix, pids);
+                _notify_message("Vyčištění barvy záznamů.", "info");
+            } else {
+                _rowcolor(prefix, pids, cislo);
+                _notify_message("Barevné záznamy #" + cislo + ".", "info");
             }
-            
-            _rowcolor_clear(prefix, pids);
-
-            _notify_message("Vyčištění barvy záznamů.", "info");
         }
     }
 };
@@ -241,39 +238,25 @@ function _format_time(d) {
 }
 
 function _rowcolor(prefix, pids, colorindex) {
-   
-    $.post("/Common/UpdateRowColor", { prefix: prefix, pids: pids,colorindex:colorindex }, function (data) {
-        
-        var arr = pids.split(",");        
-        for (var i = 0; i < arr.length; i++) {
-            var pid = arr[i];
-            $("#r" + pid).removeClass("trbg1");
-            $("#r" + pid).removeClass("trbg2");
-            $("#r" + pid).removeClass("trbg3");
-            $("#r" + pid).removeClass("trbg4");
-            $("#r" + pid).removeClass("trbg5");
-            $("#r" + pid).addClass("trbg" + colorindex);
-        }                
-        
-        
+    $.post("/Common/UpdateRowColor", { prefix: prefix, pids: pids, colorindex: colorindex }, function (data) {
+        _rowcolor_apply(pids, colorindex);
     });
-
 }
 
 function _rowcolor_clear(prefix, pids) {
     $.post("/Common/ClearRowColor", { prefix: prefix, pids: pids }, function (data) {
-
-        var arr = pids.split(",");
-        for (var i = 0; i < arr.length; i++) {
-            var pid = arr[i];
-            $("#r" + pid).removeClass("trbg1");
-            $("#r" + pid).removeClass("trbg2");
-            $("#r" + pid).removeClass("trbg3");
-            $("#r" + pid).removeClass("trbg4");
-            $("#r" + pid).removeClass("trbg5");
-        }     
-                
+        _rowcolor_apply(pids, null);
     });
+}
+
+function _rowcolor_apply(pids, colorindex) {    //promítnout barvu do řádků gridu bez nového načtení (colorindex null = bez barvy)
+    var arr = String(pids).split(",");
+    for (var i = 0; i < arr.length; i++) {
+        var tr = document.getElementById("r" + arr[i]);
+        if (!tr) continue;
+        tr.classList.remove("trbg1", "trbg2", "trbg3", "trbg4", "trbg5");
+        if (colorindex) tr.classList.add("trbg" + colorindex);
+    }
 }
 
 
