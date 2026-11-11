@@ -3,24 +3,26 @@
 namespace BL
 {
     /// <summary>
-    /// Check-list úkolu: jednoduché položky (text + hotovo) v tabulce p65Checklist, vázané na úkol p56Task.
-    /// Hotová položka je uzavřený záznam: p65ValidUntil = čas odškrtnutí, otevřená má p65ValidUntil 1.1.3000.
+    /// Check-list: jednoduché položky (text + hotovo) v tabulce p65Checklist.
+    /// - V úkolu (prefix "p56") se položky odškrtávají. Hotová položka je uzavřený záznam: p65ValidUntil = čas odškrtnutí,
+    ///   otevřená má p65ValidUntil 1.1.3000.
+    /// - V opakovaném úkolu (prefix "p58") jsou položky vzorem: neodškrtávají se a každý vygenerovaný úkol si je zkopíruje.
     /// Seznam vždy vrací otevřené i hotové položky - nesmí jít přes dotazy, které uzavřené záznamy skrývají.
-    /// Odškrtnutí, přidání, přejmenování, smazání i pořadí se ukládají hned, nezávisle na uložení karty úkolu.
-    /// Měnit check-list smí každý, kdo má v úkolu nějakou roli (plus vlastník úkolu a správce); číst ten, kdo smí číst úkol.
+    /// Odškrtnutí, přidání, přejmenování, smazání i pořadí se ukládají hned, nezávisle na uložení karty záznamu.
     /// </summary>
     public interface Ip65ChecklistBL
     {
         public bool IsAvailable();
-        public bool CanRead(int p56id, BO.p56Task rec = null);
-        public bool CanEdit(int p56id, BO.p56Task rec = null);
-        public IEnumerable<BO.p65Checklist> GetList(int p56id);
+        public bool CanRead(int pid, BO.p56Task rec = null, string prefix = "p56");
+        public bool CanEdit(int pid, BO.p56Task rec = null, string prefix = "p56");
+        public IEnumerable<BO.p65Checklist> GetList(int pid, string prefix = "p56");
         public BO.p65Checklist Load(int p65id);
-        public int Add(int p56id, List<string> names);
+        public int Add(int pid, List<string> names, string prefix = "p56");
         public bool SetDone(int p65id, bool done);
         public bool Rename(int p65id, string name);
         public bool Delete(int p65id);
-        public bool Reorder(int p56id, List<int> p65ids);
+        public bool Reorder(int pid, List<int> p65ids, string prefix = "p56");
+        public int CopyFromRecurrence(int p58id, int p56id);
         public List<string> ParseLines(string text);
     }
 
@@ -46,7 +48,15 @@ namespace BL
             return c == null ? 0 : c.Value;
         }
 
-        /// <summary>Je v databázi licence tabulka p65Checklist? Bez ní se check-list v aplikaci nenabízí.</summary>
+        //sloupec vlastníka položky; jiný prefix než p56/p58 se nepřipouští (název sloupce jde do textu SQL)
+        private static string OwnerField(string prefix)
+        {
+            if (prefix == "p58") return "p58ID";
+            if (prefix == "p56" || string.IsNullOrEmpty(prefix)) return "p56ID";
+            return null;
+        }
+
+        /// <summary>Je v databázi licence tabulka p65Checklist ve verzi s vazbou na opakovaný úkol? Bez ní se check-list v aplikaci nenabízí.</summary>
         public bool IsAvailable()
         {
             if (_mother.CurrentUser == null || _db == null) return false;
@@ -54,7 +64,7 @@ namespace BL
             if (_available.ContainsKey(strKey)) return true;
             if (_unavailable.TryGetValue(strKey, out DateTime d) && d > DateTime.Now) return false;
 
-            if (GetInt("SELECT CASE WHEN OBJECT_ID('dbo.p65Checklist') IS NULL THEN 0 ELSE 1 END as Value", null) == 1)
+            if (GetInt("SELECT CASE WHEN COL_LENGTH('dbo.p65Checklist','p58ID') IS NULL THEN 0 ELSE 1 END as Value", null) == 1)
             {
                 _available[strKey] = DateTime.Now;
                 return true;
@@ -63,26 +73,37 @@ namespace BL
             return false;
         }
 
-        public bool CanRead(int p56id, BO.p56Task rec = null)
+        public bool CanRead(int pid, BO.p56Task rec = null, string prefix = "p56")
         {
-            if (p56id <= 0 || !IsAvailable()) return false;
-            if (rec == null) rec = _mother.p56TaskBL.Load(p56id);
+            if (pid <= 0 || OwnerField(prefix) == null || !IsAvailable()) return false;
+            if (prefix == "p58") return CanEdit(pid, null, prefix);     //vzor je vidět jen v kartě opakovaného úkolu
+
+            if (rec == null) rec = _mother.p56TaskBL.Load(pid);
             if (rec == null) return false;
-            if (_mother.p56TaskBL.InhaleRecDisposition(p56id, rec).ReadAccess) return true;
-            return CanEdit(p56id, rec);
+            if (_mother.p56TaskBL.InhaleRecDisposition(pid, rec).ReadAccess) return true;
+            return CanEdit(pid, rec, prefix);
         }
 
         /// <summary>
-        /// Měnit check-list smí ten, kdo má v úkolu jakoukoli roli (osobně, přes tým nebo roli pro všechny), vlastník úkolu a správce.
+        /// Úkol: měnit check-list smí ten, kdo má v úkolu jakoukoli roli (osobně, přes tým nebo roli pro všechny), vlastník úkolu a správce.
+        /// Opakovaný úkol: ten, kdo smí upravovat jeho kartu (správce, oprávnění zakládat projekty, vlastník záznamu).
         /// </summary>
-        public bool CanEdit(int p56id, BO.p56Task rec = null)
+        public bool CanEdit(int pid, BO.p56Task rec = null, string prefix = "p56")
         {
-            if (p56id <= 0 || !IsAvailable()) return false;
+            if (pid <= 0 || OwnerField(prefix) == null || !IsAvailable()) return false;
+
+            if (prefix == "p58")
+            {
+                if (_mother.CurrentUser.IsAdmin || _mother.CurrentUser.TestPermission(BO.PermValEnum.GR_p41_Creator)) return true;
+                var recP58 = _mother.p58TaskRecurrenceBL.Load(pid);
+                return recP58 != null && recP58.j02ID_Owner == Me;
+            }
+
             if (!_mother.CurrentUser.j04IsModule_p56) return false;     //bez přístupu do modulu ÚKOLY
-            if (rec == null) rec = _mother.p56TaskBL.Load(p56id);
+            if (rec == null) rec = _mother.p56TaskBL.Load(pid);
             if (rec == null) return false;
 
-            if (_mother.p56TaskBL.InhaleRecDisposition(p56id, rec).OwnerAccess) return true;
+            if (_mother.p56TaskBL.InhaleRecDisposition(pid, rec).OwnerAccess) return true;
 
             var lisX69 = _mother.x67EntityRoleBL.GetList_X69_OneTask(rec, true);
             return lisX69 != null && lisX69.Any();
@@ -93,10 +114,11 @@ namespace BL
             return $"SELECT a.*,{_db.GetSQL1_Ocas("p65")},LTRIM(RTRIM(ISNULL(j02.j02FirstName,'')+' '+ISNULL(j02.j02LastName,''))) as DoneBy FROM p65Checklist a LEFT OUTER JOIN j02User j02 ON a.j02ID_Done=j02.j02ID {strAppend}";
         }
 
-        public IEnumerable<BO.p65Checklist> GetList(int p56id)
+        public IEnumerable<BO.p65Checklist> GetList(int pid, string prefix = "p56")
         {
-            if (p56id <= 0 || !IsAvailable()) return new List<BO.p65Checklist>();
-            var lis = _db.GetList<BO.p65Checklist>(GetSQL1("WHERE a.p56ID=@p56id ORDER BY a.p65Ordinary,a.p65ID"), new { p56id = p56id });
+            string strField = OwnerField(prefix);
+            if (pid <= 0 || strField == null || !IsAvailable()) return new List<BO.p65Checklist>();
+            var lis = _db.GetList<BO.p65Checklist>(GetSQL1($"WHERE a.{strField}=@pid ORDER BY a.p65Ordinary,a.p65ID"), new { pid = pid });
             return lis ?? new List<BO.p65Checklist>();
         }
 
@@ -131,19 +153,20 @@ namespace BL
         }
 
         /// <summary>Přidá položky na konec check-listu. Vrací počet přidaných, 0 = nic se nepřidalo.</summary>
-        public int Add(int p56id, List<string> names)
+        public int Add(int pid, List<string> names, string prefix = "p56")
         {
-            if (names == null || !CanEdit(p56id)) return 0;
+            string strField = OwnerField(prefix);
+            if (names == null || strField == null || !CanEdit(pid, null, prefix)) return 0;
             names = names.Select(p => CleanName(p)).Where(p => p != null).ToList();
             if (names.Count == 0) return 0;
 
-            int intCount = GetInt("SELECT COUNT(*) as Value FROM p65Checklist WHERE p56ID=@p56id", new { p56id = p56id });
+            int intCount = GetInt($"SELECT COUNT(*) as Value FROM p65Checklist WHERE {strField}=@pid", new { pid = pid });
             if (intCount + names.Count > MaxItems)
             {
                 _mother.CurrentUser.AddMessage(string.Format(_mother.tra("Check-list může mít nejvýše {0} položek."), MaxItems));
                 return 0;
             }
-            int intOrdinary = GetInt("SELECT ISNULL(MAX(p65Ordinary),0) as Value FROM p65Checklist WHERE p56ID=@p56id", new { p56id = p56id });
+            int intOrdinary = GetInt($"SELECT ISNULL(MAX(p65Ordinary),0) as Value FROM p65Checklist WHERE {strField}=@pid", new { pid = pid });
 
             int x = 0;
             foreach (string strName in names)
@@ -151,7 +174,7 @@ namespace BL
                 intOrdinary += 1;
                 var p = new DL.Params4Dapper();
                 p.AddInt("pid", 0);
-                p.AddInt("p56ID", p56id, true);
+                p.AddInt(strField, pid, true);
                 p.AddString("p65Name", strName);
                 p.AddInt("p65Ordinary", intOrdinary);
                 if (_db.SaveRecord("p65Checklist", p, new BO.p65Checklist()) > 0) x += 1;    //ValidUntil = 1.1.3000 → otevřená položka
@@ -162,7 +185,8 @@ namespace BL
         public bool SetDone(int p65id, bool done)
         {
             var rec = Load(p65id);
-            if (rec == null || !CanEdit(rec.p56ID)) return false;
+            if (rec == null || rec.OwnerPrefix != "p56") return false;      //položky vzoru v opakovaném úkolu se neodškrtávají
+            if (!CanEdit(rec.p56ID)) return false;
             if (rec.IsDone == done) return true;     //mezitím už to udělal někdo jiný
 
             //Do p65ValidUntil se zapisuje jen "teď" (hotovo) nebo 1.1.3000 (otevřeno). Jiné budoucí datum by položku časem odškrtlo samo.
@@ -178,7 +202,7 @@ namespace BL
             name = CleanName(name);
             if (name == null) return false;
             var rec = Load(p65id);
-            if (rec == null || !CanEdit(rec.p56ID)) return false;
+            if (rec == null || !CanEdit(rec.OwnerPid, null, rec.OwnerPrefix)) return false;
             if (rec.p65Name == name) return true;
             return _db.RunSql("UPDATE p65Checklist SET p65Name=@name,p65DateUpdate=GETDATE(),p65UserUpdate=@login WHERE p65ID=@pid", new { pid = p65id, name = name, login = _mother.CurrentUser.j02Login });
         }
@@ -187,22 +211,41 @@ namespace BL
         {
             var rec = Load(p65id);
             if (rec == null) return true;       //už je smazaná
-            if (!CanEdit(rec.p56ID)) return false;
+            if (!CanEdit(rec.OwnerPid, null, rec.OwnerPrefix)) return false;
             return _db.RunSql("DELETE FROM p65Checklist WHERE p65ID=@pid", new { pid = p65id });
         }
 
-        /// <summary>Uloží nové pořadí položek. V p65ids jsou všechny položky úkolu v pořadí shora dolů; cizí a neznámá ID se přeskočí.</summary>
-        public bool Reorder(int p56id, List<int> p65ids)
+        /// <summary>Uloží nové pořadí položek. V p65ids jsou všechny položky záznamu v pořadí shora dolů; cizí a neznámá ID se přeskočí.</summary>
+        public bool Reorder(int pid, List<int> p65ids, string prefix = "p56")
         {
-            if (p65ids == null || p65ids.Count == 0 || !CanEdit(p56id)) return false;
-            var known = GetList(p56id).Select(p => p.pid).ToList();
+            string strField = OwnerField(prefix);
+            if (p65ids == null || p65ids.Count == 0 || strField == null || !CanEdit(pid, null, prefix)) return false;
+            var known = GetList(pid, prefix).Select(p => p.pid).ToList();
             int x = 0;
             foreach (int p65id in p65ids.Distinct().Where(p => known.Contains(p)))
             {
                 x += 1;
-                _db.RunSql("UPDATE p65Checklist SET p65Ordinary=@ord WHERE p65ID=@pid AND p56ID=@p56id AND p65Ordinary<>@ord", new { pid = p65id, p56id = p56id, ord = x });
+                _db.RunSql($"UPDATE p65Checklist SET p65Ordinary=@ord WHERE p65ID=@p65id AND {strField}=@pid AND p65Ordinary<>@ord", new { p65id = p65id, pid = pid, ord = x });
             }
             return true;
+        }
+
+        /// <summary>
+        /// Zkopíruje vzor check-listu z opakovaného úkolu do právě vygenerovaného úkolu (položky otevřené).
+        /// Volá generátor opakovaných úkolů, který běží i bez přihlášeného uživatele s rolí v úkolu - oprávnění se zde proto netestuje.
+        /// Vrací počet zkopírovaných položek.
+        /// </summary>
+        public int CopyFromRecurrence(int p58id, int p56id)
+        {
+            if (p58id <= 0 || p56id <= 0 || !IsAvailable()) return 0;
+            int intCount = GetInt("SELECT COUNT(*) as Value FROM p65Checklist WHERE p58ID=@p58id", new { p58id = p58id });
+            if (intCount == 0) return 0;
+
+            string strLogin = _mother.CurrentUser.j02Login;
+            _db.RunSql("INSERT INTO p65Checklist(p56ID,p65Name,p65Ordinary,p65ValidFrom,p65ValidUntil,p65DateInsert,p65UserInsert,p65DateUpdate,p65UserUpdate)"
+                + " SELECT @p56id,p65Name,p65Ordinary,GETDATE(),convert(datetime,'01.01.3000',104),GETDATE(),@login,GETDATE(),@login FROM p65Checklist WHERE p58ID=@p58id ORDER BY p65Ordinary,p65ID"
+                , new { p56id = p56id, p58id = p58id, login = strLogin });
+            return intCount;
         }
     }
 }

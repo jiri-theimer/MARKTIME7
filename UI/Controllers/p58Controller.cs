@@ -159,6 +159,11 @@ namespace UI.Controllers
             if (isclone)
             {
                 v.MakeClone();
+                if (pid > 0 && Factory.p65ChecklistBL.IsAvailable())
+                {
+                    //kopie opakovaného úkolu převezme vzor check-listu
+                    v.ChecklistPending = System.Text.Json.JsonSerializer.Serialize(Factory.p65ChecklistBL.GetList(pid, "p58").Select(p => p.p65Name).ToList());
+                }
 
             }
 
@@ -296,6 +301,20 @@ namespace UI.Controllers
                     }
 
                     v.reminder.SaveChanges(Factory, c.pid, c.p58BaseDateStart);
+
+                    if (v.rec_pid == 0 && !string.IsNullOrEmpty(v.ChecklistPending) && Factory.p65ChecklistBL.IsAvailable())
+                    {
+                        //vzor check-listu zadaný u nového opakovaného úkolu (u uloženého se položky ukládají průběžně samy)
+                        try
+                        {
+                            var names = System.Text.Json.JsonSerializer.Deserialize<List<string>>(v.ChecklistPending);
+                            if (names != null && names.Count > 0) Factory.p65ChecklistBL.Add(c.pid, names, "p58");
+                        }
+                        catch (System.Text.Json.JsonException)
+                        {
+                            //nečitelný vstup: záznam je uložený, vzor zůstane prázdný
+                        }
+                    }
 
 
 

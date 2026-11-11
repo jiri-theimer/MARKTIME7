@@ -1,8 +1,10 @@
-﻿// Check-list úkolu (tabulka p65Checklist) – Views/Shared/_p65Checklist.cshtml, vzhled css/p65checklist.css (třídy chk-*).
+﻿// Check-list (tabulka p65Checklist) – Views/Shared/_p65Checklist.cshtml, vzhled css/p65checklist.css (třídy chk-*).
+// Záznam, kterému check-list patří, určuje cfg.prefix + cfg.pid: "p56" = úkol, "p58" = opakovaný úkol.
 //
-// Dva režimy:
-// - uložený úkol (p56id > 0): každá změna se hned posílá na /p65/* a seznam se překreslí podle odpovědi serveru,
-// - nový úkol (p56id = 0): položky se drží v prohlížeči a ve skrytém poli formuláře (JSON pole textů), uloží se s úkolem.
+// Dva režimy ukládání:
+// - uložený záznam (pid > 0): každá změna se hned posílá na /p65/* a seznam se překreslí podle odpovědi serveru,
+// - nový záznam (pid = 0): položky se drží v prohlížeči a ve skrytém poli formuláře (JSON pole textů), uloží se se záznamem.
+// cfg.template = true (opakovaný úkol): položky jsou vzor pro vygenerované úkoly, neodškrtávají se a nepočítá se postup.
 //
 // Bez jQuery a bez knihoven. Texty dodává view přes cfg.txt (kvůli překladům).
 var MtChecklist = (function () {
@@ -16,7 +18,9 @@ var MtChecklist = (function () {
         var barEl = root.querySelector(".chk-bar > span");
         var addBox = root.querySelector(".chk-add");
         var pendingField = cfg.pendingField ? document.getElementById(cfg.pendingField) : null;
-        var pending = cfg.p56id === 0;
+        var prefix = cfg.prefix || "p56";
+        var pending = cfg.pid === 0;
+        var template = !!cfg.template;
         var canEdit = !!cfg.canEdit;
         var items = cfg.items || [];
         var seq = 0;            // dočasná ID položek neuloženého úkolu
@@ -37,7 +41,8 @@ var MtChecklist = (function () {
 
         function post(action, data, after) {
             var body = new URLSearchParams();
-            data.p56id = cfg.p56id;
+            data.prefix = prefix;
+            data.pid = cfg.pid;
             Object.keys(data).forEach(function (k) { body.append(k, data[k]); });
             busy++;
             root.classList.add("chk-busy");
@@ -70,7 +75,7 @@ var MtChecklist = (function () {
 
         // po chybě ukázat to, co je skutečně uložené
         function reload() {
-            fetch(cfg.url + "List?p56id=" + cfg.p56id, { credentials: "same-origin" })
+            fetch(cfg.url + "List?prefix=" + prefix + "&pid=" + cfg.pid, { credentials: "same-origin" })
                 .then(function (r) { return r.json(); })
                 .then(function (d) { canEdit = !!d.canedit; items = d.items || []; render(); })
                 .catch(function () { });
@@ -90,10 +95,15 @@ var MtChecklist = (function () {
             items.forEach(function (it) { list.appendChild(row(it)); });
 
             var total = items.length, ok = items.filter(function (i) { return i.done; }).length;
-            countEl.textContent = total > 0 ? ok + " / " + total : "";
-            barEl.style.width = total > 0 ? Math.round(100 * ok / total) + "%" : "0";
+            if (template) {
+                countEl.textContent = total > 0 ? String(total) : "";
+            } else {
+                countEl.textContent = total > 0 ? ok + " / " + total : "";
+                barEl.style.width = total > 0 ? Math.round(100 * ok / total) + "%" : "0";
+            }
+            root.classList.toggle("chk-template", template);
             root.classList.toggle("chk-empty", total === 0);
-            root.classList.toggle("chk-alldone", total > 0 && ok === total);
+            root.classList.toggle("chk-alldone", !template && total > 0 && ok === total);
             root.classList.toggle("chk-readonly", !canEdit);
             if (addBox) addBox.hidden = !canEdit;
             if (pending) syncPending();
@@ -121,7 +131,7 @@ var MtChecklist = (function () {
             box.setAttribute("role", "checkbox");
             box.setAttribute("aria-checked", it.done ? "true" : "false");
             box.setAttribute("aria-label", it.name);
-            box.disabled = !canEdit || pending;
+            box.disabled = !canEdit || pending || template;
             if (it.done) {
                 var tick = document.createElement("span");
                 tick.className = "material-icons-outlined-nosize";
@@ -182,7 +192,7 @@ var MtChecklist = (function () {
         // ── akce ────────────────────────────────────────────────────────────────
 
         function toggle(it) {
-            if (!canEdit || pending) return;
+            if (!canEdit || pending || template) return;
             it.done = !it.done;         // hned ukázat, server potvrdí
             render();
             post("Toggle", { p65id: it.id, done: it.done });

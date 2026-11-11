@@ -261,6 +261,8 @@ namespace BL
 
                 _db.RunSql("UPDATE p59TaskRecurrence_Plan set p56ID_NewInstance=@p56id,p59ErrorMessage_NewInstance=null WHERE p59ID=@p59id", new { p56id =intP56ID,p59id= p59id });
 
+                _mother.p65ChecklistBL.CopyFromRecurrence(p58id, intP56ID);    //vzor check-listu z opakovaného úkolu do nového úkolu
+
                 var lisO24 = _mother.o24ReminderBL.GetList("p58", p58id);
                 if (lisO24.Count() > 0) //doplnit připomenutí úkolu ze šablony
                 {

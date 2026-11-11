@@ -24,5 +24,7 @@
         public string ComboP34 { get; set; }
         public string ComboP32 { get; set; }
         public string ComboJ27Code { get; set; }
+
+        public string ChecklistPending { get; set; }    //vzor check-listu nového (neuloženého) opakovaného úkolu: JSON pole textů, viz Views/Shared/_p65Checklist.cshtml
     }
 }

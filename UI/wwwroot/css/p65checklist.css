@@ -11,6 +11,11 @@
 .chk-alldone .chk-bar > span { background: #198754; }
 .chk-empty .chk-bar { display: none; }
 
+/* vzor check-listu v opakovaném úkolu: položky se neodškrtávají, postup se neukazuje */
+.chk-note { margin: -2px 0 8px; font-size: .8rem; color: #6c757d; }
+.chk-template .chk-bar { display: none; }
+.chk-template .chk-box:disabled { opacity: .45; }
+
 .chk-list { list-style: none; margin: 0; padding: 0; }
 .chk-item { display: flex; align-items: flex-start; gap: 6px; padding: 4px 2px; border-radius: 6px; }
 .chk-item:hover { background: #f6f8fa; }

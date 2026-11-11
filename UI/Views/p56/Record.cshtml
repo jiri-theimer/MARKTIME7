@@ -113,7 +113,7 @@
     @if (_f.p65ChecklistBL.IsAvailable())
     {
         //check-list: u uloženého úkolu se ukládá průběžně sám, u nového spolu s úkolem
-        var _chk = new UI.Models.p65ChecklistViewModel() { p56ID = Model.rec_pid, CanEdit = true, PendingJson = Model.ChecklistPending, BoxCss = "rf-card" };
+        var _chk = new UI.Models.p65ChecklistViewModel() { Prefix = "p56", RecPid = Model.rec_pid, CanEdit = true, PendingJson = Model.ChecklistPending, BoxCss = "rf-card" };
         if (Model.rec_pid > 0)
         {
             _chk.CanEdit = _f.p65ChecklistBL.CanEdit(Model.rec_pid);

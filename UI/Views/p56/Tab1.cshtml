@@ -77,7 +77,7 @@
 @if (_f.p65ChecklistBL.IsAvailable())
 {
     //check-list: odškrtávat smí každý, kdo má v úkolu nějakou roli; ostatní ho vidí jen ke čtení, a to pokud má položky
-    var _chk = new UI.Models.p65ChecklistViewModel() { p56ID = Model.pid, CanEdit = _f.p65ChecklistBL.CanEdit(Model.pid, Model.Rec), Items = _f.p65ChecklistBL.GetList(Model.pid).ToList(), BoxCss = "card recpagebox400 chk-recpage" };
+    var _chk = new UI.Models.p65ChecklistViewModel() { Prefix = "p56", RecPid = Model.pid, CanEdit = _f.p65ChecklistBL.CanEdit(Model.pid, Model.Rec), Items = _f.p65ChecklistBL.GetList(Model.pid).ToList(), BoxCss = "card recpagebox400 chk-recpage" };
     if (_chk.CanEdit || _chk.Items.Count > 0)
     {
         @await Html.PartialAsync("~/Views/Shared/_p65Checklist.cshtml", _chk)

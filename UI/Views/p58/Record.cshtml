@@ -42,6 +42,7 @@
 {
     <link rel="stylesheet" href="~/css/recordform.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/p58record.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/p65checklist.css" asp-append-version="true" />
     @if (Model.Notepad.SelectedX04ID > 0)
     {
         <link href="~/lib/froala-editor/css/froala_editor.pkgd.min.css" rel="stylesheet" type="text/css" />
@@ -168,6 +169,18 @@
         </div>
 
         @Html.EditorFor(m => m.roles, "~/Views/Shared/_RoleAssign.cshtml")
+
+        @if (_f.p65ChecklistBL.IsAvailable())
+        {
+            //vzor check-listu: položky dostane každý úkol vygenerovaný z tohoto opakovaného úkolu
+            var _chk = new UI.Models.p65ChecklistViewModel() { Prefix = "p58", RecPid = Model.rec_pid, CanEdit = true, PendingJson = Model.ChecklistPending, BoxCss = "rf-card" };
+            if (Model.rec_pid > 0)
+            {
+                _chk.CanEdit = _f.p65ChecklistBL.CanEdit(Model.rec_pid, null, "p58");
+                _chk.Items = _f.p65ChecklistBL.GetList(Model.rec_pid, "p58").ToList();
+            }
+            @await Html.PartialAsync("~/Views/Shared/_p65Checklist.cshtml", _chk)
+        }
 
         <div class="rf-extras">
             @Html.EditorFor(m => m.reminder, "~/Views/Shared/_Reminder.cshtml")
