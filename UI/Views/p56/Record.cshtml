@@ -29,6 +29,7 @@
 @section header_content
 {
     <link rel="stylesheet" href="~/css/recordform.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/p65checklist.css" asp-append-version="true" />
 
     @if (Model.Notepad.SelectedX04ID > 0)
     {
@@ -109,6 +110,17 @@
 
     @Html.EditorFor(m => m.roles, "~/Views/Shared/_RoleAssign.cshtml")
 
+    @if (_f.p65ChecklistBL.IsAvailable())
+    {
+        //check-list: u uloženého úkolu se ukládá průběžně sám, u nového spolu s úkolem
+        var _chk = new UI.Models.p65ChecklistViewModel() { p56ID = Model.rec_pid, CanEdit = true, PendingJson = Model.ChecklistPending, BoxCss = "rf-card" };
+        if (Model.rec_pid > 0)
+        {
+            _chk.CanEdit = _f.p65ChecklistBL.CanEdit(Model.rec_pid);
+            _chk.Items = _f.p65ChecklistBL.GetList(Model.rec_pid).ToList();
+        }
+        @await Html.PartialAsync("~/Views/Shared/_p65Checklist.cshtml", _chk)
+    }
 
     @if (Model.ff1.VisibleInputsCount > 0)
     {

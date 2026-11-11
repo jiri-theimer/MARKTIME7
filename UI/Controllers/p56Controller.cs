@@ -438,6 +438,12 @@ namespace UI.Controllers
             if (isclone)
             {
                 v.MakeClone();
+                if (pid > 0 && Factory.p65ChecklistBL.IsAvailable())
+                {
+                    //kopie úkolu převezme položky check-listu, neodškrtnuté
+                    v.ChecklistPending = System.Text.Json.JsonSerializer.Serialize(Factory.p65ChecklistBL.GetList(pid).Select(p => p.p65Name).ToList());
+                }
+                
 
             }
 
@@ -564,6 +570,20 @@ namespace UI.Controllers
                     if (v.UploadGuid != null)
                     {
                         Factory.o27AttachmentBL.SaveDropzoneFromTemp(v.UploadGuid, "p56", c.pid);
+                    }
+
+                    if (v.rec_pid == 0 && !string.IsNullOrEmpty(v.ChecklistPending) && Factory.p65ChecklistBL.IsAvailable())
+                    {
+                        //check-list zadaný u nového úkolu (u uloženého úkolu se položky ukládají průběžně samy)
+                        try
+                        {
+                            var names = System.Text.Json.JsonSerializer.Deserialize<List<string>>(v.ChecklistPending);
+                            if (names != null && names.Count > 0) Factory.p65ChecklistBL.Add(c.pid, names);
+                        }
+                        catch (System.Text.Json.JsonException)
+                        {
+                            //nečitelný vstup: úkol je uložený, check-list zůstane prázdný
+                        }
                     }
 
                     v.SetJavascript_CallOnLoad(c.pid);

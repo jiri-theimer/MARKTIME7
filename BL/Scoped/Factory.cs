@@ -100,6 +100,7 @@ namespace BL
         private Ip15LocationBL _p15;
         private Ip51PriceListBL _p51;
         private Ip56TaskBL _p56;
+        private Ip65ChecklistBL _p65;
         private Ip57TaskTypeBL _p57;
         private Ip58TaskRecurrenceBL _p58;
         private Ip75InvoiceRecurrenceBL _p75;
@@ -786,6 +787,14 @@ namespace BL
             {
                 if (_p56 == null) _p56 = new p56TaskBL(this);
                 return _p56;
+            }
+        }
+        public Ip65ChecklistBL p65ChecklistBL   //check-list úkolu (tabulka p65Checklist)
+        {
+            get
+            {
+                if (_p65 == null) _p65 = new p65ChecklistBL(this);
+                return _p65;
             }
         }
         public Ip58TaskRecurrenceBL p58TaskRecurrenceBL

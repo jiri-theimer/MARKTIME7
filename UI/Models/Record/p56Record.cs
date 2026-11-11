@@ -26,6 +26,8 @@
         
         public string UploadGuid { get; set; }
 
+        public string ChecklistPending { get; set; }    //check-list nového (neuloženého) úkolu: JSON pole textů, viz Views/Shared/_p65Checklist.cshtml
+
         
     }
 }

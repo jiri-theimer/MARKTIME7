@@ -1,0 +1,49 @@
+﻿/* Check-list úkolu (Views/Shared/_p65Checklist.cshtml, js/p65checklist.js) – třídy chk-*.
+   Obal (karta) dodává místo použití: .rf-card v kartě úkolu, .card.recpagebox400 na stránce záznamu. */
+
+.chk-head { display: flex; align-items: center; gap: 6px; margin: 0 0 6px; font-size: 1rem; font-weight: 600; color: #2b3138; }
+.chk-head .material-icons-outlined-nosize { font-size: 20px; color: var(--pozadi, #0b4b92); }
+.chk-count { margin-left: auto; font-size: .85rem; font-weight: 500; color: #59636e; font-variant-numeric: tabular-nums; }
+.chk-alldone .chk-count { color: #17663a; }
+
+.chk-bar { height: 4px; margin-bottom: 8px; border-radius: 2px; background: #eef0f2; overflow: hidden; }
+.chk-bar > span { display: block; height: 100%; width: 0; border-radius: 2px; background: var(--pozadi, #0b4b92); transition: width .2s ease; }
+.chk-alldone .chk-bar > span { background: #198754; }
+.chk-empty .chk-bar { display: none; }
+
+.chk-list { list-style: none; margin: 0; padding: 0; }
+.chk-item { display: flex; align-items: flex-start; gap: 6px; padding: 4px 2px; border-radius: 6px; }
+.chk-item:hover { background: #f6f8fa; }
+.chk-dragging { opacity: .45; background: #eef1f4; }
+
+.chk-grip { flex: 0 0 auto; margin-top: 1px; font-size: 18px; color: #b6bdc5; cursor: grab; visibility: hidden; user-select: none; }
+.chk-item:hover .chk-grip { visibility: visible; }
+
+.chk-box { flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; margin-top: 0; padding: 0; border: 1.5px solid #9aa4af; border-radius: 5px; background: #fff; color: #fff; cursor: pointer; transition: background-color .12s ease, border-color .12s ease; }
+.chk-box:hover:not(:disabled) { border-color: var(--pozadi, #0b4b92); }
+.chk-box:focus-visible { outline: 2px solid var(--oznaceno, #4169e1); outline-offset: 1px; }
+.chk-box:disabled { cursor: default; opacity: .7; }
+.chk-box .material-icons-outlined-nosize { font-size: 16px; line-height: 1; }
+.chk-done .chk-box { background: var(--pozadi, #0b4b92); border-color: var(--pozadi, #0b4b92); }
+
+.chk-name { flex: 1 1 auto; min-width: 0; padding: 0 4px; border-radius: 4px; font-size: .9rem; line-height: 20px; color: #2b3138; overflow-wrap: anywhere; }
+.chk-done .chk-name { color: #8a939c; text-decoration: line-through; }
+.chk-item .chk-name[tabindex] { cursor: text; }
+.chk-item .chk-name[tabindex]:focus-visible { outline: 2px solid var(--oznaceno, #4169e1); }
+.chk-edit { flex: 1 1 auto; min-width: 0; }
+
+.chk-del { flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; padding: 0; border: 0; border-radius: 5px; background: transparent; color: #8a939c; cursor: pointer; visibility: hidden; }
+.chk-item:hover .chk-del, .chk-del:focus-visible { visibility: visible; }
+.chk-del:hover { background: #fde8e8; color: #b02a37; }
+.chk-del .material-icons-outlined-nosize { font-size: 16px; line-height: 1; }
+
+.chk-add { margin-top: 6px; }
+.chk-busy .chk-count::after { content: " …"; }
+
+/* stránka záznamu: box v řadě plovoucích boxů */
+.chk-recpage { min-height: 0 !important; }
+.chk-recpage > .card-body { padding: 10px 12px; }
+
+@media (hover: none) {
+    .chk-grip, .chk-del { visibility: visible; }
+}

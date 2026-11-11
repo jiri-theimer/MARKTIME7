@@ -39,6 +39,7 @@
 
 @section header_content {
     <link rel="stylesheet" href="/css/htmltable.css" />
+    <link rel="stylesheet" href="~/css/p65checklist.css" asp-append-version="true" />
 
     <link rel="stylesheet" href="~/lib/dropzone/dropzone.css" asp-append-version="true" />
     <script src="~/lib/dropzone/dropzone-min.js" asp-append-version="true"></script>
@@ -71,6 +72,16 @@
         </div>
     </div>
 
+}
+
+@if (_f.p65ChecklistBL.IsAvailable())
+{
+    //check-list: odškrtávat smí každý, kdo má v úkolu nějakou roli; ostatní ho vidí jen ke čtení, a to pokud má položky
+    var _chk = new UI.Models.p65ChecklistViewModel() { p56ID = Model.pid, CanEdit = _f.p65ChecklistBL.CanEdit(Model.pid, Model.Rec), Items = _f.p65ChecklistBL.GetList(Model.pid).ToList(), BoxCss = "card recpagebox400 chk-recpage" };
+    if (_chk.CanEdit || _chk.Items.Count > 0)
+    {
+        @await Html.PartialAsync("~/Views/Shared/_p65Checklist.cshtml", _chk)
+    }
 }
 
 @Html.Raw("<div id='divTree1Container' style='float: left;vertical-align: top;border:none;margin-left:4px;margin-top:4px;'>")

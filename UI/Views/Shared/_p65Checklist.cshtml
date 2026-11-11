@@ -1,0 +1,62 @@
+﻿@model UI.Models.p65ChecklistViewModel
+@inject BL.Factory _f
+
+@*
+    Check-list úkolu (tabulka p65Checklist). Chování: wwwroot/js/p65checklist.js, vzhled: wwwroot/css/p65checklist.css.
+    Volající view si přidá css do sekce header_content. Na stránce smí být jen jednou.
+*@
+@{
+    var _chkItems = (Model.Items ?? new List<BO.p65Checklist>()).Select(p => new
+    {
+        id = p.pid,
+        name = p.p65Name,
+        done = p.IsDone,
+        by = p.DoneBy,
+        at = p.DateDone == null ? null : Convert.ToDateTime(p.DateDone).ToString("dd.MM.yyyy HH:mm")
+    });
+
+    //položky neuloženého úkolu: JSON pole textů; nečitelný vstup se bere jako prázdný
+    var _chkPending = new List<string>();
+    if (Model.p56ID == 0 && !string.IsNullOrEmpty(Model.PendingJson))
+    {
+        try { _chkPending = System.Text.Json.JsonSerializer.Deserialize<List<string>>(Model.PendingJson) ?? new List<string>(); } catch { }
+    }
+
+    var _chkCfg = new
+    {
+        id = "chkBox",
+        p56id = Model.p56ID,
+        canEdit = Model.CanEdit,
+        url = Url.Content("~/p65/"),
+        maxLength = 500,
+        pendingField = Model.p56ID == 0 ? "chkPending" : null,
+        pendingNames = _chkPending,
+        items = _chkItems,
+        txt = new
+        {
+            placeholder = _f.tra("Přidat položku a potvrdit klávesou Enter"),
+            remove = _f.tra("Odstranit"),
+            move = _f.tra("Přetažením změníte pořadí"),
+            doneBy = _f.tra("Hotovo"),
+            failed = _f.tra("Změnu se nepodařilo uložit.")
+        }
+    };
+}
+
+<section class="@Model.BoxCss chk" id="chkBox">
+    @Html.Raw(Model.BoxCss != null && Model.BoxCss.Contains("card ") ? "<div class='card-body'>" : "")
+    <h2 class="chk-head"><span class="material-icons-outlined-nosize">checklist</span>@_f.tra("Check-list")<span class="chk-count"></span></h2>
+    <div class="chk-bar"><span></span></div>
+    <ul class="chk-list"></ul>
+    <div class="chk-add"></div>
+    @if (Model.p56ID == 0)
+    {
+        <input type="hidden" id="chkPending" name="@Model.PendingFieldName" value="@System.Text.Json.JsonSerializer.Serialize(_chkPending)" />
+    }
+    @Html.Raw(Model.BoxCss != null && Model.BoxCss.Contains("card ") ? "</div>" : "")
+</section>
+
+<script src="~/js/p65checklist.js" asp-append-version="true"></script>
+<script type="text/javascript">
+    MtChecklist.init(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(_chkCfg)));
+</script>
