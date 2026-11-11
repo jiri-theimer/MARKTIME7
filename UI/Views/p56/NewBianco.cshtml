@@ -9,7 +9,6 @@
     Model.PageTitle = _f.tra("Nový úkol");
 
     var _lisP57 = _f.p57TaskTypeBL.GetList(new BO.myQuery("p57"));
-    var _lisP55 = _f.p56TaskBL.GetList_TodoList();
     var _lisP60 = _f.p60TaskTemplateBL.GetList(new BO.myQuery("p60")).Where(p => p.p60IsPublic || p.j02ID_Owner == _f.CurrentUser.pid);
     
 
@@ -50,22 +49,6 @@ else
 
 <hr />
 
-<input type="radio" id="opgP55" name="volba" value="p55" onchange="goon(this,'todolist')">
-<label for="opgP55"><span class="material-icons-outlined-btn">control_point_duplicate</span>Todo-list</label>
-@if (_lisP55.Count() > 0)
-{
-    <hr />
-    <strong>Zkopírovat z uloženého Todo-listu:</strong>
-}
-@foreach(var c in _lisP55)
-{
-    <br />
-    <input type="radio" id="opgP55_@c.pid" name="volba" value="p55_@c.pid" onchange="goon(this,'p55')">
-    <label for="opgP55_@c.pid">@c.p55Name</label>
-}
-
-<hr />
-
 <input type="radio" id="opgP58" name="volba" value="p58" onchange="goon(this,'p58')">
 <label for="opgP58"><span class="material-icons-outlined-btn">published_with_changes</span>@_f.tra("Opakovaný úkol")</label>
 
@@ -90,12 +73,6 @@ else
         }
         if (prefix == "p60") {
             url = "/p56/Record?pid=0&p60id=" + val;
-        }
-        if (prefix == "todolist") {
-            url = "/p56/TodoList";
-        }
-        if (prefix == "p55") {
-            url = "/p56/TodoList?p55id="+val.replace("p55_","");
         }
         if (prefix == "p58") {
             url = "/p58/Record";

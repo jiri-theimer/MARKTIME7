@@ -305,10 +305,6 @@ namespace UI.Code
                     
                     _tabs.Add(AddTab("<span class='material-icons-outlined-btn'>timeline</span>" + "Timeline", "b05", "/Record/TabB05?prefix=p56", false, null, _f.tra("Poznámky, workflow a další události záznamu v čase")));
                     break;
-                case "p55":
-                    _tabs.Add(AddTab("Todo-list", "tab1", "/p55/Tab1?pid=" + AppendPid2Url(pid), false));
-                    _tabs.Add(AddTab("Úkoly", "p56Task", "/TheGrid/SlaveView?prefix=p56", true));
-                    break;
                 case "p58":
                     var cpp58 = _f.p58TaskRecurrenceBL.LoadSumRow(pid);
                     _tabs.Add(AddTab("Opakovaný úkol", "tab1", "/p58/Tab1?pid=" + AppendPid2Url(pid), false));

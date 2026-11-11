@@ -78,7 +78,6 @@ namespace UI.Controllers.p56oper
                     rec.pid = 0;
 
                     rec.p56Name = c.p56Name; rec.p56PlanFrom = c.p56PlanFrom; rec.p56PlanUntil = c.p56PlanUntil; rec.pid = 0; rec.ValidFrom = DateTime.Now; rec.ValidUntil = new DateTime(3000, 1, 1); rec.p41ID = v.ProjectCombo.SelectedP41ID; rec.p56Plan_Hours = c.p56Plan_Hours;
-                    rec.p55ID = 0;
                     int intNewPID=Factory.p56TaskBL.Save(rec, null, Factory.x67EntityRoleBL.GetList_X69("p56", c.pid).ToList());
 
                     if (intNewPID == 0)

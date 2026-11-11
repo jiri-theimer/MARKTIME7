@@ -99,12 +99,10 @@ namespace BL.Singleton
             if (_app.HostingMode == HostingModeEnum.TotalCloud)
             {
                 AE("b05Workflow_History", "Poznámky/Historie", "Poznámky/Historie", "b05Workflow_History a INNER JOIN j02User j02x ON a.j02ID_Sys=j02x.j02ID INNER JOIN j04UserRole j04x ON j02x.j04ID=j04x.j04ID INNER JOIN x67EntityRole x67x ON j04x.x67ID=x67x.x67ID AND a.b05IsManualStep=1 LEFT OUTER JOIN b06WorkflowStep b06x ON a.b06ID=b06x.b06ID LEFT OUTER JOIN b02WorkflowStatus b02to ON a.b02ID_To=b02to.b02ID LEFT OUTER JOIN b02WorkflowStatus b02from ON a.b02ID_From=b02from.b02ID", "a.b05ID DESC");
-                AE("p55TodoList", "Todo-list", "Todo-list", "p55TodoList a INNER JOIN j02User j02x ON a.j02ID_Owner=j02x.j02ID INNER JOIN j04UserRole j04x ON j02x.j04ID=j04x.j04ID INNER JOIN x67EntityRole x67x ON j04x.x67ID=x67x.x67ID", "a.p55ID DESC");
             }
             else
             {
                 AE("b05Workflow_History", "Poznámky/Historie", "Poznámky/Historie", "b05Workflow_History a INNER JOIN j02User j02x ON a.j02ID_Sys=j02x.j02ID AND a.b05IsManualStep=1 LEFT OUTER JOIN b06WorkflowStep b06x ON a.b06ID=b06x.b06ID LEFT OUTER JOIN b02WorkflowStatus b02to ON a.b02ID_To=b02to.b02ID LEFT OUTER JOIN b02WorkflowStatus b02from ON a.b02ID_From=b02from.b02ID", "a.b05ID DESC");                
-                AE("p55TodoList", "Todo-list", "Todo-list", "p55TodoList a", "a.p55ID DESC");
             }
             
             ByPrefix("b05").IsWithoutValidity = true;

@@ -22,7 +22,6 @@ namespace BL
             oc =AFDATE("p56PlanFrom", "Plánované zahájení");oc.DefaultColumnFlag = gdc1;oc.SqlExplicitGroupBy = "a.p56PlanFrom";
             AFNUM0("p56Ordinary", "#");
 
-            oc = AF("ToDoList", "Todo-list", "p56_p55x.p55Name"); oc.RelSqlInCol = "LEFT OUTER JOIN p55TodoList p56_p55x ON a.p55ID=p56_p55x.p55ID";oc.SqlExplicitGroupBy = "a.p55ID";oc.NotShowRelInHeader = true;
             oc = AF("Recurrence", "Opakovaný úkol", "p58.p58Name"); oc.RelSqlInCol = "LEFT OUTER JOIN p59TaskRecurrence_Plan p59 ON a.p56ID=p59.p56ID_NewInstance LEFT OUTER JOIN p58TaskRecurrence p58 ON p59.p58ID=p58.p58ID"; oc.NotShowRelInHeader = true;
 
             //oc = AF("BarvaUkolu", "Barva", "'<div style=\"background-color:'+b02x.b02Color+';\">...</div>'"); oc.FixedWidth = 40;

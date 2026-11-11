@@ -23,7 +23,6 @@ namespace BO
         public int p41ID { get; set; }
         public int b02ID { get; set; }
         public int j02ID_Owner { get; set; }
-        public int p55ID { get; set; }
         public int p15ID { get; set; }
         public string p56Name { get; set; }        
         public string p56Code { get; set; }
@@ -52,7 +51,6 @@ namespace BO
         public string Owner { get; }
        
         public string p57Name { get; }
-        public string p55Name { get; }
         public int b05RecordPid { get; }
         public string b05RecordEntity { get; }
 

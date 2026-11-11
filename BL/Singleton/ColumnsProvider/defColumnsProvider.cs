@@ -200,14 +200,6 @@ namespace BL
             AFNUM0("p57Ordinary", "#");
             AppendTimestamp();
 
-            this.EntityName = "p55TodoList";
-            AA("p55Name", "Todo-list", gdc1, null, "string", false, true);
-            AA("p55UserInsert", "Založil", gdc1, null, "string", false, true);
-            AA("p55DateInsert", "Založeno", gdc1, null, "datetime", false, true);
-            string strRelSql = "LEFT OUTER JOIN (select p55ID,count(*) as Pocet,sum(case when GETDATE() between p56ValidFrom AND p56ValidUntil then 1 end) as PocetOtevrenych FROM p56Task GROUP BY p55ID) xxa ON a.p55ID=xxa.p55ID";
-            oc = AF("PocetUkolu", "Počet úkolů", "xxa.Pocet", "num0", true); oc.RelSqlInCol = strRelSql;
-            oc = AF("PocetOtevrenychUkolu", "Otevřené úkoly", "xxa.PocetOtevrenych", "num0", true); oc.RelSqlInCol = strRelSql;
-
             this.EntityName = "o21MilestoneType";
             AA("o21Name", "Název", gdc1, null, "string", false, true);
             AFNUM0("o21Ordinary", "#");

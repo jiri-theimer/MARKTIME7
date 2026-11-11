@@ -10,7 +10,6 @@
         public string ComboP57 { get; set; }
         
         public string ComboOwner { get; set; }
-        public string ComboP55 { get; set; }
         public string ComboP15 { get; set; }
         public BO.p57TaskType RecP57 { get; set; }
 

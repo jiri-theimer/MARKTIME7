@@ -322,7 +322,6 @@ namespace BL
                     of.SqlWrapper = "EXISTS(select xb.p56ID FROM x69EntityRole_Assign xa INNER JOIN p56Task xb ON xa.x69RecordPid=xb.p56ID WHERE #filter# AND xb.p56ID=a.p56ID)";
 
                     AF("p56Task", "VygenerovanoRobotem", "EXISTS(select 1 FROM p59TaskRecurrence_Plan WHERE p56ID_NewInstance=a.p56ID)", "Vygenerováno robotem (opakovaný úkol)", null, null, "bool1x");
-                    AF("p56Task", "VTodolist", "a.p55ID IS NOT NULL", "V rámci Todo-list", null, null, "bool1x");
 
                     AF("p56Task", "MaReminder", "EXISTS (SELECT 1 FROM o24Reminder WHERE o24RecordPid=a.p56ID AND o24RecordEntity='p56')", "Vyplněno upozornění", null, null, "bool1x");
                     break;

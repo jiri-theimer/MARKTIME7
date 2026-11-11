@@ -176,7 +176,6 @@ namespace UI.Controllers
                 c.p60Notepad = v.Notepad.HtmlContent;
                 c.x04ID = v.Notepad.SelectedX04ID;
                 c.p60IsStopNotify = v.Rec.p60IsStopNotify;
-                c.p55ID = v.Rec.p55ID;
                 c.p15ID = v.Rec.p15ID;
                 c.p60Ordinary = v.Rec.p60Ordinary;
 

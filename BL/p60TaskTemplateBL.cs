@@ -54,7 +54,6 @@ namespace BL
             p.AddInt("pid", rec.pid);
             p.AddInt("p57ID", rec.p57ID, true);
             p.AddInt("p41ID", rec.p41ID, true);
-            p.AddInt("p55ID", rec.p55ID, true);
             p.AddInt("p15ID", rec.p15ID, true);
             if (rec.j02ID_Owner == 0) rec.j02ID_Owner = _mother.CurrentUser.pid;
             p.AddInt("j02ID_Owner", rec.j02ID_Owner, true);

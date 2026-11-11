@@ -933,7 +933,6 @@ namespace BO
                 case "j02":
                 case "p11":
                 case "j79":
-                case "p55":
                 case "j05":
                 case "j13":
                 case "j92":

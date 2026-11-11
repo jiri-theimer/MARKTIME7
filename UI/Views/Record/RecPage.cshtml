@@ -94,12 +94,6 @@
         <div class="nonmobile">
             <a class="btn descreet_link_over_grid" href="javascript:_edit('@(Model.prefix)',0,null,'@(Model.rez)')" title="@_f.tra("Nový")"><span class="material-icons-outlined-btn menu_new_record">add_circle_outline</span></a>
         </div>
-        @if (Model.prefix == "p56")
-        {
-            <div>
-                <a class="btn descreet_link_over_grid" href="javascript:_window_open('/p56/TodoList',3)" title="Todo list"><span class="material-icons-outlined-btn menu_new_record">control_point_duplicate</span></a>
-            </div>
-        }
     }
 
     @if (_f.CurrentUser.IsApprovingPerson && (Model.prefix == "p28" || Model.prefix == "p41" || Model.prefix == "le5" || Model.prefix == "le4" || Model.prefix == "le3" || Model.prefix == "p56" || Model.prefix == "j02"))

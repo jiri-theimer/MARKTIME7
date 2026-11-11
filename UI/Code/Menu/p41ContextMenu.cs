@@ -101,7 +101,6 @@ namespace UI.Menu
                     }
                 }
                 
-                AMI("Todo List", $"javascript: _window_open('/p56/TodoList?wrk_record_prefix=p41&wrk_record_pid={pid}', 3)", "task", "p56");
                 AMI("Opakovaný úkol", $"javascript: _window_open('/p58/Record?pid=0&wrk_record_prefix=p41&p41id={pid}')", "published_with_changes", "p56");
                 DIV(null, "p56");
                 AMI("Termín/Událost", $"javascript: _window_open('/o22/Record?wrk_record_prefix=p41&wrk_record_pid={pid}', 3)", "event", "p56");

@@ -129,9 +129,6 @@
 
     @if (Model.rec_pid == 0)
     {
-        <a id="cmdP55" class="btn btn-light nonmobile" style="margin-right:10px;" href="/p56/TodoList?wrk_record_prefix=p41&wrk_record_pid=@Model.ProjectCombo.SelectedP41ID">
-            <span class="material-icons-outlined-btn">control_point_duplicate</span>@_f.tra("Změnit na Todo-list")
-        </a>
         <a id="cmdP58" class="btn btn-light nonmobile" style="margin-right:10px;" href="/p58/Record?p41id=@Model.ProjectCombo.SelectedP41ID">
             <span class="material-icons-outlined-btn">published_with_changes</span>@_f.tra("Změnit na opakovaný úkol")
         </a>
@@ -213,12 +210,8 @@
                 <div class="rf-value rf-w-half"><mycombo entity="j02User" asp-for="Rec.j02ID_Owner" selectedtext="@Model.ComboOwner" view-flag="2"></mycombo></div>
             </div>
             <div class="rf-row">
-                <label for="cmdComboRec_p55ID" class="rf-label">@_f.tra("Todo-list")</label>
-                <div class="rf-value rf-inline">
-                    <div class="rf-w-half flex-grow-1"><mycombo entity="p55TodoList" asp-for="Rec.p55ID" selectedtext="@Model.ComboP55" view-flag="2"></mycombo></div>
-                    <span class="rf-label">#@_f.tra("Pořadí")</span>
-                    <div class="rf-w-ord"><mynumber asp-for="Rec.p56Ordinary" class="record_ordinary" decimal-digits="0"></mynumber></div>
-                </div>
+                <span class="rf-label">#@_f.tra("Pořadí")</span>
+                <div class="rf-value rf-w-ord"><mynumber asp-for="Rec.p56Ordinary" class="record_ordinary" decimal-digits="0"></mynumber></div>
             </div>
             <div class="rf-row">
                 <span class="rf-label">@_f.tra("Kód úkolu")</span>
@@ -272,9 +265,6 @@
     $(document).ready(function () {
 
 
-        if (document.getElementById("cmdP55")) {
-            document.getElementById("toolbarRezerva").appendChild(document.getElementById("cmdP55"));
-        }
         if (document.getElementById("cmdP58")) {
             document.getElementById("toolbarRezerva").appendChild(document.getElementById("cmdP58"));
         }

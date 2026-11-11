@@ -10,11 +10,7 @@ namespace BL
         public int Save(BO.p56Task rec, List<BO.FreeFieldInput> lisFFI, List<BO.x69EntityRole_Assign> lisX69);
         public BO.p56TaskSum LoadSumRow(int pid);
         public BO.p56RecDisposition InhaleRecDisposition(int pid, BO.p56Task rec = null);
-        public int CreateToDoList(string p55name, List<int> p56ids);
-        public BO.p55TodoList LoadToDoList(int p55id);
-        public int RenameToDoList(int p55id, string newname);
         public IEnumerable<BO.p56TaskDayline> GetList_Dayline(BO.myQueryP56 mq, int intX67ID);
-        public IEnumerable<BO.p55TodoList> GetList_TodoList();
 
 
     }
@@ -32,7 +28,7 @@ namespace BL
             sb(",p28client.p28Name as ProjectClient,p57x.p57Name,isnull(p41.p41NameShort,p41.p41Name) as p41Name,p41.p41Code,j02owner.j02LastName+' '+j02owner.j02FirstName as Owner");
             sb("," + _db.GetSQL1_Ocas("p56"));
             sb(",a.b02ID,b02.b02Name,b02.b02Color,p57x.b01ID,a.p15ID");
-            sb(",a.p56Notepad,a.x04ID,a.p56PlanFlag,a.p56OutlookStatus,a.p56IsStopNotify,b05.b05RecordPid,b05.b05RecordEntity,a.p55ID,p55.p55Name,p57x.x38ID,a.p60ID");
+            sb(",a.p56Notepad,a.x04ID,a.p56PlanFlag,a.p56OutlookStatus,a.p56IsStopNotify,b05.b05RecordPid,b05.b05RecordEntity,p57x.x38ID,a.p60ID");
             if (strAppendColumns != null)
             {
                 sb(strAppendColumns);
@@ -46,7 +42,7 @@ namespace BL
                 sb(" FROM p56Task a");
             }
 
-            sb(" INNER JOIN p57TaskType p57x ON a.p57ID=p57x.p57ID LEFT OUTER JOIN p41Project p41 ON a.p41ID=p41.p41ID LEFT OUTER JOIN p55TodoList p55 ON a.p55ID=p55.p55ID");
+            sb(" INNER JOIN p57TaskType p57x ON a.p57ID=p57x.p57ID LEFT OUTER JOIN p41Project p41 ON a.p41ID=p41.p41ID");
             sb(" LEFT OUTER JOIN p28Contact p28client ON p41.p28ID_Client=p28client.p28ID");
             sb(" LEFT OUTER JOIN b02WorkflowStatus b02 ON a.b02ID=b02.b02ID");
             sb(" LEFT OUTER JOIN j02User j02owner ON a.j02ID_Owner=j02owner.j02ID");
@@ -101,7 +97,6 @@ namespace BL
                 p.AddInt("pid", rec.pid);
                 p.AddInt("p57ID", rec.p57ID, true);
                 p.AddInt("p41ID", rec.p41ID, true);
-                p.AddInt("p55ID", rec.p55ID, true);
                 p.AddInt("p15ID", rec.p15ID, true);
                 if (rec.j02ID_Owner == 0) rec.j02ID_Owner = _mother.CurrentUser.pid;
                 p.AddInt("j02ID_Owner", rec.j02ID_Owner, true);
@@ -261,55 +256,6 @@ namespace BL
 
 
             return c;
-        }
-
-        public int CreateToDoList(string p55name, List<int> p56ids)
-        {
-            var p = new DL.Params4Dapper();
-            p.AddInt("pid", 0);
-            p.AddString("p55Name", p55name);
-            p.AddBool("p55IsPublic", false);
-            p.AddInt("j02ID_Owner", _mother.CurrentUser.pid, true);
-
-            var c = new BO.p55TodoList() { p55Name = p55name, j02ID_Owner = _mother.CurrentUser.pid };
-            int intP55ID = _db.SaveRecord("p55TodoList", p, c);
-
-            _db.RunSql("UPDATE p56Task set p55ID=@pid WHERE p56ID IN (" + String.Join(",", p56ids) + ")", new { pid = intP55ID });
-
-            return intP55ID;
-        }
-
-        public IEnumerable<BO.p55TodoList> GetList_TodoList()
-        {
-            if (_mother.CurrentUser.IsHostingModeTotalCloud)
-            {
-                return _db.GetList<BO.p55TodoList>($"SELECT {_db.GetSQL1_Ocas("p55")},a.* FROM p55TodoList a INNER JOIN j02User j02x ON a.j02ID_Owner=j02x.j02ID INNER JOIN j04UserRole j04x ON j02x.j04ID=j04x.j04ID INNER JOIN x67EntityRole x67x ON j04x.x67ID=x67x.x67ID WHERE x67x.x01ID=@x01id_hostingmode AND (a.p55IsPublic=1 OR j02ID_Owner=@j02id)", new { j02id = _mother.CurrentUser.pid, x01id_hostingmode = _mother.CurrentUser.x01ID });
-            }
-            else
-            {
-                return _db.GetList<BO.p55TodoList>($"SELECT {_db.GetSQL1_Ocas("p55")},a.* FROM p55TodoList a WHERE a.p55IsPublic=1 OR j02ID_Owner=@j02id", new { j02id = _mother.CurrentUser.pid });
-            }
-
-        }
-
-        public BO.p55TodoList LoadToDoList(int p55id)
-        {
-            return _db.Load<BO.p55TodoList>("SELECT " + _db.GetSQL1_Ocas("p55") + ",a.* FROM p55TodoList a WHERE a.p55ID=@pid", new { pid = p55id });
-        }
-        public int RenameToDoList(int p55id, string newname)
-        {
-            if (string.IsNullOrEmpty(newname))
-            {
-                return 0;
-            }
-            var p = new DL.Params4Dapper();
-            p.AddInt("pid", p55id);
-            p.AddString("p55Name", newname);
-
-            var c = LoadToDoList(p55id);
-            return _db.SaveRecord("p55TodoList", p, c);
-
-
         }
     }
 }

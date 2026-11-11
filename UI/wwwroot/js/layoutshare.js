@@ -513,10 +513,6 @@ function _newrec_from_grid(prefix, rez) {
         _window_open("/p56/NewBianco", 3);
         return;
     }
-    if (prefix == "p55") {
-        _window_open("/p56/TodoList", 3);
-        return;
-    }
 
     _edit(prefix, 0, null, rez);
 }
@@ -598,17 +594,6 @@ function _copy_recpage_to_clipboard(prefix, pid)
         _notify_message("Do schránky zkopírováno: " + s,"info");
 
     });
-}
-
-function _p55_record_rename(p55id) {
-    var s = prompt("Zadejte nový název.");
-    if (s.length > 0) {
-        $.post("/p56/RenameToDoList", { newname: s, p55id: p55id }, function (data) {
-            location.replace(location.href);
-
-        });
-
-    }
 }
 
 function _handle_onetab_mouseover_switch_layout(tab) {

@@ -751,7 +751,7 @@ namespace BL
                     }
                     break;
                 case "p56":
-                    s = "a__p56Task__p56Name,a__p56Task__AktualniStav,p56_p41__p41Project__KlientPlusProjekt,a__p56Task__ToDoList,a__p56Task__p56PlanFrom,a__p56Task__p56PlanUntil,a__p56Task__p56Plan_Hours,p56_vykazano__com_vykazano__Hodiny";
+                    s = "a__p56Task__p56Name,a__p56Task__AktualniStav,p56_p41__p41Project__KlientPlusProjekt,a__p56Task__p56PlanFrom,a__p56Task__p56PlanUntil,a__p56Task__p56Plan_Hours,p56_vykazano__com_vykazano__Hodiny";
                     switch (master_entity)
                     {
                         case "recpage":
@@ -762,7 +762,7 @@ namespace BL
                             break;
                         case "le5":
                         case "p41Project":
-                            s = "a__p56Task__p56Name,a__p56Task__AktualniStav,a__p56Task__ToDoList,a__p56Task__p56PlanFrom,a__p56Task__p56PlanUntil,a__p56Task__p56Plan_Hours,p56_vykazano__com_vykazano__Hodiny";
+                            s = "a__p56Task__p56Name,a__p56Task__AktualniStav,a__p56Task__p56PlanFrom,a__p56Task__p56PlanUntil,a__p56Task__p56Plan_Hours,p56_vykazano__com_vykazano__Hodiny";
                             break;
 
                     }

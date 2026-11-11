@@ -156,25 +156,6 @@
             </td>
         </tr>
     }
-    @if (Model.p55ID > 0)
-    {
-        <tr>
-            <td class="tdlab">
-                Todo-list:
-            </td>
-            <td class="tdval">
-                @if (_bolRowHover)
-                {
-                    <myval value="@Model.p55Name" hoverurl="/p55/Info?pid=@Model.p55ID"></myval>
-                }
-                else
-                {
-                    <myval value="@Model.p55Name"></myval>
-                }
-
-            </td>
-        </tr>
-    }
     @if (Model.p15ID > 0)
     {
         <tr>

@@ -12,7 +12,6 @@ namespace BO
         public int j02id { get; set; }
         public List<int> j02ids { get; set; }
         public int j02id_owner { get; set; }
-        public int p55id { get; set; }
         public int p58id { get; set; }
         public int p28id { get; set; }
         
@@ -69,10 +68,6 @@ namespace BO
             if (this.b01id > 0)
             {
                 AQ("a.p57ID IN (select p57ID FROM p57TaskType WHERE b01ID=@b01id)", "b01id", this.b01id);
-            }
-            if (this.p55id > 0)
-            {
-                AQ("a.p55ID=@p55id", "p55id", this.p55id);
             }
             if (this.p58id > 0)
             {

@@ -9,7 +9,6 @@ namespace BO
       
         public int j02ID_Owner { get; set; }
         public bool p60IsPublic { get; set; }
-        public int p55ID { get; set; }
         public int p15ID { get; set; }
         public string p60Name { get; set; }
         public string p60Notepad { get; set; }
@@ -34,7 +33,6 @@ namespace BO
         public string Owner { get; }
 
         public string p57Name { get; }
-        public string p55Name { get; }
 
       
         public string p41Name { get; }
