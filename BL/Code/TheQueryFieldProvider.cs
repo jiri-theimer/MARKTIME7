@@ -324,6 +324,8 @@ namespace BL
                     AF("p56Task", "VygenerovanoRobotem", "EXISTS(select 1 FROM p59TaskRecurrence_Plan WHERE p56ID_NewInstance=a.p56ID)", "Vygenerováno robotem (opakovaný úkol)", null, null, "bool1x");
 
                     AF("p56Task", "MaReminder", "EXISTS (SELECT 1 FROM o24Reminder WHERE o24RecordPid=a.p56ID AND o24RecordEntity='p56')", "Vyplněno upozornění", null, null, "bool1x");
+
+                    AF("p56Task", "Machecklist", "EXISTS (SELECT 1 FROM p65Checklist WHERE p56ID=a.p56ID)", "Vyplněn check-list", null, null, "bool1x");
                     break;
                 case "p84":
                     AF("p84Upominka", "p84Index", "a.p84Index", "Stupeň upomínky", null, null, "number");
