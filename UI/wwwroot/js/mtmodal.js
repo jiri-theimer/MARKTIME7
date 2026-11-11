@@ -13,10 +13,13 @@ var MtModal = (function () {
         confirmText: "Chcete zavřít okno bez uložení změn?",
         closeTitle: "Zavřít",
         toggleTitle: "Maximalizovat / obnovit",
-        onLoad: null                // voláno po načtení stránky do iframe
+        onLoad: null,               // voláno po načtení stránky do iframe
+        address: false,             // zapisovat adresu okna do adresního řádku (#w=…) – jen hlavní stránka (_Layout), viz „adresa okna“ níže
+        addressPattern: /\/[A-Za-z0-9_]+\/(record|recpage|info)\/?$/i   // která okna adresu dostanou: záznamy a info stránky
     };
     var dlg = null, win = null, head = null, title = null, fra = null;
     var drag = null, downOnBackdrop = false, closing = false, unloadTimer = null;
+    var ADDR = "#w=", addrOpened = null;        // addrOpened: adresa, se kterou bylo okno otevřeno (null = okno adresu nemá)
 
     function $id(id) { return document.getElementById(id); }
 
@@ -48,6 +51,7 @@ var MtModal = (function () {
 
         fra.addEventListener("load", function () {
             dlg.classList.remove("mtm-loading");
+            addressOnFrameLoad();
             if (typeof cfg.onLoad === "function") { try { cfg.onLoad(); } catch (e) { } }
         });
 
@@ -114,6 +118,8 @@ var MtModal = (function () {
             if (unloadTimer) { clearTimeout(unloadTimer); unloadTimer = null; }
             dlg.classList.add("mtm-loading");
             fra.src = url;
+            addrOpened = addressable(url);
+            if (addrOpened) { addressSet(addrOpened); } else { addressClear(); }
         }
         if (!dlg.open) {
             try { dlg.showModal(); } catch (e) { dlg.setAttribute("open", ""); }
@@ -144,6 +150,8 @@ var MtModal = (function () {
 
     function hide() {
         if (!dlg) return;
+        addrOpened = null;
+        addressClear();
         closing = true;
         dlg.style.display = "none";
         if (dlg.open) { try { dlg.close(); } catch (e) { dlg.removeAttribute("open"); } }
@@ -178,6 +186,78 @@ var MtModal = (function () {
         if (!dlg || cfg.nested || isPhone()) return;
         setMax(!dlg.classList.contains("mtm-max"));
         resetPosition();
+    }
+
+    // ── adresa okna ─────────────────────────────────────────────────────────────
+    // Otevřené okno se záznamem je vidět v adresním řádku jako #w=<zakódovaná adresa stránky v okně>. Odkaz tak jde zkopírovat,
+    // poslat nebo otevřít v nové záložce a po obnovení stránky (F5) se okno otevře znovu.
+    // - Jen hlavní stránka (cfg.address) a jen okna podle cfg.addressPattern; okna otevřená z okna adresu nemají.
+    // - Adresa se mění přes history.replaceState: stránka se nenačítá a v historii prohlížeče nepřibývají kroky.
+    // - Hodnota je zakódovaná (base64url), aby ji kód, který hledá text v location.href, nezaměnil za adresu stránky.
+    // - Adresa platí, jen dokud je v okně stránka, se kterou bylo otevřeno. Jakmile z ní okno odchází (uložení, postback),
+    //   adresa zmizí – volající stránka se pak může obnovit přes location.href bez #.
+    // - Stránka, která # používá sama, zůstává bez adresy okna.
+
+    // vrací adresu vhodnou do adresního řádku (cesta + parametry v rámci aplikace), jinak null
+    function addressable(url) {
+        if (!cfg.address || cfg.nested || typeof url !== "string" || !window.history || !history.replaceState) return null;
+        if (url.length > 1500 || url.charAt(0) !== "/" || url.charAt(1) === "/" || url.charAt(1) === "\\") return null;
+        var u;
+        try { u = new URL(url, window.location.origin); } catch (e) { return null; }
+        if (u.origin !== window.location.origin || u.hash !== "") return null;      // jen stránky této aplikace
+        if (!cfg.addressPattern.test(u.pathname)) return null;
+        return u.pathname + u.search;
+    }
+    function addressEncode(s) {
+        return btoa(encodeURI(s)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    }
+    function addressDecode(s) {
+        try {
+            s = s.replace(/-/g, "+").replace(/_/g, "/");
+            while (s.length % 4) s += "=";
+            return decodeURI(atob(s));
+        } catch (e) { return null; }
+    }
+    function addressOwnsHash() {
+        var h = window.location.hash;
+        return h === "" || h === "#" || h.indexOf(ADDR) === 0;
+    }
+    function addressSet(url) {
+        if (!addressOwnsHash()) return;
+        try { history.replaceState(history.state, "", window.location.pathname + window.location.search + ADDR + addressEncode(url)); } catch (e) { }
+    }
+    function addressClear() {
+        if (!cfg.address || window.location.hash.indexOf(ADDR) !== 0) return;
+        try { history.replaceState(history.state, "", window.location.pathname + window.location.search); } catch (e) { }
+    }
+    function addressOnFrameLoad() {
+        if (!cfg.address || !addrOpened) return;
+        try {
+            var w = fra.contentWindow, loc = w.location;
+            if (isOpen() && loc.pathname + loc.search === addrOpened) { addressSet(addrOpened); } else { addressClear(); }
+            w.addEventListener("pagehide", addressClear);       // okno odchází ze stránky (uložení, postback, jiný odkaz)
+        } catch (e) { addressClear(); }
+    }
+    // po načtení hlavní stránky: otevřít okno z adresy a pohlídat obnovení stránky přes hardrefresh
+    function addressFromHash() {
+        if (window.location.hash.indexOf(ADDR) !== 0) return;
+        var url = addressable(addressDecode(window.location.hash.substring(ADDR.length)) || "");
+        if (url) { open(url, "", false); } else { addressClear(); }
+    }
+    function addressStart() {
+        addressFromHash();
+        window.addEventListener("hashchange", addressFromHash);     // odkaz vložený do adresního řádku na téže stránce (replaceState tuto událost nevyvolá)
+        // hardrefresh volá stránka v okně ještě před zavřením okna a typicky dělá location.href = location.href;
+        // s # v adrese by to prohlížeč vzal jen jako skok na kotvu a stránku by neobnovil
+        if (typeof window.hardrefresh === "function" && !window.hardrefresh.mtm) {
+            var orig = window.hardrefresh;
+            window.hardrefresh = function () {
+                addrOpened = null;
+                addressClear();
+                return orig.apply(this, arguments);
+            };
+            window.hardrefresh.mtm = true;
+        }
     }
 
     // ── přesouvání ──────────────────────────────────────────────────────────────
@@ -246,6 +326,10 @@ var MtModal = (function () {
         init: function (options) {
             for (var k in (options || {})) { if (Object.prototype.hasOwnProperty.call(options, k)) cfg[k] = options[k]; }
             if (!cfg.nested) ensure();      // hlavní stránka má okno připravené hned, vnořené vzniká až při prvním otevření
+            if (cfg.address && !cfg.nested) {
+                // až po načtení celé stránky: skripty view (vlastní hardrefresh) už jsou definované
+                if (document.readyState === "loading") { document.addEventListener("DOMContentLoaded", addressStart); } else { addressStart(); }
+            }
             return this;
         },
         open: open,

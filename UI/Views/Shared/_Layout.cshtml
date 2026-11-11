@@ -724,9 +724,10 @@
         let _offcanvasMyprofileIsLoaded = false;
 
         MtModal.init({
-            confirmText: "@_f.tra("Chcete x zavřít okno bez uložení změn?")",
+            confirmText: "@_f.tra("Chcete zavřít okno bez uložení změn?")",
             closeTitle: "@_f.tra("Zavřít")",
-            toggleTitle: "@_f.tra("Maximalizovat")"
+            toggleTitle: "@_f.tra("Maximalizovat")",
+            address: true       //okno se záznamem má adresu v adresním řádku (#w=…): odkaz jde sdílet a F5 okno neztratí
         });
         var _modal = MtModal.element();     //dialog#myModalContainer
         var _modal_current_layout = null;   //používá podformulář k otevírání modálního okna
