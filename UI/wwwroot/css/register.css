@@ -4,7 +4,7 @@
 .rg-note { font-size: .8rem; color: var(--lg-muted); text-align: center; margin: 12px 0 0; }
 .rg-note .lg-link { font-size: inherit; }
 .rg-sent { color: var(--lg-text); margin: 0 0 6px; overflow-wrap: anywhere; }
-.rg-captcha { display: flex; justify-content: center; margin-bottom: 14px; min-height: 78px; }
+.rg-turnstile { margin-bottom: 14px; min-height: 65px; }
 
 .lg-hint b { color: var(--lg-text); font-weight: 600; overflow-wrap: anywhere; }
 .lg-back { font-size: .875rem; color: var(--lg-muted); }

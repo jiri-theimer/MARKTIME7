@@ -50,9 +50,9 @@
                         <label for="rgEmail">@_f.tra("Váš e-mail")</label>
                         <input type="email" id="rgEmail" name="email" class="form-control" autocomplete="email" autocapitalize="none" spellcheck="false" maxlength="100" required autofocus />
                     </div>
-                    @if (Model.RecaptchaSiteKey != null)
+                    @if (Model.TurnstileSiteKey != null)
                     {
-                        <div class="rg-captcha"><div class="g-recaptcha" data-sitekey="@Model.RecaptchaSiteKey"></div></div>
+                        <div class="rg-turnstile"><div class="cf-turnstile" data-sitekey="@Model.TurnstileSiteKey" data-theme="light" data-size="flexible" data-language="cs"></div></div>
                     }
                     <button type="submit" id="rgSend" class="btn lg-submit" data-busy="@_f.tra("Odesílám…")">@_f.tra("Pokračovat")</button>
                 </form>
@@ -78,9 +78,9 @@
 </div>
 
 @section Scripts {
-    @if (Model.RecaptchaSiteKey != null)
+    @if (Model.TurnstileSiteKey != null)
     {
-        <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+        <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     }
     <script src="~/js/register.js" asp-append-version="true"></script>
 }

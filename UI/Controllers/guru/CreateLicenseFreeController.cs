@@ -23,7 +23,7 @@ namespace UI.Controllers.guru
     /// na serveru se k němu nic neukládá.
     ///
     /// Nastavení v appsettings.json (sekce "DbCreate", vše volitelné):
-    ///   "RecaptchaSiteKey": "", "RecaptchaSecret": ""  - reCAPTCHA v2 u zadání e-mailu; bez obou klíčů se nepoužije
+    ///   "TurnstileSiteKey": "", "TurnstileSecret": ""  - Cloudflare Turnstile u zadání e-mailu; bez obou klíčů se ochrana proti robotům nepoužije
     ///   "AnonymousMaxPerHour": 10                      - kolik licencí lze celkem založit za hodinu
     ///   "AnonymousMaxPerIpPerDay": 5                   - kolik licencí lze založit z jedné IP adresy za 24 hodin
     ///   "PublicAppHost": ""                            - adresa aplikace do e-mailů a do licence, např. https://app.marktime.net; prázdné = adresa požadavku
@@ -82,13 +82,14 @@ namespace UI.Controllers.guru
             return s.TrimEnd('/');
         }
 
-        private string CaptchaSiteKey()
+        /// <summary>Veřejný klíč Cloudflare Turnstile, nebo NULL, pokud ochrana proti robotům není nastavená (chybí některý z klíčů).</summary>
+        private string TurnstileSiteKey()
         {
-            if (string.IsNullOrEmpty(Cfg["RecaptchaSecret"]) || string.IsNullOrEmpty(Cfg["RecaptchaSiteKey"]))
+            if (string.IsNullOrEmpty(Cfg["TurnstileSiteKey"]) || string.IsNullOrEmpty(Cfg["TurnstileSecret"]))
             {
                 return null;
             }
-            return Cfg["RecaptchaSiteKey"];
+            return Cfg["TurnstileSiteKey"];
         }
 
         private static string NormalizeCountry(string s)
@@ -177,30 +178,40 @@ namespace UI.Controllers.guru
             return $"<p style=\"margin:22px 0;\"><a href=\"{H(strUrl)}\" style=\"background:#1f87cf;color:#ffffff;text-decoration:none;padding:11px 22px;border-radius:8px;font-weight:600;display:inline-block;\">{H(strText)}</a></p>";
         }
 
-        private async Task<bool> VerifyCaptcha()
+        /// <summary>Ověří u Cloudflare token, který Turnstile přidal do formuláře. Bez nastavených klíčů vrací true.</summary>
+        private async Task<bool> VerifyTurnstile()
         {
-            if (CaptchaSiteKey() == null)
+            if (TurnstileSiteKey() == null)
             {
-                return true;    //captcha není nastavená
+                return true;    //ochrana proti robotům není nastavená
             }
-            string strResponse = Request.Form["g-recaptcha-response"];
-            if (string.IsNullOrEmpty(strResponse)) return false;
+            string strResponse = Request.Form["cf-turnstile-response"];
+            if (string.IsNullOrEmpty(strResponse) || strResponse.Length > 4000) return false;
 
             try
             {
                 using (var client = new HttpClient())
                 {
                     client.Timeout = TimeSpan.FromSeconds(10);
-                    var content = new FormUrlEncodedContent(new Dictionary<string, string> { { "secret", Cfg["RecaptchaSecret"] }, { "response", strResponse } });
-                    var response = await client.PostAsync("https://www.google.com/recaptcha/api/siteverify", content);
+                    var pars = new Dictionary<string, string>
+                    {
+                        { "secret", Cfg["TurnstileSecret"] },
+                        { "response", strResponse },
+                        { "remoteip", RemoteIp() }
+                    };
+                    var response = await client.PostAsync("https://challenges.cloudflare.com/turnstile/v0/siteverify", new FormUrlEncodedContent(pars));
                     string strRet = await response.Content.ReadAsStringAsync();
                     var jo = Newtonsoft.Json.Linq.JObject.Parse(strRet);
-                    return jo.Value<bool?>("success") == true;
+                    if (jo.Value<bool?>("success") == true) return true;
+
+                    //odmítnutí si zaslouží stopu: špatný tajný klíč nebo nepovolená doména by jinak zablokovaly všechny registrace potichu
+                    BO.Code.File.LogError(strRet, "anonym", "CreateLicenseFree.VerifyTurnstile");
+                    return false;
                 }
             }
             catch (Exception e)
             {
-                BO.Code.File.LogError(e.Message, "anonym", "CreateLicenseFree.VerifyCaptcha");
+                BO.Code.File.LogError(e.Message, "anonym", "CreateLicenseFree.VerifyTurnstile");
                 return false;
             }
         }
@@ -259,7 +270,7 @@ namespace UI.Controllers.guru
                 v.Message = "Aplikace není v režimu TotalCloud.";
                 return View(v);
             }
-            v.RecaptchaSiteKey = CaptchaSiteKey();
+            v.TurnstileSiteKey = TurnstileSiteKey();
             v.AllowGoogle = _f.App.AllowGoogleLogin;
             if (TempData["GRegError"] is string strErr)
             {
@@ -289,9 +300,9 @@ namespace UI.Controllers.guru
             {
                 return Json(new { ok = false, message = "Příliš mnoho pokusů. Zkuste to prosím za hodinu." });
             }
-            if (!await VerifyCaptcha())
+            if (!await VerifyTurnstile())
             {
-                return Json(new { ok = false, captcha = true, message = "Potvrďte prosím, že nejste robot." });
+                return Json(new { ok = false, captcha = true, message = "Ověření, že nejste robot, se nezdařilo. Zkuste to prosím znovu." });
             }
             TotalCloudRegisterGuard.Add(TotalCloudRegisterGuard.KindLink, strIP, strEmail);
 

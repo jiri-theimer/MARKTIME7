@@ -8,7 +8,7 @@
         public string CountryCode { get; set; } = "CZ";
 
         //Index
-        public string RecaptchaSiteKey { get; set; }
+        public string TurnstileSiteKey { get; set; }    //NULL = ochrana proti robotům není nastavená
         public bool AllowGoogle { get; set; }
 
         //Complete

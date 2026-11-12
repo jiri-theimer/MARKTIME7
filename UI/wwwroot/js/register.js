@@ -55,13 +55,20 @@
                 input.focus();
                 return;
             }
+            // Turnstile ověřuje na pozadí; dokud nedoběhne, token ve formuláři ještě není
+            var turnstileToken = formEmail.querySelector('[name="cf-turnstile-response"]');
+            if (document.querySelector(".cf-turnstile") && (!turnstileToken || !turnstileToken.value)) {
+                showError("Ještě ověřujeme, že nejste robot. Zkuste to prosím za okamžik znovu.");
+                return;
+            }
             showError(null);
             var btn = byId("rgSend");
             setBusy(btn, true);
             post(formEmail).then(function (data) {
                 setBusy(btn, false);
-                if (window.grecaptcha && document.querySelector(".g-recaptcha")) {
-                    try { window.grecaptcha.reset(); } catch (err) { /* captcha se ještě nenačetla */ }
+                // token jde použít jen jednou, pro další pokus je potřeba nový
+                if (window.turnstile && document.querySelector(".cf-turnstile")) {
+                    try { window.turnstile.reset(); } catch (err) { /* widget se ještě nenačetl */ }
                 }
                 if (!data.ok) {
                     showError(data.message);
