@@ -1,0 +1,33 @@
+﻿@model string
+@{
+    // Mezistránka přihlášení AI klienta (McpOAuthController.Authorize). Model = adresa stránky souhlasu.
+    // Prohlížeč sem přišel z webu klienta, a proto neposlal přihlašovací cookie MARKTIME (SameSite=Strict).
+    // Přechod odsud už je požadavek z MARKTIME – cookie se pošle a přihlášený uživatel se nemusí hlásit znovu.
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <meta name="referrer" content="no-referrer" />
+    <title>Připojení k MARKTIME</title>
+    <link rel="stylesheet" href="~/css/mcpconnect.css" asp-append-version="true" />
+</head>
+<body class="mc-page">
+    <div class="mc-wrap">
+        <div class="mc-card">
+            <img class="mc-logo" src="~/images/logo_default.png" alt="MARKTIME" />
+            <h1 class="mc-title">Připojení k MARKTIME</h1>
+            <p class="mc-sub">Pokračujte na stránku, kde připojení povolíte.</p>
+            <div class="mc-actions">
+                <a id="cmdContinue" class="mc-btn mc-btn-primary" href="@Model">Pokračovat</a>
+            </div>
+        </div>
+    </div>
+    <script>
+        window.location.replace(document.getElementById("cmdContinue").href);
+    </script>
+</body>
+</html>

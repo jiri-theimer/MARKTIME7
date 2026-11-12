@@ -186,6 +186,8 @@ namespace UI
 
             services.AddSignalR();  //interni chat: UI.Code.ChatHub
 
+            UI.Code.Mcp.McpSdk.AddServices(services, Configuration);    //MCP server pro AI klienty (Claude, ChatGPT): OAuth + /mcp, viz UI/Code/Mcp
+
 
 
 
@@ -239,6 +241,7 @@ namespace UI
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapHub<UI.Code.ChatHub>("/chathub");   //interni chat
+                UI.Code.Mcp.McpSdk.Map(endpoints);   //MCP server: /mcp (jen pokud appsettings Mcp:Enabled)
                 endpoints.MapControllers(); //kv li teleri reporting
 
                 //endpoints.MapAreaControllerRoute(

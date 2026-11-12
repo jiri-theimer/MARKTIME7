@@ -1,0 +1,83 @@
+﻿@model McpConsentViewModel
+@inject BL.Factory _f
+@{
+    // Souhlas uživatele s připojením AI klienta (McpConnectController.Consent). Samostatná stránka bez layoutu aplikace.
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <meta name="referrer" content="no-referrer" />
+    <title>@_f.tra("Připojení k MARKTIME")</title>
+    <link rel="stylesheet" href="~/css/mcpconnect.css" asp-append-version="true" />
+</head>
+<body class="mc-page">
+    <div class="mc-wrap">
+        <form class="mc-card" method="post" asp-controller="McpConnect" asp-action="Consent">
+            @foreach (var p in Model.Query)
+            {
+                <input type="hidden" name="@p.Key" value="@p.Value" />
+            }
+            <img class="mc-logo" src="~/images/logo_default.png" alt="MARKTIME" />
+            <h1 class="mc-title">@_f.tra("Povolit přístup k MARKTIME?")</h1>
+            <p class="mc-sub"><span class="mc-client">@Model.ClientName</span> @_f.tra("žádá o přístup k vašim datům v MARKTIME.")</p>
+
+            <dl class="mc-facts">
+                <div>
+                    <dt>@_f.tra("Klient")</dt>
+                    <dd>
+                        @if (Model.IsLocalClient)
+                        {
+                            <span class="mc-host">@_f.tra("program na tomto počítači")</span>
+                        }
+                        else
+                        {
+                            <span class="mc-host">@Model.RedirectHost</span>
+                        }
+                    </dd>
+                </div>
+                <div><dt>@_f.tra("Váš účet")</dt><dd>@Model.UserName<br /><span class="mc-muted">@Model.Login</span></dd></div>
+                @if (!string.IsNullOrEmpty(Model.LicenseName))
+                {
+                    <div><dt>@_f.tra("Databáze")</dt><dd>@Model.LicenseName</dd></div>
+                }
+            </dl>
+
+            @if (Model.IsAllowed)
+            {
+                <ul class="mc-list">
+                    <li>@_f.tra("Klient bude číst data, ke kterým máte v MARKTIME přístup: úkony, projekty, kontakty, úkoly, kalendář, vyúčtování.")</li>
+                    <li>@_f.tra("Data nemůže měnit ani mazat.")</li>
+                    <li>@_f.tra("Připojení můžete kdykoliv ukončit ve svém profilu.")</li>
+                </ul>
+                <p class="mc-note">@_f.tra("Povolte přístup jen tehdy, když jste připojení sami právě spustili ve svém AI klientovi.")</p>
+
+                <div class="mc-field">
+                    <label for="days">@_f.tra("Platnost připojení")</label>
+                    <select id="days" name="days">
+                        @foreach (int d in Model.DayChoices)
+                        {
+                            <option value="@d" selected="@(d == Model.Days)">@d @_f.tra("dní")</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="mc-actions">
+                    <button type="submit" class="mc-btn" name="decision" value="deny">@_f.tra("Zamítnout")</button>
+                    <button type="submit" class="mc-btn mc-btn-primary" name="decision" value="allow">@_f.tra("Povolit přístup")</button>
+                </div>
+            }
+            else
+            {
+                <div class="mc-alert" role="alert">@_f.tra("Vaše aplikační role nemá oprávnění „Přístup k AI agentům“. O přístup požádejte administrátora MARKTIME.")</div>
+                <div class="mc-actions">
+                    <button type="submit" class="mc-btn" name="decision" value="deny">@_f.tra("Zpět do klienta")</button>
+                </div>
+            }
+        </form>
+    </div>
+</body>
+</html>

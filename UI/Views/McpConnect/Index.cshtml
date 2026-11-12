@@ -1,0 +1,137 @@
+﻿@model McpConnectViewModel
+@inject BL.Factory _f
+@{
+    // Přehled připojených AI klientů uživatele (McpConnectController.Index) – odkaz z osobního profilu.
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    Model.PageTitle = _f.tra("Připojení AI klientů");
+    bool _done = Context.Request.Query["done"] == "1";
+    string Dt(DateTime? d) => d == null ? "–" : d.Value.ToString("dd.MM.yyyy HH:mm");
+    string Why(BL.Mcp.McpGrant g) => g.j96DateRevoked == null ? _f.tra("Vypršela platnost") : g.j96RevokeReason switch
+    {
+        "user" => _f.tra("Odpojeno uživatelem"),
+        "client" => _f.tra("Odpojeno klientem"),
+        _ => _f.tra("Ukončeno z bezpečnostních důvodů")
+    };
+}
+@section header_content
+{
+    <link rel="stylesheet" href="~/css/mcpconnect.css" asp-append-version="true" />
+}
+
+<div class="mc-admin">
+    <h4>@Model.PageTitle</h4>
+    <p class="mc-lead">@_f.tra("Claude, ChatGPT a další AI klienti se mohou připojit k vašim datům v MARKTIME (protokol MCP). Klient pracuje pod vaším účtem a s vašimi oprávněními, data jen čte.")</p>
+
+    @if (!Model.IsEnabled)
+    {
+        <div class="mc-alert" role="alert">@_f.tra("Připojení AI klientů není na tomto serveru zapnuté.")</div>
+    }
+    else if (!Model.IsAllowed)
+    {
+        <div class="mc-alert" role="alert">@_f.tra("Vaše aplikační role nemá oprávnění „Přístup k AI agentům“. O přístup požádejte administrátora MARKTIME.")</div>
+    }
+    else
+    {
+        if (_done)
+        {
+            <div class="mc-ok" role="status">@_f.tra("Klient byl odpojen.")</div>
+        }
+
+        <section class="mc-box">
+            <h5>@_f.tra("Jak klienta připojit")</h5>
+            <div class="mc-url">
+                <input type="text" id="mcpUrl" readonly value="@Model.McpUrl" aria-label="@_f.tra("Adresa MCP serveru")" />
+                <button type="button" class="btn btn-sm bog" id="cmdCopy">@_f.tra("Kopírovat")</button>
+            </div>
+            <ol class="mc-steps">
+                <li>@_f.tra("V nastavení AI klienta (Claude, ChatGPT) přidejte vlastní konektor a jako adresu serveru vložte tuto adresu.")</li>
+                <li>@_f.tra("Klient otevře MARKTIME – přihlaste se a povolte přístup.")</li>
+                <li>@_f.tra("Zeptejte se klienta na svá data, například: Kolik hodin jsem vykázal minulý měsíc podle projektů?")</li>
+            </ol>
+        </section>
+
+        <section class="mc-box">
+            <h5>@_f.tra("Připojení klienti")</h5>
+            @if (Model.Active.Count == 0)
+            {
+                <p class="mc-empty">@_f.tra("Zatím není připojen žádný klient.")</p>
+            }
+            else
+            {
+                <div class="mc-scroll">
+                    <table class="mc-table">
+                        <thead>
+                            <tr>
+                                <th>@_f.tra("Klient")</th>
+                                <th>@_f.tra("Připojeno")</th>
+                                <th>@_f.tra("Naposledy použito")</th>
+                                <th>@_f.tra("Platí do")</th>
+                                <th class="mc-right"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var c in Model.Active)
+                            {
+                                <tr>
+                                    <td>@c.j96ClientName<br /><span class="mc-muted">@UI.Code.Mcp.McpAuthorizeRequest.SafeHost(c.j96RedirectUri)</span></td>
+                                    <td>@Dt(c.j96DateInsert)</td>
+                                    <td>@Dt(c.j96DateLastUsed)</td>
+                                    <td>@Dt(c.j96DateExpires)</td>
+                                    <td class="mc-right">
+                                        <form method="post" asp-controller="McpConnect" asp-action="Disconnect">
+                                            <input type="hidden" name="j96id" value="@c.j96ID" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">@_f.tra("Odpojit")</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </section>
+
+        if (Model.Ended.Count > 0)
+        {
+            <section class="mc-box">
+                <h5>@_f.tra("Ukončená připojení")</h5>
+                <div class="mc-scroll">
+                    <table class="mc-table">
+                        <thead>
+                            <tr>
+                                <th>@_f.tra("Klient")</th>
+                                <th>@_f.tra("Připojeno")</th>
+                                <th>@_f.tra("Ukončeno")</th>
+                                <th>@_f.tra("Důvod")</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var c in Model.Ended)
+                            {
+                                <tr class="mc-muted">
+                                    <td>@c.j96ClientName</td>
+                                    <td>@Dt(c.j96DateInsert)</td>
+                                    <td>@Dt(c.j96DateRevoked ?? c.j96DateExpires)</td>
+                                    <td>@Why(c)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        }
+    }
+</div>
+
+<script>
+    (function () {
+        var cmd = document.getElementById("cmdCopy");
+        if (!cmd) return;
+        cmd.addEventListener("click", function () {
+            var inp = document.getElementById("mcpUrl");
+            inp.select();
+            var done = function () { cmd.textContent = "@_f.tra("Zkopírováno")"; };
+            if (navigator.clipboard) navigator.clipboard.writeText(inp.value).then(done); else { document.execCommand("copy"); done(); }
+        });
+    })();
+</script>

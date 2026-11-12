@@ -1,0 +1,25 @@
+﻿@model string
+@{
+    // Chyba přihlášení AI klienta, kterou nelze vrátit klientovi (neznámý klient nebo adresa návratu). Model = text chyby.
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>Připojení k MARKTIME</title>
+    <link rel="stylesheet" href="~/css/mcpconnect.css" asp-append-version="true" />
+</head>
+<body class="mc-page">
+    <div class="mc-wrap">
+        <div class="mc-card">
+            <img class="mc-logo" src="~/images/logo_default.png" alt="MARKTIME" />
+            <h1 class="mc-title">Připojení se nezdařilo</h1>
+            <div class="mc-alert" role="alert">@Model</div>
+            <p class="mc-foot">Toto okno můžete zavřít.</p>
+        </div>
+    </div>
+</body>
+</html>

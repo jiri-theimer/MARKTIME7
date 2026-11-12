@@ -1,0 +1,66 @@
+/* MCP – připojení AI klientů (verze 8), třídy mc-*:
+   Views/McpOAuth/Authorize.cshtml + Error.cshtml (mezistránka, chyba), Views/McpConnect/Consent.cshtml (souhlas),
+   Views/McpConnect/Index.cshtml (přehled připojení v profilu).
+   Stránky souhlasu jsou samostatné (bez layoutu aplikace) – soubor proto nese i základ písma a karty. */
+
+.mc-page { margin: 0; min-height: 100vh; background: #f3f5f8; color: #1f2328; font-family: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 15px; line-height: 1.5; }
+.mc-page *, .mc-page *::before, .mc-page *::after { box-sizing: border-box; }
+.mc-wrap { display: flex; justify-content: center; padding: 48px 16px; }
+.mc-card { width: 100%; max-width: 460px; padding: 28px 32px 22px; background: #fff; border-radius: 14px; box-shadow: 0 1px 2px rgba(16, 24, 40, .06), 0 8px 24px rgba(16, 24, 40, .08); }
+.mc-logo { display: block; width: 170px; max-width: 60%; height: auto; margin: 0 auto 20px; }
+.mc-title { margin: 0 0 6px; font-size: 1.3rem; font-weight: 600; text-align: center; }
+.mc-sub { margin: 0 0 18px; text-align: center; color: #59636e; }
+.mc-client { font-weight: 600; color: #1f2328; overflow-wrap: anywhere; }
+
+.mc-facts { margin: 0 0 16px; padding: 0; border: 1px solid #e3e6ea; border-radius: 10px; }
+.mc-facts > div { display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: 8px; padding: 8px 12px; border-top: 1px solid #e3e6ea; }
+.mc-facts > div:first-child { border-top: 0; }
+.mc-facts dt { margin: 0; font-weight: 400; color: #59636e; }
+.mc-facts dd { margin: 0; overflow-wrap: anywhere; }
+.mc-host { font-weight: 600; }
+
+.mc-list { margin: 0 0 16px; padding-left: 20px; }
+.mc-list li { margin-bottom: 4px; }
+.mc-note { margin: 0 0 16px; padding: 8px 12px; border-radius: 8px; background: #f6f8fa; color: #59636e; font-size: .875rem; }
+.mc-alert { margin: 0 0 16px; padding: 10px 12px; border: 1px solid #f5c2c2; border-radius: 8px; background: #fdecec; color: #a61b1b; }
+.mc-ok { margin: 0 0 16px; padding: 10px 12px; border: 1px solid #b7dfc3; border-radius: 8px; background: #eaf7ee; color: #17603a; }
+
+.mc-field { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 18px; }
+.mc-field label { margin: 0; color: #1f2328; }
+.mc-field select { height: 36px; padding: 0 10px; border: 1px solid #cfd5dc; border-radius: 8px; background: #fff; font: inherit; color: inherit; }
+
+.mc-actions { display: flex; gap: 10px; }
+.mc-btn { flex: 1 1 0; display: inline-flex; align-items: center; justify-content: center; height: 42px; padding: 0 16px; border: 1px solid #cfd5dc; border-radius: 8px; background: #fff; color: #1f2328; font: inherit; font-weight: 500; text-decoration: none; cursor: pointer; }
+.mc-btn:hover { background: #f3f5f8; color: #1f2328; }
+.mc-btn-primary { border-color: #0b4b92; background: #0b4b92; color: #fff; }
+.mc-btn-primary:hover { border-color: #093c75; background: #093c75; color: #fff; }
+.mc-btn:focus-visible, .mc-field select:focus-visible { outline: 3px solid rgba(31, 135, 207, .35); outline-offset: 1px; }
+.mc-foot { margin: 16px 0 0; text-align: center; color: #6c757d; font-size: .8rem; }
+
+/* přehled připojení (v layoutu aplikace) */
+.mc-admin { max-width: 980px; padding: 12px 16px 24px; }
+.mc-admin h4 { margin: 0 0 4px; }
+.mc-lead { margin: 0 0 16px; color: #59636e; }
+.mc-box { margin: 0 0 16px; padding: 14px 16px; border: 1px solid #e3e6ea; border-radius: 10px; background: #fff; }
+.mc-box h5 { margin: 0 0 8px; font-size: 1rem; font-weight: 600; }
+.mc-url { display: flex; gap: 8px; align-items: center; margin: 0 0 10px; }
+.mc-url input { flex: 1 1 auto; min-width: 0; height: 36px; padding: 0 10px; border: 1px solid #d0d7de; border-radius: 6px; background: #f6f8fa; font-family: Consolas, Menlo, monospace; font-size: .9rem; color: #1f2328; }
+.mc-steps { margin: 0; padding-left: 20px; color: #1f2328; }
+.mc-steps li { margin-bottom: 3px; }
+.mc-table { width: 100%; border-collapse: collapse; }
+.mc-table th { padding: 6px 10px 6px 0; border-bottom: 1px solid #e3e6ea; font-size: .8rem; font-weight: 600; text-align: left; color: #59636e; white-space: nowrap; }
+.mc-table td { padding: 8px 10px 8px 0; border-bottom: 1px solid #eef1f4; vertical-align: middle; }
+.mc-table tr:last-child td { border-bottom: 0; }
+.mc-table td.mc-right, .mc-table th.mc-right { padding-right: 0; text-align: right; }
+.mc-muted { color: #6c757d; }
+.mc-empty { margin: 0; color: #6c757d; }
+.mc-scroll { overflow-x: auto; }
+
+@media (max-width: 575.98px) {
+    .mc-wrap { padding: 16px 12px; }
+    .mc-card { padding: 22px 18px 18px; }
+    .mc-facts > div { grid-template-columns: 1fr; gap: 0; }
+    .mc-actions { flex-direction: column-reverse; }
+    .mc-btn { flex: 0 0 42px; }
+    .mc-url { flex-wrap: wrap; }
+}
