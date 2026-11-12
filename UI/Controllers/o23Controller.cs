@@ -379,6 +379,11 @@ namespace UI.Controllers
 
             if (v.Rec.pid > 0 && isclone)
             {
+                if (v.RecO18.o18IsChecklist && Factory.p65ChecklistBL.IsAvailableForDocs())
+                {
+                    //kopie dokumentu převezme položky check-listu, neodškrtnuté
+                    v.ChecklistPending = System.Text.Json.JsonSerializer.Serialize(Factory.p65ChecklistBL.GetList(v.Rec.pid, "o23").Select(p => p.p65Name).ToList());
+                }
                 v.MakeClone();
             }
 
@@ -687,6 +692,19 @@ namespace UI.Controllers
                     if (v.disp.IsTags)
                     {
                         Factory.o51TagBL.SaveTagging("o23", c.pid, v.TagPids);
+                    }
+                    if (v.rec_pid == 0 && !string.IsNullOrEmpty(v.ChecklistPending) && v.RecO18.o18IsChecklist && Factory.p65ChecklistBL.IsAvailableForDocs())
+                    {
+                        //check-list zadaný u nového dokumentu (u uloženého dokumentu se položky ukládají průběžně samy)
+                        try
+                        {
+                            var names = System.Text.Json.JsonSerializer.Deserialize<List<string>>(v.ChecklistPending);
+                            if (names != null && names.Count > 0) Factory.p65ChecklistBL.Add(c.pid, names, "o23");
+                        }
+                        catch (System.Text.Json.JsonException)
+                        {
+                            //nečitelný vstup: dokument je uložený, check-list zůstane prázdný
+                        }
                     }
                     if (v.disp.IsNotepad)
                     {

@@ -4,7 +4,7 @@ namespace UI.Controllers
 {
     /// <summary>
     /// Check-list (tabulka p65Checklist) – volání z wwwroot/js/p65checklist.js.
-    /// prefix + pid určují, komu check-list patří: "p56" = úkol, "p58" = opakovaný úkol (vzor).
+    /// prefix + pid určují, komu check-list patří: "p56" = úkol, "o23" = dokument, "p58" = opakovaný úkol (vzor).
     /// Každá akce vrací aktuální stav celého check-listu, takže prohlížeč vždy ukazuje to, co je v databázi.
     /// Oprávnění hlídá BL.p65ChecklistBL.
     /// </summary>
@@ -33,7 +33,7 @@ namespace UI.Controllers
 
         private static string Px(string prefix)
         {
-            return prefix == "p58" ? "p58" : "p56";
+            return prefix == "p58" || prefix == "o23" ? prefix : "p56";
         }
 
         public IActionResult List(string prefix, int pid)

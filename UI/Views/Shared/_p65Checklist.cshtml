@@ -2,8 +2,8 @@
 @inject BL.Factory _f
 
 @*
-    Check-list (tabulka p65Checklist): v úkolu (Prefix "p56") se položky odškrtávají, v opakovaném úkolu (Prefix "p58")
-    jsou vzorem, který si zkopíruje každý vygenerovaný úkol.
+    Check-list (tabulka p65Checklist): v úkolu (Prefix "p56") a v dokumentu (Prefix "o23") se položky odškrtávají,
+    v opakovaném úkolu (Prefix "p58") jsou vzorem, který si zkopíruje každý vygenerovaný úkol.
     Chování: wwwroot/js/p65checklist.js, vzhled: wwwroot/css/p65checklist.css.
     Volající view si přidá css do sekce header_content. Na stránce smí být jen jednou.
 *@
@@ -29,7 +29,7 @@
     var _chkCfg = new
     {
         id = "chkBox",
-        prefix = _chkTemplate ? "p58" : "p56",
+        prefix = _chkTemplate ? "p58" : (Model.Prefix == "o23" ? "o23" : "p56"),
         pid = Model.RecPid,
         template = _chkTemplate,
         canEdit = Model.CanEdit,

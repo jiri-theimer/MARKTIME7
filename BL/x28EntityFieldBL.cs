@@ -22,7 +22,7 @@ namespace BL
 
         private string GetSQL1(string strAppend = null,bool istestcloud=false)
         {
-            sb("select a.*,x27.x27Name,lower(x24.x24Name) as TypeName,o18.o18Name,");
+            sb("select a.*,x27.x27Name,x27.x27Ordinary,lower(x24.x24Name) as TypeName,o18.o18Name,");
             sb(_db.GetSQL1_Ocas("x28"));
             sb(" FROM x28EntityField a inner join x24DataType x24 on a.x24id=x24.x24id LEFT OUTER JOIN x27EntityFieldGroup x27 ON a.x27ID=x27.x27ID");
             sb(" LEFT OUTER JOIN o18DocType o18 ON a.o18ID=o18.o18ID");
@@ -145,6 +145,14 @@ namespace BL
 
             p.AddString("x28datasource", rec.x28DataSource);
             p.AddBool("x28IsFixedDataSource", rec.x28IsFixedDataSource);
+            if (HasMultiselectColumn())
+            {
+                p.AddBool("x28IsMultiselect", rec.x28IsMultiselect);
+            }
+            else if (rec.x28IsMultiselect)
+            {
+                this.AddMessage("V databázi chybí sloupec x28IsMultiselect (skript x28_multiselect.sql)."); return 0;
+            }
             p.AddBool("x28IsRequired", rec.x28IsRequired);            
             p.AddBool("x28IsPublic", rec.x28IsPublic);
             if (rec.x28IsPublic)
@@ -219,9 +227,30 @@ namespace BL
                     {
                         this.AddMessage("Automatická notikace se vyplňuje pouze u datumového pole."); return false;
                     }
+                    if (rec.x24ID == BO.x24IdENUM.tString)
+                    {
+                        rec.x28DataSource = BO.Code.FreeFieldValues.NormalizeSource(rec.x28DataSource);   //hodnoty oddělené středníkem, bez prázdných a opakovaných
+                    }
+                    else
+                    {
+                        rec.x28IsMultiselect = false;   //obor hodnot a vícenásobný výběr má jen textové pole
+                        rec.x28IsFixedDataSource = false;
+                    }
                     if (rec.x28TextboxHeight>0 && rec.x28DataSource != null)
                     {
                         this.AddMessage("Poznámkové pole nemůže mít definiční obor hodnot."); return false;
+                    }
+                    if (rec.x28TextboxHeight > 0 && rec.x28IsMultiselect)
+                    {
+                        this.AddMessage("Poznámkové pole nemůže mít vícenásobný výběr."); return false;
+                    }
+                    if (rec.x28IsFixedDataSource && rec.x28DataSource == null)
+                    {
+                        this.AddMessage("Výběr pouze z oboru hodnot vyžaduje vyplněný obor hodnot."); return false;
+                    }
+                    if (rec.x28IsMultiselect && rec.x28DataSource != null && rec.x28DataSource.Contains(BO.Code.FreeFieldValues.MultiDelimiter))
+                    {
+                        this.AddMessage("Hodnota v oboru hodnot pole s vícenásobným výběrem nesmí obsahovat znak |."); return false;
                     }
                     break;
                 case BO.x28FlagENUM.GridField:
@@ -257,6 +286,13 @@ namespace BL
             return true;
         }
 
+
+        /// <summary>Sloupec x28IsMultiselect přibyl ve verzi 8; databáze bez něj fungují dál, jen bez vícenásobného výběru.</summary>
+        private bool HasMultiselectColumn()
+        {
+            var c = _db.Load<BO.GetInteger>("select case when COL_LENGTH('dbo.x28EntityField','x28IsMultiselect') is null then 0 else 1 end as Value");
+            return c != null && c.Value == 1;
+        }
 
         public string FindFirstUsableField(string strPrefix, BO.x24IdENUM x24id)
         {

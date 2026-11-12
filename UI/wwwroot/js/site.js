@@ -898,24 +898,6 @@ function _zoom_toggle()
 
 }
 
-function _helppage() {
-    var s = document.title.replace(" - MARKTIME", "");
-    var viewurl = window.location.pathname.split('?')[0];
-    var fullurl = viewurl+ window.location.search;
-    try {        
-        _window_open("/x51/Index?viewurl=" + viewurl + "&fullurl=" + fullurl, 1, "Help");
-    } catch (err) {
-        window.open("/x51/Index?viewurl=" + viewurl + "&pagetitle=" + s+"&fullurl="+fullurl, "_blank");     //pokud na stránce není definice metody _window_open (např. reporting)
-    }
-}
-
-function _helppage_layout() {
-    var s = document.title.replace(" - MARKTIME", "");
-
-    var viewurl = window.location.pathname.split('?')[0] + window.location.search;
-    _window_open("/x51/Index?viewurl=" + viewurl, 1, "Help");
-}
-
 
 function _resize_iframe_onpage(iframe_id) {
     var offset = $("#" + iframe_id).offset();

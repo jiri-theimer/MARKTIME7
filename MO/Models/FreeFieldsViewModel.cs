@@ -52,7 +52,8 @@ namespace MO.Models
                 var c = new BO.FreeFieldInput() { x28Field = recX28.x28Field, x28Name = recX28.x28Name, TypeName = recX28.TypeName,
                     x28Entity = recX28.x28Entity, x24ID = recX28.x24ID, x28IsRequired = recX28.x28IsRequired,
                     x28DataSource = recX28.x28DataSource, x28IsFixedDataSource = recX28.x28IsFixedDataSource, x28ReminderNotifyBefore = recX28.x28ReminderNotifyBefore,
-                    TextboxHeight = recX28.x28TextboxHeight,o18ID=recX28.o18ID
+                    TextboxHeight = recX28.x28TextboxHeight,o18ID=recX28.o18ID,
+                    x28IsMultiselect = recX28.x28IsMultiselect, x28HelpText = recX28.x28HelpText, GroupName = recX28.x27Name, GroupOrdinary = recX28.x27Ordinary
 
                 };             
                 

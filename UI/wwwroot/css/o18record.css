@@ -1,0 +1,50 @@
+﻿/* Karta typu dokumentu (Views/o18/Record.cshtml) – doplněk k recordform.css (třídy rf-*). */
+.o18 { max-width: 1200px; }
+.o18-w { max-width: 420px; }
+.o18-gap { margin-top: 10px; }
+.o18-name { display: flex; align-items: center; gap: 10px; }
+.o18-name > .form-control { flex: 1 1 auto; min-width: 0; }
+.o18-ordinary { flex: 0 0 110px; display: flex; align-items: center; gap: 4px; }
+.o18 .rf-card > .form-check + .form-check { margin-top: 4px; }
+
+.o18-addbind { display: flex; align-items: center; gap: 6px; }
+.o18-addbind .form-select { width: 200px; }
+.o18-addbind .btn, .o18-toolbar .btn { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.o18-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+
+/* řádek opakované části: vazba (o20) nebo uživatelské pole (o16) */
+.o18-item { display: flex; gap: 10px; padding: 8px 10px; margin-top: 8px; border: 1px solid #e3e6ea; border-radius: 8px; background: #fbfcfd; }
+.o18-field { background: #fff; border-radius: 10px; padding: 10px 14px; }
+.o18-item-main { flex: 1 1 auto; min-width: 0; }
+.o18-item-side { flex: 0 0 auto; display: flex; align-items: flex-start; gap: 6px; }
+.o18-ord { display: inline-flex; align-items: center; gap: 3px; margin: 0; font-size: .8rem; color: #59636e; white-space: nowrap; }
+.o18-ord input { width: 48px; text-align: center; }
+
+.o18-bind-head { display: flex; flex-wrap: wrap; gap: 6px; }
+.o18-bind-head > input { flex: 1 1 180px; min-width: 0; }
+.o18-w-entity { flex: 0 0 150px; width: 150px; }
+.o18-w-mode { flex: 0 0 250px; width: 250px; }
+.o18-bind-opts { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 20px; margin-top: 6px; }
+.o18-w-type { flex: 0 0 240px; width: 240px; }
+.o18-item .form-check { margin: 0; }
+
+.o18-field-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+.o18-field-head > input { flex: 1 1 220px; min-width: 0; font-weight: 500; }
+.o18-w-field { flex: 0 0 170px; width: 170px; }
+.o18-field-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0 14px; margin-top: 8px; }
+.o18-field-grid .rf-field { margin-bottom: 4px; }
+.o18-field-text { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 14px; align-items: end; margin-top: 4px; padding-top: 6px; border-top: 1px dashed #e3e6ea; }
+.o18-field-text .rf-field { margin-bottom: 0; }
+.o18-field-text textarea { resize: vertical; }
+.o18-field-textopts { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; }
+.o18-w-format { width: 120px; }
+
+.o18-ext { max-width: 560px; }
+.o18-checklist { margin-top: 10px; padding-top: 10px; border-top: 1px solid #eef0f3; }
+.o18-checklist .material-icons-outlined-nosize { font-size: 18px; vertical-align: -4px; color: var(--pozadi, #0b4b92); }
+
+@media (max-width: 767.98px) {
+    .o18-addbind { flex-wrap: wrap; margin-left: 0 !important; }
+    .o18-field-text { grid-template-columns: 1fr; }
+    .o18-w-entity, .o18-w-mode, .o18-w-type, .o18-w-field { flex: 1 1 100%; width: 100%; }
+}

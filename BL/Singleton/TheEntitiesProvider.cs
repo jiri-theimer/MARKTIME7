@@ -221,8 +221,6 @@ namespace BL.Singleton
             AE_TINY("j25ReportCategory", "Kategorie sestav", "Kategorie sestavy");
             AE_TINY("x38CodeLogic", "Číselné řady", "Číselná řada");
 
-            AE_TINY("x51HelpCore", "Uživatelská nápověda", "Uživatelská nápověda");
-            AE_TINY("x52Blog", "Novinky | Blog", "Novinky | Blog");
             AE_TINY("x55Widget", "Widgety", "Widget");
             AE_TINY("x54WidgetGroup", "Skupiny widgetů", "Skupina widgetů");
             AE_TINY("x97Translate", "Aplikační překlad", "Aplikační překlad");

@@ -399,29 +399,6 @@ namespace UI.Controllers
             return new BO.Result(false, $"Soubor {strFileName}.dt byl uložen do {_f.App.RootUploadFolder}\\_distribution");
         }
 
-        public BO.Result GenerateScript_x51HelpCore()
-        {
-            Handle_Convert_DataTable_To_Json("x51HelpCore");
-
-            _f.InhaleUserByLogin("lamos@dev01.cz");
-            var lis = _f.o27AttachmentBL.GetList(new BO.myQueryO27()).Where(p => p.o27Entity == "x51");
-
-            foreach (var c in lis)
-            {
-
-                string s = _f.WwwUsersFolder + "\\" + c.o27WwwRootFolder + "\\" + c.o27ArchiveFileName;
-                if (System.IO.File.Exists(s))
-                {
-                    System.IO.File.Copy(s, $"{_f.App.RootUploadFolder}\\_distribution\\x51\\" + c.o27ArchiveFileName, true);
-
-                }
-            }
-
-            Handle_Convert_DataTable_To_Json("o27Attachment", "o27Entity='x51'", true, "o27Attachment_x51.json");
-
-            return new BO.Result(false, "Vygenerováno");
-        }
-
         public BO.Result GenerateScript_x31Report()
         {
             Handle_Convert_DataTable_To_Json("j25ReportCategory");

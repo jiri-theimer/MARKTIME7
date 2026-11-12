@@ -175,6 +175,7 @@ namespace UI.Controllers
                 c.o18IsAllowEncryption = v.Rec.o18IsAllowEncryption;
                 c.o18ReportCodes = v.Rec.o18ReportCodes;
                 c.o18IsAllowTree = v.Rec.o18IsAllowTree;
+                c.o18IsChecklist = v.Rec.o18IsChecklist;
                 c.ValidUntil = v.Toolbar.GetValidUntil(c);
                 c.ValidFrom = v.Toolbar.GetValidFrom(c);
                 c.b01ID = v.Rec.b01ID;

@@ -157,8 +157,6 @@ namespace BL
 
         private Io18DocTypeBL _o18;
         private Io17DocMenuBL _o17;
-        private Ix51HelpCoreBL _x51;
-        private Ix52BlogBL _x52;
         private Ix54WidgetGroupBL _x54;
         private Ix55WidgetBL _x55;
         private Ix67EntityRoleBL _x67;
@@ -1178,22 +1176,6 @@ namespace BL
             {
                 if (_x38 == null) _x38 = new x38CodeLogicBL(this);
                 return _x38;
-            }
-        }
-        public Ix51HelpCoreBL x51HelpCoreBL
-        {
-            get
-            {
-                if (_x51 == null) _x51 = new x51HelpCoreBL(this);
-                return _x51;
-            }
-        }
-        public Ix52BlogBL x52BlogBL
-        {
-            get
-            {
-                if (_x52 == null) _x52 = new x52BlogBL(this);
-                return _x52;
             }
         }
         public Ix54WidgetGroupBL x54WidgetGroupBL

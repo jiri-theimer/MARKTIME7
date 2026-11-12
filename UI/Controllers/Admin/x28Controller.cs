@@ -40,6 +40,7 @@ namespace UI.Controllers
                 {
                     v.IsTextArea = true;    //poznámkové pole
                 }
+                v.DataSourceLines = string.Join("\r\n", BO.Code.FreeFieldValues.ParseSource(v.Rec.x28DataSource));
 
             }
             else
@@ -161,8 +162,16 @@ namespace UI.Controllers
 
                 c.x28Ordinary = v.Rec.x28Ordinary;
                 c.x28Flag = v.Rec.x28Flag;
-                c.x28DataSource = v.Rec.x28DataSource;
+                c.x28DataSource = v.DataSourceLines;      //řádky nebo středníky; do tvaru se středníky je převádí x28EntityFieldBL.Save
                 c.x28IsFixedDataSource = v.Rec.x28IsFixedDataSource;
+                c.x28IsMultiselect = v.Rec.x28IsMultiselect;
+                if (v.IsTextArea || c.x24ID != BO.x24IdENUM.tString)
+                {
+                    //poznámkové nebo netextové pole obor hodnot nemá
+                    c.x28DataSource = null;
+                    c.x28IsFixedDataSource = false;
+                    c.x28IsMultiselect = false;
+                }
                 c.x28IsRequired = v.Rec.x28IsRequired;
                 
                 c.x28IsAllEntityTypes = v.Rec.x28IsAllEntityTypes;

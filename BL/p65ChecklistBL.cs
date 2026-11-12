@@ -4,8 +4,9 @@ namespace BL
 {
     /// <summary>
     /// Check-list: jednoduché položky (text + hotovo) v tabulce p65Checklist.
-    /// - V úkolu (prefix "p56") se položky odškrtávají. Hotová položka je uzavřený záznam: p65ValidUntil = čas odškrtnutí,
-    ///   otevřená má p65ValidUntil 1.1.3000.
+    /// - V úkolu (prefix "p56") a v dokumentu (prefix "o23") se položky odškrtávají. Hotová položka je uzavřený záznam:
+    ///   p65ValidUntil = čas odškrtnutí, otevřená má p65ValidUntil 1.1.3000.
+    ///   Dokument má check-list, jen pokud ho povoluje jeho typ (o18DocType.o18IsChecklist).
     /// - V opakovaném úkolu (prefix "p58") jsou položky vzorem: neodškrtávají se a každý vygenerovaný úkol si je zkopíruje.
     /// Seznam vždy vrací otevřené i hotové položky - nesmí jít přes dotazy, které uzavřené záznamy skrývají.
     /// Odškrtnutí, přidání, přejmenování, smazání i pořadí se ukládají hned, nezávisle na uložení karty záznamu.
@@ -13,6 +14,7 @@ namespace BL
     public interface Ip65ChecklistBL
     {
         public bool IsAvailable();
+        public bool IsAvailableForDocs();
         public bool CanRead(int pid, BO.p56Task rec = null, string prefix = "p56");
         public bool CanEdit(int pid, BO.p56Task rec = null, string prefix = "p56");
         public IEnumerable<BO.p65Checklist> GetList(int pid, string prefix = "p56");
@@ -34,6 +36,8 @@ namespace BL
         //existence tabulky se drží v paměti, aby se netestovala při každém zobrazení úkolu
         private static readonly ConcurrentDictionary<string, DateTime> _available = new ConcurrentDictionary<string, DateTime>();
         private static readonly ConcurrentDictionary<string, DateTime> _unavailable = new ConcurrentDictionary<string, DateTime>();
+        private static readonly ConcurrentDictionary<string, DateTime> _availableDocs = new ConcurrentDictionary<string, DateTime>();
+        private static readonly ConcurrentDictionary<string, DateTime> _unavailableDocs = new ConcurrentDictionary<string, DateTime>();
 
         public p65ChecklistBL(BL.Factory mother) : base(mother)
         {
@@ -48,10 +52,11 @@ namespace BL
             return c == null ? 0 : c.Value;
         }
 
-        //sloupec vlastníka položky; jiný prefix než p56/p58 se nepřipouští (název sloupce jde do textu SQL)
+        //sloupec vlastníka položky; jiný prefix než p56/p58/o23 se nepřipouští (název sloupce jde do textu SQL)
         private static string OwnerField(string prefix)
         {
             if (prefix == "p58") return "p58ID";
+            if (prefix == "o23") return "o23ID";
             if (prefix == "p56" || string.IsNullOrEmpty(prefix)) return "p56ID";
             return null;
         }
@@ -73,10 +78,44 @@ namespace BL
             return false;
         }
 
+        /// <summary>Je v tabulce p65Checklist i vazba na dokument (sloupec o23ID)? Bez ní se check-list v dokumentech nenabízí.</summary>
+        public bool IsAvailableForDocs()
+        {
+            if (!IsAvailable()) return false;
+            string strKey = $"{_mother.App.HostingMode}|{_mother.CurrentUser.x01LoginDomain}";
+            if (_availableDocs.ContainsKey(strKey)) return true;
+            if (_unavailableDocs.TryGetValue(strKey, out DateTime d) && d > DateTime.Now) return false;
+
+            if (GetInt("SELECT CASE WHEN COL_LENGTH('dbo.p65Checklist','o23ID') IS NULL OR COL_LENGTH('dbo.o18DocType','o18IsChecklist') IS NULL THEN 0 ELSE 1 END as Value", null) == 1)
+            {
+                _availableDocs[strKey] = DateTime.Now;
+                return true;
+            }
+            _unavailableDocs[strKey] = DateTime.Now.AddMinutes(5);
+            return false;
+        }
+
+        //dokument: check-list má jen dokument typu, který ho povoluje
+        private BO.o23Doc LoadDocWithChecklist(int o23id)
+        {
+            if (!IsAvailableForDocs()) return null;
+            var rec = _mother.o23DocBL.Load(o23id);
+            if (rec == null) return null;
+            var recO18 = _mother.o18DocTypeBL.Load(rec.o18ID);
+            return recO18 != null && recO18.o18IsChecklist ? rec : null;
+        }
+
         public bool CanRead(int pid, BO.p56Task rec = null, string prefix = "p56")
         {
             if (pid <= 0 || OwnerField(prefix) == null || !IsAvailable()) return false;
             if (prefix == "p58") return CanEdit(pid, null, prefix);     //vzor je vidět jen v kartě opakovaného úkolu
+            if (prefix == "o23")
+            {
+                var recO23 = LoadDocWithChecklist(pid);
+                if (recO23 == null) return false;
+                var disp = _mother.o23DocBL.InhaleRecDisposition(pid, recO23);
+                return disp != null && disp.ReadAccess;
+            }
 
             if (rec == null) rec = _mother.p56TaskBL.Load(pid);
             if (rec == null) return false;
@@ -87,6 +126,7 @@ namespace BL
         /// <summary>
         /// Úkol: měnit check-list smí ten, kdo má v úkolu jakoukoli roli (osobně, přes tým nebo roli pro všechny), vlastník úkolu a správce.
         /// Opakovaný úkol: ten, kdo smí upravovat jeho kartu (správce, oprávnění zakládat projekty, vlastník záznamu).
+        /// Dokument: vlastnické oprávnění k dokumentu nebo jakákoli role v dokumentu.
         /// </summary>
         public bool CanEdit(int pid, BO.p56Task rec = null, string prefix = "p56")
         {
@@ -97,6 +137,18 @@ namespace BL
                 if (_mother.CurrentUser.IsAdmin || _mother.CurrentUser.TestPermission(BO.PermValEnum.GR_p41_Creator)) return true;
                 var recP58 = _mother.p58TaskRecurrenceBL.Load(pid);
                 return recP58 != null && recP58.j02ID_Owner == Me;
+            }
+
+            if (prefix == "o23")
+            {
+                var recO23 = LoadDocWithChecklist(pid);
+                if (recO23 == null) return false;
+                var disp = _mother.o23DocBL.InhaleRecDisposition(pid, recO23);
+                if (disp == null) return false;
+                if (disp.OwnerAccess) return true;
+                if (!_mother.CurrentUser.j04IsModule_o23) return false;     //bez přístupu do modulu DOKUMENTY
+                var lisRoles = _mother.x67EntityRoleBL.GetList_X69_OneDoc(recO23, true);
+                return lisRoles != null && lisRoles.Any();
             }
 
             if (!_mother.CurrentUser.j04IsModule_p56) return false;     //bez přístupu do modulu ÚKOLY
@@ -185,8 +237,8 @@ namespace BL
         public bool SetDone(int p65id, bool done)
         {
             var rec = Load(p65id);
-            if (rec == null || rec.OwnerPrefix != "p56") return false;      //položky vzoru v opakovaném úkolu se neodškrtávají
-            if (!CanEdit(rec.p56ID)) return false;
+            if (rec == null || rec.OwnerPrefix == "p58") return false;      //položky vzoru v opakovaném úkolu se neodškrtávají
+            if (!CanEdit(rec.OwnerPid, null, rec.OwnerPrefix)) return false;
             if (rec.IsDone == done) return true;     //mezitím už to udělal někdo jiný
 
             //Do p65ValidUntil se zapisuje jen "teď" (hotovo) nebo 1.1.3000 (otevřeno). Jiné budoucí datum by položku časem odškrtlo samo.

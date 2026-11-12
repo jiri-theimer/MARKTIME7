@@ -3,8 +3,45 @@
 
 @if (Model?.inputs != null)
 {
+    bool _anyMulti = false;
     @foreach (var ff in Model.inputs.Where(p => p.IsVisible))
     {
+        bool isText = ff.TypeName != "boolean" && ff.TypeName != "date" && ff.TypeName != "datetime" && ff.TypeName != "decimal" && ff.TypeName != "integer";
+        if (isText && ff.x28IsMultiselect && ff.TextboxHeight == 0)
+        {
+            @* Vícenásobný výběr: hodnoty oddělené | ve skrytém poli; nabídka z x28DataSource, u volného výběru i vlastní hodnota *@
+            _anyMulti = true;
+            var chosen = BO.Code.FreeFieldValues.ParseMulti(ff.StringInput);
+            var opts = BO.Code.FreeFieldValues.ParseSource(ff.x28DataSource);
+            foreach (string val in chosen)
+            {
+                if (!opts.Contains(val)) { opts.Add(val); }     // dříve uložená hodnota mimo nabídku se neztratí
+            }
+            <div class="form-control" data-moff-ms>
+                <div class="label">
+                    <span class="label-text font-semibold">
+                        @ff.x28Name@(ff.x28IsRequired ? " *" : "")
+                    </span>
+                </div>
+                <input type="hidden" name="ff_@(ff.x28Field)" value="@(string.Join("|", chosen))" />
+                <div data-moff-list style="display:flex;flex-wrap:wrap;gap:8px 16px;padding:2px 0 8px;">
+                    @foreach (string opt in opts)
+                    {
+                        <label style="display:inline-flex;align-items:center;gap:6px;">
+                            <input type="checkbox" class="checkbox" value="@opt" checked="@(chosen.Contains(opt))" />
+                            <span>@opt</span>
+                        </label>
+                    }
+                </div>
+                @if (!ff.x28IsFixedDataSource)
+                {
+                    <input type="text" data-moff-add autocomplete="off" enterkeyhint="done"
+                           placeholder="@_f.tra("Další hodnota")"
+                           class="input input-bordered w-full" />
+                }
+            </div>
+            continue;
+        }
         <label class="form-control">
             <div class="label">
                 <span class="label-text font-semibold">
@@ -78,5 +115,61 @@
                     break;
             }
         </label>
+    }
+
+    @if (_anyMulti)
+    {
+        <script>
+            // uživatelská pole s vícenásobným výběrem: zaškrtnuté hodnoty do skrytého pole, oddělené |
+            (function () {
+                if (window._moffReady) return;
+                window._moffReady = true;
+
+                function sync(root) {
+                    var vals = [];
+                    root.querySelectorAll("[data-moff-list] input[type=checkbox]").forEach(function (c) {
+                        if (c.checked && vals.indexOf(c.value) === -1) vals.push(c.value);
+                    });
+                    root.querySelector("input[type=hidden]").value = vals.join("|");
+                }
+
+                function add(input) {
+                    var root = input.closest("[data-moff-ms]");
+                    var val = input.value.split("|").join(" ").trim();
+                    input.value = "";
+                    if (!root || val === "") return;
+                    var list = root.querySelector("[data-moff-list]");
+                    var found = null;
+                    list.querySelectorAll("input[type=checkbox]").forEach(function (c) {
+                        if (c.value.toLowerCase() === val.toLowerCase()) found = c;
+                    });
+                    if (found) {
+                        found.checked = true;
+                    } else {
+                        var label = document.createElement("label");
+                        label.style.cssText = "display:inline-flex;align-items:center;gap:6px;";
+                        var c = document.createElement("input");
+                        c.type = "checkbox"; c.className = "checkbox"; c.value = val; c.checked = true;
+                        var span = document.createElement("span");
+                        span.textContent = val;
+                        label.appendChild(c); label.appendChild(span);
+                        list.appendChild(label);
+                    }
+                    sync(root);
+                }
+
+                document.addEventListener("change", function (e) {
+                    var root = e.target.closest ? e.target.closest("[data-moff-ms]") : null;
+                    if (!root) return;
+                    if (e.target.matches("[data-moff-add]")) add(e.target); else sync(root);
+                });
+                document.addEventListener("keydown", function (e) {
+                    if (e.key === "Enter" && e.target.matches && e.target.matches("[data-moff-add]")) {
+                        e.preventDefault();     // Enter přidá hodnotu, formulář neodešle
+                        add(e.target);
+                    }
+                });
+            })();
+        </script>
     }
 }

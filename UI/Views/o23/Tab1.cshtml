@@ -2,7 +2,9 @@
 @inject BL.Factory _f
 
 @{
-
+    // Stránka dokumentu (verze 8), rozložení podle vzoru p40/Tab1: box vlastností (recpagebox400) vlevo, vpravo karty check-listu
+    // a vazeb dokumentu (css/recinfo.css, třídy ri-*; doplněk css/o23tab1.css, třídy dt-*). Ostatní boxy (upozornění, workflow,
+    // přílohy, počasí, notepad) a jejich volby v _Tab1ButtonSetting zůstávají společné se stránkami ostatních záznamů.
     Layout = "~/Views/Shared/_LayoutSubform.cshtml";
     if (Model.Rec == null) return;
     Model.Rec.Rezerva = "Tab1";
@@ -26,21 +28,54 @@
     {
         _tabwrk = new UI.Models.Tab1.BaseTab1ViewModel() { prefix = "o23", pid = Model.Rec.pid };
     }
-    
+
     var _lisO24 = _f.o24ReminderBL.GetList_ddx_or_classic(Model.pid);
 
     BO.TaggingHelper _tg = null;
     if (Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.tags))
     {
-        _tg = _f.o51TagBL.GetTagging("p91", Model.pid);
+        _tg = _f.o51TagBL.GetTagging("o23", Model.pid);
     }
 
     var dropzonemodel = new DropzoneViewModel() { IsAutoSave = true, RecPid = Model.pid, RecPrefix = Model.prefix };
+
+    //check-list má dokument, jehož typ ho povoluje (o18IsChecklist)
+    UI.Models.p65ChecklistViewModel _chk = null;
+    if (_f.p65ChecklistBL.IsAvailableForDocs() && _f.p65ChecklistBL.CanRead(Model.pid, null, "o23"))
+    {
+        _chk = new UI.Models.p65ChecklistViewModel() { Prefix = "o23", RecPid = Model.pid, CanEdit = _f.p65ChecklistBL.CanEdit(Model.pid, null, "o23"), Items = _f.p65ChecklistBL.GetList(Model.pid, "o23").ToList(), BoxCss = "ri-card" };
+        if (!_chk.CanEdit && _chk.Items.Count == 0)
+        {
+            _chk = null;    //jen ke čtení a prázdný: nezobrazovat
+        }
+    }
+
+    string BindIcon(string prefix)
+    {
+        switch (prefix)
+        {
+            case "j02": return "face";
+            case "p41": return "work_outline";
+            case "p28": return "contacts";
+            case "p15": return "location_on";
+            case "p91": return "receipt_long";
+            case "p90": return "payments";
+            case "p31": return "schedule";
+            default: return "link";
+        }
+    }
+    bool BindHasPage(string prefix)
+    {
+        return prefix == "j02" || prefix == "p41" || prefix == "p28" || prefix == "p91" || prefix == "p90";
+    }
 }
 
 @addTagHelper *, UI
 
 @section header_content {
+    <link rel="stylesheet" href="~/css/recinfo.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/p65checklist.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/o23tab1.css" asp-append-version="true" />
 
     <link rel="stylesheet" href="~/lib/dropzone/dropzone.css" asp-append-version="true" />
     <script src="~/lib/dropzone/dropzone-min.js" asp-append-version="true"></script>
@@ -51,120 +86,77 @@
 
 @Html.Raw("<div class='info_record_container'>")
 
-@if (Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.recheader))
-{
-    <div class="card recpagebox400" id="divRecPageBox1">
-        <div class="card-body">
-            @Html.EditorFor(m => m.Rec, "~/Views/Shared/_o23RecHeaderBox.cshtml")
+<div class="ri-wide-layout">
 
-            @if (_tg != null && _tg.TagHtml != null)
+    @if (Model.IsRenderBox(UI.Models.Tab1.Tab1BoxEnum.recheader))
+    {
+        <div class="card recpagebox400" id="divRecPageBox1">
+            <div class="card-body">
+                @Html.EditorFor(m => m.Rec, "~/Views/Shared/_o23RecHeaderBox.cshtml")
+
+                @if (_tg != null && _tg.TagHtml != null)
+                {
+                    @Html.Raw(_tg.TagHtml)
+                }
+
+                @Html.EditorFor(m => m.Rec, "~/Views/Shared/_TimeStamp.cshtml")
+            </div>
+        </div>
+    }
+
+    @if (_chk != null || _lisO19.Count() > 0)
+    {
+        <div class="dt-main">
+            @if (_chk != null)
             {
-                @Html.Raw(_tg.TagHtml)
-
-
+                @await Html.PartialAsync("~/Views/Shared/_p65Checklist.cshtml", _chk)
             }
 
-            @Html.EditorFor(m => m.Rec, "~/Views/Shared/_TimeStamp.cshtml")
-
+            @if (_lisO19.Count() > 0)
+            {
+                <section class="ri-card dt-binds">
+                    <h2><span class="material-icons-outlined-nosize">link</span>@_f.tra("Vazby dokumentu")<span class="dt-count">@(_lisO19.Count())</span></h2>
+                    <ul class="dt-list">
+                        @for (int i = 0; i < _lisO19.Count(); i++)
+                        {
+                            string prefix = _lisO19[i].o20Entity;
+                            string kind = _lisO19[i].o20Name ?? BO.Code.Entity.GetAlias(prefix);
+                            string alias = _f.CBL.GetObjectAlias(prefix, _lisO19[i].o19RecordPid);
+                            <li class="dt-bind">
+                                <span class="material-icons-outlined-nosize dt-ico" title="@BO.Code.Entity.GetAlias(prefix)">@BindIcon(prefix)</span>
+                                <div class="dt-bind-main @(_bolRowHover ? "rowvalhover" : null)">
+                                    <small class="dt-kind">@kind</small>
+                                    @if (BindHasPage(prefix))
+                                    {
+                                        <a class="dt-name" target="_top" href="/Record/RecPage?prefix=@(prefix)&pid=@(_lisO19[i].o19RecordPid)">@alias</a>
+                                    }
+                                    else
+                                    {
+                                        <span class="dt-name">@alias</span>
+                                    }
+                                    @if (_bolRowHover)
+                                    {
+                                        <a class="reczoom" data-rel="/@(prefix)/Info?pid=@(_lisO19[i].o19RecordPid)&hover_by_reczoom=1">ℹ</a>
+                                    }
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                </section>
+            }
         </div>
+    }
 
-
-    </div>
-    
-}
+</div>
 
 @Html.Raw("<div id='divTree1Container' style='float: left;vertical-align: top;border:none;margin-left:4px;margin-top:4px;'>")
 @Html.EditorFor(m => _lisO24, "~/Views/Shared/_o24TreeView.cshtml")
-@if (_lisO19.Count() > 0)
-{
-    <ul class="mytreeview">
-        <li>
-            <a class="mytreeview-toggle-kontejner" onclick="_treeview_toggle(this)">
-                <span class="material-icons-outlined-btn mytreeview-toggle-sipka">arrow_drop_down</span>
-                <span class="material-icons-outlined-btn">join</span>
-                <span>@_f.tra("Vazby dokumentu") (@(_lisO19.Count()))</span>
-
-            </a>
-
-            <ul style="display:block">
-                <li>
-                    <table class="table table-hover">
-                        @for (int i = 0; i < _lisO19.Count(); i++)
-                        {
-                            <tr>
-                                <td style="width:20px;">
-                                    @if (_lisO19[i].o20Entity == "j02")
-                                    {
-                                        <span class="material-icons-outlined" style="color:gray;">face</span>
-                                    }
-                                    @if (_lisO19[i].o20Entity == "p41")
-                                    {
-                                        <span class="material-icons-outlined" style="color:gray;">work_outline</span>
-                                    }
-                                    @if (_lisO19[i].o20Entity == "p28")
-                                    {
-                                        <span class="material-icons-outlined" style="color:gray;">contacts</span>
-                                    }
-                                    @if (_lisO19[i].o20Entity == "p15")
-                                    {
-                                        <span class="material-icons-outlined" style="color:gray;">location_on</span>
-                                    }
-                                </td>
-                                <td>
-                                    @if (i == 0 || _lisO19[i - 1].o20Name != _lisO19[i].o20Name)
-                                    {
-                                        @if (_lisO19[i].o20Name != null)
-                                        {
-                                            @(_lisO19[i].o20Name)
-                                        }
-                                        else
-                                        {
-                                            @(BO.Code.Entity.GetAlias(_lisO19[i].o20Entity))
-                                        }
-                                        <span>:</span>
-
-                                    }
-
-                                </td>
-
-
-                                @if (_bolRowHover)
-                                {
-                                    <td class="rowvalhover">
-                                        @(_f.CBL.GetObjectAlias(_lisO19[i].o20Entity, _lisO19[i].o19RecordPid))
-
-                                        <a class="reczoom" data-rel="/@_lisO19[i].o20Entity/Info?pid=@(_lisO19[i].o19RecordPid)&hover_by_reczoom=1">ℹ</a>
-                                    </td>
-                                }
-                                else
-                                {
-                                    <td>
-                                        @(_f.CBL.GetObjectAlias(_lisO19[i].o20Entity, _lisO19[i].o19RecordPid))
-                                    </td>
-                                }
-
-                            </tr>
-                        }
-                    </table>
-                </li>
-
-
-            </ul>
-
-        </li>
-    </ul>
-}
-
-
-@Html.Raw("</div")
-
+@Html.Raw("</div>")
 
 
 @if (Model.Rec.b02ID > 0)
 {
     @await Html.PartialAsync("~/Views/Shared/_LastWorkflowStep.cshtml", _tabwrk)
-
-
 }
 
 
@@ -173,10 +165,8 @@
     <div style="clear:both"></div>
     <div class="recpageboxauto">
         @await Html.PartialAsync("~/Views/Shared/_dropzone.cshtml", dropzonemodel)
-
     </div>
 }
-
 
 
 @if (_tabWeather != null)
@@ -184,12 +174,7 @@
     @await Html.PartialAsync("~/Views/Shared/_WeatherBox.cshtml", _tabWeather)
 }
 
-
-
 @Html.Raw("</div>")
-
-
-
 
 
 <div style="clear:both;"></div>
@@ -198,16 +183,13 @@
 {
     @if (!Model.Rec.o23IsEncrypted)
     {
-
-
         @Html.EditorFor(m => _NotepadLookAt, "~/Views/Shared/_NotepadRO.cshtml")
     }
-
 }
 
 
 <script type="text/javascript">
-    
+
     if (document.getElementById("divRecPageBox1")) {
         _adjust_divheight_small_display("divRecPageBox1");
     }

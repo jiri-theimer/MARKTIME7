@@ -19,6 +19,7 @@
 @section header_content
     {
     <link rel="stylesheet" href="~/css/recordform.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/p65checklist.css" asp-append-version="true" />
 
     @if (Model.Notepad != null && Model.Notepad.SelectedX04ID > 0)
     {
@@ -253,6 +254,18 @@
                 </div>
             }
         </section>
+    }
+
+    @if (Model.RecO18.o18IsChecklist && _f.p65ChecklistBL.IsAvailableForDocs())
+    {
+        //check-list (typ dokumentu ho povoluje volbou „V dokumentu používat checklist“): u uloženého dokumentu se ukládá průběžně sám, u nového spolu s dokumentem
+        var _chk = new UI.Models.p65ChecklistViewModel() { Prefix = "o23", RecPid = Model.rec_pid, CanEdit = true, PendingJson = Model.ChecklistPending, BoxCss = "rf-card" };
+        if (Model.rec_pid > 0)
+        {
+            _chk.CanEdit = _f.p65ChecklistBL.CanEdit(Model.rec_pid, null, "o23");
+            _chk.Items = _f.p65ChecklistBL.GetList(Model.rec_pid, "o23").ToList();
+        }
+        @await Html.PartialAsync("~/Views/Shared/_p65Checklist.cshtml", _chk)
     }
 
     @if (Model.disp.IsNotepad && !Model.RecO18.o18IsSeparatedNotepadTab)

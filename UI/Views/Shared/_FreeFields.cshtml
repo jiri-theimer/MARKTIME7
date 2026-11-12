@@ -2,159 +2,206 @@
 @inject BL.Factory _f
 
 @{
+    // Uživatelská pole ve formuláři záznamu (verze 8). Vzhled: css/freefields.css (třídy ff-*), vícenásobný výběr: js/freefields.js.
+    // Textové pole s oborem hodnot (x28DataSource, oddělovač středník) má čtyři podoby:
+    //   x28IsMultiselect=0, x28IsFixedDataSource=1 … roletka s jednou hodnotou
+    //   x28IsMultiselect=0, x28IsFixedDataSource=0 … text s našeptávanou nabídkou
+    //   x28IsMultiselect=1, x28IsFixedDataSource=1 … více hodnot, jen z nabídky
+    //   x28IsMultiselect=1, x28IsFixedDataSource=0 … více hodnot, z nabídky nebo vlastní
+    // Vícenásobný výběr se ukládá do téhož textového sloupce, hodnoty oddělené znakem | (BO.Code.FreeFieldValues).
     if (Model == null || Model.inputs == null)
     {
         return;
     }
-    string _labelclassname = "col-sm-2 col-md-3 col-form-label recpagelabel";
-    if (Model.caller == "p31record")
-    {
-        _labelclassname = "col-sm-2 col-md-2 col-form-label recpagelabel";
-    }
+
+    string _idp = (Model.elementidprefix ?? "").Replace(".", "_");     // stejné pravidlo jako mynumber/mydate: "ff1." → "ff1_"
+
     var o18ids = new List<int>();
     foreach (var c in Model.inputs.Where(p => p.o18ID > 0))
     {
         o18ids.Add(c.o18ID);
     }
     var _lisO23 = _f.o23DocBL.GetList(new BO.myQueryO23() { o18ids = o18ids });
+
+    // pořadí: nejdřív pole bez skupiny, pak skupiny (x27) podle svého pořadí; uvnitř zůstává pořadí polí
+    var _order = Enumerable.Range(0, Model.inputs.Count)
+        .OrderBy(x => string.IsNullOrEmpty(Model.inputs[x].GroupName) ? 0 : 1)
+        .ThenBy(x => Model.inputs[x].GroupOrdinary)
+        .ThenBy(x => Model.inputs[x].GroupName)
+        .ThenBy(x => x)
+        .ToList();
+    string _lastGroup = null;
 }
 
 @addTagHelper *, UI
 
-@for (int i = 0; i <= Model.inputs.Count() - 1; i++)
-{
-    <div class="row my-2" style="@Model.inputs[i].CssDisplay">
-        @switch (Model.inputs[i].TypeName)
+<link rel="stylesheet" href="~/css/freefields.css" asp-append-version="true" />
+
+<div class="ff @(Model.caller == "p31record" ? "ff-compact" : null)">
+    @foreach (int i in _order)
+    {
+        var ff = Model.inputs[i];
+        string idb = _idp + "inputs_" + i + "__";
+        string group = string.IsNullOrEmpty(ff.GroupName) ? null : ff.GroupName;
+        bool isText = ff.TypeName != "integer" && ff.TypeName != "decimal" && ff.TypeName != "date" && ff.TypeName != "datetime" && ff.TypeName != "boolean";
+        bool isMulti = isText && ff.x28IsMultiselect && ff.TextboxHeight == 0;
+        var options = isText ? BO.Code.FreeFieldValues.ParseSource(ff.x28DataSource) : new List<string>();
+
+        if (ff.IsVisible && group != _lastGroup)
         {
-            @case "integer":
-                <label for="ff1_inputs_@(i)__IntInput" class="@(_labelclassname)">@(Model.inputs[i].x28Name):</label>
-                break;
-            @case "decimal":
-                <label for="numff1_inputs_@(i)__NumInput" class="@(_labelclassname)">@(Model.inputs[i].x28Name):</label>
-                break;
-            @case "date":
-            @case "datetime":
-                <label for="ff1_inputs_@(i)__DateInputhelper" class="@(_labelclassname)">@(Model.inputs[i].x28Name):</label>
-                break;
-            @case "boolean":
-                break;
-            @default:
-                <label for="ff1_inputs_@(i)__StringInput" class="@(_labelclassname)">@(Model.inputs[i].x28Name):</label>
-                break;
+            _lastGroup = group;
+            if (group != null)
+            {
+                <h3 class="ff-group">@group</h3>
+            }
         }
 
+        string labelFor = idb + "StringInput";
+        switch (ff.TypeName)
+        {
+            case "integer": labelFor = idb + "IntInput"; break;
+            case "decimal": labelFor = "num" + idb + "NumInput"; break;
+            case "date":
+            case "datetime": labelFor = idb + "DateInputhelper"; break;
+            case "boolean": labelFor = idb + "CheckInput"; break;
+            default: if (isMulti) { labelFor = idb + "StringInput_ms"; } break;
+        }
 
+        <div class="ff-row" style="@(ff.IsVisible ? null : "display:none;")">
+            <label class="ff-label" for="@labelFor">
+                @ff.x28Name@if (ff.x28IsRequired)
+                {<span class="ff-req" title="@_f.tra("Povinné k vyplnění")">*</span>}
+            </label>
+            <div class="ff-value">
+                @switch (ff.TypeName)
+                {
+                    case "integer":
+                        <div class="ff-w-m">
+                            <select class="form-select" asp-for="inputs[i].IntInput">
+                                <option value="0">-----</option>
+                                @if (ff.o18ID > 0)
+                                {
+                                    @foreach (var c in _lisO23.Where(p => p.o18ID == ff.o18ID))
+                                    {
+                                        <option value="@(c.pid)">@(c.o23Name)</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        break;
 
-        <div class="@(Model.inputs[i].TypeName == "string" ? "col-sm-10 col-md-9" : "col-sm-4 col-md-3")">
+                    case "decimal":
+                        <div class="ff-w-s">
+                            <mynumber decimal-digits="2" asp-for="inputs[i].NumInput" elementid-prefix="@Model.elementidprefix"></mynumber>
+                        </div>
+                        break;
 
-            @switch (Model.inputs[i].TypeName)
-            {
-                @case "integer":
-                    <select class="form-select" asp-for="inputs[i].IntInput">
-                        <option value="0">-----</option>
-                        @if (Model.inputs[i].o18ID > 0)
+                    case "date":
+                        <div class="ff-w-s">
+                            <mydate asp-for="inputs[i].DateInput" elementid-prefix="@Model.elementidprefix"></mydate>
+                        </div>
+                        break;
+
+                    case "datetime":
+                        <div class="ff-w-m">
+                            <mydate asp-for="inputs[i].DateInput" include-time="true" elementid-prefix="@Model.elementidprefix"></mydate>
+                        </div>
+                        break;
+
+                    case "boolean":
+                        <div class="ff-check">
+                            <input type="checkbox" asp-for="inputs[i].CheckInput" />
+                        </div>
+                        break;
+
+                    default:
+                        if (isMulti)
                         {
-                            @foreach (var c in _lisO23.Where(p => p.o18ID == Model.inputs[i].o18ID))
-                            {
-                                <option value="@(c.pid)">@(c.o23Name)</option>
-                            }
+                            <div class="ff-ms" data-ff-ms data-fixed="@(ff.x28IsFixedDataSource ? "true" : "false")"
+                                 data-options="@(System.Text.Json.JsonSerializer.Serialize(options))"
+                                 data-placeholder="@(ff.x28IsFixedDataSource ? _f.tra("Vyberte hodnoty") : _f.tra("Vyberte nebo napište hodnotu"))"
+                                 data-text-add="@_f.tra("Přidat")" data-text-none="@_f.tra("Žádná hodnota neodpovídá")"
+                                 data-text-remove="@_f.tra("Odebrat")" data-text-unknown="@_f.tra("Hodnota není v oboru hodnot pole")">
+                                <input type="hidden" class="ff-ms-value" asp-for="inputs[i].StringInput" />
+                                <div class="ff-ms-box">
+                                    <input type="text" class="ff-ms-input" id="@(idb)StringInput_ms" autocomplete="off" />
+                                </div>
+                                <div class="ff-ms-panel" role="listbox" hidden></div>
+                            </div>
                         }
-                                          
-                    </select>
-
-                    break;
-                @case "decimal":
-                    <mynumber decimal-digits="2" asp-for="inputs[i].NumInput" elementid-prefix="@Model.elementidprefix"></mynumber>
-                    break;
-
-                @case "date":
-                    <mydate asp-for="inputs[i].DateInput" elementid-prefix="@Model.elementidprefix"></mydate>
-                    break;
-
-                @case "datetime":
-                    <mydate asp-for="inputs[i].DateInput" include-time="true" elementid-prefix="@Model.elementidprefix"></mydate>
-                    break;
-
-                @case "boolean":
-                    <input type="checkbox" asp-for="inputs[i].CheckInput" />
-                    <label for="ff1_inputs_@(i)__CheckInput">@Model.inputs[i].x28Name</label>
-                    break;
-
-                @default:
-                    @if (Model.inputs[i].x28IsFixedDataSource)
-                    {
-                        <select class="form-select" asp-for="inputs[i].StringInput">
-                            @foreach (var xx in BO.Code.Bas.ConvertString2List(Model.inputs[i].x28DataSource, ";"))
-                            {
-                                <option value="@(xx)">@(xx)</option>
-                            }
-
-                        </select>
-                    }
-                    else
-                    {
-                        @if (Model.inputs[i].TextboxHeight > 0)
+                        else if (ff.x28IsFixedDataSource)
+                        {
+                            // roletka: prázdná volba, aby se první hodnota neuložila sama; dříve uložená hodnota mimo obor se neztratí
+                            string cur = ff.StringInput == null ? "" : ff.StringInput.Trim();
+                            <div class="ff-w-m">
+                                <select class="form-select" id="@(idb)StringInput" name="@Html.NameFor(m => m.inputs[i].StringInput)">
+                                    <option value="">@(ff.x28IsRequired ? "— " + _f.tra("vyberte") + " —" : "")</option>
+                                    @foreach (string opt in options)
+                                    {
+                                        <option value="@opt" selected="@(opt == cur)">@opt</option>
+                                    }
+                                    @if (cur != "" && !options.Contains(cur))
+                                    {
+                                        <option value="@cur" selected="selected">@cur</option>
+                                    }
+                                </select>
+                            </div>
+                        }
+                        else if (ff.TextboxHeight > 0)
                         {
                             <textarea class="form-control" asp-for="inputs[i].StringInput"></textarea>
                         }
                         else
                         {
-                            
-
-                            @if (Model.inputs[i].x28DataSource != null)
-                            {
-                                <div class="row">
-                                    <div class="col m-0 p-0">
-                                        <input type="text" class="form-control" asp-for="inputs[i].StringInput" />
-                                    </div>
-
-                                    <div class="col m-0 p-0">
-                                        <button type="button" class="btn bog" onclick="_window_open('/Record/FreeFieldsAutoComplete?x28field=@(Model.inputs[i].x28Field)&header=@(Model.inputs[i].x28Name)&controlid=ff1_inputs_@(i)__StringInput')">...</button>
-                                    </div>
-                                    
-                                </div>
-
-                                <script type="text/javascript">
-                                            _autocomplete_setup("ff1_inputs_@(i)__StringInput", "@(Model.inputs[i].x28DataSource)", ";")
-
-                                </script>
-                            }
-                            else
-                            {
-                                <div class="input-group mb-3">
+                            <div class="ff-inline">
+                                @if (options.Count > 0)
+                                {
+                                    <input type="text" class="form-control" asp-for="inputs[i].StringInput" list="@(idb)dl" autocomplete="off" />
+                                    <datalist id="@(idb)dl">
+                                        @foreach (string opt in options)
+                                        {
+                                            <option value="@opt"></option>
+                                        }
+                                    </datalist>
+                                }
+                                else
+                                {
                                     <input type="text" class="form-control" asp-for="inputs[i].StringInput" />
-
-                                    <button type="button" class="btn btn-sm bog" onclick="_window_open('/Record/FreeFieldsAutoComplete?x28field=@(Model.inputs[i].x28Field)&header=@(Model.inputs[i].x28Name)&controlid=ff1_inputs_@(i)__StringInput')">...</button>
-                                </div>
-                            }
+                                }
+                                <button type="button" class="ff-more" tabindex="-1" title="@_f.tra("Hodnoty použité v jiných záznamech")"
+                                        onclick="_window_open('/Record/FreeFieldsAutoComplete?x28field=@(ff.x28Field)&header=@(Uri.EscapeDataString(ff.x28Name ?? ""))&controlid=@(idb)StringInput')">
+                                    <span class="material-icons-outlined-nosize">manage_search</span>
+                                </button>
+                            </div>
                         }
+                        break;
+                }
 
-                    }
-
-                    break;
-            }
-
-
-
-
-        </div>
-
-        @if (Model.inputs[i].x28ReminderNotifyBefore > 0)
-        {
-            <div class="col-sm-6 col-md-5">
-                <mark>reminder:</mark>
-                <code>- @(Model.inputs[i].x28ReminderNotifyBefore) h.</code>
-
+                @if (ff.x28ReminderNotifyBefore > 0)
+                {
+                    <span class="ff-reminder"><span class="material-icons-outlined-nosize">alarm</span>@string.Format(_f.tra("Připomenutí e-mailem {0} h předem"), ff.x28ReminderNotifyBefore)</span>
+                }
+                @if (!string.IsNullOrEmpty(ff.x28HelpText))
+                {
+                    <small class="ff-hint">@ff.x28HelpText</small>
+                }
             </div>
-        }
+        </div>
+    }
+</div>
 
-    </div>
+@for (int i = 0; i <= Model.inputs.Count() - 1; i++)
+{
     <input type="hidden" asp-for="inputs[i].IsVisible" value="@Model.inputs[i].IsVisible" />
     <input type="hidden" asp-for="inputs[i].x28DataSource" />
     <input type="hidden" asp-for="inputs[i].x28IsFixedDataSource" />
+    <input type="hidden" asp-for="inputs[i].x28IsMultiselect" />
     <input type="hidden" asp-for="inputs[i].x28IsRequired" />
     <input type="hidden" asp-for="inputs[i].x28Field" />
     <input type="hidden" asp-for="inputs[i].x28Name" />
+    <input type="hidden" asp-for="inputs[i].x28HelpText" />
+    <input type="hidden" asp-for="inputs[i].GroupName" />
+    <input type="hidden" asp-for="inputs[i].GroupOrdinary" />
     <input type="hidden" asp-for="inputs[i].TypeName" />
     <input type="hidden" asp-for="inputs[i].x28Entity" />
     <input type="hidden" asp-for="inputs[i].x24ID" />
@@ -162,3 +209,8 @@
     <input type="hidden" asp-for="inputs[i].TextboxHeight" />
     <input type="hidden" asp-for="inputs[i].o18ID" />
 }
+
+<script type="text/javascript" src="~/js/freefields.js" asp-append-version="true"></script>
+<script type="text/javascript">
+    MtFreeFields.init();
+</script>

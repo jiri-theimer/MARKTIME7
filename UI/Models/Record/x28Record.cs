@@ -22,5 +22,7 @@ namespace UI.Models.Record
         public List<BO.x26EntityField_Binding> lisX26 { get; set; }
 
         public bool IsTextArea { get; set; }
+
+        public string DataSourceLines { get; set; }     //obor hodnot pole: každá hodnota na samostatném řádku (do x28DataSource se ukládá oddělený středníkem)
     }
 }

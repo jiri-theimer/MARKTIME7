@@ -79,6 +79,10 @@ namespace BL
                     else
                     {
                         oc.SqlSyntax = "ff_relname_" + strPrefix + "." + rec.x28Field;
+                        if (rec.x28IsMultiselect)
+                        {
+                            oc.SqlSyntax = $"REPLACE({oc.SqlSyntax},'|',', ')";     //vícenásobný výběr: v přehledu „A, B, C“ místo „A|B|C“
+                        }
                         oc.RelSqlInCol = $"LEFT OUTER JOIN {rec.SourceTableName} ff_relname_{strPrefix} ON a.{strPrefix}ID = ff_relname_{strPrefix}.{strPrefix}ID";
                         //oc.RelSqlInCol = "LEFT OUTER JOIN " + rec.SourceTableName + " ff_relname_" + strPrefix + " ON a." + strPrefix + "ID = ff_relname_" + strPrefix + "." + strPrefix + "ID";
                     }

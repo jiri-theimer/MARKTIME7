@@ -1,0 +1,15 @@
+﻿/* Stránka dokumentu (Views/o23/Tab1.cshtml) – doplněk k recinfo.css (třídy ri-*): sloupec karet vpravo a karta vazeb dokumentu, třídy dt-*. */
+.ri-wide-layout > .dt-main { flex: 1 1 520px; min-width: 0; max-width: 760px; margin-top: 4px; }
+.dt-main > .ri-card:last-child { margin-bottom: 0; }
+.dt-count { margin-left: auto; min-width: 22px; padding: 0 6px; border-radius: 10px; background: rgba(0, 0, 0, .07); font-size: .8rem; font-weight: 500; line-height: 20px; text-align: center; color: #59636e; }
+.dt-list { list-style: none; margin: 0; padding: 0; }
+.dt-bind { display: flex; align-items: flex-start; gap: 8px; padding: 6px 2px; border-top: 1px solid #eef0f3; }
+.dt-bind:first-child { border-top: 0; padding-top: 0; }
+.dt-ico { flex: 0 0 auto; margin-top: 2px; font-size: 20px; color: #8a939c; }
+.dt-bind-main { flex: 1 1 auto; min-width: 0; }
+.dt-kind { display: block; font-size: .75rem; color: #59636e; line-height: 1.2; }
+.dt-name { font-weight: 500; overflow-wrap: anywhere; text-decoration: none; }
+a.dt-name:hover { text-decoration: underline; }
+@media (max-width: 1000px) {
+    .ri-wide-layout > .dt-main { flex: 1 1 100%; max-width: none; }
+}

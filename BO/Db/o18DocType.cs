@@ -57,6 +57,7 @@ namespace BO
         public int o18Ordinary { get; set; }       
         public bool o18IsColors { get; set; }
         public bool o18IsAllowTree { get; set; }
+        public bool o18IsChecklist { get; set; }    //v dokumentu používat check-list (p65Checklist.o23ID)
         
         public string o18ReportCodes { get; set; }        
         public o18EntryNameENUM o18EntryNameFlag { get; set; } = o18EntryNameENUM.Manual;

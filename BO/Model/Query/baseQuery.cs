@@ -970,7 +970,6 @@ namespace BO
                     s = "p83x.x01ID=@x01id_hostingmode"; break;
                 case "p12":
                     s = "x67x.x01ID=@x01id_hostingmode"; break;
-                case "x51":
                 case "x97":
                     s = "1=1"; break;
                 case "j27":

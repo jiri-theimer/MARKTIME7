@@ -1,18 +1,43 @@
 ﻿@model FreeFieldsViewModel
+@inject BL.Factory _f
 
 @{
+    // Uživatelská pole záznamu jen ke čtení (verze 8). Tabulka navazuje na hlavičku záznamu (td.tdlab), vzhled doplňuje css/freefields.css.
+    // Zobrazují se jen vyplněná pole; pole s vícenásobným výběrem (hodnoty oddělené |) jako štítky.
     if (Model == null || Model.inputs == null)
     {
         return;
     }
-  
+
+    var _rows = Model.inputs
+        .Where(p => p.IsVisible && (!string.IsNullOrWhiteSpace(p.StringInput) || p.NumInput != 0 || p.IntInput != 0 || p.DateInput != null || p.CheckInput))
+        .OrderBy(p => string.IsNullOrEmpty(p.GroupName) ? 0 : 1).ThenBy(p => p.GroupOrdinary).ThenBy(p => p.GroupName)
+        .ToList();
+    if (_rows.Count == 0)
+    {
+        return;
+    }
+    string _lastGroup = null;
 }
 
 @addTagHelper *, UI
 
-<table class="table table-hover">
-    @foreach (BO.FreeFieldInput c in Model.inputs.Where(p => p.StringInput != null || p.NumInput != 0 || p.DateInput != null || p.CheckInput))
+<link rel="stylesheet" href="~/css/freefields.css" asp-append-version="true" />
+
+<table class="table table-hover ffro">
+    @foreach (BO.FreeFieldInput c in _rows)
     {
+        string group = string.IsNullOrEmpty(c.GroupName) ? null : c.GroupName;
+        if (group != _lastGroup)
+        {
+            _lastGroup = group;
+            if (group != null)
+            {
+                <tr class="ffro-group">
+                    <td colspan="2">@group</td>
+                </tr>
+            }
+        }
         <tr>
             <td class="tdlab">
                 @(c.x28Name + ":")
@@ -20,38 +45,50 @@
             <td>
                 @switch (c.TypeName)
                 {
-                    @case "integer":
+                    case "integer":
+                        // klíč combo nabídky = dokument (o23)
+                        var recO23 = c.IntInput > 0 ? _f.o23DocBL.Load(c.IntInput) : null;
+                        <myval value="@(recO23 == null ? null : recO23.o23Name)"></myval>
+                        break;
+
+                    case "decimal":
                         <myval datatype="num" value="@c.NumInput"></myval>
                         break;
 
-                    @case "decimal":
-                        <myval datatype="num" value="@c.NumInput"></myval>
-                        break;
-
-                    @case "date":
+                    case "date":
                         <myval datatype="date" value="@c.DateInput"></myval>
                         break;
 
-                    @case "datetime":
+                    case "datetime":
                         <myval datatype="datetime" value="@c.DateInput"></myval>
                         break;
 
-                    @case "boolean":
-                    @case "bool":
+                    case "boolean":
+                    case "bool":
                         <myval datatype="boolean" value="@c.CheckInput"></myval>
-                        
-
                         break;
 
-                    @default:
-                        <myval value="@c.StringInput"></myval>
+                    default:
+                        if (c.x28IsMultiselect)
+                        {
+                            <div class="ff-chips">
+                                @foreach (string val in BO.Code.FreeFieldValues.ParseMulti(c.StringInput))
+                                {
+                                    <span class="ff-chip"><span class="ff-chip-text">@val</span></span>
+                                }
+                            </div>
+                        }
+                        else if (c.TextboxHeight > 0)
+                        {
+                            <div class="ffro-text">@c.StringInput</div>
+                        }
+                        else
+                        {
+                            <myval value="@c.StringInput"></myval>
+                        }
                         break;
                 }
-
             </td>
         </tr>
-
     }
 </table>
-
-

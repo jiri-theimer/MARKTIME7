@@ -1,0 +1,65 @@
+/* Uživatelská pole záznamu (verze 8) – třídy ff-*:
+   Views/Shared/_FreeFields.cshtml (formulář), Views/Shared/_FreeFieldsRO.cshtml (čtení), js/freefields.js (vícenásobný výběr).
+   Řádek „popisek | hodnota“, na úzké obrazovce popisek nad hodnotou. Barvy navazují na skin. */
+
+.ff { max-width: 1200px; padding: 2px 0 6px; }
+.ff-group { margin: 16px 0 8px; padding-bottom: 4px; border-bottom: 1px solid #e3e6ea; font-size: .8rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: #59636e; }
+.ff > .ff-group:first-child { margin-top: 2px; }
+
+.ff-row { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 4px 12px; align-items: start; margin-bottom: 8px; }
+.ff-compact .ff-row { grid-template-columns: 160px minmax(0, 1fr); }
+.ff-label { margin: 0; padding-top: 6px; font-size: .875rem; color: #59636e; overflow-wrap: anywhere; }
+.ff-req { margin-left: 2px; color: #b02a37; font-weight: 600; }
+.ff-value { min-width: 0; }
+.ff-w-s { max-width: 220px; }
+.ff-w-m { max-width: 520px; }
+.ff-value textarea.form-control { min-height: 90px; resize: vertical; }
+.ff-check { display: flex; align-items: center; gap: 8px; padding-top: 6px; }
+.ff-check label { margin: 0; }
+.ff-hint { display: block; margin-top: 3px; font-size: .8rem; color: #6c757d; }
+.ff-inline { display: flex; align-items: center; gap: 6px; }
+.ff-inline > .form-control { flex: 1 1 auto; min-width: 0; }
+.ff-more { flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; padding: 0; border: 1px solid #d0d7de; border-radius: 6px; background: #fff; color: #59636e; cursor: pointer; }
+.ff-more:hover { border-color: var(--pozadi, #0b4b92); color: var(--pozadi, #0b4b92); }
+.ff-more .material-icons-outlined-nosize { font-size: 20px; }
+.ff-reminder { display: inline-flex; align-items: center; gap: 4px; margin-top: 3px; font-size: .8rem; color: #6c757d; }
+.ff-reminder .material-icons-outlined-nosize { font-size: 16px; }
+
+/* štítek hodnoty: vícenásobný výběr ve formuláři i při čtení */
+.ff-chip { display: inline-flex; align-items: center; gap: 2px; max-width: 100%; padding: 1px 4px 1px 9px; border-radius: 12px; background: color-mix(in srgb, var(--oznaceno, #4169e1) 12%, #ffffff); border: 1px solid color-mix(in srgb, var(--oznaceno, #4169e1) 30%, #ffffff); color: #1f2328; font-size: .875rem; line-height: 1.5; }
+.ff-chip-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ff-chip-x { flex: 0 0 auto; width: 18px; height: 18px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: #59636e; font-size: 15px; line-height: 16px; cursor: pointer; }
+.ff-chip-x:hover { background: rgba(0, 0, 0, .1); color: #1f2328; }
+.ff-chip-unknown { background: #fff3cd; border-color: #ffe08a; }
+.ff-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.ff-chips .ff-chip { padding-right: 9px; }
+
+/* vícenásobný výběr */
+.ff-ms { position: relative; }
+.ff-ms-box { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; min-height: 34px; padding: 3px 28px 3px 6px; border: 1px solid #ced4da; border-radius: 6px; background: #fff; cursor: text; }
+.ff-ms-box::after { content: ""; position: absolute; top: 14px; right: 11px; border: 5px solid transparent; border-top-color: #59636e; border-bottom-width: 0; pointer-events: none; }
+html.mt-modern .ff-ms-box { border-color: #d0d7de; }
+.ff-ms-box:hover { border-color: #afb8c1; }
+.ff-ms-open .ff-ms-box, .ff-ms-box:focus-within { border-color: var(--oznaceno, #4169e1); box-shadow: 0 0 0 3px color-mix(in srgb, var(--oznaceno, #4169e1) 20%, transparent); }
+.ff-ms-input { flex: 1 1 90px; min-width: 90px; height: 24px; padding: 0 2px; border: 0; outline: 0; background: transparent; font: inherit; color: inherit; }
+.ff-ms-panel { position: absolute; z-index: 1060; top: calc(100% + 3px); left: 0; right: 0; max-height: 260px; overflow-y: auto; padding: 4px; border: 1px solid #d0d7de; border-radius: 8px; background: #fff; box-shadow: 0 6px 18px rgba(0, 0, 0, .14); }
+.ff-ms-opt { display: flex; align-items: center; gap: 8px; padding: 5px 8px; border-radius: 6px; cursor: pointer; }
+.ff-ms-opt:hover, .ff-ms-opt.is-active { background: #f0f3f6; }
+.ff-ms-check { flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border: 1.5px solid #9aa4af; border-radius: 4px; background: #fff; color: #fff; font-size: 13px; font-weight: 700; line-height: 1; }
+.ff-ms-opt.is-selected .ff-ms-check { border-color: var(--pozadi, #0b4b92); background: var(--pozadi, #0b4b92); color: var(--popredi, #fff); }
+.ff-ms-opt-text { min-width: 0; overflow-wrap: anywhere; }
+.ff-ms-add .ff-ms-check { border-style: dashed; color: #59636e; }
+.ff-ms-add .ff-ms-opt-text { color: var(--pozadi, #0b4b92); }
+.ff-ms-none { padding: 6px 8px; color: #6c757d; font-size: .875rem; }
+
+/* čtení (_FreeFieldsRO): navazuje na tabulku hlavičky záznamu */
+.ffro { margin-bottom: 0; }
+.ffro .ffro-group td { padding-top: 10px; font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: #59636e; }
+.ffro .ff-chips { padding: 2px 0; }
+.ffro-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+
+@media (max-width: 767.98px) {
+    .ff-row, .ff-compact .ff-row { grid-template-columns: 1fr; gap: 2px; }
+    .ff-label { padding-top: 0; }
+    .ff-w-s, .ff-w-m { max-width: none; }
+}

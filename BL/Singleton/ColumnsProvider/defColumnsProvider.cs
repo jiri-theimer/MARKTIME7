@@ -662,23 +662,6 @@ namespace BL
             AA("Maska", "Min-Max", 0, "case when a.x38MaskSyntax IS NULL then ISNULL(a.x38ConstantBeforeValue,'')+RIGHT('000000001',a.x38Scale)+' - '+ISNULL(a.x38ConstantBeforeValue,'')+RIGHT('99999999999',a.x38Scale) else a.x38MaskSyntax end");
             AppendTimestamp();
 
-            //x52 = novinky
-            this.EntityName = "x52Blog";
-            AA("x52Name", "Název", gdc1, null, "string", false, true);
-            AA("x52Date", "Datum", gdc1, "a.x52Date", "date");
-            AA("x52Symbol", "Symbol");
-            AA("x52Ordinary", "#", gdc1);
-
-            //x51 = nápověda
-            this.EntityName = "x51HelpCore";
-            AA("x51Name", "Nápověda", gdc1, null, "string", false, true);
-            AA("x51ViewUrl", "View Url", gdc2);
-            AA("x51Ordinary", "#", gdc1);
-            AA("x51TreeIndex", "Strom index", gdc1);
-            oc = AA("Strom", "Strom", gdc1, "case when a.x51ParentID is not null then a.x51TreePath end"); oc.FixedWidth = 400;
-            AA("x51NearUrls", "Near urls");
-            AppendTimestamp();
-
             //x55 = dashboard widget
             this.EntityName = "x55Widget";
             AA("x55Name", "Widget", gdc1, null, "string", false, true);

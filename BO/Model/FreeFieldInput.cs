@@ -17,6 +17,9 @@ namespace BO
         public int TextboxHeight { get; set; }
 
         public bool IsVisible { get; set; } = true;  
+
+        public string GroupName { get; set; }     //skupina polí (x27Name): nadpis ve formuláři
+        public int GroupOrdinary { get; set; }    //pořadí skupiny (x27Ordinary)
         public string CssDisplay
         {
             get

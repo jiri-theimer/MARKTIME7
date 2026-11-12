@@ -1,5 +1,5 @@
 ﻿// Check-list (tabulka p65Checklist) – Views/Shared/_p65Checklist.cshtml, vzhled css/p65checklist.css (třídy chk-*).
-// Záznam, kterému check-list patří, určuje cfg.prefix + cfg.pid: "p56" = úkol, "p58" = opakovaný úkol.
+// Záznam, kterému check-list patří, určuje cfg.prefix + cfg.pid: "p56" = úkol, "o23" = dokument, "p58" = opakovaný úkol.
 //
 // Dva režimy ukládání:
 // - uložený záznam (pid > 0): každá změna se hned posílá na /p65/* a seznam se překreslí podle odpovědi serveru,

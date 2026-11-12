@@ -106,6 +106,14 @@ namespace BL
             p.AddEnumInt("o18BarcodeFlag", rec.o18BarcodeFlag);
 
             p.AddBool("o18IsAllowTree", rec.o18IsAllowTree);
+            if (_db.Load<BO.GetInteger>("select case when COL_LENGTH('dbo.o18DocType','o18IsChecklist') is null then 0 else 1 end as Value").Value == 1)
+            {
+                p.AddBool("o18IsChecklist", rec.o18IsChecklist);    //sloupec přibyl ve verzi 8; databáze bez něj se ukládá jako dosud
+            }
+            else if (rec.o18IsChecklist)
+            {
+                this.AddMessage("V databázi chybí sloupec o18IsChecklist (skript o23_checklist.sql)."); return 0;
+            }
 
 
             p.AddEnumInt("o18TemplateFlag", rec.o18TemplateFlag);

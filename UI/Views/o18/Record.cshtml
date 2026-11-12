@@ -8,9 +8,20 @@
     Model.PageTitle = _f.tra("Typ dokumentu");
     Model.PageSymbol = "settings";
 
+    // Verze 8: moderní vzhled (třídy rf-* z css/recordform.css, doplněk css/o18record.css). Názvy polí, záložky a postbacky beze změny.
+    bool _isUctenka = Model.Rec.o18TemplateFlag == BO.o18TemplateENUM.Uctenka;
+    var _entities = new (string value, string text)[] {
+        ("p41", _f.tra("Projekt")), ("p28", _f.tra("Kontakt")), ("j02", _f.tra("Uživatel")), ("p91", _f.tra("Vyúčtování")),
+        ("p90", _f.tra("Záloha")), ("p31", _f.tra("Úkon")), ("p15", _f.tra("Lokalita"))
+    };
 }
 @addTagHelper *, UI
 
+@section header_content
+{
+    <link rel="stylesheet" href="~/css/recordform.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/o18record.css" asp-append-version="true" />
+}
 
 <div class="tabs_container_record">
     <!-- Tab panes -->
@@ -37,211 +48,197 @@
     <div class="tab-content">
         <div class="tab-pane" id="tab1" role="tabpanel">
             <!-- Tab1 -->
-            
-            <div class="row my-2">
-                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název"):</label>
-                <div class="col-sm-7 col-md-6">
-                    <input class="form-control record_name" asp-for="Rec.o18Name" />
-                </div>
-                <label class="col-auto">#@_f.tra("Index pořadí"):</label>
-                <div class="col-sm-1 col-md-1">
-                    <mynumber asp-for="Rec.o18Ordinary" decimal-digits="0"></mynumber>
-                </div>
-            </div>
-            <div class="row my-2">
-                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Tovární šablona"):</label>
-                <div class="col-sm-7 col-md-6">
-                    <select asp-for="Rec.o18TemplateFlag" class="form-select" onchange="_postback('refresh')">
-                        <option value="None">@_f.tra("Stavebnice")</option>
-                        <option value="1">@_f.tra("Účtenka")</option>
-                    </select>
-                </div>
+            <div class="rf o18">
 
-            </div>
-            <div class="row my-2">
-                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Menu dokumentů"):</label>
-                <div class="col-sm-3 col-md-3">
-                    <mycombo entity="o17DocMenu" asp-for="Rec.o17ID" selectedtext="@Model.ComboO17"></mycombo>
-                </div>
-            </div>
+                <section class="rf-card">
+                    <h2><span class="material-icons-outlined-nosize">description</span>@_f.tra("Typ dokumentu")</h2>
 
-            @if (Model.Rec.o18TemplateFlag == BO.o18TemplateENUM.Uctenka)
-            {
-                <div class="row my-2">
-                    <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Sešit výdaje"):</label>
-                    <div class="col-sm-7 col-md-6">
-                        <mycombo entity="p34ActivityGroup" asp-for="Rec.p34ID_Uctenka" selectedtext="@Model.ComboP34Name" event_after_changevalue="_postback"></mycombo>
-
+                    <div class="rf-row">
+                        <label class="rf-label" for="Rec_o18Name">@_f.tra("Název"):</label>
+                        <div class="rf-value o18-name">
+                            <input class="form-control record_name" asp-for="Rec.o18Name" />
+                            <div class="o18-ordinary" title="@_f.tra("Index pořadí")">
+                                <span class="rf-label">#</span>
+                                <mynumber asp-for="Rec.o18Ordinary" decimal-digits="0"></mynumber>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <div class="row my-2">
-                    <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Aktivita výdaje"):</label>
-                    <div class="col-sm-7 col-md-6">
-                        <mycombo entity="p32Activity" asp-for="Rec.p32ID_Uctenka" myqueryinline="p34id|int|@Model.Rec.p34ID_Uctenka" selectedtext="@Model.ComboP32Name"></mycombo>
-
+                    <div class="rf-row">
+                        <label class="rf-label" for="Rec_o18TemplateFlag">@_f.tra("Tovární šablona"):</label>
+                        <div class="rf-value o18-w">
+                            <select asp-for="Rec.o18TemplateFlag" class="form-select" onchange="_postback('refresh')">
+                                <option value="None">@_f.tra("Stavebnice")</option>
+                                <option value="1">@_f.tra("Účtenka")</option>
+                            </select>
+                        </div>
                     </div>
-                </div>
-            }
-
-
-            <div class="card my-2 hideift">
-                <div class="card-header input-group">
-                    <div>
-                        <select asp-for="@Model.SelectedEntity" class="form-select">
-                            <option value="">--@_f.tra("Vyberte entitu")--</option>
-                            <option value="p41">@_f.tra("Projekt")</option>
-                            <option value="p28">@_f.tra("Kontakt")</option>
-                            <option value="j02">@_f.tra("Uživatel")</option>
-                            <option value="p91">@_f.tra("Vyúčtování")</option>
-                            <option value="p90">@_f.tra("Záloha")</option>
-                            <option value="p15">@_f.tra("Pojmenovaná lokalita")</option>
-                        </select>
-                    </div>
-                    <div>
-                        <button type="button" class="btn btn-outline-primary" onclick="o20_add_row()">@_f.tra("Vložit vybranou entitu")</button>
+                    <div class="rf-row">
+                        <label class="rf-label">@_f.tra("Menu dokumentů"):</label>
+                        <div class="rf-value o18-w">
+                            <mycombo entity="o17DocMenu" asp-for="Rec.o17ID" selectedtext="@Model.ComboO17"></mycombo>
+                        </div>
                     </div>
 
-                </div>
-                <div class="card-body">
-                    <table class="table table-hover">
-                        @for (int i = 0; i < Model.lisO20.Count; i++)
-                        {
-                            <tr style="@(Model.lisO20[i].CssTempDisplay)">
-                                <td>
-                                    <input type="hidden" asp-for="lisO20[i].IsTempDeleted" value="@Model.lisO20[i].IsTempDeleted" />
-                                    <input type="hidden" asp-for="lisO20[i].TempGuid" value="@Model.lisO20[i].TempGuid" />
-                                    <input type="hidden" asp-for="lisO20[i].o20ID" value="@Model.lisO20[i].o20ID" />
-                                    <input type="hidden" asp-for="lisO20[i].ComboEntity" value="@Model.lisO20[i].ComboEntity" />
-                                    <input type="hidden" asp-for="lisO20[i].ComboSelectedText" value="@Model.lisO20[i].ComboSelectedText" />
+                    @if (_isUctenka)
+                    {
+                        <div class="rf-row">
+                            <label class="rf-label">@_f.tra("Sešit výdaje"):</label>
+                            <div class="rf-value o18-w">
+                                <mycombo entity="p34ActivityGroup" asp-for="Rec.p34ID_Uctenka" selectedtext="@Model.ComboP34Name" event_after_changevalue="_postback"></mycombo>
+                            </div>
+                        </div>
+                        <div class="rf-row">
+                            <label class="rf-label">@_f.tra("Aktivita výdaje"):</label>
+                            <div class="rf-value o18-w">
+                                <mycombo entity="p32Activity" asp-for="Rec.p32ID_Uctenka" myqueryinline="p34id|int|@Model.Rec.p34ID_Uctenka" selectedtext="@Model.ComboP32Name"></mycombo>
+                            </div>
+                        </div>
+                    }
+                </section>
 
-                                    <div>
-                                        @if (Model.lisO20[i].o20Entity != null)
-                                        {
-                                            <select asp-for="lisO20[i].o20Entity" disabled>
-                                                <option value="">??</option>
-                                                <option value="p41">@_f.tra("Projekt")</option>
-                                                <option value="p28">@_f.tra("Kontakt")</option>
-                                                <option value="j02">@_f.tra("Uživatel")</option>
-                                                <option value="p91">@_f.tra("Vyúčtování")</option>
-                                                <option value="p90">@_f.tra("Záloha")</option>
-                                                <option value="p31">@_f.tra("Úkon")</option>
-                                                <option value="p15">@_f.tra("Lokalita")</option>
-                                            </select>
-                                        }
-                                        else
-                                        {
-                                            <select asp-for="lisO20[i].o20Entity">
-                                                <option value="">??</option>
-                                                <option value="p41">@_f.tra("Projekt")</option>
-                                                <option value="p28">@_f.tra("Kontakt")</option>
-                                                <option value="j02">@_f.tra("Uživatel")</option>
-                                                <option value="p91">@_f.tra("Vyúčtování")</option>
-                                                <option value="p90">@_f.tra("Záloha")</option>
-                                                <option value="p31">@_f.tra("Úkon")</option>
-                                                <option value="p15">@_f.tra("Lokalita")</option>
-                                            </select>
-                                        }
+                <section class="rf-card hideift">
+                    <div class="rf-cardbar">
+                        <h2><span class="material-icons-outlined-nosize">link</span>@_f.tra("Vazby dokumentu na záznamy")</h2>
+                        <div class="o18-addbind ms-auto">
+                            <select asp-for="@Model.SelectedEntity" class="form-select form-select-sm">
+                                <option value="">--@_f.tra("Vyberte entitu")--</option>
+                                <option value="p41">@_f.tra("Projekt")</option>
+                                <option value="p28">@_f.tra("Kontakt")</option>
+                                <option value="j02">@_f.tra("Uživatel")</option>
+                                <option value="p91">@_f.tra("Vyúčtování")</option>
+                                <option value="p90">@_f.tra("Záloha")</option>
+                                <option value="p15">@_f.tra("Pojmenovaná lokalita")</option>
+                            </select>
+                            <button type="button" class="btn btn-sm bog" onclick="o20_add_row()"><span class="material-icons-outlined-btn">add</span>@_f.tra("Vložit vybranou entitu")</button>
+                        </div>
+                    </div>
 
+                    @if (!Model.lisO20.Any(p => !p.IsTempDeleted))
+                    {
+                        <div class="rf-hint">@_f.tra("Typ dokumentu zatím nemá žádnou vazbu. Vazba určuje, ke kterým záznamům se dokument přiřazuje.")</div>
+                    }
 
+                    @for (int i = 0; i < Model.lisO20.Count; i++)
+                    {
+                        <div class="o18-item" style="@(Model.lisO20[i].IsTempDeleted ? "display:none;" : null)">
+                            <input type="hidden" asp-for="lisO20[i].IsTempDeleted" value="@Model.lisO20[i].IsTempDeleted" />
+                            <input type="hidden" asp-for="lisO20[i].TempGuid" value="@Model.lisO20[i].TempGuid" />
+                            <input type="hidden" asp-for="lisO20[i].o20ID" value="@Model.lisO20[i].o20ID" />
+                            <input type="hidden" asp-for="lisO20[i].ComboEntity" value="@Model.lisO20[i].ComboEntity" />
+                            <input type="hidden" asp-for="lisO20[i].ComboSelectedText" value="@Model.lisO20[i].ComboSelectedText" />
 
-                                        <input type="text" asp-for="lisO20[i].o20Name" placeholder="@_f.tra("Název vazby")" />
-
-                                        <input type="checkbox" asp-for="lisO20[i].o20IsEntryRequired" />
-                                        <label class="col-form-label" for="lisO20_@(i)__o20IsEntryRequired">@_f.tra("Povinná vazba")</label>
-
-                                        <input type="checkbox" asp-for="lisO20[i].o20IsMultiSelect" />
-                                        <label class="col-form-label" for="lisO20_@(i)__o20IsMultiSelect">@_f.tra("Povoleno více-násobné přiřazení")</label>
-
-
-                                        <select asp-for="lisO20[i].o20EntryModeFlag">
-                                            <option value="Combo">@_f.tra("Ručně uživatelem nebo odkazem")</option>
-                                            <option value="InsertUpdateWithoutCombo">@_f.tra("Odkazem")</option>
-                                            <option value="ExternalByWorkflow">@_f.tra("Ze strany workflow")</option>
+                            <div class="o18-item-main">
+                                <div class="o18-bind-head">
+                                    @if (Model.lisO20[i].o20Entity != null)
+                                    {
+                                        <select asp-for="lisO20[i].o20Entity" class="form-select form-select-sm o18-w-entity" disabled>
+                                            <option value="">??</option>
+                                            @foreach (var e in _entities)
+                                            {
+                                                <option value="@e.value">@e.text</option>
+                                            }
                                         </select>
-                                        <div>
-                                            <mycombo entity="@Model.lisO20[i].ComboEntity" asp-for="lisO20[i].o20RecTypePid" selectedtext="@Model.lisO20[i].ComboSelectedText" filter-flag="1" placeholder="@_f.tra("Omezit na typ...")"></mycombo>
-
-                                            <input type="checkbox" asp-for="lisO20[i].o20IsClosed" />
-                                            <label class="col-form-label" for="lisO20_@(i)__o20IsClosed">@_f.tra("Vazba uzavřena pro přiřazování")</label>
-
-                                        </div>
-
+                                    }
+                                    else
+                                    {
+                                        <select asp-for="lisO20[i].o20Entity" class="form-select form-select-sm o18-w-entity">
+                                            <option value="">??</option>
+                                            @foreach (var e in _entities)
+                                            {
+                                                <option value="@e.value">@e.text</option>
+                                            }
+                                        </select>
+                                    }
+                                    <input type="text" class="form-control form-control-sm" asp-for="lisO20[i].o20Name" placeholder="@_f.tra("Název vazby")" />
+                                    <select asp-for="lisO20[i].o20EntryModeFlag" class="form-select form-select-sm o18-w-mode" title="@_f.tra("Jak se vazba zadává")">
+                                        <option value="Combo">@_f.tra("Ručně uživatelem nebo odkazem")</option>
+                                        <option value="InsertUpdateWithoutCombo">@_f.tra("Odkazem")</option>
+                                        <option value="ExternalByWorkflow">@_f.tra("Ze strany workflow")</option>
+                                    </select>
+                                </div>
+                                <div class="o18-bind-opts">
+                                    <div class="o18-w-type">
+                                        <mycombo entity="@Model.lisO20[i].ComboEntity" asp-for="lisO20[i].o20RecTypePid" selectedtext="@Model.lisO20[i].ComboSelectedText" filter-flag="1" placeholder="@_f.tra("Omezit na typ...")"></mycombo>
                                     </div>
-                                </td>
-                                <td>
-                                    #<input type="text" asp-for="lisO20[i].o20Ordinary" title="Index pořadí" style="width:30px;" />
-                                </td>
-                                <td width="60px">
-                                    <button type="button" class="btn btn-danger" title="@_f.tra("Odstranit řádek")" onclick="o20_delete_row('@(Model.lisO20[i].TempGuid)')">x</button>
-                                </td>
-                            </tr>
-                        }
-                    </table>
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" asp-for="lisO20[i].o20IsEntryRequired" />
+                                        <label class="form-check-label" for="lisO20_@(i)__o20IsEntryRequired">@_f.tra("Povinná vazba")</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" asp-for="lisO20[i].o20IsMultiSelect" />
+                                        <label class="form-check-label" for="lisO20_@(i)__o20IsMultiSelect">@_f.tra("Povoleno více-násobné přiřazení")</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" asp-for="lisO20[i].o20IsClosed" />
+                                        <label class="form-check-label" for="lisO20_@(i)__o20IsClosed">@_f.tra("Vazba uzavřena pro přiřazování")</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="o18-item-side">
+                                <label class="o18-ord" title="@_f.tra("Index pořadí")">#<input type="text" class="form-control form-control-sm" asp-for="lisO20[i].o20Ordinary" /></label>
+                                <button type="button" class="rf-del" title="@_f.tra("Odstranit řádek")" onclick="o20_delete_row('@(Model.lisO20[i].TempGuid)')"><span class="material-icons-outlined-nosize">close</span></button>
+                            </div>
+                        </div>
+                    }
+                </section>
 
-                </div>
+                <section class="rf-card hideift">
+                    <h2><span class="material-icons-outlined-nosize">dashboard_customize</span>@_f.tra("Výchozí Rozšíření karty záznamu dokumentu")</h2>
+                    <div class="o18-ext">
+                        <div class="rf-row">
+                            <label class="rf-label" for="Rec_o18NotepadTab">Notepad:</label>
+                            <div class="rf-value">@Html.EditorFor(m => m.Rec.o18NotepadTab, "~/Views/Shared/_BitStreamFlag.cshtml")</div>
+                        </div>
+                        <div class="rf-row">
+                            <label class="rf-label" for="Rec_o18FilesTab">@_f.tra("Nahrávání příloh"):</label>
+                            <div class="rf-value">@Html.EditorFor(m => m.Rec.o18FilesTab, "~/Views/Shared/_BitStreamFlag.cshtml")</div>
+                        </div>
+                        <div class="rf-row">
+                            <label class="rf-label" for="Rec_o18TagsTab">@_f.tra("Štítky"):</label>
+                            <div class="rf-value">@Html.EditorFor(m => m.Rec.o18TagsTab, "~/Views/Shared/_BitStreamFlag.cshtml")</div>
+                        </div>
+                        <div class="rf-row">
+                            <label class="rf-label" for="Rec_o18RolesTab">@_f.tra("Role | Oprávnění"):</label>
+                            <div class="rf-value">@Html.EditorFor(m => m.Rec.o18RolesTab, "~/Views/Shared/_BitStreamFlag.cshtml")</div>
+                        </div>
+                    </div>
+
+                    <div class="o18-checklist">
+                        <div class="form-check form-switch m-0">
+                            <input type="checkbox" class="form-check-input" role="switch" asp-for="@Model.Rec.o18IsChecklist" />
+                            <label class="form-check-label" for="Rec_o18IsChecklist"><span class="material-icons-outlined-nosize">checklist</span> @_f.tra("V dokumentu používat checklist")</label>
+                        </div>
+                        <small class="rf-hint">@_f.tra("Dokument tohoto typu má seznam položek k odškrtnutí – v kartě dokumentu i na jeho stránce.")</small>
+                    </div>
+                </section>
+
             </div>
-
-            <div class="card my-2 hideift" style="max-width:500px;">
-                <div class="card-header">
-                    @_f.tra("Výchozí Rozšíření karty záznamu dokumentu")
-                </div>
-                <div class="card-body">
-                    <table>
-                        <tr>
-                            <td>
-                                <label>Notepad:</label>
-                            </td>
-                            <td>
-                                @Html.EditorFor(m => m.Rec.o18NotepadTab, "~/Views/Shared/_BitStreamFlag.cshtml")
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <label>@_f.tra("Nahrávání příloh"):</label>
-                            </td>
-                            <td>
-                                @Html.EditorFor(m => m.Rec.o18FilesTab, "~/Views/Shared/_BitStreamFlag.cshtml")
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <label>@_f.tra("Štítky"):</label>
-                            </td>
-                            <td>
-                                @Html.EditorFor(m => m.Rec.o18TagsTab, "~/Views/Shared/_BitStreamFlag.cshtml")
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <label>@_f.tra("Role | Oprávnění"):</label>
-                            </td>
-                            <td>
-                                @Html.EditorFor(m => m.Rec.o18RolesTab, "~/Views/Shared/_BitStreamFlag.cshtml")
-                            </td>
-                        </tr>
-                    </table>
-
-
-
-                </div>
-            </div>
-
-
         </div>
 
         <div class="tab-pane" id="tab2" role="tabpanel">
             <!-- Tab2 -->
+            <div class="rf o18">
+                <div class="o18-toolbar hideift">
+                    <button type="button" class="btn btn-sm bog" onclick="o16_add_row()"><span class="material-icons-outlined-btn">add</span>@_f.tra("Přidat pole")</button>
+                    <small class="rf-hint m-0">@_f.tra("Pole se v kartě dokumentu zobrazují podle indexu pořadí.")</small>
+                </div>
 
-            <button type="button" class="btn btn-outline-primary btn-sm hideift" onclick="o16_add_row()">@_f.tra("Přidat pole")</button>
+                @if (!Model.lisO16.Any(p => !p.IsTempDeleted))
+                {
+                    <div class="hm-empty">@_f.tra("Typ dokumentu zatím nemá žádné uživatelské pole.")</div>
+                }
 
+                @for (int i = 0; i < Model.lisO16.Count; i++)
+                {
+                    bool isText = Model.lisO16[i].o16Field != null && Model.lisO16[i].o16Field.Contains("Text");
+                    bool isDate = Model.lisO16[i].o16Field != null && Model.lisO16[i].o16Field.Contains("Date");
+                    <div class="o18-item o18-field" style="@(Model.lisO16[i].IsTempDeleted ? "display:none;" : null)">
+                        <input type="hidden" asp-for="lisO16[i].IsTempDeleted" value="@Model.lisO16[i].IsTempDeleted" />
+                        <input type="hidden" asp-for="lisO16[i].TempGuid" value="@Model.lisO16[i].TempGuid" />
 
-            <div style="overflow:auto;max-height:80%;">
-                <table class="table table-hover" style="table-layout: fixed;min-width:800px;">
-                    @for (int i = 0; i < Model.lisO16.Count; i++)
-                    {
-                        <tr style="@(Model.lisO16[i].CssTempDisplay)">
-                            <td style="width:200px;">
-                                <select asp-for="lisO16[i].o16Field" onchange="postback()">
+                        <div class="o18-item-main">
+                            <div class="o18-field-head">
+                                <select asp-for="lisO16[i].o16Field" class="form-select form-select-sm o18-w-field" onchange="postback()">
                                     <option value="">--@_f.tra("Obsazené pole")--</option>
                                     <option value="o23FreeText01">Text 1</option>
                                     <option value="o23FreeText02">Text 2</option>
@@ -273,190 +270,190 @@
                                     <option value="o23FreeBoolean03">ANO/NE 3</option>
                                     <option value="o23FreeBoolean04">ANO/NE 4</option>
                                     <option value="o23FreeBoolean05">ANO/NE 5</option>
-
                                 </select>
-
-                            </td>
-                            <td style="width:250px;">
-                                <input type="hidden" asp-for="lisO16[i].IsTempDeleted" value="@Model.lisO16[i].IsTempDeleted" />
-                                <input type="hidden" asp-for="lisO16[i].TempGuid" value="@Model.lisO16[i].TempGuid" />
-
-
-                                <input type="text" asp-for="lisO16[i].o16Name" placeholder="@_f.tra("Název")" />
-                                <input type="checkbox" asp-for="lisO16[i].o16IsEntryRequired" />
-                                <label class="col-form-label" for="lisO16_@(i)__o16IsEntryRequired">@_f.tra("Povinné k vyplnění")</label>
-                                #<input type="text" asp-for="lisO16[i].o16Ordinary" title="Index pořadí mezi poli" style="width:30px;" />
-                                <div>
-
-                                    <input type="text" asp-for="lisO16[i].o16HelpText" placeholder="@_f.tra("Nápověda")" style="width:100%;" />
+                                <input type="text" class="form-control form-control-sm" asp-for="lisO16[i].o16Name" placeholder="@_f.tra("Název")" />
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" asp-for="lisO16[i].o16IsEntryRequired" />
+                                    <label class="form-check-label" for="lisO16_@(i)__o16IsEntryRequired">@_f.tra("Povinné k vyplnění")</label>
                                 </div>
-                                <div>
-                                    <input type="checkbox" asp-for="lisO16[i].o16IsGridField" />
-                                    <label class="col-form-label" for="lisO16_@(i)__o16IsGridField">@_f.tra("GRID sloupec")</label>
-                                    <input type="text" asp-for="lisO16[i].o16NameGrid" placeholder="@_f.tra("Název sloupce")" />
+                            </div>
+
+                            <div class="o18-field-grid">
+                                <div class="rf-field">
+                                    <label for="lisO16_@(i)__o16HelpText">@_f.tra("Nápověda")</label>
+                                    <input type="text" class="form-control form-control-sm" asp-for="lisO16[i].o16HelpText" />
                                 </div>
-                                @if (Model.lisO16[i].o16Field != null && Model.lisO16[i].o16Field.Contains("Date"))
+                                <div class="rf-field">
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" asp-for="lisO16[i].o16IsGridField" />
+                                        <label class="form-check-label" for="lisO16_@(i)__o16IsGridField">@_f.tra("GRID sloupec")</label>
+                                    </div>
+                                    <input type="text" class="form-control form-control-sm" asp-for="lisO16[i].o16NameGrid" placeholder="@_f.tra("Název sloupce")" />
+                                </div>
+                                @if (isDate)
                                 {
-                                    <div>
-                                        <label style="color:brown">Automaticky notifikovat (e-mail) expiraci data:</label>
-                                        <select asp-for="lisO16[i].o16ReminderNotifyBefore">
+                                    <div class="rf-field">
+                                        <label for="lisO16_@(i)__o16ReminderNotifyBefore">@_f.tra("Automaticky notifikovat expiraci datumu") (e-mail)</label>
+                                        <select asp-for="lisO16[i].o16ReminderNotifyBefore" class="form-select form-select-sm">
                                             <option value="0"></option>
-                                            <option value="168">7 dní před</option>
-                                            <option value="48">48 hodin před</option>
-                                            <option value="24">24 hodin před</option>
-                                            <option value="4">4 hodiny před</option>
-                                            <option value="1">1 hodinu před</option>
+                                            <option value="168">@_f.tra("7 dní před")</option>
+                                            <option value="48">@_f.tra("48 hodin před")</option>
+                                            <option value="24">@_f.tra("24 hodin před")</option>
+                                            <option value="4">@_f.tra("4 hodiny před")</option>
+                                            <option value="1">@_f.tra("1 hodinu před")</option>
                                         </select>
                                     </div>
-
                                 }
-                            </td>
-                            <td style="width:200px;visibility:@(Model.lisO16[i].o16Field !=null && Model.lisO16[i].o16Field.Contains("Text") ? "visible": "hidden");">
+                            </div>
 
-                                <textarea asp-for="lisO16[i].o16DataSource" class="form-control" placeholder="@_f.tra("Možné hodnoty pole (oddělovač: středník)")"></textarea>
-                                <div>
-                                    <input type="checkbox" asp-for="lisO16[i].o16IsFixedDataSource" />
-                                    <label class="col-form-label" for="lisO16_@(i)__o16IsFixedDataSource">@_f.tra("Okruh hodnot je zafixován")</label>
+                            <div class="o18-field-text" style="@(isText ? null : "display:none;")">
+                                <div class="rf-field">
+                                    <label for="lisO16_@(i)__o16DataSource">@_f.tra("Možné hodnoty pole (oddělovač: středník)")</label>
+                                    <textarea asp-for="lisO16[i].o16DataSource" class="form-control form-control-sm" rows="2"></textarea>
                                 </div>
-                                <div>
-                                    <label>@_f.tra("Výška"):</label>
-                                    <input type="text" asp-for="lisO16[i].o16TextboxHeight" style="width:30px;" />
-
-                                    <input type="text" asp-for="lisO16[i].o16Format" placeholder="@_f.tra("Formát")" />
-
+                                <div class="o18-field-textopts">
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" asp-for="lisO16[i].o16IsFixedDataSource" />
+                                        <label class="form-check-label" for="lisO16_@(i)__o16IsFixedDataSource">@_f.tra("Okruh hodnot je zafixován")</label>
+                                    </div>
+                                    <label class="o18-ord" title="@_f.tra("Výška víceřádkového pole (0 = jeden řádek)")">@_f.tra("Výška"):<input type="text" class="form-control form-control-sm" asp-for="lisO16[i].o16TextboxHeight" /></label>
+                                    <input type="text" class="form-control form-control-sm o18-w-format" asp-for="lisO16[i].o16Format" placeholder="@_f.tra("Formát")" />
                                 </div>
-                            </td>
-                            <td width="60px">
-                                <button type="button" class="btn btn-danger" title="@_f.tra("Odstranit řádek")" onclick="o16_delete_row('@(Model.lisO16[i].TempGuid)')">x</button>
-                            </td>
-                        </tr>
-                    }
-                </table>
+                            </div>
+                        </div>
+                        <div class="o18-item-side">
+                            <label class="o18-ord" title="@_f.tra("Index pořadí mezi poli")">#<input type="text" class="form-control form-control-sm" asp-for="lisO16[i].o16Ordinary" /></label>
+                            <button type="button" class="rf-del" title="@_f.tra("Odstranit řádek")" onclick="o16_delete_row('@(Model.lisO16[i].TempGuid)')"><span class="material-icons-outlined-nosize">close</span></button>
+                        </div>
+                    </div>
+                }
             </div>
-
         </div>
 
         <div class="tab-pane" id="tab3" role="tabpanel">
             <!-- Tab3 -->
-            <div class="my-2 hideift">
-                <input type="checkbox" asp-for="@Model.Rec.o18IsSeparatedNotepadTab" />
-                <label class="col-form-label" for="Rec_o18IsSeparatedNotepadTab">@_f.tra("Umístit Notepad v samostatné záložce")</label>
-            </div>
-            <div class="row my-2">
-                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Workflow šablona"):</label>
-                <div class="col-sm-3 col-md-3">
-                    <mycombo entity="b01WorkflowTemplate" asp-for="Rec.b01ID" selectedtext="@Model.ComboB01" view-flag="2" myqueryinline="b01entity|string|o23"></mycombo>
+            <div class="rf o18">
+                <div class="rf-grid">
+
+                    <section class="rf-card hideift">
+                        <h2><span class="material-icons-outlined-nosize">edit_note</span>@_f.tra("Název a kód dokumentu")</h2>
+                        <div class="rf-row">
+                            <label class="rf-label" for="Rec_o18EntryNameFlag">@_f.tra("Vyplňovat název"):</label>
+                            <div class="rf-value">
+                                <select class="form-select" asp-for="@Model.Rec.o18EntryNameFlag">
+                                    <option value="Manual">@_f.tra("Ručně")</option>
+                                    <option value="NotUsed">@_f.tra("Nevyplňovat")</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="rf-row">
+                            <label class="rf-label" for="Rec_o18EntryCodeFlag">@_f.tra("Vyplňovat kód"):</label>
+                            <div class="rf-value">
+                                <select class="form-select" asp-for="@Model.Rec.o18EntryCodeFlag" onchange="_postback('refresh')">
+                                    <option value="Manual">@_f.tra("Ručně")</option>
+                                    <option value="NotUsed">@_f.tra("Nevyplňovat")</option>
+                                    <option value="AutoO18">@_f.tra("Automaticky v rámci dokumentu")</option>
+                                    <option value="AutoP41">@_f.tra("Automaticky v rámci projektu")</option>
+                                    <option value="X38ID">@_f.tra("Podle zvolené číselné řady")</option>
+                                </select>
+                            </div>
+                        </div>
+                        @if (Model.Rec.o18EntryCodeFlag == BO.o18EntryCodeENUM.X38ID)
+                        {
+                            <div class="rf-row">
+                                <label class="rf-label">@_f.tra("Číselná řada"):</label>
+                                <div class="rf-value">
+                                    <mycombo entity="x38CodeLogic" asp-for="Rec.x38ID" selectedtext="@Model.ComboX38" view-flag="2" myqueryinline="x38entity|string|o23"></mycombo>
+                                </div>
+                            </div>
+                        }
+                    </section>
+
+                    <section class="rf-card">
+                        <h2><span class="material-icons-outlined-nosize">attach_file</span>@_f.tra("Nahrávání souborových příloh a jejich limity")</h2>
+                        <div class="rf-row">
+                            <label class="rf-label" for="Rec_o18MaxOneFileSize">@_f.tra("Maximální velikost jedné souborové přílohy"):</label>
+                            <div class="rf-value rf-w-num">
+                                <select asp-for="@Model.Rec.o18MaxOneFileSize" class="form-select">
+                                    <option value="1048576">1MB</option>
+                                    <option value="2097152">2MB</option>
+                                    <option value="3145728">3MB</option>
+                                    <option value="4194304">4MB</option>
+                                    <option value="5242880">5MB</option>
+                                    <option value="6291456">6MB</option>
+                                    <option value="7340032">7MB</option>
+                                    <option value="10485760">10MB</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="rf-field">
+                            <label for="Rec_o18AllowedFileExtensions">@_f.tra("Povolené přípony nahrávaných souborů")</label>
+                            <input type="text" class="form-control" asp-for="@Model.Rec.o18AllowedFileExtensions" />
+                        </div>
+                    </section>
+
+                    <section class="rf-card">
+                        <h2><span class="material-icons-outlined-nosize">sticky_note_2</span>@_f.tra("Notepad a workflow")</h2>
+                        <div class="form-check hideift">
+                            <input type="checkbox" class="form-check-input" asp-for="@Model.Rec.o18IsSeparatedNotepadTab" />
+                            <label class="form-check-label" for="Rec_o18IsSeparatedNotepadTab">@_f.tra("Umístit Notepad v samostatné záložce")</label>
+                        </div>
+                        <div class="form-check hideift">
+                            <input type="checkbox" class="form-check-input" asp-for="@Model.Rec.o18IsAllowEncryption" />
+                            <label class="form-check-label" for="Rec_o18IsAllowEncryption">@_f.tra("Možnost zaheslovat/kryptovat obsah Notepadu")</label>
+                        </div>
+                        <div class="rf-row o18-gap">
+                            <label class="rf-label">@_f.tra("Workflow šablona"):</label>
+                            <div class="rf-value">
+                                <mycombo entity="b01WorkflowTemplate" asp-for="Rec.b01ID" selectedtext="@Model.ComboB01" view-flag="2" myqueryinline="b01entity|string|o23"></mycombo>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="rf-card">
+                        <h2><span class="material-icons-outlined-nosize">tune</span>@_f.tra("Ostatní")</h2>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" asp-for="@Model.Rec.o18IsColors" />
+                            <label class="form-check-label" for="Rec_o18IsColors">@_f.tra("Možnost rozlišovat záznamy barvou")</label>
+                        </div>
+                        <div class="form-check hideift">
+                            <input type="checkbox" class="form-check-input" asp-for="@Model.Rec.o18IsAllowTree" />
+                            <label class="form-check-label" for="Rec_o18IsAllowTree">@_f.tra("Možnost stromové struktury mezi záznamy dokumentů")</label>
+                        </div>
+                        <div class="rf-row o18-gap hideift">
+                            <label class="rf-label" for="Rec_o18GeoFlag">@_f.tra("Podpora GEO informací"):</label>
+                            <div class="rf-value">
+                                <select asp-for="Rec.o18GeoFlag" class="form-select">
+                                    <option value="_None"></option>
+                                    <option value="LoadFromP15">@_f.tra("Pro nový záznam načíst počasí z lokality záznamu dokumentu")</option>
+                                    <option value="LoadFromCurrentUser">@_f.tra("Pro nový záznam načíst aktuální polohu a počasí uživatele")</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="rf-row hideift">
+                            <label class="rf-label" for="Rec_o18BarcodeFlag">@_f.tra("Podpora čárových kódů"):</label>
+                            <div class="rf-value">
+                                <select asp-for="Rec.o18BarcodeFlag" class="form-select">
+                                    <option value="_None"></option>
+                                    <option value="BarcodeSupport">@_f.tra("Čárový kód k identifikaci záznamů dokumentu")</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="rf-row o18-gap">
+                            <label class="rf-label" for="Rec_o18ReportCodes">@_f.tra("Okruh šablon tiskových sestav"):</label>
+                            <div class="rf-value">
+                                <input class="form-control" asp-for="Rec.o18ReportCodes" />
+                            </div>
+                        </div>
+                        <div class="rf-row">
+                            <label class="rf-label" for="Rec_o18Code">@_f.tra("Kód"):</label>
+                            <div class="rf-value rf-w-num">
+                                <input class="form-control" asp-for="Rec.o18Code" />
+                            </div>
+                        </div>
+                    </section>
+
                 </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">
-                    @_f.tra("Nahrávání souborových příloh a jejich limity")
-                </div>
-                <div class="card-body">
-
-                    <label>@_f.tra("Maximální velikost jedné souborové přílohy"):</label>
-                    <select asp-for="@Model.Rec.o18MaxOneFileSize">
-                        <option value="1048576">1MB</option>
-                        <option value="2097152">2MB</option>
-                        <option value="3145728">3MB</option>
-                        <option value="4194304">4MB</option>
-                        <option value="5242880">5MB</option>
-                        <option value="6291456">6MB</option>
-                        <option value="7340032">7MB</option>
-                        <option value="10485760">10MB</option>
-                    </select>
-                    <br />
-
-                    <input type="text" class="form-control" asp-for="@Model.Rec.o18AllowedFileExtensions" placeholder="@_f.tra("Povolené přípony nahrávaných souborů")" />
-                </div>
-            </div>
-
-
-            <div class="my-2">
-                <input type="checkbox" asp-for="@Model.Rec.o18IsColors" />
-                <label class="col-form-label" for="Rec_o18IsColors">@_f.tra("Možnost rozlišovat záznamy barvou")</label>
-            </div>
-            <div class="my-2 hideift">
-                <input type="checkbox" asp-for="@Model.Rec.o18IsAllowEncryption" />
-                <label class="col-form-label" for="Rec_o18IsAllowEncryption">@_f.tra("Možnost zaheslovat/kryptovat obsah Notepadu")</label>
-            </div>
-            <div class="my-2 hideift">
-                <input type="checkbox" asp-for="@Model.Rec.o18IsAllowTree" />
-                <label class="col-form-label" for="Rec_o18IsAllowTree">@_f.tra("Možnost stromové struktury mezi záznamy dokumentů")</label>
-            </div>
-
-            <div class="row my-2 hideift">
-                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Podpora GEO informací"):</label>
-                <div class="col-sm-6 col-md-5">
-                    <select asp-for="Rec.o18GeoFlag" class="form-select">
-                        <option value="_None"></option>
-                        <option value="LoadFromP15">@_f.tra("Pro nový záznam načíst počasí z lokality záznamu dokumentu")</option>
-                        <option value="LoadFromCurrentUser">@_f.tra("Pro nový záznam načíst aktuální polohu a počasí uživatele")</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="row my-2 hideift">
-                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Podpora čárových kódů"):</label>
-                <div class="col-sm-6 col-md-5">
-                    <select asp-for="Rec.o18BarcodeFlag" class="form-select">
-                        <option value="_None"></option>
-                        <option value="BarcodeSupport">@_f.tra("Čárový kód k identifikaci záznamů dokumentu")</option>
-
-                    </select>
-                </div>
-            </div>
-
-            <div class="row my-2 hideift">
-                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Vyplňovat název"):</label>
-                <div class="col-sm-6 col-md-5">
-                    <select class="form-select" asp-for="@Model.Rec.o18EntryNameFlag">
-                        <option value="Manual">@_f.tra("Ručně")</option>
-                        <option value="NotUsed">@_f.tra("Nevyplňovat")</option>
-                    </select>
-                </div>
-
-            </div>
-
-            <div class="row my-2 hideift">
-                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Vyplňovat kód"):</label>
-                <div class="col-sm-6 col-md-5">
-                    <select class="form-select" asp-for="@Model.Rec.o18EntryCodeFlag" onchange="_postback('refresh')">
-                        <option value="Manual">@_f.tra("Ručně")</option>
-                        <option value="NotUsed">@_f.tra("Nevyplňovat")</option>
-                        <option value="AutoO18">@_f.tra("Automaticky v rámci dokumentu")</option>
-                        <option value="AutoP41">@_f.tra("Automaticky v rámci projektu")</option>
-                        <option value="X38ID">@_f.tra("Podle zvolené číselné řady")</option>
-                    </select>
-                </div>
-
-            </div>
-
-            @if (Model.Rec.o18EntryCodeFlag == BO.o18EntryCodeENUM.X38ID)
-            {
-                <div class="row my-2" style="max-width:1500px;">
-                    <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Číselná řada"):</label>
-                    <div class="col-sm-4 col-md-4">
-                        <mycombo entity="x38CodeLogic" asp-for="Rec.x38ID" selectedtext="@Model.ComboX38" view-flag="2" myqueryinline="x38entity|string|o23"></mycombo>
-                    </div>
-
-                </div>
-            }
-
-            <div class="row my-2">
-                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Okruh šablon tiskových sestav"):</label>
-                <div class="col-sm-11 col-md-10">
-                    <input class="form-control" asp-for="Rec.o18ReportCodes" />
-                </div>
-
-            </div>
-            <div class="row my-2">
-                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Kód"):</label>
-                <div class="col-sm-2 col-md-3">
-                    <input class="form-control" asp-for="Rec.o18Code" />
-                </div>
-
             </div>
         </div>
 
@@ -484,7 +481,7 @@
         if (_template == "Uctenka") {
             $(".hideift").css("display", "none");
         }
-        
+
 
     });
 

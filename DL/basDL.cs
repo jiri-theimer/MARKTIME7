@@ -152,6 +152,11 @@ namespace DL
                         p.AddBool(c.x28Field, c.CheckInput);
                         break;
                     default:
+                        if (c.x28IsMultiselect)
+                        {
+                            //vícenásobný výběr: hodnoty oddělené |, bez prázdných a opakovaných
+                            c.StringInput = BO.Code.FreeFieldValues.NormalizeMulti(c.StringInput);
+                        }
                         if (c.x28IsRequired && string.IsNullOrEmpty(c.StringInput))
                         {
                             db.CurrentUser.AddMessage($"Pole ** {c.x28Name} ** je povinné k vyplnění. "); return false;

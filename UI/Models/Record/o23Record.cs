@@ -42,6 +42,8 @@ namespace UI.Models.Record
 
         public string current_user_lon { get; set; }    //aktuáln souřadnice uživatele
         public string current_cuser_lat { get; set; }   //aktuální souřadnice uživatele
+
+        public string ChecklistPending { get; set; }    //check-list nového (neuloženého) dokumentu: JSON pole textů položek
     }
 
 

@@ -36,6 +36,7 @@ namespace BO
 
         public string x28DataSource { get; set; }
         public bool x28IsFixedDataSource { get; set; }
+        public bool x28IsMultiselect { get; set; }    //textové pole s vícenásobným výběrem: hodnoty se ukládají oddělené znakem | (BO.Code.FreeFieldValues)
         public int x28TextboxHeight { get; set; }
         public int x28TextboxWidth { get; set; }
         public bool x28IsRequired { get; set; }
@@ -60,6 +61,7 @@ namespace BO
 
 
         public string x27Name { get; }
+        public int x27Ordinary { get; }
 
         public string o18Name { get; }
         public string TypeName { get; set; }
