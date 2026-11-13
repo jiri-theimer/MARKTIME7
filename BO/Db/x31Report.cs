@@ -56,7 +56,7 @@ namespace BO
         public x31QueryFlagENUM x31QueryFlag { get; set; } = x31QueryFlagENUM._None;
         public int x31PluginHeight { get; set; }
         public DateTime? x31FactoryTimestamp { get; set; }
-        public int x31LangIndex { get; set; }
+        public string x31LangCode { get; set; }    //jazyk originálu sestavy: cs, en, de, sk; prázdné = cs. Podle něj se hledá ve slovníku při překladu sestavy (UI/Code/ReportTranslator.cs)
         public bool x31IsAllowPfx { get; set; }
         public string Rezerva { get; set; }
         public string ReportFileName { get; set; }  //je třeba zde mít SET, protože se využívá v json Deserialize, který ignoruje readonly property

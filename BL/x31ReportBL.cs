@@ -116,7 +116,7 @@ namespace BL
 
                 p.AddString("x31FileName", rec.x31FileName);
 
-                //p.AddInt("x31LangIndex", rec.x31LangIndex);
+                p.AddString("x31LangCode", rec.x31LangCode);
                 p.AddDateTime("x31LastScheduledRun", rec.x31LastScheduledRun);
 
                 int intPID = _db.SaveRecord("x31Report", p, rec);

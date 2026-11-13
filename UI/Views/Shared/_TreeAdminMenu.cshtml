@@ -113,6 +113,7 @@
     n = Model.AddMother(_f.tra("Tiskové sestavy"), "reps", "print");    
     Model.AddChild(n, _f.tra("Report šablony"), "x31");
     Model.AddChild(n, _f.tra("Report kategorie"), "j25");
+    Model.AddChild(n, _f.tra("Překlad sestav – vlastní výrazy"), null, "javascript:_window_open('/ReportLang/Index')");
 
 
     n = Model.AddMother(_f.tra("Elektronická pošta"), "mails", "alternate_email");    
@@ -143,6 +144,8 @@
     Model.AddChild(n, _f.tra("Widgety"), "x55");
     Model.AddDivider(n);
     
+    //Model.AddChild(n, _f.tra("Uživatelská nápověda"), "x51");
+    Model.AddChild(n, _f.tra("Novinky | Blog"), "x52");
     Model.AddChild(n, _f.tra("Aplikační překlad"), "x97");
 
 

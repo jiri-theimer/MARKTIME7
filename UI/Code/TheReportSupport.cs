@@ -17,7 +17,6 @@ namespace UI
         public string PfxPath { get; set; }
         public string PfxPassword { get; set; }
         public string PfxLabel { get; set; } = "Digitálně podepsáno";
-        private string _strTranslate { get; set; }
 
         public string GeneratePdfGridReport(BL.Factory f, string strTrdxFileName, string strUploadGuid, bool bolReturnFullPath = true)
         {
@@ -132,7 +131,7 @@ namespace UI
             if (!string.IsNullOrEmpty(translate))
             {
                 string s = BO.Code.File.GetFileContent(strTempFile);
-                s = TranslateFromCzech(s, f, translate);
+                s = TranslateReport(s, f, recX31.x31LangCode, translate);
                 strTempFile= $"{f.TempFolder}\\{BO.Code.Bas.GetGuid()}.trdx";
                 BO.Code.File.WriteText2File(strTempFile, s);
             }
@@ -373,118 +372,43 @@ namespace UI
 
 
 
-        public string TranslateFromCzech(string reportXml, BL.Factory f, string lang)
+        //Překlad textů sestavy z jazyka originálu (x31Report.x31LangCode, prázdný = cs) do jazyka targetLang (cs, en, de, sk).
+        //Vlastní logika a formát slovníku: UI/Code/ReportTranslator.cs. Slovník zákazníka (administrace: /ReportLang/Index) má přednost před společným slovníkem v _distribution\trdx.
+        public string TranslateReport(string reportXml, BL.Factory f, string sourceLang, string targetLang)
         {
-            if (!System.IO.File.Exists($"{f.App.RootUploadFolder}\\_distribution\\trdx\\reports.lang"))
+            try
             {
+                return ReportTranslator.Translate(reportXml, sourceLang, targetLang, LoadLangDictionary(f, GetCustomerLangFile(f)), LoadLangDictionary(f, GetSharedLangFile(f)));
+            }
+            catch (Exception ex)
+            {
+                BO.Code.File.LogError($"TranslateReport [{sourceLang} -> {targetLang}]: {ex.Message}", f.CurrentUser.j02Login, "TranslateReport");   //chyba překladu nesmí zastavit tisk sestavy
                 return reportXml;
             }
-
-
-            _strTranslate = reportXml;
-
-            System.Text.RegularExpressions.MatchCollection matches = System.Text.RegularExpressions.Regex.Matches(reportXml, "Value=" + "\"" + "(.*?)" + "\"");
-            bool b = false;
-            var origs = new List<string>();
-            foreach (System.Text.RegularExpressions.Match m in matches)
-            {
-                
-                if (m.Length > 8)
-                {
-                    
-                    b = true;
-                    if (m.Value.Contains("Fields."))
-                    {
-                        b = false;
-                        if (m.Value.Contains("{"))
-                        {
-                            b = true;
-                        }
-                    }
-                    if (b)
-                    {
-                        origs.Add(m.Value);
-                    }
-                }
-            }
-            var trans = new List<BO.StringPair>();
-            var lines = BO.Code.Bas.ConvertString2List(BO.Code.File.GetFileContent($"{f.App.RootUploadFolder}\\_distribution\\trdx\\reports.lang"), System.Environment.NewLine);
-            foreach (string line in lines)
-            {
-                var lis = BO.Code.Bas.ConvertString2List(line, "|");
-                if (lis.Count() > 1)
-                {
-                    var c = new BO.StringPair() { Key = lis[0], Value = lis[0] };
-                    if (lang == "en") c.Value = lis[1];
-                    if (lang == "de" && lis.Count() > 2)
-                    {
-                        c.Value = lis[2];
-                    }
-                    if (lang == "sk" && lis.Count() > 4)
-                    {
-                        c.Value = lis[4];
-                    }
-                    
-                    trans.Add(c);
-                }
-
-            }
-
-            foreach (string org in origs)
-            {                
-                string strSearch = org.Trim().Replace("Value=", "").Replace("\"", "");
-               
-                var qry = trans.Where(p => p.Key == strSearch);
-                if (qry.Count() > 0)
-                {
-                    
-                    tfe(strSearch, qry.First().Value);
-                }
-                else
-                {
-                    qry = trans.Where(p => $"{p.Key}:" == strSearch);
-                    if (qry.Count() > 0)
-                    {
-                        tfe(strSearch, $"{qry.First().Value}:");
-                    }
-                    else
-                    {
-                        qry = trans.Where(p => p.Key.ToLower() == strSearch.ToLower());
-                        if (qry.Count() > 0)
-                        {
-
-                            tfe(strSearch, qry.First().Value);
-                        }
-
-                        
-                    }
-                }
-            }
-
-
-            return _strTranslate;
-
         }
 
-        private void tfe(string strOrig, string strTo)
+        //slovník ze souboru; poškozený soubor se zapíše do logu a přeskočí (druhý slovník překládá dál)
+        public static ReportLangDictionary LoadLangDictionary(BL.Factory f, string strFullPath)
         {
-            //if (string.IsNullOrEmpty(strOrig) || string.IsNullOrEmpty(strTo))
-            //{
-            //    return;
-            //}
-            //BO.Code.File.LogInfo($"strOrig: {strOrig},strTo: {strTo}");
-            _strTranslate = _strTranslate.Replace($"\"{strOrig}\"", $"\"{strTo}\"");
-            //if (strOrig.Contains("{"))
-            //{
-            //    _strTranslate = _strTranslate.Replace(strOrig, strTo);
-            //}
-            //else
-            //{
-            //    _strTranslate = _strTranslate.Replace($"\"{strOrig}\"", $"\"{strTo}\"");
-            //}
+            try
+            {
+                return ReportLang.GetDictionary(strFullPath);
+            }
+            catch (Exception ex)
+            {
+                BO.Code.File.LogError($"{strFullPath}: {ex.Message}", f.CurrentUser.j02Login, "LoadLangDictionary");
+                return null;
+            }
+        }
 
-
-
+        //slovník zákazníka leží ve složce sestav klienta (Factory.ReportFolder = {UploadFolder}\X31)
+        public static string GetCustomerLangFile(BL.Factory f)
+        {
+            return $"{f.ReportFolder}\\{ReportLang.FileName}";
+        }
+        public static string GetSharedLangFile(BL.Factory f)
+        {
+            return $"{f.App.RootUploadFolder}\\_distribution\\trdx\\{ReportLang.FileName}";
         }
     }
 }

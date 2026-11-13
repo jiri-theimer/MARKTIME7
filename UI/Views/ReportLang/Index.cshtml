@@ -1,0 +1,117 @@
+﻿@model UI.Models.Admin.ReportLangViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Překlad tiskových sestav");
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageSymbol = "translate";
+
+    //nastavení a přeložené texty pro wwwroot/js/reportlang.js
+    var _cfg = new
+    {
+        texts = new Dictionary<string, string>
+        {
+            { "remove", _f.tra("Odebrat výraz") },
+            { "duplicate", _f.tra("Výraz je ve slovníku vícekrát") },
+            { "empty", _f.tra("Zatím žádný vlastní výraz. Přidejte ho tlačítkem Přidat výraz.") },
+            { "notFound", _f.tra("Žádný výraz neodpovídá hledání.") },
+            { "rows", _f.tra("výrazů") },
+            { "sharedEmpty", _f.tra("Společný slovník na serveru není nebo je prázdný.") },
+            { "error", _f.tra("Chyba") }
+        }
+    };
+}
+
+@addTagHelper *, UI
+
+@section header_content{
+    <link rel="stylesheet" href="~/css/reportlang.css" asp-append-version="true" />
+}
+
+<div class="bg-light input-group" style="padding:10px;">
+    <div>
+        <button id="cmdSave" type="button" class="btn btn-success" onclick="rl_save()">@_f.tra("Uložit změny")</button>
+    </div>
+    <div>
+        <button id="cmdClose" type="button" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+    </div>
+</div>
+
+<div class="rl-tabs" id="rlTabs">
+    <button type="button" class="rl-tab active" data-tab="own"><span class="material-icons-outlined-nosize">edit_note</span> @_f.tra("Vlastní výrazy") <span class="rl-badge" id="rlOwnCount"></span></button>
+    <button type="button" class="rl-tab" data-tab="shared"><span class="material-icons-outlined-nosize">menu_book</span> @_f.tra("Společný slovník MARKTIME") <span class="rl-badge">@Model.SharedCount</span></button>
+</div>
+
+@* 1. záložka: vlastní výrazy zákazníka - editace *@
+<div class="rl-pane" data-pane="own">
+    <div class="rl-info">
+        @_f.tra("Vlastní výrazy pro překlad sestav. Mají přednost před společným slovníkem MARKTIME.")
+        @_f.tra("Řádek říká, že texty v jednotlivých jazycích znamenají totéž. Text v jazyce sestavy zapište přesně tak, jak je v sestavě; koncová dvojtečka a velikost písmen nerozhodují. Jazyk, který nevyplníte, se nepřeloží.")
+    </div>
+
+    <div class="rl-bar">
+        <button type="button" id="rlAdd" class="btn btn-sm bog"><span class="material-icons-outlined-btn">add</span> @_f.tra("Přidat výraz")</button>
+        <div class="rl-search">
+            <span class="material-icons-outlined-nosize">search</span>
+            <input type="search" id="rlSearch" class="form-control form-control-sm" placeholder="@_f.tra("Hledat")…" autocomplete="off" />
+        </div>
+        <label class="rl-check"><input type="checkbox" id="rlOnlyMissing" /> @_f.tra("Jen neúplné")</label>
+    </div>
+
+    <div class="rl-wrap" id="rlWrap">
+        <table class="rl-table">
+            <thead>
+                <tr>
+                    <th class="rl-no"></th>
+                    <th>@_f.tra("Česky")</th>
+                    <th>English</th>
+                    <th>Deutsch</th>
+                    <th>Slovenčina</th>
+                    <th class="rl-x"></th>
+                </tr>
+            </thead>
+            <tbody id="rlBody"></tbody>
+        </table>
+        <div class="rl-empty" id="rlEmpty"></div>
+    </div>
+    <div class="rl-hint">@_f.tra("Konec řádku uvnitř výrazu se zapisuje jako") <code>\n</code>.</div>
+</div>
+
+@* 2. záložka: společný slovník - jen k nahlédnutí *@
+<div class="rl-pane" data-pane="shared" hidden>
+    <div class="rl-info">
+        @_f.tra("Výrazy společného slovníku platí pro všechny sestavy. Zde je nelze měnit; jiný překlad zadáte jako vlastní výraz se stejným textem v jazyce sestavy.")
+    </div>
+    <div class="rl-bar">
+        <div class="rl-search">
+            <span class="material-icons-outlined-nosize">search</span>
+            <input type="search" id="rlSharedSearch" class="form-control form-control-sm" placeholder="@_f.tra("Hledat")…" autocomplete="off" />
+        </div>
+        <span class="rl-count" id="rlSharedCount"></span>
+    </div>
+    <div class="rl-wrap" id="rlSharedWrap">
+        <table class="rl-table rl-readonly">
+            <thead>
+                <tr>
+                    <th class="rl-no"></th>
+                    <th>@_f.tra("Česky")</th>
+                    <th>English</th>
+                    <th>Deutsch</th>
+                    <th>Slovenčina</th>
+                </tr>
+            </thead>
+            <tbody id="rlSharedBody"></tbody>
+        </table>
+        <div class="rl-empty" id="rlSharedEmpty"></div>
+    </div>
+</div>
+
+<form id="form1" asp-controller="ReportLang" asp-action="Index" method="POST">
+    <input type="hidden" id="RowsJson" name="RowsJson" />
+</form>
+
+@* řádky slovníku a nastavení pro skript; výchozí encoder escapuje znak „menší než“, obsah proto nemůže ukončit element script *@
+<script type="application/json" id="rlData">@Html.Raw(string.IsNullOrEmpty(Model.RowsJson) ? "[]" : Model.RowsJson)</script>
+<script type="application/json" id="rlShared">@Html.Raw(string.IsNullOrEmpty(Model.SharedRowsJson) ? "[]" : Model.SharedRowsJson)</script>
+<script type="application/json" id="rlConfig">@Html.Raw(System.Text.Json.JsonSerializer.Serialize(_cfg))</script>
+<script src="~/js/reportlang.js" asp-append-version="true"></script>

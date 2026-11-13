@@ -4,8 +4,9 @@
 @{
     Layout = null;
 
-    var _langs = new (string Code, string Name)[] { ("", "Česky (originál)"), ("en", "English"), ("de", "Deutsch"), ("sk", "Slovenčina") };
-    string _langCurrent = _langs.FirstOrDefault(p => p.Code == (Model.Translate ?? "")).Name ?? _langs[0].Name;
+    //nabídka překladu: první položka "Přeložit do..." (kód "" = nepřekládat), pak všechny jazyky
+    var _langs = UI.ReportLang.GetTranslateMenu();
+    string _langCurrent = _langs.FirstOrDefault(p => p.Key == (Model.Translate ?? "")).Value ?? _f.tra("Přeložit do...");
     bool _bolComboX31 = true;
     if (Model.rec_prefix == "p91" && !_f.CurrentUser.j04IsModule_p91)
     {
@@ -211,9 +212,10 @@
                         @_langCurrent
                     </button>
                     <ul class="dropdown-menu">
+                        <li id="litrans_"><a class="dropdown-item @(string.IsNullOrEmpty(Model.Translate) ? "active" : null)" href="javascript:dotrans('')">@_f.tra("Přeložit do...")</a></li>
                         @foreach (var l in _langs)
                         {
-                            <li id="litrans_@(l.Code)"><a class="dropdown-item @(l.Code == (Model.Translate ?? "") ? "active" : null)" href="javascript:dotrans('@l.Code')">@l.Name</a></li>
+                            <li id="litrans_@(l.Key)"><a class="dropdown-item @(l.Key == (Model.Translate ?? "") ? "active" : null)" href="javascript:dotrans('@l.Key')">@l.Value</a></li>
                         }
                     </ul>
                 </div>
@@ -381,7 +383,7 @@
                             {
                                 serviceUrl: "/apix/reports/",
                                 reportSource: {
-                                    report: "@(Model.ReportFileName + "###" + _f.CurrentUser.j02Login + "###0###" + Model.ReportExportName + "###" + Model.Translate)",
+                                    report: "@(Model.ReportFileName + "###" + _f.CurrentUser.j02Login + "###0###" + Model.ReportExportName + "###" + Model.Translate + "#########" + Model.RecX31.pid.ToString())",
                                     parameters: { pid: @Model.rec_pid, datFrom: d1, datUntil: d2, langindex: "@Model.LangIndex", l5: "@_f.getP07Level(5, true)", permission_role_value: "@(_f.CurrentUser.RoleValue)", x01id: @_f.CurrentUser.x01ID, p31guid: "@Model.p31guid", translate: "@Model.Translate" }
                                 },
                                 viewMode: telerikReportViewer.ViewModes.INTERACTIVE,

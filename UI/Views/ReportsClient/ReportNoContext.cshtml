@@ -117,10 +117,11 @@
                             @_f.tra("Překlad sestavy")
                         </button>
                         <ul class="dropdown-menu">
-                            <li id="litrans_"><a class="dropdown-item" href="javascript:dotrans('')">Česky (originál)</a></li>
-                            <li id="litrans_en"><a class="dropdown-item" href="javascript:dotrans('en')">English</a></li>
-                            <li id="litrans_de"><a class="dropdown-item" href="javascript:dotrans('de')">Deutsch</a></li>
-                            <li id="litrans_sk"><a class="dropdown-item" href="javascript:dotrans('sk')">Slovenčina</a></li>
+                            <li id="litrans_"><a class="dropdown-item" href="javascript:dotrans('')">@_f.tra("Přeložit do...")</a></li>
+                            @foreach (var l in UI.ReportLang.GetTranslateMenu())
+                            {
+                                <li id="litrans_@(l.Key)"><a class="dropdown-item" href="javascript:dotrans('@l.Key')">@l.Value</a></li>
+                            }
 
                         </ul>
                     </div>

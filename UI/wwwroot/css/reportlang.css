@@ -1,0 +1,231 @@
+﻿/* Administrace: vlastní výrazy pro překlad tiskových sestav (Views/ReportLang/Index.cshtml, wwwroot/js/reportlang.js) */
+
+/* záložky: vlastní výrazy | společný slovník */
+.rl-tabs {
+    display: flex;
+    gap: 2px;
+    margin-top: 8px;
+    border-bottom: 1px solid var(--mt-line, #dee2e6);
+}
+
+.rl-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    border: 0;
+    border-bottom: 3px solid transparent;
+    background: transparent;
+    color: var(--mt-muted, #59636e);
+    font-weight: 600;
+}
+
+    .rl-tab:hover {
+        color: var(--mt-text, #1f2328);
+        background: var(--mt-hover, #f3f6fa);
+    }
+
+    .rl-tab.active {
+        color: var(--mt-text, #1f2328);
+        border-bottom-color: var(--pozadi, #0b4b92);
+    }
+
+    .rl-tab .material-icons-outlined-nosize {
+        font-size: 18px;
+        line-height: 1;
+        margin-top: 0;
+    }
+
+.rl-badge {
+    display: inline-block;
+    min-width: 20px;
+    padding: 0 6px;
+    border-radius: 10px;
+    background: var(--mt-line, #e3e6ea);
+    color: var(--mt-text, #1f2328);
+    font-size: .75rem;
+    font-weight: 600;
+    line-height: 18px;
+    text-align: center;
+}
+
+.rl-pane[hidden] {
+    display: none;
+}
+
+/* společný slovník: jen text, bez polí */
+.rl-table.rl-readonly td {
+    padding: 2px 8px;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}
+
+.rl-table.rl-readonly tr:hover td {
+    background: var(--mt-hover, #f3f6fa);
+}
+
+.rl-info {
+    margin: 8px 0 6px;
+    color: var(--mt-muted, #59636e);
+    font-size: .85rem;
+}
+
+.rl-bar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 6px;
+}
+
+.rl-search {
+    position: relative;
+    flex: 0 1 220px;
+}
+
+    .rl-search .material-icons-outlined-nosize {
+        position: absolute;
+        left: 7px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 17px;
+        line-height: 1;
+        margin-top: 0;
+        color: var(--mt-muted, #59636e);
+        pointer-events: none;
+    }
+
+    .rl-search input {
+        padding-left: 28px;
+    }
+
+.rl-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin: 0;
+    white-space: nowrap;
+}
+
+.rl-count {
+    color: var(--mt-muted, #59636e);
+    font-size: .8rem;
+    white-space: nowrap;
+}
+
+.rl-wrap {
+    height: 420px;
+    overflow: auto;
+    border: 1px solid var(--mt-line, #dee2e6);
+    border-radius: var(--mt-radius, 4px);
+    background: #ffffff;
+}
+
+.rl-table {
+    width: 100%;
+    min-width: 760px;
+    border-collapse: separate;
+    border-spacing: 0;
+    table-layout: fixed;
+}
+
+    .rl-table th {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        padding: 4px 6px;
+        border-bottom: 1px solid var(--mt-line, #dee2e6);
+        background: var(--mt-head, #f7f8fa);
+        font-weight: 600;
+        text-align: left;
+    }
+
+    .rl-table td {
+        padding: 1px 2px;
+        border-bottom: 1px solid var(--mt-line-soft, #eef0f3);
+        vertical-align: middle;
+    }
+
+    .rl-table input {
+        padding-top: 1px;
+        padding-bottom: 1px;
+        border-color: transparent;
+        background: transparent;
+    }
+
+        .rl-table input:hover {
+            border-color: var(--mt-line, #dee2e6);
+        }
+
+        .rl-table input:focus {
+            background: #ffffff;
+        }
+
+    /* nevyplněný překlad */
+    .rl-table td.rl-missing input:not(:focus) {
+        background: #fff8e1;
+    }
+
+    .rl-table tr[hidden] {
+        display: none;
+    }
+
+th.rl-no, td.rl-no {
+    width: 38px;
+    color: var(--mt-muted, #59636e);
+    font-size: .78rem;
+    text-align: right;
+    padding-right: 6px;
+}
+
+th.rl-x, td.rl-x {
+    width: 30px;
+    text-align: center;
+}
+
+.rl-del {
+    display: inline-flex;
+    padding: 1px;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--mt-muted, #59636e);
+}
+
+    .rl-del:hover {
+        background: #f8d7da;
+        color: #b02a37;
+    }
+
+    .rl-del .material-icons-outlined-nosize {
+        font-size: 17px;
+        line-height: 1;
+        margin-top: 0;
+    }
+
+/* stejný český výraz na více řádcích */
+.rl-table tr.rl-dup td:nth-child(2) input {
+    border-color: #b02a37;
+    background: #f8d7da;
+}
+
+.rl-empty {
+    padding: 16px 10px;
+    color: var(--mt-muted, #59636e);
+    text-align: center;
+}
+
+    .rl-empty[hidden] {
+        display: none;
+    }
+
+.rl-hint {
+    margin-top: 4px;
+    color: var(--mt-muted, #59636e);
+    font-size: .78rem;
+}
+
+/* neuložené změny */
+.rl-changed {
+    box-shadow: 0 0 0 3px color-mix(in srgb, #198754 35%, transparent);
+}

@@ -68,13 +68,14 @@
 
             </select>
         </div>
-        <label class="col-sm-2 col-md-2 col-form-label" style="display:none;">@_f.tra("Jazyková verze"):</label>
-        <div class="col-sm-4 col-md-4" style="display:none;">
-            <select asp-for="Rec.x31LangIndex" class="form-select" onchange="_postback()">
-                <option value="0">@_f.tra("Česky")</option>
-                <option value="1">Deutsch</option>
-                <option value="4">Slovenčina</option>
-
+        <label class="col-sm-2 col-md-2 col-form-label" title="@_f.tra("Jazyk, ve kterém je šablona napsaná. Podle něj se hledají výrazy při překladu sestavy do jiného jazyka.")">@_f.tra("Jazyk reportu"):</label>
+        <div class="col-sm-4 col-md-4">
+            <select asp-for="Rec.x31LangCode" class="form-select">
+                <option value=""></option>
+                <option value="cs">Česky</option>
+                <option value="en">English</option>
+                <option value="de">Deutsch</option>
+                <option value="sk">Slovenčina</option>
             </select>
         </div>
     </div>

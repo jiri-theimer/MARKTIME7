@@ -79,7 +79,7 @@ namespace UI.Controllers
                 
                 c.x31DocSqlSource = v.Rec.x31DocSqlSource;
                 c.x31DocSqlSourceTabs = v.Rec.x31DocSqlSourceTabs;
-                c.x31LangIndex = v.Rec.x31LangIndex;
+                c.x31LangCode = string.IsNullOrEmpty(v.Rec.x31LangCode) ? null : v.Rec.x31LangCode;
 
                 c.j25ID = v.Rec.j25ID;
                 c.x31Ordinary = v.Rec.x31Ordinary;

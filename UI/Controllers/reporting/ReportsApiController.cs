@@ -183,7 +183,12 @@ namespace UI.Controllers
             if (!string.IsNullOrEmpty(strTranslate))
             {
                
-                reportXml = new UI.TheReportSupport().TranslateFromCzech(reportXml, f, strTranslate);
+                string strSourceLang = null;    //jazyk originálu sestavy; bez x31id v identifikátoru se bere čeština
+                if (intX31ID > 0)
+                {
+                    strSourceLang = f.x31ReportBL.Load(intX31ID)?.x31LangCode;
+                }
+                reportXml = new UI.TheReportSupport().TranslateReport(reportXml, f, strSourceLang, strTranslate);
 
                 
             }
