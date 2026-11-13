@@ -233,7 +233,7 @@ namespace UI.Controllers
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Record(p51Record v,string guid)
+        public IActionResult Record(p51Record v,string guid,string preset)
         {
             RefreshState(v);
             if (v.IsPostback)
@@ -248,8 +248,22 @@ namespace UI.Controllers
                         
                     case "add_row":
                         var c = new p52Repeater() { TempGuid = BO.Code.Bas.GetGuid(), RowPrefixWho = "j07", RowPrefixActivity = "p34" };
-                        var recP34 = Factory.p34ActivityGroupBL.GetList(new BO.myQueryP34() { ismoneyinput = false }).First();
-                        c.p34ID = recP34.pid; c.ComboP34Name = recP34.p34Name;
+                        switch (preset)
+                        {
+                            case "j07":     //sazba pro pozici: platí na všechny časové aktivity, dokud ji uživatel nezúží
+                            case "j02":     //sazba pro jednu osobu
+                                c.RowPrefixWho = preset;
+                                c.RowPrefixActivity = "all";
+                                break;
+                            case "p32":     //sazba za jednu aktivitu pro všechny
+                                c.RowPrefixWho = "all";
+                                c.RowPrefixActivity = "p32";
+                                break;
+                            default:        //bez předvolby jako dosud: pozice + první časový sešit
+                                var recP34 = Factory.p34ActivityGroupBL.GetList(new BO.myQueryP34() { ismoneyinput = false }).First();
+                                c.p34ID = recP34.pid; c.ComboP34Name = recP34.p34Name;
+                                break;
+                        }
                         v.lisP52.Add(c);
                         return View(v);
                     case "clone_row":

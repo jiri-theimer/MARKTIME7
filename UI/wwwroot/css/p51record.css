@@ -1,0 +1,63 @@
+﻿/* Ceník hodinových sazeb – karta ceníku (Views/p51/Record.cshtml); doplněk k recordform.css, třídy p51-*. */
+.p51-tailor { align-items: center; }
+.p51-tailor-text { flex: 1 1 auto; font-weight: 500; }
+.p51-cur { width: 130px; flex: 0 0 auto; }
+.p51-check { margin: 8px 0 2px; font-size: .9rem; }
+
+/* položkové sazby: záhlaví karty */
+.p51-bar-actions { margin-left: auto; display: flex; flex-wrap: wrap; gap: 6px; }
+.p51-bar-actions .btn { display: inline-flex; align-items: center; gap: 3px; }
+.p51-bar-actions .material-icons-outlined-nosize { font-size: 17px; }
+.p51-count { padding: 0 8px; border-radius: 999px; background: #e6e9ed; color: #3d444d; font-size: .78rem; font-weight: 600; }
+.p51-intro { margin: -4px 0 10px; }
+.p51-add-label { align-self: center; font-size: .8rem; color: #59636e; }
+.p51-clear { margin-left: 10px; }
+
+/* prázdný ceník: tři druhy výjimek na výběr */
+.p51-start { padding: 14px; border: 1px dashed #dfe3e8; border-radius: 10px; }
+.p51-start-title { color: #3d444d; font-size: .9rem; }
+.p51-start-sub { margin: 8px 0 8px; font-size: .9rem; font-weight: 600; color: #2b3138; }
+.p51-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 8px; }
+.p51-tile { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 0 8px; align-items: start; padding: 10px 12px; border: 1px solid #e3e6ea; border-radius: 10px; background: #fff; text-align: left; color: #1f2328; }
+.p51-tile:hover, .p51-tile:focus-visible { border-color: var(--oznaceno, #4169e1); background: color-mix(in srgb, var(--oznaceno, #4169e1) 6%, #ffffff); }
+.p51-tile .material-icons-outlined-nosize { grid-row: 1 / span 2; font-size: 22px; color: var(--pozadi, #0b4b92); }
+.p51-tile strong { font-weight: 600; }
+.p51-tile span:last-child { font-size: .82rem; color: #59636e; }
+
+/* řádek: pro koho | za co | sazba | akce */
+.p51-head, .p51-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) 120px 62px; gap: 6px 12px; align-items: center; }
+.p51-head { padding: 0 10px 4px; font-size: .74rem; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: #8a939c; }
+.p51-head-rate { text-align: right; }
+.p51-rows { display: flex; flex-direction: column; gap: 4px; }
+.p51-row { padding: 5px 6px 5px 10px; border: 1px solid #eef0f3; border-radius: 8px; background: #fafbfc; }
+.p51-row:focus-within { border-color: color-mix(in srgb, var(--oznaceno, #4169e1) 45%, #ffffff); background: #fff; }
+.p51-pair { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.p51-kind { flex: 0 0 128px; width: 128px; }
+.p51-kind-act { flex-basis: 204px; width: 204px; }
+.p51-pick { flex: 1 1 auto; min-width: 0; }
+.p51-none { padding-left: 6px; color: #8a939c; font-size: .875rem; font-style: italic; }
+.p51-rate input { text-align: right; font-variant-numeric: tabular-nums; font-weight: 500; }
+.p51-row-actions { display: flex; justify-content: flex-end; gap: 2px; }
+.p51-copy:hover { border-color: #c9d1da; background: #f1f3f5; color: #3d444d; }
+
+/* věta pod řádkem: jak MARKTIME řádek čte */
+.p51-read { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; min-height: 1.3em; font-size: .82rem; color: #59636e; }
+.p51-read:empty { display: none; }
+.p51-read .material-icons-outlined-nosize { font-size: 15px; color: #b3bac2; }
+.p51-read strong { color: #1f2328; font-weight: 600; }
+.p51-miss { color: #b02a37; font-weight: 500; }
+.p51-warn { padding: 0 8px; border-radius: 999px; background: #fff3cd; color: #664d03; font-size: .78rem; }
+
+/* užší okno: „pro koho“ a „za co“ pod sebou, sazba s akcemi na vlastním řádku */
+@media (max-width: 860px) {
+    .p51-head { display: none; }
+    .p51-row { grid-template-columns: minmax(0, 1fr) 62px; padding: 8px 6px 8px 10px; }
+    .p51-row > .p51-pair { grid-column: 1 / -1; }
+    .p51-rate { max-width: 160px; }
+}
+html.mt-phone .p51-head { display: none; }
+html.mt-phone .p51-row { grid-template-columns: minmax(0, 1fr) 62px; padding: 8px 6px 8px 10px; }
+html.mt-phone .p51-row > .p51-pair { grid-column: 1 / -1; }
+html.mt-phone .p51-rate { max-width: 160px; }
+html.mt-phone .p51-pair { flex-wrap: wrap; }
+html.mt-phone .p51-kind, html.mt-phone .p51-kind-act { flex: 1 1 100%; width: 100%; }

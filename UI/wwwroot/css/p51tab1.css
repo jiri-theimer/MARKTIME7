@@ -1,0 +1,21 @@
+﻿/* Ceník hodinových sazeb – informační záložka (Views/p51/Tab1.cshtml); doplněk k recinfo.css, třídy p51t-*. */
+.p51t-layout { display: flex; align-items: flex-start; gap: 10px; max-width: 1240px; }
+.p51t-layout > .ri-card { margin: 4px 0 0 0; }
+.p51t-main { flex: 0 1 460px; min-width: 320px; }
+.p51t-items { flex: 1 1 480px; min-width: 0; }
+.p51t-chips { display: flex; flex-wrap: wrap; gap: 4px 6px; }
+.p51t-actions { grid-column: 1 / -1; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding-top: 10px; border-top: 1px solid #eef0f3; }
+.p51t-actions .btn { text-align: left; white-space: normal; }
+.p51t-main .ri-facts { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+.p51t-empty { margin: 0; font-size: .9rem; }
+.p51t-who { display: inline-flex; align-items: center; gap: 5px; }
+.p51t-who .material-icons-outlined-nosize { font-size: 16px; color: #8a939c; }
+.ri-table th.p51t-num, .ri-table td.p51t-num { text-align: right; font-variant-numeric: tabular-nums; }
+.p51t-items .ri-table td { vertical-align: middle; }
+
+@media (max-width: 900px) {
+    .p51t-layout { flex-wrap: wrap; }
+    .p51t-main { flex: 1 1 100%; }
+}
+html.mt-phone .p51t-layout { flex-wrap: wrap; }
+html.mt-phone .p51t-main { flex: 1 1 100%; }

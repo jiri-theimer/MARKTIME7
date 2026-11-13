@@ -1,60 +1,98 @@
 ﻿@model UI.Models.Tab1.p51Tab1
 @inject BL.Factory _f
 
-@{
+@* Ceník hodinových sazeb – informační záložka. Verze 8: hlavička ceníku vlevo, položkové sazby vpravo (css/recinfo.css, třídy ri-*; doplněk css/p51tab1.css, třídy p51t-*).
+   Položková sazba se čte jako věta „pro koho | za co | sazba“ – dříve pět sloupců, z nichž byly v každém řádku dva až tři prázdné.
+   Okna přepočtu (/p51/Recalc) beze změny. *@
 
+@{
     Layout = "~/Views/Shared/_LayoutSubform.cshtml";
     if (Model.Rec == null) return;
 
-
-
+    var r = Model.Rec;
+    var _lis = (Model.lisP52 ?? Enumerable.Empty<BO.p52PriceList_Item>()).ToList();
+    var _now = DateTime.Now;
+    bool _isCost = r.p51TypeFlag == BO.p51TypeFlagENUM.CostRates || r.p51TypeFlag == BO.p51TypeFlagENUM.OverheadRates;
+    bool _unlimited = r.ValidUntil == null || r.ValidUntil.Value.Year >= 3000;
+    bool _expired = !_unlimited && r.ValidUntil.Value < _now;
+    bool _future = r.ValidFrom != null && r.ValidFrom.Value > _now;
 }
 
 @addTagHelper *, UI
 
-
+@section header_content {
+    <link rel="stylesheet" href="~/css/recinfo.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/p51tab1.css" asp-append-version="true" />
+}
 
 @Html.Raw("<div class='info_record_container'>")
 
-<div class="card recpagebox400">
-    <div class="card-body">
-        <table class="table table-hover">
-            <tr>
+<div class="p51t-layout">
 
-                <td colspan="2" class="@(Model.Rec.isclosed ? "tdarchiv": "tdval")">
-                    <myicon symbol="price_change"></myicon>
-                    @Model.Rec.TypeAlias
-                </td>
-            <tr>
-                <td class="tdlab">
-                        @_f.tra("Název"):
-                </td>
-                <td>
-                    <myval value="@Model.Rec.p51Name"></myval>
-                </td>
-            </tr>
-            <tr>
-                <td class="tdlab">
-                        @_f.tra("Měna"):
-                </td>
-                <td>
-                    <myval value="@Model.Rec.j27Code"></myval>
-                </td>
-            </tr>
-            <tr>
-                <td class="tdlab">
-                        @_f.tra("Výchozí sazba"):
-                </td>
-                <td class="tdcastka">
-                    <myval datatype="num" value="@Model.Rec.p51DefaultRateT" valueafter="@Model.Rec.j27Code"></myval>
-                </td>
-            </tr>
-        </table>
+    <section class="ri-card ri-head p51t-main">
+        <div>
+            <h1 class="ri-title">
+                <myicon symbol="price_change"></myicon>
+                @r.p51Name
+            </h1>
+            <div class="ri-sub p51t-chips">
+                <span class="ri-chip">@r.TypeAlias</span>
+                @if (r.isclosed)
+                {
+                    <span class="ri-chip ri-chip-arch"><span class="material-icons-outlined-nosize">inventory_2</span>@_f.tra("V archivu")</span>
+                }
+                @if (r.p51IsCustomTailor)
+                {
+                    <span class="ri-chip ri-chip-link">@_f.tra("Individuální sazby na míru")</span>
+                }
+                @if (r.p51IsFPR)
+                {
+                    <span class="ri-chip ri-chip-link" title="@_f.tra("Vzorový ceník pro výpočet efektivních sazeb z paušálních odměn")">@_f.tra("Vzorový ceník")</span>
+                }
+            </div>
+        </div>
+        <div class="ri-big">
+            <strong>@BO.Code.Bas.Number2String(r.p51DefaultRateT) @r.j27Code</strong>
+            <span>@_f.tra("Výchozí sazba")</span>
+        </div>
 
-        <div class="my-2">
-            <button type="button" class="btn bog" onclick="_window_open('/p51/Recalc?p51id=@(Model.pid)')">
-            <myicon symbol="sync"></myicon>
-                @if (Model.Rec.p51TypeFlag == BO.p51TypeFlagENUM.CostRates || Model.Rec.p51TypeFlag == BO.p51TypeFlagENUM.OverheadRates)
+        @if (_expired || _future)
+        {
+            <div class="ri-alerts">
+                @if (_expired)
+                {
+                    <div class="ri-alert ri-alert-warn"><span class="material-icons-outlined-nosize">event_busy</span>@_f.tra("Platnost ceníku skončila.")</div>
+                }
+                @if (_future)
+                {
+                    <div class="ri-alert ri-alert-warn"><span class="material-icons-outlined-nosize">schedule</span>@_f.tra("Ceník ještě neplatí.")</div>
+                }
+            </div>
+        }
+
+        <dl class="ri-facts">
+            <div>
+                <dt>@_f.tra("Měna")</dt>
+                <dd>@r.j27Code</dd>
+            </div>
+            <div>
+                <dt>@_f.tra("Platí od")</dt>
+                <dd>@BO.Code.Bas.ObjectDate2String(r.ValidFrom)</dd>
+            </div>
+            <div>
+                <dt>@_f.tra("Platí do")</dt>
+                <dd>@(_unlimited ? _f.tra("neomezeně") : BO.Code.Bas.ObjectDate2String(r.ValidUntil))</dd>
+            </div>
+            <div>
+                <dt>@_f.tra("Položkové sazby")</dt>
+                <dd>@_lis.Count</dd>
+            </div>
+        </dl>
+
+        <div class="p51t-actions">
+            <button type="button" class="btn btn-sm bog" onclick="_window_open('/p51/Recalc?p51id=@(Model.pid)')">
+                <myicon symbol="sync"></myicon>
+                @if (_isCost)
                 {
                     @_f.tra("Zpětný přepočet nákladových sazeb (hodiny)")
                 }
@@ -62,76 +100,80 @@
                 {
                     @_f.tra("Zpětný přepočet fakturačních sazeb u vykázaných úkonů (hodiny,kusovník)")
                 }
-
-                
-            }
             </button>
-        </div>
-        
-
-        @if (Model.Rec.p51IsFPR)
-        {
-            <mark>@_f.tra("Vzorový ceník pro výpočet efektivních sazeb z paušálních odměn")</mark>
-            <div class="my-2">
-                <button type="button" class="btn bog" onclick="_window_open('/p51/Recalc?p51id=@(Model.pid)&flag=fpr')">
+            @if (r.p51IsFPR)
+            {
+                <button type="button" class="btn btn-sm bog" onclick="_window_open('/p51/Recalc?p51id=@(Model.pid)&flag=fpr')">
                     <myicon symbol="sync"></myicon>
                     @_f.tra("Zpětný přepočet efektivních sazeb")
                 </button>
+            }
+        </div>
+    </section>
+
+    <section class="ri-card p51t-items">
+        <h2><span class="material-icons-outlined-nosize">rule</span>@_f.tra("Výjimky z výchozí sazby")</h2>
+        @if (_lis.Count == 0)
+        {
+            <p class="ri-muted p51t-empty">@_f.tra("Ceník nemá žádnou položkovou sazbu. Pro všechny platí výchozí sazba.")</p>
+        }
+        else
+        {
+            <div class="ri-tablewrap">
+                <table class="ri-table">
+                    <thead>
+                        <tr>
+                            <th>@_f.tra("Pro koho")</th>
+                            <th>@_f.tra("Za co")</th>
+                            <th class="p51t-num">@_f.tra("Sazba")</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var c in _lis)
+                        {
+                            <tr>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(c.Person))
+                                    {
+                                        <span class="p51t-who"><span class="material-icons-outlined-nosize">person</span>@c.Person</span>
+                                    }
+                                    else if (!string.IsNullOrEmpty(c.j07Name))
+                                    {
+                                        <span class="p51t-who"><span class="material-icons-outlined-nosize">badge</span>@c.j07Name</span>
+                                        <span class="ri-sub2">@_f.tra("Pozice")</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="ri-muted">@_f.tra("Všichni")</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (c.p52IsPlusAllTimeSheets)
+                                    {
+                                        <span class="ri-muted">@_f.tra("Všechny časové aktivity")</span>
+                                    }
+                                    else if (!string.IsNullOrEmpty(c.p32Name))
+                                    {
+                                        @c.p32Name
+                                        <span class="ri-sub2">@_f.tra("Aktivita")@(string.IsNullOrEmpty(c.p34Name) ? "" : " · " + c.p34Name)</span>
+                                    }
+                                    else
+                                    {
+                                        @c.p34Name
+                                        <span class="ri-sub2">@_f.tra("Sešit")</span>
+                                    }
+                                </td>
+                                <td class="p51t-num ri-nowrap">
+                                    <strong>@BO.Code.Bas.Number2String(c.p52Rate)</strong> @r.j27Code
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
             </div>
         }
+    </section>
 
-    </div>
 </div>
-
-
-@if (Model.lisP52 != null && Model.lisP52.Count() > 0)
-{
-    <div class="card recpageboxauto">
-        <div class="card-body">
-            <div class="card-title recpagetitle bgp51">
-                @_f.tra("Výjimky z výchozí sazby")
-            </div>
-            <table class="table table-hover">
-                <tr>
-                    <th>@_f.tra("Pozice")</th>
-                    <th>@_f.tra("Uživatel/Jednotlivec")</th>
-                    <th>@_f.tra("Sešit")</th>
-                    <th>@_f.tra("Aktivita")</th>
-                    <th>@_f.tra("Sazba")</th>
-                </tr>
-                @foreach (var c in Model.lisP52)
-                {
-                    <tr>
-                        <td>
-                            @c.j07Name
-                        </td>
-                        <td>
-                            @c.Person
-                        </td>
-                        <td>
-                            @(c.p52IsPlusAllTimeSheets ? "" : c.p34Name)
-                        </td>
-                        <td>
-                            @c.p32Name
-                        </td>
-                        <td style="text-align:right;">
-                            @BO.Code.Bas.Number2String(c.p52Rate)
-                            @Model.Rec.j27Code
-                        </td>
-                    </tr>
-
-
-                }
-            </table>
-
-
-        </div>
-    </div>
-}
-
-
-
-<div style="clear:both;"></div>
-
 
 @Html.Raw("</div>")

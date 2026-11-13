@@ -1,222 +1,320 @@
 ﻿@model UI.Models.Record.p51Record
 @inject BL.Factory _f
 
+@* Ceník hodinových sazeb. Verze 8: karty rf-* (css/recordform.css) + doplněk css/p51record.css (třídy p51-*).
+   Položkové sazby jsou řádky „pro koho | za co | sazba“ místo tabulky s pevnou šířkou 1000 px.
+   Názvy polí, id a postbacky (clear_tailor, add_row, clone_row, delete_row, clear_rows) beze změny. *@
+
 @{
     Model.PageTitle = _f.tra("Ceník sazeb");
-    if (Model.Rec.TypeAlias !=null){
+    if (Model.Rec.TypeAlias != null)
+    {
         Model.PageTitle = Model.Rec.TypeAlias;
     }
     Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    Model.PageSymbol = "price_change";
 
     if (Model.Rec.pid > 0)
     {
         Model.PageTitle += ": " + Model.Rec.p51Name;
     }
 
+    int _rowsCount = Model.lisP52.Count(p => !p.IsTempDeleted);
+
+    // tři nejčastější druhy výjimek: tlačítka pro přidání řádku s předvolbou (postback add_row + preset)
+    var _adds = new (string preset, string icon, string text, string hint)[] {
+        ("j07", "badge", _f.tra("Pro pozici"), _f.tra("Jiná sazba pro všechny na jedné pozici, například Partner.")),
+        ("j02", "person", _f.tra("Pro osobu"), _f.tra("Jiná sazba pro jednoho člověka.")),
+        ("p32", "category", _f.tra("Pro aktivitu"), _f.tra("Jiná sazba za jednu aktivitu pro všechny, například cestovní čas."))
+    };
 }
 
 @addTagHelper *, UI
 
-<div class="modal_record_container">
-    @if (Model.Rec.p51IsCustomTailor && Model.Rec.pid>0)
+@section header_content
+{
+    <link rel="stylesheet" href="~/css/recordform.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/p51record.css" asp-append-version="true" />
+}
+
+@Html.Raw("<div class='modal_record_container'>")
+
+<div class="rf">
+
+    @if (Model.Rec.p51IsCustomTailor && Model.Rec.pid > 0)
     {
-        
-        <div class="my-2">
-            <span class="badge-light">Individuální sazby na míru!</span>
-            
+        <div class="rf-alert p51-tailor">
+            <span class="material-icons-outlined-nosize">design_services</span>
+            <div class="p51-tailor-text">@_f.tra("Individuální sazby na míru!")</div>
             <button type="button" class="btn btn-sm bog" onclick="_postback('clear_tailor')">@_f.tra("Změnit na sdílený ceník")</button>
         </div>
-        <hr />
     }
-    <div class="row">
-        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Druh sazeb"):</label>
-        <div class="col-sm-3 col-md-3">
-            <select asp-for="Rec.p51TypeFlag" class="form-select" onchange="_postback()">
-                <option value="BillingRates">@_f.tra("Fakturační hodinové sazby")</option>
-                @if (Model.TempGuid == null)
-                {
-                    <option value="RootBillingRates">@_f.tra("ROOT fakturační sazby")</option>
-                    <option value="CostRates">@_f.tra("Nákladové hodinové sazby")</option>
-                    <option value="OverheadRates">@_f.tra("Nákladové režijní hodinové sazby")</option>
-                    <option style="display:none;" value="EfectiveRates">@_f.tra("Globální sazby k výpočtu efektivních sazeb z pevných odměn")</option>
-                }
 
-            </select>
-        </div>
-
-    </div>
-    @if (Model.TempGuid == null)
-    {
-        <div class="row my-2">
-            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název ceníku"):</label>
-            <div class="col-sm-9 col-md-8">
-                <input class="form-control record_name" asp-for="Rec.p51Name" />
+    <div class="rf-grid">
+        <section class="rf-card">
+            <h2><span class="material-icons-outlined-nosize">price_change</span>@_f.tra("Ceník")</h2>
+            <div class="rf-row">
+                <label for="Rec_p51TypeFlag" class="rf-label">@_f.tra("Druh sazeb")</label>
+                <div class="rf-value">
+                    <select asp-for="Rec.p51TypeFlag" class="form-select" onchange="_postback()">
+                        <option value="BillingRates">@_f.tra("Fakturační hodinové sazby")</option>
+                        @if (Model.TempGuid == null)
+                        {
+                            <option value="RootBillingRates">@_f.tra("ROOT fakturační sazby")</option>
+                            <option value="CostRates">@_f.tra("Nákladové hodinové sazby")</option>
+                            <option value="OverheadRates">@_f.tra("Nákladové režijní hodinové sazby")</option>
+                            <option style="display:none;" value="EfectiveRates">@_f.tra("Globální sazby k výpočtu efektivních sazeb z pevných odměn")</option>
+                        }
+                    </select>
+                </div>
             </div>
+            @if (Model.TempGuid == null)
+            {
+                <div class="rf-row">
+                    <label for="Rec_p51Name" class="rf-label">@_f.tra("Název ceníku")</label>
+                    <div class="rf-value"><input class="form-control record_name" asp-for="Rec.p51Name" /></div>
+                </div>
+            }
+            @if (!Model.Rec.p51IsCustomTailor)
+            {
+                <div class="form-check p51-check">
+                    <input type="checkbox" class="form-check-input" asp-for="Rec.p51IsFPR" />
+                    <label class="form-check-label" for="Rec_p51IsFPR">@_f.tra("Vzorový ceník pro výpočet efektivních sazeb z paušálních odměn")</label>
+                </div>
+            }
+        </section>
 
-
-        </div>
-    }
-    <div class="row my-2">
-        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Měna sazeb"):</label>
-        <div class="col-sm-3 col-md-3">
-            <mycombo entity="j27Currency" asp-for="Rec.j27ID" selectedtext="@Model.ComboJ27Code" view-flag="2"></mycombo>
-        </div>
-
-    </div>
-    <div class="row my-2">
-        <mylabel class="col-sm-1 col-md-2 col-form-label" text="@_f.tra("Výchozí sazba")" tooltip="Výchozí sazba platí, pokud neexistuje položková sazba v ceníku sazeb."></mylabel>
-        <div class="col-sm-3 col-md-3">
-            <mynumber asp-for="Rec.p51DefaultRateT" decimal-digits="2"></mynumber>
-
-
-        </div>
-    </div>
-    
-    @if (!Model.Rec.p51IsCustomTailor)
-    {
-        <div class="my-2">
-            <input type="checkbox" asp-for="Rec.p51IsFPR" />
-            <label class="col-form-label" for="Rec_p51IsFPR">@_f.tra("Vzorový ceník pro výpočet efektivních sazeb z paušálních odměn")</label>
-        </div>
-    }
-    
-
-    <div class="row my-2">
-        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Platí od"):</label>
-        <div class="col-sm-4 col-md-3">
-            <mydate asp-for="@Model.d1"></mydate>
-
-        </div>
-
-    </div>
-    <div class="row my-2">
-        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Platí do"):</label>
-        <div class="col-sm-4 col-md-3">
-            <mydate asp-for="@Model.d2"></mydate>
-
-        </div>
-
+        <section class="rf-card">
+            <h2><span class="material-icons-outlined-nosize">payments</span>@_f.tra("Sazba a platnost")</h2>
+            <div class="rf-row">
+                <mylabel class="rf-label" text="@_f.tra("Výchozí sazba")" tooltip="Výchozí sazba platí, pokud neexistuje položková sazba v ceníku sazeb."></mylabel>
+                <div class="rf-value rf-inline">
+                    <div class="rf-w-num"><mynumber asp-for="Rec.p51DefaultRateT" decimal-digits="2"></mynumber></div>
+                    <div class="p51-cur" title="@_f.tra("Měna sazeb")"><mycombo entity="j27Currency" asp-for="Rec.j27ID" selectedtext="@Model.ComboJ27Code" view-flag="2"></mycombo></div>
+                </div>
+            </div>
+            <div class="rf-row">
+                <label class="rf-label">@_f.tra("Platí od")</label>
+                <div class="rf-value rf-w-date"><mydate asp-for="@Model.d1"></mydate></div>
+            </div>
+            <div class="rf-row">
+                <label class="rf-label">@_f.tra("Platí do")</label>
+                <div class="rf-value rf-w-date"><mydate asp-for="@Model.d2"></mydate></div>
+            </div>
+            <span class="rf-hint">@_f.tra("Bez data „Platí od“ platí ceník od 1. ledna letošního roku, bez data „Platí do“ časově neomezeně.")</span>
+        </section>
     </div>
 
+    <section class="rf-card" id="p51Items">
+        <div class="rf-cardbar">
+            <h2>
+                <span class="material-icons-outlined-nosize">rule</span>@_f.tra("Položkové sazby")
+                @if (_rowsCount > 0)
+                {
+                    <span class="p51-count">@_rowsCount</span>
+                }
+            </h2>
+            @if (_rowsCount > 0)
+            {
+                <div class="p51-bar-actions">
+                    <span class="p51-add-label">@_f.tra("Přidat sazbu")</span>
+                    @foreach (var a in _adds)
+                    {
+                        <button type="button" class="btn btn-outline-primary btn-sm" title="@a.hint" onclick="handle_add_row('@a.preset')">
+                            <span class="material-icons-outlined-nosize">@a.icon</span>@a.text
+                        </button>
+                    }
+                    <button type="button" class="btn btn-outline-danger btn-sm p51-clear" onclick="handle_clear_rows()">@_f.tra("Vyčistit řádky")</button>
+                </div>
+            }
+        </div>
+        <span class="rf-hint p51-intro">@_f.tra("Každý řádek říká, kdo má za jakou práci jinou sazbu než výchozí. Pod řádkem je vidět, jak ho MARKTIME čte.")</span>
 
+        @if (_rowsCount == 0)
+        {
+            <div class="p51-start">
+                <div class="p51-start-title">@_f.tra("Ceník nemá žádnou položkovou sazbu. Pro všechny platí výchozí sazba.")</div>
+                <div class="p51-start-sub">@_f.tra("Jakou výjimku chcete přidat?")</div>
+                <div class="p51-tiles">
+                    @foreach (var a in _adds)
+                    {
+                        <button type="button" class="p51-tile" onclick="handle_add_row('@a.preset')">
+                            <span class="material-icons-outlined-nosize">@a.icon</span>
+                            <strong>@a.text</strong>
+                            <span>@a.hint</span>
+                        </button>
+                    }
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="p51-head" aria-hidden="true">
+                <span>@_f.tra("Kdo")</span>
+                <span>@_f.tra("Za jakou práci")</span>
+                <span class="p51-head-rate">@_f.tra("Sazba za hodinu")</span>
+                <span></span>
+            </div>
+        }
 
-
-</div>
-
-
-<div class="card">
-    <div class="card-header">
-        @_f.tra("Položkové sazby (vyjímky z výchozí (nejpoužívanější sazby)")
-
-        <button type="button" class="btn btn-outline-primary btn-sm" onclick="handle_add_row()">@_f.tra("Přidat řádek")</button>
-        <button type="button" class="btn btn-outline-danger btn-sm" onclick="handle_clear_rows()" style="margin-left:100px;">@_f.tra("Vyčistit řádky")</button>
-    </div>
-    <div class="card-body">
-        <table class="table-hover table" style="table-layout: fixed;min-width:1000px;">
-            <tr>
-                <th style="width:100px;"></th>
-                <th>@_f.tra("Pozice/Jméno")</th>
-                <th style="width:100px;">@_f.tra("Sazba")</th>
-                <th style="width:140px;">@_f.tra("Sešit/Aktivita")</th>
-                <th></th>
-                <th style="width:40px;"></th>
-                <th style="width:40px;"></th>
-            </tr>
+        <div class="p51-rows">
             @for (int i = 0; i < Model.lisP52.Count; i++)
             {
-                <tr style="@(Model.lisP52[i].CssTempDisplay)">
-                    <td>
-                        <input type="hidden" asp-for="lisP52[i].IsTempDeleted" value="@Model.lisP52[i].IsTempDeleted" />
-                        <input type="hidden" asp-for="lisP52[i].TempGuid" value="@Model.lisP52[i].TempGuid" />
+                <div class="p51-row" style="@(Model.lisP52[i].IsTempDeleted ? "display:none;" : null)" data-deleted="@(Model.lisP52[i].IsTempDeleted ? "1" : "0")">
+                    <input type="hidden" asp-for="lisP52[i].IsTempDeleted" value="@Model.lisP52[i].IsTempDeleted" />
+                    <input type="hidden" asp-for="lisP52[i].TempGuid" value="@Model.lisP52[i].TempGuid" />
 
-                        <select class="form-select" asp-for="@Model.lisP52[i].RowPrefixWho" onchange="_postback()">
-                            <option value="j02">@_f.tra("Jméno")</option>
+                    <div class="p51-pair" data-part="who">
+                        <select class="form-select p51-kind" asp-for="@Model.lisP52[i].RowPrefixWho" onchange="_postback()" aria-label="@_f.tra("Kdo")">
                             <option value="j07">@_f.tra("Pozice")</option>
+                            <option value="j02">@_f.tra("Jedna osoba")</option>
                             <option value="all">@_f.tra("Všichni")</option>
                         </select>
-                    </td>
-                    <td>
-                        @if (Model.lisP52[i].RowPrefixWho == "j02")
-                        {
-                            <mycombo entity="j02User" asp-for="@Model.lisP52[i].j02ID" selectedtext="@Model.lisP52[i].ComboPerson" view-flag="1"></mycombo>
-                        }
-                        @if (Model.lisP52[i].RowPrefixWho == "j07")
-                        {
-                            <mycombo entity="j07PersonPosition" asp-for="@Model.lisP52[i].j07ID" selectedtext="@Model.lisP52[i].ComboJ07Name" view-flag="2"></mycombo>
-                        }
+                        <div class="p51-pick">
+                            @if (Model.lisP52[i].RowPrefixWho == "j02")
+                            {
+                                <mycombo entity="j02User" asp-for="@Model.lisP52[i].j02ID" selectedtext="@Model.lisP52[i].ComboPerson" view-flag="1" event_after_changevalue="p51_refresh"></mycombo>
+                            }
+                            @if (Model.lisP52[i].RowPrefixWho == "j07")
+                            {
+                                <mycombo entity="j07PersonPosition" asp-for="@Model.lisP52[i].j07ID" selectedtext="@Model.lisP52[i].ComboJ07Name" view-flag="2" event_after_changevalue="p51_refresh"></mycombo>
+                            }
+                            @if (Model.lisP52[i].RowPrefixWho == "all")
+                            {
+                                <span class="p51-none">@_f.tra("všichni uživatelé")</span>
+                            }
+                        </div>
+                    </div>
 
-                    </td>
-                    <td>
-                        <mynumber asp-for="@Model.lisP52[i].p52Rate" decimal-digits="2"></mynumber>
-                    </td>
-                    <td>
-                        <select class="form-select" asp-for="@Model.lisP52[i].RowPrefixActivity" onchange="_postback()">
-                            <option value="p32">@_f.tra("Jedna aktivita")</option>
-                            <option value="p34">@_f.tra("Jeden sešit")</option>
+                    <div class="p51-pair" data-part="act">
+                        <select class="form-select p51-kind p51-kind-act" asp-for="@Model.lisP52[i].RowPrefixActivity" onchange="_postback()" aria-label="@_f.tra("Za jakou práci")">
                             <option value="all">@_f.tra("Všechny časové aktivity")</option>
+                            <option value="p34">@_f.tra("Celý sešit")</option>
+                            <option value="p32">@_f.tra("Jedna aktivita")</option>
                         </select>
-                    </td>
-                    <td>
-                        @if (Model.lisP52[i].RowPrefixActivity == "p32")
-                        {
-                            <mycombo entity="p32Activity" asp-for="@Model.lisP52[i].p32ID" selectedtext="@Model.lisP52[i].ComboP32Name" view-flag="2" myqueryinline="ismoneyinput|bool|0"></mycombo>
-                        }
-                        @if (Model.lisP52[i].RowPrefixActivity == "p34")
-                        {
-                            <mycombo entity="p34ActivityGroup" asp-for="@Model.lisP52[i].p34ID" selectedtext="@Model.lisP52[i].ComboP34Name" view-flag="2" myqueryinline="ismoneyinput|bool|0"></mycombo>
-                        }
-                    </td>
+                        <div class="p51-pick">
+                            @if (Model.lisP52[i].RowPrefixActivity == "p32")
+                            {
+                                <mycombo entity="p32Activity" asp-for="@Model.lisP52[i].p32ID" selectedtext="@Model.lisP52[i].ComboP32Name" view-flag="2" myqueryinline="ismoneyinput|bool|0" event_after_changevalue="p51_refresh"></mycombo>
+                            }
+                            @if (Model.lisP52[i].RowPrefixActivity == "p34")
+                            {
+                                <mycombo entity="p34ActivityGroup" asp-for="@Model.lisP52[i].p34ID" selectedtext="@Model.lisP52[i].ComboP34Name" view-flag="2" myqueryinline="ismoneyinput|bool|0" event_after_changevalue="p51_refresh"></mycombo>
+                            }
+                            @if (Model.lisP52[i].RowPrefixActivity == "all")
+                            {
+                                <span class="p51-none">@_f.tra("bez omezení")</span>
+                            }
+                        </div>
+                    </div>
 
-                    <td>
-                        <button type="button" class="btn btn-danger" title="@_f.tra("Odstranit řádek")" onclick="handle_delete_row('@(Model.lisP52[i].TempGuid)')">x</button>
-                    </td>
-                    <td>
-                        <button type="button" class="btn btn-default" title="@_f.tra("Kopírovat řádek")" onclick="handle_clone_row('@(Model.lisP52[i].TempGuid)')"><span class="material-icons-outlined-btn">content_copy</span></button>
-                    </td>
-                </tr>
+                    <div class="p51-rate" title="@_f.tra("Sazba za hodinu")">
+                        <mynumber asp-for="@Model.lisP52[i].p52Rate" decimal-digits="2"></mynumber>
+                    </div>
+
+                    <div class="p51-row-actions">
+                        <button type="button" class="rf-del p51-copy" title="@_f.tra("Kopírovat řádek")" onclick="handle_clone_row('@(Model.lisP52[i].TempGuid)')"><span class="material-icons-outlined-nosize">content_copy</span></button>
+                        <button type="button" class="rf-del" title="@_f.tra("Odstranit řádek")" onclick="handle_delete_row('@(Model.lisP52[i].TempGuid)')"><span class="material-icons-outlined-nosize">close</span></button>
+                    </div>
+
+                    @* věta, jak MARKTIME řádek čte – skládá ji p51_refresh() z aktuálních hodnot v řádku *@
+                    <div class="p51-read" aria-live="polite"></div>
+                </div>
             }
-        </table>
-    </div>
+        </div>
+    </section>
+
 </div>
 
-
-
-
+@Html.Raw("</div>")
 
 <input type="hidden" asp-for="Rec.p51IsCustomTailor" value="@Model.Rec.p51IsCustomTailor" />
 <input type="hidden" asp-for="TempGuid" value="@Model.TempGuid" />
 
-
-
 <script type="text/javascript">
-    $(document).ready(function () {
-
-
-
-
-    });
-
-
-
-
     function handle_delete_row(guid) {
-        _postback("delete_row","guid="+guid);
-        
-
+        _postback("delete_row", "guid=" + guid);
     }
-    function handle_add_row() {
-        _postback("add_row");
-      
+    function handle_add_row(preset) {
+        if (preset) {
+            _postback("add_row", "preset=" + preset);
+        } else {
+            _postback("add_row");
+        }
     }
-
     function handle_clear_rows() {
         _postback("clear_rows");
-       
     }
     function handle_clone_row(guid) {
         _postback("clone_row", "guid=" + guid);
-       
     }
 
-    
+    // Věta pod každým řádkem: jak MARKTIME řádek čte. Skládá se z toho, co je právě ve formuláři, takže reaguje i na neuložené změny.
+    // Upozorní na nevyplněný výběr, na dva řádky se stejnou kombinací a na řádek shodný s výchozí sazbou.
+    const p51Txt = @Json.Serialize(new {
+        position = _f.tra("Pozice"), everyone = _f.tra("Všichni uživatelé"),
+        allActs = _f.tra("všechny časové aktivity"), sheet = _f.tra("celý sešit"), activity = _f.tra("aktivita"),
+        pickPerson = _f.tra("vyberte osobu"), pickPosition = _f.tra("vyberte pozici"), pickActivity = _f.tra("vyberte aktivitu"), pickSheet = _f.tra("vyberte sešit"),
+        perHour = _f.tra("za hodinu"), noRate = _f.tra("sazba není vyplněná"),
+        dup = _f.tra("Stejná kombinace je v ceníku vícekrát."), same = _f.tra("Platí pro všechny a pro všechny aktivity, tedy totéž co výchozí sazba."),
+        cur = Model.ComboJ27Code
+    });
+
+    function p51_refresh() {
+        const esc = s => String(s).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
+        const curInput = document.getElementById("cmdComboRec_j27ID");
+        const cur = (curInput && curInput.value.trim()) || p51Txt.cur || "";
+        const rows = Array.from(document.querySelectorAll("#p51Items .p51-row")).filter(r => r.dataset.deleted !== "1");
+
+        const data = rows.map(function (row) {
+            const part = function (name) {
+                const box = row.querySelector('[data-part="' + name + '"]');
+                const kind = box.querySelector("select").value;
+                const text = box.querySelector("input.mtc-input");
+                const val = box.querySelector('input[data-id^="value_"]');
+                return { kind: kind, text: text ? text.value.trim() : "", id: val ? val.value : "0" };
+            };
+            const rate = row.querySelector('.p51-rate input[type="text"]');
+            return { row: row, who: part("who"), act: part("act"), rate: rate ? rate.value.trim() : "" };
+        });
+
+        const key = d => d.who.kind + ":" + d.who.id + "|" + d.act.kind + ":" + d.act.id;
+        const counts = {};
+        data.forEach(d => { counts[key(d)] = (counts[key(d)] || 0) + 1; });
+
+        data.forEach(function (d) {
+            const miss = t => '<span class="p51-miss">' + esc(t) + "</span>";
+            const filled = p => p.kind === "all" || (p.id !== "0" && p.id !== "" && p.text !== "");
+
+            let who;
+            if (d.who.kind === "all") who = esc(p51Txt.everyone);
+            else if (!filled(d.who)) who = miss(d.who.kind === "j02" ? p51Txt.pickPerson : p51Txt.pickPosition);
+            else who = d.who.kind === "j07" ? esc(p51Txt.position) + " <strong>" + esc(d.who.text) + "</strong>" : "<strong>" + esc(d.who.text) + "</strong>";
+
+            let act;
+            if (d.act.kind === "all") act = esc(p51Txt.allActs);
+            else if (!filled(d.act)) act = miss(d.act.kind === "p32" ? p51Txt.pickActivity : p51Txt.pickSheet);
+            else act = esc(d.act.kind === "p32" ? p51Txt.activity : p51Txt.sheet) + " <strong>" + esc(d.act.text) + "</strong>";
+
+            const hasRate = d.rate !== "" && parseFloat(d.rate.replace(/\s/g, "").replace(",", ".")) !== 0;
+            const rate = hasRate ? "<strong>" + esc(d.rate) + " " + esc(cur) + "</strong> " + esc(p51Txt.perHour) : miss(p51Txt.noRate);
+
+            let html = '<span class="material-icons-outlined-nosize">subdirectory_arrow_right</span><span>' + who + " · " + act + " · " + rate + "</span>";
+            if (filled(d.who) && filled(d.act)) {
+                if (d.who.kind === "all" && d.act.kind === "all") html += '<span class="p51-warn">' + esc(p51Txt.same) + "</span>";
+                else if (counts[key(d)] > 1) html += '<span class="p51-warn">' + esc(p51Txt.dup) + "</span>";
+            }
+            d.row.querySelector(".p51-read").innerHTML = html;
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const box = document.getElementById("p51Items");
+        if (box) {
+            box.addEventListener("input", p51_refresh);
+            box.addEventListener("change", p51_refresh);
+            box.addEventListener("focusout", p51_refresh);      //mynumber přeformátuje hodnotu při opuštění pole
+        }
+        p51_refresh();
+    });
 </script>
