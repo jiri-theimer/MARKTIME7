@@ -69,35 +69,22 @@
         rec.o24MediumFlag = Model.edit_o24mediumflag;
         rec.o24Unit = Model.edit_o24unit;
         rec.o24Count = Model.edit_o24count;
-        rec.BindPrefix = Model.edit_bindprefix;
-        rec.j02ID = Model.edit_j02id;
-        rec.j11ID = Model.edit_j11id;
-        rec.x67ID = Model.edit_x67id;
-        rec.p28ID = Model.edit_p28id;
-        rec.p24ID = Model.edit_p24id;
+        //příjemce je právě jeden - podle zvoleného druhu (ostatní ID z dialogu se zahodí, jinak by se u řádku ukázal cizí název)
+        rec.BindPrefix = string.IsNullOrEmpty(Model.edit_bindprefix) ? "j02" : Model.edit_bindprefix;
+        rec.j02ID = rec.BindPrefix == "j02" ? Model.edit_j02id : 0;
+        rec.j11ID = rec.BindPrefix == "j11" ? Model.edit_j11id : 0;
+        rec.x67ID = rec.BindPrefix == "x67" ? Model.edit_x67id : 0;
+        rec.p28ID = rec.BindPrefix == "p28" ? Model.edit_p28id : 0;
+        rec.p24ID = rec.BindPrefix == "p24" ? Model.edit_p24id : 0;
         rec.o24Memo = Model.edit_o24memo;
 
-        if (rec.j02ID > 0)
-        {
-            rec.BindAlias = _f.CBL.GetObjectAlias("j02", rec.j02ID);
-        }
-        if (rec.j11ID > 0)
-        {
-            rec.BindAlias = _f.j11TeamBL.Load(rec.j11ID).j11Name;
-        }
-        if (rec.p28ID > 0)
-        {
-            rec.BindAlias = _f.CBL.GetObjectAlias("p28", rec.p28ID);
-        }
-        if (rec.p24ID > 0)
-        {
-            rec.BindAlias = _f.p24ContactGroupBL.Load(rec.p24ID).p24Name;
-        }
+        rec.BindAlias = null;
+        if (rec.j02ID > 0) rec.BindAlias = _f.CBL.GetObjectAlias("j02", rec.j02ID);
+        if (rec.j11ID > 0) rec.BindAlias = _f.j11TeamBL.Load(rec.j11ID)?.j11Name;
+        if (rec.x67ID > 0) rec.BindAlias = _f.x67EntityRoleBL.Load(rec.x67ID)?.x67Name;
+        if (rec.p28ID > 0) rec.BindAlias = _f.CBL.GetObjectAlias("p28", rec.p28ID);
+        if (rec.p24ID > 0) rec.BindAlias = _f.p24ContactGroupBL.Load(rec.p24ID)?.p24Name;
 
-        if (rec.x67ID > 0 && _lisX67 != null && _lisX67.Count() > 0)
-        {
-            rec.x67ID = _lisX67.First().pid; rec.BindAlias = _lisX67.First().x67Name;
-        }
         if (Model.is_static_date && Model.edit_o24staticdate != null)
         {
             rec.o24StaticDate = BO.Code.Bas.String2Date(Model.edit_o24staticdate);
@@ -112,18 +99,6 @@
         Model.postback_par = null;
     }
 
-    if (Model.postback_par == "add_reminder")
-    {
-        var rec = new ReminderRepeater() { TempGuid = BO.Code.Bas.GetGuid(), BindPrefix = "j02" };
-        if (!Model.is_static_date && _lisX67 != null && _lisX67.Count() > 0)
-        {
-            rec.x67ID = _lisX67.First().pid; rec.BindAlias = _lisX67.First().x67Name; rec.BindPrefix = "x67";
-        }
-        if (Model.is_static_date) rec.o24StaticDate = DateTime.Today.AddDays(1).AddHours(12);
-        Model.lisReminder.Add(rec);
-
-        Model.postback_par = null;
-    }
     if (Model.postback_par == "delete_reminder")
     {
         Model.lisReminder.First(p => p.TempGuid == Model.postback_guid).IsTempDeleted = true;
@@ -166,260 +141,158 @@
 <input type="hidden" asp-for="edit_o24memo" value="@Model.edit_o24memo" />
 <input type="hidden" asp-for="edit_o24staticdate" value="@Model.edit_o24staticdate" />
 
-@if(Model.lisReminder !=null && Model.lisReminder.Count()>0)
-{
-    <div class="card my-2">
-        <div class="card-header">
-            <button type="button" class="btn btn-sm btn-light" tabindex="-1" onclick="append_reminder()" style="min-width:150px;text-align:left;">
-                <myicon symbol="notifications"></myicon>
-                @_f.tra("Přidat upozornění")
-            </button>
-        </div>
+@{
+    //texty řádků
+    string _When(ReminderRepeater r)
+    {
+        if (Model.is_static_date) return r.o24StaticDate == null ? "?" : r.o24StaticDate.Value.ToString("d.M.yyyy HH:mm");
+        int n = Math.Abs(r.o24Count);
+        string unit = r.o24Unit == "h"
+            ? (n == 1 ? _f.tra("hodinu") : (n >= 2 && n <= 4 ? _f.tra("hodiny") : _f.tra("hodin")))
+            : (n == 1 ? _f.tra("den") : (n >= 2 && n <= 4 ? _f.tra("dny") : _f.tra("dní")));
+        if (n == 0) return _f.tra("V okamžiku termínu");
+        return $"{n} {unit} {(r.o24Count < 0 ? _f.tra("předem") : _f.tra("po termínu"))}";
+    }
+    string _Kind(string prefix) => prefix switch
+    {
+        "j02" => _f.tra("Uživatel"),
+        "j11" => _f.tra("Tým"),
+        "x67" => _f.tra("Role v záznamu"),
+        "p28" => _f.tra("Kontakt"),
+        "p24" => _f.tra("Skupina kontaktů"),
+        _ => ""
+    };
+    string _How(int flag) => (flag == 2 ? "SMS" : (flag == 3 ? "E-mail + SMS" : "E-mail")) + " + chat";
+    int _visible = Model.lisReminder == null ? 0 : Model.lisReminder.Count(p => !p.IsTempDeleted);
+}
 
+<link rel="stylesheet" href="~/css/reminder.css" asp-append-version="true" />
 
-        <div id="divReminderContainer" class="card-body" style="overflow:auto;">
-            <table id="tabReminderRepeater" class="table table-sm table-hover" style="min-width:620px;">
-
-                @for (int i = 0; i < Model.lisReminder.Count(); i++)
-                {
-                    <tr style="@(Model.lisReminder[i].CssTempDisplay)">
-
-
-                        <td style="width:100px;">
-
-
-                            <button type="button" class="btn btn-sm btn-primary" tabindex="-1" onclick="edit_reminder(@(i),'@Model.lisReminder[i].TempGuid')">
-
-                                @_f.tra("Upravit")
-                            </button>
-                        </td>
-
-                        <td>
-                            @if (Model.lisReminder[i].o24MediumFlag == 1)
-                            {
-                                <code>E-mail</code>
-                            }
-                            @if (Model.lisReminder[i].o24MediumFlag == 2)
-                            {
-                                <code>SMS</code>
-                            }
-                            @if (Model.lisReminder[i].o24MediumFlag == 3)
-                            {
-                                <code>E-mail + SMS</code>
-                            }
-
-                            <input type="hidden" asp-for="lisReminder[i].o24MediumFlag" value="@Model.lisReminder[i].o24MediumFlag" />
-                            <input type="hidden" asp-for="lisReminder[i].o24Count" value="@Model.lisReminder[i].o24Count" />
-                            <input type="hidden" asp-for="lisReminder[i].o24Unit" value="@Model.lisReminder[i].o24Unit" />
-
-                            <input type="hidden" asp-for="lisReminder[i].TempGuid" />
-                            <input type="hidden" asp-for="lisReminder[i].o24ID" />
-                            <input type="hidden" asp-for="lisReminder[i].IsTempDeleted" value="@Model.lisReminder[i].IsTempDeleted" />
-                            <input type="hidden" asp-for="lisReminder[i].IsProcessed" value="@Model.lisReminder[i].IsProcessed" />
-
-
-                        </td>
-                        @if (Model.is_static_date)
-                        {
-                            <td>
-                                <input type="hidden" asp-for="lisReminder[i].o24StaticDate" value="@Model.lisReminder[i].o24StaticDate" />
-                                @if (Model.lisReminder[i].o24StaticDate < DateTime.Now)
-                                {
-                                    <span class="badge-light">
-
-                                        @(BO.Code.Bas.ObjectDateTime2String(Model.lisReminder[i].o24StaticDate))
-                                    </span>
-                                }
-                                else
-                                {
-                                    <span class="badge-light">
-
-                                        @(BO.Code.Bas.ObjectDateTime2String(Model.lisReminder[i].o24StaticDate))
-                                    </span>
-                                }
-                                
-
-                            </td>
-
-                        }
-                        else
-                        {
-                            <td>
-
-
-                                <strong>@(Model.lisReminder[i].o24Count)</strong>
-
-                                @if (Model.lisReminder[i].o24Unit == "h")
-                                {
-                                    <code>hodin</code>
-                                }
-                                @if (Model.lisReminder[i].o24Unit == "d")
-                                {
-                                    <code>dní</code>
-                                }
-                            </td>
-
-                        }
-
-                        <td>
-                            <input type="hidden" asp-for="lisReminder[i].BindPrefix" value="@Model.lisReminder[i].BindPrefix" />
-                            <input type="hidden" asp-for="lisReminder[i].BindAlias" value="@Model.lisReminder[i].BindAlias" />
-                            <input type="hidden" asp-for="lisReminder[i].j02ID" value="@Model.lisReminder[i].j02ID" />
-                            <input type="hidden" asp-for="lisReminder[i].j11ID" value="@Model.lisReminder[i].j11ID" />
-                            <input type="hidden" asp-for="lisReminder[i].p28ID" value="@Model.lisReminder[i].p28ID" />
-                            <input type="hidden" asp-for="lisReminder[i].p24ID" value="@Model.lisReminder[i].p24ID" />
-                            <input type="hidden" asp-for="lisReminder[i].x67ID" value="@Model.lisReminder[i].x67ID" />
-
-                            @if (Model.lisReminder[i].BindPrefix == "j02")
-                            {
-                                <code>Uživatel</code>
-                            }
-                            @if (Model.lisReminder[i].BindPrefix == "j11")
-                            {
-                                <code>Tým</code>
-                            }
-                            @if (Model.lisReminder[i].BindPrefix == "x67")
-                            {
-                                <code>Role v záznamu</code>
-
-                            }
-                            @if (Model.lisReminder[i].BindPrefix == "p28")
-                            {
-                                <code>Kontakt</code>
-                            }
-                            @if (Model.lisReminder[i].BindPrefix == "p24")
-                            {
-                                <code>Skupina kontaktů</code>
-                            }
-                            <span>@Model.lisReminder[i].BindAlias</span>
-
-                            <input type="hidden" asp-for="lisReminder[i].o24Memo" value="@Model.lisReminder[i].o24Memo" />
-                            @if (Model.lisReminder[i].o24Memo != null)
-                            {
-                                <span class="badge-light">
-                                    @Model.lisReminder[i].o24Memo
-                                </span>
-                            }
-                        </td>
-
-
-
-
-                        <td style="width:70px;">
-                            <button type="button" class="btn btn-sm btn-danger" title="@_f.tra("Odstranit řádek")" onclick="handle_delete_reminder('@(Model.lisReminder[i].TempGuid)')">x</button>
-                        </td>
-                        <td style="width:100px;">
-                            @if (Model.lisReminder[i].IsProcessed)
-                            {
-
-                                <button type="button" class="btn btn-sm btn-warning" title="@_f.tra("Vyčistit stopu o již odeslaném upozornění. Po vyčištění bude upozornění znovu čekat na odeslání.")" onclick="handle_clear_reminder('@(Model.lisReminder[i].TempGuid)')">Vyčistit historii</button>
-
-                            }
-                        </td>
-                    </tr>
-
-
-                }
-
-            </table>
-        </div>
-
+<div class="rm-box@(_visible == 0 ? " rm-empty" : "")">
+    <div class="rm-head">
+        <span class="material-icons-outlined-nosize">notifications</span>
+        <span>@_f.tra("Upozornění")</span>
+        @if (_visible > 0)
+        {
+            <span class="rm-count">@_visible</span>
+        }
+        <button type="button" class="btn btn-sm btn-light rm-add" tabindex="-1" onclick="append_reminder()">
+            <span class="material-icons-outlined-nosize">add</span>@_f.tra("Přidat upozornění")
+        </button>
     </div>
-}
-else
-{
-    <button type="button" class="btn btn-sm btn-light" tabindex="-1" onclick="append_reminder()" style="min-width:150px;text-align:left;">
-        <myicon symbol="notifications"></myicon>
-        @_f.tra("Přidat upozornění")
-    </button>
-}
+
+    @if (Model.lisReminder != null && Model.lisReminder.Count() > 0)
+    {
+        <ul id="divReminderContainer" class="rm-list">
+            @for (int i = 0; i < Model.lisReminder.Count(); i++)
+            {
+                var r = Model.lisReminder[i];
+                bool late = Model.is_static_date && !r.IsProcessed && r.o24StaticDate != null && r.o24StaticDate < DateTime.Now;
+                <li class="rm-item@(r.IsProcessed ? " rm-sent" : "")" style="@(r.IsTempDeleted ? "display:none;" : "")">
+                    @* hodnoty řádku pro uložení formuláře a pro dialog úprav (edit_reminder čte podle id) *@
+                    <input type="hidden" asp-for="lisReminder[i].o24MediumFlag" value="@r.o24MediumFlag" />
+                    <input type="hidden" asp-for="lisReminder[i].o24Count" value="@r.o24Count" />
+                    <input type="hidden" asp-for="lisReminder[i].o24Unit" value="@r.o24Unit" />
+                    <input type="hidden" asp-for="lisReminder[i].TempGuid" />
+                    <input type="hidden" asp-for="lisReminder[i].o24ID" />
+                    <input type="hidden" asp-for="lisReminder[i].IsTempDeleted" value="@r.IsTempDeleted" />
+                    <input type="hidden" asp-for="lisReminder[i].IsProcessed" value="@r.IsProcessed" />
+                    @if (Model.is_static_date)
+                    {
+                        <input type="hidden" asp-for="lisReminder[i].o24StaticDate" value="@r.o24StaticDate" />
+                    }
+                    <input type="hidden" asp-for="lisReminder[i].BindPrefix" value="@r.BindPrefix" />
+                    <input type="hidden" asp-for="lisReminder[i].BindAlias" value="@r.BindAlias" />
+                    <input type="hidden" asp-for="lisReminder[i].j02ID" value="@r.j02ID" />
+                    <input type="hidden" asp-for="lisReminder[i].j11ID" value="@r.j11ID" />
+                    <input type="hidden" asp-for="lisReminder[i].p28ID" value="@r.p28ID" />
+                    <input type="hidden" asp-for="lisReminder[i].p24ID" value="@r.p24ID" />
+                    <input type="hidden" asp-for="lisReminder[i].x67ID" value="@r.x67ID" />
+                    <input type="hidden" asp-for="lisReminder[i].o24Memo" value="@r.o24Memo" />
+
+                    <div class="rm-main" onclick="edit_reminder(@(i),'@r.TempGuid')" title="@_f.tra("Upravit upozornění")">
+                        <div class="rm-line">
+                            <span class="rm-when@(late ? " rm-late" : "")">@_When(r)</span>
+                            <span class="rm-who"><span class="rm-kind">@_Kind(r.BindPrefix)</span>@r.BindAlias</span>
+                            <span class="rm-how">@_How(r.o24MediumFlag)</span>
+                            @if (r.IsProcessed)
+                            {
+                                <span class="rm-state">@_f.tra("Odesláno")</span>
+                            }
+                            else if (late)
+                            {
+                                <span class="rm-state rm-state-late">@_f.tra("Čeká na odeslání")</span>
+                            }
+                        </div>
+                        @if (!string.IsNullOrEmpty(r.o24Memo))
+                        {
+                            <div class="rm-memo">@r.o24Memo</div>
+                        }
+                    </div>
+                    <div class="rm-tools">
+                        @if (r.IsProcessed)
+                        {
+                            <button type="button" class="rm-btn" title="@_f.tra("Odeslat znovu: upozornění bude opět čekat na odeslání")" onclick="handle_clear_reminder('@(r.TempGuid)')"><span class="material-icons-outlined-nosize">replay</span></button>
+                        }
+                        <button type="button" class="rm-btn" title="@_f.tra("Upravit")" onclick="edit_reminder(@(i),'@r.TempGuid')"><span class="material-icons-outlined-nosize">edit</span></button>
+                        <button type="button" class="rm-btn rm-btn-del" title="@_f.tra("Odstranit upozornění")" onclick="handle_delete_reminder('@(r.TempGuid)')"><span class="material-icons-outlined-nosize">delete</span></button>
+                    </div>
+                </li>
+            }
+        </ul>
+        @if (_visible > 0)
+        {
+            <div class="rm-note">@_f.tra("Upozornění odchází zvolenou cestou a uživatelům MARKTIME také do interního chatu.")</div>
+        }
+    }
+</div>
 
 
 <script type="text/javascript">
+    // Prvek „Upozornění“ (o24Reminder) ve formuláři záznamu. Řádek se zakládá a upravuje v okně /ReminderItem/Index,
+    // které zapíše hodnoty do skrytých polí reminder_edit_* a zavolá reminder_hardrefresh() - seznam se přestaví postbackem formuláře.
 
-    
-    if (_device.isMobile) {
-        $("#divReminderContainer").css("width", _device.availWidth);
-        $("#divReminderContainer").css("overflow", "scroll");
+    function reminder_set(par, guid) {
+        document.getElementById("reminder_postback_par").value = par;
+        document.getElementById("reminder_postback_guid").value = guid || "";
+    }
+    function reminder_val(rowindex, field) {
+        var el = document.getElementById("reminder_lisReminder_" + rowindex + "__" + field);
+        return el ? el.value : "";
+    }
+    function reminder_open(e, query) {
+        var w = (typeof _device !== "undefined" && _device.isMobile) ? _device.availWidth : "520";
+        var url = "/ReminderItem/Index?record_prefix=@Model.record_prefix&record_pid=@Model.record_pid&is_static_date=@Model.is_static_date" + (query || "");
+        _zoom(e || window.event, null, null, w, "@_f.tra("Upozornění")", url);
     }
 
     function append_reminder() {
-
-        $("#reminder_postback_par").val("add_reminder");
-        $("#reminder_postback_guid").val("");
-
-        var prefix = "@Model.record_prefix";
-        var pid = "@Model.record_pid";
-        var is_static_date = "@Model.is_static_date";
-
-        var w = "500";
-        if (_device.isMobile) {
-            w = _device.availWidth;
-        }
-
-        _zoom(event, null, null, w, "Připomenutí", "/ReminderItem/Index?record_prefix=" + prefix + "&record_pid=" + pid + "&is_static_date=" + is_static_date);
+        reminder_set("add_reminder", "");
+        reminder_open(window.event, "");
     }
 
     function edit_reminder(rowindex, guid) {
-
-        $("#reminder_postback_par").val("edit_reminder");
-        $("#reminder_postback_guid").val(guid);
-
-        var prefix = "@Model.record_prefix";
-        var pid = "@Model.record_pid";
-        var j02id = $("#reminder_lisReminder_" + rowindex + "__j02ID").val();
-        var j11id = $("#reminder_lisReminder_" + rowindex + "__j11ID").val();
-        var p28id = $("#reminder_lisReminder_" + rowindex + "__p28ID").val();
-        var p24id = $("#reminder_lisReminder_" + rowindex + "__p24ID").val();
-        var x67id = $("#reminder_lisReminder_" + rowindex + "__x67ID").val();
-
-        var bindprefix = $("#reminder_lisReminder_" + rowindex + "__BindPrefix").val();
-        var o24count = $("#reminder_lisReminder_" + rowindex + "__o24Count").val();
-        var o24unit = $("#reminder_lisReminder_" + rowindex + "__o24Unit").val();
-        var o24mediumflag = $("#reminder_lisReminder_" + rowindex + "__o24MediumFlag").val();
-        var o24memo = $("#reminder_lisReminder_" + rowindex + "__o24Memo").val();
-
-        var o24staticdate = $("#reminder_lisReminder_" + rowindex + "__o24StaticDate").val();
-
-        var is_static_date = "@Model.is_static_date";
-
-
-
-        var ocas = "&o24count=" + o24count + "&o24unit=" + o24unit + "&o24mediumflag=" + o24mediumflag + "&bindprefix=" + bindprefix + "&j02id=" + j02id + "&j11id=" + j11id + "&x67id=" + x67id + "&p28id=" + p28id + "&p24id=" + p24id + "&o24memo=" + o24memo;
-
-        var w = "500";
-        if (_device.isMobile) {
-            w = _device.availWidth;
-        }
-        _zoom(event, null, null, w, "Připomenutí", "/ReminderItem/Index?record_prefix=" + prefix + "&record_pid=" + pid + "&is_static_date=" + is_static_date + "&o24staticdate=" + o24staticdate + ocas);
-    }
-
-    function handle_change_prefix(guid) {
-        $("#reminder_postback_par").val("change_prefix");
-        $("#reminder_postback_guid").val(guid);
-        _postback("change_prefix");
-
+        reminder_set("edit_reminder", guid);
+        var q = "";
+        [["o24count", "o24Count"], ["o24unit", "o24Unit"], ["o24mediumflag", "o24MediumFlag"], ["bindprefix", "BindPrefix"],
+         ["j02id", "j02ID"], ["j11id", "j11ID"], ["x67id", "x67ID"], ["p28id", "p28ID"], ["p24id", "p24ID"],
+         ["o24memo", "o24Memo"], ["o24staticdate", "o24StaticDate"]].forEach(function (p) {
+            q += "&" + p[0] + "=" + encodeURIComponent(reminder_val(rowindex, p[1]));
+        });
+        reminder_open(window.event, q);
     }
 
     function handle_delete_reminder(guid) {
-        $("#reminder_postback_par").val("delete_reminder");
-        $("#reminder_postback_guid").val(guid);
+        reminder_set("delete_reminder", guid);
         _postback("delete_reminder");
-
     }
 
     function handle_clear_reminder(guid) {
-        $("#reminder_postback_par").val("clear_reminder");
-        $("#reminder_postback_guid").val(guid);
+        reminder_set("clear_reminder", guid);
         _postback("clear_reminder");
     }
 
-
-
-
     function reminder_hardrefresh() {
-
         _postback();
     }
-
 </script>

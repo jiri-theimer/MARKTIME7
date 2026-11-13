@@ -5,7 +5,7 @@
     {
         public int u01ID { get; set; }
         public int j02ID_Sender { get; set; }
-        public int u02TypeFlag { get; set; } = 1;       //1: zpráva uživatele, 2: systémová
+        public int u02TypeFlag { get; set; } = 1;       //1: zpráva uživatele, 2: systémová (řádek v konverzaci), 3: upozornění systému (hlídač) - počítá se jako nepřečtená
         public string u02Text { get; set; }
         public string u02Text200 { get; set; }
         public int u02ID_ReplyTo { get; set; }

@@ -1,0 +1,53 @@
+/* Prvek „Upozornění“ ve formuláři záznamu (Views/Shared/_Reminder.cshtml) a okno jednoho upozornění (Views/ReminderItem/Index.cshtml) – třídy rm-*. */
+
+.rm-box { margin: 8px 0; border: 1px solid #e3e6ea; border-radius: 8px; background: #fff; }
+.rm-box.rm-empty { border-color: transparent; background: transparent; }
+
+.rm-head { display: flex; align-items: center; gap: 6px; padding: 6px 10px; font-weight: 600; color: #2b3138; }
+.rm-box:not(.rm-empty) .rm-head { border-bottom: 1px solid #eef0f2; }
+.rm-box.rm-empty .rm-head { padding-left: 0; font-weight: 400; color: #59636e; }
+.rm-head > .material-icons-outlined-nosize { font-size: 20px; color: var(--pozadi, #0b4b92); }
+.rm-count { min-width: 20px; padding: 0 6px; border-radius: 10px; background: #eef1f4; color: #59636e; font-size: .8rem; font-weight: 600; line-height: 20px; text-align: center; }
+.rm-add { margin-left: auto; display: inline-flex; align-items: center; gap: 2px; }
+.rm-add .material-icons-outlined-nosize { font-size: 18px; }
+
+.rm-list { list-style: none; margin: 0; padding: 4px; }
+.rm-item { display: flex; align-items: flex-start; gap: 6px; padding: 5px 6px; border-radius: 6px; }
+.rm-item:hover { background: #f6f8fa; }
+.rm-item + .rm-item { border-top: 1px solid #f1f3f5; }
+
+.rm-main { flex: 1 1 auto; min-width: 0; cursor: pointer; }
+.rm-line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.rm-when { font-weight: 600; color: #1f2328; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.rm-when.rm-late { color: #a15c00; }
+.rm-who { min-width: 0; overflow-wrap: anywhere; }
+.rm-kind { margin-right: 6px; color: #6c757d; font-size: .85rem; }
+.rm-how { color: #59636e; font-size: .85rem; white-space: nowrap; }
+.rm-state { padding: 0 8px; border-radius: 10px; background: #e6f4ea; color: #17663a; font-size: .8rem; line-height: 20px; white-space: nowrap; }
+.rm-state.rm-state-late { background: #fff4e0; color: #a15c00; }
+.rm-memo { margin-top: 2px; color: #59636e; font-size: .85rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+.rm-sent .rm-when, .rm-sent .rm-who { color: #6c757d; }
+
+.rm-tools { flex: 0 0 auto; display: flex; gap: 2px; }
+.rm-btn { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 6px; background: transparent; color: #7a838c; cursor: pointer; }
+.rm-btn .material-icons-outlined-nosize { font-size: 18px; }
+.rm-btn:hover { background: #e9edf1; color: var(--pozadi, #0b4b92); }
+.rm-btn.rm-btn-del:hover { background: #fdecec; color: #b42318; }
+.rm-btn:focus-visible { outline: 2px solid var(--oznaceno, #4169e1); outline-offset: 1px; }
+
+.rm-note { padding: 4px 10px 8px; color: #6c757d; font-size: .8rem; }
+
+@media (max-width: 600px) {
+    .rm-line { flex-direction: column; gap: 0; }
+    .rm-how, .rm-state { align-self: flex-start; }
+}
+
+/* okno jednoho upozornění */
+.rm-dlg-bar { display: flex; gap: 6px; padding: 10px; background: #f6f8fa; border-bottom: 1px solid #e3e6ea; }
+.rm-dlg { padding: 12px; }
+.rm-dlg-row { display: grid; grid-template-columns: 110px 1fr; gap: 8px; align-items: center; margin-bottom: 10px; }
+.rm-dlg-row > label { margin: 0; color: #59636e; }
+.rm-dlg-inline { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.rm-dlg-inline select { width: auto; }
+.rm-dlg-note { margin: 4px 0 0; color: #6c757d; font-size: .85rem; }
+@media (max-width: 480px) { .rm-dlg-row { grid-template-columns: 1fr; gap: 2px; } }

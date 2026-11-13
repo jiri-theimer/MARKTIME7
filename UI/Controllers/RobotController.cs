@@ -557,6 +557,13 @@ namespace UI.Controllers
             
             var lisB20 = _f.b20HlidacBL.GetList(new BO.myQuery("b20"));
 
+            //e-maily hlídačů, které se dříve nepodařilo odeslat (chyběl SMTP účet, chyba odeslání)
+            int intPending = _f.b20HlidacBL.SendPending(v.smtp_account);
+            if (intPending > 0)
+            {
+                LogInfo(BO.j91RobotTaskFlag.Hlidac, $"Dodatečně odeslané e-maily hlídačů: {intPending}");
+            }
+
             Hlidac_Otestuj_Otevrene_Zaznamy("p28", _f.b20HlidacBL.GetListB21_ValidNotClosedRecs("p28"), lisB20, v);
             Hlidac_Otestuj_Otevrene_Zaznamy("p41", _f.b20HlidacBL.GetListB21_ValidNotClosedRecs("p41"), lisB20, v);
             Hlidac_Otestuj_Otevrene_Zaznamy("p56", _f.b20HlidacBL.GetListB21_ValidNotClosedRecs("p56"), lisB20, v);
@@ -575,6 +582,7 @@ namespace UI.Controllers
             foreach (var recB20 in lisB20)
             {
                 var sb = new System.Text.StringBuilder();
+                var sbText = new System.Text.StringBuilder();   //tytéž události prostým textem pro interní chat
                 var notify2emails = new List<string>();
                 foreach (var c in lisB21.Where(p => p.b20ID == recB20.pid))
                 {
@@ -582,7 +590,7 @@ namespace UI.Controllers
                     HttpClient httpclient = (recB20.b20TypeFlag == BO.b20TypeFlagEnum.ZmenaAdresy || recB20.b20TypeFlag == BO.b20TypeFlagEnum.Insolvence ? _httpclientfactory.CreateClient() : null);
 
 
-                    if (_f.b20HlidacBL.Handle_NastalaUdalostHlidace(recB20, c, ref sb, ref notify2emails, httpclient))
+                    if (_f.b20HlidacBL.Handle_NastalaUdalostHlidace(recB20, c, ref sb, ref notify2emails, httpclient, sbText))
                     {
                         //nastala událost hlídače
 
@@ -604,14 +612,9 @@ namespace UI.Controllers
                     }
                     sb.AppendLine($"<small>Čas: {DateTime.Now.ToString("dd.MM.yyyy HH:mm:ss")}</small>");
 
-                    if (v.smtp_account != null)
-                    {
-                        _f.b20HlidacBL.SendNotification(sb, notify2emails, recB20, v.smtp_account);
-                    }
-                    else
-                    {
-                        LogInfo(BO.j91RobotTaskFlag.Hlidac, null, "v.smtp_account is null!");
-                    }
+                    //interní chat + e-mail; neodeslaný e-mail se uloží a odešle při dalším běhu robota
+                    string strDelivery = _f.b20HlidacBL.Deliver(recB20, sb, sbText, notify2emails, v.smtp_account);
+                    LogInfo(BO.j91RobotTaskFlag.Hlidac, $"{recB20.b20Name}: {strDelivery}");
 
 
                     LogInfo(BO.j91RobotTaskFlag.Hlidac, sb.ToString());
@@ -627,9 +630,32 @@ namespace UI.Controllers
         }
 
 
+        private static readonly string[] _reminderRecPage = new[] { "p28", "p41", "p56", "p91", "o23", "o22" };
+
+        /// <summary>Text upozornění (o24Reminder) pro interní chat - konverzace „MARKTIME upozornění“ příjemce.</summary>
+        private string ReminderChatText(BO.o24Reminder c, string strRecAlias)
+        {
+            var sb = new System.Text.StringBuilder();
+            sb.AppendLine("⏰ Připomenutí: " + strRecAlias);
+            DateTime? d = c.o24RecordDate ?? c.o24StaticDate;
+            if (d != null) sb.AppendLine("K datu: " + d.Value.ToString("dd.MM.yyyy HH:mm"));
+            if (!string.IsNullOrWhiteSpace(c.o24Memo)) sb.AppendLine(c.o24Memo.Trim());
+            string strEntity = (c.o24RecordEntity != null && c.o24RecordEntity.Length >= 2 && c.o24RecordEntity.Substring(0, 2) == "dd") ? "o23" : c.o24RecordEntity;
+            string strHost = _f.Lic?.x01AppHost;
+            if (!string.IsNullOrEmpty(strHost) && strHost.StartsWith("http", StringComparison.OrdinalIgnoreCase) && _reminderRecPage.Contains(strEntity))
+            {
+                sb.AppendLine($"{strHost.TrimEnd('/')}/Record/RecPage?prefix={strEntity}&pid={c.o24RecordPid}");     //chat z adresy udělá odkaz
+            }
+            return sb.ToString().Trim();
+        }
+
+        /// <summary>
+        /// Upozornění k záznamům (o24Reminder): e-mail / SMS podle o24MediumFlag a vždy i interní chat (příjemcům, kteří jsou uživatelé s chatem).
+        /// Do chatu se posílá jednou - ve chvíli, kdy se upozornění označuje za zpracované. Bez výchozího SMTP účtu se e-mailová upozornění
+        /// doručí jen do chatu; komu se do chatu doručit nedalo, tomu upozornění dál čeká na SMTP účet.
+        /// </summary>
         private void Handle_o24Reminder(RobotViewModel v)
         {
-            if (v.smtp_account == null) return;
             var lisO24 = _f.o24ReminderBL.GetList_Wait_On_Process();
 
             foreach (var c in lisO24)
@@ -650,7 +676,7 @@ namespace UI.Controllers
                             x40GridColumns = _f.MailBL.GetDefaultGridFields(c.o24RecordEntity),
                             x40Subject = "Připomenutí - " + strRecAlias,
                             o24ID = c.pid,
-                            j40ID = v.smtp_account.pid
+                            j40ID = v.smtp_account == null ? 0 : v.smtp_account.pid
                         };
                         var receivers = _f.MailBL.GetMailList(c.j02ID, c.j11ID, c.x67ID, c.p28ID, c.p24ID, c.o24RecordPid, c.o24RecordEntity, 0);
                         if (receivers == null || receivers.Count() == 0 || receivers.Count() > 50)
@@ -685,13 +711,30 @@ namespace UI.Controllers
 
                         recX40.x40Body = sb.ToString();
 
+                        bool bolChatDone = false;   //do chatu jen jednou, až když je upozornění zpracované
                         if (c.o24MediumFlag == BO.o24MediumFlagEnum.Email || c.o24MediumFlag == BO.o24MediumFlagEnum.EmailPlusSms)  //odeslat upozornění přes e-mail
                         {
-                            var ret = _f.MailBL.SendMessage(recX40, false, _colsProvider);
-                            if (ret.issuccess)
+                            if (v.smtp_account != null)
                             {
-                                c.o24DatetimeProcessed = DateTime.Now;
-                                _f.o24ReminderBL.Save(c);
+                                var ret = _f.MailBL.SendMessage(recX40, false, _colsProvider);
+                                if (ret.issuccess)
+                                {
+                                    c.o24DatetimeProcessed = DateTime.Now;
+                                    _f.o24ReminderBL.Save(c);
+                                    _f.ChatBL.PostNotification(receivers, ReminderChatText(c, strRecAlias));
+                                    bolChatDone = true;
+                                }
+                            }
+                            else
+                            {
+                                //není výchozí SMTP účet: upozornění aspoň do chatu; zpracované je, jen když ho dostal někdo z příjemců
+                                if (_f.ChatBL.PostNotification(receivers, ReminderChatText(c, strRecAlias)) > 0)
+                                {
+                                    c.o24DatetimeProcessed = DateTime.Now;
+                                    _f.o24ReminderBL.Save(c);
+                                    LogInfo(BO.j91RobotTaskFlag.Hlidac, $"Upozornění k záznamu [{strRecAlias}] doručeno jen do chatu - chybí výchozí SMTP účet.");
+                                }
+                                bolChatDone = true;
                             }
                         }
 
@@ -707,6 +750,11 @@ namespace UI.Controllers
                                 {
                                     c.o24DatetimeProcessed = DateTime.Now;
                                     _f.o24ReminderBL.Save(c);
+                                    if (!bolChatDone)
+                                    {
+                                        _f.ChatBL.PostNotification(receivers, ReminderChatText(c, strRecAlias));
+                                        bolChatDone = true;
+                                    }
                                 }
                             }
 

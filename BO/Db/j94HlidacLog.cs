@@ -16,5 +16,8 @@ namespace BO
         public double j94Par1 { get; set; }
         public double j94Par2 { get; set; }
         public string j94Message { get; set; }
+        /// <summary>Hlídač za celou databázi se seznamem záznamů: záznam, kterého se řádek týká (j94IsAchieved: 1 = zachycen, 0 = ze seznamu vypadl).</summary>
+        public string j94RecordEntity { get; set; }
+        public int j94RecordPid { get; set; }
     }
 }

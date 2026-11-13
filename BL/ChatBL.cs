@@ -32,6 +32,7 @@ namespace BL
         public int GetRecordMessagesCount(string entity, int pid);
         public int SaveMessageAsNote(int u02id);
         public void PostWorkflowMessage(BO.b05Workflow_History rec);
+        public int PostNotification(List<string> emails, string strText);
         public List<BO.Chat.RoleItem> GetRecordRoles(int u01id);
         public bool RenameGroup(int u01id, string strName);
         public bool AddMembers(int u01id, List<int> j02ids);
@@ -131,6 +132,12 @@ namespace BL
         /// </summary>
         public IEnumerable<BO.j02User> GetUsers()
         {
+            return ChatUsers().Where(p => p.pid != Me).ToList();
+        }
+
+        /// <summary>Všichni uživatelé licence, kteří mohou chat používat - včetně přihlášeného (upozornění systému chodí i jemu).</summary>
+        private List<BO.j02User> ChatUsers()
+        {
             var lis = _mother.j02UserBL.GetList(new BO.myQueryJ02());
             if (lis == null) return new List<BO.j02User>();
 
@@ -138,7 +145,7 @@ namespace BL
             var lisAllowed = _db.GetList<BO.GetInteger>($"SELECT a.j02ID as Value FROM j02User a INNER JOIN j04UserRole b ON a.j04ID=b.j04ID INNER JOIN x67EntityRole c ON b.x67ID=c.x67ID WHERE SUBSTRING(c.x67RoleValue,{intPos},1)='1'");
             var allowed = lisAllowed == null ? new HashSet<int>() : new HashSet<int>(lisAllowed.Select(p => p.Value));
 
-            return lis.Where(p => p.pid != Me && allowed.Contains(p.pid) && !p.isclosed && !string.IsNullOrEmpty(p.j02Login) && !p.j02IsLoginManualLocked && p.j02VirtualParentID == 0)
+            return lis.Where(p => allowed.Contains(p.pid) && !p.isclosed && !string.IsNullOrEmpty(p.j02Login) && !p.j02IsLoginManualLocked && p.j02VirtualParentID == 0)
                 .OrderBy(p => p.j02LastName).ThenBy(p => p.j02FirstName).ToList();
         }
 
@@ -154,10 +161,10 @@ namespace BL
         {
             sb("SELECT a.u01ID as pid,a.u01TypeFlag,a.u01Name,a.u01RecordEntity,a.u01RecordPid,a.j02ID_Owner,a.u01DateLastMessage,a.u01DateInsert");
             sb(",m.u03IsMuted,m.u03IsPinned,m.u03RoleFlag,m.u02ID_LastRead");
-            sb(",(SELECT COUNT(*) FROM u02Message x WHERE x.u01ID=a.u01ID AND x.u02ID>ISNULL(m.u02ID_LastRead,0) AND x.j02ID_Sender<>@me AND x.u02IsDeleted=0 AND x.u02TypeFlag=1) as UnreadCount");
+            sb(",(SELECT COUNT(*) FROM u02Message x WHERE x.u01ID=a.u01ID AND x.u02ID>ISNULL(m.u02ID_LastRead,0) AND x.u02IsDeleted=0 AND ((x.u02TypeFlag=1 AND x.j02ID_Sender<>@me) OR x.u02TypeFlag=3)) as UnreadCount");
             sb(",(SELECT COUNT(*) FROM u03ChannelMember y WHERE y.u01ID=a.u01ID AND y.u03DateLeft IS NULL) as MembersCount");
             sb($",pm.j02ID as PartnerID,{NameSql("op")} as PartnerName,pm.u02ID_LastRead as PartnerLastReadID");
-            sb($",lm.j02ID_Sender as LastSenderID,{NameSql("ls")} as LastSenderName,lm.u02Text200 as LastText,lm.u02IsDeleted as LastIsDeleted,lm.u02AttachmentsCount as LastAttachmentsCount");
+            sb($",CASE WHEN lm.u02TypeFlag=3 THEN 0 ELSE lm.j02ID_Sender END as LastSenderID,CASE WHEN lm.u02TypeFlag=3 THEN NULL ELSE {NameSql("ls")} END as LastSenderName,lm.u02Text200 as LastText,lm.u02IsDeleted as LastIsDeleted,lm.u02AttachmentsCount as LastAttachmentsCount");
             sb(" FROM u01Channel a INNER JOIN u03ChannelMember m ON a.u01ID=m.u01ID AND m.j02ID=@me AND m.u03DateLeft IS NULL");
             sb(" LEFT OUTER JOIN u02Message lm ON a.u02ID_Last=lm.u02ID");
             sb(" LEFT OUTER JOIN j02User ls ON lm.j02ID_Sender=ls.j02ID");
@@ -188,7 +195,7 @@ namespace BL
         {
             sb("SELECT COUNT(*) as Value FROM u02Message x INNER JOIN u03ChannelMember m ON x.u01ID=m.u01ID INNER JOIN u01Channel a ON m.u01ID=a.u01ID");
             sb(" WHERE m.j02ID=@me AND m.u03DateLeft IS NULL AND m.u03IsMuted=0 AND a.u01ValidUntil>GETDATE()");
-            sb(" AND x.u02ID>ISNULL(m.u02ID_LastRead,0) AND x.j02ID_Sender<>@me AND x.u02IsDeleted=0 AND x.u02TypeFlag=1");
+            sb(" AND x.u02ID>ISNULL(m.u02ID_LastRead,0) AND x.u02IsDeleted=0 AND ((x.u02TypeFlag=1 AND x.j02ID_Sender<>@me) OR x.u02TypeFlag=3)");    //upozornění (typ 3) je nepřečtené pro každého, i když ho robot zapsal pod účtem příjemce
             return GetInt(sbret(), new { me = Me });
         }
 
@@ -693,6 +700,87 @@ namespace BL
             }
         }
 
+        // ── upozornění od systému (hlídače) ─────────────────────────────────────────
+
+        /// <summary>Název osobní konverzace, do které chodí upozornění systému.</summary>
+        public const string NotifyChannelName = "MARKTIME upozornění";
+
+        /// <summary>
+        /// Upozornění systému (hlídač) do interního chatu: každý příjemce ho dostane do své osobní konverzace „MARKTIME upozornění“
+        /// (u01TypeFlag=2, u01DirectKey='notify-{j02ID}', jediný člen), zpráva má u02TypeFlag=3 a počítá se jako nepřečtená.
+        /// Příjemci se zadávají e-mailem (stejný seznam jako pro poštu); zprávu dostanou ti, komu e-mail patří (j02Email)
+        /// a kdo má v aplikační roli chat (GR_CHAT). Volá se z robota - odesílatel je účet robota, v chatu se nezobrazuje.
+        /// Příjemce může upozornění i celou konverzaci smazat (DeleteMessage, DeleteChannel).
+        /// Chyba chatu nesmí shodit volajícího. Vrací počet uživatelů, kterým zpráva přišla.
+        /// </summary>
+        public int PostNotification(List<string> emails, string strText)
+        {
+            int intCount = 0;
+            try
+            {
+                if (emails == null || string.IsNullOrWhiteSpace(strText) || _mother.CurrentUser == null || _db == null || !TablesExist()) return 0;
+                var wanted = new HashSet<string>(emails.Where(p => !string.IsNullOrWhiteSpace(p))
+                    .SelectMany(p => p.Split(new[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries)).Select(p => p.Trim().ToLower()).Where(p => p != ""));
+                if (wanted.Count == 0) return 0;
+
+                strText = strText.Trim();
+                if (strText.Length > MaxTextLength) strText = strText.Substring(0, MaxTextLength - 1) + "…";
+
+                var users = ChatUsers().Where(p => !string.IsNullOrWhiteSpace(p.j02Email) && wanted.Contains(p.j02Email.Trim().ToLower())).ToList();
+                foreach (var u in users)
+                {
+                    int intU01ID = OpenNotifyChannel(u.pid);
+                    if (intU01ID == 0) continue;
+
+                    var p = new DL.Params4Dapper();
+                    p.AddInt("pid", 0);
+                    p.AddInt("u01ID", intU01ID, true);
+                    p.AddInt("j02ID_Sender", Me, true);
+                    p.AddInt("u02TypeFlag", 3);
+                    p.AddString("u02Text", strText);
+                    p.AddString("u02Text200", Text200(strText));
+                    int intU02ID = _db.SaveRecord("u02Message", p, new BO.u02Message(), false, true);
+                    if (intU02ID == 0) continue;
+
+                    //u03ChannelMember.u02ID_LastRead se nemění: zpráva má zůstat nepřečtená i tehdy, když je příjemcem účet robota
+                    _db.RunSql("UPDATE u01Channel SET u02ID_Last=@u02id,u01DateLastMessage=GETDATE() WHERE u01ID=@u01id", new { u02id = intU02ID, u01id = intU01ID });
+                    intCount += 1;
+                    ChatEvents.ChannelChanged?.Invoke(new List<string> { u.j02Login }, intU01ID);
+                }
+            }
+            catch (Exception e)
+            {
+                BO.Code.File.LogError(e.Message, _mother.CurrentUser?.j02Login, "ChatBL.PostNotification");
+            }
+            return intCount;
+        }
+
+        /// <summary>
+        /// Osobní konverzace uživatele pro upozornění: najde ji, nebo založí. Příjemce je jejím správcem (u03RoleFlag=2) - smí ji smazat
+        /// i mazat jednotlivá upozornění. Po smazání se při dalším upozornění založí nová, prázdná; opuštěná se znovu připojí.
+        /// </summary>
+        private int OpenNotifyChannel(int j02id)
+        {
+            string strKey = $"notify-{j02id}";
+            int intU01ID = GetInt("SELECT TOP 1 u01ID as Value FROM u01Channel WHERE x01ID=@x01id AND u01DirectKey=@k AND u01ValidUntil>GETDATE()", new { x01id = _mother.CurrentUser.x01ID, k = strKey });
+            if (intU01ID == 0)
+            {
+                //smazaná konverzace si klíč nesmí držet (jedinečný index x01ID+u01DirectKey) - nová začne prázdná
+                _db.RunSql("UPDATE u01Channel SET u01DirectKey=NULL WHERE x01ID=@x01id AND u01DirectKey=@k AND u01ValidUntil<=GETDATE()", new { x01id = _mother.CurrentUser.x01ID, k = strKey });
+                intU01ID = SaveChannel(new BO.u01Channel() { u01TypeFlag = BO.u01TypeFlagENUM.Group, u01Name = NotifyChannelName, u01DirectKey = strKey });
+                if (intU01ID == 0)
+                {
+                    //souběh: konverzaci mezitím založil jiný běh
+                    intU01ID = GetInt("SELECT TOP 1 u01ID as Value FROM u01Channel WHERE x01ID=@x01id AND u01DirectKey=@k AND u01ValidUntil>GETDATE()", new { x01id = _mother.CurrentUser.x01ID, k = strKey });
+                    if (intU01ID == 0) return 0;
+                }
+            }
+            AddMember(intU01ID, j02id, 2);
+            //konverzace založené dřív měly příjemce jako běžného člena
+            _db.RunSql("UPDATE u03ChannelMember SET u03RoleFlag=2 WHERE u01ID=@u01id AND j02ID=@j02id AND u03RoleFlag<>2", new { u01id = intU01ID, j02id = j02id });
+            return intU01ID;
+        }
+
         private string GetName(string strSQL, int pid)
         {
             var c = _db.Load<BO.GetString>(strSQL, new { pid = pid });
@@ -809,14 +897,26 @@ namespace BL
             return SaveMessage(u01id, strText == "" ? null : strText, u02id_replyto, 1);
         }
 
-        private BO.u02Message LoadMyOwnMessage(int u02id)
+        /// <param name="fordelete">mazání: kromě vlastní zprávy smí uživatel smazat i upozornění systému (typ 3) ve své konverzaci „MARKTIME upozornění“</param>
+        private BO.u02Message LoadMyOwnMessage(int u02id, bool fordelete = false)
         {
             var rec = _db.Load<BO.u02Message>("SELECT a.*,a.u02ID as pid FROM u02Message a WHERE a.u02ID=@pid", new { pid = u02id });
-            if (rec == null || rec.j02ID_Sender != Me || rec.u02IsDeleted || rec.u02TypeFlag != 1 || !IsMember(rec.u01ID))
+            if (rec == null || rec.u02IsDeleted || !IsMember(rec.u01ID)) return null;
+            if (rec.u02TypeFlag == 3)
+            {
+                return fordelete && IsMyNotifyChannel(rec.u01ID) ? rec : null;
+            }
+            if (rec.j02ID_Sender != Me || rec.u02TypeFlag != 1)
             {
                 return null;
             }
             return rec;
+        }
+
+        /// <summary>Je konverzace osobní schránkou upozornění přihlášeného uživatele?</summary>
+        private bool IsMyNotifyChannel(int u01id)
+        {
+            return GetInt("SELECT COUNT(*) as Value FROM u01Channel WHERE u01ID=@u01id AND u01DirectKey=@k", new { u01id = u01id, k = $"notify-{Me}" }) > 0;
         }
 
         public bool EditMessage(int u02id, string strText)
@@ -838,7 +938,7 @@ namespace BL
 
         public bool DeleteMessage(int u02id)
         {
-            var rec = LoadMyOwnMessage(u02id);
+            var rec = LoadMyOwnMessage(u02id, true);
             if (rec == null) return false;
 
             if (rec.u02AttachmentsCount > 0)

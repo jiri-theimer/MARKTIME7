@@ -39,6 +39,17 @@ namespace BO
         public int x67ID_Notify1 { get; set; }
         public int x67ID_Notify2 { get; set; }
 
+        /// <summary>
+        /// Jen hlídač za celou databázi (b20Entity = "x01"): typ záznamů, které vrací b20TestSql (p41, p28, p56, p91, o23, p90, j02).
+        /// Prázdné = SQL vrací jednu hodnotu za databázi (událost při změně hodnoty).
+        /// </summary>
+        public string b20ListEntity { get; set; }
+
+        /// <summary>Hlídač za celou databázi: jedno pravidlo, žádné přiřazování k záznamům.</summary>
+        public bool IsSystem => this.b20Entity == "x01";
+        /// <summary>Hlídač za celou databázi, jehož SQL vrací seznam záznamů – hlásí se jen nově zachycené.</summary>
+        public bool IsSystemList => IsSystem && this.b20TypeFlag == b20TypeFlagEnum.TestBySql && !string.IsNullOrWhiteSpace(this.b20ListEntity);
+
         public bool IsCyklus
         {
             get

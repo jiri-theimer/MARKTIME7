@@ -81,6 +81,29 @@ namespace UI.Controllers.Admin
             return ViewTup(v, BO.PermValEnum.GR_Admin);
         }
 
+        /// <summary>
+        /// Ruční spuštění hlídače za celou databázi z jeho karty - bez čekání na robota. Jen administrátor.
+        /// Testuje se uložený stav hlídače; událost se doručí stejně jako z robota (chat + e-mail).
+        /// </summary>
+        /// <param name="reset">true = nejdřív zapomenout dosud zachycené záznamy / poslední hodnotu</param>
+        [HttpPost]
+        public IActionResult RunNow(int pid, bool reset = false)
+        {
+            if (!Factory.CurrentUser.TestPermission(BO.PermValEnum.GR_Admin))
+            {
+                return Json(new { ok = false, message = Factory.tra("Hlídač může ručně spustit pouze administrátor.") });
+            }
+            try
+            {
+                string s = Factory.b20HlidacBL.RunSystemNow(pid, reset, Factory.j40MailAccountBL.LoadDefaultSmtpAccount());
+                return Json(new { ok = true, message = s });
+            }
+            catch (Exception e)
+            {
+                return Json(new { ok = false, message = e.Message });
+            }
+        }
+
         private void RefreshState(b20Record v)
         {
            
@@ -123,6 +146,7 @@ namespace UI.Controllers.Admin
                 c.x67ID_Notify1 = v.Rec.x67ID_Notify1;
                 c.x67ID_Notify2 = v.Rec.x67ID_Notify2;
                 c.b20IsNotifyRecordOwner = v.Rec.b20IsNotifyRecordOwner;
+                c.b20ListEntity = v.Rec.b20ListEntity;
 
                 c.ValidUntil = v.Toolbar.GetValidUntil(c);
                 c.ValidFrom = v.Toolbar.GetValidFrom(c);

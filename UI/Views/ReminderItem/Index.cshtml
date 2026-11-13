@@ -9,132 +9,102 @@
 
 @addTagHelper *, UI
 
-<div class="bg-light" style="padding:10px;">
+<link rel="stylesheet" href="~/css/reminder.css" asp-append-version="true" />
+
+<div class="rm-dlg-bar">
     <button type="button" onclick="_submit()" class="btn btn-success">@_f.tra("OK")</button>
-
     <button type="button" onclick="reminder_zoom_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
-
-
-
 </div>
 
 @if (Model.message != null)
 {
-    <div class="alert alert-danger" role="alert">
-        <h4>@Html.Raw(Model.message)</h4>
-    </div>
+    <div class="alert alert-danger m-2" role="alert">@Html.Raw(Model.message)</div>
 }
 
-<form id="form1" asp-controller="ReminderItem" asp-action="Index" method="POST" style="padding:10px;">
+<form id="form1" asp-controller="ReminderItem" asp-action="Index" method="POST" class="rm-dlg">
     <input type="hidden" asp-for="record_prefix" />
     <input type="hidden" asp-for="is_static_date" />
-    
     <input type="hidden" asp-for="rowguid" />
 
-    <div class="input-group" style="padding:10px;">
+    <div class="rm-dlg-row">
+        <label>@_f.tra("Kdy"):</label>
+        <div class="rm-dlg-inline">
+            @if (Model.is_static_date)
+            {
+                <mydate asp-for="o24StaticDate" include-time="true"></mydate>
+            }
+            else
+            {
+                <select class="form-select" asp-for="o24Count">
+                    @for (int n = 1; n <= 15; n++)
+                    {
+                        <option value="@(-n)">@n</option>
+                    }
+                </select>
+                <select class="form-select" asp-for="o24Unit">
+                    <option value="h">@_f.tra("hodin předem")</option>
+                    <option value="d">@_f.tra("dní předem")</option>
+                </select>
+            }
+        </div>
+    </div>
+
+    <div class="rm-dlg-row">
+        <label>@_f.tra("Koho"):</label>
+        <div>
+            <select asp-for="BindPrefix" value="@Model.BindPrefix" class="form-select" onchange="_postback('refresh')">
+                <option value="j02">@_f.tra("Uživatel")</option>
+                @if (Model.record_prefix != "p31")
+                {
+                    <option value="x67">@_f.tra("Role v záznamu")</option>
+                }
+                <option value="j11">@_f.tra("Tým uživatelů")</option>
+                <option value="p28">@_f.tra("Kontakt")</option>
+                <option value="p24">@_f.tra("Skupina kontaktů")</option>
+            </select>
+        </div>
+    </div>
+    <div class="rm-dlg-row">
+        <label></label>
+        <div>
+            @if (Model.BindPrefix == "j02")
+            {
+                <mycombo entity="j02User" asp-for="j02ID" selectedtext="@Model.ComboJ02ID" filter-flag="1"></mycombo>
+            }
+            @if (Model.BindPrefix == "j11")
+            {
+                <mycombo entity="j11Team" asp-for="j11ID" selectedtext="@Model.ComboJ11ID"></mycombo>
+            }
+            @if (Model.BindPrefix == "x67")
+            {
+                <mycombo entity="x67EntityRole" asp-for="x67ID" myqueryinline="x67entity|string|@(Model.record_prefix)" selectedtext="@Model.ComboX67ID"></mycombo>
+            }
+            @if (Model.BindPrefix == "p28")
+            {
+                <mycombo entity="p28Contact" asp-for="p28ID" selectedtext="@Model.ComboP28Name" filter-flag="1"></mycombo>
+            }
+            @if (Model.BindPrefix == "p24")
+            {
+                <mycombo entity="p24ContactGroup" asp-for="p24ID" selectedtext="@Model.ComboP24Name"></mycombo>
+            }
+        </div>
+    </div>
+
+    <div class="rm-dlg-row">
+        <label>@_f.tra("Jak"):</label>
         <div>
             <select class="form-select" asp-for="o24MediumFlag">
                 <option value="Email">E-mail</option>
                 <option value="Sms">SMS</option>
-                <option value="EmailPlusSms">E-mail+SMS</option>
+                <option value="EmailPlusSms">E-mail + SMS</option>
             </select>
+            <div class="rm-dlg-note">@_f.tra("Uživatelé MARKTIME dostanou upozornění vždy také do interního chatu.")</div>
         </div>
-
-        @if (Model.is_static_date)
-        {
-            <mydate asp-for="o24StaticDate" include-time="true"></mydate>
-
-        }
-        else
-        {
-
-
-            <div>
-                <select class="form-control" asp-for="o24Count">
-                    <option value="-1">-1</option>
-                    <option value="-2">-2</option>
-                    <option value="-3">-3</option>
-                    <option value="-4">-4</option>
-                    <option value="-5">-5</option>
-                    <option value="-6">-6</option>
-                    <option value="-7">-7</option>
-                    <option value="-8">-8</option>
-                    <option value="-9">-9</option>
-                    <option value="-10">-10</option>
-                    <option value="-11">-11</option>
-                    <option value="-12">-12</option>
-                    <option value="-13">-13</option>
-                    <option value="-14">-14</option>
-                    <option value="-15">-15</option>
-                </select>
-            </div>
-            <div>
-                <select class="form-control" asp-for="o24Unit">
-                    <option value="h">hodiny předem</option>
-                    <option value="d">dny předem</option>
-                </select>
-            </div>
-
-
-        }
-
     </div>
 
-
-
-    <div class="row my-2">
-
-        <div class="col-sm-1 col-md-2">
-                <select asp-for="BindPrefix" value="@Model.BindPrefix" class="form-select" onchange="_postback('refresh')">
-
-                    <option value="j02">Uživatel</option>
-                    @if (Model.record_prefix != "p31")
-                    {
-                        <option value="x67">Role v záznamu</option>
-                    }
-                    <option value="j11">@_f.tra("Tým uživatelů")</option>
-                    <option value="p28">@_f.tra("Kontakt")</option>
-                    <option value="p24">@_f.tra("Skupina kontaktů")</option>
-                </select>
-            </div>
-        <div class="col-sm-8 col-md-9">
-                @if (Model.BindPrefix == "j02")
-                {
-                    
-                    <mycombo entity="j02User" asp-for="j02ID" selectedtext="@Model.ComboJ02ID" filter-flag="1"></mycombo>
-                }
-                @if (Model.BindPrefix == "j11")
-                {
-                    
-                    <mycombo entity="j11Team" asp-for="j11ID" selectedtext="@Model.ComboJ11ID"></mycombo>
-                }
-                @if (Model.BindPrefix == "x67")
-                {
-                   
-                    <mycombo entity="x67EntityRole" asp-for="x67ID" myqueryinline="x67entity|string|@(Model.record_prefix)" selectedtext="@Model.ComboX67ID"></mycombo>
-                }
-                @if (Model.BindPrefix == "p28")
-                {
-                   
-                    <mycombo entity="p28Contact" asp-for="p28ID" selectedtext="@Model.ComboP28Name" filter-flag="1"></mycombo>
-
-                }
-                @if (Model.BindPrefix == "p24")
-                {
-                    
-                    <mycombo entity="p24ContactGroup" asp-for="p24ID" selectedtext="@Model.ComboP24Name"></mycombo>
-
-                }
-            </div>
-        
-    </div>
-    
-
-
-    
-
-    <div style="margin-top:20px;">
-        <input type="text" asp-for="o24Memo" class="form-control" placeholder="Doplňující poznámka" />
+    <div class="rm-dlg-row">
+        <label>@_f.tra("Poznámka"):</label>
+        <input type="text" asp-for="o24Memo" class="form-control" placeholder="@_f.tra("Doplňující poznámka")" />
     </div>
 </form>
 
@@ -155,7 +125,7 @@
         window.parent.document.getElementById("reminder_edit_p28id").value = "@Model.p28ID";
         window.parent.document.getElementById("reminder_edit_p24id").value = "@Model.p24ID";
         
-        window.parent.document.getElementById("reminder_edit_o24memo").value = "@Model.o24Memo";
+        window.parent.document.getElementById("reminder_edit_o24memo").value = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.o24Memo ?? ""));
 
     
         

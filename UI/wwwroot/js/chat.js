@@ -231,6 +231,11 @@ var ChatApp = (function () {
         var d = pd(m.date), pdte = prev ? pd(prev.date) : null, html = "";
         if (!pdte || !sameDay(d, pdte)) html += "<div class='ch-day'><span>" + esc(fmtDay(d)) + "</span></div>";
         if (m.type == 2) return html + "<div class='ch-sys' data-id='" + m.id + "'>" + esc(m.text) + "</div>";
+        if (m.type == 3 && m.deleted) return "";      //smazané upozornění systému se nezobrazuje vůbec (žádné "zpráva byla smazána")
+
+        //upozornění systému (hlídač): technicky ho zapsal účet robota, v chatu je to zpráva od MARKTIME - nikdy "moje"
+        if (m.type == 3) m = $.extend({}, m, { senderid: 0, sender: "MARKTIME" });
+        if (prev && prev.type == 3) prev = $.extend({}, prev, { senderid: 0 });
 
         var mine = m.senderid == cfg.me;
         var first = !prev || prev.type == 2 || prev.senderid != m.senderid || !pdte || !sameDay(d, pdte) || (d - pdte) > 5 * 60000;
@@ -276,6 +281,8 @@ var ChatApp = (function () {
             html += "<button type='button' class='ch-btn' data-act='react' title='" + esc(T.react) + "'><i class='ch-ico'>add_reaction</i></button>";
             html += "<button type='button' class='ch-btn' data-act='reply' title='" + esc(T.reply) + "'><i class='ch-ico'>reply</i></button>";
             if (cur.type == 3 && (m.text || (m.files && m.files.length))) html += "<button type='button' class='ch-btn' data-act='note' title='" + esc(T.note) + "'><i class='ch-ico'>waves</i></button>";
+            //upozornění systému smí příjemce ve své konverzaci smazat (upravit ne)
+            if (m.type == 3) html += "<button type='button' class='ch-btn' data-act='delete' title='" + esc(T["delete"]) + "'><i class='ch-ico'>delete</i></button>";
             if (mine) {
                 html += "<button type='button' class='ch-btn' data-act='edit' title='" + esc(T.edit) + "'><i class='ch-ico'>edit</i></button>";
                 html += "<button type='button' class='ch-btn' data-act='delete' title='" + esc(T["delete"]) + "'><i class='ch-ico'>delete</i></button>";
@@ -290,7 +297,12 @@ var ChatApp = (function () {
         var fromBottom = el.scrollHeight - el.scrollTop;
         var html = hasMore ? "<button type='button' class='ch-more' id='chMore'>" + esc(T.older) + "</button>" : "";
         if (!msgs.length) html += "<div class='ch-empty'>" + esc(T.nomsg) + "</div>";
-        for (var i = 0; i < msgs.length; i++) html += msgHtml(msgs[i], i > 0 ? msgs[i - 1] : null);
+        var prevShown = null;
+        for (var i = 0; i < msgs.length; i++) {
+            if (msgs[i].type == 3 && msgs[i].deleted) continue;     //smazané upozornění systému se nezobrazuje (ani oddělovač dne kvůli němu)
+            html += msgHtml(msgs[i], prevShown);
+            prevShown = msgs[i];
+        }
         html += "<div class='ch-seen' id='chSeen'></div>";
         box.html(html);
         renderSeen();

@@ -78,7 +78,7 @@
                         <option value="o23">@_f.tra("Dokument")</option>
                         <option value="p90">@_f.tra("Záloha")</option>
                         <option value="j02">@_f.tra("Uživatel")</option>
-                        <option value="x01">@_f.tra("Systém")</option>
+                        <option value="x01">@_f.tra("Systém (celá databáze)")</option>
                     </select>
                 </div>
                 <label class="col-sm-2 col-md-2 col-form-label">@_f.tra("Vlastní název pro entitu"):</label>
@@ -87,19 +87,78 @@
                 </div>
             </div>
 
+            @if (Model.Rec.IsSystem)
+            {
+                @* hlídač za celou databázi: jedno pravidlo, k záznamům se nepřiřazuje *@
+                <div class="row my-2">
+                    <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("SQL dotaz vrací"):</label>
+                    <div class="col-sm-4 col-md-3">
+                        <select asp-for="Rec.b20ListEntity" class="form-select">
+                            <option value="">@_f.tra("Jednu hodnotu za databázi")</option>
+                            <option value="p41">@_f.tra("Seznam projektů")</option>
+                            <option value="p28">@_f.tra("Seznam kontaktů")</option>
+                            <option value="p56">@_f.tra("Seznam úkolů")</option>
+                            <option value="p91">@_f.tra("Seznam vyúčtování")</option>
+                            <option value="o23">@_f.tra("Seznam dokumentů")</option>
+                            <option value="p90">@_f.tra("Seznam záloh")</option>
+                            <option value="j02">@_f.tra("Seznam uživatelů")</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-7 col-md-7 col-form-label text-muted">
+                        @_f.tra("Hlídač za celou databázi se nepřiřazuje k záznamům – testuje se, dokud je platný. U seznamu se hlásí jen záznamy, které v něm nově přibyly, všechny v jedné zprávě.")
+                    </div>
+                </div>
+                @if (Model.rec_pid > 0)
+                {
+                    @* ruční spuštění bez čekání na robota (b20Controller.RunNow) - testuje uložený stav hlídače *@
+                    <div class="card my-2">
+                        <div class="card-header">@_f.tra("Vyzkoušet hned")</div>
+                        <div class="card-body">
+                            <button type="button" class="btn btn-sm btn-primary" id="cmdB20Run" onclick="b20_run(false)">@_f.tra("Spustit teď")</button>
+                            <button type="button" class="btn btn-sm btn-light" id="cmdB20RunReset" onclick="b20_run(true)" title="@_f.tra("Zapomene dosud zachycené záznamy a poslední hodnotu – test se chová jako úplně první")">@_f.tra("Vynulovat stav a spustit")</button>
+                            <span class="text-muted ms-2">@_f.tra("Testuje se uložený hlídač – změny v kartě nejdřív uložte. Případná notifikace se opravdu odešle.")</span>
+                            <div id="b20RunResult" class="mt-2" style="white-space:pre-wrap;"></div>
+                        </div>
+                    </div>
+                    <script type="text/javascript">
+                        function b20_run(reset) {
+                            var out = document.getElementById("b20RunResult");
+                            var b1 = document.getElementById("cmdB20Run"), b2 = document.getElementById("cmdB20RunReset");
+                            b1.disabled = true; b2.disabled = true;
+                            out.className = "mt-2 text-muted";
+                            out.textContent = "@_f.tra("Testuji…")";
+                            $.post(typeof _ep === "function" ? _ep("/b20/RunNow") : "/b20/RunNow", { pid: @Model.rec_pid, reset: reset })
+                                .done(function (r) {
+                                    out.className = "mt-2 " + (r && r.ok ? "text-success" : "text-danger");
+                                    out.textContent = (r && r.message) || "@_f.tra("Bez odpovědi.")";
+                                })
+                                .fail(function () {
+                                    out.className = "mt-2 text-danger";
+                                    out.textContent = "@_f.tra("Spuštění hlídače se nepodařilo.")";
+                                })
+                                .always(function () { b1.disabled = false; b2.disabled = false; });
+                        }
+                    </script>
+                }
+            }
 
-            <div class="row my-2">
-                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název parametru") #1:</label>
-                <div class="col-sm-5 col-md-5">
-                    <input class="form-control" asp-for="Rec.b20Par1Name" />
+
+            @if (!Model.Rec.IsSystem)
+            {
+                @* parametry se zadávají u záznamu, kterému je hlídač přiřazen - hlídač za celou databázi takové místo nemá, limity patří přímo do SQL *@
+                <div class="row my-2">
+                    <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název parametru") #1:</label>
+                    <div class="col-sm-5 col-md-5">
+                        <input class="form-control" asp-for="Rec.b20Par1Name" />
+                    </div>
                 </div>
-            </div>
-            <div class="row my-2">
-                <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název parametru") #2:</label>
-                <div class="col-sm-5 col-md-5">
-                    <input class="form-control" asp-for="Rec.b20Par2Name" />
+                <div class="row my-2">
+                    <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název parametru") #2:</label>
+                    <div class="col-sm-5 col-md-5">
+                        <input class="form-control" asp-for="Rec.b20Par2Name" />
+                    </div>
                 </div>
-            </div>
+            }
 
             @if (Model.Rec.IsCyklus)
             {
@@ -147,12 +206,15 @@
         {
             <div class="tab-pane" id="tab2" role="tabpanel">
 
+                @if (!Model.Rec.IsSystem)
+                {
                 <div class="row my-2">
                     <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Příjemci notifikace"):</label>
                     <div class="col-sm-11 col-md-10">
                         <input class="form-control" asp-for="Rec.b20NotifyReceivers" />
                     </div>
                 </div>
+                }
                 <div class="row my-2">
                     <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Notifikovat tým"):</label>
                     <div class="col-sm-11 col-md-10">
@@ -160,6 +222,8 @@
                     </div>
 
                 </div>
+                @if (!Model.Rec.IsSystem)
+                {
                 <div class="row my-2">
                     <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Notifikovat roli v záznamu") #1:</label>
                     <div class="col-sm-11 col-md-10">
@@ -174,6 +238,7 @@
                     </div>
 
                 </div>
+                }
                 <div class="row my-2">
                     <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Úvodní text notifikační zprávy"):</label>
                     <div class="col-sm-11 col-md-10">
@@ -181,10 +246,22 @@
                     </div>
                 </div>
 
+                @if (!Model.Rec.IsSystem)
+                {
                 <div class="my-2">
 
                     <input type="checkbox" asp-for="@Model.Rec.b20IsNotifyRecordOwner" />
                     <label class="col-form-label" for="Rec_b20IsNotifyRecordOwner">@_f.tra("Notifikovat i vlastníka záznamu")</label>
+                </div>
+                }
+                @if (Model.Rec.IsSystem)
+                {
+                    <div class="my-2 text-muted">
+                        @_f.tra("Hlídač za celou databázi notifikuje pouze členy vybraného týmu. Pro příjemce notifikace si založte vlastní tým.")
+                    </div>
+                }
+                <div class="my-2 text-muted">
+                    @_f.tra("Notifikace odchází e-mailem a příjemcům, kteří mají interní chat, také do konverzace „MARKTIME upozornění“.")
                 </div>
 
 
@@ -198,10 +275,24 @@
                         SQL dotaz testující splnění podmínky pro vyvolání události v záznamu
                     </div>
                     <div class="card-body">
+                        @if (Model.Rec.IsSystem)
+                        {
+                            <div>
+                                <strong>Seznam záznamů:</strong> první sloupec SQL = ID záznamu (např. p41ID), nepovinný druhý sloupec = hodnota, která se u záznamu zobrazí v notifikaci.
+                                Událost nastane, když v seznamu přibudou záznamy; hlásí se jen ty nové, všechny v jedné zprávě. Záznam, který ze seznamu vypadne a později se vrátí, se ohlásí znovu.
+                            </div>
+                            <div>
+                                <strong>Jedna hodnota za databázi:</strong> pokud SQL vrací nějaký záznam, dojde k vyvolání události; při změně hodnoty znovu.
+                            </div>
+                            <div class="text-muted">@@pid = ID licence (x01ID). Limity pište přímo do SQL. Příjemci uvidí všechny záznamy, které SQL vrátí, bez ohledu na svá oprávnění.</div>
+                        }
+                        else
+                        {
                         <div>
                             Pokud SQL vrací nějaký záznam, dojde k vyvolání události.
                             Pokud se hodnota výsledku SQL dotazu v čase změní, dojde opět k vyvolání události.
                         </div>
+                        }
                         <textarea asp-for="@Model.Rec.b20TestSql" class="form-control" placeholder="sql"></textarea>
 
 
