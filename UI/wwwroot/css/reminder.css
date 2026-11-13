@@ -1,11 +1,9 @@
 /* Prvek „Upozornění“ ve formuláři záznamu (Views/Shared/_Reminder.cshtml) a okno jednoho upozornění (Views/ReminderItem/Index.cshtml) – třídy rm-*. */
 
 .rm-box { margin: 8px 0; border: 1px solid #e3e6ea; border-radius: 8px; background: #fff; }
-.rm-box.rm-empty { border-color: transparent; background: transparent; }
 
 .rm-head { display: flex; align-items: center; gap: 6px; padding: 6px 10px; font-weight: 600; color: #2b3138; }
-.rm-box:not(.rm-empty) .rm-head { border-bottom: 1px solid #eef0f2; }
-.rm-box.rm-empty .rm-head { padding-left: 0; font-weight: 400; color: #59636e; }
+.rm-head { border-bottom: 1px solid #eef0f2; }
 .rm-head > .material-icons-outlined-nosize { font-size: 20px; color: var(--pozadi, #0b4b92); }
 .rm-count { min-width: 20px; padding: 0 6px; border-radius: 10px; background: #eef1f4; color: #59636e; font-size: .8rem; font-weight: 600; line-height: 20px; text-align: center; }
 .rm-add { margin-left: auto; display: inline-flex; align-items: center; gap: 2px; }
@@ -42,12 +40,39 @@
     .rm-how, .rm-state { align-self: flex-start; }
 }
 
-/* okno jednoho upozornění */
-.rm-dlg-bar { display: flex; gap: 6px; padding: 10px; background: #f6f8fa; border-bottom: 1px solid #e3e6ea; }
-.rm-dlg { padding: 12px; }
-.rm-dlg-row { display: grid; grid-template-columns: 110px 1fr; gap: 8px; align-items: center; margin-bottom: 10px; }
-.rm-dlg-row > label { margin: 0; color: #59636e; }
+/* okno jednoho upozornění (Views/ReminderItem/Index.cshtml) */
+.rm-dlg { padding: 14px 16px 12px; }
+.rm-sec { margin-bottom: 14px; }
+.rm-sec-title { display: flex; align-items: center; gap: 6px; margin: 0 0 6px; font-size: .9rem; font-weight: 600; color: #2b3138; }
+.rm-sec-title .material-icons-outlined-nosize { font-size: 18px; color: var(--pozadi, #0b4b92); }
+.rm-muted { color: #6c757d; font-size: .85rem; }
+
 .rm-dlg-inline { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .rm-dlg-inline select { width: auto; }
-.rm-dlg-note { margin: 4px 0 0; color: #6c757d; font-size: .85rem; }
-@media (max-width: 480px) { .rm-dlg-row { grid-template-columns: 1fr; gap: 2px; } }
+.rm-custom { margin-top: 6px; }
+
+/* rychlé volby */
+.rm-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.rm-chip { padding: 4px 12px; border: 1px solid #cfd5dc; border-radius: 16px; background: #fff; color: #1f2328; font-size: .875rem; line-height: 1.4; cursor: pointer; }
+.rm-chip:hover { border-color: var(--pozadi, #0b4b92); color: var(--pozadi, #0b4b92); }
+.rm-chip.on { border-color: var(--pozadi, #0b4b92); background: var(--pozadi, #0b4b92); color: #fff; }
+.rm-chip:focus-visible { outline: 2px solid var(--oznaceno, #4169e1); outline-offset: 1px; }
+.rm-chips-tail { color: #59636e; font-size: .875rem; }
+
+/* přepínače (Koho, Jak) */
+.rm-segs { display: flex; flex-wrap: wrap; gap: 6px; }
+.rm-seg { margin: 0; cursor: pointer; }
+.rm-seg input { position: absolute; opacity: 0; pointer-events: none; }
+.rm-seg > span { display: inline-flex; align-items: center; gap: 4px; padding: 5px 12px; border: 1px solid #cfd5dc; border-radius: 8px; background: #fff; color: #1f2328; font-size: .875rem; }
+.rm-seg > span .material-icons-outlined-nosize { font-size: 17px; color: #7a838c; }
+.rm-seg:hover > span { border-color: var(--pozadi, #0b4b92); }
+.rm-seg input:checked + span { border-color: var(--pozadi, #0b4b92); background: #eef4fb; color: var(--pozadi, #0b4b92); font-weight: 600; }
+.rm-seg input:checked + span .material-icons-outlined-nosize { color: var(--pozadi, #0b4b92); }
+.rm-seg input:focus-visible + span { outline: 2px solid var(--oznaceno, #4169e1); outline-offset: 1px; }
+
+.rm-target { margin-top: 8px; }
+.rm-dlg-note { display: flex; align-items: center; gap: 4px; margin: 6px 0 0; color: #6c757d; font-size: .82rem; }
+.rm-dlg-note .material-icons-outlined-nosize { font-size: 16px; }
+
+.rm-dlg-foot { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; padding-top: 12px; border-top: 1px solid #eef0f2; }
+.rm-dlg-foot .btn-primary { min-width: 150px; }

@@ -9,12 +9,25 @@
 
 @addTagHelper *, UI
 
-<link rel="stylesheet" href="~/css/reminder.css" asp-append-version="true" />
+@{
+    //výchozí hodnoty nového upozornění: e-mail, 1 den předem
+    if ((int)Model.o24MediumFlag == 0) { Model.o24MediumFlag = BO.o24MediumFlagEnum.Email; }
+    if (!Model.is_static_date && Model.o24Count == 0) { Model.o24Count = -1; Model.o24Unit = "d"; }
+    if (string.IsNullOrEmpty(Model.o24Unit)) { Model.o24Unit = "d"; }
 
-<div class="rm-dlg-bar">
-    <button type="button" onclick="_submit()" class="btn btn-success">@_f.tra("OK")</button>
-    <button type="button" onclick="reminder_zoom_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
-</div>
+    var _kinds = new List<(string Value, string Icon, string Text)> { ("j02", "person", _f.tra("Uživatel")) };
+    if (Model.record_prefix != "p31") { _kinds.Add(("x67", "badge", _f.tra("Role v záznamu"))); }
+    _kinds.Add(("j11", "groups", _f.tra("Tým")));
+    _kinds.Add(("p28", "contacts", _f.tra("Kontakt")));
+    _kinds.Add(("p24", "folder_shared", _f.tra("Skupina kontaktů")));
+
+    var _presets = new List<(int Count, string Unit, string Text)>
+    {
+        (-1, "h", _f.tra("1 hodinu")), (-2, "h", _f.tra("2 hodiny")), (-1, "d", _f.tra("1 den")), (-2, "d", _f.tra("2 dny")), (-7, "d", _f.tra("týden"))
+    };
+}
+
+<link rel="stylesheet" href="~/css/reminder.css" asp-append-version="true" />
 
 @if (Model.message != null)
 {
@@ -26,47 +39,51 @@
     <input type="hidden" asp-for="is_static_date" />
     <input type="hidden" asp-for="rowguid" />
 
-    <div class="rm-dlg-row">
-        <label>@_f.tra("Kdy"):</label>
-        <div class="rm-dlg-inline">
-            @if (Model.is_static_date)
-            {
+    <section class="rm-sec">
+        <h6 class="rm-sec-title"><span class="material-icons-outlined-nosize">schedule</span>@_f.tra("Kdy upozornit")</h6>
+        @if (Model.is_static_date)
+        {
+            <div class="rm-dlg-inline">
                 <mydate asp-for="o24StaticDate" include-time="true"></mydate>
-            }
-            else
-            {
-                <select class="form-select" asp-for="o24Count">
+            </div>
+        }
+        else
+        {
+            <div class="rm-chips" id="rmPresets">
+                @foreach (var c in _presets)
+                {
+                    <button type="button" class="rm-chip" data-count="@c.Count" data-unit="@c.Unit">@c.Text</button>
+                }
+                <span class="rm-chips-tail">@_f.tra("předem")</span>
+            </div>
+            <div class="rm-dlg-inline rm-custom">
+                <span class="rm-muted">@_f.tra("nebo")</span>
+                <select class="form-select form-select-sm" asp-for="o24Count" id="rmCount">
                     @for (int n = 1; n <= 15; n++)
                     {
                         <option value="@(-n)">@n</option>
                     }
                 </select>
-                <select class="form-select" asp-for="o24Unit">
+                <select class="form-select form-select-sm" asp-for="o24Unit" id="rmUnit">
                     <option value="h">@_f.tra("hodin předem")</option>
                     <option value="d">@_f.tra("dní předem")</option>
                 </select>
+            </div>
+        }
+    </section>
+
+    <section class="rm-sec">
+        <h6 class="rm-sec-title"><span class="material-icons-outlined-nosize">person</span>@_f.tra("Koho upozornit")</h6>
+        <div class="rm-segs">
+            @foreach (var k in _kinds)
+            {
+                <label class="rm-seg">
+                    <input type="radio" name="BindPrefix" id="@("rmKind_" + k.Value)" value="@k.Value" checked="@(Model.BindPrefix == k.Value)" onchange="_postback('refresh')" />
+                    <span><span class="material-icons-outlined-nosize">@k.Icon</span>@k.Text</span>
+                </label>
             }
         </div>
-    </div>
-
-    <div class="rm-dlg-row">
-        <label>@_f.tra("Koho"):</label>
-        <div>
-            <select asp-for="BindPrefix" value="@Model.BindPrefix" class="form-select" onchange="_postback('refresh')">
-                <option value="j02">@_f.tra("Uživatel")</option>
-                @if (Model.record_prefix != "p31")
-                {
-                    <option value="x67">@_f.tra("Role v záznamu")</option>
-                }
-                <option value="j11">@_f.tra("Tým uživatelů")</option>
-                <option value="p28">@_f.tra("Kontakt")</option>
-                <option value="p24">@_f.tra("Skupina kontaktů")</option>
-            </select>
-        </div>
-    </div>
-    <div class="rm-dlg-row">
-        <label></label>
-        <div>
+        <div class="rm-target">
             @if (Model.BindPrefix == "j02")
             {
                 <mycombo entity="j02User" asp-for="j02ID" selectedtext="@Model.ComboJ02ID" filter-flag="1"></mycombo>
@@ -78,36 +95,76 @@
             @if (Model.BindPrefix == "x67")
             {
                 <mycombo entity="x67EntityRole" asp-for="x67ID" myqueryinline="x67entity|string|@(Model.record_prefix)" selectedtext="@Model.ComboX67ID"></mycombo>
+                <div class="rm-dlg-note">@_f.tra("Upozornění dostanou všichni, kdo mají v záznamu tuto roli.")</div>
             }
             @if (Model.BindPrefix == "p28")
             {
                 <mycombo entity="p28Contact" asp-for="p28ID" selectedtext="@Model.ComboP28Name" filter-flag="1"></mycombo>
+                <div class="rm-dlg-note">@_f.tra("Kontakt dostane jen e-mail nebo SMS – interní chat nemá.")</div>
             }
             @if (Model.BindPrefix == "p24")
             {
                 <mycombo entity="p24ContactGroup" asp-for="p24ID" selectedtext="@Model.ComboP24Name"></mycombo>
+                <div class="rm-dlg-note">@_f.tra("Kontakty dostanou jen e-mail nebo SMS – interní chat nemají.")</div>
             }
         </div>
-    </div>
+    </section>
 
-    <div class="rm-dlg-row">
-        <label>@_f.tra("Jak"):</label>
-        <div>
-            <select class="form-select" asp-for="o24MediumFlag">
-                <option value="Email">E-mail</option>
-                <option value="Sms">SMS</option>
-                <option value="EmailPlusSms">E-mail + SMS</option>
-            </select>
-            <div class="rm-dlg-note">@_f.tra("Uživatelé MARKTIME dostanou upozornění vždy také do interního chatu.")</div>
+    <section class="rm-sec">
+        <h6 class="rm-sec-title"><span class="material-icons-outlined-nosize">send</span>@_f.tra("Jak upozornit")</h6>
+        <div class="rm-segs">
+            <label class="rm-seg">
+                <input type="radio" name="o24MediumFlag" id="rmHow_1" value="Email" checked="@(Model.o24MediumFlag == BO.o24MediumFlagEnum.Email)" />
+                <span><span class="material-icons-outlined-nosize">mail</span>E-mail</span>
+            </label>
+            <label class="rm-seg">
+                <input type="radio" name="o24MediumFlag" id="rmHow_2" value="Sms" checked="@(Model.o24MediumFlag == BO.o24MediumFlagEnum.Sms)" />
+                <span><span class="material-icons-outlined-nosize">sms</span>SMS</span>
+            </label>
+            <label class="rm-seg">
+                <input type="radio" name="o24MediumFlag" id="rmHow_3" value="EmailPlusSms" checked="@(Model.o24MediumFlag == BO.o24MediumFlagEnum.EmailPlusSms)" />
+                <span><span class="material-icons-outlined-nosize">forward_to_inbox</span>E-mail + SMS</span>
+            </label>
         </div>
-    </div>
+        <div class="rm-dlg-note"><span class="material-icons-outlined-nosize">forum</span>@_f.tra("Uživatelé MARKTIME dostanou upozornění vždy také do interního chatu.")</div>
+    </section>
 
-    <div class="rm-dlg-row">
-        <label>@_f.tra("Poznámka"):</label>
-        <input type="text" asp-for="o24Memo" class="form-control" placeholder="@_f.tra("Doplňující poznámka")" />
+    <section class="rm-sec">
+        <h6 class="rm-sec-title"><span class="material-icons-outlined-nosize">notes</span>@_f.tra("Poznámka")</h6>
+        <input type="text" asp-for="o24Memo" class="form-control" maxlength="500" placeholder="@_f.tra("Co má příjemce vědět (nepovinné)")" />
+    </section>
+
+    <div class="rm-dlg-foot">
+        <button type="button" onclick="reminder_zoom_close()" class="btn btn-light">@_f.tra("Zrušit")</button>
+        <button type="button" onclick="_submit()" class="btn btn-primary" id="rmSave">@_f.tra("Uložit upozornění")</button>
     </div>
 </form>
 
+<script type="text/javascript">
+    // rychlé volby „Kdy“: nastaví oba výběry; zvýrazněná je ta, která odpovídá aktuální hodnotě
+    (function () {
+        var box = document.getElementById("rmPresets"), cnt = document.getElementById("rmCount"), unit = document.getElementById("rmUnit");
+        if (!box || !cnt || !unit) return;
+        function mark() {
+            box.querySelectorAll(".rm-chip").forEach(function (b) {
+                b.classList.toggle("on", b.getAttribute("data-count") === cnt.value && b.getAttribute("data-unit") === unit.value);
+            });
+        }
+        box.addEventListener("click", function (e) {
+            var b = e.target.closest(".rm-chip");
+            if (!b) return;
+            cnt.value = b.getAttribute("data-count"); unit.value = b.getAttribute("data-unit");
+            mark();
+        });
+        cnt.addEventListener("change", mark); unit.addEventListener("change", mark);
+        mark();
+    })();
+    // Enter v poznámce uloží upozornění
+    (function () {
+        var memo = document.getElementById("o24Memo");
+        if (memo) memo.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); _submit(); } });
+    })();
+</script>
 
 <script type="text/javascript">
     var hotovo = "@Model.issubmit";

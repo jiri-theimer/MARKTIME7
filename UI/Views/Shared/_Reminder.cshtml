@@ -168,14 +168,19 @@
 
 <link rel="stylesheet" href="~/css/reminder.css" asp-append-version="true" />
 
-<div class="rm-box@(_visible == 0 ? " rm-empty" : "")">
+@if (_visible == 0)
+{
+    @* bez upozornění: jen tlačítko ve stejném tvaru jako sousední tlačítka formuláře (Přidat hlídače, Oštítkovat…) - stojí s nimi v jedné řadě *@
+    <button type="button" class="btn btn-sm btn-light" tabindex="-1" onclick="append_reminder()" style="min-width:150px;text-align:left;">
+        <myicon symbol="notifications"></myicon>
+        @_f.tra("Přidat upozornění")
+    </button>
+}
+<div class="rm-box" style="@(_visible == 0 ? "display:none;" : "")">
     <div class="rm-head">
         <span class="material-icons-outlined-nosize">notifications</span>
         <span>@_f.tra("Upozornění")</span>
-        @if (_visible > 0)
-        {
-            <span class="rm-count">@_visible</span>
-        }
+        <span class="rm-count">@_visible</span>
         <button type="button" class="btn btn-sm btn-light rm-add" tabindex="-1" onclick="append_reminder()">
             <span class="material-icons-outlined-nosize">add</span>@_f.tra("Přidat upozornění")
         </button>
