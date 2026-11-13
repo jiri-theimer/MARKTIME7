@@ -10,7 +10,7 @@ namespace UI.Controllers.AI
 {
     /// <summary>
     /// Obecný AI agent „Zeptej se MARKTIME“ (BL.AI.Ask.AiAskService).
-    /// URL: /AiAsk (stránka), /AiAsk/Ask (POST), /AiAsk/Pivot?guid=…, /AiAsk/PivotData?guid=…, /AiAsk/DrillDown?guid=… (POST)
+    /// URL: /AiAsk (stránka), /AiAsk/Ask (POST), /AiAsk/UkonConfirm a /AiAsk/UkonCancel (POST – návrh úkonu z odpovědi), /AiAsk/Pivot?guid=…, /AiAsk/PivotData?guid=…, /AiAsk/DrillDown?guid=… (POST)
     /// guid = zadání tabulky uložené v p85TempBox (jen vlastník).
     /// </summary>
     public class AiAskController : BaseController
@@ -110,7 +110,30 @@ namespace UI.Controllers.AI
             if (input == null) return JsonResult(new { ok = false, error = "Neplatný vstup." });
 
             var r = await Service().AskAsync(input, HttpContext.RequestAborted);
-            return JsonResult(new { ok = r.Ok, error = r.Error, reply = r.Reply, raw = r.Reply, tables = r.Tables, warnings = r.Warnings, thread = r.Ok ? r.Thread : null, logId = r.LogId });
+            return JsonResult(new { ok = r.Ok, error = r.Error, reply = r.Reply, raw = r.Reply, tables = r.Tables, proposals = r.Proposals, warnings = r.Warnings, thread = r.Ok ? r.Thread : null, logId = r.LogId });
+        }
+
+        // ------------------------------------------------------------------ návrh úkonu (vykázání hodin)
+
+        /// <summary>
+        /// Uživatel potvrdil návrh úkonu tlačítkem „Zapsat“. Návrh připravil agent nástrojem ukon_zapis (p85TempBox, jen vlastník, jedno použití);
+        /// zápis jde přes p31WorksheetBL.SaveOrigRecord se všemi kontrolami znovu.
+        /// </summary>
+        /// <param name="logId">j98ID dotazu, ve kterém návrh vznikl – doplní se k němu ID zapsaného úkonu</param>
+        [HttpPost]
+        public IActionResult UkonConfirm(string guid, long logId = 0)
+        {
+            var o = BL.AI.Tools.UkonZapisTool.Confirm(Factory, guid);
+            if (o.IsError) return JsonResult(new { ok = false, error = o.Content });
+            if (logId > 0) BL.AI.Core.AiLog.SetResult(Factory, logId, o.SavedEntity, o.SavedPid);
+            return JsonResult(new { ok = true, ukon = o.Data as BL.AI.Tools.UkonCard });
+        }
+
+        [HttpPost]
+        public IActionResult UkonCancel(string guid)
+        {
+            BL.AI.Tools.UkonZapisTool.Cancel(Factory, guid);
+            return JsonResult(new { ok = true });
         }
 
         // ------------------------------------------------------------------ Pivot-Explorer nad výsledkem

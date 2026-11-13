@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using UI.Code.Mcp;
 using UI.Models;
 
-namespace UI.Controllers
+namespace UI.Controllers.AI
 {
     /// <summary>
     /// MCP – stránky pro přihlášeného uživatele: souhlas s připojením AI klienta (Consent) a přehled připojení s odpojením (Index).
@@ -48,13 +48,14 @@ namespace UI.Controllers
                 IsAllowed = IsAllowed,
                 Days = _opt.ConnectionDays,
                 DayChoices = _opt.DayChoices(),
+                IsWriteOffered = _opt.WriteEnabled,
                 Query = q.ToQuery()
             });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Consent(string decision, int days)
+        public IActionResult Consent(string decision, int days, bool write = false)
         {
             if (!_opt.Enabled) return NotFound();
             NoFrame();
@@ -68,7 +69,8 @@ namespace UI.Controllers
                 return Redirect(q.BuildRedirect(issuer, null, "access_denied", "Uživatel přístup nepovolil."));
 
             if (!_opt.DayChoices().Contains(days)) days = _opt.ConnectionDays;
-            string code = Service().CreateCode(Factory.CurrentUser.pid, q.Client.Name, q.Client.Key, q.RedirectUri, q.CodeChallenge, q.Scope, days);
+            string code = Service().CreateCode(Factory.CurrentUser.pid, q.Client.Name, q.Client.Key, q.RedirectUri, q.CodeChallenge,
+                McpOptions.BuildScope(write && _opt.WriteEnabled), days);
             if (code == null)
                 return Redirect(q.BuildRedirect(issuer, null, "server_error", "Připojení se nepodařilo uložit (chybí tabulky MCP v databázi?)."));
 
@@ -84,6 +86,7 @@ namespace UI.Controllers
             {
                 IsEnabled = _opt.Enabled,
                 IsAllowed = IsAllowed,
+                IsWriteEnabled = _opt.WriteEnabled,
                 McpUrl = McpUrls.Mcp(Request, _opt),
                 Now = now
             };

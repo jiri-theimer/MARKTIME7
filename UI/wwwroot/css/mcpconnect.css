@@ -29,6 +29,10 @@
 .mc-field label { margin: 0; color: #1f2328; }
 .mc-field select { height: 36px; padding: 0 10px; border: 1px solid #cfd5dc; border-radius: 8px; background: #fff; font: inherit; color: inherit; }
 
+.mc-check { display: flex; align-items: flex-start; gap: 10px; margin: 0 0 18px; padding: 10px 12px; border: 1px solid #cfd5dc; border-radius: 8px; color: #1f2328; cursor: pointer; }
+.mc-check input { flex: 0 0 auto; width: 18px; height: 18px; margin: 2px 0 0; }
+.mc-check:has(input:checked) { border-color: #0b4b92; background: #f2f7fd; }
+
 .mc-actions { display: flex; gap: 10px; }
 .mc-btn { flex: 1 1 0; display: inline-flex; align-items: center; justify-content: center; height: 42px; padding: 0 16px; border: 1px solid #cfd5dc; border-radius: 8px; background: #fff; color: #1f2328; font: inherit; font-weight: 500; text-decoration: none; cursor: pointer; }
 .mc-btn:hover { background: #f3f5f8; color: #1f2328; }

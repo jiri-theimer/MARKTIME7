@@ -38,3 +38,15 @@ tr:hover .ai-rec { color: var(--pozadi, #0b4b92); }
 .ai-pin-buttons { display: flex; gap: 6px; }
 @media (max-width: 600px) { .ai-pin { grid-template-columns: 1fr; } }
 .ai-result-buttons .btn-primary .material-icons-outlined-btn { color: #fff; }
+
+/* návrh úkonu k potvrzení (vykázání hodin) a zapsaný úkon */
+.ai-ukon { max-width: 560px; border-left: 3px solid #f0ad4e; }
+.ai-ukon.ai-ukon-saved { border-left-color: #2e9e5b; }
+.ai-ukon.ai-ukon-cancelled { border-left-color: #c5cbd2; color: #6c757d; }
+.ai-ukon-grid { display: grid; grid-template-columns: max-content 1fr; gap: 2px 12px; margin: 6px 0 0; font-size: 90%; }
+.ai-ukon-grid dt { margin: 0; font-weight: normal; color: #59636e; white-space: nowrap; }
+.ai-ukon-grid dd { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.ai-ukon-grid dd.ai-ukon-strong { font-weight: 600; }
+.ai-ukon.ai-ukon-cancelled .ai-ukon-grid dt { color: inherit; }
+.ai-ukon .ai-result-buttons { margin-top: 8px; }
+.ai-ukon .ai-result-buttons .btn-primary { min-width: 96px; }

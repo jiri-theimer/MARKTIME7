@@ -15,6 +15,8 @@ namespace UI.Models
         public bool IsAllowed { get; set; }
         public int Days { get; set; }
         public List<int> DayChoices { get; set; }
+        /// <summary>Nabídnout volbu „povolit i zápis“ (Mcp:WriteEnabled).</summary>
+        public bool IsWriteOffered { get; set; }
         /// <summary>Parametry žádosti klienta – stránka je pošle zpět s rozhodnutím.</summary>
         public Dictionary<string, string> Query { get; set; }
     }
@@ -24,6 +26,7 @@ namespace UI.Models
     {
         public bool IsEnabled { get; set; }
         public bool IsAllowed { get; set; }
+        public bool IsWriteEnabled { get; set; }
         public string McpUrl { get; set; }
         public DateTime Now { get; set; }
         public List<McpGrant> Active { get; set; } = new();

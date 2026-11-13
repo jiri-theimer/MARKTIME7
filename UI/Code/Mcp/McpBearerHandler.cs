@@ -16,6 +16,8 @@ namespace UI.Code.Mcp
     public class McpCallInfo
     {
         public string ClientName { get; set; }
+        /// <summary>Uživatel při připojení povolil i zápis (rozsah marktime.write) a server zápis nabízí (Mcp:WriteEnabled).</summary>
+        public bool CanWrite { get; set; }
     }
 
     public class McpBearerHandler : AuthenticationHandler<AuthenticationSchemeOptions>
@@ -66,7 +68,9 @@ namespace UI.Code.Mcp
                     return Task.FromResult(AuthenticateResult.Fail("Databáze je uzamknutá."));
             }
 
-            Context.RequestServices.GetRequiredService<McpCallInfo>().ClientName = grant.j96ClientName;
+            var info = Context.RequestServices.GetRequiredService<McpCallInfo>();
+            info.ClientName = grant.j96ClientName;
+            info.CanWrite = _opt.WriteEnabled && McpOptions.HasWrite(grant.j96Scope);
 
             var identity = new ClaimsIdentity(new[]
             {

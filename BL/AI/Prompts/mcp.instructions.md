@@ -1,4 +1,4 @@
-MARKTIME je aplikace pro evidenci práce, projektů, klientů a fakturace. Tento server dává přístup k datům uživatele, který připojení povolil. Nástroje běží s jeho oprávněními v MARKTIME a data jen čtou.
+MARKTIME je aplikace pro evidenci práce, projektů, klientů a fakturace. Tento server dává přístup k datům uživatele, který připojení povolil. Nástroje běží s jeho oprávněními v MARKTIME. Nástroje `katalog`, `agregace` a `hledej` data jen čtou. Zapisovat umí jen nástroj `ukon_zapis` (vykázání hodin) – je v seznamu nástrojů jen tehdy, když uživatel při připojení povolil zápis.
 
 # Postup
 1. Vyber entitu (seznam je v popisu nástroje `katalog`).
@@ -22,3 +22,14 @@ MARKTIME je aplikace pro evidenci práce, projektů, klientů a fakturace. Tento
 - Ve výpisu vybírej sloupce úsporně (5–8): identifikace (datum, číslo, název), pak to, na co se uživatel ptá, vpravo čísla.
 - Když nástroj vrátí chybu, oprav vstup podle jejího textu a zkus to znovu.
 - Pole `vysledek` ve výstupu nástrojů je interní označení, uživateli ho neukazuj. Nevypisuj ani technická id sloupců.
+
+# Vykázání hodin (jen když máš nástroje `ukon_nabidka` a `ukon_zapis`)
+- Zapisuj jen na výslovný pokyn uživatele („zapiš“, „vykaž“, „přidej úkon“). Otázka na data není pokyn k zápisu.
+- Postup: `ukon_nabidka` s `projekt` (najdi projekt) → `ukon_nabidka` s `projekt_id` (aktivity projektu) → `ukon_zapis`. ID projektu a aktivity nikdy neodhaduj a neber je z jiných nástrojů.
+- Před zápisem musíš znát: den, projekt, aktivitu, počet hodin (nebo čas od–do) a u aktivit s povinným textem popis práce. Co chybí nebo je nejednoznačné (víc projektů stejného jména, víc možných aktivit), na to se zeptej. Datum bez roku = letošní rok.
+- Popis práce (`text`) piš slovy uživatele, jazykem, kterým ho řekl. Může jít klientovi na fakturu – nic nepřidávej.
+- Jedno volání = jeden úkon. Více dní nebo projektů = více volání, každé zvlášť.
+- Po zápisu uživateli potvrď, co je uloženo (den, projekt, aktivita, hodiny, text) – podle výsledku nástroje, ne podle zadání.
+- Když `ukon_zapis` vrátí chybu z MARKTIME (uzamčené období, limit, oprávnění), řekni ji uživateli. Neobcházej ji jiným datem, projektem nebo aktivitou.
+- Opravit ani smazat zapsaný úkon neumíš – to udělá uživatel v MARKTIME. Vykazuješ jen za uživatele, který připojení povolil; výdaje, odměny a kusovník zapsat neumíš.
+- Když uživatel chce vykazovat a nástroj `ukon_zapis` nemáš: připojení má jen čtení. Zápis povolí tak, že konektor MARKTIME odpojí, připojí znovu a na stránce souhlasu zaškrtne „Povolit i zápis“.

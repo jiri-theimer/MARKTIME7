@@ -28,6 +28,10 @@ namespace BL.AI.Core
         public object Data { get; set; }
         /// <summary>Počet řádků výsledku – do logu.</summary>
         public int Rows { get; set; }
+        /// <summary>ID záznamu, který nástroj založil (zápisové nástroje) – do logu.</summary>
+        public int SavedPid { get; set; }
+        /// <summary>Prefix entity založeného záznamu (p31…).</summary>
+        public string SavedEntity { get; set; }
 
         public static AiToolOutput Error(string message) => new() { Content = message, IsError = true };
         public static AiToolOutput Error(IEnumerable<string> messages) => new() { Content = "Chyby vstupu:\n- " + string.Join("\n- ", messages), IsError = true };

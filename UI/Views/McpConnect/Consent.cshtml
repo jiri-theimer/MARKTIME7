@@ -50,7 +50,14 @@
             {
                 <ul class="mc-list">
                     <li>@_f.tra("Klient bude číst data, ke kterým máte v MARKTIME přístup: úkony, projekty, kontakty, úkoly, kalendář, vyúčtování.")</li>
-                    <li>@_f.tra("Data nemůže měnit ani mazat.")</li>
+                    @if (Model.IsWriteOffered)
+                    {
+                        <li>@_f.tra("Zapisovat smí jen tehdy, když to níže povolíte – a jen vykázat hodiny vaším jménem. Existující záznamy nemůže měnit ani mazat.")</li>
+                    }
+                    else
+                    {
+                        <li>@_f.tra("Data nemůže měnit ani mazat.")</li>
+                    }
                     <li>@_f.tra("Připojení můžete kdykoliv ukončit ve svém profilu.")</li>
                 </ul>
                 <p class="mc-note">@_f.tra("Povolte přístup jen tehdy, když jste připojení sami právě spustili ve svém AI klientovi.")</p>
@@ -64,6 +71,14 @@
                         }
                     </select>
                 </div>
+
+                @if (Model.IsWriteOffered)
+                {
+                    <label class="mc-check">
+                        <input type="checkbox" name="write" value="true" />
+                        <span>@_f.tra("Povolit i zápis: vykazování hodin")<br /><span class="mc-muted">@_f.tra("Každý zápis vám AI klient před provedením ukáže k potvrzení.")</span></span>
+                    </label>
+                }
 
                 <div class="mc-actions">
                     <button type="submit" class="mc-btn" name="decision" value="deny">@_f.tra("Zamítnout")</button>

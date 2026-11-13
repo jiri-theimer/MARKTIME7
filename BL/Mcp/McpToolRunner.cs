@@ -18,8 +18,9 @@ namespace BL.Mcp
     }
 
     /// <summary>
-    /// Nástroje MARKTIME pro MCP klienty (Claude, ChatGPT…). Stejné nástroje jako agent „Zeptej se MARKTIME“ (katalog, agregace, hledej),
-    /// běží s oprávněními uživatele, který připojení povolil. Model tu není náš – popisy nástrojů proto nesou i to,
+    /// Nástroje MARKTIME pro MCP klienty (Claude, ChatGPT…). Čtení: stejné nástroje jako agent „Zeptej se MARKTIME“ (katalog, agregace, hledej).
+    /// Zápis (jen když ho uživatel při připojení povolil – rozsah marktime.write): vykázání hodin (ukon_nabidka, ukon_zapis).
+    /// Vše běží s oprávněními uživatele, který připojení povolil. Model tu není náš – popisy nástrojů proto nesou i to,
     /// co agent dostává v system promptu (seznam entit, jméno uživatele).
     /// Třída nezávisí na knihovně MCP: převod na její typy je v UI (UI/Code/Mcp/McpSdk.cs).
     /// </summary>
@@ -30,13 +31,23 @@ namespace BL.Mcp
 
         private readonly BL.Factory _f;
         private readonly AiAggregate _agg;
+        private readonly bool _canWrite;
         private List<IAiTool> _tools;
 
-        public McpToolRunner(BL.Factory f, BL.TheColumnsProvider cp)
+        /// <param name="canWrite">připojení má rozsah marktime.write (a server zápis nabízí)</param>
+        public McpToolRunner(BL.Factory f, BL.TheColumnsProvider cp, bool canWrite = false)
         {
             _f = f;
             _agg = new AiAggregate(f, cp);
+            _canWrite = canWrite;
         }
+
+        /// <summary>Nástroje, které data mění. Všechny ostatní jen čtou.</summary>
+        private static readonly HashSet<string> _writeTools = new() { "ukon_zapis" };
+        /// <summary>Nástroje dostupné jen připojení se zápisem (včetně čtecí přípravy na zápis).</summary>
+        private static readonly HashSet<string> _writeScopeTools = new() { "ukon_nabidka", "ukon_zapis" };
+
+        public const string WriteDeniedMessage = "Toto připojení k MARKTIME má povolené jen čtení. Zápis povolí uživatel tak, že konektor MARKTIME ve svém AI klientovi odpojí a připojí znovu a na stránce souhlasu zaškrtne „Povolit i zápis“.";
 
         /// <summary>Pokyny serveru pro model (stejné pro všechny uživatele).</summary>
         public static string Instructions => AiPromptStore.Get("mcp.instructions.md");
@@ -46,7 +57,18 @@ namespace BL.Mcp
 
         public const string DeniedMessage = "Vaše aplikační role v MARKTIME nemá oprávnění „Přístup k AI agentům“. O přístup požádejte administrátora MARKTIME.";
 
-        private List<IAiTool> Tools => _tools ??= new List<IAiTool> { new KatalogTool(_f, _agg), new AgregaceTool(_f, _agg), new HledejTool(_f, _agg) };
+        private List<IAiTool> Tools => _tools ??= BuildTools();
+
+        private List<IAiTool> BuildTools()
+        {
+            var lis = new List<IAiTool> { new KatalogTool(_f, _agg), new AgregaceTool(_f, _agg), new HledejTool(_f, _agg) };
+            if (_canWrite && _f.CurrentUser.j04IsModule_p31)
+            {
+                lis.Add(new UkonNabidkaTool(_f));
+                lis.Add(new UkonZapisTool(_f));
+            }
+            return lis;
+        }
 
         public List<McpToolInfo> List()
         {
@@ -60,7 +82,8 @@ namespace BL.Mcp
                     Name = t.Name,
                     Title = Title(t.Name),
                     Description = Describe(t.Name),
-                    InputSchema = (JsonObject)t.InputSchema.DeepClone()
+                    InputSchema = (JsonObject)t.InputSchema.DeepClone(),
+                    ReadOnly = !_writeTools.Contains(t.Name)
                 });
             }
             return lis;
@@ -72,6 +95,7 @@ namespace BL.Mcp
         {
             if (!IsAllowed) return AiToolOutput.Error(DeniedMessage);
             var tool = Tools.FirstOrDefault(t => t.Name == name);
+            if (tool == null && !_canWrite && _writeScopeTools.Contains(name ?? "")) return AiToolOutput.Error(WriteDeniedMessage);
             if (tool == null) return AiToolOutput.Error($"Neznámý nástroj: {name}. Dostupné: {string.Join(", ", Tools.Select(t => t.Name))}.");
 
             var sw = Stopwatch.StartNew();
@@ -89,6 +113,8 @@ namespace BL.Mcp
             "katalog" => "Katalog sloupců entity",
             "agregace" => "Součty podle skupin",
             "hledej" => "Výpis záznamů",
+            "ukon_nabidka" => "Nabídka pro vykázání hodin",
+            "ukon_zapis" => "Zápis úkonu (vykázání hodin)",
             _ => name
         };
 
@@ -122,7 +148,8 @@ namespace BL.Mcp
             string json = input?.ToJsonString(_logJson);
             var call = new JsonObject { ["n"] = name, ["in"] = input?.DeepClone(), ["ok"] = !o.IsError, ["ms"] = ms };
             if (o.Rows > 0) call["rows"] = o.Rows;
-            AiLog.Insert(_f, new AiLogEntry
+            if (o.SavedPid > 0) call["pid"] = o.SavedPid;     // zápis: ID založeného záznamu
+            long logId = AiLog.Insert(_f, new AiLogEntry
             {
                 Feature = FeatureCode,
                 ContextPage = clientName,
@@ -132,6 +159,7 @@ namespace BL.Mcp
                 DurationMs = ms,
                 ExtraJson = new JsonObject { ["tools"] = new JsonArray { call } }.ToJsonString(_logJson)
             });
+            if (o.SavedPid > 0) AiLog.SetResult(_f, logId, o.SavedEntity, o.SavedPid);     // j98ResultEntity, j98ResultPid: co volání založilo
         }
 
         private static readonly System.Text.Json.JsonSerializerOptions _logJson = new()

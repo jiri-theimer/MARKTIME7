@@ -3,19 +3,25 @@
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
 
-    //příklady dotazů jen k datům, na která má uživatel oprávnění (moduly role)
+    //příklady jen k datům a akcím, na které má uživatel oprávnění (moduly role)
+    //agent neumí jen reporting: příklad akce (vykázání hodin) je hned druhý, další akce sem budou přibývat
     var _u = _f.CurrentUser;
+    bool _canAct = _u.j04IsModule_p31;      //akce, které agent umí: zatím vykázání hodin
     var _examples = new List<string> { _f.tra("Co mě čeká?") };
+    if (_u.j04IsModule_p31) _examples.Add(_f.tra("Zapiš mi 2 hodiny jednání v Microsoftu od 14 do 16"));
     if (_u.j04IsModule_p31) _examples.Add(_f.tra("Kolik hodin jsme minulý měsíc vykázali podle klientů?"));
     if (_u.j04IsModule_p31) _examples.Add(_f.tra("Ukaž moje včerejší úkony s popisem"));
-    if (_u.j04IsModule_p31 && _u.j04IsModule_p41) _examples.Add(_f.tra("Top 10 projektů podle nevyfakturovaných hodin"));
+    if (_u.j04IsModule_p41 && _u.j04IsModule_p91) _examples.Add(_f.tra("Projekty podle manažerů, kde jsou neuhrazené faktury po splatnosti"));
     if (_u.j04IsModule_p91) _examples.Add(_f.tra("Neuhrazené faktury po splatnosti"));
     if (!_u.j04IsModule_p31 && _u.j04IsModule_p56) _examples.Add(_f.tra("Moje úkoly po termínu"));
     var chatSettings = new UI.Models.AI.AiChatSettings
     {
-        Intro = _f.tra("Zeptejte se na svá data v MARKTIME. Napište dotaz vlastními slovy, nebo klikněte na příklad:"),
+        Intro = _canAct
+            ? _f.tra("Zeptejte se na svá data v MARKTIME, nebo mi řekněte, co mám udělat. Zatím umím vykázat hodiny, další akce postupně přibývají. Napište to vlastními slovy, nebo klikněte na příklad:")
+            : _f.tra("Zeptejte se na svá data v MARKTIME. Napište dotaz vlastními slovy, nebo klikněte na příklad:"),
         Examples = _examples,
-        Thinking = _f.tra("Hledám v datech…"),
+        Placeholder = _canAct ? _f.tra("Dotaz nebo pokyn…") : null,
+        Thinking = _f.tra("Pracuji na tom…"),
         Feature = Model.Feature
     };
 }
@@ -73,7 +79,24 @@
         pinError = _f.tra("Widget se nepodařilo uložit."),
         saveTo = _f.tra("Uložit do widgetu"),
         saveToTitle = _f.tra("Nahradit zadání upravovaného widgetu tímto výsledkem (název a místo na ploše zůstanou)"),
-        savedTo = _f.tra("Uloženo do widgetu.")
+        savedTo = _f.tra("Uloženo do widgetu."),
+        ukonTitle = _f.tra("Návrh úkonu – zatím nezapsáno"),
+        ukonSavedTitle = _f.tra("Úkon je zapsán"),
+        ukonCancelledTitle = _f.tra("Návrh úkonu byl zrušen"),
+        ukonDate = _f.tra("Den"),
+        ukonTime = _f.tra("Čas"),
+        ukonProject = _f.tra("Projekt"),
+        ukonClient = _f.tra("Klient"),
+        ukonActivity = _f.tra("Aktivita"),
+        ukonTask = _f.tra("Úkol"),
+        ukonHours = _f.tra("Hodiny"),
+        ukonText = _f.tra("Popis"),
+        ukonTextInternal = _f.tra("Interní poznámka"),
+        ukonSave = _f.tra("Zapsat"),
+        ukonCancel = _f.tra("Zrušit"),
+        ukonOpen = _f.tra("Otevřít úkon"),
+        ukonHint = _f.tra("Chcete něco změnit? Napište to asistentovi a dostanete nový návrh."),
+        ukonError = _f.tra("Úkon se nepodařilo zapsat.")
     }));
 </script>
 <script src="~/js/ai/aiask.js" asp-append-version="true"></script>

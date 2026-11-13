@@ -45,7 +45,7 @@ namespace UI.Code.Mcp
         }
 
         private static McpToolRunner Runner(IServiceProvider sp) =>
-            new McpToolRunner(sp.GetRequiredService<BL.Factory>(), sp.GetRequiredService<BL.TheColumnsProvider>());
+            new McpToolRunner(sp.GetRequiredService<BL.Factory>(), sp.GetRequiredService<BL.TheColumnsProvider>(), sp.GetService<McpCallInfo>()?.CanWrite ?? false);
 
         private static ValueTask<ListToolsResult> ListTools(RequestContext<ListToolsRequestParams> request, CancellationToken ct)
         {
@@ -58,7 +58,7 @@ namespace UI.Code.Mcp
                     Title = t.Title,
                     Description = t.Description,
                     InputSchema = JsonSerializer.SerializeToElement(t.InputSchema),
-                    Annotations = new ToolAnnotations { Title = t.Title, ReadOnlyHint = t.ReadOnly, DestructiveHint = false, OpenWorldHint = false }
+                    Annotations = new ToolAnnotations { Title = t.Title, ReadOnlyHint = t.ReadOnly, DestructiveHint = false, IdempotentHint = t.ReadOnly, OpenWorldHint = false }
                 });
             }
             return ValueTask.FromResult(res);

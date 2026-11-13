@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 using UI.Code.Mcp;
 
-namespace UI.Controllers
+namespace UI.Controllers.AI
 {
     /// <summary>
     /// OAuth 2.1 pro MCP – adresy, které volá AI klient (Claude, ChatGPT…) bez přihlášeného uživatele:
@@ -28,6 +28,9 @@ namespace UI.Controllers
 
         private string BaseUrl => McpUrls.Base(Request, _opt);
 
+        /// <summary>Rozsahy, které server nabízí. O zápisu rozhoduje uživatel na stránce souhlasu – vydaný rozsah vrací /oauth/token.</summary>
+        private JsonArray Scopes() => _opt.WriteEnabled ? new JsonArray { McpOptions.ScopeRead, McpOptions.ScopeWrite } : new JsonArray { McpOptions.ScopeRead };
+
         // ─── metadata ────────────────────────────────────────────────────────────
 
         /// <summary>Metadata chráněného zdroje (RFC 9728): kde je MCP server a kdo pro něj vydává tokeny.</summary>
@@ -40,7 +43,7 @@ namespace UI.Controllers
             {
                 ["resource"] = McpUrls.Mcp(Request, _opt),
                 ["authorization_servers"] = new JsonArray { BaseUrl },
-                ["scopes_supported"] = new JsonArray { McpOptions.ScopeRead },
+                ["scopes_supported"] = Scopes(),
                 ["bearer_methods_supported"] = new JsonArray { "header" },
                 ["resource_name"] = McpToolRunner.ServerName
             });
@@ -66,7 +69,7 @@ namespace UI.Controllers
                 ["code_challenge_methods_supported"] = new JsonArray { "S256" },
                 ["token_endpoint_auth_methods_supported"] = new JsonArray { "none" },
                 ["revocation_endpoint_auth_methods_supported"] = new JsonArray { "none" },
-                ["scopes_supported"] = new JsonArray { McpOptions.ScopeRead },
+                ["scopes_supported"] = Scopes(),
                 ["authorization_response_iss_parameter_supported"] = true
             });
         }
@@ -119,7 +122,7 @@ namespace UI.Controllers
                 ["grant_types"] = new JsonArray { "authorization_code", "refresh_token" },
                 ["response_types"] = new JsonArray { "code" },
                 ["token_endpoint_auth_method"] = "none",
-                ["scope"] = McpOptions.ScopeRead
+                ["scope"] = McpOptions.BuildScope(_opt.WriteEnabled)
             });
         }
 

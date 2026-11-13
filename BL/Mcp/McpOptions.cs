@@ -10,6 +10,7 @@ namespace BL.Mcp
     ///   "ConnectionDays": 90,            // výchozí platnost připojení (uživatel ji volí při povolení přístupu)
     ///   "MaxConnectionDays": 365,        // nejdelší platnost, kterou lze zvolit
     ///   "AccessTokenMinutes": 60,
+    ///   "WriteEnabled": true,            // false = server nabízí jen čtení (na stránce souhlasu není volba zápisu)
     ///   "RedirectHosts": [ "claude.ai", "claude.com", "chatgpt.com", "localhost" ],
     ///   "PublicUrl": "https://app.marktime.net"   // jen když aplikace nevidí vlastní veřejnou adresu (reverzní proxy)
     /// }
@@ -18,11 +19,19 @@ namespace BL.Mcp
     public class McpOptions
     {
         public const string ScopeRead = "marktime.read";
+        /// <summary>Zápis (dnes: vykázání hodin). Uživatel ho povoluje zvlášť na stránce souhlasu.</summary>
+        public const string ScopeWrite = "marktime.write";
+
+        /// <summary>Rozsah připojení uložený v j96Scope: čtení vždy, zápis jen se souhlasem uživatele.</summary>
+        public static string BuildScope(bool write) => write ? ScopeRead + " " + ScopeWrite : ScopeRead;
+        public static bool HasWrite(string scope) => !string.IsNullOrEmpty(scope) && scope.Split(' ', StringSplitOptions.RemoveEmptyEntries).Contains(ScopeWrite);
 
         public bool Enabled { get; set; }
         public int ConnectionDays { get; set; } = 90;
         public int MaxConnectionDays { get; set; } = 365;
         public int AccessTokenMinutes { get; set; } = 60;
+        /// <summary>false = MCP server jen čte: zápis nelze povolit a už povolený zápis přestane fungovat.</summary>
+        public bool WriteEnabled { get; set; } = true;
         /// <summary>Platnost autorizačního kódu (mezi souhlasem uživatele a vyzvednutím tokenu klientem).</summary>
         public int CodeMinutes { get; set; } = 5;
         /// <summary>Jak dlouho po výměně refresh tokenu se ještě přijme ten předchozí (souběžné požadavky klienta).</summary>
@@ -44,6 +53,7 @@ namespace BL.Mcp
             o.MaxConnectionDays = Math.Clamp(sec.GetValue("MaxConnectionDays", o.MaxConnectionDays), 1, 3650);
             o.ConnectionDays = Math.Clamp(sec.GetValue("ConnectionDays", o.ConnectionDays), 1, o.MaxConnectionDays);
             o.AccessTokenMinutes = Math.Clamp(sec.GetValue("AccessTokenMinutes", o.AccessTokenMinutes), 5, 24 * 60);
+            o.WriteEnabled = sec.GetValue("WriteEnabled", true);
             o.PublicUrl = sec["PublicUrl"]?.Trim().TrimEnd('/');
             if (string.IsNullOrEmpty(o.PublicUrl)) o.PublicUrl = null;
 

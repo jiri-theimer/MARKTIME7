@@ -20,7 +20,7 @@
 
 <div class="mc-admin">
     <h4>@Model.PageTitle</h4>
-    <p class="mc-lead">@_f.tra("Claude, ChatGPT a další AI klienti se mohou připojit k vašim datům v MARKTIME (protokol MCP). Klient pracuje pod vaším účtem a s vašimi oprávněními, data jen čte.")</p>
+    <p class="mc-lead">@_f.tra("Claude, ChatGPT a další AI klienti se mohou připojit k vašim datům v MARKTIME (protokol MCP). Klient pracuje pod vaším účtem a s vašimi oprávněními. Data čte; vykazovat hodiny smí jen tehdy, když mu to při připojení povolíte.")</p>
 
     @if (!Model.IsEnabled)
     {
@@ -47,6 +47,10 @@
                 <li>@_f.tra("V nastavení AI klienta (Claude, ChatGPT) přidejte vlastní konektor a jako adresu serveru vložte tuto adresu.")</li>
                 <li>@_f.tra("Klient otevře MARKTIME – přihlaste se a povolte přístup.")</li>
                 <li>@_f.tra("Zeptejte se klienta na svá data, například: Kolik hodin jsem vykázal minulý měsíc podle projektů?")</li>
+                @if (Model.IsWriteEnabled)
+                {
+                    <li>@_f.tra("Když při připojení povolíte i zápis, můžete hodiny vykazovat, například: Zapiš mi dnes 2 hodiny na projekt Novák, konzultace ke smlouvě.")</li>
+                }
             </ol>
         </section>
 
@@ -63,6 +67,7 @@
                         <thead>
                             <tr>
                                 <th>@_f.tra("Klient")</th>
+                                <th>@_f.tra("Rozsah")</th>
                                 <th>@_f.tra("Připojeno")</th>
                                 <th>@_f.tra("Naposledy použito")</th>
                                 <th>@_f.tra("Platí do")</th>
@@ -74,6 +79,7 @@
                             {
                                 <tr>
                                     <td>@c.j96ClientName<br /><span class="mc-muted">@UI.Code.Mcp.McpAuthorizeRequest.SafeHost(c.j96RedirectUri)</span></td>
+                                    <td>@(BL.Mcp.McpOptions.HasWrite(c.j96Scope) ? _f.tra("Čtení a zápis hodin") : _f.tra("Jen čtení"))</td>
                                     <td>@Dt(c.j96DateInsert)</td>
                                     <td>@Dt(c.j96DateLastUsed)</td>
                                     <td>@Dt(c.j96DateExpires)</td>

@@ -59,7 +59,7 @@ namespace UI.Code.Mcp
             if ((get("code_challenge_method") ?? "plain") != "S256") return q.Fail("invalid_request", "Podporována je jen metoda PKCE S256.");
             if (!string.IsNullOrEmpty(q.Resource) && !IsOurResource(q.Resource, mcpUrl)) return q.Fail("invalid_target", "Parametr resource neodpovídá adrese MCP serveru.");
 
-            // rozsah: zatím jen čtení; neznámé hodnoty se ignorují
+            // rozsah z žádosti klienta se nepoužívá: čtení je vždy, o zápisu rozhodne uživatel na stránce souhlasu (McpConnectController.Consent)
             q.Scope = McpOptions.ScopeRead;
             return q;
         }

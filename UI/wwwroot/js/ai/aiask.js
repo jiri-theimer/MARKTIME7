@@ -1,10 +1,11 @@
 ﻿// „Zeptej se MARKTIME“ – obecný AI agent s nástroji (samostatná stránka /AiAsk). Chat, historie a hodnocení řeší společný aichat.js (AiChat).
 // Konverzace včetně volání nástrojů (thread) se drží v prohlížeči a posílá se s každým dotazem.
 // Tabulky vykresluje MARKTIME z dat BL (r.tables) – model je nepřepisuje.
+// Návrh úkonu (r.proposals): agent úkon jen připraví, zapíše ho až tlačítko „Zapsat“ na kartě (/AiAsk/UkonConfirm).
 // Stav konverzace se ukládá do sessionStorage (jen tato záložka) – přežije reload i odchod a návrat na stránku.
 var _ask_thread = null;
 var _ask_chat = null;
-var _ask_items = [];        // vykreslené zprávy pro obnovu: {role, text, logId, tables, warnings}
+var _ask_items = [];        // vykreslené zprávy pro obnovu: {role, text, logId, tables, warnings, proposals: [{card, state}]}
 var _ask_key = "aiask-state-" + _ask_user;
 if (typeof _ask_edit !== "undefined" && _ask_edit) _ask_key += "-w" + _ask_edit.x55id;      //úprava widgetu = vlastní konverzace, běžnou nepřepíše
 
@@ -15,11 +16,15 @@ $(function () {
         extra: function () { return { thread: _ask_thread }; },
         onAnswer: function (r, $msg) {
             _ask_thread = r.thread || null;
-            ask_decorate($msg, r.tables || [], r.warnings || []);
+            var item = {
+                role: "assistant", text: r.reply || "", logId: r.logId || 0, tables: r.tables || [], warnings: r.warnings || [],
+                proposals: (r.proposals || []).map(function (c) { return { card: c, state: "open" }; })     //state: open | saved | cancelled
+            };
+            ask_decorate($msg, item.tables, item.warnings, item, true);
             var h = _ask_chat.history;
             var q = h.length >= 2 ? h[h.length - 2].content : "";
             _ask_items.push({ role: "user", text: q });
-            _ask_items.push({ role: "assistant", text: r.reply || "", logId: r.logId || 0, tables: r.tables || [], warnings: r.warnings || [] });
+            _ask_items.push(item);
             ask_save();
         }
     });
@@ -69,7 +74,7 @@ function ask_restore() {
         if (it.role === "user") { _ask_chat.addMessage("ai-user", it.text); return; }
         var $m = _ask_chat.addMessage("ai-assistant", it.text);
         if (it.logId) { _ask_chat.lastLogId = it.logId; _ask_chat.addRating($m, it.logId); }
-        ask_decorate($m, it.tables || [], it.warnings || []);
+        ask_decorate($m, it.tables || [], it.warnings || [], it, false);
     });
     return true;
 }
@@ -80,7 +85,7 @@ function ask_edit_seed() {
     var tables = [];
     if (_ask_edit.table) { _ask_edit.table.seed = true; tables.push(_ask_edit.table); }
     var $m = _ask_chat.addMessage("ai-assistant", _ask_edit.intro);
-    ask_decorate($m, tables, []);
+    ask_decorate($m, tables, [], null, false);
     _ask_items = [{ role: "assistant", text: _ask_edit.intro, logId: 0, tables: tables, warnings: [] }];
     ask_save();
 }
@@ -95,12 +100,119 @@ function ask_replace(t, $box) {
     }).fail(function () { _notify_message(_ask_txt.pinError, "error"); });
 }
 
-// tabulky a upozornění do bubliny odpovědi (před hodnocení)
-function ask_decorate($msg, tables, warnings) {
+// tabulky, návrhy úkonů a upozornění do bubliny odpovědi (před hodnocení)
+// item = položka _ask_items (nese návrhy úkonů a jejich stav), live = právě přišlá odpověď (ne obnova po reloadu)
+function ask_decorate($msg, tables, warnings, item, live) {
     var $place = $msg.find(".ai-rating");
     var put = function ($el) { if ($place.length) $place.before($el); else $msg.append($el); };
     tables.forEach(function (t) { put(ask_render_table(t)); });
+    var $first = null;
+    ((item && item.proposals) || []).forEach(function (p) {
+        var $box = $("<div>").addClass("ai-result ai-ukon");
+        ask_ukon_fill($box, p, item);
+        put($box);
+        if (!$first && p.state === "open") $first = $box;
+    });
     if (warnings.length) put($("<div>").addClass("ai-result-warn").text(warnings.join(" ")));
+    if (live && $first) {
+        //nový návrh: karta do zorného pole a fokus na „Zapsat“ (potvrzení klávesou Enter)
+        setTimeout(function () {
+            if ($first[0].scrollIntoView) $first[0].scrollIntoView({ block: "nearest" });
+            $first.find(".ai-ukon-save").trigger("focus");
+        }, 50);
+    }
+}
+
+// ------------------------------------------------------------------ návrh úkonu (vykázání hodin)
+
+// karta úkonu podle stavu: open = návrh s tlačítky, saved = zapsaný úkon, cancelled = zrušený návrh
+function ask_ukon_fill($box, p, item) {
+    var c = p.card || {};
+    $box.empty().removeClass("ai-ukon-saved ai-ukon-cancelled");
+    if (p.state === "saved") $box.addClass("ai-ukon-saved");
+    if (p.state === "cancelled") $box.addClass("ai-ukon-cancelled");
+
+    var title = p.state === "saved" ? _ask_txt.ukonSavedTitle : (p.state === "cancelled" ? _ask_txt.ukonCancelledTitle : _ask_txt.ukonTitle);
+    $box.append($("<div>").addClass("ai-result-title").text(title));
+
+    var $dl = $("<dl>").addClass("ai-ukon-grid");
+    var row = function (label, value, strong) {
+        if (value === null || value === undefined || value === "") return;
+        $dl.append($("<dt>").text(label)).append($("<dd>").addClass(strong ? "ai-ukon-strong" : "").text(value));
+    };
+    row(_ask_txt.ukonDate, c.datum, true);
+    row(_ask_txt.ukonTime, c.cas);
+    row(_ask_txt.ukonProject, c.projekt, true);
+    row(_ask_txt.ukonClient, c.klient);
+    row(_ask_txt.ukonActivity, c.aktivita ? (c.aktivita + (c.sesit ? " (" + c.sesit + ")" : "")) : c.sesit);
+    row(_ask_txt.ukonTask, c.ukol);
+    row(_ask_txt.ukonHours, c.hodiny, true);
+    row(_ask_txt.ukonText, c.text);
+    row(_ask_txt.ukonTextInternal, c.textInterni);
+    $box.append($dl);
+    if (c.poznamka) $box.append($("<div>").addClass("ai-result-desc").text(c.poznamka));
+
+    var $btns = $("<div>").addClass("ai-result-buttons");
+    if (p.state === "open") {
+        var $save = $("<button>").attr("type", "button").addClass("btn btn-primary btn-sm ai-ukon-save").text(_ask_txt.ukonSave);
+        var $cancel = $("<button>").attr("type", "button").addClass("btn btn-light btn-sm").text(_ask_txt.ukonCancel);
+        $save.on("click", function () { ask_ukon_confirm($box, p, item, $save, $cancel); });
+        $cancel.on("click", function () { ask_ukon_cancel($box, p, item); });
+        $btns.append($save).append($cancel);
+        $box.append($btns);
+        $box.append($("<div>").addClass("ai-result-desc").text(_ask_txt.ukonHint));
+    } else if (p.state === "saved" && c.pid) {
+        $btns.append($("<button>").attr("type", "button").addClass("btn btn-light btn-sm")
+            .append($("<span>").addClass("material-icons-outlined-btn").text("edit_note")).append(document.createTextNode(_ask_txt.ukonOpen))
+            .on("click", function () { _edit("p31", c.pid); }));
+        $box.append($btns);
+    }
+}
+
+function ask_ukon_summary(c) {
+    return [c.datum, c.projekt, c.aktivita, c.hodiny + " h", c.text].filter(function (x) { return x; }).join(", ");
+}
+
+function ask_ukon_confirm($box, p, item, $save, $cancel) {
+    if (p.state !== "open") return;
+    $save.prop("disabled", true); $cancel.prop("disabled", true);
+    $box.find(".ai-result-warn").remove();
+    var fail = function (msg) {
+        $save.prop("disabled", false); $cancel.prop("disabled", false);
+        $box.append($("<div>").addClass("ai-result-warn").text(msg || _ask_txt.ukonError));
+    };
+    $.post("/AiAsk/UkonConfirm", { guid: p.card.guid, logId: (item && item.logId) || 0 }, function (r) {
+        if (!r || !r.ok) { fail(r && r.error); return; }
+        p.card = r.ukon || p.card;
+        p.state = "saved";
+        ask_thread_note("[MARKTIME] Uživatel potvrdil návrh úkonu tlačítkem Zapsat. Úkon je v MARKTIME zapsán: " + ask_ukon_summary(p.card) + ".");
+        ask_ukon_fill($box, p, item);
+        ask_save();
+        _ask_chat.$prompt.trigger("focus");
+    }).fail(function () { fail(null); });
+}
+
+function ask_ukon_cancel($box, p, item) {
+    if (p.state !== "open") return;
+    p.state = "cancelled";
+    $.post("/AiAsk/UkonCancel", { guid: p.card.guid });
+    ask_thread_note("[MARKTIME] Uživatel návrh úkonu zrušil, nic nebylo zapsáno: " + ask_ukon_summary(p.card) + ".");
+    ask_ukon_fill($box, p, item);
+    ask_save();
+    _ask_chat.$prompt.trigger("focus");
+}
+
+// poznámka pro model do konverzace (thread ve formátu Messages API): co uživatel udělal mimo chat.
+// Připojí se k poslední zprávě user – server k ní pak přidá text dalšího dotazu.
+function ask_thread_note(text) {
+    var th;
+    try { th = JSON.parse(_ask_thread || "[]"); } catch (e) { return; }
+    if (!Array.isArray(th) || !th.length) return;
+    var block = { type: "text", text: text };
+    var last = th[th.length - 1];
+    if (last && last.role === "user" && Array.isArray(last.content)) last.content.push(block);
+    else th.push({ role: "user", content: [block] });
+    _ask_thread = JSON.stringify(th);
 }
 
 // ------------------------------------------------------------------ vykreslení

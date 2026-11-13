@@ -7,7 +7,10 @@ using BO.AI;
 namespace BL.AI.Ask
 {
     /// <summary>
-    /// Obecný AI agent „Zeptej se MARKTIME“: odpovídá na otázky nad daty pomocí nástrojů (katalog, agregace, hledej).
+    /// Obecný AI agent „Zeptej se MARKTIME“: odpovídá na otázky nad daty pomocí nástrojů (katalog, agregace, hledej)
+    /// a na pokyn uživatele připraví vykázání hodin (ukon_nabidka, ukon_zapis – stejné nástroje jako MCP server).
+    /// Úkon se tu nezapisuje hned: ukon_zapis běží v režimu návrhu, UI ukáže kartu a zapíše až po kliknutí na „Zapsat“
+    /// (AiAskController.UkonConfirm → UkonZapisTool.Confirm).
     /// Odpověď je strukturovaná: text modelu + tabulky z výsledků nástrojů (data z BL, model je nepřepisuje).
     /// Zadání zobrazených tabulek se ukládá do p85TempBox (guid) – Pivot-Explorer a zdrojové úkony je načtou znovu.
     /// </summary>
@@ -20,6 +23,7 @@ namespace BL.AI.Ask
         private readonly AiAggregate _agg;
         private AgregaceTool _agregace;
         private HledejTool _hledej;
+        private UkonZapisTool _ukonZapis;
 
         public AiAskService(BL.Factory f, BL.TheColumnsProvider cp, ILlmClient llm) : base(f, llm)
         {
@@ -31,6 +35,8 @@ namespace BL.AI.Ask
         public class AskResult : AiToolAskResult
         {
             public List<AiAskTable> Tables { get; set; } = new();
+            /// <summary>Návrhy úkonů připravené v tomto dotazu – čekají na potvrzení uživatelem.</summary>
+            public List<UkonCard> Proposals { get; set; } = new();
         }
 
         protected override string Feature => FeatureCode;
@@ -52,7 +58,15 @@ namespace BL.AI.Ask
         {
             _agregace = new AgregaceTool(F, _agg);
             _hledej = new HledejTool(F, _agg);
-            return new List<IAiTool> { new KatalogTool(F, _agg), _agregace, _hledej };
+            var lis = new List<IAiTool> { new KatalogTool(F, _agg), _agregace, _hledej };
+            if (F.CurrentUser.j04IsModule_p31)
+            {
+                // vykázání hodin: nástroj úkon jen připraví (návrh), zapíše se až po potvrzení uživatelem
+                _ukonZapis = new UkonZapisTool(F, propose: true);
+                lis.Add(new UkonNabidkaTool(F));
+                lis.Add(_ukonZapis);
+            }
+            return lis;
         }
 
         protected override JsonObject BuildFinalSchema()
@@ -75,6 +89,7 @@ namespace BL.AI.Ask
         protected override void ProcessFinal(JsonNode final, string text, AiToolContext ctx, AskResult res)
         {
             res.Reply = (final?["text"] is JsonValue v && v.TryGetValue<string>(out var t) && !string.IsNullOrWhiteSpace(t)) ? t.Trim() : text;
+            if (_ukonZapis != null) res.Proposals = _ukonZapis.Proposals;
             if (final?["tabulky"] is not JsonArray tabs) return;
 
             var used = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
