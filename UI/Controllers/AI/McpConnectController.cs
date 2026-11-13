@@ -20,7 +20,7 @@ namespace UI.Controllers.AI
         }
 
         private McpOAuthService Service() => new McpOAuthService(new McpSqlStore(Factory.db), _opt, McpTenant.Key(Factory));
-        private bool IsAllowed => Factory.CurrentUser.TestPermission(BO.PermValEnum.GR_AI);
+        private bool IsAllowed => Factory.CurrentUser.TestPermission(BO.PermValEnum.GR_MCP);
 
         // ─── souhlas s připojením klienta ───────────────────────────────────────
 

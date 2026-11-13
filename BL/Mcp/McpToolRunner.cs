@@ -52,10 +52,13 @@ namespace BL.Mcp
         /// <summary>Pokyny serveru pro model (stejné pro všechny uživatele).</summary>
         public static string Instructions => AiPromptStore.Get("mcp.instructions.md");
 
-        /// <summary>Přístup k MCP má uživatel s oprávněním aplikační role „Přístup k AI agentům“ (GR_AI).</summary>
-        public bool IsAllowed => _f.CurrentUser != null && _f.CurrentUser.TestPermission(BO.PermValEnum.GR_AI);
+        /// <summary>
+        /// Přístup k MCP má uživatel s oprávněním aplikační role „Přístup k MCP serveru (připojení AI klientů)“ (GR_MCP).
+        /// Testuje se při každém požadavku klienta – i u připojení, která vznikla dřív, než oprávnění existovalo nebo než bylo roli odebráno.
+        /// </summary>
+        public bool IsAllowed => _f.CurrentUser != null && _f.CurrentUser.TestPermission(BO.PermValEnum.GR_MCP);
 
-        public const string DeniedMessage = "Vaše aplikační role v MARKTIME nemá oprávnění „Přístup k AI agentům“. O přístup požádejte administrátora MARKTIME.";
+        public const string DeniedMessage = "Vaše aplikační role v MARKTIME nemá oprávnění „Přístup k MCP serveru (připojení AI klientů)“. O přístup požádejte administrátora MARKTIME.";
 
         private List<IAiTool> Tools => _tools ??= BuildTools();
 

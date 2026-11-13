@@ -188,6 +188,7 @@ namespace BO.Code
             {
                 lis.Add(new BO.Permission() { Entity = "j04", Value = BO.PermValEnum.GR_Admin, Name = "Administrátor systému" });
                 lis.Add(new BO.Permission() { Entity = "j04", Value = BO.PermValEnum.GR_AI, Name = "Přístup k AI agentům" });
+                lis.Add(new BO.Permission() { Entity = "j04", Value = BO.PermValEnum.GR_MCP, Name = "Přístup k MCP serveru (připojení AI klientů)" });
                 lis.Add(new BO.Permission() { Entity = "j04", Value = BO.PermValEnum.GR_CHAT, Name = "Přístup k internímu chatu" });
 
                 lis.Add(new BO.Permission() { Entity = "j04", Value = BO.PermValEnum.GR_p28_Creator, Name = "Vytvářet kontakty všech typů", Group = "Kontakty" });

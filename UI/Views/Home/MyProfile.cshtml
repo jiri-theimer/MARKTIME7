@@ -107,7 +107,7 @@
                     </div>
                     <div class="mp-actions">
                         <a class="btn btn-sm bog" href="/Home/ChangePassword"><span class="material-icons-outlined-btn">key</span> @_f.tra("Změnit heslo")</a>
-                        @if (_f.CurrentUser.TestPermission(BO.PermValEnum.GR_AI))
+                        @if (_f.CurrentUser.TestPermission(BO.PermValEnum.GR_MCP))
                         {
                             <a class="btn btn-sm bog" href="/McpConnect/Index"><span class="material-icons-outlined-btn">hub</span> @_f.tra("Připojení AI klientů")</a>
                         }
