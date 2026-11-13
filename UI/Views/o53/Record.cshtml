@@ -1,83 +1,141 @@
 ﻿@model UI.Models.Record.o53Record
 @inject BL.Factory _f
 
+@* Skupina štítků. Verze 8: karty rf-* (css/recordform.css) + doplněk css/tagsrecord.css (třídy tg-*, společné s o51/Record).
+   Názvy polí beze změny: Rec.o53Name, Rec.o53Ordinary, Rec.o53IsMultiSelect, Rec.o53Entities (skryté pole plněné ze zaškrtávátek CheckedEntities). *@
+
 @{
     Layout = "~/Views/Shared/_LayoutRecord.cshtml";
     if (Model.Rec == null) return;
-    Model.PageTitle = _f.tra("Štítek");
-   
+    Model.PageTitle = _f.tra("Skupina štítků");
+    Model.PageSymbol = "sell";
+
+    var _checked = (Model.Rec.o53Entities ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries).Select(p => p.Trim()).ToList();
+    var _tags = Model.rec_pid > 0
+        ? _f.o51TagBL.GetList(new BO.myQueryO51()).Where(p => p.o53ID == Model.rec_pid).OrderBy(p => p.o51Ordinary).ThenBy(p => p.o51Name).ToList()
+        : new List<BO.o51Tag>();
 }
 
 @addTagHelper *, UI
 
+@section header_content
+{
+    <link rel="stylesheet" href="~/css/recordform.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/tagsrecord.css" asp-append-version="true" />
+}
 
+@Html.Raw("<div class='modal_record_container'>")
 
+<div class="rf">
 
-<div class="modal_record_container">
-
-    <div class="row">
-        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název"):</label>
-        <div class="col-sm-6 col-md-5">
-            <input class="form-control record_name" asp-for="Rec.o53Name" />
+    <section class="rf-card">
+        <h2><span class="material-icons-outlined-nosize">sell</span>@_f.tra("Skupina štítků")</h2>
+        <div class="tg-namerow">
+            <div class="rf-field">
+                <label for="Rec_o53Name">@_f.tra("Název")</label>
+                <input class="form-control record_name" asp-for="Rec.o53Name" />
+            </div>
+            <div class="rf-field tg-ord">
+                <label>@_f.tra("Index pořadí")</label>
+                <mynumber asp-for="Rec.o53Ordinary" decimal-digits="0"></mynumber>
+            </div>
         </div>
-        <label class="col-sm-2 col-md-2 col-form-label">#@_f.tra("Index pořadí"):</label>
-        <div class="col-sm-1 col-md-1">
-            <mynumber asp-for="Rec.o53Ordinary" decimal-digits="0"></mynumber>
+        <div class="rf-row tg-moderow">
+            <span class="rf-label">@_f.tra("U záznamu lze vybrat")</span>
+            <div class="rf-value">
+                <div class="rf-seg" role="radiogroup" aria-label="@_f.tra("U záznamu lze vybrat")">
+                    <input type="radio" value="False" id="o53MultiFalse" asp-for="@Model.Rec.o53IsMultiSelect" /><label for="o53MultiFalse">@_f.tra("Jeden štítek")</label>
+                    <input type="radio" value="True" id="o53MultiTrue" asp-for="@Model.Rec.o53IsMultiSelect" /><label for="o53MultiTrue">@_f.tra("Více štítků")</label>
+                </div>
+                <span class="rf-hint" id="o53ModeHint"></span>
+            </div>
         </div>
-    </div>
+    </section>
 
-    <div class="my-2">
-        <input asp-for="@Model.Rec.o53IsMultiSelect" />
-        <label for="Rec_o53IsMultiSelect">@_f.tra("U štítkování záznamu možnost zaškrtávat více položek (checkbox-list)")</label>
-    </div>
-
-    
-    <div class="card">
-        <div class="card-header">
-            @_f.tra("Vazba štítku na entity")
+    <section class="rf-card">
+        <div class="rf-cardbar">
+            <h2><span class="material-icons-outlined-nosize">account_tree</span>@_f.tra("Kde se skupina používá")</h2>
+            <span class="tg-count" id="o53EntCount"></span>
+            <div class="tg-bar-actions">
+                <button type="button" class="btn btn-sm btn-light" onclick="o53_check_all(true)">@_f.tra("Vybrat vše")</button>
+                <button type="button" class="btn btn-sm btn-light" onclick="o53_check_all(false)">@_f.tra("Zrušit výběr")</button>
+            </div>
         </div>
-        <div class="card-body">
-        
-            @foreach(var c in Model.ApplicableEntities)
+        <span class="rf-hint tg-intro">@_f.tra("Štítky skupiny se nabízejí jen u záznamů zaškrtnutých druhů. Vyberte alespoň jeden.")</span>
+        <div class="tg-entities">
+            @foreach (var c in Model.ApplicableEntities)
             {
-                <input type="checkbox" id="chk@(c.Prefix)" value="@c.Prefix" @BO.Code.Bas.IIFS(Model.Rec.o53Entities !=null && Model.Rec.o53Entities.Contains(c.Prefix),"checked",null) name="CheckedEntities" onchange="handle_check(this)" />
-                <label for="chk@(c.Prefix)">@c.AliasPlural</label>
-                <br />
+                <label class="tg-entity" for="chk@(c.Prefix)">
+                    <input type="checkbox" class="form-check-input" id="chk@(c.Prefix)" value="@c.Prefix" @(_checked.Contains(c.Prefix) ? "checked" : null) name="CheckedEntities" onchange="handle_check(this)" />
+                    <span>@c.AliasPlural</span>
+                </label>
             }
-            
-
         </div>
-    </div>
+        <input type="hidden" asp-for="@Model.Rec.o53Entities" />
+    </section>
 
-
-
-    <input type="hidden" asp-for="@Model.Rec.o53Entities" />
+    @if (Model.rec_pid > 0)
+    {
+        <section class="rf-card">
+            <div class="rf-cardbar">
+                <h2><span class="material-icons-outlined-nosize">label</span>@_f.tra("Štítky ve skupině")</h2>
+                <span class="tg-count">@_tags.Count</span>
+                <div class="tg-bar-actions">
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="_window_open('/o51/Record?pid=0&o53id=@(Model.rec_pid)')">
+                        <span class="material-icons-outlined-nosize">add</span>@_f.tra("Přidat štítky")
+                    </button>
+                </div>
+            </div>
+            @if (_tags.Count == 0)
+            {
+                <div class="tg-empty">@_f.tra("Skupina zatím nemá žádný štítek.")</div>
+            }
+            else
+            {
+                <div class="tg-chips">
+                    @foreach (var t in _tags)
+                    {
+                        <span class="tagbox @(t.isclosed ? "tg-closed" : null)" style="@(t.o51IsColor ? $"background-color:{t.o51BackColor};color:{t.o51ForeColor};" : null)" title="@(t.isclosed ? _f.tra("V archivu") : null)">@t.o51Name</span>
+                    }
+                </div>
+            }
+        </section>
+    }
 
 </div>
 
-
+@Html.Raw("</div>")
 
 <script type="text/javascript">
+    const o53Txt = @Json.Serialize(new {
+        one = _f.tra("U záznamu jde vybrat jen jeden štítek skupiny, například stav nebo priorita."),
+        multi = _f.tra("U záznamu jde zaškrtnout víc štítků skupiny najednou."),
+        none = _f.tra("nic nevybráno")
+    });
 
-
-    function handle_check(chk)
-    {
-        var s="";
-        var checkedBoxes = document.querySelectorAll('input[name=CheckedEntities]:checked');
-        for (var i = 0; i < checkedBoxes.length;i++)
-        {
-            if (s==""){
-                s = checkedBoxes[i].value;
-            }else
-            {
-                s = s + "," + checkedBoxes[i].value;
-            }
-            
-        }
-       
-        $("#Rec_o53Entities").val(s);
+    //zaškrtnuté druhy záznamů → skryté pole Rec.o53Entities (prefixy oddělené čárkou)
+    function handle_check(chk) {
+        const boxes = Array.from(document.querySelectorAll("input[name=CheckedEntities]"));
+        const checked = boxes.filter(b => b.checked);
+        document.getElementById("Rec_o53Entities").value = checked.map(b => b.value).join(",");
+        boxes.forEach(b => b.closest(".tg-entity").classList.toggle("tg-on", b.checked));
+        const cnt = document.getElementById("o53EntCount");
+        cnt.textContent = checked.length > 0 ? checked.length : o53Txt.none;
+        cnt.classList.toggle("tg-count-bad", checked.length === 0);
     }
+    function o53_check_all(on) {
+        document.querySelectorAll("input[name=CheckedEntities]").forEach(b => { b.checked = on; });
+        handle_check();
+    }
+    function o53_mode() {
+        const multi = document.getElementById("o53MultiTrue").checked;
+        document.getElementById("o53ModeHint").textContent = multi ? o53Txt.multi : o53Txt.one;
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        document.getElementById("o53MultiTrue").addEventListener("change", o53_mode);
+        document.getElementById("o53MultiFalse").addEventListener("change", o53_mode);
+        o53_mode();
+        handle_check();
+    });
 </script>
-
-
-

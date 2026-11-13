@@ -1,0 +1,57 @@
+﻿/* Štítky – karta skupiny (Views/o53/Record.cshtml) a karta položky (Views/o51/Record.cshtml); doplněk k recordform.css, třídy tg-*. */
+.tg-namerow { display: grid; grid-template-columns: minmax(0, 1fr) 110px; gap: 0 12px; align-items: end; }
+.tg-moderow { align-items: start; margin-top: 4px; }
+.tg-moderow .rf-label { padding-top: 5px; }
+.tg-top { align-items: start; }
+.tg-top .rf-label { padding-top: 7px; }
+.tg-bar-actions { margin-left: auto; display: flex; flex-wrap: wrap; gap: 6px; }
+.tg-bar-actions .btn { display: inline-flex; align-items: center; gap: 3px; }
+.tg-bar-actions .material-icons-outlined-nosize { font-size: 17px; }
+.tg-count { padding: 0 8px; border-radius: 999px; background: #e6e9ed; color: #3d444d; font-size: .78rem; font-weight: 600; }
+.tg-count-bad { background: #fde2e1; color: #8a1c26; }
+.tg-intro { margin: -4px 0 10px; }
+.tg-empty { padding: 10px 12px; border: 1px dashed #dfe3e8; border-radius: 8px; color: #8a939c; font-size: .875rem; }
+
+/* druhy záznamů: zaškrtávací dlaždice */
+.tg-entities { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 6px; }
+.tg-entity { display: flex; align-items: center; gap: 8px; margin: 0; padding: 6px 10px; border: 1px solid #e3e6ea; border-radius: 8px; background: #fff; font-size: .9rem; cursor: pointer; }
+.tg-entity .form-check-input { margin: 0; flex: 0 0 auto; }
+.tg-entity:hover { border-color: #c9d1da; }
+.tg-entity.tg-on { border-color: color-mix(in srgb, var(--oznaceno, #4169e1) 45%, #ffffff); background: color-mix(in srgb, var(--oznaceno, #4169e1) 7%, #ffffff); }
+
+/* štítky jako ukázka */
+.tg-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.tg-chips .tagbox { margin: 0; padding: 4px 8px; min-width: 0; }
+.tg-closed { opacity: .5; text-decoration: line-through; }
+.tg-bad { border-color: #f1aeb5 !important; background: #fdecec !important; color: #b02a37 !important; }
+
+/* položka štítku: jeden / více najednou */
+.tg-mode { margin-left: auto; }
+.tg-o51 .tg-many { display: none; }
+.tg-o51.tg-batch .tg-many { display: grid; }
+.tg-o51.tg-batch span.tg-many { display: block; }
+.tg-o51.tg-batch .tg-one { display: none; }
+.tg-names { resize: vertical; font-size: .95rem; line-height: 1.5; }
+.tg-preview { margin-top: 8px; }
+.tg-preview:empty { display: none; }
+.tg-preview-info { margin-bottom: 6px; font-size: .82rem; color: #59636e; }
+.tg-preview-bad { color: #b02a37; }
+
+/* barva */
+.tg-sample-wrap { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.tg-sample-label { font-size: .78rem; color: #8a939c; }
+.tg-sample-wrap .tagbox { margin: 0; padding: 4px 8px; }
+.tg-colors { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 18px; }
+.tg-colors[hidden] { display: none; }
+.tg-color label { display: block; margin-bottom: 2px; font-size: .8rem; font-weight: 500; color: #59636e; }
+.tg-color .form-control-color { width: 64px; }
+.tg-palette { display: flex; flex-wrap: wrap; gap: 5px; }
+.tg-swatch { width: 38px; height: 32px; padding: 0; border: 1px solid rgba(0, 0, 0, .12); border-radius: 6px; font-size: .82rem; font-weight: 600; }
+.tg-swatch:hover, .tg-swatch:focus-visible { outline: 2px solid var(--oznaceno, #4169e1); outline-offset: 1px; }
+
+@media (max-width: 575.98px) {
+    .tg-namerow { grid-template-columns: minmax(0, 1fr); }
+    .tg-mode, .tg-sample-wrap { margin-left: 0; }
+}
+html.mt-phone .tg-namerow { grid-template-columns: minmax(0, 1fr); }
+html.mt-phone .tg-mode, html.mt-phone .tg-sample-wrap { margin-left: 0; }

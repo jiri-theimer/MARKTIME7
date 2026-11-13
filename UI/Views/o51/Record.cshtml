@@ -1,99 +1,238 @@
 ﻿@model UI.Models.Record.o51Record
 @inject BL.Factory _f
 
-@{
+@* Položka štítku. Verze 8: karty rf-* (css/recordform.css) + doplněk css/tagsrecord.css (třídy tg-*, společné s o53/Record).
+   Nový záznam umí založit více štítků najednou (IsBatch + BatchNames, o51Controller.SaveBatch): názvy oddělené novým řádkem, středníkem nebo čárkou.
+   Názvy polí beze změny: Rec.o51Name, Rec.o51Ordinary, Rec.o53ID, Rec.o51IsColor, Rec.o51ForeColor, Rec.o51BackColor. *@
 
+@{
     Layout = "~/Views/Shared/_LayoutRecord.cshtml";
     if (Model.Rec == null) return;
     Model.PageTitle = _f.tra("Položka štítku");
-    
+    Model.PageSymbol = "label";
+
+    bool _isNew = Model.rec_pid == 0;
+    bool _batch = _isNew && Model.IsBatch;
+
+    // rychlá volba barev: pozadí, písmo
+    var _palette = new (string bg, string fg)[] {
+        ("#fde2e1", "#8a1c26"), ("#ffe8cc", "#7a3e00"), ("#fff3cd", "#664d03"), ("#d1f2dd", "#146c43"),
+        ("#d0ebff", "#0b4b92"), ("#e5dbff", "#4c2a9a"), ("#e9ecef", "#343a40"), ("#343a40", "#ffffff")
+    };
 }
 
 @addTagHelper *, UI
 
+@section header_content
+{
+    <link rel="stylesheet" href="~/css/recordform.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/tagsrecord.css" asp-append-version="true" />
+}
 
+@Html.Raw("<div class='modal_record_container'>")
 
-<div class="modal_record_container">
-    <div class="row">
-        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název položky"):</label>
-        <div class="col-sm-6 col-md-5">
-            <input class="form-control record_name" asp-for="Rec.o51Name" />
+<div class="rf tg-o51 @(_batch ? "tg-batch" : null)" id="o51Form">
+
+    <section class="rf-card">
+        <div class="rf-cardbar">
+            <h2><span class="material-icons-outlined-nosize">label</span>@_f.tra("Štítek")</h2>
+            @if (_isNew)
+            {
+                <div class="rf-seg tg-mode" role="radiogroup" aria-label="@_f.tra("Kolik štítků založit")">
+                    <input type="radio" name="o51Mode" id="o51ModeOne" value="one" @(_batch ? null : "checked") /><label for="o51ModeOne">@_f.tra("Jeden štítek")</label>
+                    <input type="radio" name="o51Mode" id="o51ModeBatch" value="batch" @(_batch ? "checked" : null) /><label for="o51ModeBatch">@_f.tra("Více štítků najednou")</label>
+                </div>
+            }
         </div>
-        <label class="col-sm-2 col-md-2 col-form-label">#@_f.tra("Index pořadí"):</label>
-        <div class="col-sm-1 col-md-1">
-            <mynumber asp-for="Rec.o51Ordinary" decimal-digits="0"></mynumber>
+
+        <div class="rf-row">
+            <label for="cmdComboRec_o53ID" class="rf-label">@_f.tra("Skupina štítku")</label>
+            <div class="rf-value rf-w-half"><mycombo entity="o53TagGroup" asp-for="Rec.o53ID" selectedtext="@Model.Combo_o53Name" view-flag="2"></mycombo></div>
         </div>
-    </div>
 
-    
-
-    <div class="row" style="margin-top:10px;">
-        <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Skupina štítku"):</label>
-        <div class="col-sm-11 col-md-10">
-            <mycombo entity="o53TagGroup" asp-for="Rec.o53ID" selectedtext="@Model.Combo_o53Name" view-flag="2"></mycombo>
+        <div class="rf-row tg-one">
+            <label for="Rec_o51Name" class="rf-label">@_f.tra("Název položky")</label>
+            <div class="rf-value rf-w-half">
+                <input class="form-control record_name" asp-for="Rec.o51Name" maxlength="30" />
+                <span class="rf-hint">@_f.tra("Nejvýše 30 znaků, bez čárky.")</span>
+            </div>
         </div>
-    </div>
 
-    
-    
+        @if (_isNew)
+        {
+            <div class="rf-row tg-many tg-top">
+                <label for="BatchNames" class="rf-label">@_f.tra("Názvy štítků")</label>
+                <div class="rf-value">
+                    <textarea class="form-control tg-names" asp-for="BatchNames" rows="6" spellcheck="false" placeholder="@_f.tra("Každý štítek na samostatný řádek")"></textarea>
+                    <span class="rf-hint">@_f.tra("Každý štítek na samostatný řádek. Oddělit je lze i středníkem nebo čárkou. Název má nejvýše 30 znaků.")</span>
+                    <div class="tg-preview" id="o51Preview" aria-live="polite"></div>
+                </div>
+            </div>
+            <input type="hidden" asp-for="IsBatch" value="@(_batch ? "true" : "false")" />
+        }
 
-    <div class="my-2">
-        <input asp-for="@Model.Rec.o51IsColor" />
-        <label for="Rec_o51IsColor">@_f.tra("Položka má vlastní barvu?")</label>
-    </div>
+        <div class="rf-row">
+            <label class="rf-label">@_f.tra("Index pořadí")</label>
+            <div class="rf-value">
+                <div class="rf-w-num"><mynumber asp-for="Rec.o51Ordinary" decimal-digits="0"></mynumber></div>
+                @if (_isNew)
+                {
+                    <span class="rf-hint tg-many">@_f.tra("Všechny založené štítky dostanou stejný index pořadí, stejnou barvu a platnost.")</span>
+                }
+            </div>
+        </div>
+    </section>
 
-    <table id="tabColor">
-        <tr>
-            <td>
-                Barva písma:
-            </td>
-            <td>
-                <input type="color" asp-for="Rec.o51ForeColor" />
-            </td>
-            <td>
-                Barva pozadí:
-            </td>
-            <td>
-                <input type="color" asp-for="Rec.o51BackColor" />
-            </td>
+    <section class="rf-card">
+        <div class="rf-cardbar">
+            <h2><span class="material-icons-outlined-nosize">palette</span>@_f.tra("Barva")</h2>
+            <div class="form-check form-switch m-0">
+                <input type="checkbox" class="form-check-input" role="switch" asp-for="@Model.Rec.o51IsColor" />
+                <label class="form-check-label" for="Rec_o51IsColor">@_f.tra("Položka má vlastní barvu?")</label>
+            </div>
+            <div class="tg-sample-wrap">
+                <span class="tg-sample-label">@_f.tra("Ukázka")</span>
+                <span class="tagbox" id="o51Sample"></span>
+            </div>
+        </div>
 
-        </tr>
-    </table>
-
-
-
-
+        <div id="tabColor" class="tg-colors">
+            <div class="tg-color">
+                <label for="Rec_o51BackColor">@_f.tra("Barva pozadí")</label>
+                <input type="color" class="form-control form-control-color" asp-for="Rec.o51BackColor" />
+            </div>
+            <div class="tg-color">
+                <label for="Rec_o51ForeColor">@_f.tra("Barva písma")</label>
+                <input type="color" class="form-control form-control-color" asp-for="Rec.o51ForeColor" />
+            </div>
+            <div class="tg-palette" role="group" aria-label="@_f.tra("Rychlá volba barev")">
+                @foreach (var c in _palette)
+                {
+                    <button type="button" class="tg-swatch" style="background-color:@c.bg;color:@c.fg;" data-bg="@c.bg" data-fg="@c.fg" title="@_f.tra("Použít tuto kombinaci")">Aa</button>
+                }
+            </div>
+        </div>
+    </section>
 
 </div>
 
-
+@Html.Raw("</div>")
 
 <script type="text/javascript">
-    $(document).ready(function () {
-        handle_barva();
-
-
-        $("#Rec_o51IsColor").on("click", function () {
-            handle_barva();
-        });
-
+    const o51Txt = @Json.Serialize(new {
+        sample = _f.tra("Štítek"),
+        count = _f.tra("Založí se štítků"),
+        tooLong = _f.tra("delší než 30 znaků"),
+        dupes = _f.tra("opakované názvy se založí jen jednou"),
+        existing = _f.tra("Štítky, které už ve skupině jsou, se přeskočí."),
+        fix = _f.tra("Červeně označené názvy jsou delší než 30 znaků. Zkraťte je, jinak se nic neuloží.")
     });
 
-
-
-
-    function handle_barva() {
-        if ($("#Rec_o51IsColor").prop("checked") == true) {
-            $("#tabColor").css("display", "block");
-
-
-        } else {
-            $("#tabColor").css("display", "none");
-
-        }
+    //názvy z textového pole: stejná pravidla jako o51Controller.ParseBatchNames
+    function o51_names() {
+        const ta = document.getElementById("BatchNames");
+        if (!ta) return { list: [], dupes: 0 };
+        const seen = new Set(), list = [];
+        let dupes = 0;
+        ta.value.split(/[\r\n\t;,]+/).forEach(function (part) {
+            const name = part.replace(/\s+/g, " ").trim();
+            if (name === "") return;
+            if (seen.has(name.toLowerCase())) { dupes++; return; }
+            seen.add(name.toLowerCase());
+            list.push(name);
+        });
+        return { list: list, dupes: dupes };
     }
 
+    function o51_colors() {
+        const on = document.getElementById("Rec_o51IsColor").checked;
+        return on ? { bg: document.getElementById("Rec_o51BackColor").value, fg: document.getElementById("Rec_o51ForeColor").value } : null;
+    }
+    function o51_paint(el, col) {
+        el.style.backgroundColor = col ? col.bg : "";
+        el.style.color = col ? col.fg : "";
+    }
+
+    function o51_refresh() {
+        const form = document.getElementById("o51Form");
+        const batchRadio = document.getElementById("o51ModeBatch");
+        const batch = !!(batchRadio && batchRadio.checked);
+        form.classList.toggle("tg-batch", batch);
+        const hid = document.getElementById("IsBatch");
+        if (hid) hid.value = batch ? "true" : "false";
+
+        const col = o51_colors();
+        document.getElementById("tabColor").hidden = !col;
+
+        const names = o51_names();
+        const sample = document.getElementById("o51Sample");
+        const one = document.getElementById("Rec_o51Name").value.trim();
+        sample.textContent = (batch ? names.list[0] : one) || o51Txt.sample;
+        o51_paint(sample, col);
+
+        const prev = document.getElementById("o51Preview");
+        if (!prev) return;
+        prev.textContent = "";
+        if (!batch || names.list.length === 0) return;
+
+        const bad = names.list.filter(n => n.length > 30).length;
+        const info = document.createElement("div");
+        info.className = "tg-preview-info";
+        let text = o51Txt.count + ": " + (names.list.length - bad);
+        if (names.dupes > 0) text += " · " + o51Txt.dupes;
+        info.textContent = bad > 0 ? o51Txt.fix : text + ". " + o51Txt.existing;
+        info.classList.toggle("tg-preview-bad", bad > 0);
+        prev.appendChild(info);
+
+        const chips = document.createElement("div");
+        chips.className = "tg-chips";
+        names.list.forEach(function (n) {
+            const chip = document.createElement("span");
+            chip.className = "tagbox";
+            chip.textContent = n;
+            if (n.length > 30) { chip.classList.add("tg-bad"); chip.title = o51Txt.tooLong; }
+            else o51_paint(chip, col);
+            chips.appendChild(chip);
+        });
+        prev.appendChild(chips);
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const form = document.getElementById("o51Form");
+        form.addEventListener("input", o51_refresh);
+        form.addEventListener("change", o51_refresh);
+
+        document.querySelectorAll(".tg-swatch").forEach(function (b) {
+            b.addEventListener("click", function () {
+                document.getElementById("Rec_o51BackColor").value = b.dataset.bg;
+                document.getElementById("Rec_o51ForeColor").value = b.dataset.fg;
+                o51_refresh();
+            });
+        });
+
+        //nová barva: rozumné výchozí hodnoty místo černé na černé
+        const bg = document.getElementById("Rec_o51BackColor"), fg = document.getElementById("Rec_o51ForeColor");
+        document.getElementById("Rec_o51IsColor").addEventListener("change", function () {
+            if (this.checked && bg.value.toLowerCase() === fg.value.toLowerCase()) { bg.value = "#d0ebff"; fg.value = "#0b4b92"; }
+            o51_refresh();
+        });
+
+        //Ctrl+V více řádků do pole jednoho názvu (nový záznam): přepnout na více štítků a text přenést do seznamu
+        const ta = document.getElementById("BatchNames");
+        if (ta) {
+            document.getElementById("Rec_o51Name").addEventListener("paste", function (e) {
+                const text = (e.clipboardData || window.clipboardData).getData("text") || "";
+                if (text.split(/[\r\n\t]+/).filter(p => p.trim() !== "").length < 2) return;
+                e.preventDefault();
+                const keep = this.value.trim();
+                this.value = "";
+                ta.value = [ta.value.trim(), keep, text.trim()].filter(p => p !== "").join("\n");
+                document.getElementById("o51ModeBatch").checked = true;
+                o51_refresh();
+                ta.focus();
+            });
+        }
+
+        o51_refresh();
+    });
 </script>
-
-
-

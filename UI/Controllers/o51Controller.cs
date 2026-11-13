@@ -81,11 +81,22 @@ namespace UI.Controllers
 
             return View(v);
         }
-        public IActionResult Record(int pid, bool isclone)
+        public IActionResult Record(int pid, bool isclone, int o53id)
         {           
             
             var v = new o51Record() { rec_pid = pid, rec_entity = "o51" };
             v.Rec = new BO.o51Tag();
+            v.IsBatch = (pid == 0);  //nový záznam: výchozí je založení více štítků najednou
+            if (v.rec_pid == 0 && o53id > 0)
+            {
+                //nový štítek s předvyplněnou skupinou
+                var recO53 = Factory.o53TagGroupBL.Load(o53id);
+                if (recO53 != null)
+                {
+                    v.Rec.o53ID = recO53.pid;
+                    v.Combo_o53Name = recO53.o53Name;
+                }
+            }
             if (v.rec_pid > 0)
             {
                 v.Rec = Factory.o51TagBL.Load(v.rec_pid);                
@@ -107,7 +118,11 @@ namespace UI.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Record(o51Record v)
         {
-            
+            if (v.rec_pid == 0 && v.IsBatch)
+            {
+                return SaveBatch(v);
+            }
+
             if (ModelState.IsValid)
             {
                 BO.o51Tag c = new BO.o51Tag();
@@ -134,6 +149,92 @@ namespace UI.Controllers
            
             this.Notify_RecNotSaved();
             return View(v);
+        }
+
+
+        //Více štítků najednou: každý název = jeden záznam o51 ve vybrané skupině, se společnou barvou, pořadím a platností.
+        //Názvy, které už ve skupině jsou, se přeskočí – opakované odeslání tak nezaloží nic dvakrát.
+        private IActionResult SaveBatch(o51Record v)
+        {
+            var names = ParseBatchNames(v.BatchNames);
+
+            if (v.Rec.o53ID == 0)
+            {
+                this.AddMessage("Chybí vyplnit štítek (skupinu).");
+                return View(v);
+            }
+            if (names.Count == 0)
+            {
+                this.AddMessage("Napište alespoň jeden název štítku.");
+                return View(v);
+            }
+            if (names.Count > BatchMaxCount)
+            {
+                this.AddMessageTranslated(string.Format(Factory.tra("Najednou lze založit nejvýše {0} štítků."), BatchMaxCount));
+                return View(v);
+            }
+            var tooLong = names.Where(p => p.Length > 30).ToList();
+            if (tooLong.Count > 0)
+            {
+                this.AddMessageTranslated(Factory.tra("V názvu položky štítku může být maximálně 30 znaků.") + " (" + string.Join(", ", tooLong) + ")");
+                return View(v);
+            }
+
+            var existing = new HashSet<string>(Factory.o51TagBL.GetList(new BO.myQueryO51()).Where(p => p.o53ID == v.Rec.o53ID && p.o51Name != null).Select(p => p.o51Name.Trim().ToLower()));
+            var todo = names.Where(p => !existing.Contains(p.ToLower())).ToList();
+            if (todo.Count == 0)
+            {
+                this.AddMessage("Všechny uvedené štítky už ve skupině existují.");
+                return View(v);
+            }
+
+            int created = 0;
+            int lastPid = 0;
+            foreach (string name in todo)
+            {
+                var c = new BO.o51Tag()
+                {
+                    o53ID = v.Rec.o53ID,
+                    o51Name = name,
+                    o51Ordinary = v.Rec.o51Ordinary,
+                    o51IsColor = v.Rec.o51IsColor,
+                    o51BackColor = v.Rec.o51BackColor,
+                    o51ForeColor = v.Rec.o51ForeColor
+                };
+                c.ValidUntil = v.Toolbar.GetValidUntil(c);
+                c.ValidFrom = v.Toolbar.GetValidFrom(c);
+
+                int pid = Factory.o51TagBL.Save(c);
+                if (pid == 0)
+                {
+                    //důvod už ohlásila BL; co se založilo, zůstává – po opravě stačí odeslat znovu
+                    this.AddMessageTranslated(string.Format(Factory.tra("Založeno štítků: {0} z {1}. Zastaveno u „{2}“."), created, todo.Count, name), "warning");
+                    return View(v);
+                }
+                lastPid = pid;
+                created += 1;
+            }
+
+            this.AddMessageTranslated(string.Format(Factory.tra("Založeno štítků: {0}."), created), "info");
+            v.SetJavascript_CallOnLoad(lastPid);
+            return View(v);
+        }
+
+        private const int BatchMaxCount = 200;
+
+        //názvy oddělené novým řádkem, středníkem nebo čárkou (čárku název štítku obsahovat nesmí); bez prázdných a opakovaných
+        private static List<string> ParseBatchNames(string s)
+        {
+            var lis = new List<string>();
+            if (string.IsNullOrWhiteSpace(s)) return lis;
+            var seen = new HashSet<string>();
+            foreach (string part in s.Split(new[] { '\r', '\n', '\t', ';', ',' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                string name = System.Text.RegularExpressions.Regex.Replace(part, @"\s+", " ").Trim();
+                if (name == "") continue;
+                if (seen.Add(name.ToLower())) lis.Add(name);
+            }
+            return lis;
         }
 
 
