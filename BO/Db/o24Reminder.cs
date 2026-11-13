@@ -6,7 +6,8 @@ namespace BO
     {
         Email = 1,
         Sms = 2,
-        EmailPlusSms=3
+        EmailPlusSms=3,
+        Chat = 4        //pouze interní chat (konverzace „MARKTIME upozornění“); ostatní volby posílají do chatu navíc
     }
     public class o24Reminder : BaseBO
     {

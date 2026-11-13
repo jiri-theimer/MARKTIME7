@@ -162,7 +162,7 @@
         "p24" => _f.tra("Skupina kontaktů"),
         _ => ""
     };
-    string _How(int flag) => (flag == 2 ? "SMS" : (flag == 3 ? "E-mail + SMS" : "E-mail")) + " + chat";
+    string _How(int flag) => flag == 4 ? _f.tra("Pouze chat") : (flag == 2 ? "SMS" : (flag == 3 ? "E-mail + SMS" : "E-mail")) + " + chat";
     int _visible = Model.lisReminder == null ? 0 : Model.lisReminder.Count(p => !p.IsTempDeleted);
 }
 

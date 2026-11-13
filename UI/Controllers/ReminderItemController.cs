@@ -107,6 +107,11 @@ namespace UI.Controllers
                     v.message = "Na vstupu chybí zadat skupina kontaktů.";
                     return View(v);
                 }
+                if (v.o24MediumFlag == BO.o24MediumFlagEnum.Chat && (v.BindPrefix == "p28" || v.BindPrefix == "p24"))
+                {
+                    v.message = "Kontakty interní chat nemají – zvolte e-mail nebo SMS.";
+                    return View(v);
+                }
                 v.issubmit = true;
                 
                 return View(v);

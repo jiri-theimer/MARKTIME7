@@ -12,6 +12,7 @@
 @{
     //výchozí hodnoty nového upozornění: e-mail, 1 den předem
     if ((int)Model.o24MediumFlag == 0) { Model.o24MediumFlag = BO.o24MediumFlagEnum.Email; }
+    if (Model.o24MediumFlag == BO.o24MediumFlagEnum.Chat && (Model.BindPrefix == "p28" || Model.BindPrefix == "p24")) { Model.o24MediumFlag = BO.o24MediumFlagEnum.Email; }     //kontakt chat nemá
     if (!Model.is_static_date && Model.o24Count == 0) { Model.o24Count = -1; Model.o24Unit = "d"; }
     if (string.IsNullOrEmpty(Model.o24Unit)) { Model.o24Unit = "d"; }
 
@@ -125,8 +126,16 @@
                 <input type="radio" name="o24MediumFlag" id="rmHow_3" value="EmailPlusSms" checked="@(Model.o24MediumFlag == BO.o24MediumFlagEnum.EmailPlusSms)" />
                 <span><span class="material-icons-outlined-nosize">forward_to_inbox</span>E-mail + SMS</span>
             </label>
+            @if (Model.BindPrefix != "p28" && Model.BindPrefix != "p24")
+            {
+                @* kontakty interní chat nemají - volba by pro ně nic nedoručila *@
+                <label class="rm-seg">
+                    <input type="radio" name="o24MediumFlag" id="rmHow_4" value="Chat" checked="@(Model.o24MediumFlag == BO.o24MediumFlagEnum.Chat)" />
+                    <span><span class="material-icons-outlined-nosize">forum</span>@_f.tra("Pouze chat")</span>
+                </label>
+            }
         </div>
-        <div class="rm-dlg-note"><span class="material-icons-outlined-nosize">forum</span>@_f.tra("Uživatelé MARKTIME dostanou upozornění vždy také do interního chatu.")</div>
+        <div class="rm-dlg-note"><span class="material-icons-outlined-nosize">forum</span>@_f.tra("E-mail i SMS: uživatelé MARKTIME dostanou upozornění vždy také do interního chatu. Pouze chat: e-mail ani SMS neodejde.")</div>
     </section>
 
     <section class="rm-sec">

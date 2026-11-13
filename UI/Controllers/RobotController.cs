@@ -651,6 +651,7 @@ namespace UI.Controllers
 
         /// <summary>
         /// Upozornění k záznamům (o24Reminder): e-mail / SMS podle o24MediumFlag a vždy i interní chat (příjemcům, kteří jsou uživatelé s chatem).
+        /// o24MediumFlag = Chat: jen interní chat.
         /// Do chatu se posílá jednou - ve chvíli, kdy se upozornění označuje za zpracované. Bez výchozího SMTP účtu se e-mailová upozornění
         /// doručí jen do chatu; komu se do chatu doručit nedalo, tomu upozornění dál čeká na SMTP účet.
         /// </summary>
@@ -712,6 +713,18 @@ namespace UI.Controllers
                         recX40.x40Body = sb.ToString();
 
                         bool bolChatDone = false;   //do chatu jen jednou, až když je upozornění zpracované
+                        if (c.o24MediumFlag == BO.o24MediumFlagEnum.Chat)   //pouze interní chat: e-mail ani SMS neodchází
+                        {
+                            int intChat = _f.ChatBL.PostNotification(receivers, ReminderChatText(c, strRecAlias));
+                            if (intChat == 0)
+                            {
+                                //nikdo z příjemců chat nemá: opakováním by se nic nezměnilo, upozornění se uzavře a zapíše do logu
+                                LogInfo(BO.j91RobotTaskFlag.Hlidac, null, $"Upozornění [pouze chat] k záznamu [{strRecAlias}] nebylo doručeno - žádný příjemce nemá interní chat.");
+                            }
+                            c.o24DatetimeProcessed = DateTime.Now;
+                            _f.o24ReminderBL.Save(c);
+                            bolChatDone = true;
+                        }
                         if (c.o24MediumFlag == BO.o24MediumFlagEnum.Email || c.o24MediumFlag == BO.o24MediumFlagEnum.EmailPlusSms)  //odeslat upozornění přes e-mail
                         {
                             if (v.smtp_account != null)
