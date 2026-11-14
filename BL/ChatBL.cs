@@ -746,6 +746,7 @@ namespace BL
                     _db.RunSql("UPDATE u01Channel SET u02ID_Last=@u02id,u01DateLastMessage=GETDATE() WHERE u01ID=@u01id", new { u02id = intU02ID, u01id = intU01ID });
                     intCount += 1;
                     ChatEvents.ChannelChanged?.Invoke(new List<string> { u.j02Login }, intU01ID);
+                    _mother.PushBL.ChatMessage(intU02ID);     //upozornění i do mobilu (web push)
                 }
             }
             catch (Exception e)

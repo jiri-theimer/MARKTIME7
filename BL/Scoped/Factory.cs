@@ -67,6 +67,7 @@ namespace BL
         private Ip27PctypeBL _p27;
         private Ij11TeamBL _j11;
         private IChatBL _chat;
+        private IPushBL _push;
         
         private Ij18CostUnitBL _j18;
         private Ij25ReportCategoryBL _j25;
@@ -535,6 +536,14 @@ namespace BL
             {
                 if (_chat == null) _chat = new ChatBL(this);
                 return _chat;
+            }
+        }
+        public IPushBL PushBL   //web push: upozornění na zprávy chatu do mobilní aplikace (tabulka u05)
+        {
+            get
+            {
+                if (_push == null) _push = new PushBL(this);
+                return _push;
             }
         }
         public Ij11TeamBL j11TeamBL

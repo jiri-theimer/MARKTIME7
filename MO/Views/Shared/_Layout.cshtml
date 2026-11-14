@@ -1,6 +1,7 @@
 @model BaseViewModel
 @inject BL.Factory _f
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery _xsrf
+@inject BL.AI.Core.ILlmClient _llm
 @{
     var activeAction = (string)ViewContext.RouteData.Values["action"] ?? "";
     var activeController = (string)ViewContext.RouteData.Values["controller"] ?? "";
@@ -45,7 +46,16 @@
     // Interní chat: položka v docku jen když má uživatel oprávnění a databáze tabulky chatu.
     var hasChat = isAuthenticated && _f.CurrentUser != null && _f.ChatBL.IsAvailable();
     var chatUnread = hasChat ? _f.ChatBL.GetUnreadTotal() : 0;
+    // Web push: veřejný klíč serveru pro mo-push.js (prázdný = upozornění nejsou nastavená)
+    var pushKey = hasChat && _f.PushBL.IsAvailable() ? _f.PushBL.PublicKey : "";
     var bodyClass = ViewData["BodyClass"] as string;
+
+    // AI asistent: ikona v horní liště jen když je AI zapnuté pro licenci a uživatel má oprávnění GR_AI.
+    var hasAi = false;
+    if (isAuthenticated && _f.CurrentUser != null)
+    {
+        try { hasAi = _llm.Options.Enabled; } catch { hasAi = false; }
+    }
 }
 <!DOCTYPE html>
 <html lang="@System.Globalization.CultureInfo.CurrentUICulture.Name" data-theme="light">
@@ -264,7 +274,7 @@
             })();
     </script>
 </head>
-<body class="min-h-screen bg-base-200 @bodyClass" style="overflow-x:hidden;" data-mo-root="@Url.Content("~/")" data-mo-chat="@(hasChat ? "1" : "0")">
+<body class="min-h-screen bg-base-200 @bodyClass" style="overflow-x:hidden;" data-mo-root="@Url.Content("~/")" data-mo-chat="@(hasChat ? "1" : "0")" data-mo-push-key="@pushKey" data-mo-me="@(_f.CurrentUser?.pid ?? 0)">
 
     @* Drawer "Více" - řízeno přímo přes JS třídu (ne přes CSS :checked trik), inline skript
        přímo v layoutu (ne v cachovaném externím souboru), aby fungovalo spolehlivě i při
@@ -309,6 +319,12 @@
                 <div class="flex-none gap-2">
                     @if (isAuthenticated)
                     {
+                        @if (hasAi)
+                        {
+                            <a asp-controller="Ai" asp-action="Index" class="btn btn-ghost btn-sm btn-circle" title="@_f.tra("AI asistent")">
+                                <span class="material-icons-outlined text-primary" style="font-size:21px;">auto_awesome</span>
+                            </a>
+                        }
                         <a asp-controller="Ukon" asp-action="QuickAdd" class="btn btn-ghost btn-sm btn-circle" title="@_f.tra("Nový úkon")">
                             <span class="material-icons-outlined" style="font-size:22px;">add</span>
                         </a>
@@ -457,6 +473,15 @@
                             @_f.tra("Profil")
                         </a>
                     </li>
+                    @if (hasAi)
+                    {
+                        <li>
+                            <a asp-controller="Ai" asp-action="Index">
+                                <span class="material-icons-outlined" style="font-size:20px;">auto_awesome</span>
+                                @_f.tra("AI asistent")
+                            </a>
+                        </li>
+                    }
                     <li>
                         <a asp-controller="Stopky" asp-action="Index" class="@IsActive("Stopky")">
                             <span class="material-icons-outlined" style="font-size:20px;">history_toggle_off</span>
@@ -481,7 +506,7 @@
                 {
                     <ul class="menu menu-lg gap-1 p-0 mt-2 pt-2 border-t border-base-300">
                         <li>
-                            <a asp-controller="Home" asp-action="Logout" style="color:var(--color-error,#dc2626);">
+                            <a asp-controller="Home" asp-action="Logout" data-mo-logout style="color:var(--color-error,#dc2626);">
                                 <span class="material-icons-outlined" style="font-size:20px;">logout</span>
                                 @_f.tra("Odhlásit")
                             </a>
@@ -503,6 +528,7 @@
     <script src="~/js/mo-sw-register.js" asp-append-version="true"></script>
     <script src="~/js/mo-api.js" asp-append-version="true"></script>
     <script src="~/js/mo-live.js" asp-append-version="true"></script>
+    <script src="~/js/mo-push.js" asp-append-version="true"></script>
 
     @await RenderSectionAsync("scripts", required: false)
 

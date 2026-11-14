@@ -1,0 +1,101 @@
+@model AiViewModel
+@inject BL.Factory _f
+@{
+    // asistent zabírá celou obrazovku jako konverzace chatu: bez horní lišty a docku
+    ViewData["BodyClass"] = "moc-thread-page";
+
+    var examples = new List<string>();
+    if (Model.CanWriteHours)
+    {
+        examples.Add(_f.tra("Zapiš mi 2 hodiny jednání v Microsoftu od 14 do 16"));
+        examples.Add(_f.tra("Kolik hodin jsem vykázal tento týden?"));
+    }
+    examples.Add(_f.tra("Co mě čeká tento týden?"));
+    examples.Add(_f.tra("Které moje úkoly jsou po termínu?"));
+
+    var cfg = new
+    {
+        me = Model.MyID,
+        t = new Dictionary<string, string>
+        {
+            ["thinking"] = _f.tra("Přemýšlím…"),
+            ["error"] = _f.tra("Dotaz se nepodařilo zpracovat. Zkuste to prosím znovu."),
+            ["network"] = _f.tra("Server neodpověděl. Zkontrolujte připojení a zkuste to znovu."),
+            ["total"] = _f.tra("Celkem"),
+            ["yes"] = _f.tra("ano"),
+            ["no"] = _f.tra("ne"),
+            ["more"] = _f.tra("a dalších {0} řádků"),
+            ["count"] = _f.tra("Počet záznamů: {0}"),
+            ["ukonTitle"] = _f.tra("Návrh úkonu – zkontrolujte a potvrďte"),
+            ["ukonSavedTitle"] = _f.tra("Úkon je zapsaný"),
+            ["ukonCancelledTitle"] = _f.tra("Návrh zrušen – nic se nezapsalo"),
+            ["ukonDate"] = _f.tra("Datum"),
+            ["ukonTime"] = _f.tra("Čas"),
+            ["ukonProject"] = _f.tra("Projekt"),
+            ["ukonClient"] = _f.tra("Klient"),
+            ["ukonActivity"] = _f.tra("Aktivita"),
+            ["ukonTask"] = _f.tra("Úkol"),
+            ["ukonHours"] = _f.tra("Hodiny"),
+            ["ukonText"] = _f.tra("Text"),
+            ["ukonTextInternal"] = _f.tra("Interní text"),
+            ["ukonSave"] = _f.tra("Zapsat"),
+            ["ukonCancel"] = _f.tra("Zrušit"),
+            ["ukonOpen"] = _f.tra("Otevřít úkon"),
+            ["ukonError"] = _f.tra("Úkon se nepodařilo zapsat.")
+        }
+    };
+}
+
+<div class="moc-thead">
+    <a asp-controller="Home" asp-action="Index" class="moc-back" title="@_f.tra("Zpět")">
+        <span class="material-icons-outlined" style="font-size:22px;">arrow_back</span>
+    </a>
+    <div style="min-width:0;flex:1 1 auto;">
+        <div class="moc-tname">@_f.tra("AI asistent")</div>
+        <div class="moc-tsub">@_f.tra("Dotazy na data a vykázání hodin")</div>
+    </div>
+    @if (Model.IsEnabled)
+    {
+        <button type="button" class="moc-back" id="moaNew" title="@_f.tra("Nová konverzace")" style="border:0;background:none;">
+            <span class="material-icons-outlined" style="font-size:22px;">add_comment</span>
+        </button>
+    }
+</div>
+
+@if (!Model.IsEnabled)
+{
+    <div class="moc-empty">@Model.DisabledReason</div>
+}
+else
+{
+    <div class="moc-msgs" id="moaMsgs">
+        <div class="moa-intro" id="moaIntro">
+            <div class="moa-intro-title">@_f.tra("Zeptejte se nebo zadejte pokyn")</div>
+            <div class="moa-intro-text">@_f.tra("Umím odpovídat na otázky nad vašimi daty a připravit vykázání hodin. Úkon se zapíše až po vašem potvrzení.")</div>
+            <div class="moa-examples">
+                @foreach (var q in examples)
+                {
+                    <button type="button" class="moa-example" data-q="@q">@q</button>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="moc-composer">
+        <div class="moc-crow">
+            <textarea id="moaInput" class="moc-input" rows="1" maxlength="4000" placeholder="@_f.tra("Dotaz nebo pokyn…")"></textarea>
+            <button type="button" class="moc-ibtn send" id="moaSend" title="@_f.tra("Odeslat")" disabled>
+                <span class="material-icons-outlined" style="font-size:20px;">send</span>
+            </button>
+        </div>
+    </div>
+
+    <script type="application/json" id="moaConfig">@Html.Raw(System.Text.Json.JsonSerializer.Serialize(cfg))</script>
+}
+
+@section scripts {
+    @if (Model.IsEnabled)
+    {
+        <script src="~/js/mo-ai.js" asp-append-version="true"></script>
+    }
+}

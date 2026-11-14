@@ -38,6 +38,16 @@ else
 
     <div class="moc-status" id="mocStatus" hidden></div>
 
+    @* výzva k zapnutí upozornění - jen když je prohlížeč umí a uživatel je ještě nezapnul ani neodmítl *@
+    <div class="moc-pushbar" id="mocPushBar" hidden>
+        <span class="material-icons-outlined" style="font-size:20px;">notifications_active</span>
+        <span class="moc-pushbar-text">@_f.tra("Chcete vědět o nové zprávě, i když aplikaci nemáte otevřenou?")</span>
+        <button type="button" class="btn btn-primary btn-xs" id="mocPushOn">@_f.tra("Zapnout")</button>
+        <button type="button" class="btn btn-ghost btn-xs btn-circle" id="mocPushNo" title="@_f.tra("Teď ne")">
+            <span class="material-icons-outlined" style="font-size:16px;">close</span>
+        </button>
+    </div>
+
     <input type="search" id="mocSearch" class="moc-search" placeholder="@_f.tra("Hledat konverzaci")" autocomplete="off" />
 
     <div class="moc-list" id="mocList">
@@ -64,5 +74,23 @@ else
     @if (Model.IsAvailable)
     {
         <script src="~/js/mo-chat.js" asp-append-version="true"></script>
+        <script>
+            (function () {
+                var bar = document.getElementById('mocPushBar');
+                if (!bar || !window.moPush || !moPush.supported()) return;
+                var KEY = 'mo-push-asked';
+                var asked = null;
+                try { asked = localStorage.getItem(KEY); } catch (e) { }
+                if (asked) return;
+                moPush.state().then(function (s) { bar.hidden = s !== 'off'; });
+                document.getElementById('mocPushOn').addEventListener('click', function () {
+                    moPush.enable().then(function () { bar.hidden = true; try { localStorage.setItem(KEY, '1'); } catch (e) { } });
+                });
+                document.getElementById('mocPushNo').addEventListener('click', function () {
+                    bar.hidden = true;
+                    try { localStorage.setItem(KEY, '1'); } catch (e) { }
+                });
+            })();
+        </script>
     }
 }

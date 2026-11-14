@@ -287,6 +287,7 @@ namespace MO.Controllers
 
             var json = ToJson(msg);
             Push(u01id, "message", json, intU02ID);
+            Factory.PushBL.ChatMessage(intU02ID);     //upozornění do mobilu (web push) členům, kteří nemají konverzaci ztlumenou
             return Json(new { ok = true, message = json, rejected = rejected });
         }
 

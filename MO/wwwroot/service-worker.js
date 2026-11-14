@@ -4,7 +4,7 @@
 // - HTML stránky (navigace) jdou vždy network-first - v MO se zobrazují osobní/aktuální data
 //   (úkony, úkoly...), takže by bylo nebezpečné je agresivně cachovat a ukazovat neaktuální
 //   obsah; cache tady slouží jen jako fallback při úplném výpadku připojení (offline.html)
-const CACHE_NAME = 'mo-static-v3';
+const CACHE_NAME = 'mo-static-v4';
 
 const STATIC_ASSETS = [
     '/css/app.css',
@@ -69,4 +69,47 @@ self.addEventListener('fetch', function (event) {
             })
         );
     }
+});
+
+// ===== Web push: upozornění na nové zprávy chatu =====
+// Server (BL.PushBL) posílá JSON { title, body, url, tag, u01id }. Adresa "url" je relativní ke kořenu aplikace.
+self.addEventListener('push', function (event) {
+    var data = {};
+    try { data = event.data ? event.data.json() : {}; } catch (e) { data = {}; }
+    var title = data.title || 'MARKtime';
+    var url = new URL(data.url || 'Chat/Index', self.registration.scope).href;
+
+    event.waitUntil(
+        self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (list) {
+            // Uživatel má konverzaci právě otevřenou a viditelnou - zprávu vidí, upozornění by jen rušilo.
+            var watching = data.u01id > 0 && list.some(function (c) {
+                return c.visibilityState === 'visible' && new RegExp('/Chat/Thread/' + data.u01id + '(\\D|$)', 'i').test(c.url);
+            });
+            if (watching) return;
+            return self.registration.showNotification(title, {
+                body: data.body || '',
+                tag: data.tag || 'chat',        // další zpráva ze stejné konverzace nahradí předchozí upozornění
+                renotify: true,
+                icon: '/images/icons/icon-192.png',
+                badge: '/images/icons/icon-192.png',
+                data: { url: url }
+            });
+        })
+    );
+});
+
+self.addEventListener('notificationclick', function (event) {
+    event.notification.close();
+    var url = (event.notification.data && event.notification.data.url) || self.registration.scope;
+    event.waitUntil(
+        self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (list) {
+            for (var i = 0; i < list.length; i++) {
+                var c = list[i];
+                if ('focus' in c) {
+                    return c.focus().then(function (w) { return w && 'navigate' in w ? w.navigate(url) : null; });
+                }
+            }
+            return self.clients.openWindow(url);
+        })
+    );
 });

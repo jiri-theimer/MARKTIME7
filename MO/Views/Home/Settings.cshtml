@@ -1,4 +1,15 @@
 ﻿@model SettingsViewModel
+@inject BL.Factory _f
+@{
+    // Web push: proč karta případně nejde použít (ať je to vidět rovnou tady a nemusí se hledat v logu)
+    var pushHasChat = _f.ChatBL.IsAvailable();
+    var pushHasKeys = !string.IsNullOrWhiteSpace(_f.PushBL.PublicKey);
+    var pushReady = pushHasChat && _f.PushBL.IsAvailable();
+    var pushProblem = !pushHasChat ? _f.tra("Upozornění patří k internímu chatu, ke kterému nemáte oprávnění.")
+        : !pushHasKeys ? _f.tra("Upozornění nejsou na serveru nastavená (v appsettings.json chybí sekce Push s klíči, nebo aplikace nebyla po úpravě restartována).")
+        : !pushReady ? _f.tra("Upozornění nejsou na serveru nastavená (v databázi chybí tabulka u05PushSubscription – skript chat_push.sql). Po spuštění skriptu to může trvat až 5 minut.")
+        : null;
+}
 
 <div class="grid gap-3">
 
@@ -49,6 +60,19 @@
         </div>
     </form>
 
+    @* ===== Upozornění na nové zprávy chatu (web push) ===== *@
+    <div class="card bg-base-100 shadow-sm" id="moPushCard">
+        <div class="card-body p-3 gap-2">
+            <div class="font-semibold text-sm">@_f.tra("Upozornění na nové zprávy")</div>
+            <div class="text-xs text-base-content/50 -mt-1" id="moPushInfo">@pushProblem</div>
+            <div class="flex gap-2">
+                <button type="button" class="btn btn-primary btn-sm" id="moPushOn" hidden>@_f.tra("Zapnout upozornění")</button>
+                <button type="button" class="btn btn-ghost btn-sm" id="moPushOff" hidden>@_f.tra("Vypnout")</button>
+                <button type="button" class="btn btn-ghost btn-sm" id="moPushTest" hidden>@_f.tra("Poslat zkušební")</button>
+            </div>
+        </div>
+    </div>
+
     <a asp-controller="Home" asp-action="ChangePassword" class="card bg-base-100 shadow-sm hover:bg-base-300 transition">
         <div class="card-body p-3 flex-row items-center justify-between">
             <div class="flex items-center gap-2">
@@ -60,3 +84,40 @@
     </a>
 
 </div>
+
+@section scripts {
+    <script>
+        (function () {
+            var card = document.getElementById('moPushCard');
+            if (!card || !window.moPush || document.body.getAttribute('data-mo-chat') !== '1' || !document.body.getAttribute('data-mo-push-key')) return;   // důvod je vypsaný v kartě
+            var info = document.getElementById('moPushInfo'), on = document.getElementById('moPushOn'),
+                off = document.getElementById('moPushOff'), test = document.getElementById('moPushTest');
+            var T = {
+                on: '@_f.tra("Na tomto zařízení jsou upozornění zapnutá.")',
+                off: '@_f.tra("Dáme vám vědět o nové zprávě v chatu, i když aplikaci nemáte otevřenou.")',
+                denied: '@_f.tra("Upozornění jsou pro tuto aplikaci zakázaná v nastavení telefonu nebo prohlížeče. Povolte je tam a vraťte se sem.")',
+                unsupported: '@_f.tra("Tento prohlížeč upozornění nepodporuje. Na iPhonu nejdřív přidejte aplikaci na plochu (Sdílet → Přidat na plochu) a otevřete ji odtud.")',
+                sent: '@_f.tra("Zkušební upozornění odesláno. Mělo by dorazit během pár sekund.")',
+                failed: '@_f.tra("Upozornění se nepodařilo zapnout.")'
+            };
+            function show(s) {
+                card.hidden = false;
+                info.textContent = T[s] || '';
+                on.hidden = s !== 'off';
+                off.hidden = s !== 'on';
+                test.hidden = s !== 'on';
+            }
+            function refresh() { moPush.state().then(show); }
+            on.addEventListener('click', function () {
+                on.disabled = true;
+                moPush.enable().then(function (ok) { on.disabled = false; refresh(); if (!ok && Notification.permission !== 'denied') info.textContent = T.failed; })
+                    .catch(function () { on.disabled = false; info.textContent = T.failed; });
+            });
+            off.addEventListener('click', function () { moPush.disable().then(refresh); });
+            test.addEventListener('click', function () {
+                moPush.test().then(function (d) { info.textContent = d && d.ok ? T.sent : ((d && d.message) || T.failed); }).catch(function () { info.textContent = T.failed; });
+            });
+            refresh();
+        })();
+    </script>
+}

@@ -77,6 +77,10 @@ namespace MO
 
             services.AddSignalR();  // interní chat: MO.Code.ChatHub
 
+            // AI asistent (Ai/Index): stejná konfigurace jako v UI - sekce "AI" v appsettings.json + licence + oprávnění GR_AI
+            services.AddSingleton<BL.AI.Core.AiConfig>();
+            services.AddScoped<BL.AI.Core.ILlmClient>(p => p.GetRequiredService<BL.AI.Core.AiConfig>().CreateClient(p));
+
             services.AddRazorPages().AddNewtonsoftJson();   // kvůli Telerik Reporting
 
 
