@@ -126,6 +126,9 @@ namespace UI.Controllers
                         message = message
                     });
                 }
+
+                //stejnou událost dostanou i uživatelé připojení přes mobilní aplikaci MO
+                UI.Code.ChatRelay.Send(HttpContext.RequestServices, members.Where(p => !string.IsNullOrEmpty(p.j02Login)).Select(p => new UI.Code.ChatRelay.Target() { login = p.j02Login, muted = p.u03IsMuted }).ToList(), strType, u01id, u02id, Factory.CurrentUser.pid, message);
             }
             catch (Exception e)
             {

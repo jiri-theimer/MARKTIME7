@@ -660,7 +660,7 @@ namespace MO.Controllers
             }
             if (v.Ret == "ukony" && !string.IsNullOrEmpty(v.RetD))
             {
-                return Redirect(v.RetD + "#entry-" + v.pid);
+                return Redirect(SafeLocalUrl(v.RetD, Url.Action("Ukony", "Home")) + "#entry-" + v.pid);
             }
             return Redirect(Url.Action("Day", "Calendar", new { d = v.Date.ToString("yyyy-MM-dd") }) + "#entry-" + v.pid);
         }
@@ -915,7 +915,7 @@ namespace MO.Controllers
             }
             if (v.Ret == "ukony" && !string.IsNullOrEmpty(v.RetD))
             {
-                return Redirect(v.RetD + "#entry-" + v.pid);
+                return Redirect(SafeLocalUrl(v.RetD, Url.Action("Ukony", "Home")) + "#entry-" + v.pid);
             }
             return Redirect(Url.Action("Day", "Calendar", new { d = v.Date.ToString("yyyy-MM-dd") }) + "#entry-" + v.pid);
         }
@@ -1071,7 +1071,7 @@ namespace MO.Controllers
             }
             if (v.Ret == "ukony" && !string.IsNullOrEmpty(v.RetD))
             {
-                return Redirect(v.RetD + "#entry-" + v.pid);
+                return Redirect(SafeLocalUrl(v.RetD, Url.Action("Ukony", "Home")) + "#entry-" + v.pid);
             }
             return Redirect(Url.Action("Day", "Calendar", new { d = v.Date.ToString("yyyy-MM-dd") }) + "#entry-" + v.pid);
         }
@@ -1110,7 +1110,7 @@ namespace MO.Controllers
             }
             if (ret == "ukony" && !string.IsNullOrEmpty(retd))
             {
-                return Redirect(retd);
+                return Redirect(SafeLocalUrl(retd, Url.Action("Ukony", "Home")));
             }
             return RedirectToAction("Day", "Calendar", new { d });
         }

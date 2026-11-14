@@ -16,11 +16,11 @@ namespace MO.Controllers
 
 
         [HttpGet]
-        public ActionResult UserLogin()
+        public async Task<ActionResult> UserLogin()
         {
             if (User.Identity.IsAuthenticated)
             {
-                TryLogout();
+                await HttpContext.SignOutAsync("Identity.Application");
             }
 
             var v = new LoginViewModel();
@@ -34,19 +34,13 @@ namespace MO.Controllers
         }
 
 
-        private async void TryLogout()
-        {
-            await HttpContext.SignOutAsync("Identity.Application");
-        }
-
-
         [HttpPost]
         // Pozn.: ValidateAntiForgeryToken zde záměrně NENÍ - v TWA (Trusted Web Activity, appka
         // z Google Play) izolovaný Chrome kontext způsoboval, že se antiforgery cookie a token
         // spolehlivě neshodovaly, což vedlo k Error 400 při KAŽDÉM pokusu o přihlášení, bez
         // ohledu na správnost hesla. Login-CSRF je výrazně menší riziko než rozbité přihlášení
         // pro appku z Play Store. Ostatní (autentizované) akce zůstávají chráněné beze změny.
-        public ActionResult UserLogin(LoginViewModel v, string returnurl, string oper, string culture)
+        public async Task<ActionResult> UserLogin(LoginViewModel v, string returnurl, string oper, string culture)
         {
             if (oper == "postback")
             {
@@ -56,7 +50,7 @@ namespace MO.Controllers
             // Guru přihlášení (servisní účet)
             if (v.Login == _f.App.GuruLogin && v.Password == _f.App.GuruPassword)
             {
-                SetClaim(v, "guru@marktime.cz");
+                await SetClaim(v, "guru@marktime.cz");
                 return RedirectToAction("Index", "Home");
             }
 
@@ -144,7 +138,7 @@ namespace MO.Controllers
             }
 
             // ověřený
-            SetClaim(v, _f.CurrentUser.j02Email);
+            await SetClaim(v, _f.CurrentUser.j02Email);
 
             if (bolWrite2Log)
             {
@@ -179,7 +173,8 @@ namespace MO.Controllers
 
 
             // MO je už mobilní web - žádné UA-based přesměrování na /Home/Mobile (jako v UI).
-            if (string.IsNullOrEmpty(returnurl) || returnurl.Length < 3)
+            // returnurl smí vést jen dovnitř aplikace (ochrana proti přesměrování na cizí web)
+            if (string.IsNullOrEmpty(returnurl) || returnurl.Length < 3 || !Url.IsLocalUrl(returnurl))
             {
                 return RedirectToAction("Index", "Home");
             }
@@ -195,7 +190,7 @@ namespace MO.Controllers
         }
 
 
-        private void SetClaim(LoginViewModel v, string strEmail)
+        private async Task SetClaim(LoginViewModel v, string strEmail)
         {
             if (string.IsNullOrEmpty(strEmail)) strEmail = "info@marktime.cz";
 
@@ -215,7 +210,7 @@ namespace MO.Controllers
                 ExpiresUtc = DateTime.Now.AddHours(v.CookieExpiresInHours)
             };
 
-            HttpContext.SignInAsync(userPrincipal, props);
+            await HttpContext.SignInAsync(userPrincipal, props);
         }
 
 

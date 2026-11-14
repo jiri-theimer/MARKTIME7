@@ -1,0 +1,68 @@
+@model ChatViewModel
+@inject BL.Factory _f
+@{
+    // konverzace zabírá celou obrazovku: bez horní lišty a docku (zpět vede šipka v hlavičce)
+    ViewData["BodyClass"] = "moc-thread-page";
+
+    var cfg = new
+    {
+        me = Model.MyID,
+        u01id = Model.ChannelID,
+        notifyName = "MARKTIME upozornění",
+        t = new Dictionary<string, string>
+        {
+            ["today"] = _f.tra("Dnes"),
+            ["yesterday"] = _f.tra("Včera"),
+            ["deleted"] = _f.tra("Zpráva byla smazána"),
+            ["edited"] = _f.tra("upraveno"),
+            ["older"] = _f.tra("Starší zprávy"),
+            ["nomessages"] = _f.tra("Zatím žádná zpráva."),
+            ["seen"] = _f.tra("Přečteno"),
+            ["delete"] = _f.tra("Smazat"),
+            ["cancel"] = _f.tra("Zrušit"),
+            ["record"] = _f.tra("Konverzace k záznamu"),
+            ["members"] = _f.tra("členů"),
+            ["toomany"] = _f.tra("Najednou lze přiložit nejvýše 5 souborů."),
+            ["toobig"] = _f.tra("Soubor je větší než 20 MB"),
+            ["rejected"] = _f.tra("Nepodařilo se přiložit"),
+            ["notsent"] = _f.tra("Zprávu se nepodařilo odeslat. Zkontrolujte připojení."),
+            ["error"] = _f.tra("Operaci se nepodařilo provést.")
+        }
+    };
+    // upozornění systému: jen ke čtení a mazání, psát se do něj nedá
+    var isNotify = Model.ChannelType == 2 && Model.ChannelName == "MARKTIME upozornění";
+}
+
+<div class="moc-thead">
+    <a asp-action="Index" class="moc-back" title="@_f.tra("Zpět")">
+        <span class="material-icons-outlined" style="font-size:22px;">arrow_back</span>
+    </a>
+    <div style="min-width:0;">
+        <div class="moc-tname">@Model.ChannelName</div>
+        <div class="moc-tsub" id="mocSub" hidden></div>
+    </div>
+</div>
+
+<div class="moc-status" id="mocStatus" hidden></div>
+
+<div class="moc-msgs" id="mocMsgs" style="@(isNotify ? "padding-bottom:24px;" : "")"></div>
+
+<div class="moc-composer" style="@(isNotify ? "display:none;" : "")">
+    <div class="moc-pending" id="mocPending"></div>
+    <div class="moc-crow">
+        <button type="button" class="moc-ibtn" id="mocAttach" title="@_f.tra("Přiložit soubor nebo fotku")">
+            <span class="material-icons-outlined" style="font-size:22px;">attach_file</span>
+        </button>
+        <textarea id="mocInput" class="moc-input" rows="1" maxlength="4000" placeholder="@_f.tra("Napište zprávu")"></textarea>
+        <button type="button" class="moc-ibtn send" id="mocSend" title="@_f.tra("Odeslat")" disabled>
+            <span class="material-icons-outlined" style="font-size:20px;">send</span>
+        </button>
+    </div>
+    <input type="file" id="mocFile" multiple hidden />
+</div>
+
+<script type="application/json" id="mocConfig">@Html.Raw(System.Text.Json.JsonSerializer.Serialize(cfg))</script>
+
+@section scripts {
+    <script src="~/js/mo-chat.js" asp-append-version="true"></script>
+}

@@ -75,6 +75,8 @@ namespace MO
 
             services.AddHttpClient();
 
+            services.AddSignalR();  // interní chat: MO.Code.ChatHub
+
             services.AddRazorPages().AddNewtonsoftJson();   // kvůli Telerik Reporting
 
 
@@ -175,8 +177,13 @@ namespace MO
             app.UseRequestLocalization();
 
 
+            // interní chat: zprávy zapsané mimo ChatController doručit do prohlížečů přes SignalR
+            BL.ChatEvents.ChannelChanged = (logins, u01id) => MO.Code.ChatHub.NotifyChannel(app.ApplicationServices, logins, u01id);
+
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapHub<MO.Code.ChatHub>("/chathub");   // interní chat
+
                 endpoints.MapControllers();     // kvůli Telerik Reporting
 
                 endpoints.MapControllerRoute(

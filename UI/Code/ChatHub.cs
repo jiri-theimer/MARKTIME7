@@ -32,6 +32,8 @@ namespace UI.Code
                 {
                     _ = hub.Clients.Group(GroupName(strLogin)).SendAsync("chat", new { type = "channel", u01id = u01id, u02id = 0, actorid = 0, muted = false, message = (object)null });
                 }
+                //stejnou událost dostanou i uživatelé připojení přes druhou aplikaci (UI <-> mobilní MO)
+                ChatRelay.Send(sp, logins.Select(p => new ChatRelay.Target() { login = p }).ToList(), "channel", u01id, 0, 0, null);
             }
             catch (Exception e)
             {

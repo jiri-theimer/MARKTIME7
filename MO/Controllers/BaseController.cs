@@ -21,6 +21,16 @@ namespace MO.Controllers
         /// <summary>Úspěšná zpráva — zobrazí se přes layout (přežije redirect)</summary>
         protected void SetMessageSuccess(string msg) => TempData["MessageSuccess"] = msg;
 
+        /// <summary>
+        /// Návratová adresa z formuláře/query (ret, retd, returnurl) smí vést jen dovnitř aplikace.
+        /// Cizí nebo prázdná adresa se nahradí náhradní lokální adresou.
+        /// </summary>
+        protected string SafeLocalUrl(string url, string fallback)
+        {
+            if (!string.IsNullOrEmpty(url) && Url.IsLocalUrl(url)) return url;
+            return fallback;
+        }
+
 
         /// <summary>
         /// Spočítá data pro sdílenou partial view _Stats.cshtml (souhrn hodin, čerpání fondu,
@@ -109,11 +119,22 @@ namespace MO.Controllers
                 return;
             }
 
-            if (Factory.CurrentUser.j02IsMustChangePassword && !IsCurrentContextNoRestriction(context))
+            // Uzamknutá databáze: test i během platného přihlášení (nejen v loginu), jinak by
+            // uživatel s platnou cookie pracoval dál. Admin má přístup vždy.
+            if (!Factory.CurrentUser.IsAdmin && !IsCurrentContextNoRestriction(context))
             {
-                // V MO zatím nepodporujeme změnu hesla - přesměrujeme na UI.
-                // Až bude MO mít vlastní ChangePassword view, změnit na lokální action.
-                context.Result = new RedirectResult("~/Login/UserLogin?msg=mustchangepassword");
+                var recX01 = Factory.x01LicenseBL.Load(Factory.CurrentUser.x01ID);
+                if (recX01 != null && BO.Code.Bas.bit_compare_or(recX01.x01LockFlag, 2))
+                {
+                    context.Result = new RedirectResult("~/Login/UserLogin");
+                    return;
+                }
+            }
+
+            if (Factory.CurrentUser.j02IsMustChangePassword && !IsCurrentContextNoRestriction(context)
+                && !IsChangePasswordAction(context))
+            {
+                context.Result = new RedirectToActionResult("ChangePassword", "Home", null);
                 return;
             }
 
@@ -122,6 +143,12 @@ namespace MO.Controllers
             this.ParentLayoutName = someString;
         }
 
+
+        private bool IsChangePasswordAction(ActionExecutingContext context)
+        {
+            return string.Equals(context.RouteData.Values["action"]?.ToString(), "ChangePassword", StringComparison.OrdinalIgnoreCase)
+                && string.Equals(context.RouteData.Values["controller"]?.ToString(), "Home", StringComparison.OrdinalIgnoreCase);
+        }
 
         private bool IsCurrentContextNoRestriction(ActionExecutingContext context)
         {

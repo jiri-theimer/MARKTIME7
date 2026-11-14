@@ -38,6 +38,16 @@
         </a>
     </div>
 
+    @* ===== Formát úkonů (v docku je jen jedna položka "Úkony") ===== *@
+    <div class="mo-seg">
+        @foreach (var fmt in new[] { (0, _f.tra("Vše")), (1, _f.tra("Hodiny")), (2, _f.tra("Peníze")), (3, _f.tra("Kusovník")) })
+        {
+            <a class="@(Model.FormatFilter == fmt.Item1 ? "on" : "")"
+               asp-action="Ukony" asp-route-d1="@Model.DateFrom.ToString("yyyy-MM-dd")" asp-route-d2="@Model.DateTo.ToString("yyyy-MM-dd")"
+               asp-route-state="@Model.StateFilter" asp-route-format="@fmt.Item1">@fmt.Item2</a>
+        }
+    </div>
+
     @* ===== Filtr ===== *@
     <form method="get" asp-action="Ukony" class="card bg-base-100 shadow-sm">
         <div class="card-body p-3 gap-2">

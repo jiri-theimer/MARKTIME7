@@ -13,7 +13,11 @@ namespace MO
                 {
                     webBuilder.UseStartup<Startup>();
 
-                    webBuilder.UseSetting("detailedErrors", "true");    // detail výpis chyb i v Program.cs/Startup.cs
+                    // Detailní výpis chyb jen při vývoji - v produkci by uživateli ukazoval stack trace.
+                    if (string.Equals(Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"), "Development", StringComparison.OrdinalIgnoreCase))
+                    {
+                        webBuilder.UseSetting("detailedErrors", "true");
+                    }
                 });
     }
 }

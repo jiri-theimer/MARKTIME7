@@ -4,13 +4,15 @@
 // - HTML stránky (navigace) jdou vždy network-first - v MO se zobrazují osobní/aktuální data
 //   (úkony, úkoly...), takže by bylo nebezpečné je agresivně cachovat a ukazovat neaktuální
 //   obsah; cache tady slouží jen jako fallback při úplném výpadku připojení (offline.html)
-const CACHE_NAME = 'mo-static-v2';
+const CACHE_NAME = 'mo-static-v3';
 
 const STATIC_ASSETS = [
     '/css/app.css',
     '/js/mo-prefs.js',
     '/js/mo-double-submit-guard.js',
     '/js/mo-upload-overlay.js',
+    '/js/mo-api.js',
+    '/css/mo-chat.css',
     '/images/icons/icon-192.png',
     '/images/icons/icon-512.png',
     '/offline.html'

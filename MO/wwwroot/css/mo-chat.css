@@ -1,0 +1,145 @@
+/* Interní chat v mobilní aplikaci (Chat/Index, Chat/Thread) + odznak nepřečtených v docku.
+   Čisté CSS nad proměnnými DaisyUI - nezávisí na tom, které třídy jsou ve zkompilovaném app.css. */
+
+/* ── odznak nepřečtených v docku ─────────────────────────────────────────── */
+.mo-dock-ico { position: relative; display: inline-flex; }
+.mo-chat-badge {
+    position: absolute; top: -5px; right: -10px;
+    min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px;
+    background: var(--color-error, #dc2626); color: var(--color-error-content, #fff);
+    font: 600 10px/16px system-ui, sans-serif; text-align: center;
+}
+.mo-chat-badge[hidden] { display: none; }
+
+/* ── přepínač formátu v přehledu úkonů ───────────────────────────────────── */
+.mo-seg { display: flex; gap: 2px; padding: 3px; border-radius: 10px; background: var(--color-base-300); }
+.mo-seg a {
+    flex: 1 1 0; text-align: center; padding: 6px 4px; border-radius: 8px;
+    font-size: 13px; font-weight: 500; color: var(--color-base-content); text-decoration: none; white-space: nowrap;
+}
+.mo-seg a.on { background: var(--color-base-100); box-shadow: 0 1px 2px rgba(0,0,0,.12); color: var(--color-primary); font-weight: 600; }
+
+/* ── seznam konverzací ───────────────────────────────────────────────────── */
+.moc-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.moc-title { font-size: 1.125rem; font-weight: 700; }
+.moc-search {
+    width: 100%; height: 38px; padding: 0 12px; margin-bottom: 10px; border-radius: 10px;
+    border: 1px solid var(--color-base-300); background: var(--color-base-100); color: var(--color-base-content); font-size: 15px;
+}
+.moc-list { background: var(--color-base-100); border-radius: 12px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,.06); }
+.moc-row {
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px; text-decoration: none; color: var(--color-base-content);
+    border-bottom: 1px solid var(--color-base-200); min-height: 60px;
+}
+.moc-row:last-child { border-bottom: 0; }
+.moc-row:active { background: var(--color-base-200); }
+.moc-ava {
+    flex: 0 0 40px; width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    background: color-mix(in oklab, var(--color-primary) 16%, var(--color-base-100)); color: var(--color-primary);
+    font-weight: 600; font-size: 14px;
+}
+.moc-ava.grp { border-radius: 12px; }
+.moc-ava .material-icons-outlined { font-size: 20px; }
+.moc-mid { flex: 1 1 auto; min-width: 0; }
+.moc-name { font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.moc-last { font-size: 13px; opacity: .65; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.moc-row.unread .moc-last { opacity: 1; font-weight: 600; }
+.moc-right { flex: 0 0 auto; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.moc-when { font-size: 11px; opacity: .6; }
+.moc-row.unread .moc-when { opacity: 1; color: var(--color-primary); font-weight: 600; }
+.moc-count {
+    min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px;
+    background: var(--color-primary); color: var(--color-primary-content); font: 600 11px/20px system-ui, sans-serif; text-align: center;
+}
+.moc-flag { font-size: 14px !important; opacity: .5; }
+.moc-empty { padding: 32px 16px; text-align: center; opacity: .65; font-size: 14px; }
+
+/* výběr uživatele pro novou konverzaci */
+.moc-dialog {
+    width: 100%; max-width: 100%; height: 85vh; max-height: 85vh; margin: auto 0 0 0; padding: 0; border: 0;
+    border-radius: 16px 16px 0 0; background: var(--color-base-100); color: var(--color-base-content);
+}
+.moc-dialog::backdrop { background: rgba(0,0,0,.45); }
+.moc-dialog-in { display: flex; flex-direction: column; height: 100%; padding: 14px 14px 0 14px; }
+.moc-dialog-list { flex: 1 1 auto; overflow-y: auto; margin: 0 -14px; padding-bottom: env(safe-area-inset-bottom); }
+.moc-dialog-list .moc-row { border-radius: 0; }
+
+/* ── konverzace ──────────────────────────────────────────────────────────── */
+body.moc-thread-page header.navbar,
+body.moc-thread-page nav.dock { display: none !important; }
+body.moc-thread-page main { padding: 0 !important; }
+
+.moc-thead {
+    position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 8px;
+    padding: 8px 10px; padding-top: calc(8px + env(safe-area-inset-top));
+    background: var(--color-base-100); border-bottom: 1px solid var(--color-base-300);
+}
+.moc-back {
+    flex: 0 0 auto; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    color: var(--color-base-content); text-decoration: none;
+}
+.moc-back:active { background: var(--color-base-200); }
+.moc-tname { font-weight: 600; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.moc-tsub { font-size: 12px; opacity: .6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.moc-msgs { padding: 10px 10px 96px 10px; display: flex; flex-direction: column; gap: 2px; }
+.moc-older {
+    align-self: center; margin: 4px 0 10px 0; padding: 6px 14px; border-radius: 16px; border: 1px solid var(--color-base-300);
+    background: var(--color-base-100); color: var(--color-base-content); font-size: 13px;
+}
+.moc-day { align-self: center; margin: 10px 0 6px 0; padding: 2px 10px; border-radius: 10px; background: var(--color-base-300); font-size: 11px; opacity: .8; }
+.moc-sys { align-self: center; max-width: 90%; margin: 6px 0; font-size: 12px; opacity: .65; text-align: center; white-space: pre-wrap; }
+.moc-who { font-size: 11px; opacity: .6; margin: 8px 6px 2px 6px; }
+.moc-m { display: flex; flex-direction: column; align-items: flex-start; }
+.moc-m.mine { align-items: flex-end; }
+.moc-m.mine .moc-who { text-align: right; }
+.moc-bubble {
+    max-width: 84%; padding: 7px 11px; border-radius: 16px; border-bottom-left-radius: 5px;
+    background: var(--color-base-100); color: var(--color-base-content);
+    font-size: 15px; line-height: 1.35; white-space: pre-wrap; overflow-wrap: anywhere; box-shadow: 0 1px 1px rgba(0,0,0,.06);
+}
+.moc-m.mine .moc-bubble {
+    border-bottom-left-radius: 16px; border-bottom-right-radius: 5px;
+    background: var(--color-primary); color: var(--color-primary-content);
+}
+.moc-m.note .moc-bubble { background: color-mix(in oklab, var(--color-warning, #f59e0b) 18%, var(--color-base-100)); max-width: 92%; }
+.moc-bubble.del { font-style: italic; opacity: .6; }
+.moc-bubble a { text-decoration: underline; color: inherit; }
+.moc-quote { margin-bottom: 4px; padding: 3px 8px; border-left: 3px solid currentColor; border-radius: 4px; font-size: 12px; opacity: .8; background: rgba(0,0,0,.06); white-space: normal; }
+.moc-img { display: block; max-width: 100%; max-height: 260px; border-radius: 10px; margin: 2px 0; }
+.moc-file { display: flex; align-items: center; gap: 6px; padding: 4px 0; font-size: 14px; }
+.moc-file .material-icons-outlined { font-size: 18px; }
+.moc-edited { font-size: 10px; opacity: .6; margin-left: 6px; }
+.moc-reacts { display: flex; flex-wrap: wrap; gap: 4px; margin: 2px 6px 0 6px; }
+.moc-react { padding: 1px 7px; border-radius: 10px; background: var(--color-base-100); border: 1px solid var(--color-base-300); font-size: 12px; }
+.moc-acts { display: flex; gap: 6px; margin: 4px 4px 2px 4px; }
+.moc-act { padding: 4px 12px; border-radius: 14px; border: 1px solid var(--color-base-300); background: var(--color-base-100); color: var(--color-base-content); font-size: 13px; }
+.moc-act.danger { color: var(--color-error, #dc2626); border-color: var(--color-error, #dc2626); }
+.moc-seen { align-self: flex-end; font-size: 11px; opacity: .6; margin: 2px 6px 0 0; }
+
+.moc-composer {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+    padding: 8px 8px calc(8px + env(safe-area-inset-bottom)) 8px;
+    background: var(--color-base-100); border-top: 1px solid var(--color-base-300);
+}
+.moc-pending { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+.moc-pending:empty { display: none; }
+.moc-chip { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; padding: 3px 6px 3px 10px; border-radius: 14px; background: var(--color-base-200); font-size: 12px; }
+.moc-chip span.n { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 180px; }
+.moc-chip button { border: 0; background: none; color: inherit; padding: 0 2px; display: inline-flex; }
+.moc-chip .material-icons-outlined { font-size: 16px; }
+.moc-crow { display: flex; align-items: flex-end; gap: 6px; }
+.moc-ibtn {
+    flex: 0 0 auto; width: 40px; height: 40px; border-radius: 50%; border: 0; display: flex; align-items: center; justify-content: center;
+    background: none; color: var(--color-base-content);
+}
+.moc-ibtn.send { background: var(--color-primary); color: var(--color-primary-content); }
+.moc-ibtn:disabled { opacity: .4; }
+.moc-input {
+    flex: 1 1 auto; min-width: 0; min-height: 40px; max-height: 132px; padding: 9px 14px; border-radius: 20px; resize: none;
+    border: 1px solid var(--color-base-300); background: var(--color-base-200); color: var(--color-base-content);
+    font-size: 16px; line-height: 1.3; font-family: inherit; outline: none;
+}
+.moc-status { padding: 6px 12px; font-size: 12px; text-align: center; background: var(--color-warning, #f59e0b); color: #000; }
+.moc-status[hidden] { display: none; }

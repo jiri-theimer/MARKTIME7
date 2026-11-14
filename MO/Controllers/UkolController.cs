@@ -91,7 +91,7 @@ namespace MO.Controllers
 
             if (v.Ret == "ukoly" && !string.IsNullOrEmpty(v.RetD))
             {
-                return Redirect(v.RetD + "#task-" + v.pid);
+                return Redirect(SafeLocalUrl(v.RetD, Url.Action("Tasks", "Home")) + "#task-" + v.pid);
             }
             if (v.Ret == "week" && !string.IsNullOrEmpty(v.RetD))
             {

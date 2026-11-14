@@ -1,0 +1,68 @@
+@model ChatViewModel
+@inject BL.Factory _f
+@{
+    var cfg = new
+    {
+        me = Model.MyID,
+        notifyName = "MARKTIME upozornění",
+        t = new Dictionary<string, string>
+        {
+            ["today"] = _f.tra("Dnes"),
+            ["yesterday"] = _f.tra("Včera"),
+            ["deleted"] = _f.tra("Zpráva byla smazána"),
+            ["attachment"] = _f.tra("Příloha"),
+            ["empty"] = _f.tra("Zatím žádná konverzace. Novou založíte tlačítkem nahoře."),
+            ["nothing"] = _f.tra("Nic nenalezeno."),
+            ["error"] = _f.tra("Operaci se nepodařilo provést.")
+        }
+    };
+}
+
+@if (!Model.IsAvailable)
+{
+    <div class="card bg-base-100 shadow-sm">
+        <div class="card-body p-4">
+            <div class="text-lg font-bold">@_f.tra("Chat")</div>
+            <p>@_f.tra(Model.IsDenied ? "K chatu nemáte oprávnění." : "Chat není v této databázi k dispozici.")</p>
+        </div>
+    </div>
+}
+else
+{
+    <div class="moc-head">
+        <div class="moc-title">@_f.tra("Chat")</div>
+        <button type="button" id="mocNew" class="btn btn-primary btn-xs btn-circle" title="@_f.tra("Nová konverzace")">
+            <span class="material-icons-outlined" style="font-size:16px;">add</span>
+        </button>
+    </div>
+
+    <div class="moc-status" id="mocStatus" hidden></div>
+
+    <input type="search" id="mocSearch" class="moc-search" placeholder="@_f.tra("Hledat konverzaci")" autocomplete="off" />
+
+    <div class="moc-list" id="mocList">
+        <div class="moc-empty">…</div>
+    </div>
+
+    <dialog class="moc-dialog" id="mocUsers">
+        <div class="moc-dialog-in">
+            <div class="moc-head">
+                <div class="moc-title">@_f.tra("Nová konverzace")</div>
+                <button type="button" id="mocUsersClose" class="btn btn-ghost btn-sm btn-circle" title="@_f.tra("Zavřít")">
+                    <span class="material-icons-outlined" style="font-size:20px;">close</span>
+                </button>
+            </div>
+            <input type="search" id="mocUsersSearch" class="moc-search" placeholder="@_f.tra("Hledat osobu")" autocomplete="off" />
+            <div class="moc-dialog-list" id="mocUsersList"></div>
+        </div>
+    </dialog>
+
+    <script type="application/json" id="mocConfig">@Html.Raw(System.Text.Json.JsonSerializer.Serialize(cfg))</script>
+}
+
+@section scripts {
+    @if (Model.IsAvailable)
+    {
+        <script src="~/js/mo-chat.js" asp-append-version="true"></script>
+    }
+}
