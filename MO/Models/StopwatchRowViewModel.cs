@@ -10,6 +10,12 @@ namespace MO.Models
         /// <summary>Dosud načtený čas v sekundách (bez aktuálně běžícího úseku).</summary>
         public int p68Duration { get; set; }
 
+        /// <summary>Naměřený čas včetně právě běžícího úseku (sekundy, v okamžiku načtení).</summary>
+        public int ElapsedSeconds { get; set; }
+
+        /// <summary>Kdy byl časovač založen (u starších než dnešních se ukáže datum).</summary>
+        public DateTime? DateInsert { get; set; }
+
         /// <summary>Čas ve formátu HH:MM - editovatelné, jen když stopky neběží.</summary>
         public string DurationHHMM { get; set; }
 

@@ -216,18 +216,5 @@ namespace MO.Controllers
                 global_d2 = v.d2
             }).ToList();
         }
-
-        private DateTime? ParseDate(string s)
-        {
-            if (string.IsNullOrWhiteSpace(s)) return null;
-            // URL parametry posíláme jako yyyy-MM-dd
-            if (DateTime.TryParseExact(s, "yyyy-MM-dd",
-                System.Globalization.CultureInfo.InvariantCulture,
-                System.Globalization.DateTimeStyles.None, out var dt))
-                return dt;
-            // Fallback pro jiné formáty
-            try { return BO.Code.Bas.String2Date(s); }
-            catch { return null; }
-        }
     }
 }

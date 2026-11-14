@@ -131,17 +131,6 @@ namespace MO.Controllers
         }
 
 
-        private DateTime? ParseDate(string s)
-        {
-            if (string.IsNullOrWhiteSpace(s)) return null;
-            if (DateTime.TryParseExact(s, "yyyy-MM-dd",
-                System.Globalization.CultureInfo.InvariantCulture,
-                System.Globalization.DateTimeStyles.None, out var dt))
-                return dt;
-            try { return BO.Code.Bas.String2Date(s); }
-            catch { return null; }
-        }
-
 
         // ===== Úkoly - projektové úkoly (p56Task) - zatím připravujeme =====
         // ===== Úkoly - přehled úkolů přidělených uživateli, s filtrem =====

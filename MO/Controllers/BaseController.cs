@@ -21,6 +21,18 @@ namespace MO.Controllers
         /// <summary>Úspěšná zpráva — zobrazí se přes layout (přežije redirect)</summary>
         protected void SetMessageSuccess(string msg) => TempData["MessageSuccess"] = msg;
 
+        /// <summary>Datum z URL nebo formuláře: přednostně yyyy-MM-dd, jinak běžné české zápisy; nečitelné = null.</summary>
+        protected DateTime? ParseDate(string s)
+        {
+            if (string.IsNullOrWhiteSpace(s)) return null;
+            if (DateTime.TryParseExact(s, "yyyy-MM-dd",
+                System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.None, out var dt))
+                return dt;
+            try { return BO.Code.Bas.String2Date(s); }
+            catch { return null; }
+        }
+
         /// <summary>
         /// Návratová adresa z formuláře/query (ret, retd, returnurl) smí vést jen dovnitř aplikace.
         /// Cizí nebo prázdná adresa se nahradí náhradní lokální adresou.

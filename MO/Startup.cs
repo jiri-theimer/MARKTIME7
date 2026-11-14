@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using System.Globalization;
-using Telerik.Reporting.Services;
 
 
 namespace MO
@@ -66,11 +65,11 @@ namespace MO
             });
 
             services.AddMvc(options => options.EnableEndpointRouting = false);
-            services.AddControllers();      // kvůli Telerik Reporting
+            services.AddControllers();
             services.AddControllersWithViews();
             services.Configure<IISServerOptions>(options =>
             {
-                options.AllowSynchronousIO = true;  // kvůli Telerik Reporting
+                options.AllowSynchronousIO = true;
             });
 
             services.AddHttpClient();
@@ -81,7 +80,7 @@ namespace MO
             services.AddSingleton<BL.AI.Core.AiConfig>();
             services.AddScoped<BL.AI.Core.ILlmClient>(p => p.GetRequiredService<BL.AI.Core.AiConfig>().CreateClient(p));
 
-            services.AddRazorPages().AddNewtonsoftJson();   // kvůli Telerik Reporting
+            services.AddRazorPages().AddNewtonsoftJson();   // Json() v controllerech serializuje přes Newtonsoft (camelCase) - na tom stojí JS klienti MO
 
 
             services.AddSingleton<BL.Singleton.RunningApp>(p => new BL.Singleton.RunningApp()
@@ -137,16 +136,6 @@ namespace MO
             });
 
 
-            // Služba pro TELERIK REPORTING:
-            services.TryAddSingleton<IReportServiceConfiguration>(sp =>
-                new ReportServiceConfiguration
-                {
-                    ReportingEngineConfiguration = ConfigurationHelper.ResolveConfiguration(sp.GetService<IWebHostEnvironment>()),
-                    HostAppId = $"ReportViewer{Configuration.GetSection("App")["Name"]}",
-                    Storage = new Telerik.Reporting.Cache.File.FileStorage()
-                });
-
-
             services.AddScoped<BO.RunningUser, BO.RunningUser>();
             services.AddScoped<BL.Factory, BL.Factory>();
         }
@@ -188,7 +177,7 @@ namespace MO
             {
                 endpoints.MapHub<MO.Code.ChatHub>("/chathub");   // interní chat
 
-                endpoints.MapControllers();     // kvůli Telerik Reporting
+                endpoints.MapControllers();
 
                 endpoints.MapControllerRoute(
                     name: "default",

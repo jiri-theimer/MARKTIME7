@@ -1226,17 +1226,24 @@ namespace MO.Controllers
 
 
         // ===== Pomocné metody =====
-        private void LoadSesitList(EntryHoursViewModel v)
+        // ===== Společné načítání nabídek pro všechny tři formuláře (hodiny, peníze, kusovník) =====
+
+        /// <summary>
+        /// Nabídka sešitů a text vybraného sešitu. Vrací vybraný sešit (null = žádný / není v nabídce).
+        /// </summary>
+        /// <param name="isSameFormat">sešity stejného formátu jako formulář</param>
+        /// <param name="alwaysOnlySameFormat">
+        /// false = u nového záznamu nabídnout sešity všech formátů (výběr jiného formátu ve view přesměruje na odpovídající
+        /// formulář), u editace jen stejný formát; true = vždy jen stejný formát
+        /// </param>
+        private BO.p34ActivityGroup LoadSesitListCore(EntryBaseViewModel v, Func<BO.p34ActivityGroup, bool> isSameFormat, bool alwaysOnlySameFormat)
         {
             var lisP34Raw = Factory.p34ActivityGroupBL
                 .GetList_WorksheetEntry_InAllProjects(Factory.CurrentUser.pid);
 
-            // U nového (dosud neuloženého) záznamu nabídnout sešity všech formátů - výběr jiného
-            // formátu pak ve view vede na přesměrování do odpovídajícího formuláře. U editace
-            // existujícího záznamu nabízet jen sešity stejného formátu (Hodiny) - v místě.
-            var lisP34 = (v.pid == 0
+            var lisP34 = (v.pid == 0 && !alwaysOnlySameFormat
                 ? lisP34Raw
-                : lisP34Raw.Where(s => s.p33ID == BO.p33IdENUM.Cas)).ToList();
+                : lisP34Raw.Where(isSameFormat)).ToList();
 
             v.SesitComboItems = lisP34.Select(s => new ComboItem
             {
@@ -1247,18 +1254,18 @@ namespace MO.Controllers
                 Tag = GetFormatTag(s.p33ID)
             }).ToList();
 
-            if (v.p34ID > 0)
+            if (v.p34ID <= 0) return null;
+            var sel = lisP34.FirstOrDefault(s => s.pid == v.p34ID);
+            if (sel != null)
             {
-                var sel = lisP34.FirstOrDefault(s => s.pid == v.p34ID);
-                if (sel != null)
-                {
-                    v.SelectedSesitText = sel.p34Name;
-                    v.ActivityEntryFlag = (int)sel.p34ActivityEntryFlag;
-                }
+                v.SelectedSesitText = sel.p34Name;
+                v.ActivityEntryFlag = (int)sel.p34ActivityEntryFlag;
             }
+            return sel;
         }
 
-        private void LoadProjects(EntryHoursViewModel v)
+        /// <summary>Nabídka projektů pro vybraný sešit, text vybraného projektu a úkoly projektu.</summary>
+        private void LoadProjectsCore(EntryBaseViewModel v)
         {
             var lisP41 = Factory.p41ProjectBL
                 .GetList(new BO.myQueryP41("p41") { j02id_query = Factory.CurrentUser.pid, p34id_for_p31_entry = v.p34ID })
@@ -1272,27 +1279,87 @@ namespace MO.Controllers
                 Meta = p.Client
             }).ToList();
 
-            if (v.p41ID > 0)
-            {
-                var sel = lisP41.FirstOrDefault(p => p.pid == v.p41ID);
-                if (sel != null) v.SelectedProjectText = sel.p41NameShort ?? sel.p41Name;
-            }
+            if (v.p41ID <= 0) return;
+
+            var sel = lisP41.FirstOrDefault(p => p.pid == v.p41ID);
+            if (sel != null) v.SelectedProjectText = sel.p41NameShort ?? sel.p41Name;
 
             // úkoly k projektu
-            if (v.p41ID > 0)
+            v.TaskList = Factory.p56TaskBL.GetList(new BO.myQueryP56
             {
-                v.TaskList = Factory.p56TaskBL.GetList(new BO.myQueryP56
-                {
-                    p41id = v.p41ID,
-                    j02id = Factory.CurrentUser.pid
-                }).Take(100).ToList();
+                p41id = v.p41ID,
+                j02id = Factory.CurrentUser.pid
+            }).Take(100).ToList();
 
-                if (v.p56ID > 0)
-                {
-                    var selTask = v.TaskList.FirstOrDefault(t => t.pid == v.p56ID);
-                    if (selTask != null) v.SelectedTaskText = selTask.p56Name;
-                }
+            if (v.p56ID > 0)
+            {
+                var selTask = v.TaskList.FirstOrDefault(t => t.pid == v.p56ID);
+                if (selTask != null) v.SelectedTaskText = selTask.p56Name;
             }
+        }
+
+        /// <summary>Nabídka aktivit podle sešitu a projektu. Vrací vybranou aktivitu (null = žádná / není v nabídce).</summary>
+        /// <param name="byCluster">omezit nabídku clusterem aktivit projektu (p61) - jen časové úkony</param>
+        private BO.p32Activity LoadActivitiesCore(EntryBaseViewModel v, bool byCluster)
+        {
+            // Aktivity se zadávají jen pokud to sešit dovoluje a je vybrán projekt
+            if (v.p34ID <= 0 || v.p41ID <= 0) return null;
+            if (v.ActivityEntryFlag == (int)BO.p34ActivityEntryFlagENUM.AktivitaSeNezadava) return null;
+
+            int p61id = 0;
+            if (byCluster)
+            {
+                var recP41 = Factory.p41ProjectBL.Load(v.p41ID);
+                p61id = recP41?.p61ID ?? 0;
+            }
+
+            var lisP32 = (byCluster
+                ? Factory.p32ActivityBL.GetList(new BO.myQueryP32 { p34id = v.p34ID, p41id = v.p41ID, p61id = p61id })
+                : Factory.p32ActivityBL.GetList(new BO.myQueryP32 { p34id = v.p34ID, p41id = v.p41ID })).ToList();
+
+            // Pojistka: kombinace sešit + projekt + cluster (p61id) může legitimně vrátit prázdno
+            // (typicky když se sešit "uhodne" jinak, než by si ho uživatel vybral ručně - např. rychlé
+            // přidání přes "+" bere sešit z posledního vykázaného úkonu bez ohledu na projekt).
+            // V takovém případě je lepší nabídnout aktivity bez omezení clusterem než prázdný seznam.
+            if (lisP32.Count == 0 && p61id > 0)
+            {
+                lisP32 = Factory.p32ActivityBL.GetList(new BO.myQueryP32
+                {
+                    p34id = v.p34ID,
+                    p41id = v.p41ID
+                }).ToList();
+            }
+
+            lisP32 = lisP32
+                .OrderBy(p => p.p38Ordinary).ThenBy(p => p.p38Name).ThenBy(p => p.p32Ordinary).ThenBy(p => p.p32Name)
+                .ToList();
+
+            v.ActivityComboItems = lisP32.Select(a => new ComboItem
+            {
+                Id = a.pid,
+                Text = a.p32Name,
+                GroupBy = a.p38Name
+            }).ToList();
+
+            BO.p32Activity sel = null;
+            if (v.p32ID > 0)
+            {
+                sel = lisP32.FirstOrDefault(a => a.pid == v.p32ID);
+                if (sel != null) v.SelectedActivityText = sel.p32Name;
+            }
+            return sel;
+        }
+
+        // ===== Hodiny =====
+
+        private void LoadSesitList(EntryHoursViewModel v)
+        {
+            LoadSesitListCore(v, s => s.p33ID == BO.p33IdENUM.Cas, false);
+        }
+
+        private void LoadProjects(EntryHoursViewModel v)
+        {
+            LoadProjectsCore(v);
         }
 
         private void LoadFreeFields(EntryHoursViewModel v, int recPid)
@@ -1362,51 +1429,7 @@ namespace MO.Controllers
 
         private BO.p32Activity LoadActivities(EntryHoursViewModel v)
         {
-            // Aktivity se zadávají jen pokud to sešit dovoluje a je vybrán projekt
-            if (v.p34ID <= 0 || v.p41ID <= 0) return null;
-            if (v.ActivityEntryFlag == (int)BO.p34ActivityEntryFlagENUM.AktivitaSeNezadava) return null;
-
-            var recP41 = Factory.p41ProjectBL.Load(v.p41ID);
-            var p61id = recP41?.p61ID ?? 0;
-
-            var lisP32 = Factory.p32ActivityBL.GetList(new BO.myQueryP32
-            {
-                p34id = v.p34ID,
-                p41id = v.p41ID,
-                p61id = p61id
-            }).ToList();
-
-            // Pojistka: kombinace sešit + projekt + cluster (p61id) může legitimně vrátit prázdno
-            // (typicky když se sešit "uhodne" jinak, než by si ho uživatel vybral ručně - např. rychlé
-            // přidání přes "+" bere sešit z posledního vykázaného úkonu bez ohledu na projekt).
-            // V takovém případě je lepší nabídnout aktivity bez omezení clusterem než prázdný seznam.
-            if (lisP32.Count == 0 && p61id > 0)
-            {
-                lisP32 = Factory.p32ActivityBL.GetList(new BO.myQueryP32
-                {
-                    p34id = v.p34ID,
-                    p41id = v.p41ID
-                }).ToList();
-            }
-
-            lisP32 = lisP32
-                .OrderBy(p => p.p38Ordinary).ThenBy(p => p.p38Name).ThenBy(p => p.p32Ordinary).ThenBy(p => p.p32Name)
-                .ToList();
-
-            v.ActivityComboItems = lisP32.Select(a => new ComboItem
-            {
-                Id = a.pid,
-                Text = a.p32Name,
-                GroupBy = a.p38Name
-            }).ToList();
-
-            BO.p32Activity sel = null;
-            if (v.p32ID > 0)
-            {
-                sel = lisP32.FirstOrDefault(a => a.pid == v.p32ID);
-                if (sel != null) v.SelectedActivityText = sel.p32Name;
-            }
-            return sel;
+            return LoadActivitiesCore(v, true);
         }
 
         private BO.p32Activity ReloadAll(EntryHoursViewModel v)
@@ -1441,17 +1464,6 @@ namespace MO.Controllers
             // jednou přes centrální cyklus Messages4Notify (odtud plyne duplicita hlášky).
             Factory.CurrentUser.Messages4Notify = null;
             return msg;
-        }
-
-        private DateTime? ParseDate(string s)
-        {
-            if (string.IsNullOrWhiteSpace(s)) return null;
-            if (DateTime.TryParseExact(s, "yyyy-MM-dd",
-                System.Globalization.CultureInfo.InvariantCulture,
-                System.Globalization.DateTimeStyles.None, out var dt))
-                return dt;
-            try { return BO.Code.Bas.String2Date(s); }
-            catch { return null; }
         }
 
 
@@ -1620,98 +1632,22 @@ namespace MO.Controllers
 
         private void LoadSesitListMoney(EntryMoneyViewModel v)
         {
-            var lisP34Raw = Factory.p34ActivityGroupBL
-                .GetList_WorksheetEntry_InAllProjects(Factory.CurrentUser.pid);
-
-            var lisP34 = (v.pid == 0
-                ? lisP34Raw
-                : lisP34Raw.Where(s => IsMoneyType(s.p33ID))).ToList();
-
-            v.SesitComboItems = lisP34.Select(s => new ComboItem
+            var sel = LoadSesitListCore(v, s => IsMoneyType(s.p33ID), false);
+            if (sel != null)
             {
-                Id = s.pid,
-                Code = s.p34Code,
-                Text = s.p34Name,
-                Meta = s.p33Name,
-                Tag = GetFormatTag(s.p33ID)
-            }).ToList();
-
-            if (v.p34ID > 0)
-            {
-                var sel = lisP34.FirstOrDefault(s => s.pid == v.p34ID);
-                if (sel != null)
-                {
-                    v.SelectedSesitText = sel.p34Name;
-                    v.ActivityEntryFlag = (int)sel.p34ActivityEntryFlag;
-                    v.p33ID = sel.p33ID;
-                    v.IncomeStatementFlag = (int)sel.p34IncomeStatementFlag;
-                }
+                v.p33ID = sel.p33ID;
+                v.IncomeStatementFlag = (int)sel.p34IncomeStatementFlag;
             }
         }
 
         private void LoadProjectsMoney(EntryMoneyViewModel v)
         {
-            var lisP41 = Factory.p41ProjectBL
-                .GetList(new BO.myQueryP41("p41") { j02id_query = Factory.CurrentUser.pid, p34id_for_p31_entry = v.p34ID })
-                .ToList();
-
-            v.ProjectComboItems = lisP41.Select(p => new ComboItem
-            {
-                Id = p.pid,
-                Code = p.p41Code,
-                Text = p.PrefferedName,
-                Meta = p.Client
-            }).ToList();
-
-            if (v.p41ID > 0)
-            {
-                var sel = lisP41.FirstOrDefault(p => p.pid == v.p41ID);
-                if (sel != null) v.SelectedProjectText = sel.p41NameShort ?? sel.p41Name;
-            }
-
-            if (v.p41ID > 0)
-            {
-                v.TaskList = Factory.p56TaskBL.GetList(new BO.myQueryP56
-                {
-                    p41id = v.p41ID,
-                    j02id = Factory.CurrentUser.pid
-                }).Take(100).ToList();
-
-                if (v.p56ID > 0)
-                {
-                    var selTask = v.TaskList.FirstOrDefault(t => t.pid == v.p56ID);
-                    if (selTask != null) v.SelectedTaskText = selTask.p56Name;
-                }
-            }
+            LoadProjectsCore(v);
         }
 
         private BO.p32Activity LoadActivitiesMoney(EntryMoneyViewModel v)
         {
-            if (v.p34ID <= 0 || v.p41ID <= 0) return null;
-            if (v.ActivityEntryFlag == (int)BO.p34ActivityEntryFlagENUM.AktivitaSeNezadava) return null;
-
-            var lisP32 = Factory.p32ActivityBL.GetList(new BO.myQueryP32
-            {
-                p34id = v.p34ID,
-                p41id = v.p41ID
-            })
-                .OrderBy(p => p.p38Ordinary).ThenBy(p => p.p38Name).ThenBy(p => p.p32Ordinary).ThenBy(p => p.p32Name)
-                .ToList();
-
-            v.ActivityComboItems = lisP32.Select(a => new ComboItem
-            {
-                Id = a.pid,
-                Text = a.p32Name,
-                GroupBy = a.p38Name
-            }).ToList();
-
-            BO.p32Activity sel = null;
-            if (v.p32ID > 0)
-            {
-                sel = lisP32.FirstOrDefault(a => a.pid == v.p32ID);
-                if (sel != null) v.SelectedActivityText = sel.p32Name;
-            }
-            return sel;
+            return LoadActivitiesCore(v, false);
         }
 
         private void LoadCurrencyList(EntryMoneyViewModel v)
@@ -1789,94 +1725,17 @@ namespace MO.Controllers
 
         private void LoadSesitListKusovnik(EntryKusovnikViewModel v)
         {
-            var lisP34 = Factory.p34ActivityGroupBL
-                .GetList_WorksheetEntry_InAllProjects(Factory.CurrentUser.pid)
-                .Where(s => s.p33ID == BO.p33IdENUM.Kusovnik)
-                .ToList();
-
-            v.SesitComboItems = lisP34.Select(s => new ComboItem
-            {
-                Id = s.pid,
-                Code = s.p34Code,
-                Text = s.p34Name,
-                Meta = s.p33Name,
-                Tag = GetFormatTag(s.p33ID)
-            }).ToList();
-
-            if (v.p34ID > 0)
-            {
-                var sel = lisP34.FirstOrDefault(s => s.pid == v.p34ID);
-                if (sel != null)
-                {
-                    v.SelectedSesitText = sel.p34Name;
-                    v.ActivityEntryFlag = (int)sel.p34ActivityEntryFlag;
-                }
-            }
+            LoadSesitListCore(v, s => s.p33ID == BO.p33IdENUM.Kusovnik, true);
         }
 
         private void LoadProjectsKusovnik(EntryKusovnikViewModel v)
         {
-            var lisP41 = Factory.p41ProjectBL
-                .GetList(new BO.myQueryP41("p41") { j02id_query = Factory.CurrentUser.pid, p34id_for_p31_entry = v.p34ID })
-                .ToList();
-
-            v.ProjectComboItems = lisP41.Select(p => new ComboItem
-            {
-                Id = p.pid,
-                Code = p.p41Code,
-                Text = p.PrefferedName,
-                Meta = p.Client
-            }).ToList();
-
-            if (v.p41ID > 0)
-            {
-                var sel = lisP41.FirstOrDefault(p => p.pid == v.p41ID);
-                if (sel != null) v.SelectedProjectText = sel.p41NameShort ?? sel.p41Name;
-            }
-
-            if (v.p41ID > 0)
-            {
-                v.TaskList = Factory.p56TaskBL.GetList(new BO.myQueryP56
-                {
-                    p41id = v.p41ID,
-                    j02id = Factory.CurrentUser.pid
-                }).Take(100).ToList();
-
-                if (v.p56ID > 0)
-                {
-                    var selTask = v.TaskList.FirstOrDefault(t => t.pid == v.p56ID);
-                    if (selTask != null) v.SelectedTaskText = selTask.p56Name;
-                }
-            }
+            LoadProjectsCore(v);
         }
 
         private BO.p32Activity LoadActivitiesKusovnik(EntryKusovnikViewModel v)
         {
-            if (v.p34ID <= 0 || v.p41ID <= 0) return null;
-            if (v.ActivityEntryFlag == (int)BO.p34ActivityEntryFlagENUM.AktivitaSeNezadava) return null;
-
-            var lisP32 = Factory.p32ActivityBL.GetList(new BO.myQueryP32
-            {
-                p34id = v.p34ID,
-                p41id = v.p41ID
-            })
-                .OrderBy(p => p.p38Ordinary).ThenBy(p => p.p38Name).ThenBy(p => p.p32Ordinary).ThenBy(p => p.p32Name)
-                .ToList();
-
-            v.ActivityComboItems = lisP32.Select(a => new ComboItem
-            {
-                Id = a.pid,
-                Text = a.p32Name,
-                GroupBy = a.p38Name
-            }).ToList();
-
-            BO.p32Activity sel = null;
-            if (v.p32ID > 0)
-            {
-                sel = lisP32.FirstOrDefault(a => a.pid == v.p32ID);
-                if (sel != null) v.SelectedActivityText = sel.p32Name;
-            }
-            return sel;
+            return LoadActivitiesCore(v, false);
         }
 
         private BO.p32Activity ReloadAllKusovnik(EntryKusovnikViewModel v)

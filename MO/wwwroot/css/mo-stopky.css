@@ -1,0 +1,81 @@
+/* Stopky v mobilní aplikaci (Stopky/Index) - vzhled podle stopek v UI (p68.css).
+   Čisté CSS nad proměnnými DaisyUI, nezávislé na zkompilovaném app.css. */
+.mosw { --sw-go: var(--color-success, #198754); --sw-stop: var(--color-error, #dc3545); }
+
+.mosw-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.mosw-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 42px; padding: 0 14px;
+    border-radius: 12px; border: 1px solid var(--color-base-300); background: var(--color-base-100); color: var(--color-base-content);
+    font-size: 15px; font-weight: 500; white-space: nowrap; text-decoration: none;
+}
+.mosw-btn .material-icons-outlined { font-size: 20px; }
+.mosw-btn.go { flex: 1 1 auto; background: var(--sw-go); border-color: var(--sw-go); color: #fff; font-weight: 600; }
+.mosw-btn.icon { width: 42px; padding: 0; flex: 0 0 42px; }
+.mosw-btn.danger { background: var(--sw-stop); border-color: var(--sw-stop); color: #fff; }
+.mosw-btn.small { min-height: 34px; padding: 0 10px; font-size: 14px; border-radius: 10px; }
+
+.mosw-total { display: flex; align-items: baseline; justify-content: space-between; margin: 0 2px 10px 2px; font-size: 13px; opacity: .8; }
+.mosw-total strong { font-size: 18px; font-variant-numeric: tabular-nums; opacity: 1; }
+
+.mosw-card {
+    background: var(--color-base-100); border: 1px solid var(--color-base-300); border-left: 5px solid var(--color-base-300);
+    border-radius: 12px; padding: 12px; margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,.05);
+}
+.mosw-card.running {
+    border-left-color: var(--sw-go);
+    background: color-mix(in oklab, var(--sw-go) 7%, var(--color-base-100));
+    box-shadow: 0 2px 8px color-mix(in oklab, var(--sw-go) 22%, transparent);
+}
+.mosw-card.flash { animation: mosw-flash 1.2s ease-out; }
+@keyframes mosw-flash { from { box-shadow: 0 0 0 4px color-mix(in oklab, var(--color-primary) 40%, transparent); } to { box-shadow: 0 1px 3px rgba(0,0,0,.05); } }
+
+.mosw-head { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.mosw-play {
+    flex: 0 0 56px; width: 56px; height: 56px; border-radius: 50%; border: 0; background: var(--sw-go); color: #fff;
+    display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,.2);
+}
+.mosw-play .material-icons-outlined { font-size: 32px; }
+.mosw-card.running .mosw-play { background: var(--sw-stop); }
+.mosw-time { flex: 1 1 auto; min-width: 0; }
+.mosw-clock { font-size: 30px; font-weight: 600; line-height: 1.1; font-variant-numeric: tabular-nums; color: var(--sw-go); }
+.mosw-dur {
+    width: 120px; height: 40px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--color-base-300);
+    background: var(--color-base-100); color: var(--color-base-content);
+    font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; font-family: inherit;
+}
+.mosw-sub { font-size: 12px; opacity: .65; margin-top: 2px; }
+.mosw-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--sw-go); margin-right: 5px; animation: mosw-pulse 1.4s infinite; }
+@keyframes mosw-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+.mosw-more { display: flex; gap: 2px; flex: 0 0 auto; }
+.mosw-ico {
+    width: 38px; height: 38px; border-radius: 50%; border: 0; background: none; color: var(--color-base-content);
+    display: inline-flex; align-items: center; justify-content: center;
+}
+.mosw-ico:active { background: var(--color-base-200); }
+.mosw-ico .material-icons-outlined { font-size: 20px; }
+.mosw-ico.del { color: var(--sw-stop); }
+
+.mosw-row2 { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.mosw-adjust { display: flex; align-items: center; gap: 4px; }
+.mosw-adjust button {
+    min-width: 44px; height: 36px; padding: 0 8px; border-radius: 10px; border: 1px solid var(--color-base-300);
+    background: var(--color-base-100); color: var(--color-base-content); font-size: 14px; font-variant-numeric: tabular-nums;
+}
+.mosw-adjust button:active { background: var(--color-base-200); }
+.mosw-unit { font-size: 12px; opacity: .6; margin-left: 2px; }
+.mosw-report { margin-left: auto; }
+
+.mosw-fields { display: grid; gap: 8px; }
+.mosw-text {
+    width: 100%; min-height: 60px; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--color-base-300);
+    background: var(--color-base-100); color: var(--color-base-content); font-size: 16px; font-family: inherit; resize: vertical;
+}
+.mosw-disabled {
+    height: 40px; display: flex; align-items: center; padding: 0 12px; border-radius: 10px;
+    border: 1px dashed var(--color-base-300); font-size: 14px; opacity: .55;
+}
+
+.mosw-empty { text-align: center; padding: 36px 16px; }
+.mosw-empty .material-icons-outlined.big { font-size: 64px; color: var(--sw-go); }
+.mosw-empty h4 { font-size: 18px; font-weight: 700; margin: 8px 0 6px 0; }
+.mosw-empty p { font-size: 14px; opacity: .7; margin-bottom: 16px; }

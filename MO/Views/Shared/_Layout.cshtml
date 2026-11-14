@@ -319,12 +319,6 @@
                 <div class="flex-none gap-2">
                     @if (isAuthenticated)
                     {
-                        @if (hasAi)
-                        {
-                            <a asp-controller="Ai" asp-action="Index" class="btn btn-ghost btn-sm btn-circle" title="@_f.tra("AI asistent")">
-                                <span class="material-icons-outlined text-primary" style="font-size:21px;">auto_awesome</span>
-                            </a>
-                        }
                         <a asp-controller="Ukon" asp-action="QuickAdd" class="btn btn-ghost btn-sm btn-circle" title="@_f.tra("Nový úkon")">
                             <span class="material-icons-outlined" style="font-size:22px;">add</span>
                         </a>
@@ -428,11 +422,6 @@
                     <span class="dock-label">@_f.tra("Úkony")</span>
                 </a>
 
-                <a asp-controller="Home" asp-action="Tasks" class="@IsActive("Tasks")">
-                    <span class="material-icons-outlined" style="font-size:22px;">task_alt</span>
-                    <span class="dock-label">@_f.tra("Úkoly")</span>
-                </a>
-
                 @if (hasChat)
                 {
                     <a asp-controller="Chat" asp-action="Index" class="@(isChatActive ? "dock-active" : "")">
@@ -441,6 +430,14 @@
                             <span class="mo-chat-badge" id="moChatBadge" hidden="@(chatUnread <= 0)">@(chatUnread > 99 ? "99+" : chatUnread.ToString())</span>
                         </span>
                         <span class="dock-label">@_f.tra("Chat")</span>
+                    </a>
+                }
+
+                @if (hasAi)
+                {
+                    <a asp-controller="Ai" asp-action="Index" class="@(string.Equals(activeController, "Ai", StringComparison.OrdinalIgnoreCase) ? "dock-active" : "")">
+                        <span class="material-icons-outlined" style="font-size:22px;">auto_awesome</span>
+                        <span class="dock-label">@_f.tra("AI")</span>
                     </a>
                 }
 
@@ -468,20 +465,17 @@
 
                 <ul class="menu menu-lg gap-1 p-0">
                     <li>
+                        <a asp-controller="Home" asp-action="Tasks" class="@IsActive("Tasks")">
+                            <span class="material-icons-outlined" style="font-size:20px;">task_alt</span>
+                            @_f.tra("Úkoly")
+                        </a>
+                    </li>
+                    <li>
                         <a asp-controller="Home" asp-action="MyProfile" class="@IsActive("MyProfile")">
                             <span class="material-icons-outlined" style="font-size:20px;">person</span>
                             @_f.tra("Profil")
                         </a>
                     </li>
-                    @if (hasAi)
-                    {
-                        <li>
-                            <a asp-controller="Ai" asp-action="Index">
-                                <span class="material-icons-outlined" style="font-size:20px;">auto_awesome</span>
-                                @_f.tra("AI asistent")
-                            </a>
-                        </li>
-                    }
                     <li>
                         <a asp-controller="Stopky" asp-action="Index" class="@IsActive("Stopky")">
                             <span class="material-icons-outlined" style="font-size:20px;">history_toggle_off</span>
