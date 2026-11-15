@@ -32,6 +32,16 @@ namespace UI.Code.Menu
             }
 
 
+            if (rec.IsMail)
+            {
+                //e-mail ve FILEBOXu: nový záznam předvyplněný z e-mailu (UI.Code.MailRecordSupport); e-mail se k němu přiloží jako kopie
+                bool bolTask = f.CurrentUser.j04IsModule_p56;
+                bool bolUkon = f.CurrentUser.j04IsModule_p31;
+                if (bolTask || bolUkon) DIV();
+                if (bolTask) AMI("Založit úkol z e-mailu", $"javascript: _window_open('/p56/Record?pid=0&o27id={pid}', 3)", "task");
+                if (bolUkon) AMI("Vykázat úkon z e-mailu", $"javascript: _window_open('/p31/Record?pid=0&o27id={pid}', 3)", "more_time");
+            }
+
             DIV();
 
             switch (rec.o27Entity)

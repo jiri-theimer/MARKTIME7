@@ -42,7 +42,7 @@ namespace UI.Controllers
         }
 
 
-        public IActionResult Record(int pid, bool isclone, int p41id, string wrk_record_prefix, int wrk_record_pid, string d, int j02id, int p57id, int p60id)
+        public IActionResult Record(int pid, bool isclone, int p41id, string wrk_record_prefix, int wrk_record_pid, string d, int j02id, int p57id, int p60id, int o27id = 0)
         {
             if (BO.Code.Entity.GetPrefixDb(wrk_record_prefix) == "p41" && p41id == 0) p41id = wrk_record_pid;
 
@@ -56,6 +56,10 @@ namespace UI.Controllers
             if (p60id > 0)
             {
                 InhaleTemplateRecord(v, p60id);
+            }
+            if (pid == 0 && o27id > 0)
+            {
+                InhaleMailRecord(v, o27id);     //úkol z e-mailu ve FILEBOXu
             }
             if (v.Rec.p57ID > 0)
             {
@@ -330,6 +334,26 @@ namespace UI.Controllers
 
             return true;
         }
+        /// <summary>
+        /// Nový úkol z e-mailu uloženého ve FILEBOXu (menu záznamu o27 → „Založit úkol z e-mailu“):
+        /// název = předmět, popis = tělo zprávy, projekt podle vazby e-mailu nebo odesílatele, e-mail jako příloha úkolu.
+        /// </summary>
+        private void InhaleMailRecord(p56Record v, int o27id)
+        {
+            var recMail = UI.Code.MailRecordSupport.LoadMail(Factory, o27id);
+            if (recMail == null) return;
+
+            string s = UI.Code.MailRecordSupport.Subject(recMail, 200);
+            if (!string.IsNullOrEmpty(s)) v.Rec.p56Name = s;
+            v.Notepad.HtmlContent = UI.Code.MailRecordSupport.BodyAsHtml(Factory, recMail);
+            if (v.Rec.p41ID == 0)
+            {
+                v.Rec.p41ID = UI.Code.MailRecordSupport.FindProject(Factory, recMail);
+            }
+            //kopie e-mailu do fronty příloh formuláře: po uložení z ní vznikne příloha úkolu, původní FILEBOX záznam zůstává
+            Factory.o27AttachmentBL.CopyToDropzoneTemp(o27id, v.UploadGuid);
+        }
+
         private void InhaleTemplateRecord(p56Record v, int p60id)
         {
             v.Rec.p60ID = p60id;

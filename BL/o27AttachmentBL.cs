@@ -29,6 +29,11 @@ namespace BL
         public void SaveMsgAttachmentsToDisk(o27Attachment rec, Rebex.Mail.MailMessage msg);
 
         public bool SaveDropzoneFromTemp(string tempguid, string recprefix, int recpid);
+        /// <summary>
+        /// Kopie uložené přílohy do fronty nahraných souborů formuláře (p85Tempbox, guid formuláře) - po uložení formuláře
+        /// z ní SaveDropzoneFromTemp udělá samostatnou přílohu nového záznamu. Původní příloha zůstává beze změny.
+        /// </summary>
+        public bool CopyToDropzoneTemp(int o27id, string tempguid);
 
         public Imap ConnectToImapServer(BO.j40MailAccount config, string strFolder);
         public IEnumerable<ImapMessageInfo> GetMessageList(Imap client, int intTakelastTopMessages, string strSeenFlag, string strFlaggedFlag);
@@ -236,6 +241,36 @@ namespace BL
 
 
             return true;
+        }
+
+        public bool CopyToDropzoneTemp(int o27id, string tempguid)
+        {
+            if (o27id <= 0 || string.IsNullOrEmpty(tempguid)) return false;
+            var c = Load(o27id);
+            if (c == null || string.IsNullOrEmpty(c.o27ArchiveFileName)) return false;
+            try
+            {
+                string strSource = $"{_mother.UploadFolder}\\{c.o27ArchiveFolder}\\{c.o27ArchiveFileName}";
+                if (!System.IO.File.Exists(strSource)) return false;
+                string strExt = (c.o27FileExtension ?? System.IO.Path.GetExtension(c.o27ArchiveFileName) ?? "").ToLower();
+                string strUid = Guid.NewGuid().ToString();
+                string strTempName = strUid + strExt;
+                if (!System.IO.Directory.Exists(_mother.TempFolder)) System.IO.Directory.CreateDirectory(_mother.TempFolder);
+                System.IO.File.Copy(strSource, System.IO.Path.Combine(_mother.TempFolder, strTempName), true);
+
+                //stejný tvar řádku, jaký zakládá DropzoneController.UploadFiles
+                var rec = new BO.p85Tempbox() { p85GUID = tempguid, p85FreeText01 = c.o27OriginalFileName, p85FreeText02 = c.o27ContentType, p85FreeText03 = strTempName, p85FreeText04 = strUid, p85FreeNumber01 = c.o27FileSize };
+                if (strExt == ".msg" || strExt == ".eml")
+                {
+                    rec.p85Prefix = strExt.Substring(1);
+                    rec.p85FreeText05 = c.o27MailSubject;
+                }
+                return _mother.p85TempboxBL.Save(rec) > 0;
+            }
+            catch
+            {
+                return false;   //příloha je jen doplněk předvyplněného formuláře
+            }
         }
 
         public bool SaveDropzoneFromTemp(string tempguid, string recprefix, int recpid)

@@ -40,7 +40,7 @@ namespace UI.Controllers
         }
 
 
-        public IActionResult Record(int pid, bool isclone, int j02id, int p34id, int p32id, string newrec_prefix, int newrec_pid, string d, string t1, string t2, string approve_guid, int p91id, int p68id, int p49id, string ds = null)
+        public IActionResult Record(int pid, bool isclone, int j02id, int p34id, int p32id, string newrec_prefix, int newrec_pid, string d, string t1, string t2, string approve_guid, int p91id, int p68id, int p49id, string ds = null, int o27id = 0)
         {
             if (!Factory.CurrentUser.j04IsModule_p31)
             {
@@ -64,6 +64,24 @@ namespace UI.Controllers
             if (pid == 0 && d != null)
             {
                 v.p31Date = BO.Code.Bas.String2Date(d);
+            }
+            //úkon z e-mailu ve FILEBOXu (menu záznamu o27 → „Vykázat úkon z e-mailu“): datum e-mailu, projekt, text = předmět, e-mail jako příloha
+            BO.o27Attachment recMail = (pid == 0 && o27id > 0) ? UI.Code.MailRecordSupport.LoadMail(Factory, o27id) : null;
+            if (recMail != null)
+            {
+                if (d == null && UI.Code.MailRecordSupport.MailDate(recMail) != null)
+                {
+                    v.p31Date = UI.Code.MailRecordSupport.MailDate(recMail);
+                }
+                if (string.IsNullOrEmpty(newrec_prefix))
+                {
+                    int intMailP41ID = UI.Code.MailRecordSupport.FindProject(Factory, recMail);
+                    if (intMailP41ID > 0)
+                    {
+                        newrec_prefix = "p41"; newrec_pid = intMailP41ID;
+                    }
+                }
+                Factory.o27AttachmentBL.CopyToDropzoneTemp(o27id, v.UploadGuid);
             }
             if (pid == 0 && !string.IsNullOrEmpty(ds))
             {
@@ -117,6 +135,10 @@ namespace UI.Controllers
             if (p32id > 0 && v.RecP32 != null)
             {
                 v.Rec.p31Text = InhaleActivityDefaultText(v);
+            }
+            if (recMail != null && string.IsNullOrEmpty(v.Rec.p31Text))
+            {
+                v.Rec.p31Text = UI.Code.MailRecordSupport.Subject(recMail, 500);
             }
             if (v.p68ID > 0)
             {
