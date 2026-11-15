@@ -96,6 +96,12 @@ namespace UI.Controllers
                     case "orientation":
                         Factory.CBL.SetUserParam("thegridreport-orientation", v.PageOrientation.ToString());
                         break;
+                    case "margins":     //okraje se pamatují pro příští sestavu (načítání v InhaleDefaults už bylo, ukládání chybělo)
+                        Factory.CBL.SetUserParam("thegridreport-marginleft", v.MarginLeft.ToString());
+                        Factory.CBL.SetUserParam("thegridreport-marginright", v.MarginRight.ToString());
+                        Factory.CBL.SetUserParam("thegridreport-margintop", v.MarginTop.ToString());
+                        Factory.CBL.SetUserParam("thegridreport-marginbottom", v.MarginBottom.ToString());
+                        break;
                     case "zoom":
                         Factory.CBL.SetUserParam("thegridreport-zoom", v.ZoomPercentage.ToString());
                         break;
@@ -127,6 +133,11 @@ namespace UI.Controllers
 
 
             _lisColumnsReportWidths = BO.Code.Bas.ConvertString2List(v.gridState.j75ColumnsReportWidth, "|");
+            //okraje v rozumných mezích (záporná nebo obří hodnota by dala neplatnou šablonu sestavy)
+            v.MarginLeft = Math.Max(0, Math.Min(50, v.MarginLeft));
+            v.MarginRight = Math.Max(0, Math.Min(50, v.MarginRight));
+            v.MarginTop = Math.Max(0, Math.Min(50, v.MarginTop));
+            v.MarginBottom = Math.Max(0, Math.Min(50, v.MarginBottom));
 
             v.prefix = v.gridState.j72Entity.Substring(0, 3);
 
@@ -200,25 +211,32 @@ namespace UI.Controllers
             {
                 foreach (var par in pars)
                 {
-                    if (strSQL.Contains("@" + par.ParName))
+                    if (!strSQL.Contains("@" + par.ParName)) continue;
+
+                    //sestava si SQL pouští sama, proto se parametry gridu dosazují jako hodnoty přímo do textu dotazu
+                    string strRaw;
+                    if (par.ParValue == null || par.ParValue == System.DBNull.Value)
                     {
-                        switch (par.ParValue.GetType().ToString())
-                        {
-                            case "System.String":
-                                strSQL = strSQL.Replace("@", $"'{par.ParValue}'");
-                                break;
-                            case "System.DateTime":
-                                strSQL = strSQL.Replace("@" + par.ParName, $"convert(datetime,'{BO.Code.Bas.ObjectDate2String(par.ParValue, "dd.MM.yyyy")}',104)");
-                                break;
-                            default:
-                                strSQL = strSQL.Replace("@" + par.ParName, par.ParValue.ToString());
-                                break;
-                        }
-
-
-
+                        strRaw = "NULL";
                     }
-
+                    else if (par.ParValue is string strVal)
+                    {
+                        strRaw = "N'" + strVal.Replace("'", "''") + "'";    //dřív se hodnotou přepsal každý znak @ v dotazu a apostrof v hodnotě dotaz rozbil
+                    }
+                    else if (par.ParValue is DateTime datVal)
+                    {
+                        strRaw = $"convert(datetime,'{datVal:yyyy-MM-ddTHH:mm:ss}',126)";   //včetně času: dřív se čas ořízl a období do 23:59:59 ztratilo poslední den
+                    }
+                    else if (par.ParValue is bool bolVal)
+                    {
+                        strRaw = bolVal ? "1" : "0";
+                    }
+                    else
+                    {
+                        strRaw = Convert.ToString(par.ParValue, System.Globalization.CultureInfo.InvariantCulture);     //desetinná tečka bez ohledu na jazyk serveru
+                    }
+                    //jen celý název parametru: @par1 nesmí přepsat začátek @par10
+                    strSQL = System.Text.RegularExpressions.Regex.Replace(strSQL, "@" + System.Text.RegularExpressions.Regex.Escape(par.ParName) + "(?![A-Za-z0-9_])", m => strRaw);
                 }
             }
 
@@ -335,12 +353,8 @@ namespace UI.Controllers
             //BO.Code.File.LogInfo(strSQL);
             GenerateTrdx_ParseResult(ref strXmlContent, "#sql#", HtmlEncoder.Default.Encode(strSQL)); //pro telerik report je třeba sql zahešovat
 
-            if (!string.IsNullOrEmpty(v.Header))
-            {
-                v.Header = v.Header.Replace("&", "#");
-            }
-
-            GenerateTrdx_ParseResult(ref strXmlContent, "#header#", v.Header);
+            //nadpis jde do XML šablony: znaky & < > " je třeba převést na entity (dřív se & měnil na # přímo v poli nadpisu a znak < šablonu rozbil)
+            GenerateTrdx_ParseResult(ref strXmlContent, "#header#", System.Security.SecurityElement.Escape(v.Header ?? ""));
 
             if (v.GroupByColumn != null && !v.IsShowGroupsOnly)
             {
