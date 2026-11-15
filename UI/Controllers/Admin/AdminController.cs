@@ -202,6 +202,21 @@ FROM j98OpenAILog WHERE j98Date>=@dmin GROUP BY j98AiModel";
             }
             handle_default_link(v, area, defprefix, ref myqueryinline);
 
+            if (string.IsNullOrEmpty(v.prefix))
+            {
+                return RedirectToAction("Index");   //bez oblasti i položky není co zobrazit (dřív pád na prázdném prefixu)
+            }
+            if (string.IsNullOrEmpty(myqueryinline) && (v.prefix == "x67" || v.prefix == "x28"))
+            {
+                //Role uživatelů a Uživatelská pole se ve stromu zobrazují jen za entitu dané oblasti. Odkaz ve stromu filtr nese,
+                //ale odkaz Občerstvit ani přepnutí pojmenované tabulky ne – bez tohoto se po nich ukázaly záznamy všech entit.
+                string strAreaEntity = get_area_entity_prefix(area);
+                if (strAreaEntity != null)
+                {
+                    myqueryinline = $"{v.prefix}entity|string|{strAreaEntity}";
+                }
+            }
+
             inhale_entity(v, v.prefix);
 
             v.gridinput = GetGridInput(v.entity, v.prefix, go2pid, null, myqueryinline);
@@ -287,11 +302,44 @@ FROM j98OpenAILog WHERE j98Date>=@dmin GROUP BY j98AiModel";
             return View(v);
         }
 
+        private string get_area_entity_prefix(string area)    //entita, ke které se v dané oblasti stromu vážou Role uživatelů (x67) a Uživatelská pole (x28)
+        {
+            switch (area)
+            {
+                case "contacts": return "p28";
+                case "projects": return "p41";
+                case "worksheet": return "p31";
+                case "billing": return "p91";
+                case "proforma": return "p90";
+                case "tasks": return "p56";
+                case "o22s": return "o22";
+                case "docs": return "o23";
+                default: return null;   //oblast Různé: Katalog uživatelských polí se zobrazuje celý
+            }
+        }
+
+        private bool entity_exists(string prefix)
+        {
+            if (string.IsNullOrEmpty(prefix)) return false;
+            try
+            {
+                return Factory.EProvider.ByPrefix(prefix) != null;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         private void handle_default_link(AdminPage v, string module, string defprefix, ref string myqueryinline)
         {
             if (v.prefix == null)
             {
                 v.prefix = Factory.CBL.LoadUserParam($"Admin/{module}-prefix", defprefix);
+                if (v.prefix != defprefix && !entity_exists(v.prefix))
+                {
+                    v.prefix = defprefix;   //naposledy navštívená položka oblasti mezitím z aplikace zmizela (např. x51, x52)
+                }
                 myqueryinline = Factory.CBL.LoadUserParam($"Admin/{module}-{v.prefix}-myqueryinline");
             }
             else

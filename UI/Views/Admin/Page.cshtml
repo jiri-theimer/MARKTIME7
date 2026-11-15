@@ -59,7 +59,7 @@
 
     
 
-    @if (Model.prefix != "j92" && Model.prefix != "j90" && Model.prefix != "j98" && Model.prefix != "j93" && Model.prefix != "x40" && Model.prefix != "o24")
+    @if (Model.prefix != "j92" && Model.prefix != "j90" && Model.prefix != "j98" && Model.prefix != "j93" && Model.prefix != "x40" && Model.prefix != "o24" && Model.prefix != "x97")
     {
         <div>
             <button id="cmdCreate" type="button" class="btn descreet_link_over_grid" title="@_f.tra("Nový záznam")"><span class="material-icons-outlined-btn">add_circle_outline</span>@(_f.tra("Nový"))</button>
@@ -174,10 +174,16 @@
 
         
 
-        var offset = $("#layout_sidebar").offset();
-        var h_vertical = _device.innerHeight - offset.top;
-        h_vertical = parseInt(h_vertical) + 10;
-        $("#layout_sidebar").css("height", h_vertical + "px");
+        admin_tree_fit();
+        var _admin_tree_timer = null;
+        $(window).on("resize", function () {    //změna velikosti okna: přepočítat výšku stromu (dřív zůstala z načtení stránky)
+            clearTimeout(_admin_tree_timer);
+            _admin_tree_timer = setTimeout(admin_tree_fit, 120);
+        });
+
+        //aktivní položka stromu do pohledu: po kliknutí na položku níž ve stromu se stránka načte znovu a strom by zůstal nahoře
+        var active = document.querySelector("#layout_sidebar a.treeview-link-syty.active");
+        if (active && active.scrollIntoView) active.scrollIntoView({ block: "nearest" });
 
         
         if (_device.isMobile) {
@@ -198,9 +204,22 @@
         });
     }
 
+    function admin_tree_fit() {
+        var sidebar = document.getElementById("layout_sidebar");
+        if (!sidebar || sidebar.style.display === "none") return;
+        var h = _device.innerHeight - sidebar.getBoundingClientRect().top;
+        $(sidebar).css("height", parseInt(h) + "px");
+    }
+
     function handle_dblclick(row) {
         var prefix = "@Model.prefix";
         var pid = row.id.replace("r", "");
+
+        if (prefix == "j98" || prefix == "o24" || prefix == "x97") {
+            //tyto přehledy nemají stránku záznamu – bez toho se otevřelo okno s chybou 404
+            _notify_message("@_f.tra("Pro tento záznam neexistuje stránka detailu.")", "info");
+            return;
+        }
 
         _edit(prefix, pid);
     }
