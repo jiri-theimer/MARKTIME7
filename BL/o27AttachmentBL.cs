@@ -34,6 +34,13 @@ namespace BL
         /// z ní SaveDropzoneFromTemp udělá samostatnou přílohu nového záznamu. Původní příloha zůstává beze změny.
         /// </summary>
         public bool CopyToDropzoneTemp(int o27id, string tempguid);
+        /// <summary>
+        /// První e-mail (.msg/.eml) z fronty právě přetažených souborů (p85Tempbox pod daným guid) jako neuložený o27 záznam
+        /// s údaji zprávy (předmět, tělo, odesílatel, datum). Null, když ve frontě žádný e-mail není.
+        /// </summary>
+        public BO.o27Attachment LoadMailFromDropzoneTemp(string tempguid);
+        /// <summary>Fronta přetažených souborů přejde pod guid formuláře nového záznamu (stanou se jeho přílohami); původní fronta zůstane prázdná.</summary>
+        public void MoveDropzoneTemp(string fromguid, string toguid);
 
         public Imap ConnectToImapServer(BO.j40MailAccount config, string strFolder);
         public IEnumerable<ImapMessageInfo> GetMessageList(Imap client, int intTakelastTopMessages, string strSeenFlag, string strFlaggedFlag);
@@ -241,6 +248,49 @@ namespace BL
 
 
             return true;
+        }
+
+        public void MoveDropzoneTemp(string fromguid, string toguid)
+        {
+            if (string.IsNullOrEmpty(fromguid) || string.IsNullOrEmpty(toguid) || fromguid == toguid) return;
+            _db.RunSql("UPDATE p85Tempbox SET p85GUID=@toguid WHERE p85GUID=@fromguid", new { toguid = toguid, fromguid = fromguid });
+        }
+
+        public BO.o27Attachment LoadMailFromDropzoneTemp(string tempguid)
+        {
+            if (string.IsNullOrEmpty(tempguid)) return null;
+            try
+            {
+                foreach (var rec in _mother.p85TempboxBL.GetList(tempguid))
+                {
+                    string strExt = System.IO.Path.GetExtension(rec.p85FreeText03 ?? "").ToLower();
+                    if (strExt != ".msg" && strExt != ".eml") continue;
+                    string strPath = $"{_mother.TempFolder}\\{rec.p85FreeText03}";
+                    if (!System.IO.File.Exists(strPath)) continue;
+
+                    var msg = LoadMsgFile(strPath);
+                    var c = new BO.o27Attachment() { o27OriginalFileName = rec.p85FreeText01, o27FileExtension = strExt, o27MailSubject = msg.Subject };
+                    if (msg.Sender != null)
+                    {
+                        c.o27MailSenderName = msg.Sender.DisplayName;
+                        c.o27MailSenderAddress = msg.Sender.Address;
+                    }
+                    else if (msg.From != null && msg.From.Count() > 0)
+                    {
+                        c.o27MailSenderName = msg.From.First().DisplayName;
+                        c.o27MailSenderAddress = msg.From.First().Address;
+                    }
+                    if (msg.ReceivedDate != null) c.o27MailDateReceived = msg.ReceivedDate.LocalTime;
+                    if (msg.Date != null) c.o27MailDateMessage = msg.Date.LocalTime;
+                    if (msg.HasBodyText) c.o27MailBodyText = msg.BodyText;
+                    return c;
+                }
+            }
+            catch
+            {
+                //nečitelný e-mail: formulář se otevře bez předvyplnění, soubor se přiloží
+            }
+            return null;
         }
 
         public bool CopyToDropzoneTemp(int o27id, string tempguid)

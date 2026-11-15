@@ -40,7 +40,7 @@ namespace UI.Controllers
         }
 
 
-        public IActionResult Record(int pid, bool isclone, int j02id, int p34id, int p32id, string newrec_prefix, int newrec_pid, string d, string t1, string t2, string approve_guid, int p91id, int p68id, int p49id, string ds = null, int o27id = 0)
+        public IActionResult Record(int pid, bool isclone, int j02id, int p34id, int p32id, string newrec_prefix, int newrec_pid, string d, string t1, string t2, string approve_guid, int p91id, int p68id, int p49id, string ds = null, int o27id = 0, string mailguid = null)
         {
             if (!Factory.CurrentUser.j04IsModule_p31)
             {
@@ -66,7 +66,18 @@ namespace UI.Controllers
                 v.p31Date = BO.Code.Bas.String2Date(d);
             }
             //úkon z e-mailu ve FILEBOXu (menu záznamu o27 → „Vykázat úkon z e-mailu“): datum e-mailu, projekt, text = předmět, e-mail jako příloha
-            BO.o27Attachment recMail = (pid == 0 && o27id > 0) ? UI.Code.MailRecordSupport.LoadMail(Factory, o27id) : null;
+            //o27id = e-mail uložený ve FILEBOXu (přiloží se kopie); mailguid = fronta právě přetažených souborů (formulář ji převezme jako své přílohy)
+            BO.o27Attachment recMail = null;
+            bool bolMailFromTemp = pid == 0 && UI.Code.MailRecordSupport.IsTempGuid(mailguid);
+            if (bolMailFromTemp)
+            {
+                Factory.o27AttachmentBL.MoveDropzoneTemp(mailguid, v.UploadGuid);    //formulář převezme frontu přetažených souborů
+                recMail = Factory.o27AttachmentBL.LoadMailFromDropzoneTemp(v.UploadGuid);
+            }
+            else if (pid == 0 && o27id > 0)
+            {
+                recMail = UI.Code.MailRecordSupport.LoadMail(Factory, o27id);
+            }
             if (recMail != null)
             {
                 if (d == null && UI.Code.MailRecordSupport.MailDate(recMail) != null)
@@ -81,7 +92,7 @@ namespace UI.Controllers
                         newrec_prefix = "p41"; newrec_pid = intMailP41ID;
                     }
                 }
-                Factory.o27AttachmentBL.CopyToDropzoneTemp(o27id, v.UploadGuid);
+                if (!bolMailFromTemp) Factory.o27AttachmentBL.CopyToDropzoneTemp(o27id, v.UploadGuid);
             }
             if (pid == 0 && !string.IsNullOrEmpty(ds))
             {

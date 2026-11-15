@@ -92,7 +92,19 @@
     <input type="hidden" id="recpid" name="recpid" value="@Model.RecPid" />
 
     <div id="divNeedToSave" style="display:none;">
+        <span id="spanMailQuestion" class="fw-semibold me-1" style="display:none;"><span class="material-icons-outlined-btn">mail</span>@_f.tra("Co s e-mailem?")</span>
         <button type="button" class="btn btn-success" onclick="save_to_filebox()" style="cursor:pointer !important">@_f.tra("Uložit do FILEBOX")</button>
+        @* přetažený e-mail: místo uložení do FILEBOXu z něj lze rovnou založit úkol nebo vykázat úkon (formulář převezme přetažené soubory jako přílohy) *@
+        <span id="spanMailActions" style="display:none;">
+            @if (_f.CurrentUser.j04IsModule_p56)
+            {
+                <button type="button" class="btn btn-outline-primary" onclick="fb_mail_action('p56')" style="cursor:pointer !important" title="@_f.tra("Nový úkol předvyplněný z e-mailu, e-mail bude jeho přílohou")"><span class="material-icons-outlined-btn">task</span>@_f.tra("Založit úkol")</button>
+            }
+            @if (_f.CurrentUser.j04IsModule_p31)
+            {
+                <button type="button" class="btn btn-outline-primary" onclick="fb_mail_action('p31')" style="cursor:pointer !important" title="@_f.tra("Nový úkon předvyplněný z e-mailu, e-mail bude jeho přílohou")"><span class="material-icons-outlined-btn">more_time</span>@_f.tra("Vykázat úkon")</button>
+            }
+        </span>
     </div>
 
     <div id="divDropzoneMessage" class="dz-message rounded-3 text-center bg-light" style="margin:0;">
@@ -343,6 +355,7 @@ else
           fb_fit_parent();
 
           var isrefresh="@Model.IsAutoSave";
+          if (isrefresh=="True" && fb_has_mail()) isrefresh="False";   //přetažený e-mail čeká na volbu uživatele (uložit / úkol / úkon) - stránka se zatím neobnovuje
           if (isrefresh=="True")
           {
                 if (document.getElementById("form1"))
@@ -360,11 +373,17 @@ else
                 formData.append("dropzone_uids",file.upload.uuid);
                 formData.append("dropzone_names",file.name);
             });
+            //dávka s e-mailem se neukládá automaticky ani tam, kde se jinak ukládá hned (přílohy na stránce záznamu):
+            //soubory počkají ve frontě a uživatel vybere, co s e-mailem (#divNeedToSave)
+            //(Dropzone čte skrytá pole formuláře až po této události, proto se mění hodnota pole, ne formData)
+            if (isinframe != "True") {
+                document.getElementById("isautosave").value = files.some(function (f) { return fb_is_mail(f.name); }) ? "False" : "@Model.IsAutoSave.ToString()";
+            }
         });
 
         dz.on("removedfile", function(file) {
             const tempguid="@Model.TempGuid";
-            if (!file.upload || file.status === Dropzone.ERROR) { refreshstate_dropbox(); fb_fit_parent(); return; }
+            if (!file.upload || file.status === Dropzone.ERROR || window._fb_handover) { refreshstate_dropbox(); fb_fit_parent(); return; }   //_fb_handover: soubory převzal formulář (fb_mail_action), na serveru se nemažou
             $.post("/Dropzone/DeleteTempFile", { filename: encodeURIComponent(file.name), fileuid: file.upload.uuid, tempguid: tempguid }, function (data) {
                 refreshstate_dropbox();
                 fb_fit_parent();
@@ -411,6 +430,31 @@ else
                 }else{
                     $("#divNeedToSave").css("display","none");
                 }
+                //akce „Založit úkol“ / „Vykázat úkon“ jen když je mezi úspěšně nahranými soubory e-mail
+                var hasMail = fb_has_mail();
+                $("#spanMailActions, #spanMailQuestion").css("display", hasMail ? "inline" : "none");
+     }
+
+     function fb_is_mail(name) { return /\.(msg|eml)$/i.test(name || ""); }
+     // ve frontě je úspěšně nahraný e-mail, který ještě čeká na uložení
+     function fb_has_mail() { return dz.files.some(function (f) { return f.status === "success" && fb_is_mail(f.name); }); }
+
+     // přetažený e-mail → nový úkol (p56) nebo úkon (p31): formulář převezme frontu přetažených souborů (mailguid) jako své přílohy
+     function fb_mail_action(prefix)
+     {
+         const tempguid="@Model.TempGuid";
+         var url = "/" + prefix + "/Record?pid=0&mailguid=" + encodeURIComponent(tempguid);
+         var recprefix = "@Model.RecPrefix", recpid = @Model.RecPid;
+         if (recpid > 0 && (recprefix == "p41" || recprefix == "p56" || (recprefix == "p28" && prefix == "p56")))
+         {
+             url += prefix == "p31" ? "&newrec_prefix=" + recprefix + "&newrec_pid=" + recpid : "&wrk_record_prefix=" + recprefix + "&wrk_record_pid=" + recpid;
+         }
+         _window_open(url, 3);
+         //soubory teď patří formuláři: ve FILEBOXu už nečekají na uložení (z fronty zmizí, na serveru se nemažou)
+         window._fb_handover = true;
+         dz.removeAllFiles();
+         window._fb_handover = false;
+         refreshstate_dropbox();
      }
 
      function save_to_filebox()

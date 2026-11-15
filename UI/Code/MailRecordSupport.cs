@@ -22,6 +22,12 @@ namespace UI.Code
             return rec;
         }
 
+        /// <summary>Guid fronty přetažených souborů z prohlížeče (BO.Code.Bas.GetGuid) - jen bezpečné znaky.</summary>
+        public static bool IsTempGuid(string guid)
+        {
+            return !string.IsNullOrEmpty(guid) && Regex.IsMatch(guid, @"^[A-Za-z0-9\-]{16,64}$");
+        }
+
         /// <summary>Předmět bez úvodních RE:/FW: a zkrácený na danou délku.</summary>
         public static string Subject(BO.o27Attachment rec, int maxlen)
         {
