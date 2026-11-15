@@ -3,6 +3,7 @@
 // stav je v sessionStorage, takže přežije odskok jinam v aplikaci a návrat.
 // Tabulky vykresluje aplikace z dat serveru (r.tables), model je nepřepisuje.
 // Úkon (r.proposals) agent jen připraví - zapíše ho až tlačítko „Zapsat“ na kartě (/Ai/UkonConfirm).
+// Pokyn lze nadiktovat (mikrofon vedle pole) - řeč převádí na text prohlížeč, odesílá až uživatel.
 (function () {
     var cfgEl = document.getElementById('moaConfig');
     if (!cfgEl || !window.moApi) return;
@@ -228,6 +229,9 @@
     function send(textOverride) {
         var text = (textOverride || inputEl.value || '').trim();
         if (busy || !text) return;
+        if (typeof voice !== 'undefined' && voice.rec) {     // odesláno během diktování: doznívající výsledek už do prázdného pole nepatří
+            voice.rec.onresult = null; voice.rec.onend = function () { voice.rec = null; voiceUi(false); voiceStatus(''); };
+        }
         busy = true;
         inputEl.value = ''; grow(); syncSend();
         introEl.hidden = true;
@@ -267,8 +271,88 @@
         });
     }
 
+    // ── diktování (Web Speech API) ───────────────────────────────────────────────
+    // Řeč se převádí na text v prohlížeči; do pole se jen doplní a odešle ji až uživatel (jména klientů a projektů
+    // rozpoznání často zkomolí a text úkonu může jít na fakturu). Kde prohlížeč rozpoznání neumí, tlačítko se neukáže.
+    var micEl = document.getElementById('moaMic');
+    var voiceStatusEl = document.getElementById('moaVoiceStatus');
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    var voice = { rec: null, on: false, base: '', finalText: '', timer: 0 };
+
+    function voiceStatus(text, isError) {
+        if (!voiceStatusEl) return;
+        clearTimeout(voice.timer);
+        voiceStatusEl.textContent = text || '';
+        voiceStatusEl.hidden = !text;
+        voiceStatusEl.classList.toggle('error', !!isError);
+        if (text && isError) voice.timer = setTimeout(function () { voiceStatus(''); }, 7000);
+    }
+    function voiceUi(on) {
+        voice.on = on;
+        micEl.classList.toggle('on', on);
+        micEl.title = on ? T.voiceStop : T.voiceStart;
+        micEl.setAttribute('aria-label', micEl.title);
+        micEl.firstElementChild.textContent = on ? 'stop' : 'mic';
+    }
+    function voiceText(interim) {
+        var parts = [voice.base, voice.finalText, interim || ''].map(function (x) { return (x || '').trim(); }).filter(function (x) { return x; });
+        inputEl.value = parts.join(' ').slice(0, 4000);
+        grow(); syncSend();
+    }
+    function voiceStop() {
+        if (voice.rec) { try { voice.rec.stop(); } catch (e) { } }
+    }
+    function voiceStart() {
+        if (busy || voice.on) return;
+        var rec;
+        try { rec = new SR(); } catch (e) { voiceStatus(T.voiceFailed, true); return; }
+        rec.lang = cfg.voiceLang || 'cs-CZ';
+        rec.interimResults = true;
+        rec.continuous = false;         // jedna promluva: na mobilech spolehlivější než souvislý poslech
+        rec.maxAlternatives = 1;
+        voice.rec = rec;
+        voice.base = inputEl.value || '';
+        voice.finalText = '';
+        var failed = false;
+
+        rec.onstart = function () { voiceUi(true); voiceStatus(T.voiceListening, false); };
+        rec.onresult = function (ev) {
+            var fin = '', interim = '';
+            for (var i = 0; i < ev.results.length; i++) {
+                var r = ev.results[i];
+                if (r.isFinal) fin += r[0].transcript + ' '; else interim += r[0].transcript;
+            }
+            voice.finalText = fin;
+            voiceText(interim);
+        };
+        rec.onerror = function (ev) {
+            failed = true;
+            var code = ev && ev.error;
+            if (code === 'aborted') { voiceStatus(''); return; }
+            if (code === 'not-allowed' || code === 'service-not-allowed') voiceStatus(T.voiceDenied, true);
+            else if (code === 'no-speech') voiceStatus(T.voiceNoSpeech, true);
+            else if (code === 'network') voiceStatus(T.voiceNetwork, true);
+            else voiceStatus(T.voiceFailed, true);
+        };
+        rec.onend = function () {
+            voice.rec = null;
+            voiceUi(false);
+            voiceText('');
+            if (!failed) voiceStatus('');
+        };
+        try { rec.start(); }
+        catch (e) { voice.rec = null; voiceUi(false); voiceStatus(T.voiceFailed, true); }
+    }
+    if (SR && micEl) {
+        micEl.hidden = false;
+        var hintEl = document.getElementById('moaVoiceHint');
+        if (hintEl) hintEl.hidden = false;
+        micEl.addEventListener('click', function () { if (voice.on) voiceStop(); else voiceStart(); });
+        document.addEventListener('visibilitychange', function () { if (document.hidden) voiceStop(); });
+    }
+
     inputEl.addEventListener('input', function () { grow(); syncSend(); });
-    sendEl.addEventListener('click', function () { send(); });
+    sendEl.addEventListener('click', function () { voiceStop(); send(); });
     msgsEl.addEventListener('click', function (ev) {
         var b = ev.target.closest('.moa-example');
         if (b) send(b.getAttribute('data-q'));

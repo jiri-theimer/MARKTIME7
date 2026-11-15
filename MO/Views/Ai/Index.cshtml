@@ -13,9 +13,19 @@
     examples.Add(_f.tra("Co mě čeká tento týden?"));
     examples.Add(_f.tra("Které moje úkoly jsou po termínu?"));
 
+    // jazyk diktování podle jazyka uživatele v MARKTIME
+    string voiceLang = "cs-CZ";
+    switch (_f.CurrentUser?.LangName)
+    {
+        case "EN": voiceLang = "en-US"; break;
+        case "DE": voiceLang = "de-DE"; break;
+        case "SK": voiceLang = "sk-SK"; break;
+    }
+
     var cfg = new
     {
         me = Model.MyID,
+        voiceLang = voiceLang,
         t = new Dictionary<string, string>
         {
             ["thinking"] = _f.tra("Přemýšlím…"),
@@ -41,7 +51,14 @@
             ["ukonSave"] = _f.tra("Zapsat"),
             ["ukonCancel"] = _f.tra("Zrušit"),
             ["ukonOpen"] = _f.tra("Otevřít úkon"),
-            ["ukonError"] = _f.tra("Úkon se nepodařilo zapsat.")
+            ["ukonError"] = _f.tra("Úkon se nepodařilo zapsat."),
+            ["voiceStart"] = _f.tra("Diktovat"),
+            ["voiceStop"] = _f.tra("Ukončit diktování"),
+            ["voiceListening"] = _f.tra("Poslouchám… mluvte"),
+            ["voiceDenied"] = _f.tra("Mikrofon není povolený. Povolte ho této stránce v nastavení prohlížeče, nebo diktujte mikrofonem na klávesnici telefonu."),
+            ["voiceNoSpeech"] = _f.tra("Nic jsem neslyšel. Zkuste to znovu."),
+            ["voiceNetwork"] = _f.tra("Rozpoznání řeči teď není dostupné. Zkuste to znovu, nebo diktujte mikrofonem na klávesnici telefonu."),
+            ["voiceFailed"] = _f.tra("Diktování se nepodařilo spustit. Použijte mikrofon na klávesnici telefonu.")
         }
     };
 }
@@ -78,12 +95,21 @@ else
                     <button type="button" class="moa-example" data-q="@q">@q</button>
                 }
             </div>
+            @* nápověda k diktování: zobrazí ji mo-ai.js, jen když prohlížeč rozpoznání řeči umí *@
+            <div class="moa-voice-hint" id="moaVoiceHint" hidden>
+                <span class="material-icons-outlined" style="font-size:18px;">mic</span>
+                <span>@_f.tra("Pokyn můžete i nadiktovat – klepněte dole na mikrofon. Text před odesláním zkontrolujte.")</span>
+            </div>
         </div>
     </div>
 
     <div class="moc-composer">
+        <div class="moa-voice-status" id="moaVoiceStatus" hidden></div>
         <div class="moc-crow">
             <textarea id="moaInput" class="moc-input" rows="1" maxlength="4000" placeholder="@_f.tra("Dotaz nebo pokyn…")"></textarea>
+            <button type="button" class="moc-ibtn moa-mic" id="moaMic" title="@_f.tra("Diktovat")" aria-label="@_f.tra("Diktovat")" hidden>
+                <span class="material-icons-outlined" style="font-size:22px;">mic</span>
+            </button>
             <button type="button" class="moc-ibtn send" id="moaSend" title="@_f.tra("Odeslat")" disabled>
                 <span class="material-icons-outlined" style="font-size:20px;">send</span>
             </button>

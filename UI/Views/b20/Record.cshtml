@@ -36,6 +36,45 @@
 <div class="modal_record_container">
     <div class="tab-content">
         <div class="tab-pane" id="tab1" role="tabpanel">
+            @if (Model.rec_pid == 0 && Model.Templates != null && Model.Templates.Count > 0)
+            {
+                @* nový hlídač: hotová pravidla za celou databázi - kliknutí kartu předvyplní (b20Controller.Record, parametr tpl) *@
+                <div class="b20tpl">
+                    <div class="b20tpl-title">@_f.tra("Začít z hotového pravidla")</div>
+                    <div class="b20tpl-list">
+                        @foreach (var t in Model.Templates)
+                        {
+                            <a class="b20tpl-item @(t.Key == Model.TemplateKey ? "active" : "")" href="@Url.Action("Record", "b20", new { pid = 0, tpl = t.Key })">
+                                <span class="material-icons-outlined">@t.Icon</span>
+                                <span>
+                                    <span class="b20tpl-name">@_f.tra(t.Name)</span>
+                                    <span class="b20tpl-desc">@_f.tra(t.Description)</span>
+                                </span>
+                            </a>
+                        }
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.TemplateKey))
+                    {
+                        <div class="b20tpl-next">
+                            <span class="material-icons-outlined">task_alt</span>
+                            <span>@_f.tra("Pravidlo je předvyplněné. Zbývá v záložce Notifikace vybrat tým, který má upozornění dostávat, a kartu uložit. Po uložení ho můžete hned vyzkoušet tlačítkem „Spustit teď“.")</span>
+                        </div>
+                    }
+                </div>
+                <style type="text/css">
+                    .b20tpl { border: 1px solid #e3e6ea; border-radius: 10px; padding: 10px 12px; margin: 8px 0 12px 0; background: #fafbfc; }
+                    .b20tpl-title { font-weight: 600; margin-bottom: 8px; }
+                    .b20tpl-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 8px; }
+                    .b20tpl-item { display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; border: 1px solid #e3e6ea; border-radius: 8px; background: #fff; color: inherit; text-decoration: none; }
+                    .b20tpl-item:hover { border-color: #2f6fed; color: inherit; }
+                    .b20tpl-item.active { border-color: #2f6fed; box-shadow: 0 0 0 2px rgba(47,111,237,.18); }
+                    .b20tpl-item > .material-icons-outlined { font-size: 22px; color: #2f6fed; flex: 0 0 auto; }
+                    .b20tpl-name { display: block; font-weight: 600; }
+                    .b20tpl-desc { display: block; font-size: 12px; color: #6b7280; line-height: 1.35; }
+                    .b20tpl-next { display: flex; gap: 8px; align-items: flex-start; margin-top: 10px; padding: 8px 10px; border-radius: 8px; background: #eaf3ea; }
+                    .b20tpl-next > .material-icons-outlined { font-size: 20px; color: #2e7d32; flex: 0 0 auto; }
+                </style>
+            }
             <div class="row my-2">
                 <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Typ hlídače"):</label>
                 <div class="col-sm-9 col-md-8">

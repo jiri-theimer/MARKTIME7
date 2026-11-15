@@ -163,6 +163,18 @@ body.moc-thread-page main { padding: 0 !important; }
     background: var(--color-base-100); color: var(--color-base-content); font-size: 14px; line-height: 1.3;
 }
 .moa-example:active { background: var(--color-base-200); }
+.moa-voice-hint { display: flex; align-items: center; gap: 6px; margin-top: 14px; font-size: 13px; opacity: .7; }
+.moa-voice-hint[hidden] { display: none; }
+.moa-mic[hidden] { display: none; }
+.moa-mic.on { background: var(--color-error, #dc2626); color: #fff; animation: moa-mic-pulse 1.4s ease-out infinite; }
+@keyframes moa-mic-pulse {
+    0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-error, #dc2626) 55%, transparent); }
+    100% { box-shadow: 0 0 0 12px transparent; }
+}
+@media (prefers-reduced-motion: reduce) { .moa-mic.on { animation: none; } }
+.moa-voice-status { font-size: 13px; padding: 4px 8px 8px 8px; opacity: .8; }
+.moa-voice-status[hidden] { display: none; }
+.moa-voice-status.error { color: var(--color-error, #dc2626); opacity: 1; }
 .moa-answer { align-items: stretch !important; gap: 6px; margin: 6px 0 10px 0; }
 .moa-answer > .moc-bubble { align-self: flex-start; max-width: 92%; }
 .moa-wait { align-self: flex-start; padding: 7px 11px; font-size: 14px; opacity: .6; font-style: italic; }

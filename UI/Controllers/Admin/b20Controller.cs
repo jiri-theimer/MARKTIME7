@@ -36,7 +36,7 @@ namespace UI.Controllers.Admin
             //BO.Code.File.LogInfo("datatable: " + (DateTime.Now - d0).TotalMilliseconds.ToString());
 
         }
-        public IActionResult Record(int pid, bool isclone, int b01id)
+        public IActionResult Record(int pid, bool isclone, int b01id, string tpl = null)
         {
             pokus();
             var v = new b20Record() { rec_pid = pid, rec_entity = "b20" };
@@ -70,6 +70,25 @@ namespace UI.Controllers.Admin
                 }
                 
 
+            }
+            if (v.rec_pid == 0)
+            {
+                //nový hlídač: nabídka hotových pravidel; vybraná šablona (tpl) kartu předvyplní, uloží ji až administrátor
+                v.Templates = BL.b20HlidacTemplates.GetList().ToList();
+                var t = BL.b20HlidacTemplates.Find(tpl);
+                if (t != null)
+                {
+                    v.TemplateKey = t.Key;
+                    v.Rec.b20TypeFlag = BO.b20TypeFlagEnum.TestBySql;
+                    v.Rec.b20Entity = "x01";
+                    v.Rec.b20ListEntity = t.ListEntity;
+                    v.Rec.b20Name = Factory.tra(t.Name);
+                    v.Rec.b20TestSql = t.TestSql;
+                    v.Rec.b20NotifyMessage = Factory.tra(t.NotifyMessage);
+                    v.Rec.b20NextRunAfterMinutes = BL.b20HlidacTemplates.NextRunAfterMinutes;
+                    v.Rec.b20TestTimeFrom = BL.b20HlidacTemplates.TestTimeFrom;
+                    v.Rec.b20TestTimeUntil = BL.b20HlidacTemplates.TestTimeUntil;
+                }
             }
             RefreshState(v);
             v.Toolbar = new MyToolbarViewModel(v.Rec);
