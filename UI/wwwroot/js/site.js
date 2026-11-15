@@ -941,14 +941,16 @@ function _location_replace_top(url) {
 
 
 //--------------------- funkce pro volání ze splitter stránek --------------------------
+//Splitter dvou panelů: MasterView (horní + spodní panel), stránka záznamu a strom projektů (levý + pravý panel).
+//  tažení úchytu myší nebo prstem; dvojklik na úchyt = výchozí velikost; šipky na úchytu s fokusem = posun po 16 px (se Shift po 64 px)
+//Velikost prvního panelu se pamatuje v prohlížeči (localStorage, klíč prefix + "_panel1_size").
+//Při změně velikosti okna se rozložení přepočítá. Spodní panel v MasterView vyplňuje iframe přes CSS, takže se po tažení nenačítá znovu.
+var _splitter = null;
 
 function _splitter_init(splitterLayout, prefix) {    //splitterLayout 1 - horní a spodní panel, 2 - levý a pravý panel
-    
-    
     var cont = document.getElementById("splitter_container");
-    var offset = $(cont).offset();
-    var h = _device.innerHeight - offset.top - 2;       //proč je třeba odečíst 2 nevím
-    $(cont).height(h);
+    var handle = document.getElementById("splitter_resizer");
+    if (!cont || !handle || !document.getElementById("splitter_panel1")) return;
 
     if (splitterLayout === "2" && cont.className !== "splitter-container-left2right") {
         $("#splitter_container").attr("class", "splitter-container-left2right");
@@ -963,64 +965,149 @@ function _splitter_init(splitterLayout, prefix) {    //splitterLayout 1 - horní
         $("#splitter_panel2").attr("class", "splitter-panel-bottom");
     }
 
-    if (splitterLayout === "2") {
-        document.getElementById("fra_subgrid").height = h - 1;
+    var first = (_splitter === null);
+    _splitter = { layout: splitterLayout, prefix: prefix };
+    _splitter_fit();
+    if (!first) return;     //události se vážou jen jednou
+
+    handle.setAttribute("tabindex", "0");
+    handle.setAttribute("role", "separator");
+    handle.setAttribute("aria-orientation", splitterLayout === "2" ? "vertical" : "horizontal");
+    if (!handle.title) handle.title = "Tažením změníte velikost panelů, dvojklik vrátí výchozí velikost";
+
+    var start = null, pending = 0, raf = 0;
+
+    function apply() {
+        raf = 0;
+        if (start === null) return;
+        _splitter_set(pending, false);
+        _splitter_adjust_grid();    //grid v prvním panelu sleduje úchyt už během tažení
+    }
+    function finish(e) {
+        if (start === null) return;
+        if (raf) { cancelAnimationFrame(raf); raf = 0; }
+        _splitter_set(pending, true);
+        start = null;
+        try { handle.releasePointerCapture(e.pointerId); } catch (ex) { }
+        document.body.classList.remove("splitter-dragging");
+        _splitter_adjust_grid();
     }
 
+    handle.addEventListener("pointerdown", function (e) {
+        if (e.pointerType === "mouse" && e.button !== 0) return;
+        e.preventDefault();
+        start = { pos: (_splitter.layout === "2" ? e.clientX : e.clientY), size: _splitter_get() };
+        pending = start.size;
+        try { handle.setPointerCapture(e.pointerId); } catch (ex) { }     //pohyb myši dostává úchyt i nad iframe
+        document.body.classList.add("splitter-dragging");
+    });
+    handle.addEventListener("pointermove", function (e) {
+        if (start === null) return;
+        pending = start.size + (_splitter.layout === "2" ? e.clientX : e.clientY) - start.pos;
+        if (!raf) raf = requestAnimationFrame(apply);
+    });
+    handle.addEventListener("pointerup", finish);
+    handle.addEventListener("pointercancel", finish);
 
-    $("#splitter_panel1").resizable({
-        handleSelector: "#splitter_resizer",
-
-        onDragStart: function (e, $el, opt) {
-            //resizeHeight: false
-            //$("#splitter_panel2").html("<h6>Velikost panelu ukládám do vašeho profilu...</h6>");
-
-            return true;
-        },
-        onDragEnd: function (e, $el, opt) {     //splitterLayout 1 - horní a spodní panel, 2 - levý a pravý panel
-            var id = $el.attr("id");
-            var panel1_size = $el.height();
-            var key = prefix + "_panel1_size";
-
-            if (splitterLayout === "2") {
-                panel1_size = $el.width();
-            }
-
-
-            //_notify_message("Velikost panelu ukládám do vašeho profilu.<hr>" + key + ": " + panel1_size + "px", "info");
-            localStorage.setItem(key, panel1_size);
-
-            if (document.getElementById("tabgrid1")) {
-                tg_adjust_for_screen("splitter_panel1");
-            }
-            if (document.getElementById("fra_subgrid")) {
-                document.getElementById("fra_subgrid").contentDocument.location.reload(true);
-            }
-
-            //run_postback(key, panel1_size);          //velikost panelu se uloží přes postback             
-
+    handle.addEventListener("dblclick", function () {      //výchozí velikost
+        var def = (_splitter.layout === "2" ? 400 : Math.floor(cont.clientHeight / 2));
+        _splitter_set(def, true);
+        _splitter_adjust_grid();
+    });
+    handle.addEventListener("keydown", function (e) {
+        var step = e.shiftKey ? 64 : 16, d = 0;
+        if (_splitter.layout === "2") {
+            if (e.key === "ArrowLeft") d = -step;
+            if (e.key === "ArrowRight") d = step;
+        } else {
+            if (e.key === "ArrowUp") d = -step;
+            if (e.key === "ArrowDown") d = step;
         }
+        if (d === 0) return;
+        e.preventDefault();
+        _splitter_set(_splitter_get() + d, true);
+        _splitter_adjust_grid();
+    });
+
+    var t = null;
+    window.addEventListener("resize", function () {     //změna velikosti okna: přepočítat výšku a meze panelů
+        clearTimeout(t);
+        t = setTimeout(_splitter_fit, 100);
     });
 }
 
-function _splitter_resize_after_init(splitterLayout, defaultPanel1Size) {   //splitterLayout 1 - horní a spodní panel, 2 - levý a pravý panel
-    var win_size = $("#splitter_container").height();
-    var splitter_size = $("#splitter_resizer").height();
-    var panel1_size = parseInt(defaultPanel1Size);
+function _splitter_get() {      //aktuální velikost prvního panelu v px
+    var p1 = document.getElementById("splitter_panel1");
+    return Math.round(_splitter.layout === "2" ? p1.getBoundingClientRect().width : p1.getBoundingClientRect().height);
+}
 
-    if (splitterLayout === "1") {
-        //výšku iframe přepočítávat pouze v režimu horní+spodní    
-        if (panel1_size === 0) panel1_size = 500;
-        $("#splitter_panel1").height(panel1_size);
-        //alert("panel1: " + $("#splitter_panel1").height() + ", panel2: " + $("#splitter_panel2").height());
-
-        document.getElementById("fra_subgrid").height = win_size - panel1_size - splitter_size;
-    } else {
-        document.getElementById("fra_subgrid").height = win_size - 1;
-        if (panel1_size === 0) panel1_size = 300;
-        $("#splitter_panel1").width(panel1_size);
-
+function _splitter_limits() {   //nejmenší a největší velikost prvního panelu, aby oba panely i úchyt zůstaly vidět
+    var cont = document.getElementById("splitter_container");
+    var horizontal = (_splitter.layout === "2");
+    var total = horizontal ? cont.clientWidth : cont.clientHeight;
+    var fixed = 0;      //úchyt a u MasterView i řádek záložek mezi panely
+    for (var i = 0; i < cont.children.length; i++) {
+        var c = cont.children[i];
+        if (c.id === "splitter_panel1" || c.id === "splitter_panel2") continue;
+        fixed += horizontal ? c.offsetWidth : c.offsetHeight;
     }
+    var min1 = horizontal ? 200 : 100;
+    var min2 = horizontal ? 300 : 120;
+    var max1 = total - fixed - min2;
+    if (max1 < min1) max1 = min1;
+    return { min: min1, max: max1 };
+}
+
+function _splitter_set(size, save) {
+    var p1 = document.getElementById("splitter_panel1");
+    var lim = _splitter_limits();
+    size = Math.round(size);
+    if (!(size >= lim.min)) size = lim.min;
+    if (size > lim.max) size = lim.max;
+    if (_splitter.layout === "2") p1.style.width = size + "px"; else p1.style.height = size + "px";
+    if (save) {
+        try { localStorage.setItem(_splitter.prefix + "_panel1_size", size); } catch (e) { }
+    }
+    return size;
+}
+
+function _splitter_adjust_grid() {
+    var grid = document.getElementById("container_grid");
+    if (grid && grid.parentNode && grid.parentNode.id === "splitter_panel1" && typeof tg_adjust_for_screen === "function") {
+        tg_adjust_for_screen("splitter_panel1");
+    }
+}
+
+function _splitter_fit() {      //výška kontejneru do spodního okraje okna, panel v mezích, výška iframe
+    if (_splitter === null) return;
+    var cont = document.getElementById("splitter_container");
+    if (!cont || document.body.classList.contains("mv-single")) return;     //mv-single: MasterView na telefonu je jen grid
+
+    var h = _device.innerHeight - $(cont).offset().top - 2;
+    if (h < 250) h = 250;
+    $(cont).height(h);
+
+    var f = document.getElementById("fra_subgrid");
+    if (_splitter.layout === "2") {
+        if (f) f.height = h - 1;
+    } else {
+        //horní + spodní panel: iframe vyplňuje spodní panel přes CSS (.splitter-panel-bottom > iframe), pevná výška by ho po tažení ořízla
+        var frames = document.querySelectorAll("#splitter_panel2 > iframe");
+        for (var i = 0; i < frames.length; i++) {
+            frames[i].removeAttribute("height");
+            frames[i].style.height = "";
+        }
+    }
+    _splitter_set(_splitter_get(), false);
+    _splitter_adjust_grid();
+}
+
+function _splitter_resize_after_init(splitterLayout, defaultPanel1Size) {   //splitterLayout 1 - horní a spodní panel, 2 - levý a pravý panel
+    if (_splitter === null) return;
+    var size = parseInt(defaultPanel1Size, 10) || 0;
+    if (size === 0) size = (splitterLayout === "1" ? 500 : 300);
+    _splitter_set(size, false);
+    _splitter_fit();
 }
 
 function _loading_show(flag)

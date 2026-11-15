@@ -314,6 +314,7 @@ input[type="checkbox"] {
     background: url(../Images/vsizegrip.png) center center no-repeat #F5F5F5;
     min-height: 200px;
     cursor: col-resize;
+    touch-action: none;     /* tažení prstem nesmí posouvat stránku */
 }
 
 .splitter-panel-right {
@@ -351,13 +352,25 @@ input[type="checkbox"] {
     background: url(../Images/hsizegrip.png) center center no-repeat #E5E5E5;
     cursor: row-resize;
     z-index: 500;
+    touch-action: none;     /* tažení prstem nesmí posouvat stránku */
 }
+
+/* úchyt: zvýraznění pod myší, při tažení a při fokusu z klávesnice */
+#splitter_resizer:hover, #splitter_resizer:focus-visible, body.splitter-dragging #splitter_resizer { background-color: #2f6fed; outline: 0; }
+/* během tažení: iframe nesmí pohlcovat pohyb myši a neoznačuje se text */
+body.splitter-dragging { -webkit-user-select: none; user-select: none; }
+body.splitter-dragging iframe { pointer-events: none; }
+
+/* MasterView: iframe (i skryté načtené záložky) vždy přesně vyplňuje spodní panel – výšku nepočítá skript */
+.splitter-panel-bottom > iframe { position: absolute; left: 0; top: 0; width: 100%; height: 100%; border: 0; }
 
 .splitter-panel-bottom {
     flex: 1 1 auto;
     /* resizable */
     padding: 0px;
-    min-height: 300px;
+    min-height: 120px;      /* dřív 300px: na nižším okně vytlačilo spodní panel pod okraj kontejneru */
+    position: relative;
+    overflow: hidden;
     background: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 100% 100%"><text fill="gray" x="70%" y="70%" font-family="\'Lucida Grande\', sans-serif" font-size="14" text-anchor="middle">Loading...</text></svg>') 0px 0px no-repeat;
 }
 
