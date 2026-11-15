@@ -684,3 +684,9 @@ table.tg-one {
 .tg-fv-info { margin-top: 4px; font-size: 85%; color: #6b7480; }
 .tg-fv-foot { display: flex; align-items: center; gap: 6px; margin-top: 8px; }
 .tg-fv-all { margin: 0 auto 0 0; font-weight: normal; cursor: pointer; }
+
+/* ------------------------------------------------------------------
+   Součet označených řádků v patičce (thegrid.js: tg_selsum_refresh) – barva jako označený řádek
+   ------------------------------------------------------------------ */
+#tabgrid1_tr_totals .tg-selsum { display: table; margin: 2px 0 0 auto; padding: 0 5px; border-radius: 4px; background-color: var(--oznaceno, #cfe2ff); color: var(--popredi, #1f2328); font-weight: 600; white-space: nowrap; }
+#tabgrid1_tr_totals .tg-selsum.tg-selcount { margin-left: 0; }

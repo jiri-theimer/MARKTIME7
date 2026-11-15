@@ -1079,6 +1079,18 @@ namespace UI.Views.Shared.Components.myGrid
                     {
                         _s.Append(string.Format(" style='width:{0}'", GetColumnWidth(col)));
                     }
+                    if (col.IsShowTotals && dbRow[col.UniqueName] != System.DBNull.Value)
+                    {
+                        //sčítaný sloupec: surové číslo pro součet označených řádků, který počítá prohlížeč (thegrid.js: tg_selsum_refresh)
+                        try
+                        {
+                            _s.Append($" data-n='{Convert.ToDouble(dbRow[col.UniqueName]).ToString(System.Globalization.CultureInfo.InvariantCulture)}'");
+                        }
+                        catch
+                        {
+                            //hodnota není číslo
+                        }
+                    }
                     if (col == colAktivita && dbRow["p32Color"] != System.DBNull.Value)
                     {
                         //úkon: název aktivity podbarvený barvou aktivity (jen text, ne celá buňka – třída p32c v thegrid.css)
@@ -1114,7 +1126,11 @@ namespace UI.Views.Shared.Components.myGrid
                 strVal = string.Format("{0:#,0}", dt.Rows[0]["RowsCount"]);
             }
 
-            _s.Append("<tr id='tabgrid1_tr_totals'>");
+            //součet označených řádků počítá prohlížeč: potřebuje oddělovače čísel podle formátování serveru a přeložené popisky
+            string strSample = string.Format("{0:#,0.0}", 1234.5);
+            int intGrp = char.IsDigit(strSample[1]) ? 0 : (int)strSample[1];
+            int intDec = (int)strSample[strSample.Length - 2];
+            _s.Append($"<tr id='tabgrid1_tr_totals' data-grp='{intGrp}' data-dec='{intDec}' data-tsum='{System.Net.WebUtility.HtmlEncode(_Factory.tra("Součet označených řádků"))}' data-tcount='{System.Net.WebUtility.HtmlEncode(_Factory.tra("Počet označených řádků"))}'>");
             _s.Append($"<th class='th0' colspan='3' title='{_Factory.tra("Celkový počet záznamů")}'><span id='tabgrid1_rows' class='badge bg-primary'>{strVal}</span></th>");
             if (this.gridinput.reczoomflag > 0)
             {
@@ -1182,6 +1198,12 @@ namespace UI.Views.Shared.Components.myGrid
                 }
 
 
+                if (col.IsShowTotals)
+                {
+                    //sloupec se součtem: typ a formát hodin pro součet označených řádků
+                    _s.Append($" data-sum='1' data-ft='{col.FieldType}'");
+                    if (col.IsHours && _Factory.CurrentUser.j02DefaultHoursFormat == "T") _s.Append(" data-hhmm='1'");
+                }
                 _s.Append($" style='width:{GetColumnWidth(col)}'>{strVal}</th>");
 
 

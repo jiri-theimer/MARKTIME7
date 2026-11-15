@@ -1454,12 +1454,79 @@ function tg_batchupdate(prefix) {
 
 
 
+
+// ------------------------------------------------------------------
+// Součet označených řádků v patičce gridu.
+// Čistě v prohlížeči: server při vykreslení přibalí k buňkám sčítaných sloupců surové číslo (data-n),
+// k buňkám součtové řádky typ sloupce (data-sum, data-ft, data-hhmm) a k řádku oddělovače čísel (data-grp, data-dec).
+// Zobrazuje se od dvou označených řádků, jen pro sloupce, které mají součet v patičce.
+// ------------------------------------------------------------------
+function tg_selsum_format(n, fieldtype, hhmm, grp, dec) {
+    var sign = n < 0 ? "-" : "";
+    n = Math.abs(n);
+    if (hhmm) {
+        var mins = Math.round(n * 60);
+        var h = Math.floor(mins / 60), m = mins % 60;
+        return sign + (h < 10 ? "0" + h : h) + ":" + (m < 10 ? "0" + m : m);
+    }
+    var places = { num0: 0, "int": 0, num1: 1, num: 2, num3: 3, num4: 4, num5: 5 }[fieldtype];
+    if (places === undefined) places = 2;
+    var arr = n.toFixed(places).split(".");
+    var whole = arr[0].replace(/\B(?=(\d{3})+(?!\d))/g, grp);
+    if (parseFloat(n.toFixed(places)) === 0) sign = "";
+    return sign + whole + (places > 0 ? dec + arr[1] : "");
+}
+
+function tg_selsum_refresh() {
+    var tr = document.getElementById("tabgrid1_tr_totals");
+    if (!tr) return;
+    var old = tr.querySelectorAll(".tg-selsum");
+    for (var x = 0; x < old.length; x++) old[x].parentNode.removeChild(old[x]);
+
+    var rows = document.querySelectorAll("#tabgrid1_tbody tr.selrow");
+    if (rows.length < 2) return;
+
+    var grp = parseInt(tr.getAttribute("data-grp"), 10) > 0 ? String.fromCharCode(parseInt(tr.getAttribute("data-grp"), 10)) : "";
+    var dec = parseInt(tr.getAttribute("data-dec"), 10) > 0 ? String.fromCharCode(parseInt(tr.getAttribute("data-dec"), 10)) : ",";
+
+    var ths = tr.querySelectorAll("th[data-sum]");
+    for (var i = 0; i < ths.length; i++) {
+        //úvodní buňka patičky má colspan=3, v řádcích dat jsou místo ní tři buňky: sloupec v těle je o 2 dál
+        var idx = ths[i].cellIndex + 2;
+        var sum = 0, any = false;
+        for (var r = 0; r < rows.length; r++) {
+            var td = rows[r].cells[idx];
+            var v = td ? td.getAttribute("data-n") : null;
+            if (v !== null && v !== "") {
+                sum += parseFloat(v);
+                any = true;
+            }
+        }
+        if (!any) continue;
+        var div = document.createElement("div");
+        div.className = "tg-selsum";
+        div.title = tr.getAttribute("data-tsum") || "";
+        div.textContent = tg_selsum_format(sum, ths[i].getAttribute("data-ft"), ths[i].getAttribute("data-hhmm") === "1", grp, dec);
+        ths[i].appendChild(div);
+    }
+
+    var first = tr.cells[0];
+    if (first) {
+        var cnt = document.createElement("div");
+        cnt.className = "tg-selsum tg-selcount";
+        cnt.title = tr.getAttribute("data-tcount") || "";
+        cnt.textContent = rows.length;
+        first.appendChild(cnt);
+    }
+}
+
 function tg_clear_selection() {
     $("#tabgrid1_tbody").find("tr.selrow").removeClass("selrow");
     $("#tabgrid1_tbody").find("input:checkbox").prop("checked", false);
 
     $("#tg_selected_pid").val("");
     $("#tg_selected_pids").val("");
+    tg_selsum_refresh();
 }
 
 function tg_save_selected_pids(explicit_pids) {
@@ -1493,6 +1560,7 @@ function tg_save_selected_pids(explicit_pids) {
     {
         $("#akceSelPocet").text(pids.length);
     }
+    tg_selsum_refresh();    //součet označených řádků v patičce
     
 }
 
