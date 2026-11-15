@@ -16,27 +16,29 @@
 
 <style type="text/css">
     /* GRID-REPORT: lišta, nastavení v jednom pruhu, náhled sestavy vyplňuje zbytek okna */
-    .gr-bar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background-color: #f7f8fa; border-bottom: 1px solid #e3e6ea; }
+    .gr-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; padding: 8px 12px; background-color: #f7f8fa; border-bottom: 1px solid #e3e6ea; }
     .gr-title { font-weight: 700; font-size: 110%; color: #1f2328; }
     .gr-scope { padding: 1px 10px; border-radius: 999px; background-color: #e7eefc; color: #1f3b7a; font-size: 88%; white-space: nowrap; }
-    .gr-bar-right { margin-left: auto; display: flex; gap: 6px; }
+    .gr-bar-right { margin-left: auto; display: flex; flex-wrap: wrap; gap: 6px; }
+    .gr-bar .btn { white-space: nowrap; }
 
-    .gr-settings { display: flex; flex-wrap: wrap; gap: 10px; padding: 10px 12px; }
-    .gr-card { border: 1px solid #e3e6ea; border-radius: 10px; background-color: #fff; padding: 8px 12px 10px 12px; }
-    .gr-card-title { font-size: 78%; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #6b7480; margin-bottom: 6px; }
+    .gr-settings { display: flex; flex-wrap: wrap; gap: 8px; padding: 8px 12px; }
+    .gr-settings.gr-collapsed { display: none; }     /* sbalené nastavení: celé okno pro náhled */
+    .gr-card { flex: 0 1 auto; min-width: 0; border: 1px solid #e3e6ea; border-radius: 10px; background-color: #fff; padding: 5px 10px 7px 10px; }
+    .gr-card-title { font-size: 76%; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: #6b7480; margin-bottom: 3px; }
     .gr-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px; }
     .gr-field { display: flex; flex-direction: column; gap: 2px; }
     .gr-field > label { font-size: 82%; color: #59636e; margin: 0; }
     .gr-field .form-control, .gr-field .form-select { min-width: 0; }
-    .gr-w-header { width: 260px; }
-    .gr-w-col { width: 190px; }
-    .gr-w-num { width: 64px; text-align: right; }
-    .gr-check { display: flex; align-items: center; gap: 6px; margin: 6px 0 0 0; font-size: 92%; cursor: pointer; }
+    .gr-w-header { width: 230px; max-width: 100%; }
+    .gr-w-col { width: 170px; max-width: 100%; }
+    .gr-w-num { width: 58px; text-align: right; }
+    .gr-check { display: flex; align-items: center; gap: 6px; margin: 0; padding-bottom: 5px; font-size: 92%; white-space: nowrap; cursor: pointer; }    /* v řádku polí, zarovnané na spodní linku */
 
     /* pruh pro nastavení šířek sloupců */
     .gr-resizer { display: flex; align-items: stretch; gap: 8px; margin: 0 12px 10px 12px; padding: 8px 10px; border: 1px dashed #c9d1da; border-radius: 10px; background-color: #fff; overflow-x: auto; }
-    .gr-resizer-hint { display: flex; align-items: center; gap: 6px; font-size: 85%; color: #59636e; white-space: nowrap; }
-    #tabResizer { background-color: #fff; font-size: 80%; table-layout: fixed; }
+    .gr-resizer-hint { flex: 0 0 auto; display: flex; align-items: center; gap: 6px; font-size: 85%; color: #59636e; white-space: nowrap; }
+    #tabResizer { flex: 0 0 auto; width: auto; background-color: #fff; font-size: 80%; table-layout: fixed; }     /* nemačkat: šířky odpovídají sestavě, pruh se posouvá vodorovně */
     #tabResizer th { position: relative; text-align: center; font-weight: normal; background-color: #f1f3f5; border-right: 2px solid #9aa3ad; color: #47515c; height: 34px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; padding: 0 6px; }
     #tabResizer th:hover { background-color: #e7eefc; }
     #tabResizer .resizer { position: absolute; top: 0; right: -8px; bottom: 0; left: auto; width: 16px; cursor: col-resize; }
@@ -72,6 +74,10 @@
         }
 
         <div class="gr-bar-right">
+            <button id="cmdSettings" type="button" class="btn btn-sm btn-light" onclick="gr_toggle_settings()" title="@_f.tra("Skrýt nebo zobrazit nastavení sestavy")">
+                <span class="material-icons-outlined-btn">tune</span>
+                @_f.tra("Nastavení")
+            </button>
             <button id="cmdSendByMail" type="button" class="btn btn-sm btn-light" onclick="send_by_mail()" disabled="@(!_isReady)">
                 <span class="material-icons-outlined-btn">email</span>
                 @_f.tra("Odeslat poštou")
@@ -87,7 +93,7 @@
         </div>
     </div>
 
-    <div class="gr-settings">
+    <div id="divSettings" class="gr-settings">
         <div class="gr-card">
             <div class="gr-card-title">@_f.tra("Obsah sestavy")</div>
             <div class="gr-row">
@@ -118,14 +124,14 @@
                         </select>
                     </div>
                 }
+                @if (Model.GroupByColumn != null && Model.PageBreakColumn == null)
+                {
+                    <label class="gr-check" for="IsShowGroupsOnly" title="@_f.tra("Zobrazovat pouze řádky souhrnů a součtové sloupce")">
+                        <input type="checkbox" asp-for="IsShowGroupsOnly" onchange="postback('refresh')" />
+                        @_f.tra("Jen souhrny")
+                    </label>
+                }
             </div>
-            @if (Model.GroupByColumn != null && Model.PageBreakColumn == null)
-            {
-                <label class="gr-check" for="IsShowGroupsOnly">
-                    <input type="checkbox" asp-for="IsShowGroupsOnly" onchange="postback('refresh')" />
-                    @_f.tra("Zobrazovat pouze řádky souhrnů a součtové sloupce")
-                </label>
-            }
         </div>
 
         <div class="gr-card">
@@ -160,6 +166,10 @@
                         <option value="5000">5000</option>
                     </select>
                 </div>
+                <label class="gr-check" for="IsEnableResizer" title="@_f.tra("Možnost nastavovat šířky sloupců")">
+                    <input type="checkbox" asp-for="IsEnableResizer" onchange="postback('IsEnableResizer')" />
+                    @_f.tra("Šířky sloupců ručně")
+                </label>
             </div>
         </div>
 
@@ -184,21 +194,6 @@
                 </div>
             </div>
         </div>
-
-        <div class="gr-card">
-            <div class="gr-card-title">@_f.tra("Sloupce")</div>
-            <label class="gr-check" for="IsEnableResizer" style="margin-top:0;">
-                <input type="checkbox" asp-for="IsEnableResizer" onchange="postback('IsEnableResizer')" />
-                @_f.tra("Možnost nastavovat šířky sloupců")
-            </label>
-            @if (Model.IsEnableResizer)
-            {
-                <button id="cmdResetWidths" type="button" class="btn btn-sm btn-light mt-2" onclick="reset_resizer()" title="@_f.tra("Nahodí šířky sloupců do výchozího (továrního) stavu")">
-                    <span class="material-icons-outlined-btn">restart_alt</span>
-                    @_f.tra("Výchozí šířky")
-                </button>
-            }
-        </div>
     </div>
 
     @if (Model.IsEnableResizer && _cols.Count > 0)
@@ -208,6 +203,10 @@
                 <span class="material-icons-outlined-btn">swap_horiz</span>
                 @_f.tra("Šířku změníte tažením pravého okraje sloupce")
             </div>
+            <button id="cmdResetWidths" type="button" class="btn btn-sm btn-light" style="flex:0 0 auto;" onclick="reset_resizer()" title="@_f.tra("Nahodí šířky sloupců do výchozího (továrního) stavu")">
+                <span class="material-icons-outlined-btn">restart_alt</span>
+                @_f.tra("Výchozí šířky")
+            </button>
             <table id="tabResizer">
                 <tr id="tr_columns">
                     @foreach (var c in _cols)
@@ -241,6 +240,9 @@
     var _gr_header = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Header ?? ""));
 
     $(document).ready(function () {
+        try {
+            if (localStorage.getItem("gridreport-settings") === "0") document.getElementById("divSettings").classList.add("gr-collapsed");
+        } catch (e) { }
         gr_fit();
         var t = null;
         $(window).on("resize", function () {    //náhled sleduje velikost okna
@@ -272,6 +274,12 @@
         var h = window.innerHeight - box.getBoundingClientRect().top - 10;
         if (h < 240) h = 240;
         box.style.height = parseInt(h) + "px";
+    }
+
+    function gr_toggle_settings() {     //skrýt/zobrazit nastavení – na menším okně zůstane víc místa pro náhled
+        var collapsed = document.getElementById("divSettings").classList.toggle("gr-collapsed");
+        try { localStorage.setItem("gridreport-settings", collapsed ? "0" : "1"); } catch (e) { }
+        gr_fit();
     }
 
     function postback(oper) {
