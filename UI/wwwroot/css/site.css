@@ -2269,6 +2269,14 @@ html.mt-phone #divGridMenuPrehledy { margin-left: 0; }
 
 /* telefon: rozbalovací menu nesmí přetéct šířku okna; v gridu o kousek vyšší řádky pro prst */
 html.mt-phone .dropdown-menu { max-width: calc(100vw - 16px); }
+
+/* telefon: nabídka mycombo. Výsledky s pevnou šířkou (search-result-width 600–900 px) byly širší než nabídka, která je ořezávala
+   (overflow:hidden) – byl vidět jen první sloupec a nešlo posouvat. Nově se výsledky vejdou do nabídky a posouvají se vodorovně prstem;
+   sloupce se nemačkají, tabulka má přirozenou šířku. */
+html.mt-phone .mtc-data { max-width: 100%; overflow: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+html.mt-phone table.table-thecombo { width: max-content; min-width: 100%; }
+html.mt-phone table.table-thecombo th,
+html.mt-phone table.table-thecombo td { max-width: 75vw; }
 html.mt-phone #tabgrid1_tbody > tr > td { padding-top: 5px; padding-bottom: 5px; }
 
 /* stránka záznamu (RecPage, TreePage) na telefonu: záložky v jednom vodorovně posuvném řádku (recpage.js revealTab), režim „levý grid + záznam“ jen se záznamem */

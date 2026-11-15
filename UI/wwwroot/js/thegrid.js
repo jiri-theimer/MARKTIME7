@@ -370,177 +370,180 @@ function tg_adjust_parts_width() {
 }
 
 
+var _tg_sel_anchor_id = null;   //id řádku, od kterého se počítá rozsah při Shift+klik
+var _tg_drag_start = null;      //řádek, na kterém začalo tažení myší
+var _tg_drag_last = null;       //řádek, na kterém se tažení právě nachází
+
+//Označování řádků myší:
+//  klik          = označit jeden řádek
+//  Ctrl+klik     = přidat řádek k označeným, na již označeném řádku ho odebrat
+//  Shift+klik    = rozsah od naposledy kliknutého řádku (Ctrl+Shift = rozsah přidat k označeným)
+//  tažení myší   = rozsah řádků
+//Voláno při inicializaci a po každém načtení dat. Obsluha je delegovaná na tbody (přepisuje se jen jeho obsah), váže se proto jen jednou.
 function tg_setup_selectable() {
-    
+
     if (!_tg_is_enable_selecting) return;
 
     _tg_tablerows = $("#tabgrid1_tbody").find("tr");
 
+    $("#tabgrid1_tbody").off(".tgsel")
+        .on("mousedown.tgsel", "tr", tg_row_mousedown)
+        .on("mouseenter.tgsel", "tr", tg_row_mouseenter)
+        .on("mouseleave.tgsel", "tr", function () {
+            $(this).css("background-color", "");    //hover řádky
+        });
 
-    $(_tg_tablerows).mousedown(function (e) {        
+    $(document).off("mouseup.tgsel").on("mouseup.tgsel", tg_drag_finish);
 
-        if (e.target.tagName === "INPUT" || this.className === "trgroup" || this.className == "trgroup group_row_active" || e.target.className === "link_in_grid") {
-            return; //kliknutí na checkbox nebo grid není selectable nebo kliknutí na vložený link do buňky
+}
+
+function tg_is_grouprow(tr) {   //řádek skupiny (souhrny); třída může být i "trgroup <výška řádku>" nebo "trgroup group_row_active"
+    return tr.classList.contains("trgroup");
+}
+
+function tg_row_mousedown(e) {
+    var t = e.target;
+    if (t.tagName === "INPUT" || tg_is_grouprow(this) || !this.id || t.classList.contains("link_in_grid")) {
+        return; //kliknutí na checkbox nebo řádek není selectable nebo kliknutí na vložený link do buňky
+    }
+    if (t.classList.contains("td0")) {
+        return; //kliknutí těsně vedle checkboxu
+    }
+
+    var pid = this.id.replace("r", "");
+    var ctrl = (e.ctrlKey || e.metaKey);
+    var anchor = _tg_sel_anchor_id ? document.getElementById(_tg_sel_anchor_id) : null;
+
+    if (ctrl && !e.shiftKey && this.classList.contains("selrow")) {
+        //Ctrl+klik na označeném řádku: odebrat z výběru
+        e.preventDefault();
+        this.classList.remove("selrow");
+        $("#chk" + pid).prop("checked", false);
+        tg_save_selected_pids(null);
+        _tg_sel_anchor_id = this.id;
+        return;
+    }
+
+    _tg_rowindex = this.sectionRowIndex;   //pořadí v tbody (rowIndex by počítal i 2 řádky hlavičky v téže tabulce)
+    _tg_current_pid = pid;
+
+    var pid_pre = $("#tg_selected_pid").val();
+    if (pid !== pid_pre) {
+        var event_thegridrowselect = new CustomEvent("thegrid_rowselect", { detail: { pid: pid, pid_pre: pid_pre } });
+        document.dispatchEvent(event_thegridrowselect);
+
+        $("#gridcurrow").text(" #" + (_tg_rowindex + 1));
+    }
+
+    if (e.shiftKey && anchor && anchor !== this) {
+        //Shift+klik: rozsah od naposledy kliknutého řádku; výchozí řádek zůstává, aby šel rozsah dalším Shift+klikem upravit
+        e.preventDefault();     //jinak prohlížeč označí text mezi oběma kliknutími
+        tg_select_row_range(anchor, this, ctrl);
+        return;
+    }
+
+    if (ctrl) {
+        this.classList.add("selrow");
+        tg_save_selected_pids(null);
+    } else {
+        tg_select_one_row(this, pid);
+        tg_save_selected_pids(pid);
+
+        if (e.button === 0) {   //tažení jen levým tlačítkem
+            _tg_mousedown_active = true;
+            _tg_drag_start = this;
+            _tg_drag_last = this;
         }
+    }
+    _tg_sel_anchor_id = this.id;
 
-        if (e.target.className === "td0") {
-            //kliknutí těsně vedle checkboxu
-            return;
-            
-        }
-        
-        var pid = this.id.replace("r", "");
-        _tg_rowindex = this.sectionRowIndex;   //pořadí v tbody (rowIndex by počítal i 2 řádky hlavičky v téže tabulce)
-        
-        _tg_current_pid = pid;
+    if (_tg_is_enable_clipboard === false) {   //pokud je true, pak uživatelé mohou v gridu označovat text
+        e.preventDefault(); // this prevents text selection from happening
+    }
+}
 
-        var pid_pre = $("#tg_selected_pid").val();
+function tg_row_mouseenter(e) {
+    $(this).css("background-color", "#ECECEC"); //hover řádky
 
-        if (pid !== pid_pre) {
-            var event_thegridrowselect = new CustomEvent("thegrid_rowselect", { detail: { pid: pid, pid_pre: pid_pre } });
-            document.dispatchEvent(event_thegridrowselect);
+    if (!_tg_mousedown_active || !_tg_drag_start) return;
 
-            $("#gridcurrow").text(" #" + (_tg_rowindex+1));
-            
-        }
-        if (e.ctrlKey) {
-            
-            this.classList.add("selrow");
-            $("#" + this.id + " input:checkbox").prop("checked", true);
-            tg_save_selected_pids(null);
-        } else {
-            tg_select_one_row(this, pid);
-            tg_save_selected_pids(pid);
-        }
+    var buttons = e.originalEvent ? e.originalEvent.buttons : e.buttons;
+    if ((buttons !== undefined && (buttons & 1) === 0) || !_tg_drag_start.isConnected) {
+        tg_drag_finish();   //tlačítko bylo puštěno mimo okno nebo se grid mezitím znovu načetl
+        return;
+    }
+    if (e.ctrlKey || tg_is_grouprow(this) || !this.id) return;
 
-
-
-        _tg_mousedown_active = true;
-
-        if (_tg_is_enable_clipboard === false) {   //pokud je true, pak uživatelé mohou v gridu označovat text
-            e.preventDefault(); // this prevents text selection from happening
-        }
-
-
-    });
-
-    $(_tg_tablerows).mousemove(function (e) {
-        if (!_tg_is_enable_selecting) return;
-        if (_tg_mousedown_active === false || this.className === "trgroup" || this.className == "trgroup group_row_active" || e.ctrlKey) {
-            return;
-        }
-
-        if (_tg_drag_is_active === false) {
-            //nastartovat drag režim
-            _tg_drag_is_active = true;
-            _tg_drag_tbodyrows = $("#tabgrid1_tbody").find("tr");
-            first_y = e.pageY;
-            first_rowindex = this.sectionRowIndex;
-            last_rowindex = this.sectionRowIndex;
-
-            $("#tabgrid1_tbody").find("tr.selrow").removeClass("selrow");
-            $("#tabgrid1_tbody").find("tr.highlight").removeClass("highlight");
-            $("#tabgrid1_tbody").find("input:checkbox").prop("checked", false);
-
-            $(this).addClass("highlight");
-            
-
-        }
-        last_y = e.pageY, last_rowindex = this.sectionRowIndex;
-
-        if (this.classList.contains("highlight") === false) {
-            this.classList.add("highlight");
-        }
-
-       
-
-    });
-
-    $(_tg_tablerows).mouseout(function (e) {
-        if (!_tg_is_enable_selecting) return;
-        $(this).css("background-color", "");    //hover řádky
-        if (_tg_drag_is_active === false || this.className === "trgroup" || this.className == "trgroup group_row_active") return;
-        
-        if (!_tg_is_enable_selecting) return;
-
-        if (first_rowindex < last_rowindex) {
-            if (e.pageY < last_y) {
-                _tg_drag_tbodyrows[last_rowindex].classList.remove("highlight");
-            }
-        }
-        if (first_rowindex > last_rowindex) {
-            if (e.pageY > last_y) {
-                _tg_drag_tbodyrows[last_rowindex].classList.remove("highlight");
-            }
-        }
-        
-        if (first_rowindex != last_rowindex) {
-            //zrušit označení textu, pokud je označeno více řádků
-            document.getSelection().collapseToEnd();
-        }
-        
-        //$("#tabgrid1_cmd_sel").html("<i class='fas fa-check-double fai_button'></i> " + $(".highlight").length);
-
-    });
-
-    $(_tg_tablerows).mouseover(function (e) {        
-        $(this).css("background-color", "#ECECEC"); //hover řádky            
-    });
-
-    $(document).mouseup(function (ev) {
-        if (!_tg_is_enable_selecting) return;
-        _tg_mousedown_active = false;
-
-        if (_tg_drag_is_active === false) return;
-
-        var rows = $("#tabgrid1_tbody").find("tr.highlight");
-
-        if (rows.length > 0) {
-            var rows_all = $("#tabgrid1_tbody").find("tr");
-            var start_index = first_rowindex, end_index = last_rowindex;
-            if (first_rowindex > last_rowindex) {
-                start_index = last_rowindex;
-                end_index = first_rowindex;
-            }
-            for (var i = start_index; i <= end_index; i++) {
-                rows_all[i].classList.add("highlight");
-            }
-            rows = $("#tabgrid1_tbody").find("tr.highlight");
-        }
-        var chks = $("#tabgrid1_tbody").find("tr.highlight input:checkbox");
-
-        $("#tabgrid1_tbody").find("tr.highlight").removeClass("highlight");
+    if (!_tg_drag_is_active) {
+        if (this === _tg_drag_start) return;
+        //nastartovat drag režim
+        _tg_drag_is_active = true;
         $("#tabgrid1_tbody").find("tr.selrow").removeClass("selrow");
         $("#tabgrid1_tbody").find("input:checkbox").prop("checked", false);
+    }
+    _tg_drag_last = this;
 
-        $(chks).prop("checked", true);
-        $(rows).addClass("selrow");
+    //zvýrazněný je vždy přesně souvislý rozsah od výchozího po aktuální řádek, bez řádků skupin
+    var rows = document.getElementById("tabgrid1_tbody").rows;
+    var i1 = Math.min(_tg_drag_start.sectionRowIndex, this.sectionRowIndex);
+    var i2 = Math.max(_tg_drag_start.sectionRowIndex, this.sectionRowIndex);
+    for (var i = 0; i < rows.length; i++) {
+        rows[i].classList.toggle("highlight", i >= i1 && i <= i2 && rows[i].id !== "" && !tg_is_grouprow(rows[i]));
+    }
 
-        tg_save_selected_pids(null);	//je třeba dodělat!
-        _tg_drag_is_active = false;
-        _tg_drag_tbodyrows = null;
-        
-        if (last_rowindex != first_rowindex) {               
-            //označeno více řádků - zrušit označený text v buňkách, protože to vypadá blbě a označit text pouze v prvním nebo posledním řádku
-            var onerow = $(rows[rows.length - 1]);
-            if (last_rowindex < first_rowindex) {
-                onerow = $(rows[0]);
-            }
-            
-            var selection = window.getSelection();
+    if (i1 !== i2) {
+        //zrušit označení textu, pokud je označeno více řádků
+        var sel = document.getSelection();
+        if (sel && sel.rangeCount > 0) sel.collapseToEnd();
+    }
+}
+
+function tg_drag_finish() {     //puštění tlačítka myši kdekoliv v dokumentu
+    _tg_mousedown_active = false;
+    var start = _tg_drag_start, last = _tg_drag_last;
+    _tg_drag_start = null;
+    _tg_drag_last = null;
+
+    if (_tg_drag_is_active === false) return;
+    _tg_drag_is_active = false;
+    _tg_drag_tbodyrows = null;
+
+    var tbody = $("#tabgrid1_tbody");
+    var rows = tbody.find("tr.highlight");
+    tbody.find("tr.selrow").removeClass("selrow");
+    tbody.find("input:checkbox").prop("checked", false);
+    rows.removeClass("highlight").addClass("selrow");
+
+    tg_save_selected_pids(null);
+    if (start && start.id) _tg_sel_anchor_id = start.id;
+
+    if (rows.length > 1 && last && last.isConnected) {
+        //označeno více řádků - zrušit označený text v buňkách, protože to vypadá blbě a označit text pouze v řádku, kde tažení skončilo
+        var selection = window.getSelection();
+        if (selection) {
             var range = document.createRange();
-            range.setStartBefore(onerow.first()[0]);
-            range.setEndAfter(onerow.last()[0]);
+            range.setStartBefore(last);
+            range.setEndAfter(last);
             selection.removeAllRanges();
             selection.addRange(range);
-
-            //document.getSelection().collapseToEnd();
         }
-        
+    }
+}
 
-    });
-
-
+function tg_select_row_range(row1, row2, additive) {    //označí souvislý rozsah řádků mezi row1 a row2 (bez řádků skupin)
+    var tbody = document.getElementById("tabgrid1_tbody");
+    if (!additive) {
+        $(tbody).find("tr.selrow").removeClass("selrow");
+        $(tbody).find("input:checkbox").prop("checked", false);
+    }
+    var i1 = Math.min(row1.sectionRowIndex, row2.sectionRowIndex);
+    var i2 = Math.max(row1.sectionRowIndex, row2.sectionRowIndex);
+    for (var i = i1; i <= i2; i++) {
+        if (tbody.rows[i].id !== "" && !tg_is_grouprow(tbody.rows[i])) {
+            tbody.rows[i].classList.add("selrow");
+        }
+    }
+    tg_save_selected_pids(null);    //zaškrtne i checkboxy označených řádků
 }
 
 
@@ -560,6 +563,16 @@ function tg_setup_checkbox_handler() {
 
         tg_save_selected_pids(null);
 
+    });
+
+    $("#tabgrid1_tbody").on("click", "input:checkbox", function (e) {
+        //Shift+klik na checkbox: zaškrtnout i řádky mezi naposledy kliknutým řádkem a tímto
+        var tr_row = this.parentNode.parentNode;
+        var anchor = _tg_sel_anchor_id ? document.getElementById(_tg_sel_anchor_id) : null;
+        if (e.shiftKey && this.checked && anchor && anchor !== tr_row) {
+            tg_select_row_range(anchor, tr_row, true);
+        }
+        _tg_sel_anchor_id = tr_row.id;
     });
 
     $("#tabgrid1_tbody").on("click", ".td0", function (e) {
@@ -639,9 +652,8 @@ function tg_select_explicit_pids(pids, scroll_into_view) {
             arr.push(pid);
             $("#chk" + pid).prop("checked", true);
         }
-                
-        tg_save_selected_pids(arr.join(","));
     }
+    tg_save_selected_pids(arr.length > 0 ? arr.join(",") : null);   //jednou po cyklu (dřív se volalo pro každý řádek gridu)
 
     if (scroll_into_view && arr.length>0)
     {
@@ -1298,8 +1310,8 @@ function tg_save_selected_pids(explicit_pids) {
     } else {
         var rows = $("#tabgrid1_tbody").find("tr.selrow");
         if (rows.length > 0) {
-            for (i = 0; i < rows.length; i++) {
-                pid = rows[i].id.replace("r", "");
+            for (var i = 0; i < rows.length; i++) {
+                var pid = rows[i].id.replace("r", "");
                 pids.push(pid);
                 $("#chk" + pid).prop("checked", true);
             }

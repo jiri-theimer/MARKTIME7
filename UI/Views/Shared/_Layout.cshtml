@@ -138,6 +138,10 @@
                     {
                         <a class="nav-link" href="javascript:_mm_search_toggle()" title="@_f.tra("Najít")"><span class="material-icons-outlined-btn">search</span></a>
                     }
+                    @if (_f.CurrentUser.j04IsModule_p31)
+                    {
+                        <a class="nav-link" href="javascript:_p31_new_from_everywhere()" title="@_f.tra("Vykázat úkon")"><span class="material-icons-outlined-btn">more_time</span></a>
+                    }
                     @if (_f.CurrentUser.j04IsModule_p41 || _f.CurrentUser.j04IsModule_p28 || _f.CurrentUser.j04IsModule_p56)
                     {
                         <a class="nav-link" tabindex="-1" role="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvas_newrecord" title="@_f.tra("Nový")"><span class="material-icons-outlined-btn">add_circle_outline</span></a>
