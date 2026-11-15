@@ -173,6 +173,99 @@ namespace UI.Views.Shared.Components.myGrid
         }
 
 
+        //grid událost: nabídka hodnot sloupce pro filtr "Vybrat z hodnot". Volá se až po kliknutí uživatele ve filtru sloupce.
+        //Hodnoty se berou z celé množiny záznamů gridu (bez stránkování) po uplatnění všeho, co grid právě filtruje (oprávnění, období,
+        //pojmenovaný filtr, vnitřní filtr tabulky, ostatní sloupcové filtry) – jen bez filtru tohoto sloupce, aby šel výběr rozšířit.
+        //Seskupuje se podle stejného SQL výrazu, se kterým pracuje sloupcový filtr "Je rovno" (getFinalSqlSyntax_WHERE), takže vybraná hodnota vždy najde své záznamy.
+        public myGridFilterValues Event_HandleTheGridFilterValues(myGridUIContext tgi, string field, string q)
+        {
+            const int intMaxValues = 300;
+            var ret = new myGridFilterValues() { limit = intMaxValues };
+            if (string.IsNullOrEmpty(field) || this.gridinput.isrecpagegrid) return ret;
+
+            var gridState = _Factory.j72TheGridTemplateBL.LoadState(tgi.j72id, _Factory.CurrentUser.pid);
+            if (!string.IsNullOrEmpty(this.gridinput.fixedcolumns))
+            {
+                gridState.j72Columns = this.gridinput.fixedcolumns;
+            }
+
+            BO.baseQuery mq = this.gridinput.query;
+            var cols = _colsProvider.ParseTheGridColumns(mq.Prefix, gridState.j72Columns, _Factory);
+            mq.explicit_columns = cols;     //všechny sloupce gridu: kvůli relacím, na které se odkazují ostatní filtry
+            var col = cols.FirstOrDefault(p => p.UniqueName == field);
+            if (col == null || col.FieldType != "string" || !col.IsFilterable) return ret;
+
+            string strExpr = col.getFinalSqlSyntax_WHERE();
+            if (string.IsNullOrEmpty(strExpr) || strExpr.Contains("select", StringComparison.OrdinalIgnoreCase))
+            {
+                return ret;     //výraz s poddotazem nelze v SQL Serveru použít v GROUP BY
+            }
+
+            if (gridState.j72MasterEntity != null) mq.master_prefix = gridState.j72MasterEntity.Substring(0, 3);
+
+            var lisFilter = new List<BO.TheGridColumnFilter>();
+            if (gridState.j75OperatorFlag == 0 && !string.IsNullOrEmpty(gridState.j75Filter))
+            {
+                //ostatní sloupcové filtry platí jen v režimu [AND]; v režimu [OR] by nabídku nezužovaly, ale rozšiřovaly
+                lisFilter = _colsProvider.ParseAdhocFilterFromString(gridState.j75Filter, cols).Where(p => p.field != field).ToList();
+            }
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                //hledání v hodnotách jde stejnou cestou jako sloupcový filtr "Obsahuje" (parametr v SQL)
+                string strQ = q.Trim();
+                if (strQ.Length > 100) strQ = strQ.Substring(0, 100);
+                lisFilter.Add(new BO.TheGridColumnFilter() { field = field, oper = "3", value = strQ, c1value = strQ, c2value = "", BoundColumn = col });
+            }
+            mq.TheGridOperatorFlag = 0;
+            if (lisFilter.Count > 0) mq.TheGridFilter = lisFilter;
+
+            if (gridState.j72HashJ73Query || gridinput.j72id_query > 0)   //vnitřní filtr tabulky nebo zapnutý pojmenovaný filtr
+            {
+                mq.lisJ73 = _Factory.j72TheGridTemplateBL.GetList_j73(gridState.j72ID, gridState.j72Entity.Substring(0, 3), gridinput.j72id_query);
+            }
+            if (gridState.j75GroupDataField != null && gridState.j75GroupLastValue != null && cols.Any(p => p.UniqueName == gridState.j75GroupDataField))
+            {
+                //v gridu je rozbalený jeden souhrn: nabídka jen z jeho záznamů
+                new BO.InitMyQuery(_Factory.CurrentUser).Handle_GroupBy_ExplicitSqlWhere(gridState, cols.First(p => p.UniqueName == gridState.j75GroupDataField), mq);
+            }
+
+            mq.explicit_sqlgroupby = strExpr;
+            mq.explicit_orderby = strExpr;
+            System.Data.DataTable dt = null;
+            try
+            {
+                dt = _Factory.gridBL.GetGroupByList(mq, $"TOP {intMaxValues + 1} {strExpr} AS FilterValue");
+            }
+            catch
+            {
+                dt = null;
+            }
+            mq.explicit_sqlgroupby = null;
+            mq.explicit_orderby = null;
+
+            if (dt == null || !dt.Columns.Contains("FilterValue") || !dt.Columns.Contains("RowsCount"))
+            {
+                return ret;     //SQL pro tento sloupec selhalo (např. datový typ, který nejde seskupit)
+            }
+
+            ret.supported = true;
+            ret.truncated = dt.Rows.Count > intMaxValues;
+            foreach (System.Data.DataRow dbRow in dt.Rows)
+            {
+                int intCount = dbRow["RowsCount"] == System.DBNull.Value ? 0 : Convert.ToInt32(dbRow["RowsCount"]);
+                string strVal = dbRow["FilterValue"] == System.DBNull.Value ? null : Convert.ToString(dbRow["FilterValue"]);
+                if (string.IsNullOrWhiteSpace(strVal))
+                {
+                    ret.blankcount += intCount;
+                    continue;
+                }
+                if (ret.items.Count >= intMaxValues) break;
+                ret.items.Add(new myGridFilterValue() { v = strVal, c = intCount });
+            }
+
+            return ret;
+        }
+
         private myGridOutput render_thegrid_html(BO.TheGridState gridState) //vrací kompletní html gridu: header+body+footer+message
         {
             var ret = new myGridOutput();

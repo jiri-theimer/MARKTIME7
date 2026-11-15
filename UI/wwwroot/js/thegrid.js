@@ -1017,6 +1017,7 @@ function tg_filter_radio_change(ctl) {
 
 
 function tg_filter_prepare_popup(field, coltypename) {
+    tg_fv_reset();  //nabídka "Vybrat z hodnot" se zavírá a načítá znovu až na vyžádání
     var c1 = document.getElementById("qryval1");
     var c2 = document.getElementById("qryval2");
     var curqryvalue = tg_get_qry_value(field, coltypename);
@@ -1112,6 +1113,7 @@ function tg_filter_prepare_popup(field, coltypename) {
 
 
 function tg_filter_hide_popup() {
+    _tg_fv.seq++;   //rozpracovaná odpověď serveru s hodnotami se už nevykreslí
     $("#tg_div_filter").css("display", "none");
     $("#tg_div_filter_header").text("");
 
@@ -1178,6 +1180,163 @@ function tg_filter_send2server() {
 
 
 }
+
+// ------------------------------------------------------------------
+// Sloupcový filtr: "Vybrat z hodnot" (textové sloupce)
+// Hodnoty dodává server z celé množiny záznamů gridu (ne jen z aktuální stránky) a načítají se až po kliknutí uživatele.
+// Výběr se ukládá jako stávající operátor "Je rovno" s hodnotami oddělenými středníkem, stav gridu ani databáze se nemění.
+// ------------------------------------------------------------------
+var _tg_fv = { field: null, items: [], checked: {}, truncated: false, seq: 0, timer: null };
+
+function tg_fv_text(key, def) {
+    var p = document.getElementById("tg_fv_panel");
+    return (p && p.getAttribute("data-" + key)) || def;
+}
+
+function tg_fv_reset() {    //voláno při každém otevření okna filtru
+    _tg_fv.seq++;
+    clearTimeout(_tg_fv.timer);
+    _tg_fv.field = null;
+    _tg_fv.items = [];
+    _tg_fv.checked = {};
+    _tg_fv.truncated = false;
+    $("#tg_fv_panel").css("display", "none");
+    $("#tg_fv_list").html("");
+    $("#tg_fv_info").text("");
+    $("#tg_fv_q").val("");
+    $("#tg_fv_all").prop("checked", false);
+    $("#tg_fv_count").text("");
+    $("#tg_div_filter_inputs").css("display", "");
+    $("#tg_div_filter_radios").css("display", "");
+    $("#tg_div_filter_hint").css("display", "");
+}
+
+function tg_fv_open() {     //klik na "Vybrat z hodnot…"
+    var field = $("#tg_div_filter_field").val();
+    _tg_fv.field = field;
+    _tg_fv.checked = {};
+    if ($("#hidoper_" + field).val() === "6") {     //sloupec už má filtr "Je rovno": jeho hodnoty předem zaškrtnout
+        $("#hidqry_" + field).val().split(";").forEach(function (s) {
+            s = s.trim();
+            if (s !== "") _tg_fv.checked[s.toLowerCase()] = s;
+        });
+    }
+    $("#tg_div_filter_inputs").css("display", "none");
+    $("#tg_div_filter_radios").css("display", "none");
+    $("#tg_div_filter_hint").css("display", "none");
+    $("#tg_fv_panel").css("display", "block");
+    $("#tg_fv_q").val("").focus();
+    tg_fv_load("");
+}
+
+function tg_fv_back() {     //zpět na operátory filtru
+    var field = $("#tg_div_filter_field").val();
+    tg_fv_reset();
+    $("#tg_div_filter_field").val(field);
+}
+
+function tg_fv_load(q) {
+    var seq = ++_tg_fv.seq;
+    $("#tg_fv_info").text("");
+    $("#tg_fv_list").html("<div class='tg-fv-status'><span class='spinner-border spinner-border-sm me-2' role='status'></span>" + tg_fv_text("loading", "Načítám hodnoty…") + "</div>");
+    var url = _tg_url_filter.replace("HandleTheGridFilter", "HandleTheGridFilterValues");
+    $.post(url, { tgi: get_all_tgi_params(null, null, null), pathpars: get_all_path_values(), field: _tg_fv.field, q: q }, function (data) {
+        if (seq !== _tg_fv.seq) return;     //mezitím přišel novější dotaz nebo se okno zavřelo
+        if (!data || !data.supported) {
+            $("#tg_fv_list").html("<div class='tg-fv-status'>" + tg_fv_text("unsupported", "Pro tento sloupec nelze nabídku hodnot sestavit. Použijte filtr Obsahuje nebo Je rovno.") + "</div>");
+            return;
+        }
+        _tg_fv.items = data.items || [];
+        if (q === "") _tg_fv.truncated = data.truncated;      //jakmile je hodnot víc než limit, hledá se na serveru
+        tg_fv_render(data, q);
+    }).fail(function () {
+        if (seq !== _tg_fv.seq) return;
+        $("#tg_fv_list").html("<div class='tg-fv-status'>" + tg_fv_text("error", "Hodnoty se nepodařilo načíst.") + "</div>");
+    });
+}
+
+function tg_fv_escape(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+function tg_fv_fold(s) {
+    return String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+}
+
+function tg_fv_render(data, q) {
+    var s = [], shown = 0;
+    var needle = (_tg_fv.truncated ? "" : tg_fv_fold(q));    //bez omezení počtu se hledá přímo v načteném seznamu
+    for (var i = 0; i < _tg_fv.items.length; i++) {
+        var c = _tg_fv.items[i];
+        if (needle !== "" && tg_fv_fold(c.v).indexOf(needle) === -1) continue;
+        shown++;
+        var nelze = c.v.indexOf(";") > -1;     //středník odděluje hodnoty filtru, takovou hodnotu nelze do výběru zařadit
+        var chk = _tg_fv.checked[c.v.trim().toLowerCase()] !== undefined;
+        s.push("<label class='tg-fv-row" + (nelze ? " tg-fv-disabled" : "") + "'" + (nelze ? " title='" + tg_fv_escape(tg_fv_text("semicolon", "Hodnotu se středníkem nelze vybrat ze seznamu, použijte filtr Obsahuje.")) + "'" : "") + ">"
+            + "<input type='checkbox' data-i='" + i + "'" + (chk && !nelze ? " checked" : "") + (nelze ? " disabled" : "") + "/>"
+            + "<span class='tg-fv-val'>" + tg_fv_escape(c.v) + "</span><span class='tg-fv-cnt'>" + c.c + "</span></label>");
+    }
+    if (shown === 0) {
+        s.push("<div class='tg-fv-status'>" + tg_fv_text("empty", "Žádná hodnota.") + "</div>");
+    }
+    $("#tg_fv_list").html(s.join(""));
+
+    if (data) {     //data=null: jen překreslení načteného seznamu při hledání, informační řádek zůstává
+        var info = [];
+        if (data.truncated) info.push(tg_fv_text("truncated", "Zobrazeno prvních {0} hodnot. Další najdete hledáním.").replace("{0}", data.limit));
+        if (data.blankcount > 0 && q === "") info.push(tg_fv_text("blank", "Prázdných záznamů: {0} (filtr Je prázdné).").replace("{0}", data.blankcount));
+        $("#tg_fv_info").text(info.join(" "));
+    }
+    tg_fv_refresh_count();
+}
+
+function tg_fv_refresh_count() {
+    var n = Object.keys(_tg_fv.checked).length;
+    $("#tg_fv_count").text(n > 0 ? "(" + n + ")" : "");
+    var boxes = $("#tg_fv_list input:checkbox:not(:disabled)");
+    $("#tg_fv_all").prop("checked", boxes.length > 0 && boxes.filter(":checked").length === boxes.length);
+}
+
+function tg_fv_ok() {
+    var vals = Object.keys(_tg_fv.checked).map(function (k) { return _tg_fv.checked[k]; });
+    if (vals.length === 0) {
+        _notify_message(tg_fv_text("nothing", "Zaškrtněte alespoň jednu hodnotu."), "warning");
+        return;
+    }
+    var field = _tg_fv.field;
+    tg_fv_reset();
+    $("#tg_div_filter_field").val(field);
+    //dál běží stávající cesta sloupcového filtru: operátor "Je rovno", hodnoty oddělené středníkem
+    $("#chkf6").prop("checked", true);
+    document.getElementById("qryval1").value = vals.join(";");
+    tg_filter_ok();
+}
+
+$(document).on("change", "#tg_fv_list input:checkbox", function () {
+    var c = _tg_fv.items[parseInt(this.getAttribute("data-i"), 10)];
+    if (!c) return;
+    var key = c.v.trim().toLowerCase();
+    if (this.checked) _tg_fv.checked[key] = c.v.trim(); else delete _tg_fv.checked[key];
+    tg_fv_refresh_count();
+});
+$(document).on("change", "#tg_fv_all", function () {    //zaškrtnout/odškrtnout všechny právě zobrazené hodnoty
+    var on = this.checked;
+    $("#tg_fv_list input:checkbox:not(:disabled)").each(function () {
+        if (this.checked !== on) { this.checked = on; $(this).trigger("change"); }
+    });
+});
+$(document).on("input", "#tg_fv_q", function () {
+    var q = this.value.trim();
+    clearTimeout(_tg_fv.timer);
+    if (_tg_fv.truncated) {
+        _tg_fv.timer = setTimeout(function () { tg_fv_load(q); }, 300);     //hodnot je víc než limit: hledat na serveru
+    } else {
+        tg_fv_render(null, q);
+    }
+});
+$(document).on("keydown", "#tg_fv_q", function (e) {
+    if (e.key === "Enter") { e.preventDefault(); tg_fv_ok(); }
+    if (e.key === "Escape") { e.preventDefault(); tg_filter_hide_popup(); }
+});
 
 function tg_cm(e) {     //vyvolání kontextového menu k vybranému záznamu    
     var link = e.target;

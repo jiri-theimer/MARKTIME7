@@ -24,6 +24,14 @@ namespace UI.Views.Shared.Components.myGrid
             return c.Event_HandleTheGridFilter(tgi, filter);
         }
 
+        public myGridFilterValues HandleTheGridFilterValues(myGridUIContext tgi, List<BO.StringPair> pathpars, string field, string q) //sloupcový filtr: nabídka hodnot sloupce (načítá se až na vyžádání)
+        {
+            var gridinput = Handle_Load_GridInput_FromClient(tgi);
+            var c = new myGridSupport(gridinput, Factory, _colsProvider);
+
+            return c.Event_HandleTheGridFilterValues(tgi, field, q);
+        }
+
         public myGridOutput HandleTheGridOper(myGridUIContext tgi, List<BO.StringPair> pathpars)    //myGrid povinná metoda: změna třídění, pageindex, změna stránky
         {
             var gridinput = Handle_Load_GridInput_FromClient(tgi);

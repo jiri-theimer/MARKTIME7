@@ -224,6 +224,9 @@
                 <div cstring="1">
                     <input type='radio' id="chkf7" value='7' name='chlfilter' onchange='tg_filter_radio_change(this)' /><label for='chkf7'>@_f.tra("Není rovno")</label>
                 </div>
+                <div cstring="1" class="tg-fv-linkrow">
+                    <button type="button" class="btn btn-sm btn-primary tg-fv-link" onclick="tg_fv_open()"><span class="material-icons-outlined-nosize">checklist</span> @_f.tra("Vybrat z hodnot")…</button>
+                </div>
                 <div cbool="1">
                     <input type='radio' id="chkf8" value='8' name='chlfilter' onchange='tg_filter_radio_change(this)' /><label for='chkf8'>@_f.tra("ANO (zaškrtnuto)")</label>
                 </div>
@@ -231,7 +234,26 @@
                     <input type='radio' id="chkf9" value='9' name='chlfilter' onchange='tg_filter_radio_change(this)' /><label for='chkf9'>@_f.tra("NE (nezaškrtnuto)")</label>
                 </div>
             </div>
-            <code>
+            @* Vybrat z hodnot: seznam dodává server z celé množiny záznamů gridu, načítá se až po kliknutí (thegrid.js: tg_fv_*) *@
+            <div id="tg_fv_panel" style="display:none;"
+                 data-loading="@_f.tra("Načítám hodnoty…")"
+                 data-unsupported="@_f.tra("Pro tento sloupec nelze nabídku hodnot sestavit. Použijte filtr Obsahuje nebo Je rovno.")"
+                 data-error="@_f.tra("Hodnoty se nepodařilo načíst.")"
+                 data-empty="@_f.tra("Žádná hodnota.")"
+                 data-nothing="@_f.tra("Zaškrtněte alespoň jednu hodnotu.")"
+                 data-semicolon="@_f.tra("Hodnotu se středníkem nelze vybrat ze seznamu, použijte filtr Obsahuje.")"
+                 data-truncated="@_f.tra("Zobrazeno prvních {0} hodnot. Další najdete hledáním.")"
+                 data-blank="@_f.tra("Prázdných záznamů: {0} (filtr Je prázdné).")">
+                <input type="text" id="tg_fv_q" autocomplete="off" spellcheck="false" class="form-control form-control-sm" placeholder="@_f.tra("Hledat hodnotu…")" />
+                <div id="tg_fv_list" class="tg-fv-list"></div>
+                <div id="tg_fv_info" class="tg-fv-info"></div>
+                <div class="tg-fv-foot">
+                    <label class="tg-fv-all"><input type="checkbox" id="tg_fv_all" /> @_f.tra("Vše")</label>
+                    <button type="button" class="btn btn-light btn-sm" onclick="tg_fv_back()">@_f.tra("Zpět")</button>
+                    <button type="button" class="btn btn-primary btn-sm" onclick="tg_fv_ok()">@_f.tra("OK") <span id="tg_fv_count"></span></button>
+                </div>
+            </div>
+            <code id="tg_div_filter_hint">
                 &#128161;<i>@_f.tra("Pro [Obsahuje/Začíná na/Rovná se/Nerovná se] lze zadávat středník jak oddělovač více hodnot (podmínka OR)")</i>
             </code>
         </div>
