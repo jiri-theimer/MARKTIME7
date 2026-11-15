@@ -16,6 +16,7 @@
 
 
     bool _isCanSeeAllUsers = _f.CurrentUser.TestPermission(BO.PermValEnum.GR_P31_Reader);
+    var _svatky = Model.lisC26.Select(p => p.c26Date).ToHashSet();      //nepracovní dny (data-nw) se vynechávají při hromadném označování rozsahu
 }
 
 @addTagHelper *, UI
@@ -248,7 +249,7 @@
                             strClass += " tecka";
                         }
 
-                        <td class="@strClass" data-j02id="@recJ02.pid" data-d="@(BO.Code.Bas.ObjectDate2String(d, "dd.MM.yyyy"))" style="@(strStyle)" title="@(strTitle)" onmouseover="showcalmenu(event,this,'@(strDatum)',@(recJ02.pid))">
+                        <td class="@strClass" data-j02id="@recJ02.pid" data-d="@(BO.Code.Bas.ObjectDate2String(d, "dd.MM.yyyy"))" data-nw="@((d.DayOfWeek == DayOfWeek.Saturday || d.DayOfWeek == DayOfWeek.Sunday || _svatky.Contains(d)) ? "1" : "0")" style="@(strStyle)" title="@(strTitle)" onmouseover="showcalmenu(event,this,'@(strDatum)',@(recJ02.pid))">
                             @if (qry.Count() > 0)
                             {
                                 var rec = qry.First();
@@ -509,6 +510,11 @@
 
 <div id="zoomwin" style="position:absolute;top:0px;left:0px;z-index:1000;display:none;"></div>
 
+@if (_f.CurrentUser.j04IsModule_p31 && !Model.IsJustXlsExporting)
+{
+    //hromadné označování buněk (osoby x dny)
+    @await Html.PartialAsync("~/Views/Shared/_CellSelectBar.cshtml", Model.lisP32FUT)
+}
 
 <table id="calmenu1" class="calmenu dl-calmenu">
     <tr>
@@ -617,7 +623,7 @@
         </div>
 
         <div style="margin:6px;">
-            <mytooltip text="@(_f.tra("Dvojklikem na buňku vykážete úkon pro daný den."))"></mytooltip>
+            <mytooltip text="@(_f.tra("Dvojklikem na buňku vykážete úkon pro daný den.") + " " + _f.tra("Více buněk pro hromadné vykázání označíte tažením myší, Ctrl+klik nebo Shift+klik."))"></mytooltip>
         </div>
 
         <div class="card">
@@ -770,6 +776,10 @@
 
 
     handle_table_width();
+
+    if (window.mtCellSelect && !_device.isMobile) {
+    mtCellSelect.init({ selector: "#timeline_table1 td[data-j02id][data-d]", grid: true, maxcells: @(UI.Controllers.p31view.FutBatchResult.MaxCells), onsaved: function () { reload(); } });
+    }
 
 
     if (_isxls == "True")

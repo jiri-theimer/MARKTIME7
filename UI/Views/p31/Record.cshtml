@@ -317,6 +317,11 @@ else
 
 
     }
+    else if (Model.IsMultiDate)
+    {
+        @* přepínač [multi] se nenabízí (ještě není vybraný časový sešit), ale formulář už je otevřený pro více dnů *@
+        <input type="hidden" asp-for="IsMultiDate" />
+    }
 
     @if (Model.lisP54 != null)
     {

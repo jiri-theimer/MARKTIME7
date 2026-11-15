@@ -1,0 +1,45 @@
+﻿@model IEnumerable<BO.p32Activity>
+@inject BL.Factory _f
+
+@*
+    Plovoucí lišta s akcemi nad hromadně označenými buňkami (měsíční kalendář, dayline).
+    Model: aktivity nepřítomnosti pro rychlé vykázání. Obsluha: ~/js/cellselect.js
+*@
+
+<link rel="stylesheet" href="~/css/cellselect.css" asp-append-version="true" />
+
+<div id="csbar" class="csbar" style="display:none;">
+    <span id="csbar_info" class="csbar-info"></span>
+
+    <button type="button" id="csbar_p31" class="btn btn-sm btn-primary" onclick="mtCellSelect.record()">
+        <span class="material-icons-outlined-btn">more_time</span>
+        @_f.tra("Vykázat úkon")
+    </button>
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="csbar-wrap">
+            <button type="button" id="csbar_fut" class="btn btn-sm bog" onclick="mtCellSelect.menu()">
+                <span class="material-icons-outlined-btn">logout</span>
+                @_f.tra("Nepřítomnost") ▴
+            </button>
+            <div id="csbar_menu" class="csbar-menu" style="display:none;">
+                @foreach (var c in Model)
+                {
+                    <a data-name="@c.p32Name" onclick="mtCellSelect.fut(@(c.pid),this)">
+                        <span style="background-color:@(c.p32Color)" class="material-icons-outlined">@(c.p32AbsenceBreakFlag != BO.p32AbsenceBreakFlagENUM._None ? "pause" : "work_off")</span>
+                        @c.p32Name
+                        @if (c.p32Value_Default > 0)
+                        {
+                            <var>@(c.p32Value_Default)</var>
+                        }
+                    </a>
+                }
+            </div>
+        </div>
+    }
+
+    <button type="button" class="btn btn-sm bog" title="@_f.tra("Zrušit výběr") (Esc)" onclick="mtCellSelect.clear()">✕</button>
+</div>
+
+<script src="~/js/cellselect.js" asp-append-version="true"></script>

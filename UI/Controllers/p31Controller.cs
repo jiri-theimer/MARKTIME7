@@ -40,7 +40,7 @@ namespace UI.Controllers
         }
 
 
-        public IActionResult Record(int pid, bool isclone, int j02id, int p34id, int p32id, string newrec_prefix, int newrec_pid, string d, string t1, string t2, string approve_guid, int p91id, int p68id, int p49id)
+        public IActionResult Record(int pid, bool isclone, int j02id, int p34id, int p32id, string newrec_prefix, int newrec_pid, string d, string t1, string t2, string approve_guid, int p91id, int p68id, int p49id, string ds = null)
         {
             if (!Factory.CurrentUser.j04IsModule_p31)
             {
@@ -64,6 +64,28 @@ namespace UI.Controllers
             if (pid == 0 && d != null)
             {
                 v.p31Date = BO.Code.Bas.String2Date(d);
+            }
+            if (pid == 0 && !string.IsNullOrEmpty(ds))
+            {
+                //ds: více dnů oddělených čárkou (hromadně označené buňky v kalendáři nebo dayline) -> formulář se otevře v režimu "multi"
+                var lisDS = new List<DateTime>();
+                foreach (string s in ds.Split(','))
+                {
+                    if (DateTime.TryParseExact(s.Trim(), "dd.MM.yyyy", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out DateTime datDS) && !lisDS.Contains(datDS))
+                    {
+                        lisDS.Add(datDS);
+                    }
+                }
+                lisDS.Sort();
+                if (lisDS.Count > 0)
+                {
+                    v.p31Date = lisDS[0];
+                }
+                if (lisDS.Count > 1)
+                {
+                    v.IsMultiDate = true;
+                    v.MultiDate = string.Join(",", lisDS.Select(p => p.ToString("dd.MM.yyyy", System.Globalization.CultureInfo.InvariantCulture)));
+                }
             }
             if (pid == 0 && v.GuidApprove != null && string.IsNullOrEmpty(newrec_prefix))    //nový úkon do schvalování: předvyplnit projekt
             {

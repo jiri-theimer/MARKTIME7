@@ -162,7 +162,7 @@
             </li>
 
             <li>
-                <mytooltip text="@(_f.tra("Dvojklikem na buňku zahájíte vykazování úkonu pro daný den v kalendáři."))"></mytooltip>
+                <mytooltip text="@(_f.tra("Dvojklikem na buňku zahájíte vykazování úkonu pro daný den v kalendáři.") + " " + _f.tra("Více dnů pro hromadné vykázání označíte tažením myší, Ctrl+klik nebo Shift+klik."))"></mytooltip>
             </li>
         }
 
@@ -245,6 +245,12 @@ else
 
 
 <div id="zoomwin" style="position:absolute;top:0px;left:0px;z-index:1000;display:none;"></div>
+
+@if (_f.CurrentUser.j04IsModule_p31 && (Model.CurrentView == UI.Models.p31view.CalendarViewEnum.Month || Model.CurrentView == UI.Models.p31view.CalendarViewEnum.Week))
+{
+    //hromadné označování dnů v měsíční/týdenní mřížce
+    @await Html.PartialAsync("~/Views/Shared/_CellSelectBar.cshtml", Model.lisP32FUT)
+}
 
 <!-- Nabídka Více -->
 <div class="offcanvas offcanvas-end" tabindex="-1" data-bs-scroll="true" data-bs-backdrop="true" data-bs-keyboard="true" id="offcanvas_more">
@@ -451,6 +457,10 @@ else
         document.getElementsByTagName("BODY")[0].onresize = function () { handle_body_onresize() };
 
         handle_body_onresize();
+
+        if (window.mtCellSelect && !_device.isMobile) {
+            mtCellSelect.init({ selector: "#mt_scheduler_calendar td.dc[data-d]", j02id: "@Model.j02ID", maxcells: @(UI.Controllers.p31view.FutBatchResult.MaxCells), onsaved: function () { reload(); } });
+        }
 
 
     });

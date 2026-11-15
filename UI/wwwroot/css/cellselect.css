@@ -1,0 +1,47 @@
+﻿/* Hromadné označování buněk v kalendáři a dayline (js/cellselect.js, Views/Shared/_CellSelectBar.cshtml) */
+
+/* označená buňka: rámeček + poloprůhledný závoj, který nepřebije barvu dne v inline stylu */
+td.cs-sel {
+    box-shadow: inset 0 0 0 2px #2f6fed;
+    background-image: linear-gradient(rgba(47,111,237,.16), rgba(47,111,237,.16));
+}
+
+/* během tažení myší neoznačovat text a schovat plovoucí menu buňky */
+body.cs-dragging { -webkit-user-select: none; user-select: none; cursor: cell; }
+body.cs-dragging #calmenu1 { display: none !important; }
+
+/* lišta s akcemi nad výběrem */
+.csbar {
+    position: fixed;
+    left: 50%;
+    bottom: 18px;
+    transform: translateX(-50%);
+    z-index: 1040;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background-color: #fff;
+    border: 1px solid #dfe3e8;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(16,24,40,.22);
+    white-space: nowrap;
+}
+.csbar-info { font-weight: 600; color: #1f2328; margin-right: 4px; }
+.csbar-info.csbar-over { color: #c62828; }   /* překročen limit počtu buněk */
+.csbar-wrap { position: relative; }
+.csbar-menu {
+    position: absolute;
+    left: 0;
+    bottom: calc(100% + 6px);
+    min-width: 240px;
+    max-height: 60vh;
+    overflow-y: auto;
+    padding: 6px;
+    background-color: #fff;
+    border: 1px solid #dfe3e8;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(16,24,40,.22);
+}
+.csbar-menu a { display: flex; align-items: center; gap: 6px; padding: 5px 6px; border-radius: 7px; color: #1f2328; text-decoration: none; cursor: pointer; }
+.csbar-menu a:hover { background-color: #eef3fd; }
+.csbar-menu var { margin-left: auto; padding-left: 12px; color: red; font-style: normal; }

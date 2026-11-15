@@ -107,7 +107,7 @@
             {
                 strCisloDne = BO.Code.Bas.ObjectDate2String(d, "dd");
             }
-            @Html.Raw($"<td class='{strClass}' data-d='{strDatum}' onmouseover='showcalmenu(event,this,\"{strDatum}\",\"calendar\")' style='{strStyle}' title='{strTitle}'>")
+            @Html.Raw($"<td class='{strClass}' data-d='{strDatum}'{(bolWeekendDay || bolHoliday ? " data-nw='1'" : "")} onmouseover='showcalmenu(event,this,\"{strDatum}\",\"calendar\")' style='{strStyle}' title='{strTitle}'>")
 
             strTitle = null;
             strStyle = null;

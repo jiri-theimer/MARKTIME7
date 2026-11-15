@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using UI.Models;
@@ -8,6 +9,14 @@ using UI.Models.p31view;
 
 namespace UI.Controllers.p31view
 {
+    public class FutBatchResult     //výsledek hromadného vykázání nepřítomnosti (SaveFutBatch)
+    {
+        public const int MaxCells = 40;     //nejvyšší počet buněk (úkonů) na jedno hromadné vykázání; stejný limit hlídá lišta v prohlížeči
+        public int saved { get; set; }
+        public bool manual { get; set; }
+        public List<string> errors { get; set; } = new List<string>();
+    }
+
     public class p31calendarController : BaseController
     {
         public IActionResult Index(int j02id,string d,int cv)
@@ -246,8 +255,84 @@ namespace UI.Controllers.p31view
             var recP34 = Factory.p34ActivityGroupBL.Load(recP32.p34ID);
             var recJ02 = Factory.j02UserBL.Load(j02id);
 
+            return SaveFutOne(recP32, recP34, recJ02, BO.Code.Bas.String2Date(d));
+        }
+
+        //hromadné vykázání aktivity nepřítomnosti do označených buněk kalendáře nebo dayline; buňka má tvar "j02id|dd.MM.yyyy"
+        public FutBatchResult SaveFutBatch(int p32id, List<string> cells)
+        {
+            var ret = new FutBatchResult();
+            var recP32 = Factory.p32ActivityBL.Load(p32id);
+            if (recP32 == null || cells == null || cells.Count == 0)
+            {
+                ret.errors.Add("Na vstupu chybí aktivita nebo označené dny.");
+                return ret;
+            }
+            if (recP32.p32Value_Default == 0 || recP32.p41ID_Absence == 0)
+            {
+                ret.manual = true;  //úkon zadat ručně přes formulář, protože není vyplněna výchozí hodnota
+                return ret;
+            }
+
+            var lis = new List<(int j02id, DateTime d)>();
+            foreach (string s in cells.Distinct())
+            {
+                string[] arr = (s ?? "").Split('|');
+                if (arr.Length == 2 && int.TryParse(arr[0], out int intJ02ID) && intJ02ID > 0 && DateTime.TryParseExact(arr[1], "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime datD))
+                {
+                    lis.Add((intJ02ID, datD));
+                }
+            }
+            if (lis.Count == 0)
+            {
+                ret.errors.Add("Na vstupu chybí označené dny.");
+                return ret;
+            }
+            if (lis.Count > FutBatchResult.MaxCells)
+            {
+                ret.errors.Add($"Najednou lze vykázat nejvýše {FutBatchResult.MaxCells} buněk, označeno je {lis.Count}.");
+                return ret;
+            }
+
+            var recP34 = Factory.p34ActivityGroupBL.Load(recP32.p34ID);
+            bool bolVicOsob = lis.Select(p => p.j02id).Distinct().Count() > 1;
+            BO.j02User recJ02 = null;
+
+            foreach (var c in lis.OrderBy(p => p.j02id).ThenBy(p => p.d))
+            {
+                if (recJ02 == null || recJ02.pid != c.j02id)
+                {
+                    recJ02 = Factory.j02UserBL.Load(c.j02id);
+                }
+                string strKde = c.d.ToString("dd.MM.yyyy");
+                if (recJ02 == null)
+                {
+                    ret.errors.Add($"{strKde}: Osobní profil nebyl nalezen.");
+                    continue;
+                }
+                if (bolVicOsob) strKde += " " + recJ02.FullnameDesc;
+
+                Factory.CurrentUser.Messages4Notify = null;     //aby GetFirstNotifyMessage vracel chybu právě tohoto úkonu
+                var res = SaveFutOne(recP32, recP34, recJ02, c.d);
+                if (res.issuccess)
+                {
+                    ret.saved += 1;
+                }
+                else
+                {
+                    ret.errors.Add($"{strKde}: {res.Message}");
+                }
+            }
+
+            return ret;
+        }
+
+        private BO.Result SaveFutOne(BO.p32Activity recP32, BO.p34ActivityGroup recP34, BO.j02User recJ02, DateTime d)
+        {
+            int j02id = recJ02.pid;
+
             BO.p31WorksheetEntryInput c = new BO.p31WorksheetEntryInput();
-            c.Addp31Date(BO.Code.Bas.String2Date(d));
+            c.Addp31Date(d);
             c.j02ID = j02id;
             c.p41ID = recP32.p41ID_Absence;
             c.p34ID = recP32.p34ID;
