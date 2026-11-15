@@ -273,7 +273,7 @@
                         @foreach (var c in _f.CurrentUser.Messages4Notify)
                         {  // <----  placed on the same line, WORKING !!!
 
-                                    @:st.messages.push({ text: "@Html.Raw(c.Value)", template: "@c.Key" });
+                                    @:st.messages.push({ text: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(c.Value)), template: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(c.Key)) });
 
                         }
             }

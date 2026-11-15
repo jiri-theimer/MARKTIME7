@@ -2300,3 +2300,23 @@ html.mt-phone div.toolbar-box > .input-group { flex-wrap: nowrap; overflow-x: au
 html.mt-phone div.toolbar-box > .input-group::-webkit-scrollbar { display: none; }
 html.mt-phone div.toolbar-box > .input-group > div { flex: 0 0 auto; }
 html.mt-phone div.toolbar-box .btn { white-space: nowrap; }
+
+/* ------------------------------------------------------------------
+   Oznámení uživateli (_notify_message v site.js) – vpravo nahoře, drží se okna i při posunu stránky.
+   V otevřeném modálním okně přesouvá kontejner do dialogu mtmodal.js.
+   ------------------------------------------------------------------ */
+#notify_container.mt-notify { position: fixed; top: 8px; right: 12px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; width: 420px; max-width: calc(100vw - 16px); pointer-events: none; }
+html.mt-phone #notify_container.mt-notify { left: 8px; right: 8px; width: auto; }
+.mt-toast { pointer-events: auto; width: 100%; max-width: none; background-color: #fff; color: #1f2328; font-size: 1rem; border: 1px solid #dfe3e8; border-left: 5px solid #2f6fed; border-radius: 10px; box-shadow: 0 10px 28px rgba(16,24,40,.22); }
+.mt-toast-row { display: flex; align-items: flex-start; gap: 10px; padding: 10px 10px 10px 12px; }
+.mt-toast-icon { flex: 0 0 auto; font-size: 24px; color: #2f6fed; }
+.mt-toast-body { flex: 1 1 auto; min-width: 0; padding-top: 1px; font-size: 108%; line-height: 1.35; overflow-wrap: anywhere; max-height: 50vh; overflow-y: auto; }
+.mt-toast-body hr { margin: 6px 0; }
+.mt-toast .btn-close { flex: 0 0 auto; margin: 3px 0 0 0; font-size: 80%; }
+.mt-toast-error { border-left-color: #d32f2f; background-color: #fff5f5; }
+.mt-toast-error .mt-toast-icon { color: #d32f2f; }
+.mt-toast-warning { border-left-color: #e08a00; background-color: #fffaf0; }
+.mt-toast-warning .mt-toast-icon { color: #e08a00; }
+.mt-toast-success { border-left-color: #2e7d32; background-color: #f4fbf5; }
+.mt-toast-success .mt-toast-icon { color: #2e7d32; }
+@media print { #notify_container { display: none !important; } }

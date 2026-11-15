@@ -355,75 +355,94 @@ function _get_request_param(name) {
 
 
 
-function _notify_message_hide()
-{
-    if (!document.getElementById("notify_container"))
-    {
-        return;
-    }
-    $("#notify_container").html("");
-    
+//Oznámení uživateli (toast) vpravo nahoře. Volá se ze všech layoutů (zprávy ze serveru) i z kódu stránek.
+//  strMessage  – text zprávy; může obsahovat HTML (<br>, <hr>, odkaz)
+//  strTemplate – "info" | "success" | "warning" | "error". Bez zadání "error", prázdná nebo neznámá hodnota = "info".
+//  milisecs    – doba zobrazení v ms. Bez zadání podle typu (info/success 5 s, warning 8 s, error 10 s), u delšího textu déle, nejvýš 20 s.
+//Po najetí myší se odpočet zastaví (Bootstrap). Stejná zpráva se nezobrazuje vícekrát pod sebou, najednou jsou vidět nejvýš 4 oznámení.
+var _notify_types = {
+    error: { icon: "error_outline", delay: 10000 },
+    warning: { icon: "warning_amber", delay: 8000 },
+    success: { icon: "check_circle", delay: 5000 },
+    info: { icon: "info", delay: 5000 }
+};
+var _notify_aliases = { danger: "error", chyba: "error", err: "error", warn: "warning", ok: "success" };
+var _notify_max_visible = 4;
+
+function _notify_message_hide() {
+    var box = document.getElementById("notify_container");
+    if (!box) return;
+    while (box.firstChild) _notify_remove(box.firstChild);
 }
 
+function _notify_remove(el) {
+    if (el._mtTimer) clearTimeout(el._mtTimer);
+    if (el.parentNode) el.parentNode.removeChild(el);
+    if (el._mtGone) return;
+    el._mtGone = true;
+    //instanci Bootstrapu uvolnit až po doběhnutí jeho animace (okamžité dispose uprostřed animace končí chybou v konzoli)
+    setTimeout(function () {
+        try {
+            var inst = (window.bootstrap && bootstrap.Toast) ? bootstrap.Toast.getInstance(el) : null;
+            if (inst) inst.dispose();
+        } catch (e) { }
+    }, 1000);
+}
 
-function _notify_message(strMessage, strTemplate = "error", milisecs = "3000") {
-    if (document.getElementById("notify_container")) {
-        //notify div na stránce již existuje          
+function _notify_message(strMessage, strTemplate, milisecs) {
+    if (strMessage === null || strMessage === undefined) return;
+    strMessage = String(strMessage);
+    if (strMessage.trim() === "") return;
+
+    var t = (strTemplate === undefined) ? "error" : String(strTemplate || "info").toLowerCase();
+    if (_notify_aliases[t]) t = _notify_aliases[t];
+    if (!_notify_types[t]) t = "info";
+
+    var delay = parseInt(milisecs, 10);
+    if (!(delay > 0)) {
+        delay = _notify_types[t].delay;
+        if (strMessage.length > 120) delay += (strMessage.length - 120) * 40;    //delší text potřebuje víc času na přečtení
+        if (delay > 20000) delay = 20000;
+    }
+
+    var box = document.getElementById("notify_container");
+    if (!box) {
+        box = document.createElement("div");
+        box.id = "notify_container";
+        box.className = "mt-notify";
+        document.body.appendChild(box);
+    }
+
+    //stejná zpráva už je zobrazená: nahradit ji (začne nový odpočet), nevršit další pod ni
+    var key = t + "|" + strMessage;
+    var i, kids = Array.prototype.slice.call(box.children);
+    for (i = 0; i < kids.length; i++) {
+        if (kids[i]._mtKey === key) _notify_remove(kids[i]);
+    }
+    while (box.children.length >= _notify_max_visible) _notify_remove(box.firstChild);
+
+    var urgent = (t === "error" || t === "warning");
+    var el = document.createElement("div");
+    el._mtKey = key;
+    el.className = "toast mt-toast mt-toast-" + t;
+    el.setAttribute("role", urgent ? "alert" : "status");
+    el.setAttribute("aria-live", urgent ? "assertive" : "polite");
+    el.setAttribute("aria-atomic", "true");
+    el.innerHTML = "<div class='mt-toast-row'><span class='material-icons-outlined mt-toast-icon' aria-hidden='true'>" + _notify_types[t].icon + "</span>"
+        + "<div class='mt-toast-body'></div>"
+        + "<button type='button' class='btn-close' data-bs-dismiss='toast' aria-label='Zavřít' title='Zavřít'></button></div>";
+    el.querySelector(".mt-toast-body").innerHTML = strMessage;
+    box.appendChild(el);
+
+    if (window.bootstrap && bootstrap.Toast) {
+        el.addEventListener("hidden.bs.toast", function () { _notify_remove(el); });   //skryté oznámení nezůstává v DOM
+        new bootstrap.Toast(el, { autohide: true, delay: delay }).show();
     } else {
-        var el = document.createElement("DIV");
-        $(el).css("position", "absolute");
-        $(el).css("top", "0px");
-        $(el).css("z-index", "9999");
-        if (screen.availWidth > 500) $(el).css("left", window.innerWidth - 500);
-
-        el.id = "notify_container";
-        document.body.appendChild(el);
+        //stránka bez Bootstrapu
+        el.classList.add("show");
+        el.querySelector(".btn-close").addEventListener("click", function () { _notify_remove(el); });
+        el._mtTimer = setTimeout(function () { _notify_remove(el); }, delay);
     }
-    if (strTemplate) {
-        if (strTemplate === "") strTemplate = "info";
-    } else {
-        strTemplate = "info";
-    }
-
-
-    var img = "info", intTimeoutSeconds = 5000;
-    if (strMessage.length > 250) intTimeoutSeconds = 10000;
-
-    if (strTemplate === "error") {
-        img = "exclamation-triangle";
-        strTemplate = "danger";
-    }
-    if (strTemplate === "warning") img = "exclamation";
-    if (strTemplate === "success") img = "thumbs-up";
-    var toast_id = "toast" + parseInt(100000 * Math.random());
-
-    var node = document.createElement("DIV");
-    node.id = "box" + parseInt(100000 * Math.random());
-    var w = "400px";
-    if (screen.availWidth < 400) w = "95%";
-
-    var s = "<div id='" + toast_id + "' class='toast' role='alert' arial-live='assertive' aria-atomic='true' data-autohide='true' data-delay='" + milisecs + "' data-animation='true' style='margin-top:10px;min-width:" + w + ";'>";
-    s = s + "<div class='toast-header text-dark bg-" + strTemplate + "'><i class='fas fa-" + img + "'></i>";
-    //s = s + "<strong class='mr-auto' style='color:black;'>Toast Header</strong>";
-    s = s + "<div style='width:90%;'> " + strTemplate + "</div><button type='button' class='btn-close' data-bs-dismiss='toast' aria-label='close'></button>";
-    s = s + "</div>";
-    s = s + "<div class='toast-body' style='font-size:130%;'>";
-    s = s + strMessage;
-    s = s + "</div>";
-    s = s + "</div>";
-
-
-    $(node).html(s);
-    document.getElementById("notify_container").appendChild(node);
-
-    if (typeof is_permanent !== "undefined") {
-        if (is_permanent === true) return;
-    }
-
-    $("#" + toast_id).toast("show");
-
-
-
 }
 
 
