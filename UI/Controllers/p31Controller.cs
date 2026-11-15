@@ -1639,6 +1639,65 @@ namespace UI.Controllers
 
         }
 
+        /// <summary>Nabídka "Najít text" ve formuláři úkonu: texty dříve vykázaných úkonů osoby, stejné texty sloučené, nejnovější nahoře.</summary>
+        /// <param name="q">hledaná slova (všechna musí být v textu); prázdné = naposledy použité texty</param>
+        /// <param name="scope">all | client | project – zúžení podle projektu vybraného ve formuláři (p41id)</param>
+        public IActionResult FindTexts(string q, int j02id, int p41id, string scope, int exclude_pid)
+        {
+            if (!Factory.CurrentUser.j04IsModule_p31) return Json(null);
+            if (j02id <= 0) j02id = Factory.CurrentUser.pid;
+
+            const int intMaxItems = 40;
+            var mq = new BO.myQueryP31() { j02id = j02id, TopRecordsOnly = 400, explicit_orderby = "a.p31Date DESC, a.p31ID DESC", p31text_isfilled = true };
+            if (j02id != Factory.CurrentUser.pid)
+            {
+                mq.MyRecordsDisponible = true;  //úkony jiné osoby jen v rozsahu oprávnění přihlášeného uživatele
+            }
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                mq.p31text_words = q.Split(new[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Where(p => p.Length >= 2).Select(p => p.Length > 60 ? p.Substring(0, 60) : p).Distinct().Take(6).ToList();
+            }
+            if (p41id > 0 && scope == "project")
+            {
+                mq.p41id = p41id;
+            }
+            if (p41id > 0 && scope == "client")
+            {
+                var recP41 = Factory.p41ProjectBL.Load(p41id);
+                if (recP41 != null && recP41.p28ID_Client > 0)
+                {
+                    mq.p28id = recP41.p28ID_Client;
+                }
+                else
+                {
+                    mq.p41id = p41id;   //projekt bez klienta
+                }
+            }
+
+            var groups = Factory.p31WorksheetBL.GetList(mq)
+                .Where(p => p.pid != exclude_pid && !string.IsNullOrWhiteSpace(p.p31Text))
+                .GroupBy(p => p.p31Text.Trim())     //stejný text jen jednou; první ve skupině je nejnovější úkon
+                .ToList();
+
+            var items = groups.Take(intMaxItems).Select(g =>
+            {
+                var rec = g.First();
+                return new
+                {
+                    pid = rec.pid,
+                    text = g.Key,
+                    date = rec.p31Date.ToString("dd.MM.yyyy"),
+                    client = rec.ClientName,
+                    project = rec.p41Name,
+                    activity = rec.p32Name,
+                    count = g.Count()
+                };
+            }).ToList();
+
+            return Json(new { items = items, more = groups.Count > intMaxItems });
+        }
+
         public string GetText(int p31id)
         {
             return this.Factory.p31WorksheetBL.Load(p31id).p31Text;

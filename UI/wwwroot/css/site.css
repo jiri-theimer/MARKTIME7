@@ -2320,3 +2320,30 @@ html.mt-phone #notify_container.mt-notify { left: 8px; right: 8px; width: auto; 
 .mt-toast-success { border-left-color: #2e7d32; background-color: #f4fbf5; }
 .mt-toast-success .mt-toast-icon { color: #2e7d32; }
 @media print { #notify_container { display: none !important; } }
+
+/* ------------------------------------------------------------------
+   p31/Record – "Najít text": panel s hledáním v textech dříve vykázaných úkonů (p31record.js: p31ft)
+   ------------------------------------------------------------------ */
+.p31ft-cmd { opacity: .6; }
+.p31ft-cmd:hover, .p31ft-cmd:focus { opacity: 1; }
+.p31ft { position: absolute; z-index: 1050; display: flex; flex-direction: column; background-color: #fff; color: #1f2328; border: 1px solid #d0d7de; border-radius: 10px; box-shadow: 0 12px 32px rgba(16,24,40,.22); overflow: hidden; }
+.p31ft-head { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-bottom: 1px solid #eef0f3; }
+.p31ft-ico { color: #59636e; }
+.p31ft-q { flex: 1 1 auto; min-width: 0; border: 0; outline: 0; background: transparent; font-size: 105%; padding: 2px 0; }
+.p31ft-close { flex: 0 0 auto; font-size: 75%; }
+.p31ft-scope { display: flex; align-items: center; gap: 6px; padding: 6px 10px; background-color: #f7f8fa; border-bottom: 1px solid #eef0f3; }
+.p31ft-chip { border: 1px solid #d0d7de; background-color: #fff; color: #1f2328; border-radius: 999px; padding: 1px 10px; font-size: 90%; line-height: 1.6; }
+.p31ft-chip:hover:not(:disabled) { border-color: #2f6fed; }
+.p31ft-chip.active { background-color: #2f6fed; border-color: #2f6fed; color: #fff; }
+.p31ft-chip:disabled { opacity: .45; }
+.p31ft-info { margin-left: auto; font-size: 85%; color: #59636e; white-space: nowrap; }
+.p31ft-list { flex: 1 1 auto; min-height: 60px; overflow-y: auto; overscroll-behavior: contain; }
+.p31ft-item { padding: 7px 12px; border-bottom: 1px solid #f1f3f5; cursor: pointer; }
+.p31ft-item:hover { background-color: #f3f6fd; }
+.p31ft-item.active { background-color: #e4ecfd; box-shadow: inset 3px 0 0 #2f6fed; }
+.p31ft-text { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-line; overflow-wrap: anywhere; line-height: 1.35; }
+.p31ft-text mark { background-color: #ffe58f; color: inherit; padding: 0; border-radius: 2px; }
+.p31ft-meta { margin-top: 2px; font-size: 85%; color: #6b7480; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.p31ft-count { margin-left: 8px; padding: 0 6px; border-radius: 999px; background-color: #eef1f4; color: #47515c; }
+.p31ft-status { padding: 14px 12px; color: #59636e; }
+.p31ft-foot { padding: 5px 10px; font-size: 80%; color: #6b7480; background-color: #f7f8fa; border-top: 1px solid #eef0f3; }

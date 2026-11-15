@@ -44,6 +44,8 @@ namespace BO
         
         public int p31masterid { get; set; }
         public int p31masterid_includemaster { get; set; }
+        public bool p31text_isfilled { get; set; }      //jen úkony s vyplněným textem
+        public List<string> p31text_words { get; set; } //text úkonu musí obsahovat všechna slova (bez ohledu na velikost písmen a diakritiku)
         public myQueryP31()
         {
             this.Prefix = "p31";
@@ -341,6 +343,21 @@ namespace BO
                 AQ("a.p31ID IN (select p85DataPID FROM p85TempBox WHERE p85Guid=@p85guid)", "p85guid", this.p85guid);
             }
 
+            if (this.p31text_isfilled)
+            {
+                AQ("a.p31Text IS NOT NULL AND DATALENGTH(a.p31Text)>0", null, null);
+            }
+            if (this.p31text_words != null)
+            {
+                int x = 0;
+                foreach (string strWord in this.p31text_words.Where(p => !string.IsNullOrWhiteSpace(p)))
+                {
+                    //slovo jde do SQL parametrem; znaky se zvláštním významem v LIKE se berou doslova
+                    string strLike = strWord.Trim().Replace("[", "[[]").Replace("%", "[%]").Replace("_", "[_]");
+                    AQ($"a.p31Text COLLATE Latin1_general_CI_AI LIKE '%'+@p31tw{x}+'%' COLLATE Latin1_general_CI_AI", $"p31tw{x}", strLike);
+                    x++;
+                }
+            }
             if (this.MyRecordsDisponible_Approve)
             {
                 this.MyRecordsDisponible = false;

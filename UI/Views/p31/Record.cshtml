@@ -461,7 +461,7 @@ else
 }
 
 <div class="my-2">
-    <textarea class="form-control" asp-for="Rec.p31Text" onmouseover="p31text_mouseover(this)" onmouseout="p31text_mouseout(this)" placeholder="@_f.tra("Podrobný popis úkonu")"></textarea>
+    <textarea class="form-control" asp-for="Rec.p31Text" placeholder="@_f.tra("Podrobný popis úkonu")"></textarea>
 
     @if (Model.BillingLangFlagHtml != null)
     {
@@ -474,7 +474,17 @@ else
 
 
 
-    <button id="cmdFindText" tabindex="-1" type="button" onmouseout="cmdFindText_mouseout(this)" class="btn btn-sm btn-light my-0 nonmobile" style="visibility:hidden;float:left;" onclick="_najit_text(this,event,'p31text',@(Model.Rec.j02ID))">
+    @* Najít text: panel s hledáním v textech dříve vykázaných úkonů (p31record.js: p31ft, data: /p31/FindTexts) *@
+    <button id="cmdFindText" tabindex="-1" type="button" class="btn btn-sm btn-light my-0 nonmobile p31ft-cmd" style="float:left;" onclick="p31ft.toggle()"
+            title="@_f.tra("Vložit text z dříve vykázaného úkonu")"
+            data-j02id="@(Model.Rec.j02ID)" data-pid="@(Model.rec_pid)"
+            data-ph="@_f.tra("Hledat v textech dříve vykázaných úkonů…")"
+            data-all="@_f.tra("Vše")" data-client="@_f.tra("Tento klient")" data-project="@_f.tra("Tento projekt")"
+            data-recent="@_f.tra("Naposledy použité texty")" data-found="@_f.tra("Nalezeno")"
+            data-empty="@_f.tra("Žádný text neodpovídá hledání.")" data-norecent="@_f.tra("Zatím žádné úkony s textem.")"
+            data-loading="@_f.tra("Načítám…")" data-error="@_f.tra("Texty se nepodařilo načíst.")"
+            data-counttitle="@_f.tra("Kolikrát byl text použit")"
+            data-hint="@_f.tra("Klik nebo Enter = nahradit text · Ctrl+klik nebo Ctrl+Enter = připojit na konec textu")">
         <myicon symbol="search"></myicon>
         @_f.tra("Najít text")
     </button>

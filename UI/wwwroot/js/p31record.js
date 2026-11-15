@@ -393,26 +393,258 @@ function Rec_Value_Trimmed_onchange(txt, p33id) {
     
 }
 
-function p31text_mouseover(txt) {
-    $("#cmdFindText").css("visibility", "visible");
-}
+// ------------------------------------------------------------------
+// "Najít text": hledání v textech dříve vykázaných úkonů a vložení do popisu úkonu.
+// Panel se vytváří až při prvním otevření a patří pod <body>, takže přežije částečné překreslení formuláře.
+// Data: /p31/FindTexts. Texty rozhraní (přeložené) nese tlačítko #cmdFindText v atributech data-*.
+// ------------------------------------------------------------------
+var p31ft = (function () {
+    var _panel = null, _items = [], _active = -1, _seq = 0, _timer = null, _scope = "all", _words = [];
 
-function p31text_mouseout(txt) {
+    function T(key, def) {
+        var b = document.getElementById("cmdFindText");
+        return (b && b.getAttribute("data-" + key)) || def;
+    }
+    function txt() { return document.getElementById("Rec_p31Text"); }
+    function val(id) { var c = document.getElementById(id); return c ? (parseInt(c.value, 10) || 0) : 0; }
+    function esc(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+    function fold(s) { return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase(); }   //bez diakritiky, malá písmena
 
-    var btn = document.getElementById("cmdFindText");
+    function is_open() { return _panel !== null && _panel.style.display !== "none"; }
 
-    if (btn.matches(":hover")) {
-        return; //myš je nad tlačítkem
+    function build() {
+        _panel = document.createElement("div");
+        _panel.id = "p31ft";
+        _panel.className = "p31ft";
+        _panel.setAttribute("role", "dialog");
+        _panel.innerHTML =
+            "<div class='p31ft-head'><span class='material-icons-outlined p31ft-ico' aria-hidden='true'>search</span>"
+            + "<input type='search' id='p31ft_q' class='p31ft-q' autocomplete='off' spellcheck='false'>"
+            + "<button type='button' class='btn-close p31ft-close' tabindex='-1' title='Esc'></button></div>"
+            + "<div class='p31ft-scope'>"
+            + "<button type='button' class='p31ft-chip' data-scope='all'></button>"
+            + "<button type='button' class='p31ft-chip' data-scope='client'></button>"
+            + "<button type='button' class='p31ft-chip' data-scope='project'></button>"
+            + "<span class='p31ft-info' id='p31ft_info'></span></div>"
+            + "<div class='p31ft-list' id='p31ft_list'></div>"
+            + "<div class='p31ft-foot'></div>";
+        document.body.appendChild(_panel);
+
+        var q = _panel.querySelector(".p31ft-q");
+        q.addEventListener("input", function () {
+            clearTimeout(_timer);
+            _timer = setTimeout(load, 250);
+        });
+        q.addEventListener("keydown", on_keydown);
+        _panel.querySelector(".p31ft-close").addEventListener("click", function () { close(true); });
+        _panel.querySelector(".p31ft-scope").addEventListener("click", function (e) {
+            var chip = e.target.closest(".p31ft-chip");
+            if (!chip || chip.disabled) return;
+            set_scope(chip.getAttribute("data-scope"));
+            load();
+            q.focus();
+        });
+        _panel.querySelector(".p31ft-list").addEventListener("click", function (e) {
+            var row = e.target.closest(".p31ft-item");
+            if (row) choose(parseInt(row.getAttribute("data-i"), 10), e.ctrlKey || e.metaKey);
+        });
+        document.addEventListener("mousedown", function (e) {
+            if (!is_open()) return;
+            if (_panel.contains(e.target) || (e.target.closest && e.target.closest("#cmdFindText"))) return;
+            close(false);   //klik mimo panel
+        });
+        window.addEventListener("resize", function () { if (is_open()) place(); });
     }
 
-    $("#cmdFindText").css("visibility", "hidden");
-}
+    function set_scope(scope) {
+        if (scope !== "client" && scope !== "project") scope = "all";
+        if (scope !== "all" && val("Rec_p41ID") === 0) scope = "all";     //bez vybraného projektu není podle čeho zúžit
+        _scope = scope;
+        try { localStorage.setItem("p31ft_scope", scope); } catch (e) { }
+        var chips = _panel.querySelectorAll(".p31ft-chip");
+        for (var i = 0; i < chips.length; i++) chips[i].classList.toggle("active", chips[i].getAttribute("data-scope") === _scope);
+    }
 
+    function place() {     //pod pole textu, ve stejné šířce; když dole není místo, přisadit k dolnímu okraji okna
+        var t = txt();
+        if (!t) return;
+        var r = t.getBoundingClientRect();
+        var w = Math.max(Math.min(r.width, 820), Math.min(420, window.innerWidth - 16));
+        var left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8));
+        var maxh = 460;
+        var top = r.bottom + 4;
+        if (top + 280 > window.innerHeight) top = Math.max(8, window.innerHeight - Math.min(maxh, window.innerHeight - 16) - 8);
+        maxh = Math.max(200, Math.min(maxh, window.innerHeight - top - 8));
+        _panel.style.width = w + "px";
+        _panel.style.left = (left + window.scrollX) + "px";
+        _panel.style.top = (top + window.scrollY) + "px";
+        _panel.style.maxHeight = maxh + "px";
+    }
 
+    function open() {
+        if (!txt()) return;
+        if (_panel === null) build();
 
-function cmdFindText_mouseout(cmd) {
-    $("#cmdFindText").css("visibility", "hidden");
-}
+        _panel.querySelector(".p31ft-q").placeholder = T("ph", "Hledat v textech dříve vykázaných úkonů…");
+        _panel.querySelector(".p31ft-foot").textContent = T("hint", "Klik nebo Enter = nahradit text · Ctrl+klik nebo Ctrl+Enter = připojit na konec textu");
+        var chips = _panel.querySelectorAll(".p31ft-chip");
+        chips[0].textContent = T("all", "Vše");
+        chips[1].textContent = T("client", "Tento klient");
+        chips[2].textContent = T("project", "Tento projekt");
+        var hasproject = val("Rec_p41ID") > 0;
+        chips[1].disabled = !hasproject;
+        chips[2].disabled = !hasproject;
+
+        var scope = "all";
+        try { scope = localStorage.getItem("p31ft_scope") || "all"; } catch (e) { }
+        _panel.style.display = "flex";
+        set_scope(scope);
+        place();
+
+        var q = _panel.querySelector(".p31ft-q");
+        q.value = "";
+        q.focus();
+        load();
+    }
+
+    function close(focus_text) {
+        if (!is_open()) return;
+        clearTimeout(_timer);
+        _seq++;     //rozpracovaná odpověď serveru se už nevykreslí
+        _panel.style.display = "none";
+        if (focus_text && txt()) txt().focus();
+    }
+
+    function toggle() {
+        if (is_open()) close(true); else open();
+    }
+
+    function status(text, spinner) {
+        _items = [];
+        _active = -1;
+        document.getElementById("p31ft_info").textContent = "";
+        document.getElementById("p31ft_list").innerHTML = "<div class='p31ft-status'>" + (spinner ? "<span class='spinner-border spinner-border-sm me-2' role='status'></span>" : "") + esc(text) + "</div>";
+    }
+
+    function load() {
+        var q = _panel.querySelector(".p31ft-q").value.trim();
+        var seq = ++_seq;
+        if (_items.length === 0) status(T("loading", "Načítám…"), true);
+
+        var btn = document.getElementById("cmdFindText");
+        var pars = {
+            q: q,
+            j02id: val("Rec_j02ID") || (btn ? parseInt(btn.getAttribute("data-j02id"), 10) || 0 : 0),
+            p41id: val("Rec_p41ID"),
+            scope: _scope,
+            exclude_pid: btn ? parseInt(btn.getAttribute("data-pid"), 10) || 0 : 0
+        };
+        $.post(_ep("/p31/FindTexts"), pars, function (data) {
+            if (seq !== _seq || !is_open()) return;     //mezitím uživatel psal dál nebo panel zavřel
+            _words = fold(q).split(/\s+/).filter(function (w) { return w.length >= 2; });
+            render(data, q);
+        }).fail(function () {
+            if (seq !== _seq || !is_open()) return;
+            status(T("error", "Texty se nepodařilo načíst."), false);
+        });
+    }
+
+    function render(data, q) {
+        _items = (data && data.items) ? data.items : [];
+        _active = -1;
+        var list = document.getElementById("p31ft_list");
+        if (_items.length === 0) {
+            status(q === "" ? T("norecent", "Zatím žádné úkony s textem.") : T("empty", "Žádný text neodpovídá hledání."), false);
+            return;
+        }
+        document.getElementById("p31ft_info").textContent = (q === "" ? T("recent", "Naposledy použité texty") : T("found", "Nalezeno") + ": " + _items.length + (data.more ? "+" : ""));
+
+        var s = [];
+        for (var i = 0; i < _items.length; i++) {
+            var c = _items[i];
+            var meta = [esc(c.date)];
+            var kde = [c.client, c.project].filter(function (x) { return x; }).join(" – ");
+            if (kde) meta.push(esc(kde));
+            if (c.activity) meta.push(esc(c.activity));
+            s.push("<div class='p31ft-item' data-i='" + i + "'><div class='p31ft-text'>" + mark(c.text) + "</div>"
+                + "<div class='p31ft-meta'>" + meta.join(" · ") + (c.count > 1 ? "<span class='p31ft-count' title='" + esc(T("counttitle", "Kolikrát byl text použit")) + "'>" + c.count + "×</span>" : "") + "</div></div>");
+        }
+        list.innerHTML = s.join("");
+        list.scrollTop = 0;
+    }
+
+    //zvýraznění hledaných slov bez ohledu na diakritiku a velikost písmen (stejně hledá server)
+    function mark(text) {
+        if (_words.length === 0) return esc(text);
+        var folded = "", map = [];
+        for (var i = 0; i < text.length; i++) {
+            var f = fold(text.charAt(i));
+            for (var k = 0; k < f.length; k++) { folded += f.charAt(k); map.push(i); }
+        }
+        var on = new Array(text.length);
+        _words.forEach(function (w) {
+            var pos = folded.indexOf(w);
+            while (pos > -1) {
+                for (var m = pos; m < pos + w.length; m++) on[map[m]] = true;
+                pos = folded.indexOf(w, pos + w.length);
+            }
+        });
+        var out = "", open = false;
+        for (var j = 0; j < text.length; j++) {
+            if (on[j] && !open) { out += "<mark>"; open = true; }
+            if (!on[j] && open) { out += "</mark>"; open = false; }
+            out += esc(text.charAt(j));
+        }
+        if (open) out += "</mark>";
+        return out;
+    }
+
+    function set_active(i) {
+        var rows = _panel.querySelectorAll(".p31ft-item");
+        if (rows.length === 0) return;
+        if (i < 0) i = 0;
+        if (i > rows.length - 1) i = rows.length - 1;
+        if (_active > -1 && rows[_active]) rows[_active].classList.remove("active");
+        _active = i;
+        rows[i].classList.add("active");
+        rows[i].scrollIntoView({ block: "nearest" });
+    }
+
+    function on_keydown(e) {
+        if (e.key === "ArrowDown") { e.preventDefault(); set_active(_active + 1); }
+        else if (e.key === "ArrowUp") { e.preventDefault(); set_active(_active - 1); }
+        else if (e.key === "Enter") {
+            e.preventDefault();     //Enter nesmí odeslat formulář
+            if (_items.length > 0) choose(_active > -1 ? _active : 0, e.ctrlKey || e.metaKey);
+        }
+        else if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); close(true); }
+    }
+
+    //vložení textu: append=false nahradí celý popis, append=true připojí na nový řádek. Přes insertText, aby šlo vrátit Ctrl+Z.
+    function choose(i, append) {
+        var c = _items[i], t = txt();
+        if (!c || !t) return;
+        var text = c.text;
+        close(false);
+        t.focus();
+        if (append && t.value.trim() !== "") {
+            text = (/\n$/.test(t.value) ? "" : "\n") + text;
+            t.setSelectionRange(t.value.length, t.value.length);
+        } else {
+            t.setSelectionRange(0, t.value.length);
+        }
+        var before = t.value, ok = false;
+        try { ok = document.execCommand("insertText", false, text); } catch (e) { ok = false; }
+        if (!ok || t.value === before) {
+            t.value = append && before.trim() !== "" ? before + text : text;
+            t.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+        t.setSelectionRange(t.value.length, t.value.length);
+        if (typeof _toolbar_warn2save_changes === "function") _toolbar_warn2save_changes();
+    }
+
+    return { toggle: toggle, open: open, close: close };
+})();
 
 
 function isdoc_upload()
