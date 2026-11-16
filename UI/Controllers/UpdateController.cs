@@ -28,12 +28,26 @@ namespace UI.Controllers
         [HttpPost]
         public IActionResult Index(UpdateViewModel v)
         {
-            if (v.MyPassword != "gogo")
+            if (!Factory.CurrentUser.TestPermission(BO.PermValEnum.GR_Admin))
+            {
+                return this.StopPage(false, "Nemáte oprávnění.");     //stejné oprávnění jako pro zobrazení stránky (GET)
+            }
+            if (v.MyPassword != GetUpdatePassword())
             {
                 this.AddMessageTranslated("Chybí zadat tajné heslo.");
+                RefreshState(v, false);
                 return View(v);
             }
-            RefreshState(v);
+            if (!string.IsNullOrEmpty(v.DestDbName) && !System.Text.RegularExpressions.Regex.IsMatch(v.DestDbName, @"^[A-Za-z0-9_\-\.]+$"))
+            {
+                this.AddMessageTranslated("Název cílové databáze obsahuje nepovolené znaky.");     //název jde do SQL jako [název].dbo.tabulka
+                v.DestDbName = null;
+                RefreshState(v, false);
+                return View(v);
+            }
+            //strukturu cílové databáze (4 dotazy) načítat jen pro operace, které ji porovnávají
+            bool bolNeedDest = v.IsPostback && (v.PostbackOper == "rozdily" || v.PostbackOper == "navic");
+            RefreshState(v, bolNeedDest);
             if (v.IsPostback)
             {
                 if (v.PostbackOper == "changedb")
@@ -87,7 +101,7 @@ namespace UI.Controllers
                     foreach (var c in v.lisX01_CloudHeader)
                     {
                         v.DestDbName = c.CloudDatabaseName;
-                        RefreshState(v);
+                        LoadDest(v);        //jen struktura další databáze; zdrojové JSON soubory a seznam databází zůstávají načtené
                         Handle_NewTables(v);
                         Handle_Differences(v);
                         
@@ -128,21 +142,22 @@ namespace UI.Controllers
 
                     }
                 }
-                if (v.PostbackOper== "sql_sp_funct_views")
+                if (v.PostbackOper == "sql_sp_funct_views" || v.PostbackOper == "sql_sp_funct_views-full")
                 {
-                    v.RunResult = BO.Code.File.GetFileContent(Factory.App.RootUploadFolder+ "\\_distribution\\sys\\sql_sp_funct_views.sql");
-                    Handle_RunResult(v);
+                    var lisSp = ParseSpScript(BO.Code.File.GetFileContent(Factory.App.RootUploadFolder + "\\_distribution\\sys\\sql_sp_funct_views.sql"));
+                    Handle_SpScript(v, lisSp, v.PostbackOper == "sql_sp_funct_views-full");
+                    v.RunResult = null;
                 }
                 if (v.PostbackOper == "sql_sp_funct_views-alldbs")
                 {
+                    //soubor načíst a rozebrat jednou, ne pro každou databázi
+                    var lisSp = ParseSpScript(BO.Code.File.GetFileContent(Factory.App.RootUploadFolder + "\\_distribution\\sys\\sql_sp_funct_views.sql"));
                     foreach (var c in v.lisX01_CloudHeader)
                     {
                         v.DestDbName = c.CloudDatabaseName;
-                        
-                        v.RunResult = BO.Code.File.GetFileContent(Factory.App.RootUploadFolder + "\\_distribution\\sys\\sql_sp_funct_views.sql");
-                        Handle_RunResult(v);
-
+                        Handle_SpScript(v, lisSp, false);
                     }
+                    v.RunResult = null;
                     
                 }
                 if (v.PostbackOper == "runresult")
@@ -162,42 +177,126 @@ namespace UI.Controllers
             return View(v);
         }
 
-        private void RefreshState(UpdateViewModel v)
-        {
-            v.sourceTabs = BO.Code.basJson.DeserializeList_From_File<BO.Sys.sysobject>(Factory.App.RootUploadFolder + "\\_distribution\\sys\\Tables.json").AsEnumerable();
-            v.sourceCols = BO.Code.basJson.DeserializeList_From_File<BO.Sys.syscolumn>(Factory.App.RootUploadFolder + "\\_distribution\\sys\\Columns.json").AsEnumerable();
-            v.sourceInds = BO.Code.basJson.DeserializeList_From_File<BO.Sys.sysindex>(Factory.App.RootUploadFolder + "\\_distribution\\sys\\Indexes.json").AsEnumerable();
-            v.sourceConstraints = BO.Code.basJson.DeserializeList_From_File<BO.Sys.sysconstraint>(Factory.App.RootUploadFolder + "\\_distribution\\sys\\Constraints.json").AsEnumerable();
-            v.sourceDefVals = BO.Code.basJson.DeserializeList_From_File<BO.Sys.sysdefval>(Factory.App.RootUploadFolder + "\\_distribution\\sys\\Defvals.json").AsEnumerable();
+        // ------------------------------------------------------------------------------------------------
+        // Načítání
+        //   zdroj  = cílová struktura z JSON souborů v _distribution\sys (načítá se jednou za požadavek)
+        //   cíl    = skutečná struktura databáze (4 dotazy do systémových tabulek)
+        // Indexy (Indexes.json, sp_helpindex pro každou tabulku = přes 200 dotazů na databázi) se nenačítají: porovnání je nepoužívá.
+        // ------------------------------------------------------------------------------------------------
+        private bool _sourceLoaded;
+        private HashSet<string> _destIndexKeys;                 //tabulka|název indexu
+        private Dictionary<string, string> _destIndexByCols;    //tabulka|sloupce → název indexu
+        private Dictionary<int, string> _srcConstraintNameById;
+        private Dictionary<int, string> _srcDefById;
+        private Dictionary<string, string> _srcDefByName;
+        private ILookup<int, BO.Sys.syscolumn> _srcColsByTabId;
+        private HashSet<string> _srcTabs;
+        private HashSet<string> _srcColKeys;
 
-            if (!string.IsNullOrEmpty(v.DestDbName))
+        private HashSet<string> _destTabs;
+        private HashSet<string> _destTabsWithCols;
+        private Dictionary<string, BO.Sys.syscolumn> _destColByKey;
+        private Dictionary<int, string> _destDefById;
+        private Dictionary<string, string> _destDefaultConstraintTab;   //název DEFAULT omezení → tabulka
+
+        private static string L(string s) => (s ?? "").ToLowerInvariant();
+        private static string K(string tab, string col) => L(tab) + "|" + L(col);
+
+        private string GetUpdatePassword()
+        {
+            //appsettings.json: "App": { "UpdatePassword": "…" }; bez nastavení platí původní heslo
+            string s = Factory.App.Configuration.GetSection("App")["UpdatePassword"];
+            return string.IsNullOrEmpty(s) ? "gogo" : s;
+        }
+
+        private void RefreshState(UpdateViewModel v, bool bolLoadDest = true)
+        {
+            LoadSource(v);
+            if (bolLoadDest) LoadDest(v);
+
+            if (v.lisX01_CloudHeader == null && Factory.App.HostingMode == BL.Singleton.HostingModeEnum.SharedApp)
             {
-                v.destTabs = Factory.FBL.Sys_GetList_Tables(v.DestDbName);
-                v.destCols = Factory.FBL.Sys_GetList_Columns(v.DestDbName);
-                v.destInds = Factory.FBL.Sys_GetList_Indexes(v.DestDbName);
-                v.destConstraints = Factory.FBL.Sys_GetList_Constraints(v.DestDbName);
-                v.destDefVals = Factory.FBL.Sys_GetList_Defvals(v.DestDbName);
-            }
-            
-            
-            if (Factory.App.HostingMode == BL.Singleton.HostingModeEnum.SharedApp)
-            {
-                
                 Factory.db.ChangeConnectString(Factory.App.ConnectStringCloudHeader);
-                v.lisX01_CloudHeader = Factory.x01LicenseBL.GetList(new BO.myQuery("x01")).OrderBy(p => p.x01LoginDomain);
+                v.lisX01_CloudHeader = Factory.x01LicenseBL.GetList(new BO.myQuery("x01")).OrderBy(p => p.x01LoginDomain).ToList();
                 Factory.db.ChangeConnectString(null);
             }
+        }
+
+        private void LoadSource(UpdateViewModel v)
+        {
+            if (_sourceLoaded) return;
+            string strDir = Factory.App.RootUploadFolder + "\\_distribution\\sys\\";
+            v.sourceTabs = BO.Code.basJson.DeserializeList_From_File<BO.Sys.sysobject>(strDir + "Tables.json") ?? new List<BO.Sys.sysobject>();
+            v.sourceCols = BO.Code.basJson.DeserializeList_From_File<BO.Sys.syscolumn>(strDir + "Columns.json") ?? new List<BO.Sys.syscolumn>();
+            v.sourceConstraints = BO.Code.basJson.DeserializeList_From_File<BO.Sys.sysconstraint>(strDir + "Constraints.json") ?? new List<BO.Sys.sysconstraint>();
+            v.sourceDefVals = BO.Code.basJson.DeserializeList_From_File<BO.Sys.sysdefval>(strDir + "Defvals.json") ?? new List<BO.Sys.sysdefval>();
+            v.sourceInds = System.IO.File.Exists(strDir + "Indexes.json") ? (BO.Code.basJson.DeserializeList_From_File<BO.Sys.sysindex>(strDir + "Indexes.json") ?? new List<BO.Sys.sysindex>()) : new List<BO.Sys.sysindex>();
+
+            _srcConstraintNameById = new Dictionary<int, string>();
+            foreach (var c in v.sourceConstraints) _srcConstraintNameById.TryAdd(c.id, c.name);
+            _srcDefById = new Dictionary<int, string>();
+            _srcDefByName = new Dictionary<string, string>();
+            foreach (var c in v.sourceDefVals)
+            {
+                _srcDefById.TryAdd(c.id, c.text);
+                _srcDefByName.TryAdd(L(c.name), c.text);
+            }
+            _srcColsByTabId = v.sourceCols.ToLookup(p => p.id);
+            _srcTabs = new HashSet<string>(v.sourceTabs.Select(p => L(p.name)));
+            _srcColKeys = new HashSet<string>(v.sourceCols.Select(p => K(p.tablename, p.name)));
+            _sourceLoaded = true;
+        }
+
+        private void LoadDest(UpdateViewModel v)
+        {
+            if (string.IsNullOrEmpty(v.DestDbName)) return;
+
+            v.destTabs = Factory.FBL.Sys_GetList_Tables(v.DestDbName).ToList();
+            v.destCols = Factory.FBL.Sys_GetList_Columns(v.DestDbName).ToList();
+            v.destConstraints = Factory.FBL.Sys_GetList_Constraints(v.DestDbName).ToList();
+            v.destDefVals = Factory.FBL.Sys_GetList_Defvals(v.DestDbName).ToList();
+            v.destInds = Factory.FBL.Sys_GetList_Indexes(v.DestDbName).ToList();    //jeden dotaz
+
+            _destIndexKeys = new HashSet<string>(v.destInds.Select(p => K(p.tabname, p.index_name)));
+            _destIndexByCols = new Dictionary<string, string>();
+            foreach (var c in v.destInds) _destIndexByCols.TryAdd(IndexColsKey(c), c.index_name);
+
+            _destTabs = new HashSet<string>(v.destTabs.Select(p => L(p.name)));
+            _destTabsWithCols = new HashSet<string>(v.destCols.Select(p => L(p.tablename)));
+            _destColByKey = new Dictionary<string, BO.Sys.syscolumn>();
+            foreach (var c in v.destCols) _destColByKey.TryAdd(K(c.tablename, c.name), c);
+            _destDefById = new Dictionary<int, string>();
+            foreach (var c in v.destDefVals) _destDefById.TryAdd(c.id, c.text);
+            _destDefaultConstraintTab = new Dictionary<string, string>();
+            foreach (var c in v.destConstraints.Where(p => p.xtype == "D")) _destDefaultConstraintTab.TryAdd(L(c.name), c.tablename);
+        }
+
+        // výchozí hodnota sloupce podle cílové struktury: přesně podle ID omezení, podle názvu sloupce jen jako záloha
+        private string GetDefVal_Source(BO.Sys.syscolumn col)
+        {
+            if (col.cdefault != 0 && _srcDefById.TryGetValue(col.cdefault, out string s)) return s;
+            return _srcDefByName.TryGetValue(L(col.name), out s) ? s : null;
+        }
+
+        // výchozí hodnota sloupce ve skutečné databázi (podle jeho vlastního omezení, ne podle stejnojmenného sloupce jiné tabulky)
+        private string GetDefVal_Dest(BO.Sys.syscolumn coldest)
+        {
+            if (coldest == null || coldest.cdefault == 0) return null;
+            return _destDefById.TryGetValue(coldest.cdefault, out string s) ? s : null;
         }
 
         private void Handle_Col_Constraint_DefValue(UpdateViewModel v,BO.Sys.syscolumn col)
         {
             if (col.cdefault == 0) return;
 
-            string strConstraintName = GetConstraintName(v, col.cdefault);
-            string strDefval = GetDefVal_Source(v, col.name, col.cdefault);
-            if (v.destConstraints.Where(p => p.xtype == "D" && p.name.ToLower() == strConstraintName.ToLower()).Count() > 0)
+            string strDefval = GetDefVal_Source(col);
+            if (strDefval == null) return;
+            if (!_srcConstraintNameById.TryGetValue(col.cdefault, out string strConstraintName) || string.IsNullOrEmpty(strConstraintName))
             {
-                string strTheTab = v.destConstraints.Where(p => p.xtype == "D" && p.name.ToLower() == strConstraintName.ToLower()).First().tablename;
+                strConstraintName = $"DEF_{col.tablename}_{col.name}";
+            }
+            if (_destDefaultConstraintTab != null && _destDefaultConstraintTab.TryGetValue(L(strConstraintName), out string strTheTab))
+            {
                 wrl_nakonec($"ALTER TABLE [{v.DestDbName}].dbo.{strTheTab} DROP CONSTRAINT [{strConstraintName}]");
                 wrl_nakonec("GO");
                 wrl_nakonec("");
@@ -207,151 +306,137 @@ namespace UI.Controllers
             wrl_nakonec("");
         }
 
-        
+        // řádkům s prázdnou hodnotou doplnit výchozí hodnotu (výraz omezení se použije tak, jak je – už obsahuje závorky i apostrofy)
+        private void Handle_Col_FillDefValue(UpdateViewModel v, BO.Sys.syscolumn col, string strDefvalSource)
+        {
+            wrl_nakonec($"UPDATE [{v.DestDbName}].dbo.{col.tablename} SET {col.name} = {strDefvalSource} WHERE {col.name} IS NULL");
+            wrl_nakonec("GO");
+        }
+
+        private static string SqlTypeSuffix(BO.Sys.syscolumn col)
+        {
+            switch (col.type_name)
+            {
+                case "decimal":
+                case "numeric":
+                    return $" ({col.xprec},{col.xscale})";
+                case "varchar":
+                case "char":
+                case "nvarchar":
+                case "nchar":
+                case "varbinary":
+                    return col.length == -1 ? " (MAX)" : $" ({col.length})";
+            }
+            return "";
+        }
+
         private void Handle_Differences(UpdateViewModel v)
         {
             foreach (var col in v.sourceCols)
             {
-                
-                if (v.destCols.Where(p => p.tablename.ToLower() == col.tablename.ToLower()).Count() == 0)
+                if (!_destTabsWithCols.Contains(L(col.tablename)))
                 {
-                    continue;   //pole, jehož tabulka vůbec není v db
+                    continue;   //pole, jehož tabulka vůbec není v db (novou tabulku řeší Handle_NewTables)
                 }
-                bool bolFound = false;bool bolGoOn = false;string strPrimarySQL = null;
-                var qry = v.destCols.Where(p => p.tablename.ToLower() == col.tablename.ToLower() && p.name.ToLower() == col.name.ToLower());
-                BO.Sys.syscolumn coldest = null;
-                if (qry.Count() > 0)
+                _destColByKey.TryGetValue(K(col.tablename, col.name), out BO.Sys.syscolumn coldest);
+
+                if (coldest == null)
                 {
-                    bolFound = true;
-                    coldest = qry.First();
-                }
-                if (!bolFound)
-                {
-                    
-                    if (!col.iscomputed)
+                    //nový sloupec
+                    if (col.iscomputed)
                     {
-                        strPrimarySQL = $"ALTER TABLE [{v.DestDbName}].dbo.{col.tablename} ADD {col.name} [{col.type_name}]";
-                        bolGoOn = true;
-                    }
-                    else
-                    {
-                        wrl($"ALTER TABLE [{v.DestDbName}].dbo.{col.tablename} ADD {col.name} [{col.type_name}] AS {col.formula}");
+                        wrl($"ALTER TABLE [{v.DestDbName}].dbo.{col.tablename} ADD {col.name} AS {col.formula}");
                         wrl("GO");
+                        continue;
                     }
-                    
-                }
-                else
-                {
-                    if (!col.iscomputed)
+                    wrl($"ALTER TABLE [{v.DestDbName}].dbo.{col.tablename} ADD {col.name} [{col.type_name}]{SqlTypeSuffix(col)}{(col.isidentity ? " IDENTITY (1, 1)" : " NULL")}");
+                    wrl("GO");
+                    if (col.cdefault != 0)
                     {
-                        
-                        //if (col.type_name !=coldest.type_name || col.xprec != coldest.xprec || col.xscale != coldest.xscale || (col.cdefault==0 && coldest.cdefault !=0) || (col.cdefault != 0 && coldest.cdefault == 0))
-                        //{
-                        //    strPrimarySQL = $"ALTER TABLE {v.DestDbName}.dbo.{col.tablename} ALTER COLUMN {col.name} {col.type_name}";
-                        //    bolGoOn = true;
-                        //}
-                        
-                        if (!bolGoOn && (col.length != coldest.length || col.type_name != coldest.type_name || col.xprec != coldest.xprec))
-                        {
-                            strPrimarySQL = $"ALTER TABLE [{v.DestDbName}].dbo.{col.tablename} ALTER COLUMN {col.name} {col.type_name}";
-                            bolGoOn = true;
-                        }
-                        if (!bolGoOn && col.cdefault != 0)
-                        {
-                            //je třeba otestovat rozdíl nastavení výchozí hodnoty v poli
-                            bolGoOn = true;
-                        }
-                        
-                    }
-                    else
-                    {
-                        if (col.formula != coldest.formula)
-                        {
-                            wrl_nakonec($"ALTER TABLE [{v.DestDbName}].dbo.{col.tablename} DROP COLUMN {col.name}");
-                            wrl_nakonec("GO");
-                            wrl_nakonec($"ALTER TABLE [{v.DestDbName}].dbo.{col.tablename} ADD {col.name} AS {col.formula}");
-                            wrl_nakonec("GO");
-
-                        }
-                    }
-                }
-
-                if (bolGoOn)
-                {
-                    if (bolFound && col.cdefault != 0)
-                    {
-                        string strDefvalSource = GetDefVal_Source(v, col.name, col.cdefault);
-                        string strDefvalDest = GetDefVal_Dest(v, col.name, col.cdefault);
-                        if (strDefvalSource != strDefvalDest)
+                        //výchozí hodnota hned v témže běhu (dříve až při druhém spuštění porovnání)
+                        string strDefvalNew = GetDefVal_Source(col);
+                        if (strDefvalNew != null)
                         {
                             Handle_Col_Constraint_DefValue(v, col);
-                        }
-                        if (strDefvalSource != null && strDefvalSource != strDefvalDest)
-                        {
-                            if (col.type_name == "varchar" || col.type_name == "nvarchar" || col.type_name == "char" || col.type_name == "nchar" || col.type_name == "ntext")
-                            {
-                                wrl_nakonec($"UPDATE [{v.DestDbName}].dbo.{col.tablename} SET {col.name} = '{strDefvalSource}' WHERE {col.name} IS NULL");
-                                wrl_nakonec("GO");
-                            }
-                            else
-                            {
-                                wrl_nakonec($"UPDATE [{v.DestDbName}].dbo.{col.tablename} SET {col.name} = {strDefvalSource} WHERE {col.name} IS NULL");
-                                wrl_nakonec("GO");
-                            }
-
+                            Handle_Col_FillDefValue(v, col, strDefvalNew);
                         }
                     }
+                    continue;
+                }
 
-
-                    if (strPrimarySQL != null)
+                //sloupec existuje
+                if (col.iscomputed)
+                {
+                    if (col.formula != coldest.formula)
                     {
-                        if (col.type_name == "decimal")
-                        {
-                            strPrimarySQL += $" ({col.xprec},{col.xscale})";
-                        }
-                        if (col.type_name == "varchar" || col.type_name == "char" || col.type_name == "nvarchar" || col.type_name == "nchar")
-                        {
-                            if (col.length == -1)
-                            {
-                                strPrimarySQL += " (MAX)";
-                            }
-                            else
-                            {
-                                strPrimarySQL += $" ({col.length})";
-                            }
-                            if (col.isidentity)
-                            {
-                                strPrimarySQL += " IDENTITY (1, 1)";
-                            }
-                            if (col.isnullable)
-                            {
-                                strPrimarySQL += " NULL";
-                            }
-                        }
-                        wrl(strPrimarySQL);
-                        wrl("GO");
+                        wrl_nakonec($"ALTER TABLE [{v.DestDbName}].dbo.{col.tablename} DROP COLUMN {col.name}");
+                        wrl_nakonec("GO");
+                        wrl_nakonec($"ALTER TABLE [{v.DestDbName}].dbo.{col.tablename} ADD {col.name} AS {col.formula}");
+                        wrl_nakonec("GO");
+                    }
+                    continue;
+                }
+
+                bool bolDecimal = (col.type_name == "decimal" || col.type_name == "numeric");
+                if (col.length != coldest.length || col.type_name != coldest.type_name || col.xprec != coldest.xprec || (bolDecimal && col.xscale != coldest.xscale))
+                {
+                    //typ / délka / přesnost. NULL / NOT NULL se zachovává podle skutečného stavu sloupce:
+                    //bez uvedení by ALTER COLUMN udělal ze sloupce NOT NULL sloupec NULL.
+                    wrl($"ALTER TABLE [{v.DestDbName}].dbo.{col.tablename} ALTER COLUMN {col.name} {col.type_name}{SqlTypeSuffix(col)}{(coldest.isnullable ? " NULL" : " NOT NULL")}");
+                    wrl("GO");
+                }
+
+                if (col.cdefault != 0)
+                {
+                    string strDefvalSource = GetDefVal_Source(col);
+                    string strDefvalDest = GetDefVal_Dest(coldest);
+                    if (strDefvalSource != null && strDefvalSource != strDefvalDest)
+                    {
+                        Handle_Col_Constraint_DefValue(v, col);
+                        Handle_Col_FillDefValue(v, col, strDefvalSource);
                     }
                 }
-                //if (bolGoOn && bolFound && col.cdefault != 0)
-                //{
-                //    string strDefvalSource = GetDefVal_Source(v, col.name, col.cdefault);
-                //    string strDefvalDest = GetDefVal_Dest(v, col.name, col.cdefault);
-                //    if (strDefvalSource != null && strDefvalSource != strDefvalDest)
-                //    {
-                //        if (col.type_name == "varchar" || col.type_name == "nvarchar" || col.type_name == "char" || col.type_name == "nchar" || col.type_name == "ntext")
-                //        {
-                //            wrl_nakonec($"UPDATE {v.DestDbName}.dbo.{col.tablename} SET {col.name} = '{strDefvalSource}' WHERE {col.name} IS NULL");
-                //            wrl_nakonec("GO");
-                //        }
-                //        else
-                //        {
-                //            wrl_nakonec($"UPDATE {v.DestDbName}.dbo.{col.tablename} SET {col.name} = {strDefvalSource} WHERE {col.name} IS NULL");
-                //            wrl_nakonec("GO");
-                //        }
-                        
-                //    }
-                //}
-                
+            }
+
+            Handle_Indexes(v);
+        }
+
+        // ------------------------------------------------------------------------------------------------
+        // Indexy: do skriptu jdou jen indexy, které v cílové db chybí (podle názvu). Primární klíče se neřeší (vznikají s tabulkou).
+        // Existující index se nikdy nemaže ani nepřestavuje.
+        // ------------------------------------------------------------------------------------------------
+        private static string IndexColsKey(BO.Sys.sysindex c)
+        {
+            return L(c.tabname) + "|" + L(c.index_keys).Replace(" ", "") + "|" + L(c.index_includes).Replace(" ", "") + "|" + L(c.index_filter).Replace(" ", "");
+        }
+        private static string IndexCols2Sql(string s)
+        {
+            //"a, b(-)" → "[a], [b] DESC"
+            return string.Join(", ", (s ?? "").Split(',').Select(p => p.Trim()).Where(p => p.Length > 0).Select(p => p.EndsWith("(-)") ? $"[{p.Substring(0, p.Length - 3).Trim()}] DESC" : $"[{p}]"));
+        }
+        private void Handle_Indexes(UpdateViewModel v)
+        {
+            if (v.sourceInds == null || _destIndexKeys == null) return;
+            foreach (var c in v.sourceInds)
+            {
+                string strDesc = L(c.index_description);    //starší Indexes.json (z sp_helpindex) má vlastnosti jen v popisu
+                if (c.is_primary_key || strDesc.Contains("primary key") || strDesc.Contains("unique key")) continue;
+                if (string.IsNullOrEmpty(c.index_keys) || string.IsNullOrEmpty(c.index_name)) continue;
+                if (!_srcTabs.Contains(L(c.tabname))) continue;
+                if (_destIndexKeys.Contains(K(c.tabname, c.index_name))) continue;
+                if (_destIndexByCols.TryGetValue(IndexColsKey(c), out string strSame))
+                {
+                    wrl_nakonec($"----Index [{c.index_name}], tabulka [{c.tabname}]: v [{v.DestDbName}] už je index se stejnými sloupci pod názvem [{strSame}].");
+                    continue;
+                }
+                bool bolUnique = c.is_unique || strDesc.Contains("unique");
+                bool bolClustered = c.is_clustered || strDesc.StartsWith("clustered");
+                string strSql = $"CREATE {(bolUnique ? "UNIQUE " : "")}{(bolClustered ? "CLUSTERED" : "NONCLUSTERED")} INDEX [{c.index_name}] ON [{v.DestDbName}].dbo.{c.tabname} ({IndexCols2Sql(c.index_keys)})";
+                if (!string.IsNullOrEmpty(c.index_includes)) strSql += $" INCLUDE ({IndexCols2Sql(c.index_includes)})";
+                if (!string.IsNullOrEmpty(c.index_filter)) strSql += $" WHERE {c.index_filter}";
+                wrl_nakonec(strSql);
+                wrl_nakonec("GO");
+                wrl_nakonec("");
             }
         }
 
@@ -360,12 +445,12 @@ namespace UI.Controllers
             
             foreach(var tab in v.sourceTabs)
             {
-                if (!v.destTabs.Any(p => p.name.ToLower() == tab.name.ToLower()))
+                if (!_destTabs.Contains(L(tab.name)))
                 {
                     int x = 1;
                     wrl($"CREATE TABLE [{v.DestDbName}].dbo.{tab.name}");
                     wrl("(");
-                    var qry = v.sourceCols.Where(p => p.id == tab.id);bool bolPK = false;
+                    var qry = _srcColsByTabId[tab.id].ToList();bool bolPK = false;
 
                     foreach (var col in qry)
                     {
@@ -446,7 +531,7 @@ namespace UI.Controllers
             int x = 0;
             foreach (var tab in v.destTabs)
             {
-                if (v.sourceTabs.Where(p => p.name.ToLower() == tab.name.ToLower()).Count() == 0)
+                if (!_srcTabs.Contains(L(tab.name)))
                 {
                     wrl($"----Tabulka navíc: [{tab.name}].");
                     x += 1;
@@ -454,64 +539,23 @@ namespace UI.Controllers
             }
             foreach (var col in v.destCols)
             {
-                if (v.sourceCols.Where(p => p.tablename.ToLower() == col.tablename.ToLower()).Count() == 0)
+                if (!_srcTabs.Contains(L(col.tablename)))
                 {
-                    continue;
+                    continue;   //celá tabulka je navíc – už vypsáno výše
                 }
-                var qry = v.sourceCols.Where(p => p.tablename.ToLower() == col.tablename.ToLower() && p.name.ToLower() == col.name.ToLower());
-
-                if (qry.Count() == 0)
+                if (!_srcColKeys.Contains(K(col.tablename, col.name)))
                 {
                     wrl($"----Sloupec navíc: [{col.name}] [{col.type_name}], tabulka: [{col.tablename}].");
                     x += 1;
                 }
             }
-            if (x > 0)
+            if (x == 0)
             {
-                v.RunResult = $"---Nic jsem nenašel v cílové db [{v.DestDbName}].";
+                wrl($"---Nic navíc jsem nenašel v cílové db [{v.DestDbName}].");
             }
             v.RunResult = _sb.ToString();
-           
-            
         }
 
-        private string GetConstraintName(UpdateViewModel v,int intConstraintID)
-        {
-            if (v.sourceConstraints.Where(p => p.id == intConstraintID).Count() > 0)
-            {
-                return v.sourceConstraints.Where(p => p.id == intConstraintID).First().name;
-            }
-
-            return null;
-        }
-        private string GetDefVal_Source(UpdateViewModel v,string strColName,int intDefVal = 0)
-        {
-            
-            if (v.sourceDefVals.Where(p => p.name.ToLower() == strColName.ToLower()).Count() > 0)
-            {
-                return v.sourceDefVals.Where(p => p.name.ToLower() == strColName.ToLower()).First().text;
-            }
-            if (intDefVal>0 && v.sourceDefVals.Where(p => p.id == intDefVal).Count() > 0)
-            {
-                return v.sourceDefVals.Where(p => p.id == intDefVal).First().text;
-            }
-
-            return null;
-        }
-        private string GetDefVal_Dest(UpdateViewModel v, string strColName, int intDefVal = 0)
-        {
-
-            if (v.destDefVals.Where(p => p.name.ToLower() == strColName.ToLower()).Count() > 0)
-            {
-                return v.destDefVals.Where(p => p.name.ToLower() == strColName.ToLower()).First().text;
-            }
-            if (intDefVal > 0 && v.destDefVals.Where(p => p.id == intDefVal).Count() > 0)
-            {
-                return v.destDefVals.Where(p => p.id == intDefVal).First().text;
-            }
-
-            return null;
-        }
         private void wrl(string s)
         {
             if (_sb == null) _sb = new System.Text.StringBuilder(2000);
@@ -542,24 +586,144 @@ namespace UI.Controllers
             }
         }
 
+        // dávky odděluje řádek, na kterém je jen GO (bez ohledu na konce řádků a mezery)
+        private static readonly System.Text.RegularExpressions.Regex _rxGo = new System.Text.RegularExpressions.Regex(@"^[ \t]*GO[ \t]*;?[ \t]*\r?$",
+            System.Text.RegularExpressions.RegexOptions.Multiline | System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled);
+
         private void Handle_RunResult(UpdateViewModel v)
         {
+            if (string.IsNullOrEmpty(v.RunResult) || string.IsNullOrEmpty(v.DestDbName)) return;
             var strConString = Factory.App.ParseConnectStringFromDbname(v.DestDbName);
 
-            System.IO.File.WriteAllText($"{this.Factory.TempFolder}\\Update_RunResult_{DateTime.Now.ToString("dd-MM-yyyy-hh-mm-ss")}.txt",$"---connect-string: {strConString}\r\n\r\n"+ v.RunResult);
-            var arr = BO.Code.Bas.ConvertString2List(v.RunResult, "GO\r\n");
-            
-            
+            System.IO.File.WriteAllText($"{this.Factory.TempFolder}\\Update_RunResult_{v.DestDbName}_{DateTime.Now.ToString("dd-MM-yyyy-HH-mm-ss")}.txt",$"---connect-string: {strConString}\r\n\r\n"+ v.RunResult);
 
-            foreach (var s in arr)
+            RunBatches(v, _rxGo.Split(v.RunResult), null);
+        }
+
+        private void RunBatches(UpdateViewModel v, IEnumerable<string> batches, string strInfo)
+        {
+            var strConString = Factory.App.ParseConnectStringFromDbname(v.DestDbName);
+            int intOK = 0; var errs = new List<string>();
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            try
             {
-                if (!string.IsNullOrEmpty(s) && s.Length>5)
+                Factory.db.ChangeConnectString(strConString);
+                foreach (var s in batches)
                 {
-                    
-                    Factory.FBL.RunSql(s,null, strConString);
+                    string strSql = s.Trim();
+                    if (strSql.Length <= 5 || strSql.StartsWith("----Spustit nakonec----")) continue;
+                    if (Factory.db.RunSql2(strSql, null, 600))      //RunSql2: neúspěch = jen skutečná chyba SQL (text chyby je v logu chyb)
+                    {
+                        intOK++;
+                    }
+                    else
+                    {
+                        string strFirstLine = strSql.Split('\n').Select(p => p.Trim()).FirstOrDefault(p => p.Length > 0 && !p.StartsWith("--")) ?? "";
+                        errs.Add(strFirstLine.Length > 160 ? strFirstLine.Substring(0, 160) + "…" : strFirstLine);
+                    }
                 }
             }
-          
+            finally
+            {
+                Factory.db.ChangeConnectString(null);   //zbytek požadavku zase proti databázi přihlášeného uživatele
+            }
+
+            if (errs.Count > 0)
+            {
+                this.AddMessageTranslated($"[{v.DestDbName}]: {errs.Count} z {intOK + errs.Count} dávek skončilo chybou (podrobnosti v logu chyb):<br>" + string.Join("<br>", errs.Take(15).Select(p => System.Net.WebUtility.HtmlEncode(p))) + (errs.Count > 15 ? "<br>…" : ""));
+            }
+            else
+            {
+                this.AddMessageTranslated($"[{v.DestDbName}]: {intOK} dávek, {sw.Elapsed.TotalSeconds:0.0} s, bez chyb.{(strInfo == null ? "" : " " + strInfo)}", "info");
+            }
+        }
+
+        // ------------------------------------------------------------------------------------------------
+        // sql_sp_funct_views.sql: pro každý objekt dvojice dávek "if exists … drop" + "CREATE …".
+        // Do databáze se pouští jen objekty, které v ní chybí nebo mají jiný text (jeden dotaz na sys.sql_modules).
+        // Nezměněné procedury se tak nemažou a nevytvářejí znovu.
+        // ------------------------------------------------------------------------------------------------
+        private class SpItem
+        {
+            public string Name;         //null = dávka mimo dvojici, pouští se vždy
+            public string DropSql;
+            public string CreateSql;
+        }
+        private static readonly System.Text.RegularExpressions.Regex _rxSpDrop = new System.Text.RegularExpressions.Regex(@"^\s*if exists\s*\(\s*select 1 from sysobjects where id = object_id\('(?<n>[^']+)'\)",
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled);
+
+        private static string NormSql(string s) => (s ?? "").Replace("\r\n", "\n").Replace("\r", "\n").Trim();
+
+        private List<SpItem> ParseSpScript(string strScript)
+        {
+            var ret = new List<SpItem>();
+            SpItem pending = null;
+            foreach (var s in _rxGo.Split(strScript ?? ""))
+            {
+                string strSql = s.Trim();
+                if (strSql.Length <= 5) continue;
+                var m = _rxSpDrop.Match(strSql);
+                if (m.Success)
+                {
+                    if (pending != null) ret.Add(new SpItem() { CreateSql = pending.DropSql });  //drop bez těla
+                    pending = new SpItem() { Name = m.Groups["n"].Value, DropSql = strSql };
+                    continue;
+                }
+                if (pending != null)
+                {
+                    pending.CreateSql = strSql;
+                    ret.Add(pending);
+                    pending = null;
+                }
+                else
+                {
+                    ret.Add(new SpItem() { CreateSql = strSql });
+                }
+            }
+            if (pending != null) ret.Add(new SpItem() { CreateSql = pending.DropSql });
+            return ret;
+        }
+
+        private void Handle_SpScript(UpdateViewModel v, List<SpItem> lis, bool bolAll)
+        {
+            if (string.IsNullOrEmpty(v.DestDbName) || lis == null || lis.Count == 0) return;
+
+            Dictionary<string, string> dest = null;
+            if (!bolAll)
+            {
+                dest = new Dictionary<string, string>();
+                var lisDest = Factory.db.GetList<BO.Sys.SysDbObject>($"SELECT o.name as Name,m.definition as Content FROM [{v.DestDbName}].sys.objects o INNER JOIN [{v.DestDbName}].sys.sql_modules m ON o.object_id=m.object_id WHERE o.type IN ('P','FN','IF','TF','V')");
+                if (lisDest == null)
+                {
+                    this.AddMessageTranslated($"[{v.DestDbName}]: nepodařilo se načíst stávající procedury a funkce, databáze přeskočena.");
+                    return;
+                }
+                foreach (var c in lisDest) dest.TryAdd(L(c.Name), NormSql(c.Content));
+            }
+
+            var batches = new List<string>(); int intSame = 0; int intChanged = 0;
+            foreach (var c in lis)
+            {
+                if (c.Name == null)
+                {
+                    batches.Add(c.CreateSql);
+                    continue;
+                }
+                if (dest != null && dest.TryGetValue(L(c.Name), out string strDest) && strDest == NormSql(c.CreateSql))
+                {
+                    intSame++;
+                    continue;
+                }
+                intChanged++;
+                batches.Add(c.DropSql);
+                batches.Add(c.CreateSql);
+            }
+            if (batches.Count == 0)
+            {
+                this.AddMessageTranslated($"[{v.DestDbName}]: všech {intSame} procedur, funkcí a pohledů je aktuálních, nic se nespouštělo.", "info");
+                return;
+            }
+            RunBatches(v, batches, $"Aktualizováno objektů: {intChanged}, beze změny: {intSame}.");
         }
 
         private void Handle_Reports(UpdateViewModel v)
@@ -627,6 +791,7 @@ namespace UI.Controllers
                 
 
             }
+            Factory.db.ChangeConnectString(null);   //zbytek požadavku zase proti databázi přihlášeného uživatele
         }
     }
 }

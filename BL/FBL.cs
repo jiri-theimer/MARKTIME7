@@ -452,21 +452,42 @@ namespace BL
         }
         public IEnumerable<BO.Sys.sysindex> Sys_GetList_Indexes(string dbname)
         {
+            //jeden dotaz na celou databázi (dříve sp_helpindex pro každou tabulku zvlášť = přes 200 dotazů)
+            //bez omezení typu UNIQUE (is_unique_constraint), ta patří mezi constraints
             var ret = new List<BO.Sys.sysindex>();
-            var lisTabs = _db.GetList<BO.Sys.sysobject>($"SELECT id,name FROM [{dbname}].dbo.sysobjects WHERE xtype='U' and name<>'dtproperties' and [name] not like 'zzz%' order by name");
-            foreach (var tab in lisTabs)
+            string strSQL = "SELECT t.name as tabname,t.object_id as tabid,i.name as index_name,i.type as index_type,i.is_unique,i.is_primary_key,i.filter_definition,c.name as colname,ic.is_descending_key,ic.is_included_column"
+                + $" FROM [{dbname}].sys.indexes i INNER JOIN [{dbname}].sys.tables t ON i.object_id=t.object_id"
+                + $" INNER JOIN [{dbname}].sys.index_columns ic ON i.object_id=ic.object_id AND i.index_id=ic.index_id"
+                + $" INNER JOIN [{dbname}].sys.columns c ON ic.object_id=c.object_id AND ic.column_id=c.column_id"
+                + " WHERE i.type IN (1,2) AND i.is_hypothetical=0 AND i.is_unique_constraint=0 AND t.name<>'dtproperties' AND t.name NOT LIKE 'zzz%'"
+                + " ORDER BY t.name,i.name,ic.is_included_column,ic.key_ordinal,ic.index_column_id";
+            var dt = _db.GetDataTable(strSQL);
+            if (dt == null) return ret;
+
+            BO.Sys.sysindex cur = null;
+            foreach (System.Data.DataRow dbrow in dt.Rows)
             {
-                var dt = _db.GetDataTable($"exec [{dbname}].dbo.sp_helpindex {tab.name}");
-                foreach (System.Data.DataRow dbrow in dt.Rows)
+                string strTab = dbrow["tabname"].ToString();
+                string strIndex = dbrow["index_name"].ToString();
+                if (cur == null || cur.tabname != strTab || cur.index_name != strIndex)
                 {
-                    var c = new BO.Sys.sysindex() { tabid = tab.id, tabname = tab.name };
-                    c.index_name = dbrow["index_name"].ToString();
-                    if (dbrow["index_description"] != System.DBNull.Value)
-                    {
-                        c.index_description = dbrow["index_description"].ToString();
-                    }
-                    c.index_keys = dbrow["index_keys"].ToString();
-                    ret.Add(c);
+                    cur = new BO.Sys.sysindex() { tabname = strTab, tabid = Convert.ToInt32(dbrow["tabid"]), index_name = strIndex };
+                    cur.is_clustered = (Convert.ToInt32(dbrow["index_type"]) == 1);
+                    cur.is_unique = Convert.ToBoolean(dbrow["is_unique"]);
+                    cur.is_primary_key = Convert.ToBoolean(dbrow["is_primary_key"]);
+                    if (dbrow["filter_definition"] != System.DBNull.Value) cur.index_filter = dbrow["filter_definition"].ToString();
+                    cur.index_description = (cur.is_clustered ? "clustered" : "nonclustered") + (cur.is_unique ? ", unique" : "") + (cur.is_primary_key ? ", primary key" : "");
+                    ret.Add(cur);
+                }
+                string strCol = dbrow["colname"].ToString();
+                if (Convert.ToBoolean(dbrow["is_included_column"]))
+                {
+                    cur.index_includes = (cur.index_includes == null ? "" : cur.index_includes + ", ") + strCol;
+                }
+                else
+                {
+                    if (Convert.ToBoolean(dbrow["is_descending_key"])) strCol += "(-)";
+                    cur.index_keys = (cur.index_keys == null ? "" : cur.index_keys + ", ") + strCol;
                 }
             }
 
