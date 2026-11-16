@@ -53,7 +53,7 @@ namespace UI.Controllers
             }
             if (Factory.CurrentUser.j02SmsVerifyCode != null && !IsCurrentContextNoRestriction(context))   //test, zda systém vyžaduje 2faktorové ověření
             {
-                context.Result = new RedirectResult("~/Home/SmsVerify");    //systém vyžaduje po uživatel SMS 2faktorové ověření
+                context.Result = new RedirectResult("~/Home/TwoFactor");    //systém vyžaduje po uživateli 2faktorové ověření (kód z aplikace / e-mailu)
                 return;
             }            
             
@@ -79,7 +79,7 @@ namespace UI.Controllers
                 return true;
             }
             string strPage = context.RouteData.Values["action"].ToString();
-            if (strPage == "ChangePassword" || strPage == "SmsVerify" || strPage == "UpdateCurrentUserPing" || strPage == "main_me" || strPage == "Logout")
+            if (strPage == "ChangePassword" || strPage == "TwoFactor" || strPage == "SmsVerify" || strPage == "UpdateCurrentUserPing" || strPage == "main_me" || strPage == "Logout")
             {
                 return true;
             }

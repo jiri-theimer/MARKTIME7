@@ -113,7 +113,7 @@ namespace UI.Controllers
                 strHtml = strHtml.Replace("#link#", $"{_f.Lic.x01AppHost}/Password/ConfirmRecovery?guid={strGUID}");
                 string strSubject = "Žádost o obnovení přihlašovacího hesla v aplikaci MARKTIME";
 
-                var ret=_f.MailBL.SendMessageWithoutFactory(strHtml, strSubject, recJ02.j02Email, null,(_f.Lic.x01ContactEmail==null ? "noreply@marktime.net": _f.Lic.x01ContactEmail), "MARKTIME");
+                var ret=_f.MailBL.SendMessageWithoutFactory(strHtml, strSubject, recJ02.j02Email, null,UI.Code.SystemMail.Sender(_f), "MARKTIME");
                 if (!ret.issuccess)
                 {
                     v.ErrorMessage = _f.tra("Žádost o obnovení hesla byla založena, ale při odesílání potvrzovací e-mail zprávy došlo k chybě")+":<hr>"+ret.Message;
@@ -178,7 +178,7 @@ namespace UI.Controllers
             strHtml = strHtml.Replace("#newpwd#", strNewPwd);
             string strSubject = "Potvrzení nového hesla v aplikaci MARKTIME";
 
-            var ret = _f.MailBL.SendMessageWithoutFactory(strHtml, strSubject, recJ02.j02Email, null, (_f.Lic.x01ContactEmail == null ? "noreply@marktime.net": _f.Lic.x01ContactEmail), "MARKTIME");
+            var ret = _f.MailBL.SendMessageWithoutFactory(strHtml, strSubject, recJ02.j02Email, null, UI.Code.SystemMail.Sender(_f), "MARKTIME");
 
             if (!ret.issuccess)
             {

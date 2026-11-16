@@ -5,8 +5,8 @@ namespace BO
     public enum o24MediumFlagEnum
     {
         Email = 1,
-        Sms = 2,
-        EmailPlusSms=3,
+        Sms = 2,            //verze 8 SMS neposílá: starší záznamy se doručí do chatu (kontaktům e-mailem), nové s touto hodnotou nevznikají
+        EmailPlusSms=3,     //verze 8: doručí se jako Email
         Chat = 4        //pouze interní chat (konverzace „MARKTIME upozornění“); ostatní volby posílají do chatu navíc
     }
     public class o24Reminder : BaseBO

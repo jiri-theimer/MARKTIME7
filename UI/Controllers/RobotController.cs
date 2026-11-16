@@ -650,7 +650,7 @@ namespace UI.Controllers
         }
 
         /// <summary>
-        /// Upozornění k záznamům (o24Reminder): e-mail / SMS podle o24MediumFlag a vždy i interní chat (příjemcům, kteří jsou uživatelé s chatem).
+        /// Upozornění k záznamům (o24Reminder): e-mail podle o24MediumFlag a vždy i interní chat (příjemcům, kteří jsou uživatelé s chatem).
         /// o24MediumFlag = Chat: jen interní chat.
         /// Do chatu se posílá jednou - ve chvíli, kdy se upozornění označuje za zpracované. Bez výchozího SMTP účtu se e-mailová upozornění
         /// doručí jen do chatu; komu se do chatu doručit nedalo, tomu upozornění dál čeká na SMTP účet.
@@ -712,8 +712,13 @@ namespace UI.Controllers
 
                         recX40.x40Body = sb.ToString();
 
+                        //SMS se neposílají: starší upozornění s volbou SMS jdou do chatu (kontaktům, kteří chat nemají, e-mailem), E-mail + SMS jako e-mail
+                        var medium = c.o24MediumFlag;
+                        if (medium == BO.o24MediumFlagEnum.EmailPlusSms) medium = BO.o24MediumFlagEnum.Email;
+                        if (medium == BO.o24MediumFlagEnum.Sms) medium = (c.p28ID > 0 || c.p24ID > 0 ? BO.o24MediumFlagEnum.Email : BO.o24MediumFlagEnum.Chat);
+
                         bool bolChatDone = false;   //do chatu jen jednou, až když je upozornění zpracované
-                        if (c.o24MediumFlag == BO.o24MediumFlagEnum.Chat)   //pouze interní chat: e-mail ani SMS neodchází
+                        if (medium == BO.o24MediumFlagEnum.Chat)   //pouze interní chat: e-mail neodchází
                         {
                             int intChat = _f.ChatBL.PostNotification(receivers, ReminderChatText(c, strRecAlias));
                             if (intChat == 0)
@@ -725,7 +730,7 @@ namespace UI.Controllers
                             _f.o24ReminderBL.Save(c);
                             bolChatDone = true;
                         }
-                        if (c.o24MediumFlag == BO.o24MediumFlagEnum.Email || c.o24MediumFlag == BO.o24MediumFlagEnum.EmailPlusSms)  //odeslat upozornění přes e-mail
+                        if (medium == BO.o24MediumFlagEnum.Email)  //odeslat upozornění přes e-mail
                         {
                             if (v.smtp_account != null)
                             {
@@ -750,33 +755,6 @@ namespace UI.Controllers
                                 bolChatDone = true;
                             }
                         }
-
-                        if (c.o24MediumFlag == BO.o24MediumFlagEnum.Sms || c.o24MediumFlag == BO.o24MediumFlagEnum.EmailPlusSms)  //odeslat upozornění přes sms
-                        {
-                            var sms = new BL.Code.SmsManagerSupport(_f);
-                            var numbers = _f.MailBL.GetGsmList(c.j02ID, c.j11ID, c.x67ID, c.p28ID, c.p24ID, c.o24RecordPid, c.o24RecordEntity, 0);
-                            if (numbers != null && numbers.Count() > 0)
-                            {
-                                var ret = sms.SendMessage(string.Join(";", numbers), $"MARKTIME upozornění pro datum: {Convert.ToDateTime(c.o24RecordDate).ToString("dd.MM.yyyy HH:mm")}, záznam: {strRecAlias}", _httpclientfactory.CreateClient(), c.pid);    //najednou lze zprávu odeslat až na 20 čísel
-
-                                if (c.o24MediumFlag == BO.o24MediumFlagEnum.Sms && ret.Result.issuccess)
-                                {
-                                    c.o24DatetimeProcessed = DateTime.Now;
-                                    _f.o24ReminderBL.Save(c);
-                                    if (!bolChatDone)
-                                    {
-                                        _f.ChatBL.PostNotification(receivers, ReminderChatText(c, strRecAlias));
-                                        bolChatDone = true;
-                                    }
-                                }
-                            }
-
-
-
-
-                        }
-
-
 
                     }
                 }

@@ -265,44 +265,167 @@ namespace UI.Controllers
 
         }
 
-        public IActionResult SmsVerify()
+        public IActionResult SmsVerify()    //původní adresa ověření SMS kódem
         {
-
-            var v = new SmsVerifyViewModel();
-            v.recJ02 = Factory.j02UserBL.Load(Factory.CurrentUser.pid);
-            return View(v);
+            return RedirectToAction("TwoFactor");
         }
-        [HttpPost]
-        public IActionResult SmsVerify(Models.Home.SmsVerifyViewModel v, string returnurl)
-        {
-            v.recJ02 = Factory.j02UserBL.Load(Factory.CurrentUser.pid);
 
+        // ------------------------------------------------------------------------------------------------
+        // Dvoufázové ověření po přihlášení (UI.Code.TwoFactorSupport): kód z ověřovací aplikace nebo z e-mailu.
+        // ------------------------------------------------------------------------------------------------
+        private TwoFactorViewModel InhaleTwoFactor(TwoFactorViewModel v, BO.j02User recJ02)
+        {
+            v.IsAppPaired = !string.IsNullOrEmpty(recJ02.j02TotpSecret);
+            v.IsEmailPending = UI.Code.TwoFactorSupport.IsEmailPending(recJ02.j02SmsVerifyCode);     //stav se čte ze záznamu uživatele: přihlášený uživatel (RunningUser) čas vzniku kódu nenačítá
+            v.EmailMasked = UI.Code.TwoFactorSupport.MaskEmail(recJ02.j02Email);
+            v.EmailSent = recJ02.j02SmsVerifyCreate;
+            v.Code = null;
+            ModelState.Remove("Code");
+            return v;
+        }
+
+        public IActionResult TwoFactor()
+        {
             if (Factory.CurrentUser.j02SmsVerifyCode == null)
             {
-                this.AddMessage("V systému neevidujeme požadavek zadat SMS kód."); return View(v);
+                return RedirectToAction("Index");   //nic k ověření
             }
-            if (string.IsNullOrEmpty(v.SmsCode))
+            return View(InhaleTwoFactor(new TwoFactorViewModel(), Factory.j02UserBL.Load(Factory.CurrentUser.pid)));
+        }
+
+        [HttpPost]
+        public IActionResult TwoFactor(TwoFactorViewModel v, string returnurl)
+        {
+            if (Factory.CurrentUser.j02SmsVerifyCode == null)
             {
-                this.AddMessage("Musíte zadata SMS kód."); return View(v);
+                return RedirectToAction("Index");
+            }
+            var recJ02 = Factory.j02UserBL.Load(Factory.CurrentUser.pid);
+
+            if (v.Oper == "email")
+            {
+                //záložní cesta (telefon není po ruce): kód e-mailem, nejdřív za 30 sekund po předchozím
+                if (UI.Code.TwoFactorSupport.IsEmailPending(recJ02.j02SmsVerifyCode) && recJ02.j02SmsVerifyCreate != null
+                    && Convert.ToDateTime(recJ02.j02SmsVerifyCreate).AddSeconds(30) > DateTime.Now)
+                {
+                    this.AddMessage("Kód byl právě odeslán. Další si můžete vyžádat za půl minuty.", "info");
+                    return View(InhaleTwoFactor(v, recJ02));
+                }
+                var ret = UI.Code.TwoFactorSupport.SendEmailCode(Factory, recJ02);
+                if (ret.Flag == BO.ResultEnum.Failed)
+                {
+                    this.AddMessageTranslated(ret.Message);
+                    return View(InhaleTwoFactor(v, recJ02));
+                }
+                return RedirectToAction("TwoFactor", new { returnurl = returnurl });     //znovu načíst stav přihlášeného uživatele
             }
 
-            if (v.SmsCode == Factory.CurrentUser.j02SmsVerifyCode)
+            if (string.IsNullOrEmpty(v.Code))
+            {
+                this.AddMessage("Zadejte ověřovací kód.");
+                return View(InhaleTwoFactor(v, recJ02));
+            }
+
+            bool bolByEmail = UI.Code.TwoFactorSupport.VerifyEmailCode(recJ02.j02SmsVerifyCode, recJ02.j02SmsVerifyCreate, v.Code);
+            bool bolByApp = !bolByEmail && BL.Code.Totp.Verify(recJ02.j02TotpSecret, v.Code);
+
+            if (bolByEmail || bolByApp)
             {
                 Factory.j02UserBL.ClearSmsVerifyCode(Factory.CurrentUser.pid);
-                if (string.IsNullOrEmpty(returnurl) || returnurl.Length < 3)
+                Factory.CBL.SetUserParam(UI.Code.TwoFactorSupport.ParamFails, "0");
+                if (string.IsNullOrEmpty(recJ02.j02TotpSecret))
+                {
+                    return RedirectToAction("TwoFactorSetup", new { afterlogin = true });   //nabídnout spárování ověřovací aplikace
+                }
+                if (string.IsNullOrEmpty(returnurl) || returnurl.Length < 3 || !Url.IsLocalUrl(returnurl))
                 {
                     return RedirectToAction("Index", "Home");
                 }
-                else
-                {
-                    return Redirect(returnurl);
-                }
+                return Redirect(returnurl);
             }
-            else
+
+            //chybný kód: po několika pokusech zneplatnit kód z e-mailu a odhlásit
+            int intFails = Factory.CBL.LoadUserParamInt(UI.Code.TwoFactorSupport.ParamFails, 0) + 1;
+            if (intFails >= UI.Code.TwoFactorSupport.MaxFails)
             {
-                this.AddMessage("Chybný SMS kód.");
+                Factory.CBL.SetUserParam(UI.Code.TwoFactorSupport.ParamFails, "0");
+                Factory.j02UserBL.UpdateSmsVerifyCode(Factory.CurrentUser.pid, string.IsNullOrEmpty(recJ02.j02TotpSecret) ? UI.Code.TwoFactorSupport.PendingEmailPrefix : UI.Code.TwoFactorSupport.PendingApp);
+                return RedirectToAction("Logout");
             }
-            return View(v);
+            Factory.CBL.SetUserParam(UI.Code.TwoFactorSupport.ParamFails, intFails.ToString());
+            this.AddMessage("Chybný nebo už neplatný ověřovací kód.");
+            return View(InhaleTwoFactor(v, recJ02));
+        }
+
+        // Spárování ověřovací aplikace (Microsoft Authenticator apod.) – z osobního profilu nebo hned po přihlášení kódem z e-mailu.
+        private TwoFactorSetupViewModel InhaleTwoFactorSetup(TwoFactorSetupViewModel v, BO.j02User recJ02, bool bolNewSecret)
+        {
+            v.IsPaired = !string.IsNullOrEmpty(recJ02.j02TotpSecret);
+            v.IsRequired = (recJ02.j02TwoFactorVerifyFlag != BO.j02TwoFactorVerifyFlagENUM.None);
+            v.Login = recJ02.j02Login;
+            v.Code = null;
+            ModelState.Remove("Code");
+            if (!v.IsPaired || bolNewSecret)
+            {
+                //navržený klíč se drží na serveru (uživatelský parametr), do formuláře se nevrací
+                string strSecret = Factory.CBL.LoadUserParam(UI.Code.TwoFactorSupport.ParamSetupSecret);
+                if (string.IsNullOrEmpty(strSecret))
+                {
+                    strSecret = BL.Code.Totp.GenerateSecret();
+                    Factory.CBL.SetUserParam(UI.Code.TwoFactorSupport.ParamSetupSecret, strSecret);
+                }
+                v.Secret = BL.Code.Totp.FormatSecret(strSecret);
+                v.OtpUri = BL.Code.Totp.BuildUri("MARKTIME", recJ02.j02Login, strSecret);
+            }
+            return v;
+        }
+
+        public IActionResult TwoFactorSetup(bool afterlogin, bool renew)
+        {
+            var v = new TwoFactorSetupViewModel() { IsAfterLogin = afterlogin };
+            return View(InhaleTwoFactorSetup(v, Factory.j02UserBL.Load(Factory.CurrentUser.pid), renew));
+        }
+
+        [HttpPost]
+        public IActionResult TwoFactorSetup(TwoFactorSetupViewModel v)
+        {
+            var recJ02 = Factory.j02UserBL.Load(Factory.CurrentUser.pid);
+
+            if (v.Oper == "unpair")
+            {
+                Factory.j02UserBL.UpdateTotpSecret(recJ02.pid, null);
+                Factory.CBL.SetUserParam(UI.Code.TwoFactorSupport.ParamSetupSecret, "");
+                this.AddMessage("Spárování ověřovací aplikace je zrušeno.", "info");
+                return RedirectToAction("TwoFactorSetup");
+            }
+            if (v.Oper == "new")
+            {
+                Factory.CBL.SetUserParam(UI.Code.TwoFactorSupport.ParamSetupSecret, "");    //nový klíč = nový QR kód
+                return RedirectToAction("TwoFactorSetup", new { renew = true, afterlogin = v.IsAfterLogin });
+            }
+
+            string strSecret = Factory.CBL.LoadUserParam(UI.Code.TwoFactorSupport.ParamSetupSecret);
+            if (string.IsNullOrEmpty(strSecret))
+            {
+                return RedirectToAction("TwoFactorSetup", new { renew = true, afterlogin = v.IsAfterLogin });
+            }
+            if (!BL.Code.Totp.Verify(strSecret, v.Code))
+            {
+                this.AddMessage("Kód nesouhlasí. Zadejte šestimístný kód, který aplikace právě ukazuje u položky MARKTIME.");
+                return View(InhaleTwoFactorSetup(v, recJ02, true));
+            }
+            if (!Factory.j02UserBL.UpdateTotpSecret(recJ02.pid, strSecret))
+            {
+                this.AddMessage("Spárování se nepodařilo uložit.");
+                return View(InhaleTwoFactorSetup(v, recJ02, true));
+            }
+            Factory.CBL.SetUserParam(UI.Code.TwoFactorSupport.ParamSetupSecret, "");
+            this.AddMessage("Ověřovací aplikace je spárovaná.", "info");
+            if (v.IsAfterLogin)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+            return RedirectToAction("TwoFactorSetup");
         }
 
 

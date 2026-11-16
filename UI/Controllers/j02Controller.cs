@@ -164,6 +164,22 @@ namespace UI.Controllers
             Factory.j02UserBL.UpdateAccessFailedCount(pid, 0);
             return Json(new { flag = 1, message = "" });
         }
+        //zrušení spárování ověřovací aplikace (ztracený telefon): uživatel pak dostane kód e-mailem a aplikaci si spáruje znovu
+        [HttpPost]
+        public IActionResult ResetTwoFactor(int pid)
+        {
+            if (!Factory.CurrentUser.IsAdmin)
+            {
+                return Json(new { flag = 0, message = Factory.tra("Spárování může zrušit pouze administrátor.") });
+            }
+            var rec = Factory.j02UserBL.Load(pid);
+            if (rec == null)
+            {
+                return Json(new { flag = 0, message = Factory.tra("Uživatel nebyl nalezen.") });
+            }
+            Factory.j02UserBL.UpdateTotpSecret(pid, null);
+            return Json(new { flag = 1, message = "" });
+        }
 
         public IActionResult Info(int pid)
         {

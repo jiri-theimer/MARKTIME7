@@ -26,6 +26,7 @@ namespace BL
         public bool IsChangedLastLoginUserAgent(int j02id);    //zda se změnil od posledního přihlášení j90ClientBrowser
         public bool UpdateSmsVerifyCode(int j02id, string strSmsCode);
         public bool ClearSmsVerifyCode(int j02id);
+        public bool UpdateTotpSecret(int j02id, string strSecret);
         public String LoadLastActivityByUser(int j02id);
         
         public string GetDefaultMenuLinks();
@@ -170,7 +171,7 @@ namespace BL
             p.AddEnumInt("j02TwoFactorVerifyFlag", rec.j02TwoFactorVerifyFlag);
             if (rec.j02TwoFactorVerifyFlag == BO.j02TwoFactorVerifyFlagENUM.None)
             {
-                //pro jistotu vyčistit visící sms kód pro ověření uživatele
+                //pro jistotu vyčistit visící požadavek na ověřovací kód
                 p.AddString("j02SmsVerifyCode", null);
                 p.AddDateTime("j02SmsVerifyCreate", null);
             }
@@ -417,6 +418,10 @@ namespace BL
         public bool ClearSmsVerifyCode(int j02id)
         {
             return _db.RunSql("UPDATE j02User set j02SmsVerifyCode=null,j02SmsVerifyCreate=null WHERE j02ID=@pid", new { pid = j02id });
+        }
+        public bool UpdateTotpSecret(int j02id, string strSecret)   //tajný klíč ověřovací aplikace; null = zrušit spárování
+        {
+            return _db.RunSql2("UPDATE j02User set j02TotpSecret=@s WHERE j02ID=@pid", new { s = strSecret, pid = j02id });
         }
 
         public String LoadLastActivityByUser(int j02id)

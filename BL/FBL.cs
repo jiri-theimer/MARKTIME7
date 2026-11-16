@@ -10,7 +10,6 @@ namespace BL
         public BO.j27Currency LoadCurrencyByCode(string j27code);
         public BO.j27Currency LoadCurrencyByID(int j27id);
         public IEnumerable<BO.j27Currency> GetListCurrency();
-        public bool AppendSmsLog(string strNumber, string strMessage, string strResult, string strErrorCode, string strError, int intCustomID, int o24ID);
         public int AppendRobotLog(BO.j91RobotLog rec);  //uložení jetí robota na pozadí
         public BO.j91RobotLog GetLastRobotRun(BO.j91RobotTaskFlag flag); //vrátí poslední jetí pro zadaný flag
         public IEnumerable<BO.j91RobotLog> GetListRobotLast20();
@@ -141,22 +140,6 @@ namespace BL
             }
         }
 
-        public bool AppendSmsLog(string strNumber, string strMessage, string strResult, string strErrorCode, string strError, int intCustomID, int o24ID)
-        {
-            var p = new DL.Params4Dapper();
-            p.AddInt("x01ID", _mother.CurrentUser.x01ID);
-            p.AddDateTime("j93Date", DateTime.Now);
-            p.AddString("j93Number", strNumber);
-            p.AddString("j93Message", strMessage);
-            p.AddString("j93Result", strResult);
-            p.AddString("j93ErrorMessage", strError);
-            p.AddString("j93ErrorCode", strErrorCode);
-            p.AddInt("j93CustomID", intCustomID);
-            p.AddInt("o24ID", o24ID, true);
-
-            return _db.RunSql("INSERT INTO j93SmsLog(x01ID,j93Date,j93Number,j93Message,j93Result,j93ErrorMessage,j93ErrorCode,j93CustomID,o24ID) VALUES(@x01ID,@j93Date,@j93Number,@j93Message,@j93Result,@j93ErrorMessage,@j93ErrorCode,@j93CustomID,@o24ID)", p.getDynamicDapperPars());
-
-        }
 
         public int AppendRobotLog(BO.j91RobotLog rec)
         {

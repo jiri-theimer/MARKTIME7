@@ -14,7 +14,7 @@ namespace UI.Controllers
     public class LoginController : Controller
     {
         private BL.Factory _f;
-        private readonly IHttpClientFactory _httpclientfactory; //client pro SMS
+        private readonly IHttpClientFactory _httpclientfactory;
 
         public LoginController(BL.Factory f, IHttpClientFactory hcf)
         {
@@ -206,7 +206,7 @@ namespace UI.Controllers
 
 
 
-            if (_f.CurrentUser.j02TwoFactorVerifyFlag != BO.j02TwoFactorVerifyFlagENUM.None)    //povinnost ověřit uživatele navíc SMS kódem
+            if (_f.CurrentUser.j02TwoFactorVerifyFlag != BO.j02TwoFactorVerifyFlagENUM.None)    //povinnost ověřit uživatele navíc kódem (ověřovací aplikace / e-mail)
             {
                 var ret_view = Handle_TwoFactorVerify(v);
                 if (ret_view != null) return ret_view;
@@ -228,38 +228,33 @@ namespace UI.Controllers
         }
 
 
+        // Dvoufázové ověření: kód z ověřovací aplikace, bez spárované aplikace kód e-mailem (UI.Code.TwoFactorSupport).
         private ActionResult Handle_TwoFactorVerify(LoginViewModel v)
         {
             var recJ02 = _f.j02UserBL.LoadByLogin(v.Login, 0, false);
 
-            if (recJ02.j02Mobile == null)
-            {
-                v.Message = $"Pro Váš uživatelský účet je nastaveno 2-faktorové ověření SMS zprávou. V osobním profilu {recJ02.FullNameAsc} chybí číslo mobilního telefonu! Kontaktujte správce systému.";
-                return View(v);
-            }
-            bool bolSendSms = false;
+            bool bolVerify = false;
             if (recJ02.j02TwoFactorVerifyFlag == BO.j02TwoFactorVerifyFlagENUM.AlwaysAfterLogin)
             {
-                bolSendSms = true;
+                bolVerify = true;
             }
             if (recJ02.j02TwoFactorVerifyFlag == BO.j02TwoFactorVerifyFlagENUM.IfChangedUserAgend && _f.j02UserBL.IsChangedLastLoginUserAgent(recJ02.pid))
             {
-
-                bolSendSms = true;
+                bolVerify = true;
             }
 
-            if (bolSendSms)
+            if (bolVerify)
             {
-                var sms = new BL.Code.SmsManagerSupport(_f);
-                var ret = sms.SendLoginVerifyMessage(_httpclientfactory.CreateClient(), recJ02);
+                var ret = UI.Code.TwoFactorSupport.StartPending(_f, recJ02);
                 if (ret.Flag == BO.ResultEnum.Failed)
                 {
-                    v.Message = $"Chyba v komunikaci se SMS bránou, která odesílá ověřovací SMS kód pro 2-faktorové ověření. Popis chyby: {ret.Message}";
+                    v.Message = $"Pro Váš uživatelský účet je nastaveno 2-faktorové ověření, ale ověřovací kód se nepodařilo odeslat e-mailem. Popis chyby: {ret.Message}";
                     Write2Accesslog(v);
                     return View(v);
                 }
+                _f.CBL.SetUserParam(UI.Code.TwoFactorSupport.ParamFails, "0");
 
-                return RedirectToAction("SmsVerify", "Home");
+                return RedirectToAction("TwoFactor", "Home");
             }
 
             return null;

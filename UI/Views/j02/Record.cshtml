@@ -140,13 +140,23 @@
                 </div>
 
                 <div class="rf-row">
-                    <label for="Rec_j02TwoFactorVerifyFlag" class="rf-label">@_f.tra("2-faktorové SMS ověření")</label>
+                    <label for="Rec_j02TwoFactorVerifyFlag" class="rf-label">@_f.tra("2-faktorové ověření")</label>
                     <div class="rf-value">
                         <select asp-for="@Model.Rec.j02TwoFactorVerifyFlag" class="form-select">
                             <option value="None">@_f.tra("Nevyžadovat")</option>
                             <option value="AlwaysAfterLogin">@_f.tra("Vyžadovat při každém přihlášení")</option>
                             <option value="IfChangedUserAgend">@_f.tra("Vyžadovat po změně prohlížeče nebo lokality")</option>
                         </select>
+                        <div class="form-text">
+                            @_f.tra("Kód z ověřovací aplikace (Microsoft Authenticator), kterou si uživatel spáruje sám ve svém profilu. Dokud ji nespáruje, chodí mu kód e-mailem.")
+                            @if (Model.rec_pid > 0 && !string.IsNullOrEmpty(Model.Rec.j02TotpSecret))
+                            {
+                                <span id="spanTotpState">
+                                    <strong>@_f.tra("Aplikace je spárovaná.")</strong>
+                                    <a href="javascript:j02_reset_twofactor()">@_f.tra("Zrušit spárování")</a>
+                                </span>
+                            }
+                        </div>
                     </div>
                 </div>
 
@@ -406,5 +416,16 @@
         
 
         _postback();
+    }
+
+    function j02_reset_twofactor() {
+        if (!confirm("@_f.tra("Zrušit spárování ověřovací aplikace? Uživatel dostane při příštím přihlášení kód e-mailem.")")) return;
+        $.post("/j02/ResetTwoFactor", { pid: @Model.rec_pid }, function (data) {
+            if (data.flag == 1) {
+                $("#spanTotpState").text("@_f.tra("Spárování je zrušeno.")");
+            } else {
+                _notify_message(data.message);
+            }
+        });
     }
 </script>

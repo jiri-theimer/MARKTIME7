@@ -2,9 +2,7 @@
 {
     public enum NotifyFormatMessageFlag
     {
-        EmailOnly = 0,              //poslat email zprávu
-        SmsFirstEmailSecond = 1,    //poslat sms a pokud nelze sms, tak email
-        SmsPlusEmail = 2
+        EmailOnly = 0               //poslat email zprávu (hodnoty 1 a 2 patřily SMS, verze 8 SMS neposílá)
     }
     public class b11WorkflowMessageToStep
     {        

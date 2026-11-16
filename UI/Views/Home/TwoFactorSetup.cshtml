@@ -1,0 +1,102 @@
+﻿@model UI.Models.Home.TwoFactorSetupViewModel
+@inject BL.Factory _f
+
+@{
+    // Spárování ověřovací aplikace (HomeController.TwoFactorSetup). QR kód se kreslí v prohlížeči (lib/qrcode), klíč neopouští MARKTIME.
+    Model.PageTitle = _f.tra("Ověřovací aplikace");
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-lg">
+    <h4><span class="material-icons-outlined-nosize">phonelink_lock</span> @_f.tra("Ověřovací aplikace pro dvoufázové přihlášení")</h4>
+
+    @if (Model.IsRequired)
+    {
+        <p class="text-muted">@_f.tra("Váš účet má zapnuté dvoufázové ověření: po zadání hesla systém chce ještě kód. Se spárovanou aplikací ho máte v telefonu, bez ní chodí e-mailem.")</p>
+    }
+    else
+    {
+        <p class="text-muted">@_f.tra("Dvoufázové ověření vašeho účtu zapíná administrátor. Aplikaci si můžete spárovat předem – kód po vás systém začne chtít, až ho administrátor zapne.")</p>
+    }
+
+    <form id="form1" asp-action="TwoFactorSetup" method="post" autocomplete="off">
+        <input type="hidden" asp-for="Oper" />
+        <input type="hidden" asp-for="IsAfterLogin" />
+
+        @if (Model.IsPaired && Model.OtpUri == null)
+        {
+            <div class="alert alert-success" style="max-width:700px;">
+                <span class="material-icons-outlined-nosize">verified_user</span>
+                @_f.tra("Ověřovací aplikace je spárovaná.")
+            </div>
+            <p>
+                <button type="button" class="btn btn-light" onclick="tf_oper('new')">@_f.tra("Spárovat jiný telefon")</button>
+                <button type="button" class="btn btn-light" onclick="tf_unpair()">@_f.tra("Zrušit spárování")</button>
+                <a class="btn btn-light" href="/Home/MyProfile">@_f.tra("Zpět na profil")</a>
+            </p>
+        }
+        else
+        {
+            <div class="row">
+                <div class="col-md-7">
+                    <ol>
+                        <li>@_f.tra("Nainstalujte si do telefonu aplikaci Microsoft Authenticator (App Store / Google Play). Funguje i jiná ověřovací aplikace.")</li>
+                        <li>@_f.tra("V aplikaci zvolte přidání účtu (Jiný účet) a naskenujte tento QR kód.")</li>
+                        <li>@_f.tra("Opište sem šestimístný kód, který aplikace ukáže u položky MARKTIME.")</li>
+                    </ol>
+
+                    <div id="tfQr" style="width:220px;height:220px;padding:10px;background:#fff;border:1px solid #dfe3e8;border-radius:8px;" data-uri="@Model.OtpUri"></div>
+
+                    <p class="text-muted mt-2">
+                        @_f.tra("Nejde QR kód načíst? Zadejte do aplikace ručně klíč"):
+                        <code style="font-size:1rem;">@Model.Secret</code>
+                        <br />@_f.tra("Účet"): <code>@Model.Login</code>
+                    </p>
+
+                    <div class="mb-3">
+                        <label for="Code" class="form-label">@_f.tra("Kód z aplikace"):</label>
+                        <input asp-for="Code" class="form-control" style="max-width:200px;font-size:1.4rem;letter-spacing:3px;" inputmode="numeric" maxlength="7" autocomplete="one-time-code" />
+                    </div>
+
+                    <div class="mb-3">
+                        <button type="button" class="btn btn-primary" onclick="tf_oper('confirm')">@_f.tra("Spárovat")</button>
+                        @if (Model.IsAfterLogin)
+                        {
+                            <a class="btn btn-light" href="/Home/Index">@_f.tra("Nastavit později")</a>
+                        }
+                        else
+                        {
+                            <a class="btn btn-light" href="/Home/MyProfile">@_f.tra("Zpět na profil")</a>
+                        }
+                    </div>
+                    @if (Model.IsPaired)
+                    {
+                        <p class="text-muted">@_f.tra("Dosavadní spárování platí, dokud nové nepotvrdíte kódem.")</p>
+                    }
+                </div>
+            </div>
+        }
+    </form>
+</div>
+
+<script src="~/lib/qrcode/qrcode.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+        var el = document.getElementById("tfQr");
+        if (el) {
+            new QRCode(el, { text: el.getAttribute("data-uri"), width: 200, height: 200, correctLevel: QRCode.CorrectLevel.M });
+            setTimeout(function () { $("#Code").focus(); }, 300);
+        }
+        $("#Code").on("keydown", function (e) {
+            if (e.key === "Enter") { e.preventDefault(); tf_oper("confirm"); }
+        });
+    });
+
+    function tf_oper(oper) {
+        $("#Oper").val(oper);
+        document.getElementById("form1").submit();
+    }
+    function tf_unpair() {
+        if (confirm("@_f.tra("Zrušit spárování ověřovací aplikace? Ověřovací kód vám pak bude chodit e-mailem.")")) tf_oper("unpair");
+    }
+</script>

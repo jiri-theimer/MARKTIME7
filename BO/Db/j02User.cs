@@ -87,6 +87,9 @@ namespace BO
         public string j02TitleAfterName { get; set; }
         public string j02Email { get; set; }
         public string j02Mobile { get; set; }
+        public string j02SmsVerifyCode { get; set; }    //čekající ověření po přihlášení: "TOTP" nebo "E:kód" (jen ke čtení, Save ho nezapisuje)
+        public DateTime? j02SmsVerifyCreate { get; set; }   //čas vzniku čekajícího ověření
+        public string j02TotpSecret { get; set; }   //tajný klíč ověřovací aplikace (2FA, Base32); prázdné = aplikace není spárovaná
         public string j02EmailSignature { get; set; }
         public string j02InvoiceSignatureText { get; set; }
         public string j02InvoiceSignatureFile { get; set; }

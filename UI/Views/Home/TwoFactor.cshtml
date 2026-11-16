@@ -1,0 +1,74 @@
+﻿@model UI.Models.Home.TwoFactorViewModel
+@inject BL.Factory _f
+
+@{
+    // Zadání ověřovacího kódu po přihlášení (HomeController.TwoFactor): kód z ověřovací aplikace, záložně kód e-mailem.
+    Model.PageTitle = _f.tra("Ověření přihlášení");
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var _returnurl = Context.Request.Query["returnurl"];
+}
+
+<div class="container-lg">
+    <div class="row">
+        <div class="col-md-6">
+            <h4><span class="material-icons-outlined-nosize">phonelink_lock</span> @_f.tra("Ověření přihlášení")</h4>
+
+            <form id="form1" asp-action="TwoFactor" asp-route-returnurl="@_returnurl" method="post" autocomplete="off">
+                <input type="hidden" asp-for="Oper" />
+
+                @if (Model.IsEmailPending)
+                {
+                    <p>
+                        @_f.tra("Na váš e-mail jsme poslali šestimístný ověřovací kód"): <strong>@Model.EmailMasked</strong>
+                        @if (Model.EmailSent != null)
+                        {
+                            <span class="text-muted">(@(BO.Code.Bas.ObjectDateTime2String(Model.EmailSent)))</span>
+                        }
+                        <br />
+                        <span class="text-muted">@_f.tra("Kód platí 15 minut.")</span>
+                    </p>
+                }
+                else
+                {
+                    <p>@_f.tra("Otevřete v telefonu ověřovací aplikaci (Microsoft Authenticator) a opište šestimístný kód u položky MARKTIME.")</p>
+                }
+
+                <div class="mb-3">
+                    <label for="Code" class="form-label">@_f.tra("Ověřovací kód"):</label>
+                    <input asp-for="Code" class="form-control" style="max-width:200px;font-size:1.4rem;letter-spacing:3px;" inputmode="numeric" maxlength="7" autocomplete="one-time-code" />
+                </div>
+
+                <div class="mb-3">
+                    <button type="submit" class="btn btn-primary">@_f.tra("Ověřit")</button>
+                    <a class="btn btn-light" href="/Home/Logout">@_f.tra("Odhlásit")</a>
+                </div>
+
+                <p>
+                    @if (Model.IsEmailPending)
+                    {
+                        <a href="javascript:tf_email()">@_f.tra("Poslat kód e-mailem znovu")</a>
+                        @if (Model.IsAppPaired)
+                        {
+                            <span class="text-muted"> · @_f.tra("Kód z ověřovací aplikace platí také.")</span>
+                        }
+                    }
+                    else
+                    {
+                        <a href="javascript:tf_email()">@_f.tra("Nemám telefon po ruce – poslat kód e-mailem")</a>
+                    }
+                </p>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        setTimeout(function () { $("#Code").focus(); }, 300);
+    });
+
+    function tf_email() {
+        $("#Oper").val("email");
+        document.getElementById("form1").submit();
+    }
+</script>
