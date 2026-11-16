@@ -20,7 +20,9 @@ html.mt-modern {
     --mt-radius-lg: 10px;
     --mt-shadow: 0 1px 2px rgba(16,24,40,.05);
     --mt-shadow-pop: 0 10px 28px rgba(16,24,40,.16);
-    --bs-body-font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+    /* Záměrně "Segoe UI", ne "Segoe UI Variable Text": variabilní řez z Windows 11 je na běžných monitorech (měřítko 100 %)
+       v malých velikostech měkčí, uživatelé ho vnímali jako neostrý. "Segoe UI" je písmo klasického vzhledu a verze 7. */
+    --bs-body-font-family: "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
     --bs-body-color: var(--mt-text);
     --bs-border-color: var(--mt-line);
     --bs-border-radius: var(--mt-radius);
@@ -29,9 +31,7 @@ html.mt-modern {
 html.mt-modern body {
     font-family: var(--bs-body-font-family);
     color: var(--mt-text);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
+    /* bez -webkit-font-smoothing: antialiased – na Macu ztenčuje písmo; vyhlazování se nechává na systému */
 }
 
 /* ------------------------------------------------------------------ horní lišta */

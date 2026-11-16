@@ -12,6 +12,7 @@
 @section header_content
 {
     <link rel="stylesheet" href="~/css/recordform.css" asp-append-version="true" />
+    <script src="~/js/findtext.js" asp-append-version="true"></script>
 }
 
 
@@ -126,13 +127,26 @@
                 </section>
             </div>
 
+                @* texty panelu Najít text (wwwroot/js/findtext.js), společné pro obě pole *@
+                <span id="p91ftTexts" hidden
+                      data-ph="@_f.tra("Hledat v textech dříve vystavených vyúčtování…")"
+                      data-all="@_f.tra("Vše")" data-client="@_f.tra("Tento klient")"
+                      data-recent="@_f.tra("Naposledy použité texty")" data-found="@_f.tra("Nalezeno")"
+                      data-empty="@_f.tra("Žádný text neodpovídá hledání.")" data-norecent="@_f.tra("Zatím žádná vyúčtování s tímto textem.")"
+                      data-loading="@_f.tra("Načítám…")" data-error="@_f.tra("Texty se nepodařilo načíst.")"
+                      data-counttitle="@_f.tra("Kolikrát byl text použit")"
+                      data-hint="@_f.tra("Klik nebo Enter = nahradit text · Ctrl+klik nebo Ctrl+Enter = připojit na konec textu")"></span>
+
                 <section class="rf-card rf-text" id="divText1">
                     <div class="rf-cardbar">
                         <h2><span class="material-icons-outlined-nosize">notes</span>@_f.tra("Text faktury")</h2>
                         <span class="rf-mode" id="Rec_p91Text1-mode" data-title="@_f.tra("Text obsahuje HTML značky – na faktuře se vykreslí formátovaně. Náhled je pod polem.")"></span>
                         <div class="rf-text-tools" id="divcmdFindText1">
-                            <button type="button" id="cmdFindText1" tabindex="-1" class="btn btn-sm btn-light" onclick="_najit_text(this,event,'p91text1',0)"><span class="material-icons-outlined-btn">search</span> @_f.tra("Najít text")</button>
+                            <button type="button" id="cmdFindText1" tabindex="-1" class="btn btn-sm btn-light" onclick="mtFindText.toggle(this)"
+                                    data-url="/p91/FindTexts" data-field="text1" data-target="Rec_p91Text1" data-client="Rec_p28ID" data-pid="@(Model.rec_pid)" data-texts="p91ftTexts"
+                                    title="@_f.tra("Vložit text z dříve vystaveného vyúčtování")"><span class="material-icons-outlined-btn">search</span> @_f.tra("Najít text")</button>
                             <button type="button" id="cmdHtmlEditorText1" tabindex="-1" class="btn btn-sm btn-light" onclick="_html_editor(this,event,'Rec_p91Text1',0)" title="@_f.tra("Formátovaný text (HTML) – jen pokud je potřeba")"><span class="material-icons-outlined-btn">code</span> @_f.tra("Html editor")</button>
+                            <button type="button" id="cmdPlainText1" tabindex="-1" class="btn btn-sm btn-light" style="display:none;" onclick="p91_to_plain('Rec_p91Text1')" title="@_f.tra("Odstraní HTML značky a ponechá jen text. Lze vrátit Ctrl+Z.")"><span class="material-icons-outlined-btn">format_clear</span> @_f.tra("Zrušit formátování")</button>
                         </div>
                     </div>
                     <textarea class="form-control" asp-for="Rec.p91Text1" rows="4" oninput="p91_text_changed(this)" onchange="show_hide_html()"></textarea>
@@ -144,8 +158,11 @@
                         <h2><span class="material-icons-outlined-nosize">notes</span>@_f.tra("Technický text faktury")</h2>
                         <span class="rf-mode" id="Rec_p91Text2-mode" data-title="@_f.tra("Text obsahuje HTML značky – na faktuře se vykreslí formátovaně. Náhled je pod polem.")"></span>
                         <div class="rf-text-tools" id="divcmdFindText2">
-                            <button type="button" id="cmdFindText2" tabindex="-1" class="btn btn-sm btn-light" onclick="_najit_text(this,event,'p91text2',0)"><span class="material-icons-outlined-btn">search</span> @_f.tra("Najít text")</button>
+                            <button type="button" id="cmdFindText2" tabindex="-1" class="btn btn-sm btn-light" onclick="mtFindText.toggle(this)"
+                                    data-url="/p91/FindTexts" data-field="text2" data-target="Rec_p91Text2" data-client="Rec_p28ID" data-pid="@(Model.rec_pid)" data-texts="p91ftTexts"
+                                    title="@_f.tra("Vložit text z dříve vystaveného vyúčtování")"><span class="material-icons-outlined-btn">search</span> @_f.tra("Najít text")</button>
                             <button type="button" id="cmdHtmlEditorText2" tabindex="-1" class="btn btn-sm btn-light" onclick="_html_editor(this,event,'Rec_p91Text2',0)" title="@_f.tra("Formátovaný text (HTML) – jen pokud je potřeba")"><span class="material-icons-outlined-btn">code</span> @_f.tra("Html editor")</button>
+                            <button type="button" id="cmdPlainText2" tabindex="-1" class="btn btn-sm btn-light" style="display:none;" onclick="p91_to_plain('Rec_p91Text2')" title="@_f.tra("Odstraní HTML značky a ponechá jen text. Lze vrátit Ctrl+Z.")"><span class="material-icons-outlined-btn">format_clear</span> @_f.tra("Zrušit formátování")</button>
                         </div>
                     </div>
                     <textarea class="form-control" asp-for="Rec.p91Text2" rows="4" oninput="p91_text_changed(this)" onchange="show_hide_html()"></textarea>
@@ -466,6 +483,8 @@
             mode.textContent = isHtml ? "HTML" : "";
             mode.title = isHtml ? (mode.dataset.title || "") : "";
         }
+        const cmdPlain = document.getElementById(id.replace("Rec_p91Text", "cmdPlainText"));
+        if (cmdPlain) cmdPlain.style.display = isHtml ? "" : "none";      //„Zrušit formátování“ jen u HTML textu
         box.innerHTML = "";
         if (!isHtml) return;
         const fr = document.createElement("iframe");
@@ -482,6 +501,13 @@
     function show_hide_html() {     //volá i Views/Record/HtmlEditor po uložení
         p91_preview("Rec_p91Text1");
         p91_preview("Rec_p91Text2");
+    }
+    //HTML text zpět na prostý text (bez značek); přes insertText, takže jde vrátit Ctrl+Z
+    function p91_to_plain(id) {
+        const ta = document.getElementById(id);
+        if (!ta) return;
+        mtFindText.insert(ta, _html_to_plain(ta.value, false), false);
+        p91_preview(id);
     }
     let _p91_text_timer = null;
     function p91_text_changed(ta) {

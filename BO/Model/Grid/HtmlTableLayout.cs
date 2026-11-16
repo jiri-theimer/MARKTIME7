@@ -152,11 +152,8 @@ namespace BO.Model.Grid
         {
             if (_Resize && arrcolwidths.Count() > 0)
             {
-                var qry = arrcolwidths.Where(p => p.Contains(col.UniqueName));
-                if (qry.Count() > 0)
-                {
-                    return Convert.ToInt32(qry.First().Substring(qry.First().Length - 3, 3));
-                }
+                int w = TheGridColWidths.Find(arrcolwidths, col.UniqueName);
+                if (w > 0) return w;
             }
             if (col.FixedWidth > 0) return col.FixedWidth;
 

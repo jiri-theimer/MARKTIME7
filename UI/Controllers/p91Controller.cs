@@ -360,6 +360,55 @@ namespace UI.Controllers
 
         }
 
+        /// <summary>
+        /// Najít text (wwwroot/js/findtext.js): texty dříve vystavených vyúčtování, která uživatel smí vidět.
+        /// field = text1 (Text faktury) | text2 (Technický text); scope = client zúží na klienta p28id.
+        /// Stejný text se vrací jednou (nejnovější vyúčtování + počet použití).
+        /// </summary>
+        [HttpPost]
+        public IActionResult FindTexts(string q, string field, int p28id, string scope, int exclude_pid)
+        {
+            bool bolText2 = field == "text2";
+            const int intMaxItems = 40;
+
+            var mq = (BO.myQueryP91)new BO.InitMyQuery(Factory.CurrentUser).Load("p91");      //stejný rozsah oprávnění jako přehled vyúčtování
+            mq.TopRecordsOnly = 400;
+            mq.explicit_orderby = "a.p91ID DESC";
+            mq.p91text_field = bolText2 ? 2 : 1;
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                mq.p91text_words = q.Split(new[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Where(p => p.Length >= 2).Select(p => p.Length > 60 ? p.Substring(0, 60) : p).Distinct().Take(6).ToList();
+            }
+            if (p28id > 0 && scope == "client")
+            {
+                mq.p28id = p28id;
+            }
+
+            var groups = Factory.p91InvoiceBL.GetList(mq)
+                .Where(p => p.pid != exclude_pid)
+                .Select(p => new { rec = p, text = ((bolText2 ? p.p91Text2 : p.p91Text1) ?? "").Trim() })
+                .Where(p => p.text != "")
+                .GroupBy(p => p.text)       //první ve skupině je nejnovější vyúčtování
+                .ToList();
+
+            var items = groups.Take(intMaxItems).Select(g =>
+            {
+                var rec = g.First().rec;
+                return new
+                {
+                    pid = rec.pid,
+                    text = g.Key,
+                    date = rec.p91DateSupply.ToString("dd.MM.yyyy"),
+                    code = rec.p91Code,
+                    client = rec.p91Client,
+                    count = g.Count()
+                };
+            }).ToList();
+
+            return Json(new { items = items, more = groups.Count > intMaxItems });
+        }
+
         public string GetText1(int p91id)
         {
             string s = this.Factory.p91InvoiceBL.Load(p91id).p91Text1;

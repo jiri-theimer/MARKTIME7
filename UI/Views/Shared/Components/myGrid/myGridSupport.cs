@@ -1219,11 +1219,8 @@ namespace UI.Views.Shared.Components.myGrid
 
             if (_columnswidth != null && _columnswidth.Count() > 0)
             {
-                var qry = _columnswidth.Where(p => p.Contains(col.UniqueName));
-                if (qry.Count() > 0)
-                {
-                    return $"{qry.First().Substring(qry.First().Length - 3, 3)}px";
-                }
+                int w = BO.Model.Grid.TheGridColWidths.Find(_columnswidth, col.UniqueName);
+                if (w > 0) return $"{w}px";
             }
             return gridinput.tablelayout.getGridColumnDefaultWidth(col);
 

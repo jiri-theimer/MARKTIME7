@@ -266,8 +266,15 @@
             }
             string strText = H(c.p31Text != null ? BO.Code.Bas.OM2(c.p31Text, 300) : c.p32Name);
             string strSlotCss = c.p32IsBillable ? "data_slot cal-slot-b" : "data_slot cal-slot-nb";
+            //nízká karta (do cca 2 řádků textu): jeden řádek bez posuvníku, celý text v bublině – viz .cal-slot-short v calendar.css
+            string strSlotTitle = "";
+            if (intSpanRows * Model.GetMinuteGapPixels() <= 30)
+            {
+                strSlotCss += " cal-slot-short";
+                strSlotTitle = $" title='{c.TimeFrom}-{c.TimeUntil} {H(c.p41Name)}: {strText}'";
+            }
 
-    @Html.Raw($"<div class='{strSlotCss}' style='grid-row:{(intStartIndex + 1)}/span {intSpanRows};{(c.p32Color != null ? "--c:" + c.p32Color : "")}'>{strRCM}<a class='exactdayp31reclink' onclick='p31_rec({c.pid})'>{strLink} {strProject}</a><i style='padding-left:20px;'>{strText}</i></div>")
+    @Html.Raw($"<div class='{strSlotCss}'{strSlotTitle} style='grid-row:{(intStartIndex + 1)}/span {intSpanRows};{(c.p32Color != null ? "--c:" + c.p32Color : "")}'>{strRCM}<a class='exactdayp31reclink' onclick='p31_rec({c.pid})'>{strLink} {strProject}</a><i style='padding-left:20px;'>{strText}</i></div>")
 
         }
     }

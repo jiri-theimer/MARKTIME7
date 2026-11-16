@@ -5,6 +5,8 @@ namespace BO
     public class myQueryP91:baseQuery
     {
         public int p28id { get; set; }
+        public int p91text_field { get; set; }             //1: jen vyúčtování s vyplněným p91Text1, 2: s vyplněným p91Text2
+        public List<string> p91text_words { get; set; }    //zvolený text (p91text_field) musí obsahovat všechna slova, bez ohledu na velikost písmen a diakritiku
         public int p41id { get; set; }
         public int o23id { get; set; }
         public int p56id { get; set; }
@@ -176,6 +178,23 @@ namespace BO
             //        break;
 
             //}
+
+            if (this.p91text_field == 1 || this.p91text_field == 2)
+            {
+                string strFld = this.p91text_field == 2 ? "a.p91Text2" : "a.p91Text1";
+                AQ($"{strFld} IS NOT NULL AND DATALENGTH({strFld})>0", null, null);
+                if (this.p91text_words != null)
+                {
+                    int x = 0;
+                    foreach (string strWord in this.p91text_words.Where(p => !string.IsNullOrWhiteSpace(p)))
+                    {
+                        //slovo jde do SQL parametrem; znaky se zvláštním významem v LIKE se berou doslova
+                        string strLike = strWord.Trim().Replace("[", "[[]").Replace("%", "[%]").Replace("_", "[_]");
+                        AQ($"{strFld} COLLATE Latin1_general_CI_AI LIKE '%'+@p91tw{x}+'%' COLLATE Latin1_general_CI_AI", $"p91tw{x}", strLike);
+                        x++;
+                    }
+                }
+            }
 
             if (this.MyRecordsDisponible)
             {

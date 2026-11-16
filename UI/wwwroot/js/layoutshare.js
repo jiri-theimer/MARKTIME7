@@ -322,13 +322,31 @@ function _update_user_ping() {
 }
 
 
+// Změna šířky sloupců gridu tažením za pravý okraj hlavičky (knihovna jquery-resizable).
+// - Šířka se ukládá na serveru k uživateli a šabloně gridu (Common/SaveResizedColumn); stránka se po uložení neobnovuje,
+//   takže zůstane označení řádků i pozice v tabulce.
+// - Tabulka s pevnou šířkou (tabgrid_fixed) se během tažení rozšiřuje / zužuje spolu se sloupcem, ostatní sloupce se nehýbou.
+// - Nejmenší šířka 30 px (užší sloupec by nešel znovu uchopit). Dvojklik na okraj vrátí sloupci výchozí šířku.
+var _tg_resizer_min = 30;
 function tg_init_resizer(j72id,j02id)
     {
+        var $tab = $("#tabgrid1");
+        var isFixed = $tab.hasClass("tabgrid_fixed");
+        var start = null;      // { th: šířka sloupce (stejná míra jako dřív: $el.width()), tab: šířka tabulky } na začátku tažení
+
+        function save(id, w, reload) {
+            $.post(_ep("/Common/SaveResizedColumn"), { j72id: j72id, j02id: j02id, colid: id, colwidth: w }, function (data) {
+                if (reload) location.replace(location.href);
+            }).fail(function () {
+                _notify_message("Šířku sloupce se nepodařilo uložit.", "error");
+            });
+        }
+
         $("#tr_header_headline").find("th").not(".th0")
             .css({
                 position: "relative"
             })
-            .prepend("<div class='resizer'></div>")
+            .prepend("<div class='resizer' title='Tažením změníte šířku sloupce, dvojklikem vrátíte výchozí'></div>")
             .resizable({
                 resizeHeight: false,
                 handleSelector: "",
@@ -336,35 +354,41 @@ function tg_init_resizer(j72id,j02id)
                     // only drag resizer
                     if (!$(e.target).hasClass("resizer"))
                         return false;
-                    
+
+                    start = { th: $el.width(), tab: $tab.width() };
                     return true;
                 },
-                onDragEnd: function (e, $el, opt) {                    
+                onDrag: function (e, $el, newWidth, newHeight, opt) {
+                    if (newWidth < _tg_resizer_min) newWidth = _tg_resizer_min;
+                    $el.width(newWidth);
+                    if (isFixed && start) $tab.width(start.tab + (newWidth - start.th));
+                    return false;      // šířku jsme nastavili sami (včetně nejmenší šířky)
+                },
+                onDragEnd: function (e, $el, opt) {
+                    _tg_last_resizer_when = Date.now();     // kliknutí po tažení není třídění (thegrid.js)
                     var id = $el.attr("id");
                     if (typeof id === "undefined")
                     {
                         return;
                     }
-                    _tg_last_resizer_when = Date.now();
-                    
-                    var w=$el.width();
-                    
-                    //jedna tabulka: šířku sloupce určuje buňka hlavičky, tělo a součty ji přebírají samy
 
-                    w = parseInt($el.width());
-
-                    $.post(_ep("/Common/SaveResizedColumn"), { j72id: j72id, j02id: j02id, colid: id,colwidth: w }, function (data) {
-        
-                        //nová šířka sloupce uložena
-                        location.replace(location.href);
-                        
-                        
-
-                    });
-
-
+                    var w = Math.max(_tg_resizer_min, Math.round($el.width()));
+                    if (start && w === Math.round(start.th)) { start = null; return; }     // beze změny
+                    start = null;
+                    save(id, w, false);
+                    if (typeof tg_adjust_for_screen === "function") { try { tg_adjust_for_screen(); } catch (ex) { } }
                 }
             });
+
+        // dvojklik na okraj sloupce: zpět na výchozí šířku (tu zná jen server, proto obnovení stránky)
+        $("#tr_header_headline").on("dblclick", ".resizer", function (e) {
+            e.stopPropagation();
+            _tg_last_resizer_when = Date.now();
+            var id = $(this).closest("th").attr("id");
+            if (typeof id !== "undefined") save(id, 0, true);
+        });
+        // kliknutí na okraj sloupce není třídění
+        $("#tr_header_headline").on("click", ".resizer", function (e) { e.stopPropagation(); });
 }
 
 function _livechat(zapnout) {

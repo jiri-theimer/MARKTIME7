@@ -69,7 +69,7 @@ namespace UI.Models.p31view
                 case 10:
                     return 7;
                 case 15:
-                    return 6;
+                    return 7;   //čtvrthodina = 21 px (dříve 18 px): do karty úkonu se vejde celý řádek textu
                 case 20:
                     return 5;
                 case 30:

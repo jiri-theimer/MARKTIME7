@@ -10,6 +10,8 @@
         strHtml = (string)ViewData["html"];
     }
 
+    // Obsah si okno čte z textového pole volající stránky (viz skript dole) – v adrese by ho poškodila délka a znaky & # +.
+    // ViewData["html"] zůstává jen pro starší volání s parametrem html.
     var _Notepad = new UI.Models.Notepad.EditorViewModel() { HtmlContent = strHtml };
 
 }
@@ -20,43 +22,54 @@
     <link href="~/lib/froala-editor/css/froala_editor.pkgd.min.css" rel="stylesheet" type="text/css" />
 }
 
-<form id="form1" asp-controller="Record" asp-action="HtmlEditor" method="POST">
-    <div class="bg-light input-group" style="margin-bottom:20px;">
-        
-        <div>
-            <button type="button" onclick="handle_ok()" class="btn btn-success">OK</button>
-        </div>
-        <div>
-            <button type="button" onclick="local_zoom_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
-
-
-        </div>
-
+<form id="form1" asp-controller="Record" asp-action="HtmlEditor" method="POST" onsubmit="return false;">
+    <div class="bg-light input-group" style="margin-bottom:8px;gap:6px;align-items:center;padding:4px;">
+        <button type="button" onclick="handle_ok()" class="btn btn-success">OK</button>
+        <button type="button" onclick="local_zoom_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+        <span class="text-muted" style="font-size:.9em;margin-left:6px;">@_f.tra("Když text nezformátujete, uloží se zpět jako prostý text.")</span>
     </div>
 
- 
     @Html.EditorFor(m => _Notepad, "~/Views/Shared/_Notepad.cshtml")
-
-
-
 </form>
 
-
-
-
 <script type="text/javascript">
-    
+
     const textareaid = "@(ViewData["textareaid"])";
-    
+    const hasServerHtml = @((strHtml != null).ToString().ToLower());
+
     function local_zoom_close()
     {
         window.parent.document.getElementById("zoom_okno").style.display = "none";
     }
 
-    function handle_ok() {
-
+    // obsah pole volající stránky do editoru: HTML beze změny, prostý text po řádcích jako odstavce
+    function load_from_parent(attempt) {
         const txt = window.parent.document.getElementById(textareaid);
-        txt.value=document.getElementById("edi1").value;
+        if (!txt) return;
+        if (_x04id == "0") { editor_setcontent(txt.value || ""); return; }      //bez nastaveného editoru: obyčejné textové pole, text beze změny
+        if (typeof _edi === "undefined" || !_edi || !_edi.html || typeof _edi.html.set !== "function") {
+            if ((attempt || 0) < 60) setTimeout(function () { load_from_parent((attempt || 0) + 1); }, 50);     //editor se ještě inicializuje
+            return;
+        }
+        const val = txt.value || "";
+        editor_setcontent(_detect_textarea_content(val) === "html" ? val : _plain_to_html(val));
+    }
+
+    function handle_ok() {
+        editor_sync();
+        const txt = window.parent.document.getElementById(textareaid);
+        let html = document.getElementById("edi1").value;
+
+        // bez formátování zpět na prostý text (výchozí podoba textu); formátovaný text zůstává HTML
+        const plain = _x04id == "0" ? null : _html_to_plain(html, true);
+        const val = plain !== null ? plain : html;
+
+        if (typeof window.parent._textarea_replace === "function") {
+            window.parent._textarea_replace(txt, val);      //změna jde v poli vrátit Ctrl+Z
+        } else {
+            txt.value = val;
+            txt.dispatchEvent(new Event("input", { bubbles: true }));
+        }
 
         if (typeof window.parent.show_hide_html === "function")
         {
@@ -73,17 +86,13 @@
             {
                 $(div).html("");
             }
-            
-
         }
-        
-
-        
 
         local_zoom_close();
     }
 
-    
-    
+    if (!hasServerHtml) {
+        $(function () { load_from_parent(0); });
+    }
 
 </script>

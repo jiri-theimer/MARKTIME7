@@ -9,6 +9,11 @@
 
 @addTagHelper *, UI
 
+@section header_content
+{
+    <link rel="stylesheet" href="~/css/recordform.css" asp-append-version="true" />
+}
+
 <div class="modal_record_container">
 
     <div class="row">
@@ -213,21 +218,55 @@
 
 
 
-    <div class="form-floating my-2">
-        <textarea class="form-control" asp-for="Rec.p92ReportConstantPreText1"></textarea>
-        <label for="Rec_p92ReportConstantPreText1">@_f.tra("Preambule hlavního textu faktury")</label>
+    @* Texty typu faktury: výchozí je prostý text; formátování přes Html editor (Views/Record/HtmlEditor.cshtml).
+       Štítek HTML, náhled a „Zrušit formátování“ řídí _text_html_preview v mycontrols.js. *@
+    <div class="rf-text my-3">
+        <div class="rf-cardbar">
+            <label for="Rec_p92ReportConstantPreText1" class="fw-semibold mb-0">@_f.tra("Preambule hlavního textu faktury")</label>
+            <span class="rf-mode" id="Rec_p92ReportConstantPreText1-mode" data-title="@_f.tra("Text obsahuje HTML značky – na faktuře se vykreslí formátovaně. Náhled je pod polem.")"></span>
+            <div class="rf-text-tools">
+                <button type="button" tabindex="-1" class="btn btn-sm btn-light" onclick="_html_editor(this,event,'Rec_p92ReportConstantPreText1',0)" title="@_f.tra("Formátovaný text (HTML) – jen pokud je potřeba")"><span class="material-icons-outlined-btn">code</span> @_f.tra("Html editor")</button>
+                <button type="button" tabindex="-1" class="btn btn-sm btn-light" id="Rec_p92ReportConstantPreText1-plaincmd" style="display:none;" onclick="_text_to_plain('Rec_p92ReportConstantPreText1')" title="@_f.tra("Odstraní HTML značky a ponechá jen text. Lze vrátit Ctrl+Z.")"><span class="material-icons-outlined-btn">format_clear</span> @_f.tra("Zrušit formátování")</button>
+            </div>
+        </div>
+        <textarea class="form-control" asp-for="Rec.p92ReportConstantPreText1" rows="3" oninput="p92_text_changed(this)" onchange="_text_html_preview(this.id)"></textarea>
+        <div class="rf-preview" id="Rec_p92ReportConstantPreText1-html" title="@_f.tra("Náhled HTML textu")"></div>
     </div>
-    <div class="form-floating my-2">
-        <textarea class="form-control" asp-for="Rec.p92InvoiceDefaultText1"></textarea>
-        <label for="Rec_p92InvoiceDefaultText1">@_f.tra("Výchozí hlavní text faktury")</label>
+    <div class="rf-text my-3">
+        <div class="rf-cardbar">
+            <label for="Rec_p92InvoiceDefaultText1" class="fw-semibold mb-0">@_f.tra("Výchozí hlavní text faktury")</label>
+            <span class="rf-mode" id="Rec_p92InvoiceDefaultText1-mode" data-title="@_f.tra("Text obsahuje HTML značky – na faktuře se vykreslí formátovaně. Náhled je pod polem.")"></span>
+            <div class="rf-text-tools">
+                <button type="button" tabindex="-1" class="btn btn-sm btn-light" onclick="_html_editor(this,event,'Rec_p92InvoiceDefaultText1',0)" title="@_f.tra("Formátovaný text (HTML) – jen pokud je potřeba")"><span class="material-icons-outlined-btn">code</span> @_f.tra("Html editor")</button>
+                <button type="button" tabindex="-1" class="btn btn-sm btn-light" id="Rec_p92InvoiceDefaultText1-plaincmd" style="display:none;" onclick="_text_to_plain('Rec_p92InvoiceDefaultText1')" title="@_f.tra("Odstraní HTML značky a ponechá jen text. Lze vrátit Ctrl+Z.")"><span class="material-icons-outlined-btn">format_clear</span> @_f.tra("Zrušit formátování")</button>
+            </div>
+        </div>
+        <textarea class="form-control" asp-for="Rec.p92InvoiceDefaultText1" rows="3" oninput="p92_text_changed(this)" onchange="_text_html_preview(this.id)"></textarea>
+        <div class="rf-preview" id="Rec_p92InvoiceDefaultText1-html" title="@_f.tra("Náhled HTML textu")"></div>
     </div>
-    <div class="form-floating my-2">
-        <textarea class="form-control" asp-for="Rec.p92ReportConstantText"></textarea>
-        <label for="Rec_p92ReportConstantText">@_f.tra("Preambule technického textu")</label>
+    <div class="rf-text my-3">
+        <div class="rf-cardbar">
+            <label for="Rec_p92ReportConstantText" class="fw-semibold mb-0">@_f.tra("Preambule technického textu")</label>
+            <span class="rf-mode" id="Rec_p92ReportConstantText-mode" data-title="@_f.tra("Text obsahuje HTML značky – na faktuře se vykreslí formátovaně. Náhled je pod polem.")"></span>
+            <div class="rf-text-tools">
+                <button type="button" tabindex="-1" class="btn btn-sm btn-light" onclick="_html_editor(this,event,'Rec_p92ReportConstantText',0)" title="@_f.tra("Formátovaný text (HTML) – jen pokud je potřeba")"><span class="material-icons-outlined-btn">code</span> @_f.tra("Html editor")</button>
+                <button type="button" tabindex="-1" class="btn btn-sm btn-light" id="Rec_p92ReportConstantText-plaincmd" style="display:none;" onclick="_text_to_plain('Rec_p92ReportConstantText')" title="@_f.tra("Odstraní HTML značky a ponechá jen text. Lze vrátit Ctrl+Z.")"><span class="material-icons-outlined-btn">format_clear</span> @_f.tra("Zrušit formátování")</button>
+            </div>
+        </div>
+        <textarea class="form-control" asp-for="Rec.p92ReportConstantText" rows="3" oninput="p92_text_changed(this)" onchange="_text_html_preview(this.id)"></textarea>
+        <div class="rf-preview" id="Rec_p92ReportConstantText-html" title="@_f.tra("Náhled HTML textu")"></div>
     </div>
-    <div class="form-floating my-2">
-        <textarea class="form-control" asp-for="Rec.p92InvoiceDefaultText2"></textarea>
-        <label for="Rec_p92InvoiceDefaultText2">@_f.tra("Výchozí technický text")</label>
+    <div class="rf-text my-3">
+        <div class="rf-cardbar">
+            <label for="Rec_p92InvoiceDefaultText2" class="fw-semibold mb-0">@_f.tra("Výchozí technický text")</label>
+            <span class="rf-mode" id="Rec_p92InvoiceDefaultText2-mode" data-title="@_f.tra("Text obsahuje HTML značky – na faktuře se vykreslí formátovaně. Náhled je pod polem.")"></span>
+            <div class="rf-text-tools">
+                <button type="button" tabindex="-1" class="btn btn-sm btn-light" onclick="_html_editor(this,event,'Rec_p92InvoiceDefaultText2',0)" title="@_f.tra("Formátovaný text (HTML) – jen pokud je potřeba")"><span class="material-icons-outlined-btn">code</span> @_f.tra("Html editor")</button>
+                <button type="button" tabindex="-1" class="btn btn-sm btn-light" id="Rec_p92InvoiceDefaultText2-plaincmd" style="display:none;" onclick="_text_to_plain('Rec_p92InvoiceDefaultText2')" title="@_f.tra("Odstraní HTML značky a ponechá jen text. Lze vrátit Ctrl+Z.")"><span class="material-icons-outlined-btn">format_clear</span> @_f.tra("Zrušit formátování")</button>
+            </div>
+        </div>
+        <textarea class="form-control" asp-for="Rec.p92InvoiceDefaultText2" rows="3" oninput="p92_text_changed(this)" onchange="_text_html_preview(this.id)"></textarea>
+        <div class="rf-preview" id="Rec_p92InvoiceDefaultText2-html" title="@_f.tra("Náhled HTML textu")"></div>
     </div>
 
 
@@ -239,7 +278,18 @@
 
 
 <script type="text/javascript">
+    const _p92_texts = ["Rec_p92ReportConstantPreText1", "Rec_p92InvoiceDefaultText1", "Rec_p92ReportConstantText", "Rec_p92InvoiceDefaultText2"];
+    function show_hide_html() {     //volá i Views/Record/HtmlEditor po uložení
+        _p92_texts.forEach(function (id) { _text_html_preview(id); });
+    }
+    let _p92_text_timer = null;
+    function p92_text_changed(ta) {
+        clearTimeout(_p92_text_timer);
+        _p92_text_timer = setTimeout(function () { _text_html_preview(ta.id); }, 400);
+    }
+
     $(document).ready(function () {
+        show_hide_html();
 
         $("#p92InvoiceType1").on("change", function () {
             _postback();

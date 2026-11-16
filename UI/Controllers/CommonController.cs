@@ -244,25 +244,28 @@ namespace UI.Controllers
             return ret;
         }
 
+        /// <summary>
+        /// Uložení šířky sloupce gridu po tažení myší (layoutshare.js: tg_init_resizer). colwidth = 0 vrátí sloupci výchozí šířku.
+        /// Stav gridu se vždy načítá a ukládá pro přihlášeného uživatele (parametr j02id se nepoužívá – klient by jím mohl
+        /// měnit nastavení jiného uživatele).
+        /// </summary>
         public BO.Result SaveResizedColumn(int j72id,int j02id,string colid,string colwidth)
-        {            
+        {
+            if (string.IsNullOrWhiteSpace(colid) || colid.Contains(",") || colid.Contains(":")) return new BO.Result(true);
             int w = BO.Code.Bas.InInt(colwidth);
-            if (w <= 0) return new BO.Result(true);
+            if (w < 0) return new BO.Result(true);
 
-            colwidth = $"    {w}";
-            
             if (colid.StartsWith("th_"))
             {
                 colid = colid.Substring(3, colid.Length - 3);
             }
 
-            var gridstate = Factory.j72TheGridTemplateBL.LoadState(j72id, j02id);
-            var arr = BO.Code.Bas.ConvertString2List(gridstate.j75ColumnsGridWidth).Where(p => !p.Contains(colid)).ToList();
+            int intJ02ID = Factory.CurrentUser.pid;
+            var gridstate = Factory.j72TheGridTemplateBL.LoadState(j72id, intJ02ID);
+            if (gridstate == null) return new BO.Result(true);
 
-            arr.Add($"{colid}:{BO.Code.Bas.RightString(colwidth, 3)}");
-
-            gridstate.j75ColumnsGridWidth = string.Join(",", arr);
-            Factory.j72TheGridTemplateBL.SaveState(gridstate, j02id);
+            gridstate.j75ColumnsGridWidth = BO.Model.Grid.TheGridColWidths.Set(gridstate.j75ColumnsGridWidth, colid, w);
+            Factory.j72TheGridTemplateBL.SaveState(gridstate, intJ02ID);
             return new BO.Result(false);
         }
 

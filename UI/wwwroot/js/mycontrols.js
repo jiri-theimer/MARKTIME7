@@ -870,16 +870,111 @@ function _najit_text(txt,event, field,j02id) {
 
 }
 
+// HTML editor textového pole. Obsah se NEpředává v adrese (dlouhý text nebo znaky & # + ji dříve poškodily):
+// okno editoru si ho přečte z pole samo (Views/Record/HtmlEditor.cshtml).
 function _html_editor(txt, event, textareaid, j02id) {
-    var ofs = $(txt).offset();
-    var w = _device.availWidth - ofs.left;
-    const s = document.getElementById(textareaid).value
-    
-    _zoom(event, null, null, w, "Html editor...", "/Record/HtmlEditor?textareaid=" + textareaid + "&j02id=" + j02id+"&html="+s);
+    var w = Math.max(420, Math.min(900, $(window).innerWidth() - 40));
+    _zoom(event, null, null, w, "Html editor...", "/Record/HtmlEditor?textareaid=" + encodeURIComponent(textareaid) + "&j02id=" + j02id, true);
+}
 
+// prostý text → HTML pro editor: každý řádek je odstavec, prázdný řádek prázdný odstavec (stejně píše editor klávesou Enter)
+function _plain_to_html(text) {
+    var esc = function (s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); };
+    return String(text || "").replace(/\r\n?/g, "\n").split("\n").map(function (line) {
+        return line.trim() === "" ? "<p><br></p>" : "<p>" + esc(line) + "</p>";
+    }).join("");
+}
+
+// HTML → prostý text.
+//   onlyIfSimple = true:  vrátí text, jen když HTML neobsahuje žádné formátování (jen odstavce a konce řádků) – jinak null.
+//                         Editor tím po uložení vrací prostý text všude, kde uživatel nic nezformátoval.
+//   onlyIfSimple = false: formátování zahodí vždy (odrážky seznamu jako "- ").
+function _html_to_plain(html, onlyIfSimple) {
+    var doc = new DOMParser().parseFromString("<div id='r'>" + (html || "") + "</div>", "text/html");
+    var root = doc.getElementById("r");
+    if (!root) return onlyIfSimple ? null : "";
+    var simple = true, out = [], line = "";
+    var block = { P: 1, DIV: 1, LI: 1, H1: 1, H2: 1, H3: 1, H4: 1, H5: 1, H6: 1, TR: 1, BLOCKQUOTE: 1, PRE: 1, UL: 1, OL: 1, TABLE: 1 };
+    function flush() { out.push(line.replace(/[ \t ]+$/g, "")); line = ""; }
+    function walk(node, depth) {
+        for (var n = node.firstChild; n; n = n.nextSibling) {
+            if (n.nodeType === 3) { line += n.nodeValue.replace(/ /g, " ").replace(/\s*\n\s*/g, " "); continue; }
+            if (n.nodeType !== 1) continue;
+            var tag = n.tagName;
+            if (tag === "BR") { if (n.nextSibling || line === "") flush(); continue; }     //<br> na konci neprázdného odstavce řádek nepřidává
+            var plainTag = (tag === "P" || tag === "DIV" || tag === "SPAN");
+            if (!plainTag) simple = false;
+            for (var a = 0; a < n.attributes.length; a++) {
+                var an = n.attributes[a].name, av = n.attributes[a].value;
+                if ((an === "style" || an === "class" || an === "align") && av.trim() !== "" && !/^fr-/.test(av)) simple = false;
+            }
+            var isBlock = block[tag] === 1;
+            if (isBlock && line !== "") flush();
+            if (tag === "LI") line += "- ";
+            var before = out.length;
+            walk(n, depth + 1);
+            if (isBlock && (line !== "" || out.length === before) && tag !== "UL" && tag !== "OL" && tag !== "TABLE") flush();
+            if (tag === "TD" || tag === "TH") line += "\t";
+        }
+    }
+    walk(root, 0);
+    if (line !== "") flush();
+    if (onlyIfSimple && !simple) return null;
+    return out.join("\n").replace(/\n{3,}/g, "\n\n").replace(/^\n+|\n+$/g, "");
 }
 
 
+
+// Nahrazení celého obsahu textového pole tak, aby šlo vrátit Ctrl+Z a pole ohlásilo změnu (input, change).
+function _textarea_replace(ta, text) {
+    if (!ta) return;
+    text = text == null ? "" : String(text);
+    ta.focus();
+    ta.setSelectionRange(0, ta.value.length);
+    var before = ta.value, ok = false;
+    try { ok = text === "" ? document.execCommand("delete", false) : document.execCommand("insertText", false, text); } catch (e) { ok = false; }
+    if (!ok || ta.value === before) ta.value = text;
+    ta.dispatchEvent(new Event("input", { bubbles: true }));
+    ta.dispatchEvent(new Event("change", { bubbles: true }));
+    if (typeof _toolbar_warn2save_changes === "function") _toolbar_warn2save_changes();
+}
+
+// Textové pole, které smí obsahovat HTML (výchozí je prostý text): podle obsahu ukáže štítek „HTML“, náhled a tlačítko
+// „Zrušit formátování“. Prvky se hledají podle id pole: <id>-mode (štítek), <id>-html (náhled), <id>-plaincmd (tlačítko).
+// Náhled je v sandboxovaném iframe – skripty a on* atributy z textu se nespustí.
+function _text_html_preview(id) {
+    var ta = document.getElementById(id);
+    var box = document.getElementById(id + "-html");
+    var mode = document.getElementById(id + "-mode");
+    var cmd = document.getElementById(id + "-plaincmd");
+    if (!ta) return;
+    var isHtml = _detect_textarea_content(ta.value) === "html";
+    if (mode) {
+        mode.textContent = isHtml ? "HTML" : "";
+        mode.title = isHtml ? (mode.getAttribute("data-title") || "") : "";
+    }
+    if (cmd) cmd.style.display = isHtml ? "" : "none";
+    if (!box) return;
+    box.innerHTML = "";
+    if (!isHtml) return;
+    var fr = document.createElement("iframe");
+    fr.setAttribute("sandbox", "allow-same-origin");     //bez allow-scripts
+    fr.className = "rf-preview-frame";
+    var css = "body{margin:6px 8px;font:14px/1.4 'Segoe UI',system-ui,sans-serif;color:#1f2328}table{border-collapse:collapse}td,th{border:1px solid #dfe3e8;padding:2px 6px}";
+    fr.srcdoc = "<!doctype html><meta charset='utf-8'><style>" + css + "</style>" + ta.value;
+    fr.onload = function () {
+        try { fr.style.height = Math.min(Math.max(fr.contentDocument.body.scrollHeight + 14, 30), 400) + "px"; } catch (e) { }
+    };
+    box.appendChild(fr);
+}
+
+// HTML text pole zpět na prostý text (bez značek); jde vrátit Ctrl+Z
+function _text_to_plain(id) {
+    var ta = document.getElementById(id);
+    if (!ta) return;
+    _textarea_replace(ta, _html_to_plain(ta.value, false));
+    _text_html_preview(id);
+}
 
 function _detect_textarea_content(textarea) {
     const text = (typeof textarea === 'string' ? textarea : textarea.value).trim();
