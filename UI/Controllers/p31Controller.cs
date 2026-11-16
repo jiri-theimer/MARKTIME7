@@ -708,38 +708,8 @@ namespace UI.Controllers
 
             }
 
-            //nový úkon bez projektu: nabídka naposledy použitých kombinací projekt + sešit + aktivita (jedním klikem, jeden postback)
-            if (v.rec_pid == 0 && v.Rec.p41ID == 0 && v.lisRecent == null)
-            {
-                v.lisRecent = LoadRecentCombos(v);
-            }
 
 
-        }
-
-        /// <summary>Posledních až 6 různých kombinací projekt + aktivita vykazované osoby za 60 dní (při zvoleném sešitu jen z něj).</summary>
-        private List<p31RecentCombo> LoadRecentCombos(p31Record v)
-        {
-            try
-            {
-                var mq = new BO.myQueryP31() { j02id = v.Rec.j02ID, TopRecordsOnly = 150, explicit_orderby = "a.p31ID DESC" };
-                mq.global_d1 = DateTime.Today.AddDays(-60);
-                mq.global_d2 = DateTime.Today.AddDays(1);
-                var lis = Factory.p31WorksheetBL.GetList(mq).Where(p => p.p41ID > 0 && p.p32ID > 0 && p.p34ID > 0);
-                if (v.RecP34 != null)
-                {
-                    lis = lis.Where(p => p.p34ID == v.RecP34.pid);
-                }
-                return lis.GroupBy(p => new { p.p41ID, p.p32ID })
-                    .Select(g => g.First())
-                    .Take(6)
-                    .Select(c => new p31RecentCombo() { p41ID = c.p41ID, p34ID = c.p34ID, p32ID = c.p32ID, Project = c.Project, p32Name = c.p32Name, p34Name = c.p34Name })
-                    .ToList();
-            }
-            catch
-            {
-                return new List<p31RecentCombo>();   //nabídka je jen pomůcka – chyba nesmí shodit dialog
-            }
         }
 
         /// <summary>Souhrn dne u data v dialogu úkonu (počet úkonů, hodiny) – načítá se na pozadí.</summary>
@@ -817,16 +787,6 @@ namespace UI.Controllers
         {
             switch (v.PostbackOper)
             {
-                case "recent":
-                    //naposledy použitá kombinace: projekt + sešit + aktivita najednou (RefreshState už načetl RecP41/RecP34/RecP32 z odeslaných hodnot)
-                    v.Rec.p56ID = 0; v.SelectedComboTask = null;
-                    if (v.RecP41 != null) v.SelectedComboProject = v.RecP41.FullName;
-                    if (v.RecP34 != null) v.SelectedComboP34Name = v.RecP34.p34Name;
-                    InhaleP56Combo(v);
-                    InhaleP34(v, v.disp.GetBitStream());
-                    v.PostbackOper = "p32id";
-                    ModelState.Remove("PostbackOper");      //view musí vykreslit "p32id" (p31record.js podle toho doplní výchozí text aktivity)
-                    goto case "p32id";
                 case "navic-kusovnik":
                     Factory.CBL.SetUserParam("p31/Record-IsNavicKusovnik", v.IsNavicKusovnik.ToString());
                     if (v.lisKusovnik == null)

@@ -158,25 +158,6 @@ else
 }
 
 
-@if (Model.lisRecent != null && Model.lisRecent.Count > 0)
-{
-    <div class="row my-2">
-        <div class="col-sm-1 col-md-1 col-form-label nonmobile p31-recent-label">@_f.tra("Naposledy"):</div>
-        <div class="col-sm-10 col-md-11">
-            <div class="p31-recent">
-                @foreach (var c in Model.lisRecent)
-                {
-                    <button type="button" class="p31-recent-btn" tabindex="-1" onclick="p31_recent(@c.p41ID,@c.p34ID,@c.p32ID)"
-                            title="@(c.Project) · @(c.p34Name) · @(c.p32Name)">
-                        <span class="p31-recent-p">@c.Project</span>
-                        <span class="p31-recent-a">@c.p32Name</span>
-                    </button>
-                }
-            </div>
-        </div>
-    </div>
-}
-
 <div class="row my-2">
     <label for="cmdComboRec_p41ID" class="col-sm-1 col-md-1 col-form-label recpagelabel">@(_f.getP07Level(Model.SelectedLevelIndex, true)):</label>
     
@@ -723,13 +704,7 @@ else
 
 
 <style>
-    /* dialog úkonu – naposledy použité kombinace, souhrn dne, dotaz na datum kopie (třídy p31-*) */
-    .p31-recent { display: flex; flex-wrap: wrap; gap: 6px; }
-    .p31-recent-label { color: #6c757d; }
-    .p31-recent-btn { display: inline-flex; flex-direction: column; align-items: flex-start; max-width: 260px; padding: 3px 10px; border: 1px solid #d0d7de; border-radius: 8px; background: #fff; text-align: left; line-height: 1.2; cursor: pointer; }
-    .p31-recent-btn:hover { border-color: var(--pozadi, #0b4b92); background: color-mix(in srgb, var(--oznaceno, #4169e1) 10%, #ffffff); }
-    .p31-recent-p { max-width: 100%; font-size: .82rem; font-weight: 600; color: #1f2328; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .p31-recent-a { max-width: 100%; font-size: .75rem; color: #59636e; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    /* dialog úkonu – souhrn dne, dotaz na datum kopie (třídy p31-*) */
     .p31-daysum { display: inline-block; margin-top: 7px; font-size: .8rem; color: #59636e; white-space: nowrap; }
     .p31-daysum b { color: #1f2328; }
     .p31-clonebar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 6px 0; padding: 8px 12px; border-radius: 8px; background: #fff3cd; color: #664d03; }

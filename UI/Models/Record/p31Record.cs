@@ -38,8 +38,6 @@ namespace UI.Models.Record
         public string SelectedComboSupplier { get; set; }
         public string SelectedComboTask { get; set; }
 
-        /// <summary>Nový úkon: naposledy použité kombinace projekt + sešit + aktivita (nepostuje se, plní RefreshState_Record).</summary>
-        public List<p31RecentCombo> lisRecent { get; set; }
         
         public string MyQueryInline_Project { get; set; }
       
@@ -105,13 +103,4 @@ namespace UI.Models.Record
         public double Pocet { get; set; }
     }
 
-    public class p31RecentCombo
-    {
-        public int p41ID { get; set; }
-        public int p34ID { get; set; }
-        public int p32ID { get; set; }
-        public string Project { get; set; }
-        public string p34Name { get; set; }
-        public string p32Name { get; set; }
-    }
 }

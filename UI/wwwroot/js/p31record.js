@@ -697,26 +697,6 @@ function zrusit_p34id_for_p31_entry()
 }
 
 
-// naposledy použitá kombinace projekt + sešit + aktivita: vyplnit vše a jedním postbackem načíst (oper "recent")
-function p31_recent(p41id, p34id, p32id) {
-    const form = document.getElementById("form1");
-    const setVal = (name, val) => {
-        let el = form.querySelector("input[name='" + name + "']");
-        if (!el) {          //aktivita bez comba (sešit ještě nevybraný) – pole doplnit
-            el = document.createElement("input");
-            el.type = "hidden";
-            el.name = name;
-            form.appendChild(el);
-        }
-        el.value = val;
-    };
-    setVal("Rec.p41ID", p41id);
-    setVal("Rec.p34ID", p34id);
-    setVal("Rec.p32ID", p32id);
-    ["SelectedComboProject", "SelectedComboP34Name", "SelectedComboP32Name"].forEach(n => setVal(n, ""));     //názvy doplní server
-    _postback("recent");
-}
-
 // souhrn dne u data (počet úkonů a hodiny vykazované osoby) – na pozadí
 function p31_daysum() {
     const el = document.getElementById("p31_daysum");

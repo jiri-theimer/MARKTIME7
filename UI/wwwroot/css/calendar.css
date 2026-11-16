@@ -575,15 +575,22 @@ a.calmenu_btn:hover { background-color: color-mix(in srgb, var(--oznaceno, #4169
 .agenda_row_divider_month { border-top: 3px solid #f1d98a; }
 
 /* --- přesný den (časová osa) --- */
-.hour_slot { background-color: #fafbfc; color: #6c757d; font-size: .92rem; font-weight: 600; border-top: 1px solid #e3e6ea; padding-top: 2px; }
-.minute_slot { background-color: #fff; border: 0; border-bottom: 1px solid #f0f2f4; border-right: 1px solid #e3e6ea; cursor: crosshair; }
+/* celá hodina = silná tmavší linka přes sloupec hodin i časovou osu, čtvrthodiny (intervaly) = tenká linka */
+.hour_slot { background-color: #f1f4f7; color: #1f2328; font-size: 1.05rem; font-weight: 400; font-variant-numeric: tabular-nums; border-top: 2px solid #8c96a1; border-right: 1px solid #c5ccd3; padding-top: 2px; }
+.minute_slot { background-color: #fff; border: 0; border-bottom: 1px solid #d5dae0; border-right: 1px solid #c5ccd3; cursor: crosshair; }
+.minute_slot.cal-hour-start { border-top: 2px solid #8c96a1; }
+.grid-day-container { border-bottom: 2px solid #8c96a1; }
 .minute_slot:hover { background-color: color-mix(in srgb, var(--oznaceno, #cfe2ff) 35%, #ffffff); }
 .bunka_selected { border: 0 !important; background-color: color-mix(in srgb, var(--oznaceno, #cfe2ff) 70%, #ffffff) !important; box-shadow: inset 3px 0 0 var(--pozadi, #0b4b92); }
-.data_slot { background-color: #fff; border: 1px solid #dfe3e8; border-radius: 6px; padding: 2px 6px; font-size: 1rem; box-shadow: 0 1px 2px rgba(16,24,40,.06); }
+.data_slot { background-color: #fff; border: 1px solid #b4bcc6; border-radius: 6px; padding: 2px 6px; font-size: 1rem; box-shadow: 0 1px 2px rgba(16,24,40,.06); }
 /* nízká karta (čtvrthodina apod.): bez svislého odsazení a posuvníku, jeden řádek s výpustkou; celý text je v bublině (title) */
 .data_slot.cal-slot-short { display: flex; align-items: center; padding: 0 6px; border-radius: 4px; line-height: 1.1; white-space: nowrap; overflow: hidden; box-shadow: none; }
 .data_slot.cal-slot-short > * { flex: 0 0 auto; }
 .data_slot.cal-slot-short > i { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; padding-left: 12px !important; }
+/* text karty: modrý odkaz v tmavším odstínu (na bílém pozadí čitelnější než původní světle modrá), bez tučného písma */
+.data_slot a.exactdayp31reclink { color: #0b4b92; font-weight: 400; }
+.data_slot a.exactdayp31reclink .cal-slot-time { color: blue; font-weight: 700; font-variant-numeric: tabular-nums; }   /* tučně jen čas od–do, stejná modrá jako denní součet hodin */
+.data_slot a.cm { color: #59636e; }
 .data_slot.cal-slot-b { border-left: 4px solid #2f9e44; }
 .data_slot.cal-slot-nb { border-left: 4px solid #e03131; }
 .data_slot[style*="--c"] { background-color: color-mix(in srgb, var(--c) 18%, #ffffff); }

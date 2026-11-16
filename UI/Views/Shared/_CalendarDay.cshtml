@@ -206,12 +206,13 @@
             if (y == Model.DayView_MinutesGap || m == 5)
             {
                 ss = hhmm_slots[x];
+                string strHourCss = (m == 5 ? " cal-hour-start" : "");     //první slot hodiny: silnější linka celé hodiny
                 if (hhmm_slots.Count() > x + Model.DayView_MinutesGap / 5)
                 {
                     ss += " - " + hhmm_slots[x + Model.DayView_MinutesGap / 5];
                 }
 
-    @Html.Raw($"<button type='button' class='minute_slot' style='grid-row:{(x + 1)}/span {Model.DayView_MinutesGap / 5};' title='{ss}' slot='{hhmm_slots[x]}' slot_interval='{ss}'></button>")
+    @Html.Raw($"<button type='button' class='minute_slot{strHourCss}' style='grid-row:{(x + 1)}/span {Model.DayView_MinutesGap / 5};' title='{ss}' slot='{hhmm_slots[x]}' slot_interval='{ss}'></button>")
 
 
                 y = 0;
@@ -247,14 +248,14 @@
             string strRCM = $"<a class='cm' onclick='reccm(event,{c.pid})'>&#9776;</a>";
             int intSpanRows = intEndIndex - intStartIndex + 1;
 
-            string strLink = c.TimeFrom + "-" + c.TimeUntil;
+            string strLink = "<span class='cal-slot-time'>" + c.TimeFrom + "-" + c.TimeUntil + "</span>";
             if (c.p32IsBillable)
             {
-                strLink += "<span style='color:green;margin-left:6px;'>" + BO.Code.Time.FormatNumeric(c.p31Hours_Orig, Model.ShowHHMM) + "h. </span>";
+                strLink += "<span style='color:#1e7b34;margin-left:6px;'>" + BO.Code.Time.FormatNumeric(c.p31Hours_Orig, Model.ShowHHMM) + "h. </span>";
             }
             else
             {
-                strLink += "<span style='color:red;margin-left:6px;'>" + BO.Code.Time.FormatNumeric(c.p31Hours_Orig, Model.ShowHHMM) + "h. </span>";
+                strLink += "<span style='color:#c92a2a;margin-left:6px;'>" + BO.Code.Time.FormatNumeric(c.p31Hours_Orig, Model.ShowHHMM) + "h. </span>";
             }
 
             strLink += UI.Code.TheGridRowSymbol.p31_symbol(c);
