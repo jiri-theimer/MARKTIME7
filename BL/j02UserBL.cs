@@ -375,9 +375,10 @@ namespace BL
         public void UpdateCurrentUserPing(BO.j92PingLog c) //zápis pravidelně po 2 minutách do PING logu
         {
             
-            string s = "INSERT INTO j92PingLog(j02ID,j92Date,j92BrowserUserAgent,j92BrowserFamily,j92BrowserOS,j92BrowserDeviceType,j92BrowserDeviceFamily,j92BrowserAvailWidth,j92BrowserAvailHeight,j92BrowserInnerWidth,j92BrowserInnerHeight,j92RequestUrl)";
-            s += " VALUES(@j02id,GETDATE(),@useragent,@browser,@os,@devicetype,@devicefamily,@aw,@ah,@iw,@ih,@requesturl)";
-            _db.RunSql(s, new { j02id = _mother.CurrentUser.pid, useragent = c.j92BrowserUserAgent, browser = c.j92BrowserFamily, os = c.j92BrowserOS, devicetype = c.j92BrowserDeviceType, devicefamily = c.j92BrowserDeviceFamily, aw = c.j92BrowserAvailWidth, ah = c.j92BrowserAvailHeight, iw = c.j92BrowserInnerWidth, ih = c.j92BrowserInnerHeight, requesturl=c.j92RequestURL });
+            string s = "INSERT INTO j92PingLog(j02ID,j92Date,j92BrowserUserAgent,j92BrowserFamily,j92BrowserOS,j92BrowserDeviceType,j92BrowserDeviceFamily,j92BrowserAvailWidth,j92BrowserAvailHeight,j92BrowserInnerWidth,j92BrowserInnerHeight,j92RequestUrl,j92App)";
+            s += " VALUES(@j02id,GETDATE(),@useragent,@browser,@os,@devicetype,@devicefamily,@aw,@ah,@iw,@ih,@requesturl,@app)";
+            c.j92App = "MT8";   //verze 8 zapisuje vždy MT8 (hodnota z prohlížeče se nebere), verze 7 nechává NULL
+            _db.RunSql(s, new { j02id = _mother.CurrentUser.pid, useragent = c.j92BrowserUserAgent, browser = c.j92BrowserFamily, os = c.j92BrowserOS, devicetype = c.j92BrowserDeviceType, devicefamily = c.j92BrowserDeviceFamily, aw = c.j92BrowserAvailWidth, ah = c.j92BrowserAvailHeight, iw = c.j92BrowserInnerWidth, ih = c.j92BrowserInnerHeight, requesturl=c.j92RequestURL, app = c.j92App });
 
 
             _db.RunSql("UPDATE j02User set j02Ping_Timestamp=GETDATE(),j02Ping_InnerWidth=@w,j02Ping_InnerHeight=@h,j02Ping_DeviceTypeFlag=@devicetypeflag WHERE j02ID=@pid", new { pid = _mother.CurrentUser.pid, w=c.j92BrowserAvailWidth, h=c.j92BrowserAvailHeight,devicetypeflag=(c.j92BrowserDeviceType=="Phone" ? 2 : 1) });    //ping aktualizace

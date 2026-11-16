@@ -19,6 +19,7 @@ namespace BO
         public int j92BrowserInnerWidth { get; set; }
         public int j92BrowserInnerHeight { get; set; }
         public string j92RequestURL { get; set; }
+        public string j92App { get; set; }      //MT8 = verze 8, NULL = verze 7
 
 
     }

@@ -139,6 +139,7 @@ namespace BL
             AA("j92BrowserAvailWidth", "Šířka (px)", gdc1);
             AA("j92BrowserAvailHeight", "Výška (px)", gdc1);
             AA("j92RequestURL", "Url", gdc1);
+            AA("j92App", "Verze", gdc1);
 
 
             //j98 = ai log uživatelů
