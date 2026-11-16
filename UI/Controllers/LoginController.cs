@@ -208,7 +208,7 @@ namespace UI.Controllers
 
             if (_f.CurrentUser.j02TwoFactorVerifyFlag != BO.j02TwoFactorVerifyFlagENUM.None)    //povinnost ověřit uživatele navíc kódem (ověřovací aplikace / e-mail)
             {
-                var ret_view = Handle_TwoFactorVerify(v);
+                var ret_view = Handle_TwoFactorVerify(v, returnurl);
                 if (ret_view != null) return ret_view;
             }
 
@@ -229,7 +229,7 @@ namespace UI.Controllers
 
 
         // Dvoufázové ověření: kód z ověřovací aplikace, bez spárované aplikace kód e-mailem (UI.Code.TwoFactorSupport).
-        private ActionResult Handle_TwoFactorVerify(LoginViewModel v)
+        private ActionResult Handle_TwoFactorVerify(LoginViewModel v, string returnurl = null)
         {
             var recJ02 = _f.j02UserBL.LoadByLogin(v.Login, 0, false);
 
@@ -254,6 +254,11 @@ namespace UI.Controllers
                 }
                 _f.CBL.SetUserParam(UI.Code.TwoFactorSupport.ParamFails, "0");
 
+                //po ověření kódem zpět tam, kam uživatel mířil (např. souhlas s připojením AI klienta k MCP serveru)
+                if (!string.IsNullOrEmpty(returnurl) && returnurl.Length >= 3 && Url.IsLocalUrl(returnurl))
+                {
+                    return RedirectToAction("TwoFactor", "Home", new { returnurl = returnurl });
+                }
                 return RedirectToAction("TwoFactor", "Home");
             }
 
@@ -417,7 +422,7 @@ namespace UI.Controllers
             // 2-faktorové ověření (pokud je nastaveno)
             if (_f.CurrentUser.j02TwoFactorVerifyFlag != BO.j02TwoFactorVerifyFlagENUM.None)
             {
-                var ret_view = Handle_TwoFactorVerify(v);
+                var ret_view = Handle_TwoFactorVerify(v, returnurl);
                 if (ret_view != null) return ret_view;
             }
 

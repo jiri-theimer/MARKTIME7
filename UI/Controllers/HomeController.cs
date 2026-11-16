@@ -375,7 +375,11 @@ namespace UI.Controllers
                     Factory.CBL.SetUserParam(UI.Code.TwoFactorSupport.ParamSetupSecret, strSecret);
                 }
                 v.Secret = BL.Code.Totp.FormatSecret(strSecret);
-                v.OtpUri = BL.Code.Totp.BuildUri("MARKTIME", recJ02.j02Login, strSecret);
+                //název položky v ověřovací aplikaci: "MARKTIME" + doména / název licence, aby šlo rozlišit víc MARKTIME přístupů v jednom telefonu
+                string strLic = Factory.Lic == null ? null : (string.IsNullOrEmpty(Factory.Lic.x01LoginDomain) ? Factory.Lic.x01Name : Factory.Lic.x01LoginDomain);
+                string strIssuer = string.IsNullOrEmpty(strLic) ? "MARKTIME" : "MARKTIME " + strLic.Replace(":", " ").Trim();
+                if (strIssuer.Length > 40) strIssuer = strIssuer.Substring(0, 40).Trim();
+                v.OtpUri = BL.Code.Totp.BuildUri(strIssuer, recJ02.j02Login, strSecret);
             }
             return v;
         }
