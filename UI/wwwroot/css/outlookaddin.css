@@ -1,0 +1,23 @@
+﻿/* Panel doplňku pro Outlook (Views/OutlookAddin/Pane.cshtml) – úzký panel vedle e-mailu, cca 320 px */
+html, body { margin: 0; padding: 0; }
+body { font-family: "Segoe UI", system-ui, -apple-system, sans-serif; font-size: 14px; color: #1f2937; background: #fff; }
+[hidden] { display: none !important; }
+.oa-head { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-bottom: 1px solid #e3e6ea; }
+.oa-brand { font-weight: 600; letter-spacing: .02em; }
+.oa-user { margin-left: auto; font-size: 12px; color: #6b7280; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 55%; }
+.oa-box { padding: 12px; margin: 0; }
+.oa-muted { color: #6b7280; }
+.oa-small { font-size: 12px; padding: 0 12px; }
+.oa-mail { margin: 12px; padding: 10px 12px; border: 1px solid #e3e6ea; border-radius: 8px; background: #fafbfc; }
+.oa-mail-subject { font-weight: 600; overflow-wrap: anywhere; }
+.oa-mail-from { font-size: 12px; color: #6b7280; margin-top: 2px; overflow-wrap: anywhere; }
+.oa-actions { display: flex; flex-direction: column; gap: 8px; padding: 0 12px 12px 12px; }
+.oa-btn { font: inherit; padding: 9px 12px; border: 1px solid #c9ced6; border-radius: 6px; background: #fff; color: #1f2937; cursor: pointer; text-align: left; }
+.oa-btn:hover { border-color: #1f5fbf; }
+.oa-btn:disabled { opacity: .55; cursor: default; }
+.oa-btn-primary { background: #1f5fbf; border-color: #1f5fbf; color: #fff; }
+.oa-btn-primary:hover { background: #194f9f; }
+.oa-status { margin: 0 12px 12px 12px; padding: 8px 10px; border-radius: 6px; background: #eef4fd; color: #194f9f; font-size: 13px; overflow-wrap: anywhere; }
+.oa-status.oa-error { background: #fdecec; color: #a12622; }
+.oa-status.oa-ok { background: #eaf3ea; color: #256029; }
+a { color: #1f5fbf; }

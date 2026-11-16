@@ -1,0 +1,51 @@
+﻿@{
+    // Panel doplňku pro Outlook (OutlookAddinController.Pane). Zobrazuje se uvnitř Outlooku – na webu v iframe cizího webu.
+    // Proto: žádný formulář s antiforgery tokenem (ten by přidal hlavičku X-Frame-Options a stránku by nešlo vložit),
+    // žádná přihlašovací cookie (SameSite=Strict se do iframe neposílá) – panel se přihlašuje tokenem, viz wwwroot/js/outlookaddin.js.
+    // Texty jsou v outlookaddin.js (česky / anglicky podle jazyka Outlooku): stránka nemá přihlášeného uživatele, takže ani překlady _f.tra.
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>MARKTIME</title>
+    <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+    <link rel="stylesheet" href="~/css/outlookaddin.css" asp-append-version="true" />
+</head>
+<body data-root="@Url.Content("~/")">
+    <div class="oa-head">
+        <img src="~/images/outlookaddin/icon-32.png" alt="" width="24" height="24" />
+        <span class="oa-brand">MARKTIME</span>
+        <span class="oa-user" id="oaUser"></span>
+    </div>
+
+    <div id="oaLoading" class="oa-box oa-muted" data-t="loading"></div>
+
+    <div id="oaConnect" class="oa-box" hidden>
+        <p data-t="connectLead"></p>
+        <button type="button" class="oa-btn oa-btn-primary" id="oaCmdConnect" data-t="connect"></button>
+    </div>
+
+    <div id="oaMain" hidden>
+        <div class="oa-mail">
+            <div class="oa-mail-subject" id="oaSubject"></div>
+            <div class="oa-mail-from" id="oaFrom"></div>
+        </div>
+        <div class="oa-actions">
+            <button type="button" class="oa-btn oa-btn-primary" id="oaCmdTask" data-action="p56" data-t="task"></button>
+            <button type="button" class="oa-btn oa-btn-primary" id="oaCmdUkon" data-action="p31" data-t="ukon"></button>
+            <button type="button" class="oa-btn" id="oaCmdFilebox" data-action="o27" data-t="filebox"></button>
+        </div>
+        <p class="oa-muted oa-small" data-t="hint"></p>
+        <p class="oa-small"><a href="#" id="oaCmdDisconnect" data-t="disconnect"></a></p>
+    </div>
+
+    <div id="oaStatus" class="oa-status" hidden></div>
+    <p id="oaOpenLink" class="oa-box" hidden><a href="#" target="_blank" rel="noopener" data-t="openLink"></a></p>
+
+    <script src="~/js/outlookaddin.js" asp-append-version="true"></script>
+</body>
+</html>

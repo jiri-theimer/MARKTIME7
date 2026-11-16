@@ -1,0 +1,42 @@
+﻿@model UI.Models.OutlookAddinConnectViewModel
+@inject BL.Factory _f
+@{
+    // Okno „Připojit“ doplňku pro Outlook (OutlookAddinConnectController.Index) – otevírá ho panel doplňku přes mezistránku
+    // OutlookAddin/ConnectStart, uživatel je přihlášený do MARKTIME. Stránka předá token panelu a okno se zavře.
+    Layout = null;
+    var payload = System.Text.Json.JsonSerializer.Serialize(new { token = Model.Token, name = Model.UserName });
+}
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <meta name="referrer" content="no-referrer" />
+    <title>MARKTIME</title>
+    <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+    <style>
+        body { font-family: "Segoe UI", system-ui, sans-serif; margin: 0; padding: 32px 24px; color: #1f2937; text-align: center; }
+        h1 { font-size: 20px; margin: 16px 0 8px 0; }
+        p { color: #4b5563; }
+    </style>
+</head>
+<body>
+    <img src="~/images/logo_default.png" alt="MARKTIME" style="max-width:200px;" />
+    <h1>@_f.tra("Outlook je připojený")</h1>
+    <p>@Model.UserName</p>
+    <p id="msgWait">@_f.tra("Okno se zavře samo.")</p>
+    <p id="msgOutside" hidden>@_f.tra("Toto okno otevřete tlačítkem „Připojit k MARKTIME“ v doplňku v Outlooku.")</p>
+    <script>
+        Office.onReady(function () {
+            var payload = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(payload));
+            try {
+                Office.context.ui.messageParent(payload);
+            } catch (e) {
+                document.getElementById("msgWait").hidden = true;
+                document.getElementById("msgOutside").hidden = false;
+            }
+        });
+    </script>
+</body>
+</html>

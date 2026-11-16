@@ -1,0 +1,39 @@
+﻿@model UI.Models.OutlookAddinConnectViewModel
+@inject BL.Factory _f
+@{
+    // Návod k doplňku pro Outlook (OutlookAddinConnectController.Info) – odkaz z osobního profilu.
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    Model.PageTitle = _f.tra("Doplněk pro Outlook");
+}
+<div style="max-width:860px;padding:16px;">
+    <h4>@Model.PageTitle</h4>
+    <p>@_f.tra("Doplněk přidá do Outlooku tlačítko MARKTIME u otevřeného e-mailu. Z e-mailu pak založíte úkol, vykážete úkon nebo ho uložíte do FILEBOXu.")</p>
+
+    <h5 class="mt-4">@_f.tra("Adresa manifestu")</h5>
+    <div class="input-group" style="max-width:700px;">
+        <input type="text" class="form-control" id="txtManifest" readonly value="@Model.ManifestUrl" />
+        <button type="button" class="btn btn-outline-secondary" onclick="navigator.clipboard.writeText(document.getElementById('txtManifest').value); _notify_message('@_f.tra("Zkopírováno")', 'info');">@_f.tra("Kopírovat")</button>
+        <a class="btn btn-outline-secondary" href="@Model.ManifestUrl" download="marktime-outlook.xml">@_f.tra("Stáhnout")</a>
+    </div>
+
+    <h5 class="mt-4">@_f.tra("Instalace pro celou firmu (správce Microsoft 365)")</h5>
+    <ol>
+        <li>@_f.tra("Microsoft 365 admin center → Settings → Integrated apps → Upload custom apps.")</li>
+        <li>@_f.tra("Typ aplikace Office Add-in, zadejte adresu manifestu (nebo nahrajte stažený soubor).")</li>
+        <li>@_f.tra("Vyberte uživatele, kterým se doplněk nasadí. Zobrazení v Outlooku může trvat několik hodin.")</li>
+    </ol>
+
+    <h5 class="mt-4">@_f.tra("Instalace jen pro sebe")</h5>
+    <ol>
+        <li>@_f.tra("Stáhněte manifest tlačítkem Stáhnout.")</li>
+        <li>@_f.tra("Otevřete stránku") <a href="https://aka.ms/olksideload" target="_blank" rel="noopener">aka.ms/olksideload</a> @_f.tra("→ Moje doplňky → Vlastní doplňky → Přidat ze souboru.")</li>
+    </ol>
+
+    <h5 class="mt-4">@_f.tra("Použití")</h5>
+    <ul>
+        <li>@_f.tra("Otevřete e-mail a klikněte na tlačítko MARKTIME (v novém a webovém Outlooku může být pod tlačítkem Aplikace).")</li>
+        <li>@_f.tra("Při prvním použití doplněk připojíte ke svému účtu tlačítkem „Připojit k MARKTIME“. Připojení platí") @Model.ValidDays @_f.tra("dní a ve všech Outloocích, kde máte tuto schránku.")</li>
+        <li>@_f.tra("Úkol a úkon se otevřou v prohlížeči jako předvyplněný formulář; e-mail bude jejich přílohou.")</li>
+        <li>@_f.tra("Doplněk funguje se schránkami Microsoft 365 a Outlook.com.")</li>
+    </ul>
+</div>

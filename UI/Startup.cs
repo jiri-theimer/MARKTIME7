@@ -187,6 +187,7 @@ namespace UI
             services.AddSignalR();  //interni chat: UI.Code.ChatHub
 
             UI.Code.Mcp.McpSdk.AddServices(services, Configuration);    //MCP server pro AI klienty (Claude, ChatGPT): OAuth + /mcp, viz UI/Code/Mcp
+            UI.Code.OutlookAddin.OutlookAddinSetup.AddServices(services);    //doplnek pro Outlook: prihlaseni panelu tokenem, viz UI/Code/OutlookAddin
 
 
 
