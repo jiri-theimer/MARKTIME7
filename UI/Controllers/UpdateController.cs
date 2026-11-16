@@ -197,6 +197,7 @@ namespace UI.Controllers
         private HashSet<string> _destTabsWithCols;
         private Dictionary<string, BO.Sys.syscolumn> _destColByKey;
         private Dictionary<int, string> _destDefById;
+        private Dictionary<int, string> _destConstraintNameById;
         private Dictionary<string, string> _destDefaultConstraintTab;   //název DEFAULT omezení → tabulka
 
         private static string L(string s) => (s ?? "").ToLowerInvariant();
@@ -267,6 +268,8 @@ namespace UI.Controllers
             foreach (var c in v.destCols) _destColByKey.TryAdd(K(c.tablename, c.name), c);
             _destDefById = new Dictionary<int, string>();
             foreach (var c in v.destDefVals) _destDefById.TryAdd(c.id, c.text);
+            _destConstraintNameById = new Dictionary<int, string>();
+            foreach (var c in v.destConstraints) _destConstraintNameById.TryAdd(c.id, c.name);
             _destDefaultConstraintTab = new Dictionary<string, string>();
             foreach (var c in v.destConstraints.Where(p => p.xtype == "D")) _destDefaultConstraintTab.TryAdd(L(c.name), c.tablename);
         }
@@ -382,8 +385,46 @@ namespace UI.Controllers
                 {
                     //typ / délka / přesnost. NULL / NOT NULL se zachovává podle skutečného stavu sloupce:
                     //bez uvedení by ALTER COLUMN udělal ze sloupce NOT NULL sloupec NULL.
+                    //Sloupec s DEFAULT omezením nejde změnit (chyba 5074): omezení se před změnou odstraní a po ní vytvoří znovu.
+                    string strDropName = null; string strOldDefval = null;
+                    if (coldest.cdefault != 0 && _destConstraintNameById.TryGetValue(coldest.cdefault, out strDropName) && !string.IsNullOrEmpty(strDropName))
+                    {
+                        strOldDefval = GetDefVal_Dest(coldest);
+                        wrl($"ALTER TABLE [{v.DestDbName}].dbo.{col.tablename} DROP CONSTRAINT [{strDropName}]");
+                        wrl("GO");
+                    }
+                    else
+                    {
+                        strDropName = null;
+                    }
                     wrl($"ALTER TABLE [{v.DestDbName}].dbo.{col.tablename} ALTER COLUMN {col.name} {col.type_name}{SqlTypeSuffix(col)}{(coldest.isnullable ? " NULL" : " NOT NULL")}");
                     wrl("GO");
+                    if (strDropName != null)
+                    {
+                        string strNewDefval = (col.cdefault != 0 ? GetDefVal_Source(col) : null);
+                        string strNewName = strDropName;
+                        if (strNewDefval != null)
+                        {
+                            //výchozí hodnota podle cílové struktury
+                            if (_srcConstraintNameById.TryGetValue(col.cdefault, out string strSrcName) && !string.IsNullOrEmpty(strSrcName)) strNewName = strSrcName;
+                            if (L(strNewName) != L(strDropName) && _destDefaultConstraintTab.TryGetValue(L(strNewName), out string strOtherTab))
+                            {
+                                wrl($"ALTER TABLE [{v.DestDbName}].dbo.{strOtherTab} DROP CONSTRAINT [{strNewName}]");
+                                wrl("GO");
+                            }
+                        }
+                        else
+                        {
+                            strNewDefval = strOldDefval;    //cílová struktura výchozí hodnotu nemá: zachovat tu stávající
+                        }
+                        if (strNewDefval != null)
+                        {
+                            wrl($"ALTER TABLE [{v.DestDbName}].dbo.{col.tablename} ADD CONSTRAINT [{strNewName}] DEFAULT ({strNewDefval}) FOR [{col.name}]");
+                            wrl("GO");
+                            if (col.cdefault != 0 && strNewDefval != strOldDefval) Handle_Col_FillDefValue(v, col, strNewDefval);
+                        }
+                        continue;   //výchozí hodnota je vyřešená tady
+                    }
                 }
 
                 if (col.cdefault != 0)
