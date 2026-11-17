@@ -116,10 +116,13 @@
                 <label class="rf-label" for="cmdComboRec_j18ID">@_f.tra("Středisko")</label>
                 <div class="rf-value"><mycombo entity="j18Region" asp-for="Rec.j18ID" selectedtext="@Model.SelectedComboJ18Name"></mycombo></div>
             </div>
-            <div class="rf-row">
-                <mylabel class="rf-label" explicit-for="SelectedP07ID" text="@_f.tra("Strom úroveň")" tooltip="Projekty je možné vnořovat vertikálně do stromové struktury.<hr>V administraci můžete definovat až 5 vertikálních pojmenovaných úrovní (L1->L2->L3->L4->L5).<hr>Nejnižší (výchozí) úroveň má index L5 (level5), nejvyšší je L1 (level1)"></mylabel>
-                <div class="rf-value"><mydropdown asp-for="SelectedP07ID" datasource="@_lisP07" isfirstemptyrow="false" firstemptyrowvalue="0" textfield="TreeName" valuefield="pid" event_after_changevalue="p07id_change"></mydropdown></div>
-            </div>
+            @if (!_f.CurrentUser.IsHostingModeTotalCloud)
+            {
+                <div class="rf-row">
+                    <mylabel class="rf-label" explicit-for="SelectedP07ID" text="@_f.tra("Strom úroveň")" tooltip="Projekty je možné vnořovat vertikálně do stromové struktury.<hr>V administraci můžete definovat až 5 vertikálních pojmenovaných úrovní (L1->L2->L3->L4->L5).<hr>Nejnižší (výchozí) úroveň má index L5 (level5), nejvyšší je L1 (level1)"></mylabel>
+                    <div class="rf-value"><mydropdown asp-for="SelectedP07ID" datasource="@_lisP07" isfirstemptyrow="false" firstemptyrowvalue="0" textfield="TreeName" valuefield="pid" event_after_changevalue="p07id_change"></mydropdown></div>
+                </div>
+            }
             @if (Model.lisParentLevels != null && Model.lisParentLevels.Count() > 0)
             {
                 <div class="rf-row">
@@ -131,8 +134,8 @@
                 @if (Model.SelectedParentLevelIndex > 0)
                 {
                     <div class="rf-row">
-                        <span class="rf-label"></span>
-                        <div class="rf-value">
+                        <label class="rf-label" style="grid-column:1 / -1;" for="cmdComboRec_p41ParentID">@_f.tra("Nadřízený záznam"): @_f.getP07Level(Model.SelectedParentLevelIndex, true)</label>
+                        <div class="rf-value" style="grid-column:1 / -1;">
                             <mycombo entity="le@(Model.SelectedParentLevelIndex)" asp-for="Rec.p41ParentID" selectedtext="@Model.SelectedComboParent" filter-flag="1"></mycombo>
                         </div>
                     </div>

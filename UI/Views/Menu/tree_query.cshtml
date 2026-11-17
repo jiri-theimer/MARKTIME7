@@ -85,7 +85,7 @@
 
     </div>
 
-    @if (_f.CurrentUser.IsAdmin)
+    @if (_f.CurrentUser.IsAdmin && !_f.CurrentUser.IsHostingModeTotalCloud)
     {
         <hr />
         <small>Administrace:</small>

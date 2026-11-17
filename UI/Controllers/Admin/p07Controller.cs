@@ -13,6 +13,10 @@ namespace UI.Controllers
     {
         public IActionResult ProjectLevels()
         {
+            if (Factory.CurrentUser.IsHostingModeTotalCloud)
+            {
+                return this.StopPage(true, "V této edici MARKTIME nejsou vertikální úrovně projektů k dispozici.");
+            }
             var v = new p07ProjectLevelsViewModel();
             v.RecL1 = Factory.p07ProjectLevelBL.LoadByLevel(1);
             if (v.RecL1 == null) v.RecL1 = new BO.p07ProjectLevel() { p07Level = 1 };
@@ -41,6 +45,10 @@ namespace UI.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult ProjectLevels(p07ProjectLevelsViewModel v,string oper)
         {
+            if (Factory.CurrentUser.IsHostingModeTotalCloud)
+            {
+                return this.StopPage(true, "V této edici MARKTIME nejsou vertikální úrovně projektů k dispozici.");
+            }
            if (v.IsPostback)
             {
                 

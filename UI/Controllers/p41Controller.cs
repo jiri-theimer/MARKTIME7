@@ -342,7 +342,7 @@ namespace UI.Controllers
             v.TagEntity = "p41Project";
             if (v.SelectedP07ID > 0)
             {
-                v.RecP07 = Factory.lisP07.Where(p => p.pid == v.SelectedP07ID).First();
+                v.RecP07 = Factory.lisP07.FirstOrDefault(p => p.pid == v.SelectedP07ID) ?? Factory.lisP07.First(p => p.p07Level == 5);
                
             }
             else

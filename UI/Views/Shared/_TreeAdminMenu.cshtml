@@ -28,7 +28,10 @@
 
     Model.AddChild(n, _f.tra("Typy projektů"), "p42");
     Model.AddChild(n, _f.tra("Role uživatelů v projektech"), "x67", "/Admin/Page?area=projects&prefix=x67&myqueryinline=x67entity|string|p41");
-    Model.AddChild(n, _f.tra("Vertikální úrovně projektů"), null, "javascript:_window_open('/p07/ProjectLevels')");
+    if (!_f.CurrentUser.IsHostingModeTotalCloud)
+    {
+        Model.AddChild(n, _f.tra("Vertikální úrovně projektů"), null, "javascript:_window_open('/p07/ProjectLevels')");
+    }
     Model.AddChild(n, _f.tra("Klastry aktivit"), "p61");
     Model.AddDivider(n);
     Model.AddChild(n, _f.tra("Uživatelská pole"), "x28", "/Admin/Page?area=projects&prefix=x28&myqueryinline=x28entity|string|p41");

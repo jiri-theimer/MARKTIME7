@@ -97,6 +97,10 @@ namespace BL
                 this.AddMessage($"Chybí vyplnit název úrovně #{rec.p07Level}."); return false;
             }
 
+            if (_mother.App.HostingMode == Singleton.HostingModeEnum.TotalCloud && rec.p07Level != 5 && rec.ValidUntil > DateTime.Now)
+            {
+                this.AddMessage("V této edici MARKTIME nejsou vertikální úrovně projektů k dispozici."); return false;
+            }
             if (rec.p07Level<1 || rec.p07Level > 5)
             {
                 this.AddMessage("Index úrovně musí být v rozsahu 1-5.");return false;

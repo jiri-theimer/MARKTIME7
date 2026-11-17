@@ -246,7 +246,7 @@ namespace BL
                         break;
                     case Singleton.HostingModeEnum.TotalCloud:
                         CurrentUser.IsHostingModeTotalCloud = true;
-                        lisP07 = this.App.lisP07.Where(p => p.x01ID == this.CurrentUser.x01ID);
+                        lisP07 = this.App.lisP07.Where(p => p.x01ID == this.CurrentUser.x01ID && p.p07Level == 5); //v TotalCloud se vertikální úrovně projektů nepoužívají
                         break;
 
                 }

@@ -188,6 +188,19 @@ namespace BL
                 }
                     
             }
+            if (_mother.CurrentUser.IsHostingModeTotalCloud)
+            {
+                rec.p41ParentID = 0;    //v TotalCloud se vertikální úrovně projektů nepoužívají
+                var lisP07tc = (_mother.lisP07 == null || _mother.lisP07.Count() == 0) ? _mother.p07ProjectLevelBL.GetList(new BO.myQuery("p07")) : _mother.lisP07;
+                rec.p07ID = lisP07tc.First(p => p.p07Level == 5).pid;
+            }
+            else
+            {
+                if (!ValidateTreeBeforeSave(rec))
+                {
+                    return 0;
+                }
+            }
             var recP42 = _mother.p42ProjectTypeBL.Load(rec.p42ID);
             if (rec.p41BillingFlag == BO.p41BillingFlagEnum.NuloveSazbyBezWip || rec.p41BillingFlag == BO.p41BillingFlagEnum.NuloveSazbyWip)
             {
@@ -347,6 +360,45 @@ namespace BL
                 return intPID;
             }
 
+        }
+
+        private bool ValidateTreeBeforeSave(BO.p41Project rec)
+        {
+            //pravidlo stromu: nadřízený projekt musí mít nižší index úrovně (p07Level) než podřízený -> cyklus v p41ParentID nemůže vzniknout
+            var recP07 = _db.Load<BO.GetInteger>("select p07Level as Value FROM p07ProjectLevel WHERE p07ID=@p07id", new { p07id = rec.p07ID });
+            if (recP07 == null || recP07.Value < 1 || recP07.Value > 5)
+            {
+                return this.FalsehMessage("Projekt nemá platnou stromovou úroveň.");
+            }
+            int intLevel = recP07.Value;
+
+            if (rec.p41ParentID > 0)
+            {
+                if (rec.pid > 0 && rec.p41ParentID == rec.pid)
+                {
+                    return this.FalsehMessage("Projekt nemůže být nadřízený sám sobě.");
+                }
+                var recParent = _db.Load<BO.GetInteger>("select b.p07Level as Value FROM p41Project a INNER JOIN p07ProjectLevel b ON a.p07ID=b.p07ID WHERE a.p41ID=@pid AND b.x01ID=(select x01ID FROM p07ProjectLevel WHERE p07ID=@p07id)", new { pid = rec.p41ParentID, p07id = rec.p07ID });
+                if (recParent == null)
+                {
+                    return this.FalsehMessage("Nadřízený projekt neexistuje.");
+                }
+                if (recParent.Value >= intLevel)
+                {
+                    return this.FalsehMessage("Nadřízený projekt musí být na vyšší stromové úrovni než tento projekt.");
+                }
+            }
+
+            if (rec.pid > 0)
+            {
+                var recChild = _db.Load<BO.GetInteger>("select isnull(min(b.p07Level),0) as Value FROM p41Project a INNER JOIN p07ProjectLevel b ON a.p07ID=b.p07ID WHERE a.p41ParentID=@pid", new { pid = rec.pid });
+                if (recChild != null && recChild.Value > 0 && recChild.Value <= intLevel)
+                {
+                    return this.FalsehMessage("Projekt má pod sebou podřízené projekty, proto nemůže být zařazen na stejnou nebo nižší stromovou úroveň než ony.");
+                }
+            }
+
+            return true;
         }
 
         public bool ValidateBeforeSave(BO.p41Project rec, BO.p42ProjectType recP42, List<BO.p26ProjectContact> lisP26 = null)
