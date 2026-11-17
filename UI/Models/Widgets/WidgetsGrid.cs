@@ -11,7 +11,7 @@ namespace UI.Models.Widgets
     ///   nový formát:  "grid:12,15w,7"   (w = široký)
     ///   starý formát: "sort=12&amp;sort=15|sort=7"  (sloupce oddělené |) – načte se po řádcích (1. z každého sloupce, pak 2. …),
     ///   takže plocha vypadá skoro stejně; v novém formátu se uloží až při prvním přesunu / změně šířky.
-    /// WidgetsEnvironment (sloupce) dál používají AdminOneWebpage a dynamické stránky Record.
+    /// WidgetsEnvironment (sloupce) se už nikde nepoužívá (sloužila návrháři stránek, odstraněn 17. 11. 2026).
     /// </summary>
     public class WidgetsGrid
     {

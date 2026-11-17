@@ -106,12 +106,6 @@ namespace BL
 
             p.AddByte("j04FilesTab", rec.j04FilesTab);
 
-            p.AddInt("a55ID_o23", rec.a55ID_o23, true);
-            p.AddInt("a55ID_p28", rec.a55ID_p28, true);
-            p.AddInt("a55ID_le5", rec.a55ID_le5, true);
-            p.AddInt("a55ID_le4", rec.a55ID_le4, true);
-            p.AddInt("a55ID_p91", rec.a55ID_p91, true);
-            p.AddInt("a55ID_j02", rec.a55ID_j02, true);
 
             p.AddString("j04GridColumnsExclude", rec.j04GridColumnsExclude);
 

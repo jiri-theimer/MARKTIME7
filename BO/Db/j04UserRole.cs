@@ -36,12 +36,6 @@ namespace BO
         
         public byte j04FilesTab { get; set; }
 
-        public int a55ID_o23 { get; set; }
-        public int a55ID_p28 { get; set; }
-        public int a55ID_le5 { get; set; }
-        public int a55ID_le4 { get; set; }
-        public int a55ID_p91 { get; set; }
-        public int a55ID_j02 { get; set; }
         public string j04GridColumnsExclude { get; set; }
 
         public string x67RoleValue { get; }

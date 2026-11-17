@@ -5,16 +5,6 @@
     Model.PageTitle = _f.tra("Role");
     Layout = "~/Views/Shared/_LayoutRecord.cshtml";
 
-    IEnumerable<BO.a55RecPage> _lisA55 = _f.a55RecPageBL.GetList(new BO.myQuery("a55"));
-    
-    if (Model.Entity=="p41")
-    {
-        _lisA55 = _lisA55.Where(p => p.a55Entity.Contains("le"));
-    }
-    else
-    {
-        _lisA55 = _lisA55.Where(p => p.a55Entity == Model.Entity);
-    }
     Model.PageSymbol = "manage_accounts";
 }
 
@@ -73,18 +63,6 @@
         <label class="col-form-label" for="Rec_x67IsRequired">@_f.tra("Obsazení role v záznamu povinné")</label>
     </div>
 
-    @if(Model.Entity=="o23" || Model.Entity=="p28" || Model.Entity=="p41")
-    {
-        <div class="row my-2">
-            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Individuální stránka záznamu"):</label>
-            <div class="col-sm-6 col-md-5">
-                    
-                <mydropdown asp-for="@Model.Rec.a55ID" isfirstemptyrow="true" firstemptyrowvalue="0" datasource="@_lisA55" textfield="a55Name" valuefield="pid"></mydropdown>
-            </div>
-
-
-        </div>
-    }
 
     @if (Model.Entity == "p41")
     {

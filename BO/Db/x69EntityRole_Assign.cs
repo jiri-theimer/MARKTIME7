@@ -20,6 +20,5 @@ namespace BO
         public string x67RoleValue { get; }
         public bool x67IsRequired { get; set; }
         public string x67Entity { get; }
-        public int a55ID { get; }
     }
 }

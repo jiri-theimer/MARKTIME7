@@ -730,7 +730,7 @@ namespace BL
 
         public BO.p91RecDisposition InhaleRecDisposition(int pid, BO.p91Invoice rec = null)
         {
-            var c = new BO.p91RecDisposition() { a55ID = _mother.CurrentUser.a55ID_p91 };
+            var c = new BO.p91RecDisposition();
             if (pid == 0 && rec == null)
             {
                 return c;
@@ -759,14 +759,12 @@ namespace BL
                 if (BO.Code.Bas.TestPermissionInRoleValue(role.x67RoleValue, BO.PermValEnum.p91_Owner))
                 {
                     c.OwnerAccess = !bolNoAllowEditRec; c.ReadAccess = true;  //vlastník
-                    if (role.a55ID > 0) c.a55ID = role.a55ID;
                     return c;
                 }
 
                 if (BO.Code.Bas.TestPermissionInRoleValue(role.x67RoleValue, BO.PermValEnum.p91_Reader))   //čtenář
                 {
                     c.ReadAccess = true;
-                    if (role.a55ID > 0) c.a55ID = role.a55ID;
                 }
             }
             //var lisX69 = _mother.x67EntityRoleBL.GetList_X69_OneInvoice(rec, true);
@@ -775,14 +773,12 @@ namespace BL
             //    if (BO.Code.Bas.TestPermissionInRoleValue(role.x67RoleValue, BO.PermValEnum.p91_Owner))
             //    {
             //        c.OwnerAccess = !bolNoAllowEditRec; c.ReadAccess = true;  //vlastník
-            //        if (role.a55ID > 0) c.a55ID = role.a55ID;
             //        return c;
             //    }
 
             //    if (BO.Code.Bas.TestPermissionInRoleValue(role.x67RoleValue, BO.PermValEnum.p91_Reader))   //čtenář
             //    {
             //        c.ReadAccess = true;
-            //        if (role.a55ID > 0) c.a55ID = role.a55ID;
             //    }
             //}
 

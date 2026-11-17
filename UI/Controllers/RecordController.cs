@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using System.Data;
 using System.Text.Json;
 using UI.Models;
-using UI.Models.a55;
 using UI.Models.Record;
 using UI.Models.Tab1;
 using UI.Views.Shared.Components.myGrid;
@@ -108,131 +107,6 @@ namespace UI.Controllers
             }
 
             return View(v);
-        }
-        public IActionResult DynamicPage(int pid, string prefix,int a55id,int a59id,int b02id)    //individuální stránka záznamu (dokument/projekt/kontakt/vyúčtování
-        {
-            var v = new DynamicPageViewModel() { rec_pid = pid, rec_prefix = prefix,a55ID=a55id,b02ID=b02id, portlet_cssclass="portlet" };
-            if (v.a55ID == 0 || v.rec_pid == 0 || string.IsNullOrEmpty(v.rec_prefix))
-            {
-                return this.StopPage(false, "pid or prefix or a55id missing");
-            }
-
-            v.RecA55 = Factory.a55RecPageBL.Load(v.a55ID);
-            if (v.RecA55.a55Entity != v.rec_prefix)
-            {
-                this.AddMessageTranslated("Šablona stránky je určena pro entitu: " + BO.Code.Entity.GetAlias(v.RecA55.a55Entity));                
-            }
-            if (a59id > 0)
-            {
-                v.RecA59 = Factory.a59RecPageLayerBL.Load(a59id);   //simulace předává explicitně id plochy
-                v.portlet_cssclass = "portlet_simulation";
-            }
-            else
-            {
-                v.RecA59 = Factory.a59RecPageLayerBL.LoadByWorkflow(v.a55ID, v.b02ID);
-            }
-            
-
-            if (v.RecA59 == null)
-            {
-                return this.StopPage(false, "Nelze načíst vhodnou plochu individuální stránky záznamu.");
-            }
-
-            if (v.RecA59.a59StructureFlag == BO.a59StructureFlagENUM.CustomHtml)
-            {
-                //vlastní html struktura
-                v.lisAllWidgets = new List<BO.a58RecPageBox>();
-                
-                var codes = BO.Code.MergeContent.GetAllMergeFieldsInContent(v.RecA59.a59CustomHtmlStructure);
-                foreach (string onecode in codes)
-                {
-                    var recA58 = Factory.a58RecPageBoxBL.LoadByCode(onecode, 0);
-                    if (recA58 != null)
-                    {
-                        v.RecA59.a59CustomHtmlStructure = v.RecA59.a59CustomHtmlStructure.Replace("[%" + onecode + "%]", $"<div id='final{onecode}'>[{onecode}%]</div>");
-                        v.lisAllWidgets.Add(recA58);
-                    }
-                }                
-
-                return View(v);                 //zde vypadnout a dále nepokračovat! 
-            }
-
-            v.ColumnsPerPage = (v.RecA59.a59ColumnsPerPage <= 0) ? 1 : v.RecA59.a59ColumnsPerPage;
-            v.DockStructure = new WebpageLayerEnvironment(v.RecA59.a59DockState);
-            v.lisAllWidgets = Factory.a58RecPageBoxBL.GetList(new BO.myQuery("a58")).Where(p => p.a59ID == v.RecA59.pid).ToList();
-
-            v.lisUserWidgets = new List<BO.a58RecPageBox>();
-            var boxes = BO.Code.Bas.ConvertString2List(v.RecA59.a59Boxes);
-            foreach (string s in boxes)
-            {
-                if (v.lisAllWidgets.Where(p => p.a58Guid.ToString() == s).Count() > 0)
-                {
-                    v.lisUserWidgets.Add(v.lisAllWidgets.Where(p => p.a58Guid.ToString() == s).First());
-                }
-            }
-
-            foreach (var onestate in v.DockStructure.States)
-            {
-                if (v.lisUserWidgets.Where(p => p.pid.ToString() == onestate.Value).Count() > 0)
-                {
-                    var c = v.lisUserWidgets.Where(p => p.pid.ToString() == onestate.Value).First();
-                    switch (onestate.Key)
-                    {
-                        case "2":
-                            if (v.ColumnsPerPage >= 2) v.DockStructure.Col2.Add(c);
-                            break;
-                        case "3":
-                            if (v.ColumnsPerPage >= 3) v.DockStructure.Col3.Add(c);
-                            break;
-                        default:
-                            v.DockStructure.Col1.Add(c);
-                            break;
-                    }
-                }
-            }
-
-            foreach (var c in v.lisUserWidgets)
-            {
-                if ((v.DockStructure.Col1.Contains(c) || v.DockStructure.Col2.Contains(c) || v.DockStructure.Col3.Contains(c)) == false)
-                {
-                    switch (v.ColumnsPerPage)
-                    {
-                        case 2 when (v.DockStructure.Col1.Count() >= 2):
-                            v.DockStructure.Col2.Add(c);
-                            break;
-                        case 3 when (v.DockStructure.Col1.Count() >= 2 && v.DockStructure.Col2.Count() >= 2):
-                            v.DockStructure.Col3.Add(c);
-                            break;
-                        case 3 when (v.DockStructure.Col1.Count() >= 2 && v.DockStructure.Col2.Count() < 2):
-                            v.DockStructure.Col2.Add(c);
-                            break;
-                        default:
-                            v.DockStructure.Col1.Add(c);
-                            break;
-                    }
-
-                }
-
-            }
-
-            switch (v.ColumnsPerPage)
-            {
-                case 1:
-                    v.BoxColCss = "col-12";
-                    break;
-                case 2:
-                    v.BoxColCss = "col-lg-6";
-                    break;
-                case 3:
-                    v.BoxColCss = "col-sm-6 col-lg-4";
-                    break;
-            }
-
-            
-
-            
-            return View(v);
-
         }
 
         public IActionResult NotepadPreview(string prefix,int pid)
@@ -345,7 +219,6 @@ namespace UI.Controllers
                         {
                             return this.StopPage(false, "Nemáte oprávnění číst tento dokument.");
                         }
-                        if (permO23.a55ID > 0) return RedirectToAction("DynamicPage", new { prefix = v.prefix, pid = v.pid, a55id = permO23.a55ID });  //přesměrovat na individuál
                     }
                     
                     break;
@@ -365,7 +238,6 @@ namespace UI.Controllers
                         {
                             return this.StopPage(false, "Nemáte oprávnění číst tento kontakt.");
                         }
-                        if (permP28.a55ID > 0) return RedirectToAction("DynamicPage", new { prefix = v.prefix, pid = v.pid, a55id = permP28.a55ID });  //přesměrovat na individuál
                     }
                     
                     
@@ -391,7 +263,6 @@ namespace UI.Controllers
                         {
                             return this.StopPage(false, "Nemáte oprávnění číst tento projekt.");
                         }
-                        if (permP41.a55ID > 0) return RedirectToAction("DynamicPage", new { prefix = v.prefix, pid = v.pid, a55id = permP41.a55ID });  //přesměrovat na individuál
                     }                    
                     break;
                 case "p91":
@@ -410,7 +281,6 @@ namespace UI.Controllers
                         {
                             return this.StopPage(false, "Nemáte oprávnění číst toto vyúčtování.");
                         }
-                        if (permP91.a55ID > 0) return RedirectToAction("DynamicPage", new { prefix = v.prefix, pid = v.pid, a55id = permP91.a55ID });  //přesměrovat na individuál
                     }
                     
                     

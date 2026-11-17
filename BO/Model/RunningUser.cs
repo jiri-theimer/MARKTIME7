@@ -71,12 +71,6 @@ namespace BO
         public int j02Ping_InnerHeight { get; } //je zde výška obrazovky AVAIL
         public DateTime? j02PingTimeStamp { get; }
         public string j04Name { get; }
-        public int a55ID_o23 { get; }   //globálně preferovaná individuální stránka záznamu
-        public int a55ID_p28 { get; }   //globálně preferovaná individuální stránka záznamu
-        public int a55ID_le5 { get; }   //globálně preferovaná individuální stránka záznamu
-        public int a55ID_le4 { get; }   //globálně preferovaná individuální stránka záznamu
-        public int a55ID_j02 { get; }   //globálně preferovaná individuální stránka záznamu
-        public int a55ID_p91 { get; }   //globálně preferovaná individuální stránka záznamu
         
         public string j02LastName { get; }
         public string j02FirstName { get; }

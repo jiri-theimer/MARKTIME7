@@ -75,7 +75,6 @@ namespace UI.Controllers
                 c.x67Entity = v.Entity;
                 c.x67Name = v.Rec.x67Name;
                 c.x67Ordinary = v.Rec.x67Ordinary;
-                c.a55ID = v.Rec.a55ID;
 
                 c.ValidUntil = v.Toolbar.GetValidUntil(c);
                 c.ValidFrom = v.Toolbar.GetValidFrom(c);

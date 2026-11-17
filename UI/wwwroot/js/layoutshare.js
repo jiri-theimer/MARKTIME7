@@ -290,7 +290,6 @@ function _get_url_alias(url)
     if (url.indexOf("?prefix=o51") > 0) return "Položky štítků"
     if (url.indexOf("?prefix=o53") > 0) return "Štítky"
     if (url.indexOf("workflow_designer") > 0) return "Workflow návrhář"
-    if (url.indexOf("AdminOneWebpage") > 0) return "Návrhář stránek"
     if (url.indexOf("gantt/Index") > 0) return "Gantt"
     if (url.indexOf("r11/Index") > 0) return "Kapacitní plány"
 

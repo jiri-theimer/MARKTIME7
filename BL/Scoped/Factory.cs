@@ -149,9 +149,6 @@ namespace BL
         private Ib02WorkflowStatusBL _b02;
         private Ib06WorkflowStepBL _b06;
 
-        private Ia55RecPageBL _a55;
-        private Ia59RecPageLayerBL _a59;
-        private Ia58RecPageBoxBL _a58;
 
         private Ip49FinancialPlanBL _p49;
 
@@ -1034,30 +1031,6 @@ namespace BL
             }
         }
 
-        public Ia55RecPageBL a55RecPageBL
-        {
-            get
-            {
-                if (_a55 == null) _a55 = new a55RecPageBL(this);
-                return _a55;
-            }
-        }
-        public Ia59RecPageLayerBL a59RecPageLayerBL
-        {
-            get
-            {
-                if (_a59 == null) _a59 = new a59RecPageLayerBL(this);
-                return _a59;
-            }
-        }
-        public Ia58RecPageBoxBL a58RecPageBoxBL
-        {
-            get
-            {
-                if (_a58 == null) _a58 = new a58RecPageBoxBL(this);
-                return _a58;
-            }
-        }
 
         public Ip49FinancialPlanBL p49FinancialPlanBL
         {

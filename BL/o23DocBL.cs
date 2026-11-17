@@ -406,7 +406,7 @@ namespace BL
 
         public BO.o23RecDisposition InhaleRecDisposition(int pid,BO.o23Doc rec=null)
         {
-            var c = new BO.o23RecDisposition() { a55ID = _mother.CurrentUser.a55ID_o23 };
+            var c = new BO.o23RecDisposition();
             if (!_mother.CurrentUser.j04IsModule_o23) return c; //bez přístupu do modulu DOKUMENTY
             if (_mother.CurrentUser.IsAdmin || _mother.CurrentUser.TestPermission(BO.PermValEnum.GR_o23_Owner))
             {
@@ -430,13 +430,11 @@ namespace BL
                 if (BO.Code.Bas.TestPermissionInRoleValue(role.x67RoleValue, BO.PermValEnum.o23_Owner))
                 {
                     c.OwnerAccess = true; c.ReadAccess = true;  //vlastník
-                    if (role.a55ID > 0) c.a55ID = role.a55ID;
                     return c;
                 }
                 if (BO.Code.Bas.TestPermissionInRoleValue(role.x67RoleValue, BO.PermValEnum.o23_Reader))   //čtenář
                 {
                     c.ReadAccess = true;
-                    if (role.a55ID > 0) c.a55ID = role.a55ID;
                 }
             }
 

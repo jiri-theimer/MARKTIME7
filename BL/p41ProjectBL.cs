@@ -17,7 +17,6 @@ namespace BL
         public int GetBillingLangIndex(BO.p41Project recP41);
         public string GetBillingLangFlagHtml(int intLangIndex);
         public IEnumerable<BO.p26ProjectContact> GetList_p26(int p41id);
-        
         public IEnumerable<BO.p41MyTop10> GetList_MyTop10(int j02id, int toprecs);  //seznam naposledy vykazovaných projektů
         public IEnumerable<BO.p41BoxRec> GetList_p41InProjectBox(int p28id);
         public IEnumerable<BO.p41BoxRec> GetList_p41InProjectBox(List<int> p28ids);
@@ -487,8 +486,6 @@ namespace BL
             if (rec == null) rec = Load(pid);
             if (rec == null) return null;
             var c = new BO.p41RecDisposition();
-            if (rec.p07Level == 5) c.a55ID = _mother.CurrentUser.a55ID_le5;
-            if (rec.p07Level <= 4) c.a55ID = _mother.CurrentUser.a55ID_le4;
 
             if (_mother.CurrentUser.IsAdmin)
             {
@@ -509,12 +506,10 @@ namespace BL
                 {
                     c.OwnerAccess = true; c.ReadAccess = true;  //vlastník
                     c.p31_MoveToOtherProject = true; c.p31_RecalcRates = true;
-                    if (role.a55ID > 0) c.a55ID = role.a55ID;
                 }
                 if (BO.Code.Bas.TestPermissionInRoleValue(role.x67RoleValue, BO.PermValEnum.p41_Reader))   //čtenář
                 {
                     c.ReadAccess = true;
-                    if (role.a55ID > 0) c.a55ID = role.a55ID;
                 }
                 if (!c.p91_DraftCreate)
                 {
@@ -601,6 +596,5 @@ namespace BL
             return _db.GetList<BO.p26ProjectContact>(s, new { p41id = p41id });
         }
 
-        
     }
 }

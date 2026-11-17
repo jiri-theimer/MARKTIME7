@@ -106,12 +106,6 @@ namespace UI.Controllers
                 c.j04IsModule_Widgets = v.Rec.j04IsModule_Widgets;
                 
 
-                c.a55ID_o23 = v.Rec.a55ID_o23;
-                c.a55ID_p28 = v.Rec.a55ID_p28;
-                c.a55ID_le5 = v.Rec.a55ID_le5;
-                c.a55ID_le4 = v.Rec.a55ID_le4;
-                c.a55ID_p91 = v.Rec.a55ID_p91;
-                c.a55ID_j02 = v.Rec.a55ID_j02;
 
                 
                 c.j04FilesTab = v.Rec.j04FilesTab;

@@ -6,13 +6,6 @@
     Layout = "~/Views/Shared/_LayoutRecord.cshtml";
     Model.PageSymbol = "manage_accounts";
 
-    var lisA55 = _f.a55RecPageBL.GetList(new BO.myQuery("a55"));
-    IEnumerable<BO.a55RecPage> _lisA55_o23 = lisA55.Where(p => p.a55Entity == "o23");
-    IEnumerable<BO.a55RecPage> _lisA55_p28 = lisA55.Where(p => p.a55Entity == "p28");
-    IEnumerable<BO.a55RecPage> _lisA55_p91 = lisA55.Where(p => p.a55Entity == "p91");
-    IEnumerable<BO.a55RecPage> _lisA55_le5 = lisA55.Where(p => p.a55Entity == "le5");
-    IEnumerable<BO.a55RecPage> _lisA55_le4 = lisA55.Where(p => p.a55Entity == "le4");
-    IEnumerable<BO.a55RecPage> _lisA55_j02 = lisA55.Where(p => p.a55Entity == "j02");
 
     //oprávnění: stejné id/name jako taghelper mycheckboxlist (checkbox chk{name}_{v} + hidden {name}_{v} s hodnotou v / 0)
     var _selPerms = Model.SelectedPermNumbers ?? new List<int>();
@@ -160,15 +153,6 @@
 
     @* skryté (nepoužívané) části – hodnoty se odesílají beze změny *@
     <div style="display:none;">
-        <mydropdown asp-for="@Model.Rec.a55ID_o23" isfirstemptyrow="true" firstemptyrowvalue="0" datasource="@_lisA55_o23" textfield="a55Name" valuefield="pid"></mydropdown>
-        <mydropdown asp-for="@Model.Rec.a55ID_p28" isfirstemptyrow="true" firstemptyrowvalue="0" datasource="@_lisA55_p28" textfield="a55Name" valuefield="pid"></mydropdown>
-        <mydropdown asp-for="@Model.Rec.a55ID_le5" isfirstemptyrow="true" firstemptyrowvalue="0" datasource="@_lisA55_le5" textfield="a55Name" valuefield="pid"></mydropdown>
-        @if (_f.p07LevelsCount > 1)
-        {
-            <mydropdown asp-for="@Model.Rec.a55ID_le4" isfirstemptyrow="true" firstemptyrowvalue="0" datasource="@_lisA55_le4" textfield="a55Name" valuefield="pid"></mydropdown>
-        }
-        <mydropdown asp-for="@Model.Rec.a55ID_p91" isfirstemptyrow="true" firstemptyrowvalue="0" datasource="@_lisA55_p91" textfield="a55Name" valuefield="pid"></mydropdown>
-        <mydropdown asp-for="@Model.Rec.a55ID_j02" isfirstemptyrow="true" firstemptyrowvalue="0" datasource="@_lisA55_j02" textfield="a55Name" valuefield="pid"></mydropdown>
         @Html.EditorFor(m => m.Rec.j04FilesTab, "~/Views/Shared/_BitStreamFlag.cshtml")
     </div>
 

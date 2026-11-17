@@ -424,7 +424,7 @@ namespace BL
 
         public BO.p28RecDisposition InhaleRecDisposition(int pid,BO.p28Contact rec=null)
         {
-            var c = new BO.p28RecDisposition() { a55ID= _mother.CurrentUser.a55ID_p28 };
+            var c = new BO.p28RecDisposition();
           
             if (_mother.CurrentUser.IsAdmin || _mother.CurrentUser.TestPermission(BO.PermValEnum.GR_p28_Owner))
             {
@@ -449,13 +449,11 @@ namespace BL
                 if (BO.Code.Bas.TestPermissionInRoleValue(role.x67RoleValue, BO.PermValEnum.p28_Owner))
                 {
                     c.OwnerAccess = true; c.ReadAccess = true;  //vlastník
-                    if (role.a55ID > 0) c.a55ID = role.a55ID;
                     return c;
                 }
                 if (BO.Code.Bas.TestPermissionInRoleValue(role.x67RoleValue, BO.PermValEnum.p28_Reader))
                 {
                     c.ReadAccess = true;
-                    if (role.a55ID > 0) c.a55ID = role.a55ID;
                 }
                 c.Portal = BO.Code.Bas.TestPermissionInRoleValue(role.x67RoleValue, BO.PermValEnum.p28_Portal);
                 

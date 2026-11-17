@@ -242,13 +242,11 @@ namespace BL
                 if (BO.Code.Bas.TestPermissionInRoleValue(role.x67RoleValue, BO.PermValEnum.p56_Owner))
                 {
                     c.OwnerAccess = true; c.ReadAccess = true;  //vlastník
-                    if (role.a55ID > 0) c.a55ID = role.a55ID;
                     return c;
                 }
                 if (BO.Code.Bas.TestPermissionInRoleValue(role.x67RoleValue, BO.PermValEnum.p56_Reader))
                 {
                     c.ReadAccess = true;
-                    if (role.a55ID > 0) c.a55ID = role.a55ID;
                 }
             }
 
