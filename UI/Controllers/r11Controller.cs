@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using ClosedXML.Excel;
+using Microsoft.AspNetCore.Mvc;
 using UI.Models.r11;
 
 namespace UI.Controllers
@@ -59,18 +60,21 @@ namespace UI.Controllers
             return View(v);
         }
 
-        public IActionResult Data(int p41id, string d1, int months)
+        //Sestaví vytížení: lidé se stropem, jejich projekty a rozpad naplánovaných hodin na dny zobrazeného období.
+        //Vrací null a strError, když přihlášený nemá k datům přístup.
+        private List<r11Person> BuildTimeline(int p41id, string d1, ref int months, out DateTime datStart, out int intDays, out string strError)
         {
+            strError = null; datStart = DateTime.Today; intDays = 0;
             if (!Factory.CurrentUser.j04IsModule_r01 || !Factory.r11CapacityBL.IsAvailable())
             {
-                return Fail(Factory.tra("Nemáte oprávnění pro tento Modul."));
+                strError = Factory.tra("Nemáte oprávnění pro tento Modul."); return null;
             }
             if (months < 1 || months > 12) months = 4;
-            DateTime datStart;
             if (!TryDate(d1, out datStart)) datStart = DateTime.Today;
             datStart = new DateTime(datStart.Year, datStart.Month, 1);
             DateTime datEnd = datStart.AddMonths(months).AddDays(-1);
-            int intDays = (int)(datEnd - datStart).TotalDays + 1;
+            intDays = (int)(datEnd - datStart).TotalDays + 1;
+            DateTime datFrom = datStart;    //kopie pro lambda výrazy (out parametr v nich použít nejde)
 
             var lisAll = Factory.r11CapacityBL.GetList(0, 0).ToList();
             if (p41id > 0)
@@ -78,7 +82,7 @@ namespace UI.Controllers
                 var recRoot = Factory.p41ProjectBL.Load(p41id);
                 if (recRoot == null || !Factory.p41ProjectBL.InhaleRecDisposition(p41id, recRoot).ReadAccess)
                 {
-                    return Fail(Factory.tra("Projekt nebyl nalezen nebo k němu nemáte přístup."));
+                    strError = Factory.tra("Projekt nebyl nalezen nebo k němu nemáte přístup."); return null;
                 }
                 var j02ids = lisAll.Where(p => p.p41ID == p41id).Select(p => p.j02ID).ToHashSet();
                 lisAll = lisAll.Where(p => j02ids.Contains(p.j02ID)).ToList();  //lidé projektu se všemi svými projekty: vytížení se počítá ze všech
@@ -104,51 +108,33 @@ namespace UI.Controllers
                 var first = grp.First();
                 var person = new r11Person() { j02id = first.j02ID, name = first.Person, cap = new double[intDays], plan = new double[intDays], rows = new List<r11Row>() };
 
-                //úseky k rozložení: bloky, nebo celý strop v období projektu
-                var segs = new List<(DateTime s, DateTime e, double h)>();
+                //1. úseky k rozložení pro každý strop: bloky, nebo celý strop v období projektu
+                var segs = new Dictionary<int, List<(DateTime s, DateTime e, double h)>>();
+                var spread = new HashSet<int>();
+                DateTime f1 = datStart, f2 = datEnd;
                 foreach (var c in grp)
                 {
+                    var lis = new List<(DateTime s, DateTime e, double h)>();
                     var lisB = blocks[c.pid].ToList();
-                    bool bolSpread = false;
                     if (lisB.Count > 0)
                     {
-                        foreach (var b in lisB) segs.Add((b.r12Start.Date, b.r12End.Date, b.r12Hours));
+                        foreach (var b in lisB) lis.Add((b.r12Start.Date, b.r12End.Date, b.r12Hours));
                     }
                     else if (c.p41PlanFrom != null && c.p41PlanUntil != null && Convert.ToDateTime(c.p41PlanUntil).Date >= Convert.ToDateTime(c.p41PlanFrom).Date)
                     {
-                        bolSpread = true;
-                        segs.Add((Convert.ToDateTime(c.p41PlanFrom).Date, Convert.ToDateTime(c.p41PlanUntil).Date, c.r11HoursTotal));
+                        spread.Add(c.pid);
+                        lis.Add((Convert.ToDateTime(c.p41PlanFrom).Date, Convert.ToDateTime(c.p41PlanUntil).Date, c.r11HoursTotal));
                     }
-
-                    if (visible != null && !visible.Contains(c.p41ID))
+                    lis = lis.Where(p => p.e >= datFrom && p.s <= datEnd).ToList();     //jen úseky, které zasahují do zobrazeného období
+                    foreach (var g in lis)
                     {
-                        person.hidden += 1;
-                        continue;
+                        if (g.s < f1) f1 = g.s;
+                        if (g.e > f2) f2 = g.e;
                     }
-                    var row = new r11Row()
-                    {
-                        r11id = c.pid, p41id = c.p41ID, project = c.Project, code = c.p41Code, client = c.Client, text = c.r11Text,
-                        fa = c.r11HoursFa, nefa = c.r11HoursNeFa, total = c.r11HoursTotal,
-                        planned = Math.Round(lisB.Sum(p => p.r12Hours), 2), spread = bolSpread, ctx = (p41id > 0 && c.p41ID == p41id),
-                        edit = (bolOwnerAll || c.j02ID_ProjectOwner == Factory.CurrentUser.pid) ? 1 : 2,
-                        blocks = lisB.Select(p => new r11Block() { id = p.pid, d1 = p.r12Start.ToString(FMT), d2 = p.r12End.ToString(FMT), hours = p.r12Hours, text = p.r12Text }).ToList()
-                    };
-                    if (c.p41PlanFrom != null) row.pf = Convert.ToDateTime(c.p41PlanFrom).ToString(FMT);
-                    if (c.p41PlanUntil != null) row.pu = Convert.ToDateTime(c.p41PlanUntil).ToString(FMT);
-                    if (actuals.TryGetValue(c.p41ID.ToString() + "-" + c.j02ID.ToString(), out BO.r11Actual act))
-                    {
-                        row.actfa = Math.Round(act.HoursFa, 2); row.actnefa = Math.Round(act.HoursNeFa, 2);
-                    }
-                    person.rows.Add(row);
+                    segs[c.pid] = lis;
                 }
 
-                //pracovní fond osoby pro okno i pro celé úseky, které do okna zasahují
-                DateTime f1 = datStart, f2 = datEnd;
-                foreach (var g in segs.Where(p => p.e >= datStart && p.s <= datEnd))
-                {
-                    if (g.s < f1) f1 = g.s;
-                    if (g.e > f2) f2 = g.e;
-                }
+                //2. pracovní fond osoby pro okno i pro celé úseky, které do okna zasahují
                 if (f1 < datMin) f1 = datMin;
                 if (f2 > datMax) f2 = datMax;
                 string strKey = $"{first.c21ID}|{first.j02CountryCode}";
@@ -162,18 +148,45 @@ namespace UI.Controllers
                     person.cap[i] = Math.Round(fond[datStart.AddDays(i)], 2);
                 }
 
-                //hodiny úseku se rozloží do jeho dnů v poměru pracovního fondu; úsek bez fondu rovnoměrně
-                foreach (var g in segs.Where(p => p.e >= datStart && p.s <= datEnd))
+                //3. hodiny úseku se rozloží do jeho dnů v poměru pracovního fondu; úsek bez fondu rovnoměrně
+                foreach (var c in grp)
                 {
-                    DateTime s = g.s < f1 ? f1 : g.s, e = g.e > f2 ? f2 : g.e;
-                    double dblSum = 0; int intCount = 0;
-                    for (var d = s; d <= e; d = d.AddDays(1)) { dblSum += fond[d]; intCount += 1; }
-                    if (intCount == 0) continue;
-                    for (var d = (s < datStart ? datStart : s); d <= e && d <= datEnd; d = d.AddDays(1))
+                    var rowplan = new double[intDays];
+                    foreach (var g in segs[c.pid])
                     {
-                        double dblPart = dblSum > 0 ? g.h * fond[d] / dblSum : g.h / intCount;
-                        person.plan[(int)(d - datStart).TotalDays] += dblPart;
+                        DateTime s = g.s < f1 ? f1 : g.s, e = g.e > f2 ? f2 : g.e;
+                        double dblSum = 0; int intCount = 0;
+                        for (var d = s; d <= e; d = d.AddDays(1)) { dblSum += fond[d]; intCount += 1; }
+                        if (intCount == 0) continue;
+                        for (var d = (s < datStart ? datStart : s); d <= e && d <= datEnd; d = d.AddDays(1))
+                        {
+                            rowplan[(int)(d - datStart).TotalDays] += dblSum > 0 ? g.h * fond[d] / dblSum : g.h / intCount;
+                        }
                     }
+                    for (int i = 0; i < intDays; i++) person.plan[i] += rowplan[i];
+
+                    if (visible != null && !visible.Contains(c.p41ID))
+                    {
+                        person.hidden += 1;
+                        continue;
+                    }
+                    var lisB = blocks[c.pid].ToList();
+                    var row = new r11Row()
+                    {
+                        r11id = c.pid, p41id = c.p41ID, project = c.Project, code = c.p41Code, client = c.Client, text = c.r11Text,
+                        fa = c.r11HoursFa, nefa = c.r11HoursNeFa, total = c.r11HoursTotal,
+                        planned = Math.Round(lisB.Sum(p => p.r12Hours), 2), spread = spread.Contains(c.pid), ctx = (p41id > 0 && c.p41ID == p41id),
+                        edit = (bolOwnerAll || c.j02ID_ProjectOwner == Factory.CurrentUser.pid) ? 1 : 2,
+                        blocks = lisB.Select(p => new r11Block() { id = p.pid, d1 = p.r12Start.ToString(FMT), d2 = p.r12End.ToString(FMT), hours = p.r12Hours, text = p.r12Text }).ToList(),
+                        dayplan = rowplan
+                    };
+                    if (c.p41PlanFrom != null) row.pf = Convert.ToDateTime(c.p41PlanFrom).ToString(FMT);
+                    if (c.p41PlanUntil != null) row.pu = Convert.ToDateTime(c.p41PlanUntil).ToString(FMT);
+                    if (actuals.TryGetValue(c.p41ID.ToString() + "-" + c.j02ID.ToString(), out BO.r11Actual act))
+                    {
+                        row.actfa = Math.Round(act.HoursFa, 2); row.actnefa = Math.Round(act.HoursNeFa, 2);
+                    }
+                    person.rows.Add(row);
                 }
                 for (int i = 0; i < intDays; i++) person.plan[i] = Math.Round(person.plan[i], 2);
 
@@ -181,11 +194,181 @@ namespace UI.Controllers
                 if (person.rows.Count > 0 || person.hidden > 0) people.Add(person);
             }
 
-            return Json(new
+            return people.OrderBy(p => p.name).ToList();
+        }
+
+        public IActionResult Data(int p41id, string d1, int months)
+        {
+            var people = BuildTimeline(p41id, d1, ref months, out DateTime datStart, out int intDays, out string strError);
+            if (people == null) return Fail(strError);
+
+            return Json(new { ok = true, start = datStart.ToString(FMT), days = intDays, today = DateTime.Today.ToString(FMT), people = people });
+        }
+
+        //Export do XLSX: list "Vytížení" (kapacita, plán a volno osob + plán po projektech ve sloupcích podle měřítka) a list "Bloky".
+        public IActionResult Export(int p41id, string d1, int months, string zoom)
+        {
+            var people = BuildTimeline(p41id, d1, ref months, out DateTime datStart, out int intDays, out string strError);
+            if (people == null) return this.StopPage(false, strError);
+            if (zoom != "day" && zoom != "month") zoom = "week";
+            DateTime datEnd = datStart.AddDays(intDays - 1);
+
+            //sloupce období: den / týden (od pondělí) / měsíc, oříznuté na zobrazené období
+            var bks = new List<(int i1, int i2, string label)>();
+            int x = 0;
+            while (x < intDays)
             {
-                ok = true, start = datStart.ToString(FMT), days = intDays, today = DateTime.Today.ToString(FMT),
-                people = people.OrderBy(p => p.name).ToList()
-            });
+                DateTime d = datStart.AddDays(x);
+                int to;
+                if (zoom == "day") to = x;
+                else if (zoom == "week") to = x + 6 - (((int)d.DayOfWeek + 6) % 7);
+                else to = x + DateTime.DaysInMonth(d.Year, d.Month) - d.Day;
+                if (to > intDays - 1) to = intDays - 1;
+                DateTime de = datStart.AddDays(to);
+                string strLabel = zoom == "day" ? d.ToString("dd.MM.yyyy") : (zoom == "week" ? d.ToString("dd.MM.") + "–" + de.ToString("dd.MM.yy") : d.ToString("MM/yyyy"));
+                bks.Add((x, to, strLabel));
+                x = to + 1;
+            }
+            double Sum(double[] arr, int i1, int i2)
+            {
+                double dbl = 0;
+                for (int i = i1; i <= i2; i++) dbl += arr[i];
+                return Math.Round(dbl, 2);
+            }
+
+            using var wb = new XLWorkbook();
+            var ws = wb.Worksheets.Add("Vytížení");
+            ws.Cell(1, 1).Value = Factory.tra("Kapacitní plán") + " " + datStart.ToString("dd.MM.yyyy") + " – " + datEnd.ToString("dd.MM.yyyy");
+            ws.Cell(1, 1).Style.Font.Bold = true;
+            ws.Cell(1, 1).Style.Font.FontSize = 13;
+
+            string[] heads = { "Osoba", "Projekt", "Kód", "Klient", "Řádek", "Strop Fa", "Strop Nefa", "Strop", "Rozplánováno", "Vykázáno Fa", "Vykázáno Nefa" };
+            int intFix = heads.Length, r = 3;
+            for (int c = 0; c < intFix; c++) ws.Cell(r, c + 1).Value = Factory.tra(heads[c]);
+            for (int c = 0; c < bks.Count; c++) ws.Cell(r, intFix + 1 + c).Value = bks[c].label;
+            var hrng = ws.Range(r, 1, r, intFix + bks.Count);
+            hrng.Style.Font.Bold = true;
+            hrng.Style.Fill.BackgroundColor = XLColor.FromHtml("#EDEDED");
+            r += 1;
+
+            foreach (var p in people)
+            {
+                //tři souhrnné řádky osoby
+                string[] kinds = { "Kapacita", "Plán", "Volno" };
+                for (int k = 0; k < 3; k++)
+                {
+                    ws.Cell(r, 1).Value = p.name ?? "";
+                    ws.Cell(r, 5).Value = Factory.tra(kinds[k]);
+                    if (k == 1)
+                    {
+                        ws.Cell(r, 6).Value = Math.Round(p.rows.Sum(q => q.fa), 2);
+                        ws.Cell(r, 7).Value = Math.Round(p.rows.Sum(q => q.nefa), 2);
+                        ws.Cell(r, 8).Value = Math.Round(p.rows.Sum(q => q.total), 2);
+                        ws.Cell(r, 10).Value = Math.Round(p.rows.Sum(q => q.actfa), 2);
+                        ws.Cell(r, 11).Value = Math.Round(p.rows.Sum(q => q.actnefa), 2);
+                    }
+                    for (int c = 0; c < bks.Count; c++)
+                    {
+                        double dblCap = Sum(p.cap, bks[c].i1, bks[c].i2), dblPlan = Sum(p.plan, bks[c].i1, bks[c].i2);
+                        var cell = ws.Cell(r, intFix + 1 + c);
+                        if (k == 0) cell.Value = dblCap;
+                        if (k == 2) cell.Value = Math.Round(dblCap - dblPlan, 2);
+                        if (k == 1)
+                        {
+                            cell.Value = dblPlan;
+                            if (dblPlan > 0.049)    //stejné barvy jako na obrazovce: volno / plno od 80 % / přetíženo
+                            {
+                                string strColor = dblPlan > dblCap + 0.049 ? "#FFC9C9" : (dblCap > 0 && dblPlan >= dblCap * 0.8 ? "#FFE9A8" : "#D9F2E3");
+                                cell.Style.Fill.BackgroundColor = XLColor.FromHtml(strColor);
+                            }
+                        }
+                        if (k == 2 && dblCap - dblPlan < -0.049) cell.Style.Font.FontColor = XLColor.FromHtml("#B42318");
+                    }
+                    ws.Range(r, 1, r, intFix + bks.Count).Style.Font.Bold = true;
+                    r += 1;
+                }
+                //projekty osoby
+                foreach (var row in p.rows)
+                {
+                    ws.Cell(r, 1).Value = p.name ?? "";
+                    ws.Cell(r, 2).Value = row.project ?? "";
+                    ws.Cell(r, 3).Value = row.code ?? "";
+                    ws.Cell(r, 4).Value = row.client ?? "";
+                    ws.Cell(r, 5).Value = Factory.tra("Projekt");
+                    ws.Cell(r, 6).Value = row.fa;
+                    ws.Cell(r, 7).Value = row.nefa;
+                    ws.Cell(r, 8).Value = row.total;
+                    if (row.blocks.Count > 0) ws.Cell(r, 9).Value = row.planned;
+                    ws.Cell(r, 10).Value = row.actfa;
+                    ws.Cell(r, 11).Value = row.actnefa;
+                    if (row.total > 0 && row.actfa + row.actnefa > row.total + 0.049)
+                    {
+                        ws.Range(r, 10, r, 11).Style.Fill.BackgroundColor = XLColor.FromHtml("#FFC9C9");    //vykázáno nad strop
+                    }
+                    for (int c = 0; c < bks.Count; c++)
+                    {
+                        double dbl = Sum(row.dayplan, bks[c].i1, bks[c].i2);
+                        if (dbl > 0.004) ws.Cell(r, intFix + 1 + c).Value = dbl;
+                    }
+                    r += 1;
+                }
+            }
+            if (r > 4)
+            {
+                ws.Range(4, 6, r - 1, intFix + bks.Count).Style.NumberFormat.Format = "0.##";
+            }
+            ws.Columns(1, intFix).AdjustToContents();
+            ws.Columns(intFix + 1, intFix + bks.Count).Width = zoom == "day" ? 11 : (zoom == "week" ? 15 : 9);
+            ws.SheetView.FreezeRows(3);
+            ws.SheetView.FreezeColumns(5);
+
+            //list s bloky rozplánování
+            var ws2 = wb.Worksheets.Add("Bloky");
+            string[] heads2 = { "Osoba", "Projekt", "Kód", "Klient", "Od", "Do", "Hodiny", "Poznámka" };
+            for (int c = 0; c < heads2.Length; c++) ws2.Cell(1, c + 1).Value = Factory.tra(heads2[c]);
+            ws2.Range(1, 1, 1, heads2.Length).Style.Font.Bold = true;
+            ws2.Range(1, 1, 1, heads2.Length).Style.Fill.BackgroundColor = XLColor.FromHtml("#EDEDED");
+            int r2 = 2;
+            foreach (var p in people)
+            {
+                foreach (var row in p.rows)
+                {
+                    foreach (var b in row.blocks)
+                    {
+                        ws2.Cell(r2, 1).Value = p.name ?? "";
+                        ws2.Cell(r2, 2).Value = row.project ?? "";
+                        ws2.Cell(r2, 3).Value = row.code ?? "";
+                        ws2.Cell(r2, 4).Value = row.client ?? "";
+                        if (TryDate(b.d1, out DateTime b1)) ws2.Cell(r2, 5).Value = b1;
+                        if (TryDate(b.d2, out DateTime b2)) ws2.Cell(r2, 6).Value = b2;
+                        ws2.Cell(r2, 7).Value = b.hours;
+                        ws2.Cell(r2, 8).Value = b.text ?? "";
+                        r2 += 1;
+                    }
+                }
+            }
+            if (r2 > 2)
+            {
+                ws2.Range(2, 5, r2 - 1, 6).Style.DateFormat.Format = "dd.MM.yyyy";
+                ws2.Range(2, 7, r2 - 1, 7).Style.NumberFormat.Format = "0.##";
+            }
+            ws2.Columns(1, heads2.Length).AdjustToContents();
+            ws2.SheetView.FreezeRows(1);
+
+            using var ms = new MemoryStream();
+            wb.SaveAs(ms);
+            string strFileName = "Kapacitni_plan_" + datStart.ToString("yyyyMM") + "_" + DateTime.Now.ToString("yyyyMMdd_HHmm") + ".xlsx";
+            return File(ms.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", strFileName);
+        }
+
+        //název projektu pro combo v panelu nového stropu (combo samo ukazuje první sloupec své nabídky)
+        public IActionResult ProjectName(int p41id)
+        {
+            var rec = p41id > 0 ? Factory.p41ProjectBL.Load(p41id) : null;
+            if (rec == null || !Factory.p41ProjectBL.InhaleRecDisposition(p41id, rec).ReadAccess) return Fail(null);
+            string s = rec.p41Name + (string.IsNullOrEmpty(rec.p41Code) ? "" : " (" + rec.p41Code + ")");
+            if (!string.IsNullOrEmpty(rec.Client)) s = rec.Client + " - " + s;
+            return Json(new { ok = true, name = s });
         }
 
         [HttpPost]

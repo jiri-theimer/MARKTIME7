@@ -1,4 +1,4 @@
-@model UI.Models.r11.r11ViewModel
+﻿@model UI.Models.r11.r11ViewModel
 @inject BL.Factory _f
 
 @{
@@ -62,6 +62,8 @@
         <button type="button" id="rc_add" class="btn btn-primary rc-add"><span class="material-icons-outlined-btn">person_add</span>@_f.tra("Přidat strop")</button>
     }
 
+    <button type="button" id="rc_xls" class="btn btn-outline-secondary rc-add" title="@_f.tra("Export zobrazeného období do XLSX")"><span class="material-icons-outlined-btn">file_download</span>XLS</button>
+
     <div class="rc-legend">
         <span class="rc-lg rc-s-free"></span>@_f.tra("volno")
         <span class="rc-lg rc-s-full"></span>@_f.tra("plno")
@@ -77,7 +79,7 @@
 <div id="rc_new" class="rc-dlg rc-new">
     <div class="rc-dlg-head">@_f.tra("Nový strop hodin osoby na projektu")</div>
     <div class="rc-dlg-row">
-        <label>@_f.tra("Osoba")</label>
+        <label>@_f.tra("Personální zdroj (uživatel)")</label>
         <div><mycombo entity="j02User" asp-for="NewJ02ID" selectedtext="@Model.NewJ02Name"></mycombo></div>
     </div>
     @if (Model.p41id > 0)
@@ -88,7 +90,7 @@
     {
         <div class="rc-dlg-row">
             <label>@_f.tra("Projekt")</label>
-            <div><mycombo entity="p41Project" asp-for="NewP41ID" selectedtext="@Model.NewP41Name"></mycombo></div>
+            <div><mycombo entity="p41Project" asp-for="NewP41ID" selectedtext="@Model.NewP41Name" event_after_changevalue="rc_new_p41_change"></mycombo></div>
         </div>
     }
     <div class="rc-dlg-row">
@@ -143,12 +145,27 @@
             smazat: "@_f.tra("Smazat")",
             zrusit: "@_f.tra("Zrušit")",
             opravdusmazat: "@_f.tra("Opravdu smazat strop včetně jeho rozplánování?")",
-            chybiosoba: "@_f.tra("Vyberte osobu a projekt.")",
+            chybiosoba: "@_f.tra("Vyberte personální zdroj (uživatele) a projekt.")",
             dni: "@_f.tra("dní")"
         }
     });
 
     function hardrefresh(pid, flag) {   //volá okno s kartou záznamu po uložení
         _r11.reload();
+    }
+
+    //Combo po výběru ukazuje první sloupec své nabídky (ten si uživatel volí, bývá to klient). Tady se do něj doplní název projektu.
+    function rc_new_p41_change(p41id) {
+        if (!p41id || p41id === "0") return;
+        fetch("/r11/ProjectName?p41id=" + encodeURIComponent(p41id), { headers: { "X-Requested-With": "XMLHttpRequest" } })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (!data || !data.ok) return;
+                var txt = document.getElementById("cmdComboNewP41ID");
+                if (txt) txt.value = data.name;
+                var hid = document.querySelector("[data-id=text_NewP41ID]");
+                if (hid) hid.value = data.name;
+            })
+            .catch(function () { });
     }
 </script>

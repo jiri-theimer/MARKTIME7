@@ -555,6 +555,11 @@ var MtCapacity = (function () {
             hideDlg();
             load(true);
         });
+        x = document.getElementById("rc_xls");
+        if (x) x.addEventListener("click", function () {     // export bere zobrazené období a měřítko; hledání se na něj nevztahuje
+            if (st.d1 === null) return;
+            window.location.href = "/r11/Export?p41id=" + (opt.p41id || 0) + "&d1=" + isoDay(st.d1) + "&months=" + st.months + "&zoom=" + st.zoom;
+        });
         var txt = document.getElementById("rc_search"), timer = null;
         if (txt) txt.addEventListener("input", function () {
             var v = this.value;

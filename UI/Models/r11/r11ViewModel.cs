@@ -44,6 +44,10 @@
         public string pu { get; set; }
         public bool spread { get; set; }            //bez bloků: strop je rozložený do období projektu
         public List<r11Block> blocks { get; set; }
+
+        [Newtonsoft.Json.JsonIgnore]                    //aplikace serializuje JSON přes Newtonsoft (Startup: AddNewtonsoftJson)
+        [System.Text.Json.Serialization.JsonIgnore]
+        public double[] dayplan { get; set; }       //naplánované hodiny řádku po dnech; jen pro export, do prohlížeče se neposílá
     }
 
     public class r11Person

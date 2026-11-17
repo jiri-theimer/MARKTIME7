@@ -139,7 +139,7 @@ namespace BL
         {
             if (!IsAvailable()) return this.ZeroMessage("V databázi chybí tabulky kapacitního plánování.");
             if (rec.p41ID <= 0) return this.ZeroMessage("Chybí vyplnit [Projekt].");
-            if (rec.j02ID <= 0) return this.ZeroMessage("Chybí vyplnit [Osoba].");
+            if (rec.j02ID <= 0) return this.ZeroMessage("Chybí vyplnit [Personální zdroj (uživatel)].");
             if (!CanEdit(rec.p41ID)) return this.ZeroMessage("Kapacitní plán projektu může upravovat jen ten, kdo má k projektu vlastnické oprávnění.");
             if (rec.r11HoursFa < 0 || rec.r11HoursNeFa < 0) return this.ZeroMessage("Hodiny nesmí být záporné.");
             rec.r11HoursTotal = Math.Round(rec.r11HoursFa + rec.r11HoursNeFa, 2);
