@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using UI.Models;
-using UI.Models.capacity;
+
 using UI.Models.Record;
 using UI.Models.Tab1;
 
@@ -56,31 +56,7 @@ namespace UI.Controllers
             return View(v);
         }
 
-        public IActionResult TabR01(string master_entity, int master_pid, string caller)
-        {
-            if (master_pid == 0) return this.StopPageSubform("master_pid missing");
-
-            var v = new p41TabR01ViewModel() { p41id = master_pid, timeline = new CapacityTimelineJ02ViewModel() };
-            v.timeline.p41ID = v.p41id;
-            v.timeline.UserKeyBase = "TabR01";
-
-
-            v.HasOwnerPermissions = Factory.p41ProjectBL.InhaleRecDisposition(v.p41id).OwnerAccess;
-            v.timeline.IsReadOnly = !v.HasOwnerPermissions;
-
-            v.lisR04 = Factory.p41ProjectBL.GetList_r04(v.p41id, 0);
-
-            if (caller == "grid")
-            {
-                Factory.CBL.SaveLastCallingRecPid(master_entity, master_pid, "grid", true, false, null);
-            }
-
-            v.RecP41 = Factory.p41ProjectBL.Load(v.p41id);
-            v.timeline.RecP41 = v.RecP41;
-
-
-            return View(v);
-        }
+       
         public IActionResult TabP40(string master_entity, int master_pid, string caller)
         {
             if (master_pid == 0) return this.StopPageSubform("master_pid missing");

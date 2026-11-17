@@ -152,7 +152,6 @@ namespace BL.Singleton
                 ByPrefix($"fp{i}").IsWithoutValidity = true;
                 AE($"fp{i}_p31", "Realizováno", "Realizováno", "????", $"a.fp{i}ID");
             }
-            AE("fp2_r01", "Kapacitní plán", "Kapacitní plán", "????", "a.fp2ID");
 
 
 
@@ -226,7 +225,6 @@ namespace BL.Singleton
             AE_TINY("x97Translate", "Aplikační překlad", "Aplikační překlad");
             ByPrefix("x97").IsWithoutValidity = true;
 
-            AE_TINY("r02CapacityVersion", "Verze kapacitních plánů", "Typ kapacitního plánu");
 
             AE("p91Invoice", "Vyúčtování", "Vyúčtování", "p91Invoice a INNER JOIN p92InvoiceType p92x ON a.p92ID=p92x.p92ID LEFT OUTER JOIN b02WorkflowStatus b02x ON a.b02ID=b02x.b02ID", "a.p91ID DESC");
             AE("p90Proforma", "Zálohy", "Záloha", "p90Proforma a INNER JOIN p89ProformaType p89x ON a.p89ID=p89x.p89ID", "a.p90ID DESC");
@@ -507,7 +505,6 @@ namespace BL.Singleton
                     break;
                 case "fp2":
                     lis.Add(getREL("fp2_p31", "fp2_p31", "Realizováno", "LEFT OUTER JOIN dbo.fp2_p31(@x01id,@d1,@d2) fp2_p31 ON a.fp2ID=fp2_p31.p41ID"));
-                    lis.Add(getREL("fp2_r01", "fp2_r01", "Kapacitní plán", "LEFT OUTER JOIN dbo.fp2_r01(@x01id,@d1,@d2) fp2_r01 ON a.fp2ID=fp2_r01.p41ID"));
                     lis.Add(getREL("p41Project", "fp2_p41", "Projekt", "LEFT OUTER JOIN p41Project fp2_p41 ON a.fp2ID=fp2_p41.p41ID"));
 
                     break;

@@ -1,0 +1,154 @@
+@model UI.Models.r11.r11ViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    Model.PageTitle = _f.tra("Kapacitní plány");
+    if (Model.RecP41 != null)
+    {
+        Model.PageTitle = _f.tra("Kapacitní plán") + ": " + Model.RecP41.p41Name;
+    }
+    bool _canadd = (Model.p41id == 0 || Model.CanEditContext);
+}
+
+@addTagHelper *, UI
+
+@section header_content {
+    <link rel="stylesheet" href="~/css/r11.css" asp-append-version="true" />
+}
+
+<div class="input-group rc-toolbar">
+    <ul class="nav nav-tabs">
+        <li class="onetab">
+            <a class="nav-link active" href="/r11/Index@(Model.p41id > 0 ? "?p41id=" + Model.p41id.ToString() : "")">@_f.tra("Kapacitní plány")</a>
+        </li>
+    </ul>
+
+    @if (Model.RecP41 != null)
+    {
+        <div class="rc-context">
+            <span class="material-icons-outlined-btn">work_outline</span>
+            <a href="javascript:_edit('p41',@Model.p41id)" title="@_f.tra("Karta projektu")">@Model.RecP41.p41Name</a>
+            <span class="rc-muted">(@Model.RecP41.p41Code)</span>
+            <a class="rc-all" href="/r11/Index">@_f.tra("Všichni lidé")</a>
+        </div>
+    }
+
+    <div class="btn-group rc-nav" role="group">
+        <button type="button" id="rc_prev" class="btn btn-outline-secondary" title="@_f.tra("Předchozí měsíc")">&#8249;</button>
+        <button type="button" id="rc_today" class="btn btn-outline-secondary">@_f.tra("Dnes")</button>
+        <button type="button" id="rc_next" class="btn btn-outline-secondary" title="@_f.tra("Další měsíc")">&#8250;</button>
+    </div>
+
+    <select id="rc_months" class="form-select rc-months" title="@_f.tra("Zobrazené období")">
+        @foreach (int m in new int[] { 2, 4, 6, 12 })
+        {
+            <option value="@m" selected="@(Model.Months == m)">@m @_f.tra("měs.")</option>
+        }
+    </select>
+
+    <div class="btn-group rc-zoom" role="group" aria-label="@_f.tra("Měřítko")">
+        <button type="button" class="btn btn-outline-secondary" data-zoom="day">@_f.tra("Dny")</button>
+        <button type="button" class="btn btn-outline-secondary" data-zoom="week">@_f.tra("Týdny")</button>
+        <button type="button" class="btn btn-outline-secondary" data-zoom="month">@_f.tra("Měsíce")</button>
+    </div>
+
+    <div class="rc-search">
+        <input type="text" id="rc_search" class="form-control" autocomplete="off" placeholder="@_f.tra("Najít")…" />
+    </div>
+
+    @if (_canadd)
+    {
+        <button type="button" id="rc_add" class="btn btn-primary rc-add"><span class="material-icons-outlined-btn">person_add</span>@_f.tra("Přidat strop")</button>
+    }
+
+    <div class="rc-legend">
+        <span class="rc-lg rc-s-free"></span>@_f.tra("volno")
+        <span class="rc-lg rc-s-full"></span>@_f.tra("plno")
+        <span class="rc-lg rc-s-over"></span>@_f.tra("přetíženo")
+    </div>
+</div>
+
+<div id="r11grid" class="rc-scroll"></div>
+<div id="rc_tip" class="rc-tip"></div>
+<div id="rc_dlg" class="rc-dlg"></div>
+
+@* nový strop: osoba + projekt + hodiny *@
+<div id="rc_new" class="rc-dlg rc-new">
+    <div class="rc-dlg-head">@_f.tra("Nový strop hodin osoby na projektu")</div>
+    <div class="rc-dlg-row">
+        <label>@_f.tra("Osoba")</label>
+        <div><mycombo entity="j02User" asp-for="NewJ02ID" selectedtext="@Model.NewJ02Name"></mycombo></div>
+    </div>
+    @if (Model.p41id > 0)
+    {
+        <input type="hidden" id="NewP41ID" value="@Model.p41id" />
+    }
+    else
+    {
+        <div class="rc-dlg-row">
+            <label>@_f.tra("Projekt")</label>
+            <div><mycombo entity="p41Project" asp-for="NewP41ID" selectedtext="@Model.NewP41Name"></mycombo></div>
+        </div>
+    }
+    <div class="rc-dlg-row">
+        <label for="rc_new_fa">@_f.tra("Hodiny Fa")</label>
+        <div><input type="text" id="rc_new_fa" class="form-control rc-num" inputmode="decimal" autocomplete="off" /></div>
+    </div>
+    <div class="rc-dlg-row">
+        <label for="rc_new_nefa">@_f.tra("Hodiny Nefa")</label>
+        <div><input type="text" id="rc_new_nefa" class="form-control rc-num" inputmode="decimal" autocomplete="off" /></div>
+    </div>
+    <div class="rc-dlg-row">
+        <label for="rc_new_text">@_f.tra("Poznámka")</label>
+        <div><input type="text" id="rc_new_text" class="form-control" maxlength="300" autocomplete="off" /></div>
+    </div>
+    <div class="rc-dlg-foot">
+        <button type="button" id="rc_new_save" class="btn btn-primary">@_f.tra("Uložit")</button>
+        <button type="button" id="rc_new_cancel" class="btn btn-outline-secondary">@_f.tra("Zrušit")</button>
+    </div>
+</div>
+
+<script src="~/js/r11.js" asp-append-version="true"></script>
+<script type="text/javascript">
+    var _r11 = MtCapacity.init({
+        el: document.getElementById("r11grid"),
+        p41id: @Model.p41id,
+        zoom: "@Model.Zoom",
+        months: @Model.Months,
+        tra: {
+            osoba: "@_f.tra("Osoba / projekt")",
+            strop: "@_f.tra("Strop")",
+            rozpl: "@_f.tra("Rozplán.")",
+            vykazano: "@_f.tra("Vykázáno")",
+            zadnadata: "@_f.tra("Zatím není zadaný žádný strop hodin.")",
+            zadnyvysledek: "@_f.tra("Hledání neodpovídá žádný řádek.")",
+            chyba: "@_f.tra("Operace se nezdařila.")",
+            plan: "@_f.tra("plán")",
+            kapacita: "@_f.tra("kapacita")",
+            volno: "@_f.tra("volno")",
+            pretizeni: "@_f.tra("přetížení")",
+            obdobi: "@_f.tra("v období projektu")",
+            nerozplanovano: "@_f.tra("nerozplánováno")",
+            vycerpano: "@_f.tra("Strop je už celý rozplánovaný. Nejdřív zvyšte strop nebo zmenšete jiný blok.")",
+            skryte: "@_f.tra("další projekty, které nevidíte")",
+            blok: "@_f.tra("Blok plánu")",
+            upravitstrop: "@_f.tra("Strop hodin")",
+            hodiny: "@_f.tra("Hodiny")",
+            hodinyfa: "@_f.tra("Hodiny Fa")",
+            hodinynefa: "@_f.tra("Hodiny Nefa")",
+            poznamka: "@_f.tra("Poznámka")",
+            zbyva: "@_f.tra("k rozplánování zbývá")",
+            ulozit: "@_f.tra("Uložit")",
+            smazat: "@_f.tra("Smazat")",
+            zrusit: "@_f.tra("Zrušit")",
+            opravdusmazat: "@_f.tra("Opravdu smazat strop včetně jeho rozplánování?")",
+            chybiosoba: "@_f.tra("Vyberte osobu a projekt.")",
+            dni: "@_f.tra("dní")"
+        }
+    });
+
+    function hardrefresh(pid, flag) {   //volá okno s kartou záznamu po uložení
+        _r11.reload();
+    }
+</script>

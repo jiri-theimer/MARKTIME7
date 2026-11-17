@@ -62,8 +62,7 @@ namespace BO
                 case "o27":
                     return handle_myquery_reflexe(new BO.myQueryO27() { CurrentUser = _CurrentUser });
                 
-                case "r01":
-                    return handle_myquery_reflexe(new BO.myQueryR01() { CurrentUser = _CurrentUser });
+                
                 case "j40":
                     return handle_myquery_reflexe(new BO.myQueryJ40() { CurrentUser = _CurrentUser });
                 case "p15":

@@ -1,0 +1,94 @@
+@model UI.Models.Gantt.GanttViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    Model.PageTitle = "Gantt";
+    if (Model.RecP41 != null)
+    {
+        Model.PageTitle = "Gantt: " + Model.RecP41.p41Name;
+    }
+}
+
+@addTagHelper *, UI
+
+@section header_content {
+    <link rel="stylesheet" href="~/css/gantt.css" asp-append-version="true" />
+}
+
+<div class="input-group gt-toolbar">
+    <ul class="nav nav-tabs">
+        <li class="onetab">
+            <a class="nav-link active" href="/gantt/Index@(Model.p41id > 0 ? "?p41id=" + Model.p41id.ToString() : "")">Gantt</a>
+        </li>
+    </ul>
+
+    @if (Model.RecP41 != null)
+    {
+        <div class="gt-context">
+            <span class="material-icons-outlined-btn">work_outline</span>
+            <a href="javascript:_edit('p41',@Model.p41id)" title="@_f.tra("Karta projektu")">@Model.RecP41.p41Name</a>
+            <span class="gt-muted">(@Model.RecP41.p41Code)</span>
+            <a class="gt-all" href="/gantt/Index">@_f.tra("Všechny projekty")</a>
+        </div>
+    }
+
+    <div class="btn-group gt-zoom" role="group" aria-label="@_f.tra("Měřítko")">
+        <button type="button" class="btn btn-outline-secondary" data-zoom="day">@_f.tra("Dny")</button>
+        <button type="button" class="btn btn-outline-secondary" data-zoom="week">@_f.tra("Týdny")</button>
+        <button type="button" class="btn btn-outline-secondary" data-zoom="month">@_f.tra("Měsíce")</button>
+    </div>
+
+    <button type="button" id="gt_today" class="btn btn-outline-secondary">@_f.tra("Dnes")</button>
+
+    @if (Model.IsTasksModule)
+    {
+        <div class="form-check gt-check">
+            <input type="checkbox" class="form-check-input" id="gt_tasks" checked="@Model.ShowTasks" />
+            <label class="form-check-label" for="gt_tasks">@_f.tra("Úkoly")</label>
+        </div>
+    }
+
+    <div class="gt-search">
+        <input type="text" id="gt_search" class="form-control" autocomplete="off" placeholder="@_f.tra("Najít")…" />
+    </div>
+
+    <div class="gt-legend">
+        <span class="gt-lg gt-lg-p"></span>@_f.tra("Projekt")
+        @if (Model.IsTasksModule)
+        {
+            <span class="gt-lg gt-lg-t"></span>@_f.tra("Úkol")
+        }
+        <span id="gt_info" class="gt-muted"></span>
+    </div>
+</div>
+
+<div id="gantt1" class="gt-scroll"></div>
+<div id="gt_tip" class="gt-tip"></div>
+
+<script src="~/js/gantt.js" asp-append-version="true"></script>
+<script type="text/javascript">
+    var _gantt = MtGantt.init({
+        el: document.getElementById("gantt1"),
+        p41id: @Model.p41id,
+        zoom: "@Model.Zoom",
+        tasks: @(Model.ShowTasks ? "true" : "false"),
+        tra: {
+            nazev: "@_f.tra("Název")",
+            obdobi: "@_f.tra("Plán od – do")",
+            hodiny: "@_f.tra("Plán hod.")",
+            bezplanu: "@_f.tra("bez plánu – tažením myši nakreslíte období")",
+            zadnadata: "@_f.tra("Žádný projekt nemá vyplněné plánované zahájení a dokončení.")",
+            zadnyvysledek: "@_f.tra("Hledání neodpovídá žádný řádek.")",
+            oriznuto: "@_f.tra("Zobrazena je jen část záznamů.")",
+            ulozeno: "@_f.tra("Plán uložen.")",
+            chyba: "@_f.tra("Plán se nepodařilo uložit.")",
+            termin: "@_f.tra("Termín")",
+            dni: "@_f.tra("dní")"
+        }
+    });
+
+    function hardrefresh(pid, flag) {   //volá okno s kartou záznamu po uložení
+        _gantt.reload();
+    }
+</script>

@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using System.Drawing;
 using UI.Models;
-using UI.Models.capacity;
+
 using UI.Models.Record;
 using UI.Models.Tab1;
 
@@ -202,31 +202,7 @@ namespace UI.Controllers
             return View(v);
         }
 
-        public IActionResult TabR01(string master_entity, int master_pid, string caller)
-        {
-            if (master_pid == 0) return this.StopPageSubform("master_pid missing");
-
-            var v = new j02TabR01ViewModel() { j02id = master_pid, timeline = new CapacityTimelineP41ViewModel() };
-            v.timeline.j02ID = v.j02id;
-            v.timeline.UserKeyBase = "TabR01";
-
-
-            v.HasOwnerPermissions = true;
-            v.timeline.IsReadOnly = !v.HasOwnerPermissions;
-
-            //v.lisR04 = Factory.p41ProjectBL.GetList_r04(v.p41id, 0);
-
-            if (caller == "grid")
-            {
-                Factory.CBL.SaveLastCallingRecPid(master_entity, master_pid, "grid", true, false, null);
-            }
-
-            v.RecJ02 = Factory.j02UserBL.Load(v.j02id);
-            v.timeline.RecJ02 = v.RecJ02;
-
-
-            return View(v);
-        }
+        
 
         public IActionResult VirtualRecord(int pid, int parent_pid)
         {

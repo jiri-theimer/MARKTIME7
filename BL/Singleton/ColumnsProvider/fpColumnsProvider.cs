@@ -49,10 +49,6 @@ namespace BL.Singleton.ColumnsProvider
 
             }
 
-            this.EntityName = "fp2_r01";
-            oc = AF("PlanHodiny", "Plán hodin", "a.PlanHodiny", "num", true); oc.NotShowRelInHeader = true;
-            oc = AF("PlanHodinyFa", "Plán Fa hodin", "a.PlanHodinyFa", "num", true); oc.NotShowRelInHeader = true;
-            oc = AF("PlanHodinyNefa", "Plán Nefa hodin", "a.PlanHodinyNefa", "num", true); oc.NotShowRelInHeader = true;
 
         }
     }

@@ -35,7 +35,8 @@
         ("j04IsModule_j02", "Uživatelé", "group"),
         ("j04IsModule_x31", "Pevné tiskové sestavy", "print"),
         ("j04IsModule_p11", "Docházka", "schedule"),
-        ("j04IsModule_o27", "Filebox", "attachment")
+        ("j04IsModule_o27", "Filebox", "attachment"),
+        ("j04IsModule_r01", "Kapacitní plánování", "online_prediction")
     };
     bool ModuleValue(string field) => (bool)(typeof(BO.j04UserRole).GetProperty(field)?.GetValue(Model.Rec) ?? false);
 }
@@ -116,7 +117,6 @@
                         </label>
                     }
                     @* skryté moduly – hodnota se musí odeslat beze změny *@
-                    <input type="hidden" name="Rec.j04IsModule_r01" value="@(Model.Rec.j04IsModule_r01 ? "true" : "false")" />
                     <input type="hidden" name="Rec.j04IsModule_p49" value="@(Model.Rec.j04IsModule_p49 ? "true" : "false")" />
                 </div>
             </section>

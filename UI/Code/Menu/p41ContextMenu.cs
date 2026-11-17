@@ -123,11 +123,12 @@ namespace UI.Menu
 
             }
 
+            AMI("Gantt projektu", $"javascript: window.top.location.href='/gantt/Index?p41id={pid}'", "view_timeline", "more");
             if (_f.CurrentUser.j04IsModule_r01)
             {
-                AMI("Kapacitní plán projektu", $"javascript: _window_open('/r01/ProjectPlan?p41id={pid}', 2)", "online_prediction", "more");
-
+                AMI("Kapacitní plán projektu", $"javascript: window.top.location.href='/r11/Index?p41id={pid}'", "online_prediction", "more");
             }
+
 
 
             DIV(null, "more");

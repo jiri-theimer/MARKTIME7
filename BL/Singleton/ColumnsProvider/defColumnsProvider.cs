@@ -515,11 +515,6 @@ namespace BL
             AA("o42Description", "Poznámka");
             AppendTimestamp();
 
-            this.EntityName = "r02CapacityVersion";
-            AA("r02Name", "Verze plánu", gdc1, null, "string", false, true);
-            AFNUM0("r02Ordinary", "#").DefaultColumnFlag = gdc2;
-            AppendTimestamp();
-
             //o53 = štítky
             this.EntityName = "o53TagGroup";
             oc = AA("o53Name", "Skupina štítku", gdc1, null, "string", false, true); oc.SqlExplicitGroupBy = "a.o53ID";

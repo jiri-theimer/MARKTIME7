@@ -189,11 +189,16 @@
                         <a id="linkP44" class="locallink hm-link" href="@cmenu.getGridUrl("p44")"><span class="material-icons-outlined-btn">copy_all</span><span>@_f.tra("Projektové šablony")</span></a>
                     </div>
                 }
+                @if (_f.CurrentUser.j04IsModule_p41)
+                {
+                    <div class="hm-item">
+                        <a id="linkGantt" class="locallink hm-link" href="/gantt/Index"><span class="material-icons-outlined-btn">view_timeline</span><span>Gantt</span></a>
+                    </div>
+                }
                 @if (_f.CurrentUser.j04IsModule_r01)
                 {
                     <div class="hm-item">
-                        <a id="linkCapacityTimeline" class="locallink hm-link" href="/captml/Index"><span class="material-icons-outlined-btn">online_prediction</span><span>@_f.tra("Kapacitní plány")</span></a>
-                        @Pin("captml")
+                        <a id="linkCapacity" class="locallink hm-link" href="/r11/Index"><span class="material-icons-outlined-btn">online_prediction</span><span>@_f.tra("Kapacitní plány")</span></a>
                     </div>
                 }
                 @if (_f.CurrentUser.j04IsModule_p49)
@@ -603,8 +608,11 @@
         $("#linkPoznamky").addClass("active");
     }
 
-    if (url.indexOf("captml") > 0) {
-        $("#linkCapacityTimeline").addClass("active");
+    if (urllower.indexOf("gantt/index") > 0) {
+        $("#linkGantt").addClass("active");
+    }
+    if (urllower.indexOf("r11/index") > 0) {
+        $("#linkCapacity").addClass("active");
     }
 
     if (url.indexOf("prefix=o23") > 0) {

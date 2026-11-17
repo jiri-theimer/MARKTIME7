@@ -1,0 +1,83 @@
+/* Gantt (Views/gantt/Index.cshtml, js/gantt.js) */
+
+.gt-toolbar { padding-top: 8px; gap: 0 8px; align-items: center; flex-wrap: wrap; }
+.gt-context { display: flex; align-items: center; gap: 6px; margin-left: 6px; font-weight: 500; }
+.gt-context .gt-all { margin-left: 10px; font-weight: 400; font-size: .875rem; }
+.gt-zoom .btn, #gt_today { padding: 3px 10px; font-size: .875rem; }
+.gt-zoom .btn.active { background: #0d6efd; border-color: #0d6efd; color: #fff; }
+.gt-check { margin: 0 0 0 4px; }
+.gt-search { width: 200px; }
+.gt-legend { margin-left: auto; padding-right: 10px; font-size: .8rem; color: #59636e; display: flex; align-items: center; gap: 6px; }
+.gt-lg { display: inline-block; width: 22px; height: 10px; border-radius: 3px; margin-left: 8px; }
+.gt-lg-p { background: #3b7ddd; }
+.gt-lg-t { background: #2a9d8f; }
+.gt-muted { color: #8a939d; font-weight: 400; }
+
+/* jeden scroll kontejner: hlavička drží nahoře, levý sloupec vlevo */
+.gt-scroll { position: relative; overflow: auto; height: calc(100vh - 150px); min-height: 260px; margin-top: 4px; border: 1px solid #dfe3e8; border-radius: 6px; background: #fff; --gt-left: 430px; --gt-row: 30px; --gt-head: 46px; }
+.gt-content { position: relative; }
+
+.gt-head { position: sticky; top: 0; z-index: 30; display: flex; height: var(--gt-head); background: #f6f8fa; border-bottom: 1px solid #dfe3e8; }
+.gt-corner { position: sticky; left: 0; z-index: 31; flex: 0 0 var(--gt-left); width: var(--gt-left); display: flex; align-items: flex-end; background: #f6f8fa; border-right: 1px solid #dfe3e8; font-size: .78rem; color: #59636e; padding-bottom: 4px; }
+.gt-corner > div { padding: 0 8px; white-space: nowrap; overflow: hidden; }
+.gt-c-name { flex: 1 1 auto; }
+.gt-c-per { flex: 0 0 118px; }
+.gt-c-hrs { flex: 0 0 62px; text-align: right; }
+.gt-axis { position: relative; flex: 0 0 auto; height: 100%; }
+.gt-ax1, .gt-ax2 { position: absolute; left: 0; right: 0; height: 23px; }
+.gt-ax1 { top: 0; border-bottom: 1px solid #e6e9ed; }
+.gt-ax2 { top: 23px; }
+.gt-ax1 > span, .gt-ax2 > span { position: absolute; top: 0; height: 23px; line-height: 23px; padding-left: 5px; font-size: .75rem; color: #59636e; white-space: nowrap; overflow: hidden; border-left: 1px solid #dfe3e8; box-sizing: border-box; }
+.gt-ax1 > span { font-weight: 600; color: #3d4650; }
+.gt-ax2 > span.gt-we { color: #b0b7bf; }
+.gt-ax2 > span.gt-day { padding-left: 0; text-align: center; }
+
+.gt-bg { position: absolute; z-index: 1; pointer-events: none; }
+.gt-bg > i { position: absolute; top: 0; bottom: 0; width: 1px; background: #dfe3e8; }
+.gt-bg > i.gt-today { width: 2px; background: #e5484d; z-index: 2; }
+
+.gt-row { position: relative; display: flex; height: var(--gt-row); border-bottom: 1px solid #eef0f3; }
+.gt-row:hover .gt-cell, .gt-row:hover .gt-track { background-color: rgba(13,110,253,.05); }
+.gt-cell { position: sticky; left: 0; z-index: 20; flex: 0 0 var(--gt-left); width: var(--gt-left); display: flex; align-items: center; background: #fff; border-right: 1px solid #dfe3e8; font-size: .875rem; }
+.gt-row:hover .gt-cell { background: #f3f7ff; }
+.gt-cell > div { padding: 0 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gt-name { flex: 1 1 auto; display: flex; align-items: center; gap: 4px; min-width: 0; }
+.gt-name a { color: inherit; text-decoration: none; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+.gt-name a:hover { text-decoration: underline; color: #0d6efd; }
+.gt-p41 .gt-name a { font-weight: 600; }
+.gt-closed .gt-name a { text-decoration: line-through; color: #8a939d; }
+.gt-tgl { flex: 0 0 16px; width: 16px; height: 16px; padding: 0; border: none; background: transparent; color: #59636e; font-size: 10px; line-height: 16px; cursor: pointer; }
+.gt-tgl:empty { cursor: default; }
+.gt-name .gt-ico { flex: 0 0 auto; font-size: 16px; color: #3b7ddd; }
+.gt-p56 .gt-name .gt-ico { color: #2a9d8f; }
+.gt-sub { flex: 0 1 auto; color: #8a939d; font-size: .78rem; overflow: hidden; text-overflow: ellipsis; }
+.gt-per { flex: 0 0 118px; font-size: .78rem; color: #59636e; }
+.gt-hrs { flex: 0 0 62px; text-align: right; font-size: .78rem; color: #59636e; }
+
+.gt-track { position: relative; z-index: 5; flex: 0 0 auto; height: 100%; }
+.gt-track.gt-draw { cursor: crosshair; }
+.gt-hint { position: sticky; left: calc(var(--gt-left) + 10px); display: inline-block; line-height: var(--gt-row); font-size: .75rem; color: #b0b7bf; pointer-events: none; opacity: 0; }
+.gt-row:hover .gt-hint { opacity: 1; }
+
+.gt-bar { position: absolute; top: 6px; height: 18px; border-radius: 4px; background: #3b7ddd; color: #fff; font-size: .72rem; line-height: 18px; white-space: nowrap; box-sizing: border-box; touch-action: none; user-select: none; }
+.gt-p56 .gt-bar { top: 8px; height: 14px; line-height: 14px; background: #2a9d8f; }
+.gt-bar.gt-ro { opacity: .75; }
+.gt-bar.gt-ed { cursor: grab; }
+.gt-bar.gt-drag { cursor: grabbing; box-shadow: 0 2px 8px rgba(16,24,40,.3); z-index: 6; }
+.gt-bar.gt-saving { opacity: .55; }
+.gt-bar.gt-end { border-radius: 2px; transform: rotate(0); }
+.gt-bar > span { display: block; padding: 0 7px; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
+.gt-bar > b { position: absolute; top: 0; bottom: 0; width: 7px; cursor: ew-resize; }
+.gt-bar > b.gt-hl { left: 0; border-radius: 4px 0 0 4px; }
+.gt-bar > b.gt-hr { right: 0; border-radius: 0 4px 4px 0; }
+.gt-bar.gt-ed:hover > b { background: rgba(255,255,255,.35); }
+.gt-out { position: absolute; top: 0; line-height: var(--gt-row); padding-left: 6px; font-size: .75rem; color: #59636e; white-space: nowrap; pointer-events: none; }
+
+.gt-empty { position: sticky; left: 0; padding: 18px 14px; color: #6c757d; }
+.gt-tip { display: none; position: fixed; z-index: 2000; padding: 3px 8px; border-radius: 5px; background: #1f2933; color: #fff; font-size: .78rem; white-space: nowrap; pointer-events: none; }
+
+@media (max-width: 900px) {
+    .gt-scroll { --gt-left: 220px; }
+    .gt-per, .gt-hrs, .gt-c-per, .gt-c-hrs, .gt-sub { display: none; }
+    .gt-legend { display: none; }
+}

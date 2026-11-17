@@ -102,6 +102,7 @@ namespace BL
         private Ip51PriceListBL _p51;
         private Ip56TaskBL _p56;
         private Ip65ChecklistBL _p65;
+        private Ir11CapacityBL _r11;
         private Ip57TaskTypeBL _p57;
         private Ip58TaskRecurrenceBL _p58;
         private Ip75InvoiceRecurrenceBL _p75;
@@ -153,8 +154,6 @@ namespace BL
         private Ia58RecPageBoxBL _a58;
 
         private Ip49FinancialPlanBL _p49;
-        private Ir01CapacityBL _r01;
-        private Ir02CapacityVersionBL _r02;
 
         private Io18DocTypeBL _o18;
         private Io17DocMenuBL _o17;
@@ -796,6 +795,14 @@ namespace BL
                 return _p56;
             }
         }
+        public Ir11CapacityBL r11CapacityBL   //kapacitní plánování (tabulky r11CapacityLimit, r12CapacityPlan)
+        {
+            get
+            {
+                if (_r11 == null) _r11 = new r11CapacityBL(this);
+                return _r11;
+            }
+        }
         public Ip65ChecklistBL p65ChecklistBL   //check-list úkolu (tabulka p65Checklist)
         {
             get
@@ -1058,22 +1065,6 @@ namespace BL
             {
                 if (_p49 == null) _p49 = new p49FinancialPlanBL(this);
                 return _p49;
-            }
-        }
-        public Ir01CapacityBL r01CapacityBL
-        {
-            get
-            {
-                if (_r01 == null) _r01 = new r01CapacityBL(this);
-                return _r01;
-            }
-        }
-        public Ir02CapacityVersionBL r02CapacityVersionBL
-        {
-            get
-            {
-                if (_r02 == null) _r02 = new r02CapacityVersionBL(this);
-                return _r02;
             }
         }
         public Ip68StopWatchBL p68StopWatchBL

@@ -17,9 +17,7 @@ namespace BL
         public int GetBillingLangIndex(BO.p41Project recP41);
         public string GetBillingLangFlagHtml(int intLangIndex);
         public IEnumerable<BO.p26ProjectContact> GetList_p26(int p41id);
-        public IEnumerable<BO.r04CapacityResource> GetList_r04(int p41id, int j02id);
-        public IEnumerable<BO.r04CapacityResource> GetList_r04(List<int> p41ids, List<int> j02ids);
-        public bool Save_r04list(int p41id, List<BO.r04CapacityResource> lis);
+        
         public IEnumerable<BO.p41MyTop10> GetList_MyTop10(int j02id, int toprecs);  //seznam naposledy vykazovaných projektů
         public IEnumerable<BO.p41BoxRec> GetList_p41InProjectBox(int p28id);
         public IEnumerable<BO.p41BoxRec> GetList_p41InProjectBox(List<int> p28ids);
@@ -603,90 +601,6 @@ namespace BL
             return _db.GetList<BO.p26ProjectContact>(s, new { p41id = p41id });
         }
 
-        public IEnumerable<BO.r04CapacityResource> GetList_r04(int p41id, int j02id)
-        {
-            string s = "SELECT a.*," + _db.GetSQL1_Ocas("r04", false, false) + ", j02.j02LastName+' '+j02.j02FirstName as Person,ISNULL(p41.p41NameShort,p41.p41Name) as Project,p41.p41CapacityStream,p28.p28Name as Client FROM r04CapacityResource a INNER JOIN j02User j02 ON a.j02ID=j02.j02ID INNER JOIN p41Project p41 ON a.p41ID=p41.p41ID LEFT OUTER JOIN p28Contact p28 ON p41.p28ID_Client=p28.p28ID WHERE GETDATE() BETWEEN j02.j02ValidFrom AND j02.j02ValidUntil";
-            if (p41id > 0)
-            {
-                s += " AND a.p41ID=@p41id";
-            }
-            if (j02id > 0)
-            {
-                s += " AND a.j02ID=@j02id";
-            }
-            if (p41id > 0)
-            {
-                s += " ORDER BY p28.p28Name,p41.p41Name";
-            }
-            else
-            {
-                s += " ORDER BY j02.j02LastName";
-            }
-
-
-            return _db.GetList<BO.r04CapacityResource>(s, new { p41id = p41id, j02id = j02id });
-        }
-        public IEnumerable<BO.r04CapacityResource> GetList_r04(List<int> p41ids, List<int> j02ids)
-        {
-            string s = "SELECT a.*," + _db.GetSQL1_Ocas("r04", false, false) + $", j02.j02LastName+' '+j02.j02FirstName as Person,ISNULL(p41.p41NameShort,p41.p41Name) as Project,p41.p41CapacityStream,p28.p28Name as Client FROM r04CapacityResource a INNER JOIN j02User j02 ON a.j02ID=j02.j02ID INNER JOIN p41Project p41 ON a.p41ID=p41.p41ID LEFT OUTER JOIN p28Contact p28 ON p41.p28ID_Client=p28.p28ID WHERE GETDATE() BETWEEN j02.j02ValidFrom AND j02.j02ValidUntil";
-            if (p41ids != null && p41ids.Count() > 0)
-            {
-                s += $" AND a.p41ID IN ({string.Join(",", p41ids)})";
-                s += " ORDER BY a.p41ID, j02.j02LastName";
-            }
-            if (j02ids != null && j02ids.Count() > 0)
-            {
-                s += $" AND a.j02ID IN ({string.Join(",", j02ids)})";
-                s += " ORDER BY p28.p28Name,p41.p41Name";
-            }
-
-            return _db.GetList<BO.r04CapacityResource>(s);
-        }
-        public bool Save_r04list(int p41id, List<BO.r04CapacityResource> lis)
-        {
-            if (lis.DistinctBy(p => p.j02ID).Count() < lis.Count())
-            {
-                this.AddMessageTranslated("Duplicitní zadání uživatele.");
-                return false;
-            }
-            int x = 1;
-            foreach (var c in lis)
-            {
-                if (c.j02ID == 0)
-                {
-                    this.AddMessageTranslated($"Řádek #{x}: Na vstupu jsou neúplná data.");
-                    return false;
-                }
-                x += 1;
-            }
-
-            _db.RunSql("DELETE FROM r04CapacityResource WHERE p41ID=@pid", new { pid = p41id });
-
-
-            foreach (var c in lis)
-            {
-                _db.RunSql("INSERT INTO r04CapacityResource(p41ID,j02ID,r04Text,r04HoursFa,r04HoursNeFa,r04HoursTotal,r04UserInsert,r04UserUpdate,r04DateInsert,r04DateUpdate,r04WorksheetFlag) VALUES(@p41id,@j02id,@txt,@fa,@nefa,@total,@login,@login,@now,@now,@ef)", new
-                {
-                    p41id = p41id,
-                    j02id = c.j02ID,
-                    txt = c.r04Text,
-                    fa = c.r04HoursFa,
-                    nefa = c.r04HoursNeFa,
-                    total = c.r04HoursFa + c.r04HoursNeFa,
-                    login = _mother.CurrentUser.j02Login,
-                    now = DateTime.Now,
-                    ef = c.r04WorksheetFlag
-                }
-                );
-            }
-
-
-
-            _db.RunSql("exec dbo.p41_recalc_capacity @p41id", new { p41id = p41id });
-
-
-            return true;
-
-        }
+        
     }
 }
