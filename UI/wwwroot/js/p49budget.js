@@ -162,7 +162,7 @@ var MtBudget = (function () {
                 });
                 if (d.canEdit) {
                     var acts = (d.activities || []).filter(function (a) { return (a.side === 2 ? 2 : 1) === side; });
-                    var optHtml = ["<option value=''>" + esc(side === 2 ? T.pridatPrijem : T.pridatVydaj) + "</option>"], grp = null;
+                    var optHtml = ["<option value=''>+ " + esc(side === 2 ? T.pridatPrijem : T.pridatVydaj) + "</option>"], grp = null;
                     acts.forEach(function (a) {
                         if (a.p34name !== grp) { if (grp !== null) optHtml.push("</optgroup>"); optHtml.push("<optgroup label='" + esc(a.p34name) + "'>"); grp = a.p34name; }
                         optHtml.push("<option value='" + a.id + "'>" + esc(a.name) + "</option>");
