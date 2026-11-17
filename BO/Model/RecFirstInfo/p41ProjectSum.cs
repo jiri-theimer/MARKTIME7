@@ -17,7 +17,6 @@ namespace BO
         public int p31_Approved_Expense_Count { get; set; }
         public int p31_Approved_Fee_Count { get; set; }
         public int p31_Approved_Kusovnik_Count { get; set; }
-      public int o43_Count { get; set; }
         public int o23_Count { get; set; }
         public int last_o23ID { get; set; }
         public int p91_Count { get; set; }

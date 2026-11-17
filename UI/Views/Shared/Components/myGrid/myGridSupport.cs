@@ -705,20 +705,6 @@ namespace UI.Views.Shared.Components.myGrid
                         bolCanbeTecka = true;
 
                         break;
-                    case "o43":
-                        if (!Convert.ToBoolean(dbRow["IsSeen"]))
-                        {
-                            strRowClass = $"{strRowClass} row_is_bold";
-                        }
-                        if (Convert.ToBoolean(dbRow["IsFlagged"]))
-                        {
-                            strRowClass = $"{strRowClass} row_is_red";
-                        }
-                        if (Convert.ToBoolean(dbRow["IsDraft"]))
-                        {
-                            strRowClass = $"{strRowClass} row_is_dashed";
-                        }
-                        break;
                     case "p40":
 
                         if (dbRow["p39DateCreate_MimoDosah"] != System.DBNull.Value && dbRow["ProjektUzavren"] == System.DBNull.Value)
@@ -914,15 +900,6 @@ namespace UI.Views.Shared.Components.myGrid
                         
 
 
-
-                        break;
-                    case "o43":
-                        _s.Append(" style='width:20px;'>");
-                        if (Convert.ToInt32(dbRow["AttachmentsCount"]) > 0)
-                        {
-
-                            _s.Append("<span class='material-icons-outlined-nosize'>attachment</span>");
-                        }
 
                         break;
                     case "x31":

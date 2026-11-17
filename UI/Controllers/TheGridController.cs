@@ -83,7 +83,7 @@ namespace UI.Controllers
             {
                 return this.StopPage(false, "Nemáte oprávnění pro tento Modul.");
             }
-            if (go2pid == 0 && (prefix=="p28" || prefix=="p91" || prefix=="p41" || prefix=="j02" || prefix == "o23" || prefix=="p90" || prefix == "p51" || prefix=="p40" || prefix=="o43" || prefix=="p84"))
+            if (go2pid == 0 && (prefix=="p28" || prefix=="p91" || prefix=="p41" || prefix=="j02" || prefix == "o23" || prefix=="p90" || prefix == "p51" || prefix=="p40" || prefix=="p84"))
             {
                 go2pid = LoadLastUsedPid(prefix,rez);
             }
@@ -300,11 +300,6 @@ namespace UI.Controllers
 
             switch (v.prefix)
             {
-                case "o43":
-                    v.o43mavazbu = Factory.CBL.LoadUserParamInt("grid-o43-mavazbu");
-                    if (v.o43mavazbu == 1) v.myqueryinline = "mavazbu|bool|false";
-                    if (v.o43mavazbu == 2) v.myqueryinline = "mavazbu|bool|true";
-                    break;
                
                
                 case "x40":

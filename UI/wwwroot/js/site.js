@@ -318,7 +318,7 @@ function _edit(controller, pid, header,rez) {
     if (controller == "p31" || controller=="p56" || controller=="o22") {
         winflag = 3;
     }
-    if (controller === "p51" || controller == "o43") {
+    if (controller === "p51") {
         winflag = 2;
     }
 

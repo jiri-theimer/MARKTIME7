@@ -39,7 +39,6 @@
 </div>
 
 <input type="hidden" asp-for="o17id" />
-<input type="hidden" asp-for="o43id_source" />
 
 
 <script type="text/javascript">
@@ -76,15 +75,11 @@
     {
         var prefix = "@Model.prefix";
         var recpid = "@Model.recpid";
-        var o43id = "@Model.o43id_source";
         
         var url = _ep("/o23/Record?o18id=" + o18id);
 
         if (prefix != "") {
             url = url + "&prefix=" + prefix + "&recpid=" + recpid;
-        }
-        if (o43id != "0") {
-            url = url + "&o43id_source=" + o43id;
         }
         
         _redirect(url);

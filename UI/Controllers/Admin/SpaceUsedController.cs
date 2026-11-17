@@ -53,10 +53,10 @@ namespace UI.Controllers.Admin
             }
 
 
-            v.rows_updatelog = FindRows("p91Invoice_Log", v) + FindRows("p28Contact_Log", v) + FindRows("p41Project_Log", v) + FindRows("p56Task_Log", v) + FindRows("o23Doc_Log", v) + FindRows("o43Inbox_Log", v);
+            v.rows_updatelog = FindRows("p91Invoice_Log", v) + FindRows("p28Contact_Log", v) + FindRows("p41Project_Log", v) + FindRows("p56Task_Log", v) + FindRows("o23Doc_Log", v);
             if (v.rows_updatelog > 0)
             {
-                v.size_updatelog = FindSize("p91Invoice_Log", v) + FindSize("p28Contact_Log", v) + FindSize("p41Project_Log", v) + FindSize("p56Task_Log", v) + FindSize("o23Doc_Log", v) + FindSize("o43Inbox_Log", v);
+                v.size_updatelog = FindSize("p91Invoice_Log", v) + FindSize("p28Contact_Log", v) + FindSize("p41Project_Log", v) + FindSize("p56Task_Log", v) + FindSize("o23Doc_Log", v);
             }
             
             
@@ -69,8 +69,6 @@ namespace UI.Controllers.Admin
             
             
 
-            v.size_inbox = FindSize("o43Inbox", v);
-            v.rows_inbox = FindRows("o43Inbox", v);
 
         }
 

@@ -69,6 +69,12 @@ namespace BL
                 case "":
                     break;
 
+                case "r11":     //strop kapacitního plánu: mazání hlídá oprávnění k projektu, uložená procedura r11_delete neexistuje
+                    if (_mother.r11CapacityBL.DeleteLimit(pid)) return "1";
+                    string strErr = _mother.GetFirstNotifyMessage();
+                    _mother.CurrentUser.Messages4Notify = null;
+                    return string.IsNullOrEmpty(strErr) ? "Error" : strErr;
+
                 case "o27":
                     var rec = _mother.o27AttachmentBL.Load(pid);
                     var strRet = _db.RunSp(strSP, ref pars);

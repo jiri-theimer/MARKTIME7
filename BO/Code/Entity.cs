@@ -96,7 +96,6 @@ namespace BO.Code
                 case "p78": return "p78UpominkaSdruzena";
                 case "p85": return "p85TempBox";
                 case "p15": return "p15Location";
-                case "o43": return "o43Inbox";
                 case "b20": return "b20Hlidac";
                 case "p58": return "p58TaskRecurrence";
                 case "p60": return "p60TaskTemplate";
@@ -149,8 +148,6 @@ namespace BO.Code
                     return "Opakovaná odměna";
                 case "p15":
                     return "Lokalita";
-                case "o43":
-                    return "Inbox";
                 case "o27":
                     return "FILEBOX";
                 case "b20":
@@ -230,10 +227,6 @@ namespace BO.Code
 
                 lis.Add(new BO.Permission() { Entity = "j04", Value = BO.PermValEnum.GR_b05ReadAll, Name = "Číst všechny poznámky", Group = "Poznámky/Historie" });
                 lis.Add(new BO.Permission() { Entity = "j04", Value = BO.PermValEnum.GR_b05OwnerAll, Name = "Vlastnické oprávnění ke všem poznámkám", Group = "Poznámky/Historie" });
-
-                //lis.Add(new BO.Permission() { Entity = "j04", Value = BO.PermValEnum.GR_MyInbox, Name = "Importovat poštovní zprávy do Inbox", Group = "Inbox" });
-                //lis.Add(new BO.Permission() { Entity = "j04", Value = BO.PermValEnum.GR_o43_Reader, Name = "Číst všechny Inbox záznamy", Group = "Inbox" });
-                //lis.Add(new BO.Permission() { Entity = "j04", Value = BO.PermValEnum.GR_o43_Owner, Name = "Vlastnické oprávnění ke všem Inbox záznamům", Group = "Inbox" });
 
                 lis.Add(new BO.Permission() { Entity = "j04", Value = BO.PermValEnum.GR_o27_Reader, Name = "Číst všechny FILEBOX záznamy", Group = "FILEBOX" });
                 lis.Add(new BO.Permission() { Entity = "j04", Value = BO.PermValEnum.GR_o27_Owner, Name = "Vlastnické oprávnění ke všem FILEBOX záznamům", Group = "FILEBOX" });

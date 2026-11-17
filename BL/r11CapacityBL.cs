@@ -23,6 +23,7 @@ namespace BL
         public IEnumerable<BO.r11ActualDay> GetList_ActualsPerDay(DateTime d1, DateTime d2);
         public List<int> GetTeamPersonIds(int j11id);
         public int SaveLimit(BO.r11CapacityLimit rec);
+        public int SaveWithBlocks(BO.r11CapacityLimit rec, List<BO.r12CapacityPlan> lisBlocks);
         public bool DeleteLimit(int r11id);
         public int SaveBlock(BO.r12CapacityPlan rec);
         public bool DeleteBlock(int r12id);
@@ -200,6 +201,11 @@ namespace BL
                 if (c != null && c.Value > 0) return this.ZeroMessage("Tato osoba už má na projektu strop hodin zadaný.");
             }
 
+            return WriteLimit(rec);
+        }
+
+        private int WriteLimit(BO.r11CapacityLimit rec)
+        {
             var p = new DL.Params4Dapper();
             p.AddInt("pid", rec.pid);
             if (rec.pid == 0)
@@ -212,6 +218,89 @@ namespace BL
             p.AddDouble("r11HoursTotal", rec.r11HoursTotal);
             p.AddString("r11Text", rec.r11Text);
             return _db.SaveRecord("r11CapacityLimit", p, rec);
+        }
+
+        private int WriteBlock(BO.r12CapacityPlan rec)
+        {
+            var p = new DL.Params4Dapper();
+            p.AddInt("pid", rec.pid);
+            if (rec.pid == 0) p.AddInt("r11ID", rec.r11ID, true);
+            p.AddDateTime("r12Start", rec.r12Start);
+            p.AddDateTime("r12End", rec.r12End);
+            p.AddDouble("r12Hours", rec.r12Hours);
+            p.AddString("r12Text", rec.r12Text);
+            return _db.SaveRecord("r12CapacityPlan", p, rec);
+        }
+
+        /// <summary>
+        /// Uloží strop i jeho bloky najednou (karta záznamu r11/Record). lisBlocks je cílový stav: blok s pid = 0 se založí,
+        /// existující se přepíše, bloky stropu, které v seznamu nejsou, se smažou. Součet bloků nesmí překročit strop.
+        /// </summary>
+        public int SaveWithBlocks(BO.r11CapacityLimit rec, List<BO.r12CapacityPlan> lisBlocks)
+        {
+            if (!IsAvailable()) return this.ZeroMessage("V databázi chybí tabulky kapacitního plánování.");
+            if (lisBlocks == null) lisBlocks = new List<BO.r12CapacityPlan>();
+            if (rec.pid > 0)
+            {
+                var recOrig = Load(rec.pid);
+                if (recOrig == null) return this.ZeroMessage("Záznam nebyl nalezen.");
+                rec.p41ID = recOrig.p41ID; rec.j02ID = recOrig.j02ID;   //projekt a osoba se u existujícího stropu nemění
+            }
+            if (rec.p41ID <= 0) return this.ZeroMessage("Chybí vyplnit [Projekt].");
+            if (rec.j02ID <= 0) return this.ZeroMessage("Chybí vyplnit [Personální zdroj (uživatel)].");
+            if (!CanEdit(rec.p41ID)) return this.ZeroMessage("Kapacitní plán projektu může upravovat jen ten, kdo má k projektu vlastnické oprávnění.");
+            if (rec.r11HoursFa < 0 || rec.r11HoursNeFa < 0) return this.ZeroMessage("Hodiny nesmí být záporné.");
+            rec.r11HoursTotal = Math.Round(rec.r11HoursFa + rec.r11HoursNeFa, 2);
+            if (rec.r11HoursTotal <= 0) return this.ZeroMessage("Chybí vyplnit strop hodin.");
+            if (rec.r11HoursTotal > 100000) return this.ZeroMessage("Strop hodin je mimo povolený rozsah.");
+            if (rec.pid == 0)
+            {
+                var c = _db.Load<BO.GetInteger>("SELECT COUNT(*) as Value FROM r11CapacityLimit WHERE p41ID=@p41id AND j02ID=@j02id", new { p41id = rec.p41ID, j02id = rec.j02ID });
+                if (c != null && c.Value > 0) return this.ZeroMessage("Tato osoba už má na projektu strop hodin zadaný.");
+            }
+
+            foreach (var b in lisBlocks)
+            {
+                b.r12Start = b.r12Start.Date; b.r12End = b.r12End.Date;
+                b.r12Hours = Math.Round(b.r12Hours, 2);
+                if (b.r12Start.Year < 2000) return this.ZeroMessage("V bloku chybí vyplnit [Od].");
+                if (b.r12End < b.r12Start) return this.ZeroMessage("Začátek bloku je větší než jeho konec.");
+                if ((b.r12End - b.r12Start).TotalDays > 2000) return this.ZeroMessage("Blok může být dlouhý nejvýše 2000 dní.");
+                if (b.r12Hours <= 0) return this.ZeroMessage("V bloku chybí vyplnit hodiny.");
+            }
+            double dblPlanned = Math.Round(lisBlocks.Sum(p => p.r12Hours), 2);
+            if (dblPlanned > rec.r11HoursTotal + 0.001)
+            {
+                this.AddMessageWithPars("Rozplánované hodiny ({0} h) překračují strop osoby na projektu.", BO.Code.Bas.Number2String(dblPlanned));
+                return 0;
+            }
+            if (rec.pid > 0)
+            {
+                //bloky s pid musí patřit tomuto stropu
+                var ids = _db.GetList<BO.GetInteger>("SELECT r12ID as Value FROM r12CapacityPlan WHERE r11ID=@pid", new { pid = rec.pid }).Select(p => p.Value).ToHashSet();
+                if (lisBlocks.Any(p => p.pid > 0 && !ids.Contains(p.pid))) return this.ZeroMessage("Blok nepatří k tomuto stropu.");
+            }
+            else if (lisBlocks.Any(p => p.pid > 0))
+            {
+                return this.ZeroMessage("Blok nepatří k tomuto stropu.");
+            }
+
+            using (var sc = new System.Transactions.TransactionScope())
+            {
+                int intPID = WriteLimit(rec);
+                if (intPID == 0) return 0;
+
+                var keep = lisBlocks.Where(p => p.pid > 0).Select(p => p.pid).ToList();
+                _db.RunSql("DELETE FROM r12CapacityPlan WHERE r11ID=@pid" + (keep.Count > 0 ? " AND r12ID NOT IN (" + string.Join(",", keep) + ")" : ""), new { pid = intPID });
+                foreach (var b in lisBlocks)
+                {
+                    b.r11ID = intPID;
+                    if (WriteBlock(b) == 0) return 0;
+                }
+
+                sc.Complete();
+                return intPID;
+            }
         }
 
         public bool DeleteLimit(int r11id)
@@ -251,14 +340,7 @@ namespace BL
                 return 0;
             }
 
-            var p = new DL.Params4Dapper();
-            p.AddInt("pid", rec.pid);
-            if (rec.pid == 0) p.AddInt("r11ID", rec.r11ID, true);
-            p.AddDateTime("r12Start", rec.r12Start);
-            p.AddDateTime("r12End", rec.r12End);
-            p.AddDouble("r12Hours", rec.r12Hours);
-            p.AddString("r12Text", rec.r12Text);
-            return _db.SaveRecord("r12CapacityPlan", p, rec);
+            return WriteBlock(rec);
         }
 
         public bool DeleteBlock(int r12id)

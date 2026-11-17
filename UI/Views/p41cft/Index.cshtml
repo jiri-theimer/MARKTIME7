@@ -22,6 +22,12 @@
 
 </div>
 
+<style type="text/css">
+    .cft-box { margin-top: 8px; }
+    .cft-box > .card-header { padding: 4px 10px; font-weight: 600; }
+    .cft-box > .card-body { padding: 8px 10px; }
+</style>
+
 <form id="form1" asp-controller="p41cft" asp-action="Index" method="POST">
     <div class="modal_record_container">
         <input type="hidden" asp-for="p44ID" />
@@ -29,14 +35,9 @@
         <input type="hidden" asp-for="TempGuid" />
         
         
-        <div style="width:100%;background-color:lightblue;margin-top:13px;font-weight:bold;color:navy;">
-            <div style="padding:12px;">
-                @_f.tra("Vzorový projekt"):
-                <strong style="margin-left:10px;color:darkgreen;">
-                    @Model.RecP41.FullName
-                </strong>
-            </div>
-        </div>
+        <div class="card cft-box">
+            <div class="card-header">@_f.tra("Vzorový projekt"): <strong>@Model.RecP41.FullName</strong></div>
+            <div class="card-body">
         
         <div class="row my-2">
             <label for="p41Name" class="col-sm-1 col-md-2 col-form-label">@_f.tra("Název projektu"):</label>
@@ -61,11 +62,11 @@
             </div>
         </div>
 
-        <div style="width:100%;background-color:lightblue;margin-top:13px;font-weight:bold;color:navy;">
-            <div style="padding:12px;">
-                @_f.tra("Fakturační nastavení")
             </div>
         </div>
+        <div class="card cft-box">
+            <div class="card-header">@_f.tra("Fakturační nastavení")</div>
+            <div class="card-body">
 
 
         <input type="radio" id="Radiop51Flag1" asp-for="p41BillingFlag" value="CenikDedit" onchange="_postback('billing')">
@@ -91,8 +92,12 @@
         {
 
             <button type="button" onclick="p51_record_flag3()" class="btn btn-sm bog">@_f.tra("Sazby na míru")</button>
-            <input type="hidden" asp-for="@Model.SelectedP51ID_Flag3" value="@Model.SelectedP51ID_Flag3" />
+            @if (Model.SelectedP51ID_Flag3 > 0)
+            {
+                <span class="text-muted" style="margin-left:10px;">@_f.tra("Nový projekt dostane vlastní kopii sazeb vzorového projektu.")</span>
+            }
         }
+        <input type="hidden" asp-for="@Model.SelectedP51ID_Flag3" value="@Model.SelectedP51ID_Flag3" />
 
         <div class="form-floating my-2">
             <textarea class="form-control" asp-for="p41InvoiceDefaultText1"></textarea>
@@ -105,27 +110,26 @@
         </div>
 
 
-        <div style="width:100%;background-color:lightblue;margin-top:13px;font-weight:bold;color:navy;">
-            <div style="padding:12px;">
-                @_f.tra("Projektové role")
             </div>
         </div>
+        <div class="card cft-box">
+            <div class="card-header">@_f.tra("Projektové role")</div>
+            <div class="card-body">
 
         @Html.EditorFor(m => m.roles, "~/Views/Shared/_RoleAssign.cshtml")
+            </div>
+        </div>
 
 
 
        
 
-        <div style="width:100%;background-color:lightblue;margin-top:13px;font-weight:bold;color:navy;">
-            <div style="padding:12px;">
-                @_f.tra("Opakované odměny/paušály")
-            </div>
-        </div>
-
-        @if(Model.lisP40 != null && Model.lisP40.Count()>0)
+        @if (Model.lisP40 != null && Model.lisP40.Count() > 0)
         {
-            <table class="table table-hover">
+            <div class="card cft-box">
+                <div class="card-header">@_f.tra("Opakované odměny/paušály")</div>
+                <div class="card-body">
+            <table class="table table-sm table-hover" style="margin-bottom:0;">
                 <tr>
                     <th style="width:20px;"></th>
                     <th>Název předpisu</th>
@@ -163,18 +167,16 @@
                     </tr>
                 }
             </table>
-            
-        }
-
-        <div style="width:100%;background-color:lightblue;margin-top:13px;font-weight:bold;color:navy;">
-            <div style="padding:12px;">
-                @_f.tra("Úkoly")
+                </div>
             </div>
-        </div>
+        }
 
         @if (Model.lisP56 != null && Model.lisP56.Count() > 0)
         {
-            <table class="table table-hover">
+            <div class="card cft-box">
+                <div class="card-header">@_f.tra("Úkoly")</div>
+                <div class="card-body">
+            <table class="table table-sm table-hover" style="margin-bottom:0;">
                 <tr>
                     <th style="width:20px;"></th>
                     <th>Úkol</th>
@@ -207,18 +209,16 @@
                     </tr>
                 }
             </table>
-
-        }
-
-        <div style="width:100%;background-color:lightblue;margin-top:13px;font-weight:bold;color:navy;">
-            <div style="padding:12px;">
-                @_f.tra("Termíny/Lhůty")
+                </div>
             </div>
-        </div>
+        }
 
         @if (Model.lisO22 != null && Model.lisO22.Count() > 0)
         {
-            <table class="table table-hover">
+            <div class="card cft-box">
+                <div class="card-header">@_f.tra("Termíny/Lhůty")</div>
+                <div class="card-body">
+            <table class="table table-sm table-hover" style="margin-bottom:0;">
                 <tr>
                     <th style="width:20px;"></th>
                     <th>Název</th>
@@ -252,20 +252,63 @@
                     </tr>
                 }
             </table>
-
+                </div>
+            </div>
         }
 
-        <div style="width:100%;background-color:lightblue;margin-top:13px;font-weight:bold;color:navy;">
-            <div style="padding:12px;">
-                @_f.tra("Ostatní")
-            </div>
-        </div>
+        <div class="card cft-box">
+            <div class="card-header">@_f.tra("Ostatní")</div>
+            <div class="card-body">
         @Html.EditorFor(m => m.hlidac, "~/Views/Shared/_hlidac.cshtml")
 
         @Html.EditorFor(m => m.reminder, "~/Views/Shared/_Reminder.cshtml")
 
         <mystitky entity="p41Project" asp-for="@Model.TagPids" tagnames="@Model.TagNames" taghtml="@Model.TagHtml" buttontext="@_f.tra("Oštítkovat")"></mystitky>
+            </div>
+        </div>
+
+        @if (Model.ff1 != null && Model.ff1.VisibleInputsCount > 0)
+        {
+            <div class="card cft-box">
+                <div class="card-header">@_f.tra("Uživatelská pole")</div>
+                <div class="card-body">
+            @Html.EditorFor(m => m.ff1, "~/Views/Shared/_FreeFields.cshtml")
+                </div>
+            </div>
+        }
 
     </div>
 </form>
+
+<script type="text/javascript">
+    function p51_open_custom() {
+        _window_open("/p51/Record?pid=0&iscustom=true&tempguid=@(Model.TempGuid)", 2, "@_f.tra("Hodinové sazby na míru")");
+    }
+    function p51_record_flag3() {
+        //server nejdřív připraví vlastní kopii sazeb vzorového projektu, okno se otevře po návratu
+        _postback("p51custom");
+    }
+    function p51_record_flag2() {
+        var p51id = $("#SelectedP51ID_Flag2").val();
+        if (p51id == "0" || p51id == "") {
+            alert("@_f.tra("Musíte vybrat ceník.")");
+            return;
+        }
+        _window_open("/p51/Record?pid=" + p51id, 2);
+    }
+    function hardrefresh(pid, flag) {
+        //návrat z okna ceníku: rozpracovaný formulář průvodce se nesmí znovu načíst
+    }
+    function p51_create_flag2() {
+        _window_open("/p51/Record?pid=0", 2);
+    }
+    @if (Model.IsOpenCustomPriceList)
+    {
+        <text>
+        $(document).ready(function () {
+            p51_open_custom();
+        });
+        </text>
+    }
+</script>
 

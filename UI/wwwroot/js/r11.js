@@ -54,7 +54,6 @@ var MtCapacity = (function () {
         };
         var tip = document.getElementById("rc_tip");
         var dlg = document.getElementById("rc_dlg");
-        var pnlNew = document.getElementById("rc_new");
         var storeKey = "r11-collapsed-" + (opt.p41id || 0);
 
         try {
@@ -368,7 +367,6 @@ var MtCapacity = (function () {
 
         // ---------- dialogy ----------
         function hideDlg() { if (dlg) { dlg.style.display = "none"; dlg.innerHTML = ""; } st.dlg = null; }
-        function hideNew() { if (pnlNew) pnlNew.style.display = "none"; }
         function placeDlg(x, y) {
             dlg.style.display = "block";
             var w = dlg.offsetWidth || 320, hh = dlg.offsetHeight || 200;
@@ -387,7 +385,6 @@ var MtCapacity = (function () {
 
         // blok plánu: b = existující blok, nebo {n1,n2} nového
         function openBlockDlg(r, b, x, y) {
-            hideNew();
             var others = 0;
             (r.blocks || []).forEach(function (o) { if (!b.id || o.id !== b.id) others += o.hours || 0; });
             var rest = Math.max(0, Math.round((r.total - others) * 100) / 100);
@@ -400,19 +397,15 @@ var MtCapacity = (function () {
             if (inp) { inp.focus(); inp.select(); }
         }
 
-        function openCapDlg(r, x, y) {
-            hideNew();
-            dlg.innerHTML = "<div class='rc-dlg-head'>" + esc(tra.upravitstrop) + "</div><div class='rc-dlg-sub'>" + esc(r.person.name + " · " + r.project) + "</div>" +
-                dlgRow(tra.hodinyfa, "rc_d_fa", ("" + (r.fa || 0)).replace(".", ","), true) + dlgRow(tra.hodinynefa, "rc_d_nefa", ("" + (r.nefa || 0)).replace(".", ","), true) +
-                dlgRow(tra.poznamka, "rc_d_text", r.text || "", false) + dlgFoot(true);
-            st.dlg = { kind: "cap", row: r };
-            placeDlg(x, y);
-            var inp = document.getElementById("rc_d_fa");
-            if (inp) { inp.focus(); inp.select(); }
+        // strop se zakládá a upravuje ve standardním okně záznamu (r11/Record); po uložení okno zavolá hardrefresh stránky
+        function openRecord(r11id, j02id) {
+            hideDlg();
+            if (typeof _window_open !== "function") return;
+            _window_open("/r11/Record?pid=" + (r11id || 0) + (r11id ? "" : "&p41id=" + (opt.p41id || 0) + "&j02id=" + (j02id || 0)));
         }
 
         function done(data) {
-            if (data && data.ok) { hideDlg(); hideNew(); return load(true); }
+            if (data && data.ok) { hideDlg(); return load(true); }
             notify(data && data.message ? data.message : tra.chyba, "error");
             return null;
         }
@@ -422,17 +415,8 @@ var MtCapacity = (function () {
             var g = st.dlg;
             if (!g) return;
             if (action === "cancel") { hideDlg(); keepScrollRender(); return; }
-            if (g.kind === "block") {
-                if (action === "delete") { post("/r11/DeleteBlock", { r12id: g.block.id }).then(done).catch(fail); return; }
-                post("/r11/SaveBlock", { r12id: g.block.id || 0, r11id: g.row.r11id, d1: isoDay(g.block.n1), d2: isoDay(g.block.n2), hours: val("rc_d_hours"), text: val("rc_d_text") }).then(done).catch(fail);
-            } else {
-                if (action === "delete") {
-                    if (!window.confirm(tra.opravdusmazat)) return;
-                    post("/r11/DeleteLimit", { r11id: g.row.r11id }).then(done).catch(fail);
-                    return;
-                }
-                post("/r11/SaveLimit", { r11id: g.row.r11id, fa: val("rc_d_fa"), nefa: val("rc_d_nefa"), text: val("rc_d_text") }).then(done).catch(fail);
-            }
+            if (action === "delete") { post("/r11/DeleteBlock", { r12id: g.block.id }).then(done).catch(fail); return; }
+            post("/r11/SaveBlock", { r12id: g.block.id || 0, r11id: g.row.r11id, d1: isoDay(g.block.n1), d2: isoDay(g.block.n2), hours: val("rc_d_hours"), text: val("rc_d_text") }).then(done).catch(fail);
         }
 
         if (dlg) {
@@ -446,24 +430,8 @@ var MtCapacity = (function () {
             });
         }
 
-        // nový strop (osoba + projekt se vybírají v panelu vykresleném serverem)
         var cmdAdd = document.getElementById("rc_add");
-        if (cmdAdd && pnlNew) {
-            cmdAdd.addEventListener("click", function () { hideDlg(); pnlNew.style.display = "block"; });
-            document.getElementById("rc_new_cancel").addEventListener("click", hideNew);
-            document.getElementById("rc_new_save").addEventListener("click", function () {
-                var j02id = parseInt(val("NewJ02ID"), 10) || 0, p41id = parseInt(val("NewP41ID"), 10) || 0;
-                if (j02id <= 0 || p41id <= 0) { notify(tra.chybiosoba, "error"); return; }
-                post("/r11/SaveLimit", { r11id: 0, j02id: j02id, p41id: p41id, fa: val("rc_new_fa"), nefa: val("rc_new_nefa"), text: val("rc_new_text") })
-                    .then(function (data) {
-                        if (data && data.ok) {
-                            ["rc_new_fa", "rc_new_nefa", "rc_new_text"].forEach(function (id) { var x = document.getElementById(id); if (x) x.value = ""; });
-                            delete st.collapsed["" + j02id]; delete st.collapsed["p" + p41id];
-                        }
-                        return done(data);
-                    }).catch(fail);
-            });
-        }
+        if (cmdAdd) cmdAdd.addEventListener("click", function () { openRecord(0, 0); });
 
         // ---------- tažení myší ----------
         function rowOf(node) {
@@ -595,7 +563,7 @@ var MtCapacity = (function () {
             }
             if (t.closest("[data-cap]")) {
                 r = rowOf(t);
-                if (r) openCapDlg(r, e.clientX + 10, e.clientY + 10);
+                if (r) openRecord(r.r11id, 0);
                 return;
             }
             if (t.closest("[data-openg]")) {

@@ -13,6 +13,5 @@ namespace BO
         public int j02_Count { get; set; }
         public int p28_Count { get; set; }
         public int p91_Count { get; set; }
-        public int o43_Count { get; set; }
     }
 }

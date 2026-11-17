@@ -835,9 +835,6 @@ namespace BL
                         s = "a__o23Doc__o23Name,a__o23Doc__DocType";
                     }
                     break;
-                case "o43":
-                    s = "a__o43Inbox__o43DateReceived,a__o43Inbox__o43Subject,a__o43Inbox__Sender,a__o43Inbox__o43To,a__o43Inbox__Velikost,a__o43Inbox__o43ImapFolder,a__o43Inbox__Inserted";
-                    break;
                 case "x31":
                     s = "a__x31Report__x31Name,a__x31Report__Kontext,a__x31Report__x31Code,a__x31Report__RepFormat,a__x31Report__Kategorie,a__x31Report__Soubor";
                     break;

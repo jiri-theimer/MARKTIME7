@@ -239,8 +239,6 @@ namespace BL.Singleton
 
             AE_TINY("o58GlobalParam", "Doplňující parametry", "Doplňující parametr");
 
-            //AE("o43Inbox", "Doručená pošta", "Doručená pošta", "o43Inbox a", "a.o43ID DESC");
-
             AE("p84Upominka", "Upomínky", "Upomínka", "p84Upominka a INNER JOIN p91Invoice p91x ON a.p91ID=p91x.p91ID INNER JOIN p83UpominkaType p83x ON a.p83ID=p83x.p83ID", "a.p84ID DESC");
 
             AE("p78UpominkaSdruzena", "Hromadné upomínky", "Hromadná upomínka", "p78UpominkaSdruzena a INNER JOIN p28Contact p28x ON a.p28ID=p28x.p28ID", "a.p78ID DESC");

@@ -219,7 +219,6 @@ namespace BL.AI.Grid
             "p78" => new() { ("p78Date", "Datum upomínky") },
             "o23" => new() { ("o23DateInsert", "Čas založení dokumentu") },
             "p39" or "p40" => new() { ("p39Date", "Datum úkonu"), ("p39DateCreate", "Datum generování") },
-            "o43" => new() { ("o43DateMessage", "Datum zprávy"), ("o43DateInsert", "Datum importu") },
             "p49" or "fp1" or "fp2" or "fp3" => new() { ("p49Date", "Datum plánu") },
             _ => new()
         };

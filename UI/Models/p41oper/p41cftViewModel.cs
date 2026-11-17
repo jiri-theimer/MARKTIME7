@@ -46,6 +46,7 @@ namespace UI.Models.p41oper
         public string p41InvoiceDefaultText2 { get; set; }
         public string p41InvoiceDefaultText1 { get; set; }
         public string SelectedComboP51Name { get; set; }
+        public bool IsOpenCustomPriceList { get; set; }   //po postbacku otevřít okno se sazbami na míru
         
         public List<p56cft> lisP56 { get; set; }
         public List<p40cft> lisP40 { get; set; }

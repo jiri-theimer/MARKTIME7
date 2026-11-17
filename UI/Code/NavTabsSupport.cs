@@ -133,10 +133,6 @@ namespace UI.Code
                         
                         //_tabs.Add(AddTab("∑", "p31totals", "/p31totals/Index?prefix=j02", false));
                     }
-                    if (_f.CurrentUser.j04IsModule_r01)
-                    {
-                        _tabs.Add(AddTab("Kapacity", "capacity", "/j02/TabR01?prefix=j02"));
-                    }
                     _tabs.Add(AddTab("<span class='material-icons-outlined-btn'>timeline</span>" + "Timeline", "b05", "/Record/TabB05?prefix=j02", false, null, _f.tra("Úkoly, termíny a projekty uživatele v čase")));
                     
                     Handle_DocsTabs(lisO17, null);
@@ -229,10 +225,6 @@ namespace UI.Code
                     {
                         _tabs.Add(AddTab("Úkoly", "p56Task", "/TheGrid/SlaveView?prefix=p56", true, Badge1(cp41.p56_Actual_Count)));
                     }
-                    if (_f.CurrentUser.j04IsModule_r01)
-                    {
-                        _tabs.Add(AddTab("Kapacity", "capacity", $"/p41/TabR01?prefix={prefix}", true));
-                    }
                     if (_f.CurrentUser.j04IsModule_p49)
                     {
                         _tabs.Add(AddTab("FP", "p49FinancialPlan", "/TheGrid/SlaveView?prefix=p49", true, Badge1(cp41.p49_Count),"Finanční plány"));
@@ -278,9 +270,6 @@ namespace UI.Code
 
 
                     break;
-                //case "o43":
-                //    _tabs.Add(AddTab("Inbox", "tab1", "/o43/Tab1?pid=" + AppendPid2Url(pid), false));
-                //    break;
                 case "p56":
                     _tabs.Add(AddTab("Úkol", "tab1", "/p56/Tab1?pid=" + AppendPid2Url(pid), false));
                     var cp56 = new BO.p56TaskSum();

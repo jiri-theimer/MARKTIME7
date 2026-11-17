@@ -22,8 +22,6 @@
         public int size_outbox { get; set; }        
         public int rows_outbox { get; set; }
         
-        public int size_inbox { get; set; }
-        public int rows_inbox { get; set; }
 
         public int size_temp { get; set; }
         public int rows_temp { get; set; }

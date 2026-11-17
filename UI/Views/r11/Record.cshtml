@@ -1,0 +1,186 @@
+﻿@model UI.Models.r11.r11Record
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = _f.tra("Strop hodin v kapacitním plánu");
+    Layout = "~/Views/Shared/_LayoutRecord.cshtml";
+    Model.PageSymbol = "online_prediction";
+    double _total = Math.Round(Model.Rec.r11HoursFa + Model.Rec.r11HoursNeFa, 2);
+    double _act = Math.Round(Model.ActFa + Model.ActNefa, 2);
+}
+
+@addTagHelper *, UI
+
+<style type="text/css">
+    .r11rec-info { display: flex; flex-wrap: wrap; gap: 6px 22px; padding: 8px 12px; margin: 10px 0; border-radius: 6px; background: #f6f8fa; border: 1px solid #dfe3e8; font-size: .875rem; }
+    .r11rec-info b { font-variant-numeric: tabular-nums; }
+    .r11rec-bad { color: #b42318; }
+    .r11rec-blocks { width: 100%; margin-top: 4px; }
+    .r11rec-blocks th { font-weight: 500; font-size: .8rem; color: #59636e; padding: 2px 6px 4px 0; }
+    .r11rec-blocks td { padding: 2px 6px 2px 0; vertical-align: middle; }
+    .r11rec-blocks td.r11rec-date { width: 150px; }
+    .r11rec-blocks td.r11rec-num { width: 110px; }
+    .r11rec-blocks td.r11rec-cmd { width: 40px; text-align: right; }
+    .r11rec-sum { margin-top: 6px; font-size: .875rem; color: #59636e; }
+    .r11rec-head { margin: 16px 0 4px 0; font-weight: 600; }
+</style>
+
+<div class="modal_record_container">
+    <input type="hidden" asp-for="ComboPerson" />
+    <input type="hidden" asp-for="ComboProject" />
+
+    <div class="row">
+        <label class="col-sm-3 col-md-3 col-form-label">@_f.tra("Personální zdroj (uživatel)"):</label>
+        <div class="col-sm-9 col-md-8">
+            @if (Model.rec_pid > 0)
+            {
+                <input type="hidden" asp-for="Rec.j02ID" />
+                <input type="text" class="form-control" value="@Model.ComboPerson" readonly="readonly" tabindex="-1" />
+            }
+            else
+            {
+                <mycombo entity="j02User" asp-for="Rec.j02ID" selectedtext="@Model.ComboPerson" filter-flag="1"></mycombo>
+            }
+        </div>
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-3 col-md-3 col-form-label">@_f.tra("Projekt"):</label>
+        <div class="col-sm-9 col-md-8">
+            @if (Model.rec_pid > 0)
+            {
+                <input type="hidden" asp-for="Rec.p41ID" />
+                <input type="text" class="form-control" value="@Model.ComboProject" readonly="readonly" tabindex="-1" />
+            }
+            else
+            {
+                @* po výběru projektu postback: combo samo ukáže jen první sloupec své nabídky, název doplní server *@
+                <mycombo entity="p41Project" asp-for="Rec.p41ID" selectedtext="@Model.ComboProject" filter-flag="1" event_after_changevalue="r11_p41_change"></mycombo>
+            }
+        </div>
+    </div>
+
+    <div class="row my-2">
+        <label class="col-sm-3 col-md-3 col-form-label">@_f.tra("Strop hodin Fa"):</label>
+        <div class="col-sm-3 col-md-2">
+            <mynumber asp-for="Rec.r11HoursFa" decimal-digits="2" event_after_changevalue="r11_recalc"></mynumber>
+        </div>
+        <label class="col-sm-3 col-md-2 col-form-label">@_f.tra("Strop hodin Nefa"):</label>
+        <div class="col-sm-3 col-md-2">
+            <mynumber asp-for="Rec.r11HoursNeFa" decimal-digits="2" event_after_changevalue="r11_recalc"></mynumber>
+        </div>
+        <div class="col-auto col-form-label">
+            @_f.tra("Celkem"): <b id="r11_total">@BO.Code.Bas.Number2String(_total)</b> h
+        </div>
+    </div>
+    <div class="row my-2">
+        <label class="col-sm-3 col-md-3 col-form-label">@_f.tra("Poznámka"):</label>
+        <div class="col-sm-9 col-md-8">
+            <input type="text" class="form-control" asp-for="Rec.r11Text" maxlength="300" />
+        </div>
+    </div>
+
+    @if (Model.rec_pid > 0)
+    {
+        <div class="r11rec-info">
+            <span>@_f.tra("Vykázáno"): <b>@BO.Code.Bas.Number2String(_act)</b> h (<span class="fa">Fa @BO.Code.Bas.Number2String(Model.ActFa)</span> + <span class="nefa">Nefa @BO.Code.Bas.Number2String(Model.ActNefa)</span>)</span>
+            <span class="@(_total - _act < -0.049 ? "r11rec-bad" : "")">@_f.tra("Zbývá do stropu"): <b>@BO.Code.Bas.Number2String(Math.Round(_total - _act, 2))</b> h</span>
+        </div>
+    }
+
+    <div class="r11rec-head">@_f.tra("Rozplánování do bloků")</div>
+    <div class="r11rec-sum" style="margin-top:0;">
+        @if (Model.ProjectPlanFrom != null && Model.ProjectPlanUntil != null)
+        {
+            <span>@_f.tra("Bez bloků se strop rozloží do plánovaného období projektu") (@BO.Code.Bas.ObjectDate2String(Model.ProjectPlanFrom) – @BO.Code.Bas.ObjectDate2String(Model.ProjectPlanUntil)).</span>
+        }
+        else
+        {
+            <span>@_f.tra("Projekt nemá plánované zahájení a dokončení: bez bloků se strop do vytížení nezapočítá.")</span>
+        }
+    </div>
+
+    <table class="r11rec-blocks">
+        <thead>
+            <tr>
+                <th>@_f.tra("Od")</th>
+                <th>@_f.tra("Do")</th>
+                <th>@_f.tra("Hodiny")</th>
+                <th>@_f.tra("Poznámka")</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < Model.lisR12.Count; i++)
+            {
+                <tr id="r11row@(i)" style="@(Model.lisR12[i].IsTempDeleted ? "display:none;" : "")">
+                    <td class="r11rec-date">
+                        <input type="hidden" asp-for="lisR12[i].pid" />
+                        <input type="hidden" asp-for="lisR12[i].IsTempDeleted" />
+                        <mydate asp-for="lisR12[i].r12Start"></mydate>
+                    </td>
+                    <td class="r11rec-date">
+                        <mydate asp-for="lisR12[i].r12End"></mydate>
+                    </td>
+                    <td class="r11rec-num">
+                        <mynumber asp-for="lisR12[i].r12Hours" decimal-digits="2" event_after_changevalue="r11_recalc"></mynumber>
+                    </td>
+                    <td>
+                        <input type="text" class="form-control" asp-for="lisR12[i].r12Text" maxlength="300" />
+                    </td>
+                    <td class="r11rec-cmd">
+                        <button type="button" class="btn btn-light" tabindex="-1" title="@_f.tra("Odstranit blok")" onclick="r11_delete_block(@i)"><span class="material-icons-outlined-btn" style="color:red;">delete</span></button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <div class="r11rec-sum">
+        <button type="button" class="btn btn-outline-secondary" onclick="_postback('add_block')"><span class="material-icons-outlined-btn">add</span>@_f.tra("Přidat blok")</button>
+        <span style="margin-left:14px;">@_f.tra("Rozplánováno"): <b id="r11_planned">0</b> h, @_f.tra("zbývá rozplánovat"): <b id="r11_rest">0</b> h</span>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function r11_p41_change(p41id) {
+        _postback("p41id");
+    }
+
+    function r11_num(id) {      //hodnota číselného pole (česká i anglická desetinná čárka)
+        var el = document.getElementById(id);
+        if (!el) return 0;
+        var n = parseFloat(String(el.value).replace(/\s/g, "").replace(",", "."));
+        return isNaN(n) ? 0 : n;
+    }
+    function r11_fmt(n) {
+        return String(Math.round(n * 100) / 100).replace(".", ",");
+    }
+
+    //součty: strop celkem, rozplánováno, zbývá rozplánovat
+    function r11_recalc() {
+        var total = r11_num("Rec_r11HoursFa") + r11_num("Rec_r11HoursNeFa");
+        var planned = 0;
+        for (var i = 0; i < @Model.lisR12.Count; i++) {
+            var del = document.getElementById("lisR12_" + i + "__IsTempDeleted");
+            if (del && String(del.value).toLowerCase() === "true") continue;
+            planned += r11_num("lisR12_" + i + "__r12Hours");
+        }
+        document.getElementById("r11_total").textContent = r11_fmt(total);
+        document.getElementById("r11_planned").textContent = r11_fmt(planned);
+        var rest = document.getElementById("r11_rest");
+        rest.textContent = r11_fmt(total - planned);
+        rest.className = (total - planned < -0.001) ? "r11rec-bad" : "";
+    }
+
+    function r11_delete_block(i) {
+        document.getElementById("lisR12_" + i + "__IsTempDeleted").value = "True";
+        document.getElementById("r11row" + i).style.display = "none";
+        if (typeof _toolbar_warn2save_changes === "function") _toolbar_warn2save_changes();
+        r11_recalc();
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        r11_recalc();
+        var body = document.querySelector(".modal_record_container");
+        if (body) body.addEventListener("input", r11_recalc);
+    });
+</script>

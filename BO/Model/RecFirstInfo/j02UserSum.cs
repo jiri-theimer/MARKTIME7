@@ -14,7 +14,6 @@ namespace BO
         public int p31_Approved_Kusovnik_Count { get; set; }
 
         public int p91_Count { get; set; }
-        public int o43_Count { get; set; }
         public DateTime? Last_Access { get; set; }
         public string Last_Worksheet { get; set; }
        

@@ -41,32 +41,6 @@ namespace UI.Controllers
             v.Element2Focus = "Rec_o22Name";
             
             v.Rec = new BO.o22Milestone() {o22DurationCount = 1,o21ID=o21id,p41ID= p41id };
-            //if (v.rec_pid == 0 && o43id_source > 0)
-            //{
-            //    var recO43 = Factory.o43InboxBL.Load(o43id_source);
-            //    v.o43id_source = recO43.pid;
-            //    v.Rec.o22Name = recO43.o43Subject;
-            //    v.IsShowMore = true;
-            //    if (recO43.o43IsBodyHtml)
-            //    {
-            //        InhaleNotepad(v, Factory.Lic.x04ID_Default, recO43.o43BodyHtml);
-            //    }
-            //    else
-            //    {
-            //        InhaleNotepad(v, Factory.Lic.x04ID_Default, recO43.o43BodyText);
-            //    }
-            //    if (recO43.p41ID > 0)
-            //    {
-            //        v.Rec.p41ID = recO43.p41ID;
-            //    }
-            //    var files = Factory.o43InboxBL.GetInboxFiles(recO43.pid, true).Where(p => p.Key != "eml" && p.Key != "msg");
-            //    foreach (BO.StringPair sp in files)
-            //    {
-            //        System.IO.File.Copy(sp.Value, $"{Factory.TempFolder}\\{sp.Key}", true);
-            //        Factory.o27AttachmentBL.CreateTempInfoxFile(v.UploadGuid, "o22", sp.Key, sp.Key, BO.Code.File.GetContentType(sp.Value));
-
-            //    }
-            //}
             if (v.Rec.p41ID==0 && v.b05RecordEntity == "p41" && v.b05RecordPid > 0)
             {
                 v.Rec.p41ID = v.b05RecordPid;

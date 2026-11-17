@@ -13,12 +13,6 @@
         public int j18ID { get; set; }              //filtr: středisko
         public IEnumerable<BO.j11Team> lisJ11 { get; set; }
         public IEnumerable<BO.j18CostUnit> lisJ18 { get; set; }
-
-        //nový strop: výběr osoby a projektu
-        public int NewJ02ID { get; set; }
-        public string NewJ02Name { get; set; }
-        public int NewP41ID { get; set; }
-        public string NewP41Name { get; set; }
     }
 
     public class r11Block

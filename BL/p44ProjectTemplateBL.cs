@@ -71,7 +71,6 @@ namespace BL
             p.AddInt("p44Ordinary", rec.p44Ordinary);
             p.AddBool("p44IsRoles", rec.p44IsRoles);
             p.AddBool("p44IsP56", rec.p44IsP56);
-            p.AddBool("p44IsRoles", rec.p44IsRoles);
             p.AddBool("p44IsP40", rec.p44IsP40);
             p.AddBool("p44IsO22", rec.p44IsO22);
             p.AddBool("p44IsClient", rec.p44IsClient);

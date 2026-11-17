@@ -113,6 +113,78 @@ WHERE x67x.x01ID=@pid AND a.j02ValidUntil>GETDATE()
 AND w.p31Date>=DATEADD(day,-90,GETDATE()) AND w.p31Date<=GETDATE()
 GROUP BY a.j02ID
 HAVING max(w.p31Date)<DATEADD(day,-5,convert(date,GETDATE()))"
+            },
+            new b20HlidacTemplate
+            {
+                Key = "cap-limit-80", Icon = "online_prediction", ListEntity = "p41",
+                Name = "Kapacitní plán: strop hodin vyčerpaný z 80 %",
+                Description = "Otevřené projekty, na kterých některá osoba vykázala aspoň 80 % svého stropu hodin z kapacitního plánu. Hodnota je počet takových osob na projektu. Podíl změníte v SQL (číslo 0.8).",
+                NotifyMessage = "Na těchto projektech se blíží vyčerpání stropu hodin z kapacitního plánu:",
+                TestSql =
+@"SELECT q.p41ID, convert(varchar(10),count(*))+' os.'
+FROM (
+ SELECT r.p41ID, r.j02ID, r.r11HoursTotal, isnull(sum(w.p31Hours_Orig),0) as Vykazano
+ FROM r11CapacityLimit r
+ INNER JOIN p41Project a ON r.p41ID=a.p41ID
+ INNER JOIN p07ProjectLevel p07x ON a.p07ID=p07x.p07ID
+ LEFT OUTER JOIN (p31Worksheet w INNER JOIN p32Activity p32x ON w.p32ID=p32x.p32ID INNER JOIN p34ActivityGroup p34x ON p32x.p34ID=p34x.p34ID AND p34x.p33ID=1) ON r.p41ID=w.p41ID AND r.j02ID=w.j02ID
+ WHERE p07x.x01ID=@pid AND a.p41ValidUntil>GETDATE() AND r.r11HoursTotal>0
+ GROUP BY r.p41ID, r.j02ID, r.r11HoursTotal
+) q
+WHERE q.Vykazano>=q.r11HoursTotal*0.8
+GROUP BY q.p41ID"
+            },
+            new b20HlidacTemplate
+            {
+                Key = "cap-over", Icon = "error_outline", ListEntity = "p41",
+                Name = "Kapacitní plán: vykázáno nad strop hodin",
+                Description = "Otevřené projekty, na kterých některá osoba vykázala víc hodin, než je její strop v kapacitním plánu. Hodnota je největší překročení na projektu.",
+                NotifyMessage = "Na těchto projektech bylo vykázáno víc hodin, než povoluje strop z kapacitního plánu:",
+                TestSql =
+@"SELECT q.p41ID, '+'+convert(varchar(20),convert(decimal(18,1),max(q.Vykazano-q.r11HoursTotal)))+' h'
+FROM (
+ SELECT r.p41ID, r.j02ID, r.r11HoursTotal, isnull(sum(w.p31Hours_Orig),0) as Vykazano
+ FROM r11CapacityLimit r
+ INNER JOIN p41Project a ON r.p41ID=a.p41ID
+ INNER JOIN p07ProjectLevel p07x ON a.p07ID=p07x.p07ID
+ LEFT OUTER JOIN (p31Worksheet w INNER JOIN p32Activity p32x ON w.p32ID=p32x.p32ID INNER JOIN p34ActivityGroup p34x ON p32x.p34ID=p34x.p34ID AND p34x.p33ID=1) ON r.p41ID=w.p41ID AND r.j02ID=w.j02ID
+ WHERE p07x.x01ID=@pid AND a.p41ValidUntil>GETDATE() AND r.r11HoursTotal>0
+ GROUP BY r.p41ID, r.j02ID, r.r11HoursTotal
+) q
+WHERE q.Vykazano>q.r11HoursTotal+0.05
+GROUP BY q.p41ID"
+            },
+            new b20HlidacTemplate
+            {
+                Key = "cap-overload", Icon = "groups", ListEntity = "j02",
+                Name = "Kapacitní plán: přetížení lidé v příštích 14 dnech",
+                Description = "Uživatelé, kteří mají v příštích 14 dnech v blocích kapacitního plánu víc hodin, než je jejich pracovní fond. Hodnota je plán / fond. Počítají se jen bloky (ne stropy rozložené do období projektu) a absence se neodečítají; přesný stav je na stránce Kapacitní plány. Počet dní změníte v SQL (číslo 13 = dnešek + 13 dní).",
+                NotifyMessage = "Tito lidé mají v příštích dnech naplánováno víc hodin, než je jejich pracovní fond:",
+                TestSql =
+@"SELECT q.j02ID, convert(varchar(20),convert(decimal(18,0),q.PlanHodin))+' / '+convert(varchar(20),convert(decimal(18,0),q.Fond))+' h'
+FROM (
+ SELECT u.j02ID
+ ,(SELECT isnull(sum(c.c22Hours_Work),0) FROM c22FondCalendar_Date c
+   WHERE c.c21ID=u.c21ID AND isnull(c.c22CountryCode,'CZ')=isnull(u.j02CountryCode,'CZ')
+   AND c.c22Date BETWEEN convert(date,GETDATE()) AND DATEADD(day,13,convert(date,GETDATE()))) as Fond
+ ,(SELECT isnull(sum(b.r12Hours*x.FondOkno/x.FondBlok),0)
+   FROM r12CapacityPlan b INNER JOIN r11CapacityLimit r ON b.r11ID=r.r11ID
+   CROSS APPLY (SELECT
+     (SELECT isnull(sum(c.c22Hours_Work),0) FROM c22FondCalendar_Date c
+      WHERE c.c21ID=u.c21ID AND isnull(c.c22CountryCode,'CZ')=isnull(u.j02CountryCode,'CZ')
+      AND c.c22Date BETWEEN b.r12Start AND b.r12End) as FondBlok
+    ,(SELECT isnull(sum(c.c22Hours_Work),0) FROM c22FondCalendar_Date c
+      WHERE c.c21ID=u.c21ID AND isnull(c.c22CountryCode,'CZ')=isnull(u.j02CountryCode,'CZ')
+      AND c.c22Date BETWEEN b.r12Start AND b.r12End
+      AND c.c22Date BETWEEN convert(date,GETDATE()) AND DATEADD(day,13,convert(date,GETDATE()))) as FondOkno
+   ) x
+   WHERE r.j02ID=u.j02ID AND x.FondBlok>0
+   AND b.r12End>=convert(date,GETDATE()) AND b.r12Start<=DATEADD(day,13,convert(date,GETDATE()))) as PlanHodin
+ FROM j02User u
+ WHERE u.j02ValidUntil>GETDATE() AND u.c21ID IS NOT NULL
+ AND u.j02ID IN (SELECT r.j02ID FROM r11CapacityLimit r INNER JOIN p41Project a ON r.p41ID=a.p41ID INNER JOIN p07ProjectLevel p07x ON a.p07ID=p07x.p07ID WHERE p07x.x01ID=@pid)
+) q
+WHERE q.PlanHodin>q.Fond+0.05"
             }
         };
 

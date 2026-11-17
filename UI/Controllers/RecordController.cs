@@ -692,9 +692,6 @@ namespace UI.Controllers
                 case "p78":
                     v.TabName = Factory.tra("Stránka upomínky");
                     break;
-                case "o43":
-                    v.TabName = Factory.tra("Inbox záznam");
-                    break;
                 case "o51":
                     v.TabName = Factory.tra("Štítek");
                     break;

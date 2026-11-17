@@ -15,6 +15,5 @@ namespace UI.Models
         public int recpid { get; set; }
         public string RecordAlias { get; set; }
         public int o17id { get; set; }
-        public int o43id_source { get; set; }
     }
 }

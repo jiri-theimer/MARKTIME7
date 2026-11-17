@@ -90,9 +90,9 @@ namespace UI.Controllers
 
 
 
-        public IActionResult SelectDocType(string prefix, int recpid, int o17id,int o43id_source)
+        public IActionResult SelectDocType(string prefix, int recpid, int o17id)
         {
-            var v = new SelectDocTypeViewModel() { prefix = BO.Code.Entity.GetPrefixDb(prefix), recpid = recpid, o17id = o17id,o43id_source=o43id_source };
+            var v = new SelectDocTypeViewModel() { prefix = BO.Code.Entity.GetPrefixDb(prefix), recpid = recpid, o17id = o17id };
 
             //v.lisO18 = Factory.o18DocTypeBL.GetList(new BO.myQueryO18() {entity = v.prefix, o17id = v.o17id }).OrderBy(p => p.o18Ordinary);
             v.lisO18 = Factory.o18DocTypeBL.GetList_DocumentCreate();
@@ -317,10 +317,6 @@ namespace UI.Controllers
                     v.Rec.o23IsEncrypted = true;
                 }
                 InhaleDisp(v, 0);
-                //if (v.o43id_source > 0)
-                //{
-                //    InhaleInboxRecord(v);
-                //}
                 InhaleNotepad(v, v.Rec.x04ID, v.Rec.o23Notepad);
             }
 
@@ -726,13 +722,6 @@ namespace UI.Controllers
                     }
                     v.barcodes.CommitChangesIfNewRecords(Factory, c.pid);
 
-                    //if (v.o43id_source > 0)
-                    //{
-                    //    var recO43 = Factory.o43InboxBL.Load(v.o43id_source);
-                    //    recO43.o23ID = c.pid;
-                    //    Factory.o43InboxBL.Save(recO43);
-                    //}
-
                     if (v.reminder != null)
                     {
                         v.reminder.SaveChanges(Factory, c.pid);
@@ -907,35 +896,5 @@ namespace UI.Controllers
             return perm.OwnerAccess;
         }
 
-        //private void InhaleInboxRecord(o23Record v)
-        //{
-        //    if (v.o43id_source > 0)
-        //    {
-        //        var recO43 = Factory.o43InboxBL.Load(v.o43id_source);
-                
-        //        v.Rec.o23Name = recO43.o43Subject;
-        //        if (recO43.o43IsBodyHtml)
-        //        {
-        //            v.Rec.o23Notepad = recO43.o43BodyHtml;
-        //        }
-        //        else
-        //        {
-        //            v.Rec.o23Notepad = recO43.o43BodyText;
-        //        }
-        //        var files = Factory.o43InboxBL.GetInboxFiles(recO43.pid, true).Where(p => p.Key != "eml" && p.Key != "msg");
-        //        if (files.Count() > 0)
-        //        {
-        //            v.disp.SetChecked(PosEnum.Files, true); //zapnout rozšíření Nahrávat přílohy                    
-        //        }
-        //        foreach (BO.StringPair sp in files)
-        //        {
-        //            System.IO.File.Copy(sp.Value, $"{Factory.TempFolder}\\{sp.Key}",true);
-        //            Factory.o27AttachmentBL.CreateTempInfoxFile(v.UploadGuid, "o23", sp.Key, sp.Key, BO.Code.File.GetContentType(sp.Value));
-                    
-        //        }
-                
-
-        //    }
-        //}
     }
 }

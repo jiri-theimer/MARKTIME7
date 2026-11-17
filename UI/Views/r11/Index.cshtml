@@ -111,42 +111,6 @@
 <div id="rc_tip" class="rc-tip"></div>
 <div id="rc_dlg" class="rc-dlg"></div>
 
-@* nový strop: osoba + projekt + hodiny *@
-<div id="rc_new" class="rc-dlg rc-new">
-    <div class="rc-dlg-head">@_f.tra("Nový strop hodin osoby na projektu")</div>
-    <div class="rc-dlg-row">
-        <label>@_f.tra("Personální zdroj (uživatel)")</label>
-        <div><mycombo entity="j02User" asp-for="NewJ02ID" selectedtext="@Model.NewJ02Name"></mycombo></div>
-    </div>
-    @if (Model.p41id > 0)
-    {
-        <input type="hidden" id="NewP41ID" value="@Model.p41id" />
-    }
-    else
-    {
-        <div class="rc-dlg-row">
-            <label>@_f.tra("Projekt")</label>
-            <div><mycombo entity="p41Project" asp-for="NewP41ID" selectedtext="@Model.NewP41Name" event_after_changevalue="rc_new_p41_change"></mycombo></div>
-        </div>
-    }
-    <div class="rc-dlg-row">
-        <label for="rc_new_fa">@_f.tra("Hodiny Fa")</label>
-        <div><input type="text" id="rc_new_fa" class="form-control rc-num" inputmode="decimal" autocomplete="off" /></div>
-    </div>
-    <div class="rc-dlg-row">
-        <label for="rc_new_nefa">@_f.tra("Hodiny Nefa")</label>
-        <div><input type="text" id="rc_new_nefa" class="form-control rc-num" inputmode="decimal" autocomplete="off" /></div>
-    </div>
-    <div class="rc-dlg-row">
-        <label for="rc_new_text">@_f.tra("Poznámka")</label>
-        <div><input type="text" id="rc_new_text" class="form-control" maxlength="300" autocomplete="off" /></div>
-    </div>
-    <div class="rc-dlg-foot">
-        <button type="button" id="rc_new_save" class="btn btn-primary">@_f.tra("Uložit")</button>
-        <button type="button" id="rc_new_cancel" class="btn btn-outline-secondary">@_f.tra("Zrušit")</button>
-    </div>
-</div>
-
 <script src="~/js/r11.js" asp-append-version="true"></script>
 <script type="text/javascript">
     if (typeof _mainmenu_highlight_current === "function") _mainmenu_highlight_current("cmdCapacity");
@@ -183,35 +147,16 @@
             blok: "@_f.tra("Blok plánu")",
             upravitstrop: "@_f.tra("Strop hodin")",
             hodiny: "@_f.tra("Hodiny")",
-            hodinyfa: "@_f.tra("Hodiny Fa")",
-            hodinynefa: "@_f.tra("Hodiny Nefa")",
             poznamka: "@_f.tra("Poznámka")",
             zbyva: "@_f.tra("k rozplánování zbývá")",
             ulozit: "@_f.tra("Uložit")",
             smazat: "@_f.tra("Smazat")",
             zrusit: "@_f.tra("Zrušit")",
-            opravdusmazat: "@_f.tra("Opravdu smazat strop včetně jeho rozplánování?")",
-            chybiosoba: "@_f.tra("Vyberte personální zdroj (uživatele) a projekt.")",
             dni: "@_f.tra("dní")"
         }
     });
 
     function hardrefresh(pid, flag) {   //volá okno s kartou záznamu po uložení
         _r11.reload();
-    }
-
-    //Combo po výběru ukazuje první sloupec své nabídky (ten si uživatel volí, bývá to klient). Tady se do něj doplní název projektu.
-    function rc_new_p41_change(p41id) {
-        if (!p41id || p41id === "0") return;
-        fetch("/r11/ProjectName?p41id=" + encodeURIComponent(p41id), { headers: { "X-Requested-With": "XMLHttpRequest" } })
-            .then(function (r) { return r.json(); })
-            .then(function (data) {
-                if (!data || !data.ok) return;
-                var txt = document.getElementById("cmdComboNewP41ID");
-                if (txt) txt.value = data.name;
-                var hid = document.querySelector("[data-id=text_NewP41ID]");
-                if (hid) hid.value = data.name;
-            })
-            .catch(function () { });
     }
 </script>

@@ -100,7 +100,6 @@ namespace BL
             p.AddBool("j04IsModule_Widgets", rec.j04IsModule_Widgets);
             p.AddBool("j04IsModule_x31", rec.j04IsModule_x31);
             p.AddBool("j04IsModule_p11", rec.j04IsModule_p11);
-            p.AddBool("j04IsModule_o43", rec.j04IsModule_o43);
             p.AddBool("j04IsModule_r01", rec.j04IsModule_r01);
             p.AddBool("j04IsModule_p49", rec.j04IsModule_p49);
             p.AddBool("j04IsModule_o27", rec.j04IsModule_o27);

@@ -18,7 +18,6 @@ namespace BO
         public int p31_Approved_Kusovnik_Count { get; set; }
        
         public int o23_Count { get; set; }
-        public int o43_Count { get; set; }
         public int last_o23ID { get; set; }
        public int p40_Count { get; set; }
         public int p41_Actual_Count { get; set; }

@@ -6,7 +6,6 @@ namespace BO
     {
         public string tabname { get; set; }
         public int p91_Count { get; set; }
-        public int o43_Count { get; set; }
         public int childs_Count { get; set; }
         public int p31_Wip_Time_Count { get; set; }
         public int p31_Wip_Expense_Count { get; set; }

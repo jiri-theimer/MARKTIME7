@@ -134,11 +134,6 @@ namespace BL
                     AF("p91Invoice", "VyuctovaneOdmeny", "EXISTS (select 1 FROM p31Worksheet xa INNER JOIN p32Activity xb ON xa.p32ID=xb.p32ID INNER JOIN p34ActivityGroup xc ON xb.p34ID=xc.p34ID WHERE xa.p91ID=a.p91ID AND xc.p33ID=3)", "Obsahují kusovník", null, null, "bool1x");
 
                     break;
-                case "o43":
-                    AF("o43Inbox", "MimoArchiv", "a.o43ValidUntil>GETDATE()", "Pouze otevřené záznamy", null, null, "bool1x");
-                    AF("o43Inbox", "VArchivu", "a.o43ValidUntil<GETDATE()", "Pouze záznamy v archivu", null, null, "bool1x");
-
-                    break;
                 case "p28":
                     AF("p28Contact", "MimoArchiv", "a.p28ValidUntil>GETDATE()", "Pouze otevřené záznamy", null, null, "bool1x");
                     AF("p28Contact", "VArchivu", "a.p28ValidUntil<GETDATE()", "Pouze záznamy v archivu", null, null, "bool1x");

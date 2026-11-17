@@ -1,5 +1,6 @@
 ﻿using ClosedXML.Excel;
 using Microsoft.AspNetCore.Mvc;
+using UI.Models;
 using UI.Models.r11;
 
 namespace UI.Controllers
@@ -50,8 +51,6 @@ namespace UI.Controllers
                     return this.StopPage(false, "Projekt nebyl nalezen nebo k němu nemáte přístup.");
                 }
                 v.CanEditContext = Factory.r11CapacityBL.CanEdit(v.p41id);
-                v.NewP41ID = v.p41id;
-                v.NewP41Name = v.RecP41.p41Name;
             }
             v.Zoom = Factory.CBL.LoadUserParam("r11-zoom", "week");
             v.Months = Factory.CBL.LoadUserParamInt("r11-months", 4);
@@ -446,47 +445,136 @@ namespace UI.Controllers
             return File(ms.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", strFileName);
         }
 
-        //název projektu pro combo v panelu nového stropu (combo samo ukazuje první sloupec své nabídky)
-        public IActionResult ProjectName(int p41id)
+        // ---------- karta stropu (standardní okno záznamu) ----------
+        public IActionResult Record(int pid, int p41id, int j02id)
         {
-            var rec = p41id > 0 ? Factory.p41ProjectBL.Load(p41id) : null;
-            if (rec == null || !Factory.p41ProjectBL.InhaleRecDisposition(p41id, rec).ReadAccess) return Fail(null);
-            string s = rec.p41Name + (string.IsNullOrEmpty(rec.p41Code) ? "" : " (" + rec.p41Code + ")");
-            if (!string.IsNullOrEmpty(rec.Client)) s = rec.Client + " - " + s;
-            return Json(new { ok = true, name = s });
+            var v = new r11Record() { rec_pid = pid, rec_entity = "r11", lisR12 = new List<r11RecordBlock>() };
+            if (!Factory.CurrentUser.j04IsModule_r01 || !Factory.r11CapacityBL.IsAvailable())
+            {
+                return this.StopPage(true, "Nemáte oprávnění pro tento Modul.");
+            }
+            v.Rec = new BO.r11CapacityLimit() { p41ID = p41id, j02ID = j02id };
+            if (v.rec_pid > 0)
+            {
+                v.Rec = Factory.r11CapacityBL.Load(v.rec_pid);
+                if (v.Rec == null)
+                {
+                    return RecNotFound(v);
+                }
+                if (!Factory.r11CapacityBL.CanEdit(v.Rec.p41ID))
+                {
+                    return this.StopPage(true, "Kapacitní plán projektu může upravovat jen ten, kdo má k projektu vlastnické oprávnění.");
+                }
+                foreach (var c in Factory.r11CapacityBL.GetList_r12(v.Rec.p41ID, v.Rec.j02ID).Where(p => p.r11ID == v.rec_pid))
+                {
+                    v.lisR12.Add(new r11RecordBlock() { pid = c.pid, r12Start = c.r12Start, r12End = c.r12End, r12Hours = c.r12Hours, r12Text = c.r12Text });
+                }
+            }
+            RefreshStateRecord(v);
+            v.Toolbar = new MyToolbarViewModel(v.Rec, false) { AllowClone = false, IsClone = false };
+
+            return View(v);
+        }
+
+        private void RefreshStateRecord(r11Record v)
+        {
+            if (v.lisR12 == null) v.lisR12 = new List<r11RecordBlock>();
+            if (v.Rec == null) v.Rec = new BO.r11CapacityLimit();
+            v.ComboPerson = null; v.ComboProject = null;
+            if (v.Rec.j02ID > 0)
+            {
+                var recJ02 = Factory.j02UserBL.Load(v.Rec.j02ID);
+                if (recJ02 != null) v.ComboPerson = recJ02.FullnameDesc;
+            }
+            if (v.Rec.p41ID > 0)
+            {
+                var recP41 = Factory.p41ProjectBL.Load(v.Rec.p41ID);
+                if (recP41 != null && Factory.p41ProjectBL.InhaleRecDisposition(v.Rec.p41ID, recP41).ReadAccess)
+                {
+                    v.ComboProject = (string.IsNullOrEmpty(recP41.Client) ? "" : recP41.Client + " - ") + recP41.p41Name + (string.IsNullOrEmpty(recP41.p41Code) ? "" : " (" + recP41.p41Code + ")");
+                    v.ProjectPlanFrom = recP41.p41PlanFrom; v.ProjectPlanUntil = recP41.p41PlanUntil;
+                }
+                else
+                {
+                    v.Rec.p41ID = 0;
+                }
+            }
+            if (v.rec_pid > 0 && v.Rec.p41ID > 0 && v.Rec.j02ID > 0)
+            {
+                var act = Factory.r11CapacityBL.GetList_Actuals(v.Rec.p41ID, v.Rec.j02ID).FirstOrDefault();
+                if (act != null) { v.ActFa = Math.Round(act.HoursFa, 2); v.ActNefa = Math.Round(act.HoursNeFa, 2); }
+            }
         }
 
         [HttpPost]
-        public IActionResult SaveLimit(int r11id, int p41id, int j02id, string fa, string nefa, string text)
+        [ValidateAntiForgeryToken]
+        public IActionResult Record(r11Record v, string oper)
         {
-            if (!Factory.CurrentUser.j04IsModule_r01) return Fail(Factory.tra("Nemáte oprávnění pro tento Modul."));
-            if (!TryNum(fa, out double dblFa) || !TryNum(nefa, out double dblNefa)) return Fail(Factory.tra("Hodiny nejsou číslo."));
-
-            Factory.CurrentUser.Messages4Notify = null;
-            var rec = new BO.r11CapacityLimit();
-            if (r11id > 0)
+            if (!Factory.CurrentUser.j04IsModule_r01)
             {
-                rec = Factory.r11CapacityBL.Load(r11id);
-                if (rec == null) return Fail(Factory.tra("Záznam nebyl nalezen."));
+                return this.StopPage(true, "Nemáte oprávnění pro tento Modul.");
             }
-            else
+            if (v.rec_pid > 0)
             {
-                rec.p41ID = p41id; rec.j02ID = j02id;
+                //projekt a osoba existujícího stropu se berou z databáze, ne z formuláře
+                var recOrig = Factory.r11CapacityBL.Load(v.rec_pid);
+                if (recOrig == null) return RecNotFound(v);
+                if (v.Rec == null) v.Rec = new BO.r11CapacityLimit();
+                v.Rec.p41ID = recOrig.p41ID; v.Rec.j02ID = recOrig.j02ID;
             }
-            rec.r11HoursFa = dblFa; rec.r11HoursNeFa = dblNefa;
-            rec.r11Text = string.IsNullOrWhiteSpace(text) ? null : (text.Trim().Length > 300 ? text.Trim().Substring(0, 300) : text.Trim());
-            int intPID = Factory.r11CapacityBL.SaveLimit(rec);
-            if (intPID == 0) return Fail(TakeNotifyMessage());
-            return Json(new { ok = true, pid = intPID });
-        }
+            RefreshStateRecord(v);
+            if (v.Toolbar == null) v.Toolbar = new MyToolbarViewModel(v.Rec, false) { AllowClone = false, IsClone = false };
 
-        [HttpPost]
-        public IActionResult DeleteLimit(int r11id)
-        {
-            if (!Factory.CurrentUser.j04IsModule_r01) return Fail(Factory.tra("Nemáte oprávnění pro tento Modul."));
-            Factory.CurrentUser.Messages4Notify = null;
-            if (!Factory.r11CapacityBL.DeleteLimit(r11id)) return Fail(TakeNotifyMessage());
-            return Json(new { ok = true });
+            if (v.IsPostback)
+            {
+                if (v.PostbackOper == "add_block")
+                {
+                    //nový blok: navazuje na poslední, jinak začíná dnes; nabídne hodiny, které zbývají rozplánovat
+                    var last = v.lisR12.Where(p => !p.IsTempDeleted && p.r12End != null).OrderByDescending(p => p.r12End).FirstOrDefault();
+                    DateTime d1 = last != null ? Convert.ToDateTime(last.r12End).Date.AddDays(1) : DateTime.Today;
+                    double dblRest = Math.Round(v.Rec.r11HoursFa + v.Rec.r11HoursNeFa - v.lisR12.Where(p => !p.IsTempDeleted).Sum(p => p.r12Hours), 2);
+                    v.lisR12.Add(new r11RecordBlock() { r12Start = d1, r12End = d1.AddDays(6), r12Hours = dblRest > 0 ? dblRest : 0 });
+                }
+                ModelState.Clear();     //aby se do formuláře propsaly hodnoty změněné na serveru
+                return View(v);
+            }
+
+            if (ModelState.IsValid)
+            {
+                var c = new BO.r11CapacityLimit();
+                if (v.rec_pid > 0) c = Factory.r11CapacityBL.Load(v.rec_pid);
+                if (v.rec_pid == 0) { c.p41ID = v.Rec.p41ID; c.j02ID = v.Rec.j02ID; }
+                c.r11HoursFa = v.Rec.r11HoursFa;
+                c.r11HoursNeFa = v.Rec.r11HoursNeFa;
+                c.r11Text = string.IsNullOrWhiteSpace(v.Rec.r11Text) ? null : v.Rec.r11Text.Trim();
+
+                var lis = new List<BO.r12CapacityPlan>();
+                bool bolOK = true;
+                foreach (var b in v.lisR12.Where(p => !p.IsTempDeleted))
+                {
+                    if (b.r12Start == null || b.r12End == null)
+                    {
+                        this.AddMessage("V bloku chybí vyplnit [Od] nebo [Do]."); bolOK = false; break;
+                    }
+                    lis.Add(new BO.r12CapacityPlan()
+                    {
+                        pid = b.pid, r12Start = Convert.ToDateTime(b.r12Start), r12End = Convert.ToDateTime(b.r12End), r12Hours = b.r12Hours,
+                        r12Text = string.IsNullOrWhiteSpace(b.r12Text) ? null : b.r12Text.Trim()
+                    });
+                }
+                if (bolOK)
+                {
+                    c.pid = Factory.r11CapacityBL.SaveWithBlocks(c, lis);
+                    if (c.pid > 0)
+                    {
+                        v.SetJavascript_CallOnLoad(c.pid);
+                        return View(v);
+                    }
+                }
+            }
+
+            this.Notify_RecNotSaved();
+            return View(v);
         }
 
         [HttpPost]

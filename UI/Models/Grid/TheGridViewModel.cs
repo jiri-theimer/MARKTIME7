@@ -34,7 +34,6 @@ namespace UI.Models
         public bool IsCanbeMasterView { get; set; }
         public bool IsCanbeKanban { get; set; }
         public string dblClickSetting { get; set; }
-        public int o43mavazbu { get; set; } //0: bez ohledu na vazbu, 1: zprávy bez vazby, 2: zprávy s vazbou
         
         public TheGridQueryViewModel TheGridQueryButton { get; set; }
         public int j27id_query { get; set; }

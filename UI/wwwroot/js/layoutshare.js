@@ -287,7 +287,6 @@ function _get_url_alias(url)
     if (url.indexOf("?prefix=p40") > 0) return "Opakované odměny"
     if (url.indexOf("?prefix=o22") > 0) return "Termíny/Lhůty/Události"
     if (url.indexOf("?prefix=p15") > 0) return "Pojmenované lokality"
-    if (url.indexOf("?prefix=o43") > 0) return "Inbox"
     if (url.indexOf("?prefix=o51") > 0) return "Položky štítků"
     if (url.indexOf("?prefix=o53") > 0) return "Štítky"
     if (url.indexOf("workflow_designer") > 0) return "Workflow návrhář"

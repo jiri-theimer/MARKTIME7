@@ -23,7 +23,6 @@ namespace BO
         public double Expenses_Orig { get; set; }
         public double Incomes_Orig { get; set; }
         public int p49_Count { get; set; }
-        public int o43_Count { get; set; }
         public int b05_Count { get; set; }
 
     }
