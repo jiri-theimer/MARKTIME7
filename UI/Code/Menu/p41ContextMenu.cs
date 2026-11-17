@@ -128,6 +128,10 @@ namespace UI.Menu
             {
                 AMI("Kapacitní plán projektu", $"javascript: window.top.location.href='/r11/Index?p41id={pid}'", "online_prediction", "more");
             }
+            if (_f.CurrentUser.j04IsModule_p49)
+            {
+                AMI("Rozpočet projektu", $"javascript: window.top.location.href='/p49/Budget?p41id={pid}'", "account_balance_wallet", "more");
+            }
 
 
 

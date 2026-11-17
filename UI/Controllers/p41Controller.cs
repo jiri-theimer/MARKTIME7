@@ -2,7 +2,6 @@
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using UI.Models;
-
 using UI.Models.Record;
 using UI.Models.Tab1;
 
@@ -56,7 +55,6 @@ namespace UI.Controllers
             return View(v);
         }
 
-       
         public IActionResult TabP40(string master_entity, int master_pid, string caller)
         {
             if (master_pid == 0) return this.StopPageSubform("master_pid missing");
@@ -456,8 +454,10 @@ namespace UI.Controllers
                 c.p41Plan_Hours = v.Rec.p41Plan_Hours_Billable + v.Rec.p41Plan_Hours_Nonbillable;
                 c.p41Plan_Internal_Fee = v.Rec.p41Plan_Internal_Fee;
 
-                c.p41Plan_Expenses = v.Rec.p41Plan_Expenses;
-                c.p41Plan_Revenue = v.Rec.p41Plan_Revenue;
+                //má-li projekt rozpočet (p49), plán výdajů / fakturace se počítá z něj a ruční hodnota z karty se nebere
+                var lisP49Budget = v.rec_pid > 0 ? Factory.p49FinancialPlanBL.GetList(new BO.myQueryP49() { p41id = v.rec_pid }).ToList() : new List<BO.p49FinancialPlan>();
+                if (!lisP49Budget.Any(p => p.strana != "P")) c.p41Plan_Expenses = v.Rec.p41Plan_Expenses;
+                if (!lisP49Budget.Any(p => p.strana == "P")) c.p41Plan_Revenue = v.Rec.p41Plan_Revenue;
                 c.p41Plan_Internal_Rate = v.Rec.p41Plan_Internal_Rate;
                 c.p42ID = v.Rec.p42ID;
                 c.p07ID = v.SelectedP07ID;

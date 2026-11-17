@@ -185,6 +185,52 @@ FROM (
  AND u.j02ID IN (SELECT r.j02ID FROM r11CapacityLimit r INNER JOIN p41Project a ON r.p41ID=a.p41ID INNER JOIN p07ProjectLevel p07x ON a.p07ID=p07x.p07ID WHERE p07x.x01ID=@pid)
 ) q
 WHERE q.PlanHodin>q.Fond+0.05"
+            },
+            new b20HlidacTemplate
+            {
+                Key = "budget-80", Icon = "account_balance_wallet", ListEntity = "p41",
+                Name = "Rozpočet: výdaje vyčerpány z 80 %",
+                Description = "Otevřené projekty, na kterých skutečné peněžní výdaje některé aktivity dosáhly 80 % jejího rozpočtu (za celou dobu projektu). Hodnota je nejvyšší čerpání v procentech.",
+                NotifyMessage = "Na těchto projektech se blíží vyčerpání rozpočtu výdajů:",
+                TestSql =
+@"SELECT q.p41ID, convert(varchar(20),convert(int,max(100*q.Skutecnost/q.Rozpocet)))+' %'
+FROM (
+ SELECT b.p41ID, b.p32ID, b.j27ID, sum(b.p49Amount) as Rozpocet
+ ,isnull((SELECT sum(isnull(w.p31Amount_WithoutVat_Orig,0)) FROM p31Worksheet w WHERE w.p41ID=b.p41ID AND w.p32ID=b.p32ID AND isnull(w.j27ID_Billing_Orig,b.j27ID)=b.j27ID AND GETDATE() BETWEEN w.p31ValidFrom AND w.p31ValidUntil),0) as Skutecnost
+ FROM p49FinancialPlan b
+ INNER JOIN p34ActivityGroup p34x ON b.p34ID=p34x.p34ID
+ INNER JOIN p41Project a ON b.p41ID=a.p41ID
+ INNER JOIN p07ProjectLevel p07x ON a.p07ID=p07x.p07ID
+ WHERE p07x.x01ID=@pid AND a.p41ValidUntil>GETDATE() AND p34x.p33ID IN (2,5) AND isnull(p34x.p34IncomeStatementFlag,1)<>2
+ AND GETDATE() BETWEEN b.p49ValidFrom AND b.p49ValidUntil
+ GROUP BY b.p41ID, b.p32ID, b.j27ID
+ HAVING sum(b.p49Amount)>0
+) q
+WHERE q.Skutecnost>=0.8*q.Rozpocet
+GROUP BY q.p41ID"
+            },
+            new b20HlidacTemplate
+            {
+                Key = "budget-over", Icon = "money_off", ListEntity = "p41",
+                Name = "Rozpočet: výdaje nad rozpočet",
+                Description = "Otevřené projekty, na kterých skutečné peněžní výdaje některé aktivity překročily její rozpočet (za celou dobu projektu). Hodnota je největší překročení.",
+                NotifyMessage = "Na těchto projektech výdaje překročily rozpočet:",
+                TestSql =
+@"SELECT q.p41ID, '+'+convert(varchar(30),convert(decimal(18,0),max(q.Skutecnost-q.Rozpocet)))
+FROM (
+ SELECT b.p41ID, b.p32ID, b.j27ID, sum(b.p49Amount) as Rozpocet
+ ,isnull((SELECT sum(isnull(w.p31Amount_WithoutVat_Orig,0)) FROM p31Worksheet w WHERE w.p41ID=b.p41ID AND w.p32ID=b.p32ID AND isnull(w.j27ID_Billing_Orig,b.j27ID)=b.j27ID AND GETDATE() BETWEEN w.p31ValidFrom AND w.p31ValidUntil),0) as Skutecnost
+ FROM p49FinancialPlan b
+ INNER JOIN p34ActivityGroup p34x ON b.p34ID=p34x.p34ID
+ INNER JOIN p41Project a ON b.p41ID=a.p41ID
+ INNER JOIN p07ProjectLevel p07x ON a.p07ID=p07x.p07ID
+ WHERE p07x.x01ID=@pid AND a.p41ValidUntil>GETDATE() AND p34x.p33ID IN (2,5) AND isnull(p34x.p34IncomeStatementFlag,1)<>2
+ AND GETDATE() BETWEEN b.p49ValidFrom AND b.p49ValidUntil
+ GROUP BY b.p41ID, b.p32ID, b.j27ID
+ HAVING sum(b.p49Amount)>0
+) q
+WHERE q.Skutecnost>q.Rozpocet+0.5
+GROUP BY q.p41ID"
             }
         };
 

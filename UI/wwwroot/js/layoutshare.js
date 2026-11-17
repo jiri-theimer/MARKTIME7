@@ -292,6 +292,7 @@ function _get_url_alias(url)
     if (url.indexOf("workflow_designer") > 0) return "Workflow návrhář"
     if (url.indexOf("gantt/Index") > 0) return "Gantt"
     if (url.indexOf("r11/Index") > 0) return "Kapacitní plány"
+    if (url.indexOf("p49/Budget") > 0) return "Finanční rozpočty"
 
 
     return null;

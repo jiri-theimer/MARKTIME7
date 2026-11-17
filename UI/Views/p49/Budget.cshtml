@@ -1,0 +1,134 @@
+﻿@model UI.Models.p49BudgetViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    Model.PageTitle = _f.tra("Finanční rozpočty");
+    if (Model.RecP41 != null)
+    {
+        Model.PageTitle = _f.tra("Rozpočet") + ": " + Model.RecP41.p41Name;
+    }
+}
+
+@addTagHelper *, UI
+
+@section header_content {
+    <link rel="stylesheet" href="~/css/p49budget.css" asp-append-version="true" />
+}
+
+<div class="input-group bg-toolbar">
+    <ul class="nav nav-tabs">
+        <li class="onetab">
+            <a class="nav-link active" href="/p49/Budget@(Model.p41id > 0 ? "?p41id=" + Model.p41id.ToString() : "")">@(Model.p41id > 0 ? _f.tra("Rozpočet projektu") : _f.tra("Finanční rozpočty"))</a>
+        </li>
+    </ul>
+
+    @if (Model.RecP41 != null)
+    {
+        <div class="bg-context">
+            <span class="material-icons-outlined-btn">work_outline</span>
+            <a href="javascript:_edit('p41',@Model.p41id)" title="@_f.tra("Karta projektu")">@Model.RecP41.p41Name</a>
+            <span class="bg-muted">(@Model.RecP41.p41Code)</span>
+            <a class="bg-all" href="/p49/Budget">@_f.tra("Všechny rozpočty")</a>
+        </div>
+        <div class="btn-group bg-nav">
+            <button type="button" class="btn btn-light" id="bgPrev" title="@_f.tra("Předchozí rok")"><span class="material-icons-outlined-btn">chevron_left</span></button>
+            <select id="bgYear" class="form-select bg-year"></select>
+            <button type="button" class="btn btn-light" id="bgNext" title="@_f.tra("Další rok")"><span class="material-icons-outlined-btn">chevron_right</span></button>
+        </div>
+        <div class="bg-legend">
+            <span class="bg-lg bg-warn"></span>@_f.tra("vyčerpáno od 80 %")
+            <span class="bg-lg bg-over"></span>@_f.tra("nad rozpočet")
+            <span class="bg-lg bg-noplan"></span>@_f.tra("výdaj bez rozpočtu")
+        </div>
+    }
+    else
+    {
+        <button type="button" class="btn btn-primary bg-btn" id="bgNew"><span class="material-icons-outlined-btn">add</span>@_f.tra("Přidat")</button>
+        <input type="search" id="bgSearch" class="form-control bg-search" placeholder="@_f.tra("Hledat projekt")" />
+    }
+</div>
+
+@if (Model.RecP41 == null)
+{
+    <div id="bgNewPanel" class="bg-newpanel" style="display:none;">
+        <div class="bg-newtitle">@_f.tra("Nový rozpočet: vyberte projekt")</div>
+        <div class="bg-newcombo">
+            <mycombo entity="p41Project" asp-for="NewP41ID" selectedtext="@Model.NewProject" filter-flag="1" event_after_changevalue="bg_new_project" placeholder="@_f.tra("Projekt")"></mycombo>
+        </div>
+        <div class="bg-muted">@_f.tra("Po výběru se otevře rozpočet projektu. Zadáte do něj rozpočet výdajů a odhad příjmů po aktivitách a měsících; rozdíl a čerpání se počítají samy.")</div>
+    </div>
+}
+else if (Model.CanEdit)
+{
+    <div class="bg-hint">
+        @_f.tra("Klikněte do měsíce a napište částku. Skutečnost se doplňuje sama z vykázaných peněžních výdajů a odměn.")
+    </div>
+}
+
+<div id="bgRoot" class="bg-root"></div>
+
+<script src="~/js/p49budget.js" asp-append-version="true"></script>
+<script type="text/javascript">
+    var _bg = MtBudget.init({
+        root: "bgRoot",
+        p41id: @Model.p41id,
+        year: @Model.Year,
+        canEdit: @(Model.CanEdit ? "true" : "false"),
+        texts: {
+            aktivita: "@_f.tra("Aktivita")",
+            rok: "@_f.tra("Rok")",
+            celkem: "@_f.tra("Celý projekt")",
+            vydaje: "@_f.tra("Výdaje")",
+            prijmy: "@_f.tra("Příjmy")",
+            rozdil: "@_f.tra("Rozdíl (příjmy minus výdaje)")",
+            plan: "@_f.tra("rozpočet")",
+            skutecnost: "@_f.tra("skutečnost")",
+            zbyva: "@_f.tra("zbývá")",
+            prazdnoPrehled: "@_f.tra("Zatím tu není žádný rozpočet. Tlačítkem Přidat vyberete projekt a zadáte jeho rozpočet výdajů a odhad příjmů.")",
+            pridatVydaj: "@_f.tra("+ Přidat výdaj: vyberte aktivitu…")",
+            pridatPrijem: "@_f.tra("+ Přidat příjem: vyberte aktivitu…")",
+            zadneAktivity: "@_f.tra("V nastavení nejsou žádné aktivity tohoto druhu.")",
+            vydajeCelkem: "@_f.tra("Výdaje celkem")",
+            prijmyCelkem: "@_f.tra("Příjmy celkem")",
+            rozpocet: "@_f.tra("Rozpočet")",
+            planVelke: "@_f.tra("Plán")",
+            odhad: "@_f.tra("Odhad")",
+            skutecnostVelke: "@_f.tra("Skutečnost")",
+            zbyvaVelke: "@_f.tra("Zbývá")",
+            celyProjekt: "@_f.tra("Celý projekt")",
+            vRoce: "@_f.tra("v roce")",
+            bezRozpoctu: "@_f.tra("bez rozpočtu")",
+            pokrocile: "@_f.tra("Pokročilé")",
+            tabulka: "@_f.tra("Položky v tabulce")",
+            sDetailem: "@_f.tra("Nová položka s detailem (dodavatel, úkol, poznámka)")",
+            polozky: "@_f.tra("Položky rozpočtu")",
+            detail: "@_f.tra("Upravit detail")",
+            realizovat: "@_f.tra("Realizovat (založit úkon)")",
+            realizovano: "@_f.tra("realizováno")",
+            nova: "@_f.tra("Nová položka")",
+            zavrit: "@_f.tra("Zavřít")",
+            chyba: "@_f.tra("Operace se nezdařila.")",
+            projekt: "@_f.tra("Projekt")",
+            klient: "@_f.tra("Klient")",
+            vydajeRozpocet: "@_f.tra("Výdaje: rozpočet")",
+            vydajeSkut: "@_f.tra("Výdaje: skutečnost")",
+            vydajeZbyva: "@_f.tra("Výdaje: zbývá")",
+            prijmyRozpocet: "@_f.tra("Příjmy: rozpočet")",
+            prijmySkut: "@_f.tra("Příjmy: skutečnost")",
+            mesice: ["@_f.tra("Led")", "@_f.tra("Úno")", "@_f.tra("Bře")", "@_f.tra("Dub")", "@_f.tra("Kvě")", "@_f.tra("Čvn")", "@_f.tra("Čvc")", "@_f.tra("Srp")", "@_f.tra("Zář")", "@_f.tra("Říj")", "@_f.tra("Lis")", "@_f.tra("Pro")"]
+        }
+    });
+
+    function hardrefresh(pid, flag) {   //volá okno s kartou záznamu po uložení
+        _bg.reload();
+    }
+    function bg_new_project(p41id) {    //přehled: po výběru projektu otevřít jeho rozpočet
+        if (!p41id || p41id === "0") p41id = $("#NewP41ID").val();
+        if (p41id && p41id !== "0") window.location.href = "/p49/Budget?p41id=" + p41id;
+    }
+    $("#bgNew").on("click", function () {
+        $("#bgNewPanel").toggle();
+        $("#bgNewPanel input[type=text]:visible").first().trigger("focus");
+    });
+</script>

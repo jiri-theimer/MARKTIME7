@@ -1,0 +1,87 @@
+/* Rozpočet projektu a přehled rozpočtů (Views/p49/Budget.cshtml, js/p49budget.js) */
+
+.bg-toolbar { padding-top: 8px; gap: 0 8px; align-items: center; flex-wrap: wrap; }
+.bg-context { display: flex; align-items: center; gap: 6px; margin-left: 6px; font-weight: 500; }
+.bg-context .bg-all { margin-left: 10px; font-weight: 400; font-size: .875rem; }
+.bg-muted { color: #8a939d; font-weight: 400; }
+.bg-nav .btn, .bg-btn { padding: 3px 8px; font-size: .875rem; display: inline-flex; align-items: center; gap: 4px; }
+.bg-year { width: 92px; flex: 0 0 92px; padding-top: 3px; padding-bottom: 3px; font-size: .875rem; border-radius: 0; }
+.bg-add { width: 230px; flex: 0 0 230px; padding-top: 3px; padding-bottom: 3px; font-size: .875rem; }
+.bg-search { width: 220px; flex: 0 0 220px; }
+.bg-legend { margin-left: auto; padding-right: 10px; font-size: .8rem; color: #59636e; display: flex; align-items: center; }
+.bg-lg { display: inline-block; width: 16px; height: 12px; border-radius: 3px; margin: 0 5px 0 12px; border: 1px solid #d0d7de; }
+
+.bg-root { overflow: auto; height: calc(100vh - 150px); min-height: 260px; margin-top: 4px; border: 1px solid #d0d7de; border-radius: 6px; background: #fff; }
+.bg-empty { padding: 30px; color: #59636e; }
+
+table.bg-grid { border-collapse: separate; border-spacing: 0; font-size: .875rem; min-width: 100%; }
+.bg-grid th, .bg-grid td { border-bottom: 1px solid #e6e9ed; border-right: 1px solid #eef0f2; padding: 3px 8px; white-space: nowrap; }
+.bg-grid thead th { position: sticky; top: 0; z-index: 3; background: #f6f8fa; font-weight: 600; text-align: right; }
+.bg-grid thead th.bg-name { text-align: left; }
+.bg-grid .bg-name { position: sticky; left: 0; z-index: 2; background: #fff; min-width: 240px; max-width: 340px; overflow: hidden; text-overflow: ellipsis; text-align: left; }
+.bg-grid thead th.bg-name { z-index: 4; background: #f6f8fa; }
+.bg-grid td.bg-num, .bg-grid td.bg-cell { text-align: right; font-variant-numeric: tabular-nums; }
+.bg-grid td.bg-cell { min-width: 84px; vertical-align: top; }
+.bg-grid .bg-sum { background: #fafbfc; font-weight: 600; min-width: 96px; }
+.bg-grid .bg-now { background: #f3f8ff; }
+.bg-grid thead th.bg-now { background: #e6f0ff; }
+
+.bg-grid tr.bg-section td { background: #eef2f6; font-weight: 600; position: sticky; left: 0; }
+.bg-grid tr.bg-side td { background: #dfe7ef; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; font-size: .78rem; }
+.bg-grid tr.bg-total td { background: #f6f8fa; font-weight: 600; border-top: 2px solid #d0d7de; }
+.bg-grid tr.bg-total td.bg-name { background: #f6f8fa; }
+.bg-grid tr.bg-profit td { background: #fff8e5; font-weight: 600; }
+.bg-grid tr.bg-profit td.bg-name { background: #fff8e5; }
+
+.bg-plan { display: block; min-height: 1.3em; }
+.bg-act { display: block; font-size: .78rem; color: #59636e; min-height: 1.2em; }
+.bg-edit .bg-plan { cursor: text; border-radius: 3px; }
+.bg-edit .bg-plan:hover { outline: 1px solid #9ec5fe; background: #fff; }
+.bg-plan.bg-zero { color: #c3cad1; }
+.bg-items { font-size: .72rem; color: #0d6efd; cursor: pointer; margin-right: 4px; }
+.bg-input { width: 78px; text-align: right; padding: 0 3px; font-size: .875rem; border: 1px solid #0d6efd; border-radius: 3px; }
+
+td.bg-warn, .bg-lg.bg-warn { background: #fff3cd !important; }
+td.bg-over, .bg-lg.bg-over { background: #f8d7da !important; }
+td.bg-noplan, .bg-lg.bg-noplan { background: #e2e3e5 !important; }
+td.bg-done { background: #d1e7dd !important; }
+.bg-neg { color: #b02a37; }
+
+.bg-pop { position: fixed; z-index: 2000; background: #fff; border: 1px solid #adb5bd; border-radius: 6px; box-shadow: 0 6px 24px rgba(0,0,0,.18); padding: 10px 12px; min-width: 300px; max-width: 460px; font-size: .875rem; }
+.bg-pop h6 { margin: 0 0 6px 0; font-size: .9rem; }
+.bg-pop table { width: 100%; margin-bottom: 8px; }
+.bg-pop td { padding: 2px 6px 2px 0; vertical-align: top; }
+.bg-pop .bg-pop-actions { display: flex; gap: 6px; justify-content: flex-end; }
+.bg-pop .btn { padding: 2px 8px; font-size: .8rem; }
+
+.bg-grid tr.bg-prow { cursor: pointer; }
+.bg-grid tr.bg-prow:hover td { background: #f3f8ff; }
+
+/* --- zjednodušené rozhraní: shrnutí, návod, přidávání v mřížce --- */
+.bg-hint { margin: 6px 2px 0 2px; font-size: .875rem; color: #59636e; }
+.bg-newpanel { margin: 8px 2px 0 2px; padding: 12px 14px; border: 1px solid #9ec5fe; border-radius: 6px; background: #f3f8ff; max-width: 720px; }
+.bg-newtitle { font-weight: 600; margin-bottom: 6px; }
+.bg-newcombo { margin-bottom: 6px; }
+
+.bg-summary { position: sticky; left: 0; padding: 10px 10px 6px 10px; }
+.bg-sumrow { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+.bg-box { flex: 0 0 230px; border: 1px solid #d0d7de; border-radius: 6px; padding: 8px 12px; background: #fff; }
+.bg-box.bg-warn { background: #fff3cd; } .bg-box.bg-over { background: #f8d7da; }
+.bg-box-diff { background: #fff8e5; }
+.bg-box-title { font-size: .78rem; text-transform: uppercase; letter-spacing: .03em; color: #59636e; font-weight: 600; }
+.bg-box-main { font-size: 1.25rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.bg-box-sub { font-size: .8rem; color: #59636e; font-variant-numeric: tabular-nums; }
+
+.bg-grid thead th.bg-grp { text-align: center; top: 0; }
+.bg-grid thead tr:nth-child(2) th { top: 27px; }
+.bg-grid tr.bg-addrow td { background: #fff; padding: 5px 8px; }
+.bg-addsel { width: 300px; padding-top: 3px; padding-bottom: 3px; font-size: .875rem; color: #0d6efd; border-style: dashed; }
+.bg-foot { position: sticky; left: 0; padding: 8px 10px; font-size: .8rem; color: #59636e; }
+
+/* buňka k vyplnění vypadá jako políčko */
+.bg-edit td.bg-cell { cursor: text; }
+.bg-edit td.bg-cell .bg-plan { border: 1px solid #e1e5ea; border-radius: 3px; background: rgba(255,255,255,.75); padding: 0 4px; }
+.bg-edit td.bg-cell:hover .bg-plan { border-color: #86b7fe; background: #fff; outline: none; }
+.bg-grid td.bg-cell .bg-act { font-style: italic; }
+.bg-items { opacity: 0; float: left; }
+.bg-items.bg-multi, td.bg-cell:hover .bg-items { opacity: 1; }

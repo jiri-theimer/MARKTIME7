@@ -380,6 +380,14 @@
     </div>
 
     <hr />
+    @if (Model.rec_pid > 0 && _f.CurrentUser.j04IsModule_p49 && _f.p49FinancialPlanBL.GetList(new BO.myQueryP49() { p41id = Model.rec_pid }).Any())
+    {
+        <div class="text-muted my-2">
+            <span class="material-icons-outlined-btn">account_balance_wallet</span>
+            @_f.tra("Projekt má rozpočet po aktivitách a měsících. Plán peněžních výdajů a Plán fakturace se počítají z rozpočtu; ruční změna té strany, která je v rozpočtu, se neuloží.")
+            <a href="/p49/Budget?p41id=@Model.rec_pid" target="_top">@_f.tra("Rozpočet projektu")</a>
+        </div>
+    }
     <div class="row my-2">
         <mylabel text="@(_f.tra("Plán peněžních výdajů"))" class="col-sm-1 col-md-2 col-form-label" tooltip="Plánovaná výše peněžních výdajů, subdodávek apod. (bez ohledu na jejich případnou přefakturaci)."></mylabel>
         <div class="col-sm-2 col-md-2">

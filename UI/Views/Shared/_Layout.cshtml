@@ -338,6 +338,14 @@
                                 </a>
                             </li>
                         }
+                        @if (_f.CurrentUser.j04IsModule_p49 && _myMenu.Contains("p49budget"))
+                        {
+                            <li title="@_f.tra("Finanční rozpočty")">
+                                <a id="cmdBudget" class="nav-link" href="/p49/Budget">
+                                    <span class="material-icons-outlined-btn" style="color:white">account_balance_wallet</span>
+                                </a>
+                            </li>
+                        }
 
                         @if (_f.CurrentUser.j04IsModule_p56)
                         {

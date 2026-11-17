@@ -206,12 +206,8 @@
                 @if (_f.CurrentUser.j04IsModule_p49)
                 {
                     <div class="hm-item">
-                        <a id="linkP49" class="locallink hm-link" href="@cmenu.GetMainmenuEntityUrl("p49")"><span class="material-icons-outlined-btn">energy_savings_leaf</span><span>@_f.tra("Finanční plány (FP)")</span></a>
-                        @Pin("p49")
-                    </div>
-                    <div class="hm-item">
-                        <a id="linkFpView" class="locallink hm-link" href="/TheGrid/FpView"><span class="material-icons-outlined-btn">energy_savings_leaf</span><span>@_f.tra("FP statistiky")</span></a>
-                        @Pin("fpview")
+                        <a id="linkBudget" class="locallink hm-link" href="/p49/Budget"><span class="material-icons-outlined-btn">account_balance_wallet</span><span>@_f.tra("Finanční rozpočty")</span></a>
+                        @Pin("p49budget")
                     </div>
                 }
             </section>
@@ -544,14 +540,6 @@
 
         $("#linkApproving").addClass("active");
     }
-    if (url.indexOf("FpView") > 0) {
-
-        $("#linkFpView").addClass("active");
-    }
-    if (url.indexOf("p49") > 0) {
-
-        $("#linkP49").addClass("active");
-    }
     if (url.indexOf("Kanban/p28") > 0) {
 
         $("#linkKanbanP28").addClass("active");
@@ -612,6 +600,9 @@
     }
     if (urllower.indexOf("r11/index") > 0) {
         $("#linkCapacity").addClass("active");
+    }
+    if (urllower.indexOf("p49/budget") > 0) {
+        $("#linkBudget").addClass("active");
     }
 
     if (url.indexOf("prefix=o23") > 0) {

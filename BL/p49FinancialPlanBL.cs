@@ -7,6 +7,10 @@ namespace BL
         public BO.p49FinancialPlan Load(int pid);
         public IEnumerable<BO.p49FinancialPlan> GetList(BO.myQueryP49 mq);
         public int Save(BO.p49FinancialPlan rec);
+        public bool CanEditBudget(int p41id);
+        public IEnumerable<BO.p49BudgetActual> GetBudgetActuals(int p41id);
+        public IEnumerable<BO.p49BudgetActivity> GetBudgetActivities();
+        public IEnumerable<BO.p49BudgetProject> GetBudgetOverview();
 
     }
     class p49FinancialPlanBL : BaseBL, Ip49FinancialPlanBL
@@ -81,6 +85,62 @@ namespace BL
             }
             return intPID;
         }
+        //rozpočet smí měnit ten, kdo má modul finančních plánů a vlastnické oprávnění k projektu
+        public bool CanEditBudget(int p41id)
+        {
+            if (!_mother.CurrentUser.j04IsModule_p49 || p41id == 0) return false;
+            var disp = _mother.p41ProjectBL.InhaleRecDisposition(p41id);
+            return disp != null && disp.OwnerAccess;
+        }
+
+        //skutečnost rozpočtu: úkony projektu v peněžních sešitech (p33ID 2 a 5; hodiny a kusovník do rozpočtu nepatří), ať vznikly z plánu nebo ručně
+        public IEnumerable<BO.p49BudgetActual> GetBudgetActuals(int p41id)
+        {
+            sb("SELECT a.p32ID,p32x.p32Name,p34x.p34ID,p34x.p34Name,p34x.p34Ordinary");
+            sb(",case when p34x.p34IncomeStatementFlag=2 then 2 else 1 end as Strana");
+            sb(",isnull(a.j27ID_Billing_Orig,0) as j27ID,j27x.j27Code,year(a.p31Date) as Rok,month(a.p31Date) as Mesic,sum(isnull(a.p31Amount_WithoutVat_Orig,0)) as Amount");
+            sb(" FROM p31Worksheet a INNER JOIN p32Activity p32x ON a.p32ID=p32x.p32ID INNER JOIN p34ActivityGroup p34x ON p32x.p34ID=p34x.p34ID");
+            sb(" LEFT OUTER JOIN j27Currency j27x ON a.j27ID_Billing_Orig=j27x.j27ID");
+            sb(" WHERE a.p41ID=@p41id AND p34x.p33ID IN (2,5) AND a.p31Date IS NOT NULL AND GETDATE() BETWEEN a.p31ValidFrom AND a.p31ValidUntil");
+            sb(" GROUP BY a.p32ID,p32x.p32Name,p34x.p34ID,p34x.p34Name,p34x.p34Ordinary,p34x.p34IncomeStatementFlag,a.j27ID_Billing_Orig,j27x.j27Code,year(a.p31Date),month(a.p31Date)");
+            return _db.GetList<BO.p49BudgetActual>(sbret(), new { p41id = p41id });
+        }
+
+        public IEnumerable<BO.p49BudgetActivity> GetBudgetActivities()
+        {
+            sb("SELECT a.p32ID,a.p32Name,a.p32Ordinary,p34x.p34ID,p34x.p34Name,p34x.p34Ordinary,case when p34x.p34IncomeStatementFlag=2 then 2 else 1 end as Strana");
+            sb(" FROM p32Activity a INNER JOIN p34ActivityGroup p34x ON a.p34ID=p34x.p34ID");
+            sb(" WHERE p34x.x01ID=@x01id AND p34x.p33ID IN (2,5) AND GETDATE() BETWEEN a.p32ValidFrom AND a.p32ValidUntil AND GETDATE() BETWEEN p34x.p34ValidFrom AND p34x.p34ValidUntil");
+            sb(" ORDER BY p34x.p34Ordinary,p34x.p34Name,a.p32Ordinary,a.p32Name");
+            return _db.GetList<BO.p49BudgetActivity>(sbret(), new { x01id = _mother.CurrentUser.x01ID });
+        }
+
+        //přehled: projekty licence, které mají rozpočet; plán i skutečnost za celou dobu projektu, po měnách
+        public IEnumerable<BO.p49BudgetProject> GetBudgetOverview()
+        {
+            sb("SELECT q.p41ID,isnull(p41x.p41NameShort,p41x.p41Name) as Project,p41x.p41Code,p28x.p28Name as Client,j27x.j27Code");
+            sb(",sum(q.PlanVydaje) as PlanVydaje,sum(q.PlanPrijmy) as PlanPrijmy,sum(q.SkutVydaje) as SkutVydaje,sum(q.SkutPrijmy) as SkutPrijmy");
+            sb(" FROM (");
+            sb(" SELECT a.p41ID,a.j27ID");
+            sb(" ,sum(case when p34x.p34IncomeStatementFlag=2 then 0 else a.p49Amount end) as PlanVydaje,sum(case when p34x.p34IncomeStatementFlag=2 then a.p49Amount else 0 end) as PlanPrijmy,0 as SkutVydaje,0 as SkutPrijmy");
+            sb(" FROM p49FinancialPlan a INNER JOIN p34ActivityGroup p34x ON a.p34ID=p34x.p34ID");
+            sb(" WHERE GETDATE() BETWEEN a.p49ValidFrom AND a.p49ValidUntil");
+            sb(" GROUP BY a.p41ID,a.j27ID");
+            sb(" UNION ALL");
+            sb(" SELECT w.p41ID,w.j27ID_Billing_Orig,0,0");
+            sb(" ,sum(case when p34x.p34IncomeStatementFlag=2 then 0 else isnull(w.p31Amount_WithoutVat_Orig,0) end),sum(case when p34x.p34IncomeStatementFlag=2 then isnull(w.p31Amount_WithoutVat_Orig,0) else 0 end)");
+            sb(" FROM p31Worksheet w INNER JOIN p32Activity p32x ON w.p32ID=p32x.p32ID INNER JOIN p34ActivityGroup p34x ON p32x.p34ID=p34x.p34ID");
+            sb(" WHERE p34x.p33ID IN (2,5) AND GETDATE() BETWEEN w.p31ValidFrom AND w.p31ValidUntil");
+            sb(" AND w.p41ID IN (select p41ID FROM p49FinancialPlan WHERE GETDATE() BETWEEN p49ValidFrom AND p49ValidUntil)");
+            sb(" GROUP BY w.p41ID,w.j27ID_Billing_Orig");
+            sb(" ) q INNER JOIN p41Project p41x ON q.p41ID=p41x.p41ID INNER JOIN p07ProjectLevel p07x ON p41x.p07ID=p07x.p07ID");
+            sb(" LEFT OUTER JOIN p28Contact p28x ON p41x.p28ID_Client=p28x.p28ID LEFT OUTER JOIN j27Currency j27x ON q.j27ID=j27x.j27ID");
+            sb(" WHERE p07x.x01ID=@x01id AND GETDATE() BETWEEN p41x.p41ValidFrom AND p41x.p41ValidUntil");
+            sb(" GROUP BY q.p41ID,isnull(p41x.p41NameShort,p41x.p41Name),p41x.p41Code,p28x.p28Name,j27x.j27Code");
+            sb(" ORDER BY isnull(p41x.p41NameShort,p41x.p41Name),j27x.j27Code");
+            return _db.GetList<BO.p49BudgetProject>(sbret(), new { x01id = _mother.CurrentUser.x01ID });
+        }
+
         private bool ValidateBeforeSave(BO.p49FinancialPlan rec)
         {
             if (rec.p49Date == null)
