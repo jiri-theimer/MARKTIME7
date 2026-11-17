@@ -193,12 +193,14 @@
                 {
                     <div class="hm-item">
                         <a id="linkGantt" class="locallink hm-link" href="/gantt/Index"><span class="material-icons-outlined-btn">view_timeline</span><span>Gantt</span></a>
+                        @Pin("gantt")
                     </div>
                 }
                 @if (_f.CurrentUser.j04IsModule_r01)
                 {
                     <div class="hm-item">
                         <a id="linkCapacity" class="locallink hm-link" href="/r11/Index"><span class="material-icons-outlined-btn">online_prediction</span><span>@_f.tra("Kapacitní plány")</span></a>
+                        @Pin("r11")
                     </div>
                 }
                 @if (_f.CurrentUser.j04IsModule_p49)

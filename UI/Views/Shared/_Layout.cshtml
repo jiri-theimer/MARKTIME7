@@ -316,11 +316,28 @@
                                 </li>
                                 
                             }
+                            @if (_myMenu.Contains("gantt"))
+                            {
+                                <li title="Gantt">
+                                    <a id="cmdGantt" class="nav-link" href="/gantt/Index">
+                                        <span class="material-icons-outlined-btn" style="color:white">view_timeline</span>
+                                    </a>
+                                </li>
+                            }
                             
                             
                             
                         }
 
+
+                        @if (_f.CurrentUser.j04IsModule_r01 && _myMenu.Contains("r11"))
+                        {
+                            <li title="@_f.tra("Kapacitní plány")">
+                                <a id="cmdCapacity" class="nav-link" href="/r11/Index">
+                                    <span class="material-icons-outlined-btn" style="color:white">online_prediction</span>
+                                </a>
+                            </li>
+                        }
 
                         @if (_f.CurrentUser.j04IsModule_p56)
                         {
@@ -445,14 +462,6 @@
                             <li title="Opakované odměny/paušály" style="margin-left:6px;">
                                 <a id="cmdp40" class="nav-link" href="@(cmenu.GetMainmenuEntityUrl("p40"))">
                                     <span class="material-icons-outlined-btn" style="color:white">repeat_on</span>
-                                </a>
-                            </li>
-                        }
-                        @if (1==2 && _f.CurrentUser.j04IsModule_r01 && _myMenu.Contains("captml"))
-                        {
-                            <li title="Kapacitní plánování" style="margin-left:6px;">
-                                <a id="cmdCapTml" class="nav-link" href="/captml/Index">
-                                    <span class="material-icons-outlined-btn" style="color:white">online_prediction</span>
                                 </a>
                             </li>
                         }

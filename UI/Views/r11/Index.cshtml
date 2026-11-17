@@ -113,6 +113,8 @@
 
 <script src="~/js/r11.js" asp-append-version="true"></script>
 <script type="text/javascript">
+    if (typeof _mainmenu_highlight_current === "function") _mainmenu_highlight_current("cmdCapacity");
+
     var _r11 = MtCapacity.init({
         el: document.getElementById("r11grid"),
         p41id: @Model.p41id,

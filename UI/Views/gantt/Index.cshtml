@@ -68,6 +68,8 @@
 
 <script src="~/js/gantt.js" asp-append-version="true"></script>
 <script type="text/javascript">
+    if (typeof _mainmenu_highlight_current === "function") _mainmenu_highlight_current("cmdGantt");
+
     var _gantt = MtGantt.init({
         el: document.getElementById("gantt1"),
         p41id: @Model.p41id,
