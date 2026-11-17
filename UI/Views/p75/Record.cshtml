@@ -41,6 +41,15 @@
         @_f.tra("Opakování")
     </div>
     <div class="card-body">
+        <div class="my-2">
+            <span class="text-muted" style="margin-right:8px;">@_f.tra("Rychlé nastavení"):</span>
+            <button type="button" class="btn btn-sm bog" onclick="MtP75.applyPreset('Month')">@_f.tra("Měsíčně za uplynulý měsíc")</button>
+            <button type="button" class="btn btn-sm bog" onclick="MtP75.applyPreset('Quarter')">@_f.tra("Čtvrtletně za uplynulé čtvrtletí")</button>
+            <button type="button" class="btn btn-sm bog" onclick="MtP75.applyPreset('Year')">@_f.tra("Ročně za uplynulý rok")</button>
+        </div>
+        <div class="text-muted" style="margin-bottom:8px;">
+            @_f.tra("Rozhodné datum (RD) je den, ke kterému se vyúčtování vztahuje – obvykle poslední den fakturovaného období. Od něj se počítá den vystavení, datum plnění i splatnost.")
+        </div>
         <table>
             <tr>
                 <td style="padding-right:40px;">
@@ -160,7 +169,7 @@
 
 <div class="form-floating my-2">
     <textarea class="form-control" asp-for="@Model.Rec.p75InvoiceText"></textarea>
-    <label for="Rec_p41InvoiceDefaultText1">@_f.tra("Maska textu faktury")</label>
+    <label for="Rec_p75InvoiceText">@_f.tra("Maska textu faktury")</label>
     <br />
     <code>Zkratky období v masce</code>
     <i>[YYYY]: Rok, [MM] nebo [M]:Měsíc, [QQ] nebo [Q]: Čtvrtletí</i>
@@ -169,6 +178,17 @@
 
 
 
+<div class="card my-2">
+    <div class="card-header">
+        @_f.tra("Co se podle tohoto nastavení stane")
+    </div>
+    <div class="card-body">
+        <div id="p75PlanPreview"></div>
+        <div class="text-muted" style="margin-top:6px;">
+            @_f.tra("Při generování se rozpracované úkony projektu (klienta) z daného období automaticky schválí a vloží do vyúčtování. Výsledek každého pokusu je vidět na stránce předpisu.")
+        </div>
+    </div>
+</div>
 <div class="card">
     <div class="card-header">
         @_f.tra("Pevná odměna ve faktuře")
@@ -223,8 +243,10 @@
 
 
 
+<script src="~/js/p75.js" asp-append-version="true"></script>
 <script type="text/javascript">
     $(document).ready(function () {
+        MtP75.init();
 
 
 

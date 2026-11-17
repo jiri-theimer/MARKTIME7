@@ -105,9 +105,9 @@ namespace BL
                 p.AddInt("p70ID_Hours", rec.p70ID_Hours, true);
                 p.AddInt("p70ID_Expenses", rec.p70ID_Expenses, true);
 
-                if (rec.p32ID_Ukon > 0)
+                if (rec.p32ID_Ukon > 0 && rec.j02ID_Ukon == 0)
                 {
-                    rec.j02ID_Ukon = _mother.CurrentUser.pid;
+                    rec.j02ID_Ukon = _mother.CurrentUser.pid;   //uživatel odměny není vybrán -> přihlášený uživatel
                 }
                 p.AddInt("j02ID_Ukon", rec.j02ID_Ukon, true);                
                 p.AddInt("p32ID_Ukon", rec.p32ID_Ukon, true);
@@ -241,12 +241,41 @@ namespace BL
 
         public int Generate_Recurrence_Instance(int p75id, int p76id)
         {
+            string strErr = null;
+            int intP91ID = Generate_Recurrence_Instance_Inner(p75id, p76id, ref strErr);
+            if (p76id > 0)
+            {
+                //výsledek pokusu je vidět na stránce předpisu u řádku plánu
+                if (intP91ID > 0) strErr = null;
+                if (strErr != null && strErr.Length > 1000) strErr = strErr.Substring(0, 1000);
+                _db.RunSql("UPDATE p76InvoiceRecurrence_Plan set p76ErrorMessage_NewInstance=@err WHERE p76ID=@p76id AND p91ID_NewInstance IS NULL", new { err = strErr, p76id = p76id });
+            }
+            return intP91ID;
+        }
+
+        //poslední hlášení: robot zpracovává víc předpisů za sebou, první hlášení by patřilo jinému předpisu
+        private string GetLastNotifyMessage()
+        {
+            var lis = _mother.CurrentUser.Messages4Notify;
+            if (lis == null || lis.Count() == 0) return null;
+            return lis[lis.Count() - 1].Value;
+        }
+
+        private int Generate_Recurrence_Instance_Inner(int p75id, int p76id, ref string strErr)
+        {
             var recp75 = Load(p75id);
             if (p76id == 0 || recp75 == null) return 0;
-            var recp76 = GetList_p76(p75id, p76id).First();
+            var recp76 = GetList_p76(p75id, p76id).FirstOrDefault();
+            if (recp76 == null) return 0;
             if (recp76.p91ID_NewInstance > 0)
             {
-                this.AddMessage("Toto plánované vyúčtování již bylo dříve vygenerovánp.");
+                this.AddMessage("Toto plánované vyúčtování již bylo dříve vygenerováno.");
+                return 0;
+            }
+            if (recp76.p76BaseDate == null || recp76.p76DateSupply == null || recp76.p76DateMaturity == null)
+            {
+                strErr = "V řádku plánu chybí datum. Uložte předpis znovu, plán se přepočítá.";
+                this.AddMessage(strErr);
                 return 0;
             }
             DateTime? gd1 = null;
@@ -261,7 +290,7 @@ namespace BL
                     var d1 = recp76.p76BaseDate.Value;
                     int x = (int)System.Math.Ceiling((decimal)d1.Month / 3);
                     gd1 = new DateTime(d1.Year, (3 * x) - 2, 1);
-                    gd2 = d1.AddMonths(3).AddDays(-1);
+                    gd2 = gd1.Value.AddMonths(3).AddDays(-1);
                     break;
                 case 3: //rok                    
                     gd1 = new DateTime(recp76.p76BaseDate.Value.Year, 1, 1);
@@ -277,11 +306,14 @@ namespace BL
                 var recP31 = new BO.p31WorksheetEntryInput() { p32ID = recp75.p32ID_Ukon, j02ID = recp75.j02ID_Ukon, p31Text = recp75.p75Text_Ukon,p41ID=recp75.p41ID,Amount_WithoutVat_Orig=recp75.p75Value_Ukon,j27ID_Billing_Orig=recp75.j27ID_Ukon };
                 recP31.Addp31Date((DateTime)recp76.p76DateSupply);
                 recP31.p34ID = _mother.p32ActivityBL.Load(recp75.p32ID_Ukon).p34ID;
-                
-                if (_mother.p31WorksheetBL.SaveOrigRecord(recP31, BO.p33IdENUM.PenizeBezDPH, null) == 0)
+
+                //odměna tohoto období už může existovat z dřívějšího nedokončeného pokusu: nezakládat ji podruhé
+                var recExist = _db.Load<BO.GetInteger>("select top 1 p31ID as Value FROM p31Worksheet WHERE p41ID=@p41id AND p32ID=@p32id AND p31Date=@d AND p31Text=@txt", new { p41id = recp75.p41ID, p32id = recp75.p32ID_Ukon, d = recp76.p76DateSupply.Value.Date, txt = recp75.p75Text_Ukon });
+                if ((recExist == null || recExist.Value == 0) && _mother.p31WorksheetBL.SaveOrigRecord(recP31, BO.p33IdENUM.PenizeBezDPH, null) == 0)
                 {
-                    BO.Code.File.LogInfo(_mother.GetFirstNotifyMessage());
-                    this.AddMessage(_mother.GetFirstNotifyMessage());
+                    strErr = "Pevná odměna: " + GetLastNotifyMessage();
+                    BO.Code.File.LogInfo(strErr);
+                    this.AddMessage(strErr);
                     return 0;
                 }
             }
@@ -369,6 +401,8 @@ namespace BL
             lisP31 = _mother.p31WorksheetBL.GetList(mq);
             if (lisP31.Count() == 0)
             {
+                strErr = "V období nejsou žádné úkony k vyúčtování.";
+                this.AddMessage(strErr);
                 return 0; //není co fakturovat
             }
             var recP91 = new BO.p91Create() { DateIssue = recp76.p76DateCreate, IsDraft = recp75.p75IsDraft, TempGUID = BO.Code.Bas.GetGuid(), p28ID = recp75.p28ID, DateSupply = (DateTime)recp76.p76DateSupply, DateMaturity = (DateTime)recp76.p76DateMaturity, InvoiceText1 = recp76.p76Name };
@@ -402,6 +436,10 @@ namespace BL
             {
                 _mother.p75InvoiceRecurrenceBL.UpdateGeneratedInvoice_NewInstance(recp76.p76ID, intP91ID);
 
+            }
+            else
+            {
+                strErr = GetLastNotifyMessage() ?? "Vyúčtování se nepodařilo vytvořit.";
             }
 
 
