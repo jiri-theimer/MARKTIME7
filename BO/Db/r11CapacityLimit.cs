@@ -15,6 +15,7 @@
 
         public string Person { get; }
         public int c21ID { get; }
+        public int j18ID { get; }
         public string j02CountryCode { get; }
         public string Project { get; }
         public string p41Code { get; }
@@ -22,6 +23,23 @@
         public DateTime? p41PlanFrom { get; }
         public DateTime? p41PlanUntil { get; }
         public int j02ID_ProjectOwner { get; }
+    }
+
+    /// <summary>Absence osoby v jednom dni: hodiny časových úkonů na aktivitách s příznakem absence (dovolená, nemoc...).</summary>
+    public class r11Absence
+    {
+        public int j02ID { get; set; }
+        public DateTime Datum { get; set; }
+        public double Hours { get; set; }
+    }
+
+    /// <summary>Vykázané hodiny osoby na projektu v jednom dni (časové úkony mimo absence).</summary>
+    public class r11ActualDay
+    {
+        public int p41ID { get; set; }
+        public int j02ID { get; set; }
+        public DateTime Datum { get; set; }
+        public double Hours { get; set; }
     }
 
     /// <summary>Vykázané hodiny osoby na projektu (časové úkony), rozdělené podle fakturovatelnosti aktivity.</summary>

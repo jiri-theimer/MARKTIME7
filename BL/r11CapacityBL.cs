@@ -19,6 +19,9 @@ namespace BL
         public IEnumerable<BO.r12CapacityPlan> GetList_r12(int p41id, int j02id);
         public BO.r12CapacityPlan Load_r12(int r12id);
         public IEnumerable<BO.r11Actual> GetList_Actuals(int p41id, int j02id);
+        public IEnumerable<BO.r11Absence> GetList_Absences(DateTime d1, DateTime d2);
+        public IEnumerable<BO.r11ActualDay> GetList_ActualsPerDay(DateTime d1, DateTime d2);
+        public List<int> GetTeamPersonIds(int j11id);
         public int SaveLimit(BO.r11CapacityLimit rec);
         public bool DeleteLimit(int r11id);
         public int SaveBlock(BO.r12CapacityPlan rec);
@@ -71,7 +74,7 @@ namespace BL
         private string GetSQL1(string strAppend = null)
         {
             sb("SELECT a.*," + _db.GetSQL1_Ocas("r11"));
-            sb(",j02.j02LastName+' '+j02.j02FirstName as Person,j02.c21ID,j02.j02CountryCode");
+            sb(",j02.j02LastName+' '+j02.j02FirstName as Person,j02.c21ID,j02.j18ID,j02.j02CountryCode");
             sb(",ISNULL(p41.p41NameShort,p41.p41Name) as Project,p41.p41Code,p41.p41PlanFrom,p41.p41PlanUntil,p41.j02ID_Owner as j02ID_ProjectOwner,p28.p28Name as Client");
             sb(" FROM r11CapacityLimit a INNER JOIN p41Project p41 ON a.p41ID=p41.p41ID INNER JOIN p07ProjectLevel p07 ON p41.p07ID=p07.p07ID");
             sb(" INNER JOIN j02User j02 ON a.j02ID=j02.j02ID LEFT OUTER JOIN p28Contact p28 ON p41.p28ID_Client=p28.p28ID");
@@ -133,6 +136,39 @@ namespace BL
             if (j02id > 0) sb(" AND a.j02ID=@j02id");
             sb(" GROUP BY a.p41ID,a.j02ID");
             return _db.GetList<BO.r11Actual>(sbret(), new { p41id = p41id, j02id = j02id, x01id = _mother.CurrentUser.x01ID });
+        }
+
+        /// <summary>
+        /// Absence lidí, kteří mají nějaký strop: hodiny po dnech z časových úkonů na aktivitách s p32AbsenceFlag
+        /// (dovolená, nemoc, OČR...). Oběd (6) se nepočítá, není to absence z pracovního fondu.
+        /// </summary>
+        public IEnumerable<BO.r11Absence> GetList_Absences(DateTime d1, DateTime d2)
+        {
+            if (!IsAvailable()) return new List<BO.r11Absence>();
+            sb("SELECT a.j02ID,a.p31Date as Datum,ISNULL(SUM(a.p31Hours_Orig),0) as Hours");
+            sb(" FROM p31Worksheet a INNER JOIN p32Activity p32 ON a.p32ID=p32.p32ID");
+            sb(" WHERE p32.p32AbsenceFlag>0 AND p32.p32AbsenceFlag<>6 AND a.p31Date BETWEEN @d1 AND @d2");
+            sb(" AND a.j02ID IN (SELECT r11.j02ID FROM r11CapacityLimit r11 INNER JOIN p41Project p41 ON r11.p41ID=p41.p41ID INNER JOIN p07ProjectLevel p07 ON p41.p07ID=p07.p07ID WHERE p07.x01ID=@x01id)");
+            sb(" GROUP BY a.j02ID,a.p31Date");
+            return _db.GetList<BO.r11Absence>(sbret(), new { d1 = d1.Date, d2 = d2.Date, x01id = _mother.CurrentUser.x01ID });
+        }
+
+        /// <summary>Skutečnost po dnech: vykázané hodiny (časové úkony mimo absence) pro dvojice osoba + projekt, které mají strop.</summary>
+        public IEnumerable<BO.r11ActualDay> GetList_ActualsPerDay(DateTime d1, DateTime d2)
+        {
+            if (!IsAvailable()) return new List<BO.r11ActualDay>();
+            sb("SELECT a.p41ID,a.j02ID,a.p31Date as Datum,ISNULL(SUM(a.p31Hours_Orig),0) as Hours");
+            sb(" FROM p31Worksheet a INNER JOIN p32Activity p32 ON a.p32ID=p32.p32ID INNER JOIN p34ActivityGroup p34 ON p32.p34ID=p34.p34ID");
+            sb(" INNER JOIN r11CapacityLimit r11 ON a.p41ID=r11.p41ID AND a.j02ID=r11.j02ID");
+            sb(" INNER JOIN p41Project p41 ON r11.p41ID=p41.p41ID INNER JOIN p07ProjectLevel p07 ON p41.p07ID=p07.p07ID");
+            sb(" WHERE p34.p33ID=1 AND p07.x01ID=@x01id AND ISNULL(p32.p32AbsenceFlag,0)=0 AND a.p31Date BETWEEN @d1 AND @d2");
+            sb(" GROUP BY a.p41ID,a.j02ID,a.p31Date");
+            return _db.GetList<BO.r11ActualDay>(sbret(), new { d1 = d1.Date, d2 = d2.Date, x01id = _mother.CurrentUser.x01ID });
+        }
+
+        public List<int> GetTeamPersonIds(int j11id)
+        {
+            return _db.GetList<BO.GetInteger>("SELECT j02ID as Value FROM j12Team_Person WHERE j11ID=@pid AND j02ID IS NOT NULL", new { pid = j11id }).Select(p => p.Value).ToList();
         }
 
         public int SaveLimit(BO.r11CapacityLimit rec)
@@ -234,8 +270,9 @@ namespace BL
         }
 
         /// <summary>
-        /// Pracovní fond po dnech. Bere se z c22FondCalendar_Date (včetně svátků); pro dny, které tam nejsou,
+        /// Pracovní fond po dnech. Bere se z c22FondCalendar_Date; pro dny, které tam nejsou,
         /// z hodin dne v týdnu ve fondu c21 (c21Day1_Hours = pondělí). Osoba bez fondu: 8 hodin pondělí až pátek.
+        /// Svátky (c26Holiday) státu osoby mají fond vždy nulový.
         /// </summary>
         public Dictionary<DateTime, double> GetFondPerDay(int c21id, string countrycode, DateTime d1, DateTime d2)
         {
@@ -258,6 +295,17 @@ namespace BL
                 if (!ret.ContainsKey(d))
                 {
                     ret[d] = week[((int)d.DayOfWeek + 6) % 7];
+                }
+            }
+            //svátky (c26Holiday) státu osoby mají vždy nulový fond: c22 je nuluje jen pro dny, které obsahuje,
+            //takže bez tohoto by osoba bez fondu nebo den mimo c22 dostal ve svátek běžné hodiny
+            string strCountry = string.IsNullOrEmpty(countrycode) ? _mother.CurrentUser.x01CountryCode : countrycode;
+            if (string.IsNullOrEmpty(strCountry)) strCountry = "CZ";
+            foreach (var c in _mother.c26HolidayBL.GetList(new BO.myQueryC26() { global_d1 = d1.Date, global_d2 = d2.Date }))
+            {
+                if (string.IsNullOrEmpty(c.c26CountryCode) || string.Equals(c.c26CountryCode, strCountry, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (ret.ContainsKey(c.c26Date.Date)) ret[c.c26Date.Date] = 0;
                 }
             }
             return ret;

@@ -1,5 +1,6 @@
 // Kapacitní plány (Views/r11/Index.cshtml). Čistý JS bez knihoven.
-// Řádek osoby = vytížení (naplánované hodiny proti pracovnímu fondu), pod ním projekty osoby se stropem a bloky plánu.
+// Pohled "people": řádek osoby = vytížení (naplánované hodiny proti kapacitě = pracovní fond minus absence), pod ním projekty osoby.
+// Pohled "projects": řádek projektu = naplánované hodiny projektu, pod ním lidé projektu; proužek dole ukazuje celkové vytížení člověka.
 // Rozpad hodin na dny počítá server (r11/Data); po každé změně se data načtou znovu.
 // Dny se počítají jako celé číslo (počet dní od 1.1.1970 v UTC), aby do výpočtů nezasahovalo časové pásmo ani letní čas.
 var MtCapacity = (function () {
@@ -47,7 +48,9 @@ var MtCapacity = (function () {
         var tra = opt.tra || {};
         var st = {
             people: [], rowById: {}, collapsed: {}, zoom: PX[opt.zoom] ? opt.zoom : "week", months: opt.months || 4,
-            filter: "", today: null, start: null, days: 0, px: 12, loaded: false, drag: null, d1: null
+            filter: "", today: null, start: null, days: 0, px: 12, loaded: false, drag: null, d1: null,
+            view: opt.view === "projects" ? "projects" : "people", j11id: opt.j11id || 0, j18id: opt.j18id || 0,
+            heat: opt.heat === "actual" ? "actual" : "plan"     // co ukazují buňky v minulosti: plán proti kapacitě, nebo vykázáno proti plánu
         };
         var tip = document.getElementById("rc_tip");
         var dlg = document.getElementById("rc_dlg");
@@ -65,7 +68,7 @@ var MtCapacity = (function () {
         // ---------- data ----------
         function load(keepScroll) {
             var pos = keepScroll ? { left: el.scrollLeft, top: el.scrollTop } : null;
-            var url = "/r11/Data?p41id=" + (opt.p41id || 0) + "&months=" + st.months + (st.d1 !== null ? "&d1=" + isoDay(st.d1) : "");
+            var url = "/r11/Data?p41id=" + (opt.p41id || 0) + "&months=" + st.months + "&j11id=" + st.j11id + "&j18id=" + st.j18id + (st.d1 !== null ? "&d1=" + isoDay(st.d1) : "");
             return fetch(url, { headers: { "X-Requested-With": "XMLHttpRequest" } })
                 .then(function (r) { return r.json(); })
                 .then(function (data) {
@@ -99,7 +102,7 @@ var MtCapacity = (function () {
 
         function leftWidth() {
             var v = parseInt(window.getComputedStyle(el).getPropertyValue("--rc-left"), 10);
-            return isNaN(v) ? 520 : v;
+            return isNaN(v) ? 590 : v;
         }
 
         // ---------- sloupce vytížení: den / týden / měsíc ----------
@@ -116,12 +119,39 @@ var MtCapacity = (function () {
             return out;
         }
 
-        function sumHtml(p, bks) {
+        // Režim Skutečnost: období, které už začalo, ukazuje vykázáno / plán. Vrací null pro budoucí období (to zůstává v režimu plánu).
+        function actCell(b, act, plan, name) {
+            if (st.heat !== "actual" || st.today === null || b.s > st.today) return null;
+            act = Math.round(act * 10) / 10; plan = Math.round(plan * 10) / 10;
+            var w = (b.e - b.s + 1) * st.px;
+            var cls = "rc-s-none";
+            if (act > 0.049 || plan > 0.049) {
+                if (act > plan * 1.1 + 0.049) cls = "rc-a-over";            // vykázáno víc než plán
+                else if (act < plan * 0.8 - 0.049) cls = "rc-a-under";      // vykázáno výrazně méně než plán
+                else cls = "rc-a-ok";
+            }
+            var txt = "";
+            if (cls !== "rc-s-none") {
+                if (w >= 64) txt = num0(act) + "/" + num0(plan);
+                else if (w >= 24) txt = num0(act);
+            }
+            var title = (name ? name + "\n" : "") + (b.s === b.e ? human(b.s) : human(b.s) + " – " + human(b.e)) + "\n" + tra.vykazano + ": " + num(act) + " h\n" + tra.plan + ": " + num(plan) + " h\n" + tra.rozdil + ": " + (act - plan > 0 ? "+" : "") + num(act - plan) + " h";
+            return "<div class='rc-sum " + cls + (b.e >= st.today ? " rc-now" : "") + "' style='left:" + ((b.s - st.start) * st.px) + "px;width:" + w + "px;' title='" + esc(title) + "'>" + txt + "</div>";
+        }
+
+        // mini = jen barevný proužek vytížení člověka (v pohledu po projektech), bez čísel
+        function sumHtml(p, bks, mini) {
             var h = [];
             bks.forEach(function (b) {
-                var plan = 0, cap = 0, i;
-                for (i = b.s - st.start; i <= b.e - st.start; i++) { plan += p.plan[i] || 0; cap += p.cap[i] || 0; }
-                plan = Math.round(plan * 10) / 10; cap = Math.round(cap * 10) / 10;
+                var plan = 0, cap = 0, abs = 0, i;
+                for (i = b.s - st.start; i <= b.e - st.start; i++) { plan += p.plan[i] || 0; cap += p.cap[i] || 0; abs += (p.abs ? p.abs[i] : 0) || 0; }
+                if (!mini) {
+                    var a = 0;
+                    if (p.act) for (i = b.s - st.start; i <= b.e - st.start; i++) a += p.act[i] || 0;
+                    var cell = actCell(b, a, plan, null);
+                    if (cell !== null) { h.push(cell); return; }
+                }
+                plan = Math.round(plan * 10) / 10; cap = Math.round(cap * 10) / 10; abs = Math.round(abs * 10) / 10;
                 var cls = "rc-s-none";
                 if (plan > 0.049) {
                     if (plan > cap + 0.049) cls = "rc-s-over";
@@ -134,9 +164,13 @@ var MtCapacity = (function () {
                     if (w >= 64) txt = num0(plan) + "/" + num0(cap);
                     else if (w >= 24) txt = plan > 0.049 ? num0(plan) : "";
                 }
-                var title = (b.s === b.e ? human(b.s) : human(b.s) + " – " + human(b.e)) + "\n" + tra.plan + ": " + num(plan) + " h\n" + tra.kapacita + ": " + num(cap) + " h\n" +
-                    (plan > cap ? tra.pretizeni + ": " + num(plan - cap) + " h" : tra.volno + ": " + num(cap - plan) + " h");
-                h.push("<div class='rc-sum " + cls + "' style='left:" + ((b.s - st.start) * st.px) + "px;width:" + w + "px;' title='" + esc(title) + "'>" + txt + "</div>");
+                var title = (mini ? p.name + "\n" : "") + (b.s === b.e ? human(b.s) : human(b.s) + " – " + human(b.e)) + "\n" + tra.plan + ": " + num(plan) + " h\n" + tra.kapacita + ": " + num(cap) + " h\n" +
+                    (plan > cap ? tra.pretizeni + ": " + num(plan - cap) + " h" : tra.volno + ": " + num(cap - plan) + " h") + (abs > 0.049 ? "\n" + tra.absence + ": " + num(abs) + " h" : "");
+                if (mini) {
+                    if (cls !== "rc-s-none" || abs > 0.049) h.push("<div class='rc-mini " + cls + (abs > 0.049 ? " rc-abs" : "") + "' style='left:" + ((b.s - st.start) * st.px) + "px;width:" + w + "px;' title='" + esc(title) + "'></div>");
+                    return;
+                }
+                h.push("<div class='rc-sum " + cls + (abs > 0.049 ? " rc-abs" : "") + "' style='left:" + ((b.s - st.start) * st.px) + "px;width:" + w + "px;' title='" + esc(title) + "'>" + txt + "</div>");
             });
             return h.join("");
         }
@@ -147,8 +181,8 @@ var MtCapacity = (function () {
             return { left: (s - st.start) * st.px, width: (e - s + 1) * st.px };
         }
 
-        function trackHtml(r, W) {
-            var h = [], c;
+        function trackHtml(r, W, mini) {
+            var h = [mini || ""], c;
             var pf = parseDay(r.pf), pu = parseDay(r.pu);
             if (pf !== null && pu !== null && pu >= pf) {
                 c = clip(pf, pu);
@@ -177,16 +211,59 @@ var MtCapacity = (function () {
             return "<div class='" + cls + "' title='" + esc(title) + "'><span class='rc-fa" + (r.actfa > r.fa + 0.049 ? " rc-ovr" : "") + "'>" + num(r.actfa) + "</span> + <span class='rc-nefa" + (r.actnefa > r.nefa + 0.049 ? " rc-ovr" : "") + "'>" + num(r.actnefa) + "</span></div>";
         }
 
-        function visiblePeople() {
-            var f = st.filter;
-            if (f.length < 2) return st.people.map(function (p) { return { p: p, rows: p.rows || [] }; });
-            var out = [];
+        // Zbývá = strop minus vykázáno: kolik hodin se na projekt ještě smí vykázat. Záporné číslo = strop je překročený.
+        function restHtml(r) {
+            var act = (r.actfa || 0) + (r.actnefa || 0);
+            var rest = Math.round((r.total - act) * 10) / 10;
+            var title = tra.zbyva2 + ": " + num(rest) + " h\n" + tra.strop + ": " + num(r.total) + " h\n" + tra.vykazano + ": " + num(act) + " h";
+            return "<div class='rc-fc" + (rest < -0.049 ? " rc-bad" : "") + "' title='" + esc(title) + "'>" + num(rest) + "</div>";
+        }
+
+        // Skupiny k vykreslení podle pohledu: {key, name, sub, person|null, rows}. Hledání (od 2 znaků) filtruje skupiny i řádky.
+        function groups() {
+            var f = st.filter, out = [];
+            function hit(txt) { return f.length < 2 || (txt || "").toLowerCase().indexOf(f) >= 0; }
+            if (st.view === "projects") {
+                var map = {}, list = [];
+                st.people.forEach(function (p) {
+                    (p.rows || []).forEach(function (r) {
+                        var g = map[r.p41id];
+                        if (!g) { g = map[r.p41id] = { key: "p" + r.p41id, name: r.project, sub: r.client, code: r.code, p41id: r.p41id, person: null, rows: [], ctx: r.ctx }; list.push(g); }
+                        g.rows.push(r);
+                    });
+                });
+                list.sort(function (x, y) { return (y.ctx ? 1 : 0) - (x.ctx ? 1 : 0) || (x.name || "").localeCompare(y.name || ""); });
+                list.forEach(function (g) {
+                    var own = hit((g.name || "") + " " + (g.code || "") + " " + (g.sub || ""));
+                    var rows = own ? g.rows : g.rows.filter(function (r) { return hit(r.person.name); });
+                    if (rows.length > 0) out.push({ key: g.key, name: g.name, sub: g.sub, p41id: g.p41id, person: null, rows: rows });
+                });
+                return out;
+            }
             st.people.forEach(function (p) {
-                var own = (p.name || "").toLowerCase().indexOf(f) >= 0;
-                var rows = (p.rows || []).filter(function (r) { return own || ((r.project || "") + " " + (r.code || "") + " " + (r.client || "")).toLowerCase().indexOf(f) >= 0; });
-                if (own || rows.length > 0) out.push({ p: p, rows: rows });
+                var own = hit(p.name);
+                var rows = own ? (p.rows || []) : (p.rows || []).filter(function (r) { return hit((r.project || "") + " " + (r.code || "") + " " + (r.client || "")); });
+                if (own || rows.length > 0) out.push({ key: "" + p.j02id, name: p.name, sub: null, person: p, rows: rows });
             });
             return out;
+        }
+
+        // součet plánu projektu po sloupcích (pohled po projektech): bez kapacity, proto neutrální barva
+        function projSumHtml(rows, bks) {
+            var h = [];
+            bks.forEach(function (b) {
+                var plan = 0, act = 0, i;
+                rows.forEach(function (r) {
+                    for (i = b.s - st.start; i <= b.e - st.start; i++) { plan += (r.dayplan ? r.dayplan[i] : 0) || 0; act += (r.dayact ? r.dayact[i] : 0) || 0; }
+                });
+                var cell = actCell(b, act, plan, null);
+                if (cell !== null) { h.push(cell); return; }
+                plan = Math.round(plan * 10) / 10;
+                if (plan <= 0.049) return;
+                var w = (b.e - b.s + 1) * st.px;
+                h.push("<div class='rc-sum rc-s-plan' style='left:" + ((b.s - st.start) * st.px) + "px;width:" + w + "px;' title='" + esc((b.s === b.e ? human(b.s) : human(b.s) + " – " + human(b.e)) + "\n" + tra.plan + ": " + num(plan) + " h") + "'>" + (w >= 24 ? num0(plan) : "") + "</div>");
+            });
+            return h.join("");
         }
 
         function render() {
@@ -200,7 +277,7 @@ var MtCapacity = (function () {
             var h = [], lines = [], d;
 
             h.push("<div class='rc-content' style='width:" + (leftW + W) + "px;'>");
-            h.push("<div class='rc-head'><div class='rc-corner'><div class='rc-c-name'>" + esc(tra.osoba) + "</div><div class='rc-c-cap'>" + esc(tra.strop) + "</div><div class='rc-c-pln'>" + esc(tra.rozpl) + "</div><div class='rc-c-act'>" + esc(tra.vykazano) + "</div></div>");
+            h.push("<div class='rc-head'><div class='rc-corner'><div class='rc-c-name'>" + esc(st.view === "projects" ? tra.projektosoba : tra.osoba) + "</div><div class='rc-c-cap'>" + esc(tra.strop) + "</div><div class='rc-c-pln'>" + esc(tra.rozpl) + "</div><div class='rc-c-act'>" + esc(tra.vykazano) + "</div><div class='rc-c-fc'>" + esc(tra.zbyva2) + "</div></div>");
             h.push("<div class='rc-axis' style='width:" + W + "px;'><div class='rc-ax1'>");
             var m = st.start;
             while (m < end) {
@@ -235,33 +312,39 @@ var MtCapacity = (function () {
             h.push("<div class='rc-bg' style='left:" + leftW + "px;top:var(--rc-head);width:" + W + "px;bottom:0;" + bg + "'>" + lines.join("") + "</div>");
 
             var bks = buckets();
-            var vis = visiblePeople();
+            var vis = groups();
+            var byProject = st.view === "projects";
             if (vis.length === 0) h.push("<div class='rc-empty'>" + esc(tra.zadnyvysledek) + "</div>");
             vis.forEach(function (it) {
-                var p = it.p;
-                var open = !st.collapsed[p.j02id] || st.filter.length >= 2;
-                var total = 0;
-                (p.rows || []).forEach(function (r) { total += r.total || 0; });
-                h.push("<div class='rc-row rc-person' data-j02='" + p.j02id + "'><div class='rc-cell'><div class='rc-name'>");
+                var p = it.person;
+                var open = !st.collapsed[it.key] || st.filter.length >= 2;
+                var total = 0, acts = 0;
+                it.rows.forEach(function (r) { total += r.total || 0; acts += (r.actfa || 0) + (r.actnefa || 0); });
+                h.push("<div class='rc-row rc-person' data-g='" + esc(it.key) + "'" + (byProject ? " data-p41='" + it.p41id + "'" : "") + "><div class='rc-cell'><div class='rc-name'>");
                 h.push("<button type='button' class='rc-tgl' data-tgl='1'>" + (open ? "&#9662;" : "&#9656;") + "</button>");
-                h.push("<span>" + esc(p.name) + "</span>");
-                if (p.hidden > 0) h.push("<span class='rc-sub' title='" + esc(tra.skryte) + "'>+" + p.hidden + "</span>");
-                h.push("</div><div class='rc-cap'>" + num(total) + "</div><div class='rc-pln'></div><div class='rc-act'></div></div>");
-                h.push("<div class='rc-track' style='width:" + W + "px;'>" + sumHtml(p, bks) + "</div></div>");
+                if (byProject) h.push("<a data-openg='1'>" + esc(it.name) + "</a>" + (it.sub ? "<span class='rc-sub'>" + esc(it.sub) + "</span>" : ""));
+                else h.push("<span>" + esc(it.name) + "</span>");
+                if (p && p.hidden > 0) h.push("<span class='rc-sub' title='" + esc(tra.skryte) + "'>+" + p.hidden + "</span>");
+                h.push("</div><div class='rc-cap'>" + num(total) + "</div><div class='rc-pln'></div><div class='rc-act'>" + num(acts) + "</div><div class='rc-fc'>" + num(total - acts) + "</div></div>");
+                h.push("<div class='rc-track' style='width:" + W + "px;'>" + (byProject ? projSumHtml(it.rows, bks) : sumHtml(p, bks, false)) + "</div></div>");
                 if (!open) return;
                 it.rows.forEach(function (r) {
                     var pln;
                     if (r.spread) pln = "<span class='rc-muted' title='" + esc(num(r.total) + " h " + tra.obdobi) + "'>" + esc(tra.obdobi.split(" ")[1] || "") + "</span>";
                     else if ((r.blocks || []).length === 0) pln = "<span class='rc-muted' title='" + esc(tra.nerozplanovano) + "'>–</span>";
                     else pln = num(r.planned) + " / " + num(r.total);
-                    h.push("<div class='rc-row rc-proj" + (r.ctx ? " rc-ctx" : "") + "' data-r='" + r.r11id + "'><div class='rc-cell'><div class='rc-name'>");
-                    h.push("<a data-open='1' title='" + esc(r.project + (r.code ? " (" + r.code + ")" : "") + (r.text ? "\n" + r.text : "")) + "'>" + esc(r.project) + "</a>");
-                    if (r.client) h.push("<span class='rc-sub'>" + esc(r.client) + "</span>");
+                    h.push("<div class='rc-row rc-proj" + (r.ctx && !byProject ? " rc-ctx" : "") + "' data-r='" + r.r11id + "'><div class='rc-cell'><div class='rc-name'>");
+                    if (byProject) {
+                        h.push("<span title='" + esc(r.person.name + (r.text ? "\n" + r.text : "")) + "'>" + esc(r.person.name) + "</span>");
+                    } else {
+                        h.push("<a data-open='1' title='" + esc(r.project + (r.code ? " (" + r.code + ")" : "") + (r.text ? "\n" + r.text : "")) + "'>" + esc(r.project) + "</a>");
+                        if (r.client) h.push("<span class='rc-sub'>" + esc(r.client) + "</span>");
+                    }
                     h.push("</div><div class='rc-cap'>");
                     if (r.edit > 0) h.push("<button type='button' data-cap='1' title='" + esc(tra.upravitstrop + ": " + num(r.fa) + " Fa + " + num(r.nefa) + " Nefa") + "'>" + num(r.total) + "</button>");
                     else h.push("<span title='" + esc(num(r.fa) + " Fa + " + num(r.nefa) + " Nefa") + "'>" + num(r.total) + "</span>");
-                    h.push("</div><div class='rc-pln'>" + pln + "</div>" + actHtml(r) + "</div>");
-                    h.push(trackHtml(r, W) + "</div>");
+                    h.push("</div><div class='rc-pln'>" + pln + "</div>" + actHtml(r) + restHtml(r) + "</div>");
+                    h.push(trackHtml(r, W, byProject ? sumHtml(r.person, bks, true) : "") + "</div>");
                 });
             });
             h.push("</div>");
@@ -375,7 +458,7 @@ var MtCapacity = (function () {
                     .then(function (data) {
                         if (data && data.ok) {
                             ["rc_new_fa", "rc_new_nefa", "rc_new_text"].forEach(function (id) { var x = document.getElementById(id); if (x) x.value = ""; });
-                            delete st.collapsed[j02id];
+                            delete st.collapsed["" + j02id]; delete st.collapsed["p" + p41id];
                         }
                         return done(data);
                     }).catch(fail);
@@ -503,7 +586,7 @@ var MtCapacity = (function () {
             var t = e.target, r;
             if (t.closest("[data-tgl]")) {
                 var div = t.closest(".rc-person");
-                var id = div ? div.getAttribute("data-j02") : null;
+                var id = div ? div.getAttribute("data-g") : null;
                 if (!id) return;
                 if (st.collapsed[id]) { delete st.collapsed[id]; } else { st.collapsed[id] = true; }
                 saveCollapsed();
@@ -513,6 +596,12 @@ var MtCapacity = (function () {
             if (t.closest("[data-cap]")) {
                 r = rowOf(t);
                 if (r) openCapDlg(r, e.clientX + 10, e.clientY + 10);
+                return;
+            }
+            if (t.closest("[data-openg]")) {
+                var grp = t.closest(".rc-person");
+                var p41id = grp ? parseInt(grp.getAttribute("data-p41"), 10) : 0;
+                if (p41id > 0 && typeof _edit === "function") _edit("p41", p41id);
                 return;
             }
             if (t.closest("[data-open]")) {
@@ -558,7 +647,53 @@ var MtCapacity = (function () {
         x = document.getElementById("rc_xls");
         if (x) x.addEventListener("click", function () {     // export bere zobrazené období a měřítko; hledání se na něj nevztahuje
             if (st.d1 === null) return;
-            window.location.href = "/r11/Export?p41id=" + (opt.p41id || 0) + "&d1=" + isoDay(st.d1) + "&months=" + st.months + "&zoom=" + st.zoom;
+            window.location.href = "/r11/Export?p41id=" + (opt.p41id || 0) + "&d1=" + isoDay(st.d1) + "&months=" + st.months + "&zoom=" + st.zoom + "&j11id=" + st.j11id + "&j18id=" + st.j18id;
+        });
+        function markView() {
+            var b = document.querySelectorAll(".rc-view [data-view]");
+            for (var k = 0; k < b.length; k++) { b[k].classList.toggle("active", b[k].getAttribute("data-view") === st.view); }
+        }
+        var viewBtns = document.querySelectorAll(".rc-view [data-view]");
+        for (i = 0; i < viewBtns.length; i++) {
+            viewBtns[i].addEventListener("click", function () {
+                var v = this.getAttribute("data-view") === "projects" ? "projects" : "people";
+                if (v === st.view) return;
+                st.view = v;
+                post("/Common/SetUserParam", { key: "r11-view", value: v }).catch(function () { });
+                hideDlg();
+                markView();
+                keepScrollRender();
+            });
+        }
+        markView();
+        function markHeat() {
+            var b = document.querySelectorAll(".rc-heat [data-heat]");
+            for (var k = 0; k < b.length; k++) { b[k].classList.toggle("active", b[k].getAttribute("data-heat") === st.heat); }
+            var lg = document.querySelectorAll("[data-legend]");
+            for (k = 0; k < lg.length; k++) { lg[k].style.display = lg[k].getAttribute("data-legend") === st.heat ? "" : "none"; }
+        }
+        var heatBtns = document.querySelectorAll(".rc-heat [data-heat]");
+        for (i = 0; i < heatBtns.length; i++) {
+            heatBtns[i].addEventListener("click", function () {
+                var v = this.getAttribute("data-heat") === "actual" ? "actual" : "plan";
+                if (v === st.heat) return;
+                st.heat = v;
+                post("/Common/SetUserParam", { key: "r11-heat", value: v }).catch(function () { });
+                hideDlg();
+                markHeat();
+                keepScrollRender();
+            });
+        }
+        markHeat();
+        ["j11id", "j18id"].forEach(function (key) {      // filtr lidí podle týmu / střediska
+            var cbx = document.getElementById("rc_" + key);
+            if (!cbx) return;
+            cbx.addEventListener("change", function () {
+                st[key] = parseInt(this.value, 10) || 0;
+                post("/Common/SetUserParam", { key: "r11-" + key, value: "" + st[key] }).catch(function () { });
+                hideDlg();
+                load(true);
+            });
         });
         var txt = document.getElementById("rc_search"), timer = null;
         if (txt) txt.addEventListener("input", function () {

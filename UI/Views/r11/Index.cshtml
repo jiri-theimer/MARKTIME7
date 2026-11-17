@@ -47,6 +47,37 @@
         }
     </select>
 
+    <div class="btn-group rc-zoom rc-view" role="group" aria-label="@_f.tra("Pohled")">
+        <button type="button" class="btn btn-outline-secondary" data-view="people">@_f.tra("Lidé")</button>
+        <button type="button" class="btn btn-outline-secondary" data-view="projects">@_f.tra("Projekty")</button>
+    </div>
+
+    @if (Model.lisJ11.Count() > 0)
+    {
+        <select id="rc_j11id" class="form-select rc-filter" title="@_f.tra("Tým")">
+            <option value="0">@_f.tra("Všechny týmy")</option>
+            @foreach (var c in Model.lisJ11)
+            {
+                <option value="@c.pid" selected="@(Model.j11ID == c.pid)">@c.j11Name</option>
+            }
+        </select>
+    }
+    @if (Model.lisJ18.Count() > 0)
+    {
+        <select id="rc_j18id" class="form-select rc-filter" title="@_f.tra("Středisko")">
+            <option value="0">@_f.tra("Všechna střediska")</option>
+            @foreach (var c in Model.lisJ18)
+            {
+                <option value="@c.pid" selected="@(Model.j18ID == c.pid)">@c.j18Name</option>
+            }
+        </select>
+    }
+
+    <div class="btn-group rc-zoom rc-heat" role="group" aria-label="@_f.tra("Co ukazují uplynulá období")">
+        <button type="button" class="btn btn-outline-secondary" data-heat="plan" title="@_f.tra("Plán proti kapacitě")">@_f.tra("Plán")</button>
+        <button type="button" class="btn btn-outline-secondary" data-heat="actual" title="@_f.tra("Uplynulá období: vykázáno proti plánu. Budoucí období: plán proti kapacitě.")">@_f.tra("Skutečnost")</button>
+    </div>
+
     <div class="btn-group rc-zoom" role="group" aria-label="@_f.tra("Měřítko")">
         <button type="button" class="btn btn-outline-secondary" data-zoom="day">@_f.tra("Dny")</button>
         <button type="button" class="btn btn-outline-secondary" data-zoom="week">@_f.tra("Týdny")</button>
@@ -64,10 +95,15 @@
 
     <button type="button" id="rc_xls" class="btn btn-outline-secondary rc-add" title="@_f.tra("Export zobrazeného období do XLSX")"><span class="material-icons-outlined-btn">file_download</span>XLS</button>
 
-    <div class="rc-legend">
+    <div class="rc-legend" data-legend="plan">
         <span class="rc-lg rc-s-free"></span>@_f.tra("volno")
         <span class="rc-lg rc-s-full"></span>@_f.tra("plno")
         <span class="rc-lg rc-s-over"></span>@_f.tra("přetíženo")
+    </div>
+    <div class="rc-legend" data-legend="actual" style="display:none;">
+        <span class="rc-lg rc-a-under"></span>@_f.tra("vykázáno méně")
+        <span class="rc-lg rc-a-ok"></span>@_f.tra("podle plánu")
+        <span class="rc-lg rc-a-over"></span>@_f.tra("vykázáno více")
     </div>
 </div>
 
@@ -120,8 +156,16 @@
         p41id: @Model.p41id,
         zoom: "@Model.Zoom",
         months: @Model.Months,
+        view: "@Model.ViewMode",
+        heat: "@Model.Heat",
+        j11id: @Model.j11ID,
+        j18id: @Model.j18ID,
         tra: {
             osoba: "@_f.tra("Osoba / projekt")",
+            projektosoba: "@_f.tra("Projekt / osoba")",
+            absence: "@_f.tra("absence")",
+            zbyva2: "@_f.tra("Zbývá")",
+            rozdil: "@_f.tra("rozdíl")",
             strop: "@_f.tra("Strop")",
             rozpl: "@_f.tra("Rozplán.")",
             vykazano: "@_f.tra("Vykázáno")",

@@ -6,13 +6,14 @@
 .rc-zoom .btn, .rc-nav .btn { padding: 3px 10px; font-size: .875rem; }
 .rc-zoom .btn.active { background: #0d6efd; border-color: #0d6efd; color: #fff; }
 .rc-months { width: 96px; flex: 0 0 96px; padding-top: 3px; padding-bottom: 3px; font-size: .875rem; }
+.rc-filter { width: 150px; flex: 0 0 150px; padding-top: 3px; padding-bottom: 3px; font-size: .875rem; }
 .rc-search { width: 180px; }
 .rc-add { padding: 3px 10px; font-size: .875rem; display: inline-flex; align-items: center; gap: 4px; }
 .rc-legend { margin-left: auto; padding-right: 10px; font-size: .8rem; color: #59636e; display: flex; align-items: center; gap: 6px; }
 .rc-lg { display: inline-block; width: 16px; height: 12px; border-radius: 3px; margin-left: 8px; }
 .rc-muted { color: #8a939d; font-weight: 400; }
 
-.rc-scroll { position: relative; overflow: auto; height: calc(100vh - 150px); min-height: 260px; margin-top: 4px; border: 1px solid #dfe3e8; border-radius: 6px; background: #fff; --rc-left: 520px; --rc-row: 30px; --rc-head: 46px; }
+.rc-scroll { position: relative; overflow: auto; height: calc(100vh - 150px); min-height: 260px; margin-top: 4px; border: 1px solid #dfe3e8; border-radius: 6px; background: #fff; --rc-left: 590px; --rc-row: 30px; --rc-head: 46px; }
 .rc-content { position: relative; }
 
 .rc-head { position: sticky; top: 0; z-index: 30; display: flex; height: var(--rc-head); background: #f6f8fa; border-bottom: 1px solid #dfe3e8; }
@@ -22,6 +23,7 @@
 .rc-c-cap, .rc-cap { flex: 0 0 64px; text-align: right; }
 .rc-c-pln, .rc-pln { flex: 0 0 74px; text-align: right; }
 .rc-c-act, .rc-act { flex: 0 0 104px; text-align: right; }
+.rc-c-fc, .rc-fc { flex: 0 0 70px; text-align: right; }
 .rc-axis { position: relative; flex: 0 0 auto; height: 100%; }
 .rc-ax1, .rc-ax2 { position: absolute; left: 0; right: 0; height: 23px; overflow: hidden; }
 .rc-ax1 { top: 0; border-bottom: 1px solid #e6e9ed; }
@@ -48,11 +50,12 @@
 .rc-ctx .rc-name a { font-weight: 600; }
 .rc-tgl { flex: 0 0 16px; width: 16px; height: 16px; padding: 0; border: none; background: transparent; color: #59636e; font-size: 10px; line-height: 16px; cursor: pointer; }
 .rc-sub { flex: 0 1 auto; color: #8a939d; font-size: .78rem; font-weight: 400; overflow: hidden; text-overflow: ellipsis; }
-.rc-cap, .rc-pln, .rc-act { font-size: .8rem; color: #3d4650; font-variant-numeric: tabular-nums; }
+.rc-cap, .rc-pln, .rc-act, .rc-fc { font-size: .8rem; color: #3d4650; font-variant-numeric: tabular-nums; }
+.rc-fc.rc-bad { color: #b42318; font-weight: 700; }
 .rc-cap button { border: none; background: transparent; padding: 1px 4px; border-radius: 4px; color: inherit; font: inherit; cursor: pointer; }
 .rc-cap button:hover { background: #dbe7ff; color: #0d6efd; }
-.rc-fa { color: #1a7f5a; }
-.rc-nefa { color: #8250df; }
+.rc-fa { color: green; }      /* stejné barvy jako .fa / .nefa v site.css */
+.rc-nefa { color: red; }
 .rc-fa.rc-ovr, .rc-nefa.rc-ovr { font-weight: 700; text-decoration: underline; }
 .rc-act.rc-warn { background: #fff4d6; }
 .rc-act.rc-bad { background: #ffe1e1; color: #b42318; font-weight: 600; }
@@ -66,6 +69,17 @@
 .rc-s-free { background: #d9f2e3; }
 .rc-s-full { background: #ffe9a8; }
 .rc-s-over { background: #ffc9c9; color: #b42318; font-weight: 700; }
+.rc-s-plan { background: #dbe7fb; color: #2f4f86; }
+/* režim Skutečnost: vykázáno proti plánu v obdobích, která už začala */
+.rc-a-ok { background: #d9f2e3; }
+.rc-a-under { background: #e3e8ee; color: #59636e; }
+.rc-a-over { background: #ffd8a8; color: #9a4a00; font-weight: 700; }
+.rc-sum.rc-now { border-right: 2px dotted #e5484d; }       /* období, ve kterém je dnešek: ještě není uzavřené */
+.rc-sum.rc-abs { border-bottom: 3px solid #8a939d; line-height: 20px; }     /* v období je absence */
+/* pohled po projektech: proužek celkového vytížení člověka u spodního okraje řádku */
+.rc-mini { position: absolute; bottom: 0; height: 4px; box-sizing: border-box; border-left: 1px solid #fff; }
+.rc-mini.rc-s-none { background: transparent; }
+.rc-mini.rc-abs { border-bottom: 2px solid #8a939d; }
 
 .rc-pp { position: absolute; top: 0; bottom: 0; background: rgba(13,110,253,.06); border-left: 1px dashed #9ec5fe; border-right: 1px dashed #9ec5fe; box-sizing: border-box; pointer-events: none; }
 .rc-bar { position: absolute; top: 6px; height: 18px; border-radius: 4px; background: #3b7ddd; color: #fff; font-size: .72rem; line-height: 18px; white-space: nowrap; box-sizing: border-box; touch-action: none; user-select: none; }
@@ -98,5 +112,5 @@
 
 @media (max-width: 900px) {
     .rc-scroll { --rc-left: 240px; }
-    .rc-c-pln, .rc-pln, .rc-c-act, .rc-act, .rc-sub, .rc-legend { display: none; }
+    .rc-c-pln, .rc-pln, .rc-c-act, .rc-act, .rc-c-fc, .rc-fc, .rc-sub, .rc-legend { display: none; }
 }

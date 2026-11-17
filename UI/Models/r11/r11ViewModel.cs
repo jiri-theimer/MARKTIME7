@@ -7,6 +7,12 @@
         public bool CanEditContext { get; set; }    //smí přihlášený upravovat kapacitní plán projektu v kontextu
         public string Zoom { get; set; }            //day|week|month
         public int Months { get; set; }             //počet zobrazených měsíců
+        public string ViewMode { get; set; }        //people | projects
+        public string Heat { get; set; }            //plan | actual: co ukazují buňky vytížení v minulosti
+        public int j11ID { get; set; }              //filtr: tým
+        public int j18ID { get; set; }              //filtr: středisko
+        public IEnumerable<BO.j11Team> lisJ11 { get; set; }
+        public IEnumerable<BO.j18CostUnit> lisJ18 { get; set; }
 
         //nový strop: výběr osoby a projektu
         public int NewJ02ID { get; set; }
@@ -45,16 +51,17 @@
         public bool spread { get; set; }            //bez bloků: strop je rozložený do období projektu
         public List<r11Block> blocks { get; set; }
 
-        [Newtonsoft.Json.JsonIgnore]                    //aplikace serializuje JSON přes Newtonsoft (Startup: AddNewtonsoftJson)
-        [System.Text.Json.Serialization.JsonIgnore]
-        public double[] dayplan { get; set; }       //naplánované hodiny řádku po dnech; jen pro export, do prohlížeče se neposílá
+        public double[] dayplan { get; set; }       //naplánované hodiny řádku po dnech zobrazeného období (pohled po projektech, export)
+        public double[] dayact { get; set; }        //vykázané hodiny řádku po dnech zobrazeného období
     }
 
     public class r11Person
     {
         public int j02id { get; set; }
         public string name { get; set; }
-        public double[] cap { get; set; }           //pracovní fond po dnech zobrazeného období
+        public double[] cap { get; set; }           //kapacita po dnech zobrazeného období = pracovní fond minus absence
+        public double[] abs { get; set; }           //absence po dnech (hodiny)
+        public double[] act { get; set; }           //vykázané hodiny po dnech na projektech se stropem (všechny projekty osoby)
         public double[] plan { get; set; }          //naplánované hodiny po dnech (všechny projekty osoby)
         public int hidden { get; set; }             //počet projektů, které přihlášený nevidí (v plan jsou započtené)
         public List<r11Row> rows { get; set; }
