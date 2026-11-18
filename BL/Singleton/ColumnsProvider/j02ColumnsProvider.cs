@@ -40,7 +40,7 @@ namespace BL
 
             AFBOOL("j02IsMustChangePassword", "Musí změnit heslo");
             
-            AF("LangIndex", "Jazyk", "case isnull(a.j02LangIndex,0) when 0 then 'Česky' when 1 then 'English' when 4 then 'Slovenčina' end");
+            AF("LangIndex", "Jazyk", "case isnull(a.j02LangIndex,0) when 0 then 'Česky' when 1 then 'English' when 2 then 'Deutsch' when 4 then 'Slovenčina' end");
 
             oc=AF("j02Code", "Osobní kód");oc.FixedWidth = 80;
             oc = AF("j02Plan_Internal_Rate", "Simulační nákl.sazba", null, "num");

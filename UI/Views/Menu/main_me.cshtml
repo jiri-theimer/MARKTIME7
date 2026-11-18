@@ -75,6 +75,10 @@
                         <input type="radio" name="culture" value="en-US" onchange="mme_lang(this)" @(_culture == "en-US" ? "checked" : null)>
                         <img src="/images/small_uk.gif" width="18" alt="" /> EN
                     </label>
+                    <label class="@(_culture == "de-DE" ? "mme-on" : null)" title="Deutsch">
+                        <input type="radio" name="culture" value="de-DE" onchange="mme_lang(this)" @(_culture == "de-DE" ? "checked" : null)>
+                        <img src="/images/small_germany.gif" width="18" alt="" /> DE
+                    </label>
                     <label class="@(_culture == "sk-SK" ? "mme-on" : null)" title="Slovenčina">
                         <input type="radio" name="culture" value="sk-SK" onchange="mme_lang(this)" @(_culture == "sk-SK" ? "checked" : null)>
                         <img src="/images/small_slovakia.gif" width="18" alt="" /> SK

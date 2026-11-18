@@ -114,6 +114,11 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/lib/datepicker/bootstrap-datepicker.min.js"></script>
     <script src="~/lib/datepicker/bootstrap-datepicker.cs.min.js"></script>
+    @if (_f.CurrentUser.j02LangIndex == 2)
+    {
+        <script src="~/lib/datepicker/bootstrap-datepicker.de.min.js"></script>
+        <script>$.fn.datepicker.dates.cs = $.fn.datepicker.dates.de;</script>
+    }
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/js/mtmodal.js" asp-append-version="true"></script>
     <script src="~/js/mtzoom.js" asp-append-version="true"></script>

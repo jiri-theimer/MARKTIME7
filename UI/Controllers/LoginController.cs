@@ -440,7 +440,7 @@ namespace UI.Controllers
         [HttpPost]
         public IActionResult SaveLang(string culture)
         {
-            var allowed = new HashSet<string> { "cs-CZ", "en-US", "sk-SK" };
+            var allowed = new HashSet<string> { "cs-CZ", "en-US", "de-DE", "sk-SK" };
             if (!allowed.Contains(culture)) culture = "cs-CZ";
 
             Response.Cookies.Append(

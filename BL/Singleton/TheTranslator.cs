@@ -30,6 +30,12 @@ namespace BL.Singleton
             return new DL.DbHandler((_app.HostingMode == HostingModeEnum.SharedApp ? _app.ConnectStringCloudHeader : _app.ConnectString), new BO.RunningUser(), _app.LogFolder);
         }
 
+        //SharedApp: slovník je společný pro všechny zákazníky v centrální databázi a7_cloudheader
+        private string TableName()
+        {
+            return _app.HostingMode == HostingModeEnum.SharedApp ? "a7_cloudheader.dbo.x97Translate" : "x97Translate";
+        }
+
         private static Entry NewEntry(string strCode, string eng, string de, string sk)
         {
             string strMissing = "!" + strCode + "!";    //výraz je ve slovníku, ale překlad do jazyka chybí
@@ -43,7 +49,7 @@ namespace BL.Singleton
 
         private void SetupPallete()
         {
-            var lis = Db().GetList<BO.x97Translate>("select x97Code,x97Lang1,x97Lang2,x97Lang4 from x97Translate");
+            var lis = Db().GetList<BO.x97Translate>("select x97Code,x97Lang1,x97Lang2,x97Lang4 from " + TableName());
             var dict = new ConcurrentDictionary<string, Entry>(StringComparer.Ordinal);
             if (lis != null)    //null = v db ještě neexistuje tabulka x97Translate
             {
@@ -93,7 +99,7 @@ namespace BL.Singleton
                 {
                     try
                     {
-                        Db().RunSql("IF NOT EXISTS(SELECT 1 FROM x97Translate WHERE x97Code COLLATE Latin1_General_100_BIN2=@code) INSERT INTO x97Translate(x97Code,x97Orig,x97UserInsert,x97UserUpdate,x97DateInsert,x97DateUpdate,x97OrigSource) VALUES(@code,@orig,'collect','collect',GETDATE(),GETDATE(),@origsource)", new { code = strExpression, orig = strExpression, origsource = strCodeSource });
+                        Db().RunSql("IF NOT EXISTS(SELECT 1 FROM " + TableName() + " WHERE x97Code COLLATE Latin1_General_100_BIN2=@code) INSERT INTO " + TableName() + "(x97Code,x97Orig,x97UserInsert,x97UserUpdate,x97DateInsert,x97DateUpdate,x97OrigSource) VALUES(@code,@orig,'collect','collect',GETDATE(),GETDATE(),@origsource)", new { code = strExpression, orig = strExpression, origsource = strCodeSource });
                     }
                     catch
                     {

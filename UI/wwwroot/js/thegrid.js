@@ -835,7 +835,7 @@ function tg_filter_ok() {
     if ($("input[name='chlfilter']:checked").length === 0) {
         switch (_tg_langindex) {
             case 2:
-                _notify_message("Ви повинні перевірити одного з операторів фільтра.", "warning"); break;
+                _notify_message("Sie müssen einen der Filteroperatoren ankreuzen.", "warning"); break;
             default:
                 _notify_message("Musíte zaškrtnout jeden z filtrovacích operátorů.", "warning"); break;
         }
@@ -861,7 +861,7 @@ function tg_filter_ok() {
         if (fv === "" && (operator === "3" || operator === "4" || operator === "5" || operator === "6" || operator === "7")) {
             switch (_tg_langindex) {
                 case 2:
-                    _notify_message("Ви повинні заповнити вираз фільтра.", "warning"); break;
+                    _notify_message("Sie müssen den Filterausdruck ausfüllen.", "warning"); break;
                 default:
                     _notify_message("Musíte vyplnit filtrovací výraz.", "warning"); break;
             }
@@ -874,7 +874,7 @@ function tg_filter_ok() {
         if (operator === "4" && (c1.value === "" || c2.value === "")) {
             switch (_tg_langindex) {
                 case 2:
-                    _notify_message("Ви повинні заповнити значення від - до.", "warning"); break;
+                    _notify_message("Sie müssen die Werte von - bis ausfüllen.", "warning"); break;
                 default:
                     _notify_message("Musíte vyplnit hodnoty od - do.", "warning"); break;
             }
@@ -981,12 +981,12 @@ function tg_filter_operator_as_alias(operator) {
     operator = String(operator);
 
     if (_tg_langindex === 2) {
-        if (operator === "1") return "пусто";
-        if (operator === "2") return "не є порожнім";
-        if (operator === "8") return "ТАК";
-        if (operator === "9") return "НІ";
+        if (operator === "1") return "Ist leer";
+        if (operator === "2") return "Ist nicht leer";
+        if (operator === "8") return "JA";
+        if (operator === "9") return "NEIN";
         if (operator === "10") return "&gt;0";
-        if (operator === "11") return "0 або порожній";
+        if (operator === "11") return "0 oder leer";
     }
     if (operator === "1") return "Je prázdné";
     if (operator === "2") return "Není prázdné";

@@ -121,7 +121,7 @@ namespace UI
 
             services.Configure<RequestLocalizationOptions>(options =>
             {
-                var supportedCultures = new[] { "cs-CZ", "en-US", "sk-SK" }
+                var supportedCultures = new[] { "cs-CZ", "en-US", "de-DE", "sk-SK" }
                     .Select(x => new CultureInfo(x))
                     .ToList();
 

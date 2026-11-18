@@ -561,7 +561,7 @@ namespace UI.Controllers
 
             if (Factory.CurrentUser.j02LangIndex == 2)
             {
-                v.DataTables_Localisation = "/lib/datatables/localisation/uk_UA.json";
+                v.DataTables_Localisation = "/lib/datatables/localisation/de_DE.json";
             }
             else
             {

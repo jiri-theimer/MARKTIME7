@@ -107,6 +107,10 @@
                 <input type="radio" name="culture" value="en-US" onchange="this.form.submit()" @(_culture == "en-US" ? "checked" : null)>
                 <img src="/images/small_uk.gif" width="18" alt="" /> English
             </label>
+            <label class="lg-lang @(_culture == "de-DE" ? "lg-lang-on" : "")">
+                <input type="radio" name="culture" value="de-DE" onchange="this.form.submit()" @(_culture == "de-DE" ? "checked" : null)>
+                <img src="/images/small_germany.gif" width="18" alt="" /> Deutsch
+            </label>
             <label class="lg-lang @(_culture == "sk-SK" ? "lg-lang-on" : "")">
                 <input type="radio" name="culture" value="sk-SK" onchange="this.form.submit()" @(_culture == "sk-SK" ? "checked" : null)>
                 <img src="/images/small_slovakia.gif" width="18" alt="" /> Slovenčina

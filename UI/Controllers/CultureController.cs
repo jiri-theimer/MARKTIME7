@@ -8,7 +8,7 @@ namespace UI.Controllers
         [HttpPost]
         public IActionResult SaveLang(string culture, string returnUrl)
         {
-            var allowed = new HashSet<string> { "cs-CZ", "en-US", "sk-SK" };
+            var allowed = new HashSet<string> { "cs-CZ", "en-US", "de-DE", "sk-SK" };
             if (!allowed.Contains(culture)) culture = "cs-CZ";
 
             Response.Cookies.Append(
@@ -26,6 +26,9 @@ namespace UI.Controllers
             {
                 case "en-US":
                     rec.j02LangIndex = 1;
+                    break;
+                case "de-DE":
+                    rec.j02LangIndex = 2;
                     break;
                 case "sk-SK":
                     rec.j02LangIndex = 4;
