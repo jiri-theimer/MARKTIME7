@@ -165,13 +165,17 @@ var MtCapacity = (function () {
                     if (w >= 64) txt = num0(plan) + "/" + num0(cap);
                     else if (w >= 24) txt = plan > 0.049 ? num0(plan) : "";
                 }
+                // období, kde je jen absence a nic naplánováno: vyšrafovaná buňka s písmenem A
+                var absOnly = (abs > 0.049 && cls === "rc-s-none");
+                var absCls = abs > 0.049 ? (absOnly ? " rc-abs rc-abs-full" : " rc-abs") : "";
+                if (absOnly && !mini && w >= 20) txt = esc(tra.absencezkratka || "A");
                 var title = (mini ? p.name + "\n" : "") + (b.s === b.e ? human(b.s) : human(b.s) + " – " + human(b.e)) + "\n" + tra.plan + ": " + num(plan) + " h\n" + tra.kapacita + ": " + num(cap) + " h\n" +
                     (plan > cap ? tra.pretizeni + ": " + num(plan - cap) + " h" : tra.volno + ": " + num(cap - plan) + " h") + (abs > 0.049 ? "\n" + tra.absence + ": " + num(abs) + " h" : "");
                 if (mini) {
-                    if (cls !== "rc-s-none" || abs > 0.049) h.push("<div class='rc-mini " + cls + (abs > 0.049 ? " rc-abs" : "") + "' style='left:" + ((b.s - st.start) * st.px) + "px;width:" + w + "px;' title='" + esc(title) + "'></div>");
+                    if (cls !== "rc-s-none" || abs > 0.049) h.push("<div class='rc-mini " + cls + absCls + "' style='left:" + ((b.s - st.start) * st.px) + "px;width:" + w + "px;' title='" + esc(title) + "'></div>");
                     return;
                 }
-                h.push("<div class='rc-sum " + cls + (abs > 0.049 ? " rc-abs" : "") + "' style='left:" + ((b.s - st.start) * st.px) + "px;width:" + w + "px;' title='" + esc(title) + "'>" + txt + "</div>");
+                h.push("<div class='rc-sum " + cls + absCls + "' style='left:" + ((b.s - st.start) * st.px) + "px;width:" + w + "px;' title='" + esc(title) + "'>" + txt + "</div>");
             });
             return h.join("");
         }
@@ -209,7 +213,8 @@ var MtCapacity = (function () {
             else if (r.total > 0 && act >= r.total * 0.8) cls += " rc-warn";
             var title = tra.vykazano + ": " + num(act) + " / " + num(r.total) + " h\nFa: " + num(r.actfa) + " / " + num(r.fa) + " h\nNefa: " + num(r.actnefa) + " / " + num(r.nefa) + " h";
             // rozdělení Fa × Nefa se nehlídá, překročení jedné složky se jen zvýrazní
-            return "<div class='" + cls + "' title='" + esc(title) + "'><span class='rc-fa" + (r.actfa > r.fa + 0.049 ? " rc-ovr" : "") + "'>" + num(r.actfa) + "</span> + <span class='rc-nefa" + (r.actnefa > r.nefa + 0.049 ? " rc-ovr" : "") + "'>" + num(r.actnefa) + "</span></div>";
+            if (tra.otevritukony) title += "\n" + tra.otevritukony;
+            return "<div class='" + cls + " rc-actlink' data-act='1' title='" + esc(title) + "'><span class='rc-fa" + (r.actfa > r.fa + 0.049 ? " rc-ovr" : "") + "'>" + num(r.actfa) + "</span> + <span class='rc-nefa" + (r.actnefa > r.nefa + 0.049 ? " rc-ovr" : "") + "'>" + num(r.actnefa) + "</span></div>";
         }
 
         // Zbývá = strop minus vykázáno: kolik hodin se na projekt ještě smí vykázat. Záporné číslo = strop je překročený.
@@ -574,6 +579,15 @@ var MtCapacity = (function () {
             if (t.closest("[data-cap]")) {
                 r = rowOf(t);
                 if (r) openRecord(r.r11id, 0);
+                return;
+            }
+            if (t.closest("[data-act]")) {
+                // vykázané hodiny: tabulka časových úkonů osoby na projektu, bez omezení období
+                r = rowOf(t);
+                if (r && r.person && typeof zoom_open === "function") {
+                    // stejné okno se seznamem úkonů jako v kalendáři
+                    zoom_open(t.closest("[data-act]"), "/p31dayline/Zoom?j02id=" + r.person.j02id + "&p41id=" + r.p41id + "&d1=01.01.2000&d2=31.12.2100&tabquery=time");
+                }
                 return;
             }
             if (t.closest("[data-openg]")) {

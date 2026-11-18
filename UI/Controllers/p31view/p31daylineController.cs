@@ -221,7 +221,7 @@ namespace UI.Controllers
 
 
         //zobrazení ZOOM okna pro vybranou osobu a den
-        public IActionResult Zoom(int j02id,string d,int m,int y,int p28id,int p41id,int p32id,bool? p32isbillable,int p70id,bool? iswip,bool? isapproved_and_wait4invoice,string d1,string d2)
+        public IActionResult Zoom(int j02id,string d,int m,int y,int p28id,int p41id,int p32id,bool? p32isbillable,int p70id,bool? iswip,bool? isapproved_and_wait4invoice,string d1,string d2,string tabquery)
         {
             var v = new daylineZoomViewModel() { j02ID=j02id,p28ID=p28id,p41ID=p41id,p32ID=p32id,p32IsBillable= p32isbillable,IsWip=iswip,p70ID=p70id, IsApproved_And_Wait4Invoice=isapproved_and_wait4invoice };
             if (m>0 && y > 0)
@@ -270,6 +270,10 @@ namespace UI.Controllers
             if (v.p70ID > 0)
             {
                 strMyQueryInline += "|p70id|int|" + v.p70ID.ToString();
+            }
+            if (tabquery == "time" || tabquery == "expense" || tabquery == "fee" || tabquery == "kusovnik")
+            {
+                strMyQueryInline += "|tabquery|string|" + tabquery;   //jen daný druh úkonů (např. kapacitní plán chce jen časové)
             }
             if (v.p32IsBillable != null)
             {

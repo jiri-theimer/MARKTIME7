@@ -59,6 +59,9 @@
 .rc-fa { color: green; }      /* stejné barvy jako .fa / .nefa v site.css */
 .rc-nefa { color: red; }
 .rc-fa.rc-ovr, .rc-nefa.rc-ovr { font-weight: 700; text-decoration: underline; }
+.rc-act.rc-actlink { cursor: pointer; }
+.rc-act.zoom_ctl_current { outline: 2px solid #0d6efd; outline-offset: -2px; }   /* buňka, ke které je otevřené okno úkonů */
+.rc-act.rc-actlink:hover { text-decoration: underline; }
 .rc-act.rc-warn { background: #fff4d6; }
 .rc-act.rc-bad { background: #ffe1e1; color: #b42318; font-weight: 600; }
 
@@ -78,6 +81,9 @@
 .rc-a-over { background: #ffd8a8; color: #9a4a00; font-weight: 700; }
 .rc-sum.rc-now { border-right: 2px dotted #e5484d; }       /* období, ve kterém je dnešek: ještě není uzavřené */
 .rc-sum.rc-abs { border-bottom: 3px solid #8a939d; line-height: 20px; }     /* v období je absence */
+.rc-sum.rc-abs-full, .rc-lg.rc-lg-abs { background: repeating-linear-gradient(135deg, #dfe3e8 0, #dfe3e8 4px, #f4f6f8 4px, #f4f6f8 8px); color: #59636e; font-weight: 600; }   /* jen absence, nic naplánováno */
+.rc-sum.rc-abs-full { border-bottom: 0; line-height: 23px; }
+.rc-lg.rc-lg-abs { border-bottom: 3px solid #8a939d; }
 /* pohled po projektech: proužek celkového vytížení člověka u spodního okraje řádku */
 .rc-mini { position: absolute; bottom: 0; height: 4px; box-sizing: border-box; border-left: 1px solid #fff; }
 .rc-mini.rc-s-none { background: transparent; }

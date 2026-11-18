@@ -8,9 +8,18 @@
 
 @addTagHelper *, UI
 
+@{
+    //okno bez omezení období (voláno z kapacitního plánu): odkazy do kalendáře a nový úkon míří na dnešek
+    DateTime datNav = Model.SelectedDate1.Year <= 2000 ? DateTime.Today : Model.SelectedDate1;
+}
+
 <div class="input-group" style="padding: 3px;background-color: #2D89EF;color:white;">
     <div style="flex:1;">
-        @if(Model.RecJ02 != null)
+        @if (Model.RecJ02 != null && Model.SelectedDate1.Year <= 2000)
+        {
+            @(Model.RecJ02.FullNameAsc + (Model.p41ID > 0 ? ": " + _f.p41ProjectBL.Load(Model.p41ID)?.p41Name : ""))
+        }
+        else if(Model.RecJ02 != null)
         {
             @if (Model.SelectedDate1 == Model.SelectedDate2)
             {
@@ -34,11 +43,11 @@
 
 <div class="bg-light input-group" style="padding-left: 10px;padding-top:2px;">
    
-    <a class="btn bog" target="_top" href="/p31calendar/Index?d=@Model.SelectedDate1&cv=5"><span class="material-icons-outlined-btn">date_range</span>@_f.tra("Agenda")</a>
-    <a class="btn bog" target="_top" href="/p31calendar/Index?d=@Model.SelectedDate1&cv=6"><span class="material-icons-outlined-btn">today</span>@_f.tra("Přesný den")</a>
+    <a class="btn bog" target="_top" href="/p31calendar/Index?d=@datNav&cv=5"><span class="material-icons-outlined-btn">date_range</span>@_f.tra("Agenda")</a>
+    <a class="btn bog" target="_top" href="/p31calendar/Index?d=@datNav&cv=6"><span class="material-icons-outlined-btn">today</span>@_f.tra("Přesný den")</a>
     @if(_f.CurrentUser.j04IsModule_p11)
     {
-        <a class="btn bog" target="_top" href="/Absence/Index?d=@Model.SelectedDate1"><span class="material-icons-outlined-btn">hourglass_empty</span>@_f.tra("Docházka")</a>
+        <a class="btn bog" target="_top" href="/Absence/Index?d=@datNav"><span class="material-icons-outlined-btn">hourglass_empty</span>@_f.tra("Docházka")</a>
     }
     
 
@@ -108,7 +117,7 @@
 
     function create() {
         //window.parent.zoom_close();
-        window.parent.p31c("@Model.SelectedDate1",null,null,"@Model.j02ID");
+        window.parent.p31c("@datNav",null,null,"@Model.j02ID");
     }
 
     function local_close() {        
