@@ -387,6 +387,18 @@ FROM j98OpenAILog WHERE j98Date>=@dmin GROUP BY j98AiModel";
 
 
 
+        //znovu načte slovník aplikačního překladu z tabulky x97Translate (po ruční úpravě překladů)
+        [HttpPost]
+        public BO.Result TranslatorRecovery()
+        {
+            if (!Factory.CurrentUser.TestPermission(BO.PermValEnum.GR_Admin))
+            {
+                return new BO.Result(true, "Chybí oprávnění administrátora.");
+            }
+            int x = Factory.Translator.Recovery();
+            return new BO.Result(false, $"Slovník překladu je načten znovu, výrazů: {x}. Názvy sloupců tabulek a entit se přeloží až po restartu aplikace.");
+        }
+
         public BO.Result GenerateSpGenerateCreateUpdateScript(string scope)
         {
             var lis = Factory.FBL.Sys_GetList_SysObjects();

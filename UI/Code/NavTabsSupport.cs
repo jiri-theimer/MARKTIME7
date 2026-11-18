@@ -118,7 +118,7 @@ namespace UI.Code
                 case "j02":
                     var cpj02 = _f.j02UserBL.LoadSumRow(pid);
                     
-                    _tabs.Add(AddTab(cpj02.tabname, "tab1", "/j02/Tab1?pid=" + AppendPid2Url(pid)));
+                    _tabs.Add(AddTab(cpj02.tabname, "tab1", "/j02/Tab1?pid=" + AppendPid2Url(pid), false));
                     
                     if (_f.CurrentUser.j04IsModule_p31)
                     {
@@ -365,7 +365,7 @@ namespace UI.Code
                 case "p90":
                     var cp90 = _f.p90ProformaBL.LoadSumRow(pid);
                     
-                    _tabs.Add(AddTab(cp90.p89Name, "tab1", "/p90/Tab1?pid=" + AppendPid2Url(pid)));
+                    _tabs.Add(AddTab(cp90.p89Name, "tab1", "/p90/Tab1?pid=" + AppendPid2Url(pid), false));
                     _tabs.Add(AddTab("Faktury (Vyúčtování)", "p91Invoice", "/TheGrid/SlaveView?prefix=p91", true, Badge1(cp90.p91_Count)));
                     
                     _tabs.Add(AddTab("<span class='material-icons-outlined-btn'>timeline</span>" + "Timeline", "b05", "/Record/TabB05?prefix=p90", false, null, _f.tra("Poznámky, workflow a další události záznamu v čase")));
@@ -374,7 +374,7 @@ namespace UI.Code
                     break;
                 case "p91":                    
                     var cp91 = _f.p91InvoiceBL.LoadSumRow(pid);
-                    _tabs.Add(AddTab(cp91.p92Name, "tab1", "/p91/Tab1?pid=" + AppendPid2Url(pid)));
+                    _tabs.Add(AddTab(cp91.p92Name, "tab1", "/p91/Tab1?pid=" + AppendPid2Url(pid), false));
                     _tabs.Add(AddTab("Úkony", "p31Worksheet", "/TheGrid/SlaveView?prefix=p31", true, Badge3(cp91.p31_time_count, cp91.p31_expense_count, cp91.p31_fee_count)));
                     _tabs.Add(AddTab("Hodiny", "p31time", "/TheGrid/SlaveView?prefix=p31&myqueryinline=tabquery|string|time", true, Badge1(cp91.p31_time_count)));
                     _tabs.Add(AddTab("Výdaje", "p31expense", "/TheGrid/SlaveView?prefix=p31&myqueryinline=tabquery|string|expense", true, Badge1(cp91.p31_expense_count)));
@@ -430,7 +430,7 @@ namespace UI.Code
                         if (i == 4) intBadgeChild = cp41.le4_Count;
                         if (i == 3) intBadgeChild = cp41.le3_Count;
                         if (i == 2) intBadgeChild = cp41.le2_Count;
-                        _tabs.Add(AddTab(_f.getP07Level(i, false), "le"+i.ToString(), "/TheGrid/SlaveView?prefix=le"+i.ToString(), true,Badge1(intBadgeChild)));
+                        _tabs.Add(AddTab(_f.getP07Level(i, false), "le"+i.ToString(), "/TheGrid/SlaveView?prefix=le"+i.ToString(), false,Badge1(intBadgeChild)));
                     }
                 }
             }
@@ -475,6 +475,7 @@ namespace UI.Code
             return $"<span class='{cssclassname}'>{num1}+{num2}+{num3}</span>";
         }
 
+        //istranslate=false pro názvy z dat (aplikační role, typ faktury, typ zálohy, úroveň projektu...): ty se nepřekládají
         public NavTab AddTab(string strName, string strTabKey, string strUrl, bool istranslate = true, string strBadge = null,string strTooltip=null)
         {
             if (istranslate)

@@ -66,6 +66,13 @@
         </div>
     }
 
+    @if (Model.prefix == "x97")
+    {
+        <div class="ml-2">
+            <button type="button" class="btn bog" onclick="translator_recovery(this)" title="Znovu načíst slovník překladu z databáze"><span class="material-icons-outlined-btn">translate</span>Obnovit slovník</button>
+        </div>
+    }
+
     @if (Model.prefix == "m62")
     {
         <div class="ml-2">
@@ -209,6 +216,17 @@
         if (!sidebar || sidebar.style.display === "none") return;
         var h = _device.innerHeight - sidebar.getBoundingClientRect().top;
         $(sidebar).css("height", parseInt(h) + "px");
+    }
+
+    function translator_recovery(cmd) {     //aplikační překlad: slovník v paměti se sám neobnovuje
+        cmd.disabled = true;
+        $.post(_ep("/Admin/TranslatorRecovery"), function (data) {
+            cmd.disabled = false;
+            _notify_message(data.message, data.issuccess ? "info" : "error");
+        }).fail(function () {
+            cmd.disabled = false;
+            _notify_message("Slovník se nepodařilo obnovit.", "error");
+        });
     }
 
     function handle_dblclick(row) {

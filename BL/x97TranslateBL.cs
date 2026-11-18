@@ -22,7 +22,7 @@ namespace BL
 
         private string GetSQL1(string strAppend = null)
         {
-            sb("SELECT a.x97ID,a.x97Code,a.x97Orig,a.x97Lang1,a.x97Lang2,");
+            sb("SELECT a.x97ID,a.x97Code,a.x97Orig,a.x97Lang1,a.x97Lang2,a.x97Lang4,a.x97OrigSource,");
             sb(_db.GetSQL1_Ocas("x97",true,false,true));
             sb(" FROM x97Translate a");
             sb(strAppend);

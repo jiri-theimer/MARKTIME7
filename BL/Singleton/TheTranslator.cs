@@ -1,86 +1,107 @@
-﻿
+using System.Collections.Concurrent;
 
 namespace BL.Singleton
 {
+    //Aplikační překlad (en/de/sk): slovník z tabulky x97Translate držený v paměti, klíčem je český text.
+    //  - hledání je jedno vyhledání ve slovníku, bez výjimek (čeština se nepřekládá vůbec: text se vrací hned)
+    //  - text, který ve slovníku není, se vrací jako ?text?; text bez překladu do daného jazyka jako !text! (aby byl na stránce hned vidět)
+    //  - režim Collect (appsettings: App.TranslatorMode): neznámý text se založí do x97Translate a přidá do slovníku
+    //  - slovník se z databáze načítá při startu a potom jen na vyžádání přes Recovery() (administrace: Aplikační překlad -> Obnovit slovník)
     public class TheTranslator
     {
-        private class TranslateScope
+        private sealed class Entry
         {
-            public string x97Code { get; set; }
-            public string Orig { get; set; }
-            public string Eng { get; set; }
-            public string De { get; set; }
-            public string Sk { get; set; }
+            public string Eng;
+            public string De;
+            public string Sk;
         }
-        
-        private HashSet<TranslateScope> _hash;
+
+        private volatile ConcurrentDictionary<string, Entry> _dict = new ConcurrentDictionary<string, Entry>(StringComparer.Ordinal);
         private readonly BL.Singleton.RunningApp _app;
 
         public TheTranslator(BL.Singleton.RunningApp app)
         {
-            _app = app;            
+            _app = app;
             SetupPallete();
         }
+
+        private DL.DbHandler Db()
+        {
+            return new DL.DbHandler((_app.HostingMode == HostingModeEnum.SharedApp ? _app.ConnectStringCloudHeader : _app.ConnectString), new BO.RunningUser(), _app.LogFolder);
+        }
+
+        private static Entry NewEntry(string strCode, string eng, string de, string sk)
+        {
+            string strMissing = "!" + strCode + "!";    //výraz je ve slovníku, ale překlad do jazyka chybí
+            return new Entry()
+            {
+                Eng = string.IsNullOrEmpty(eng) ? strMissing : eng,
+                De = string.IsNullOrEmpty(de) ? strMissing : de,
+                Sk = string.IsNullOrEmpty(sk) ? strMissing : sk
+            };
+        }
+
         private void SetupPallete()
         {
-            var db = new DL.DbHandler((_app.HostingMode == HostingModeEnum.SharedApp ? _app.ConnectStringCloudHeader : _app.ConnectString), new BO.RunningUser(), _app.LogFolder);
-
-
-            var lis = db.GetList<BO.x97Translate>("select * from x97Translate");
-            if (lis==null || lis.Count() == 0)
+            var lis = Db().GetList<BO.x97Translate>("select x97Code,x97Lang1,x97Lang2,x97Lang4 from x97Translate");
+            var dict = new ConcurrentDictionary<string, Entry>(StringComparer.Ordinal);
+            if (lis != null)    //null = v db ještě neexistuje tabulka x97Translate
             {
-                _hash = new HashSet<TranslateScope>(0);
-                return; //buď v db ještě neexistuje tabulka x97Translate nebo je prázdná
+                foreach (var rec in lis)
+                {
+                    if (string.IsNullOrEmpty(rec.x97Code)) continue;
+                    dict[rec.x97Code] = NewEntry(rec.x97Code, rec.x97Lang1, rec.x97Lang2, rec.x97Lang4);   //případný duplicitní kód: platí poslední
+                }
             }
-            _hash = new HashSet<TranslateScope>(lis.Count());
-            foreach(var rec in lis)
-            {
-                var c = new TranslateScope() { x97Code = rec.x97Code,Orig=rec.x97Orig, Eng = rec.x97Lang1, De = rec.x97Lang2, Sk = rec.x97Lang4 };
-                if (string.IsNullOrEmpty(c.Eng)) c.Eng = "!" + rec.x97Code + "!";
-                if (string.IsNullOrEmpty(c.Sk)) c.Sk = "!" + rec.x97Code + "!";
-
-                _hash.Add(c);
-            }
+            _dict = dict;   //výměna celého slovníku naráz: běžící požadavky dočtou ze starého
         }
-        public void Recovery()
+
+        //znovu načte slovník z databáze; vrací počet výrazů
+        public int Recovery()
         {
             SetupPallete();
+            return _dict.Count;
         }
 
-        public string DoTranslate(string strExpression, string strCulture, string strCodeSource=null)
+        public int Count
         {
-            try
+            get { return _dict.Count; }
+        }
+
+        public string DoTranslate(string strExpression, string strCulture, string strCodeSource = null)
+        {
+            int intLang;
+            switch (strCulture)
             {
-                switch (strCulture)
-                {
-                    case "en-US":
-                        return _hash.First(p => p.x97Code == strExpression).Eng;
-                       
-                    case "de-DE":
-                        return _hash.First(p => p.x97Code == strExpression).De;
-                    case "sk-SK":
-                        return _hash.First(p => p.x97Code == strExpression).Sk;
-
-                    default:
-                        return strExpression;
-
-
-                }                
-                
+                case "en-US": intLang = 1; break;
+                case "de-DE": intLang = 2; break;
+                case "sk-SK": intLang = 4; break;
+                default:
+                    return strExpression;   //čeština a neznámé jazyky: bez překladu
             }
-            catch
-            {
-                if (_app.TranslatorMode == BL.Singleton.TranslateModeEnum.Collect)
-                {
-                    var db = new DL.DbHandler((_app.HostingMode == HostingModeEnum.SharedApp ? _app.ConnectStringCloudHeader : _app.ConnectString), new BO.RunningUser(), _app.LogFolder);
+            if (string.IsNullOrEmpty(strExpression)) return strExpression;
 
-                    db.RunSql("INSERT INTO x97Translate(x97Code,x97Orig,x97UserInsert,x97UserUpdate,x97DateInsert,x97DateUpdate,x97OrigSource) VALUES(@code,@orig,'collect','collect',GETDATE(),GETDATE(),@origsource)", new { code = strExpression, orig= strExpression, origsource= strCodeSource });
-                    SetupPallete();
+            if (_dict.TryGetValue(strExpression, out Entry c))
+            {
+                return intLang == 1 ? c.Eng : (intLang == 2 ? c.De : c.Sk);
+            }
+
+            if (_app.TranslatorMode == BL.Singleton.TranslateModeEnum.Collect)
+            {
+                //založit výraz do slovníku (porovnání v db přesně včetně velikosti písmen, stejně jako slovník v paměti); TryAdd pustí k zápisu do db jen první ze souběžných požadavků
+                if (_dict.TryAdd(strExpression, NewEntry(strExpression, null, null, null)))
+                {
+                    try
+                    {
+                        Db().RunSql("IF NOT EXISTS(SELECT 1 FROM x97Translate WHERE x97Code COLLATE Latin1_General_100_BIN2=@code) INSERT INTO x97Translate(x97Code,x97Orig,x97UserInsert,x97UserUpdate,x97DateInsert,x97DateUpdate,x97OrigSource) VALUES(@code,@orig,'collect','collect',GETDATE(),GETDATE(),@origsource)", new { code = strExpression, orig = strExpression, origsource = strCodeSource });
+                    }
+                    catch
+                    {
+                        _dict.TryRemove(strExpression, out _);     //zápis se nepovedl: zkusit příště znovu
+                    }
                 }
-                return $"?{strExpression}?";
-                
-            }            
-            
+            }
+            return "?" + strExpression + "?";    //výraz ve slovníku není
         }
     }
 }
