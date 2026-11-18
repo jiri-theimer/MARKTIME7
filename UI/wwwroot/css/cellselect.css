@@ -45,3 +45,6 @@ body.cs-dragging #calmenu1 { display: none !important; }
 .csbar-menu a { display: flex; align-items: center; gap: 6px; padding: 5px 6px; border-radius: 7px; color: #1f2328; text-decoration: none; cursor: pointer; }
 .csbar-menu a:hover { background-color: #eef3fd; }
 .csbar-menu var { margin-left: auto; padding-left: 12px; color: red; font-style: normal; }
+.csbar-color { display: inline-block; width: 22px; height: 16px; border: 1px solid #c9d0d8; border-radius: 4px; }   /* vzorek barvy dne */
+.csbar-nocolor { margin-top: 4px; border-top: 1px solid #eef0f2; }
+.csbar-nocolor .csbar-color { background: linear-gradient(135deg, #fff 45%, #e5484d 45%, #e5484d 55%, #fff 55%); }

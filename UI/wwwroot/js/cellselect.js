@@ -4,6 +4,7 @@
 //  Shift+klik    = rozsah od naposledy označené (nebo naposledy kliknuté) buňky
 //  Esc, klik     = zrušit výběr
 //V rozsahu (tažení, Shift) se vynechávají nepracovní dny (data-nw='1': víkend, svátek), přes Ctrl+klik je lze přidat jednotlivě.
+//Nad výběrem jde i nastavit nebo vyčistit barvu dne (limit maxcolorcells, na serveru FutBatchResult.MaxColorCells).
 //Počet označených buněk je omezen (maxcells, na serveru FutBatchResult.MaxCells): nad limit lišta akce zablokuje.
 //Lišta s akcemi nad výběrem: ~/Views/Shared/_CellSelectBar.cshtml
 var mtCellSelect = (function () {
@@ -14,7 +15,7 @@ var mtCellSelect = (function () {
     var busy = false;
 
     function init(options) {
-        cfg = Object.assign({ selector: "", grid: false, j02id: null, maxcells: 40, onsaved: null }, options);
+        cfg = Object.assign({ selector: "", grid: false, j02id: null, maxcells: 40, maxcolorcells: 400, onsaved: null }, options);
         if (!document.getElementById("csbar")) return;     //lišta není na stránce (uživatel nemá modul úkonů)
 
         document.addEventListener("mousedown", on_mousedown);
@@ -179,7 +180,15 @@ var mtCellSelect = (function () {
             cmdfut.disabled = over;
             cmdfut.title = over ? over_message() : "";
         }
-        if (over) menu(false);
+        if (over) menu(false, "fut");
+
+        var cmdc24 = document.getElementById("csbar_c24");
+        if (cmdc24) {
+            var overc = sel.length > cfg.maxcolorcells;
+            cmdc24.disabled = overc;
+            cmdc24.title = overc ? "Najednou lze obarvit nejvýše " + cfg.maxcolorcells + " buněk." : "";
+            if (overc) menu(false, "c24");
+        }
 
         bar.style.display = "flex";
     }
@@ -191,11 +200,42 @@ var mtCellSelect = (function () {
         return "Najednou lze vykázat nejvýše " + cfg.maxcells + " buněk, označeno je " + sel.length + ". Zmenšete výběr.";
     }
 
-    function menu(show) {
-        var m = document.getElementById("csbar_menu");
+    //nabídky lišty: which = "fut" (nepřítomnost, výchozí) nebo "c24" (barva dne); menu(false) zavře obě
+    function menu(show, which) {
+        var ids = { fut: "csbar_menu", c24: "csbar_menu_c24" };
+        if (show === false && !which) {
+            Object.keys(ids).forEach(function (k) { var x = document.getElementById(ids[k]); if (x) x.style.display = "none"; });
+            return;
+        }
+        which = which || "fut";
+        var m = document.getElementById(ids[which]);
         if (!m) return;
         if (show === undefined) show = (m.style.display === "none");
+        if (show) menu(false);      //otevřená je vždy jen jedna nabídka
         m.style.display = show ? "block" : "none";
+    }
+
+    //barva dne do všech označených buněk (c24id = 0: bez barvy)
+    function color(c24id) {
+        var c = cells();
+        if (c.length === 0 || busy) return;
+        menu(false);
+        if (c.length > cfg.maxcolorcells) {
+            _notify_message("Najednou lze obarvit nejvýše " + cfg.maxcolorcells + " buněk.", "info");
+            return;
+        }
+        busy = true;
+        $.post(_ep("/p31calendar/SaveC23Batch"), { c24id: c24id, cells: c.map(function (x) { return x.j02id + "|" + x.d; }) }, function (data) {
+            busy = false;
+            if (data.errors && data.errors.length > 0) {
+                alert(data.errors.join("\n"));
+                return;
+            }
+            if (cfg.onsaved) cfg.onsaved();
+        }).fail(function () {
+            busy = false;
+            alert("Barvu dne se nepodařilo odeslat na server.");
+        });
     }
 
     //formulář úkonu předvyplněný označenými dny (režim "multi" v p31/Record)
@@ -253,5 +293,5 @@ var mtCellSelect = (function () {
         });
     }
 
-    return { init: init, clear: clear, cells: cells, record: record, fut: fut, menu: menu };
+    return { init: init, clear: clear, cells: cells, record: record, fut: fut, color: color, menu: menu };
 })();

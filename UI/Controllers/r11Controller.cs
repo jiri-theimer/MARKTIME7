@@ -280,7 +280,13 @@ namespace UI.Controllers
                 .GroupBy(p => p.c26Date.Date).OrderBy(p => p.Key)
                 .Select(p => new { d = p.Key.ToString(FMT), name = string.Join(", ", p.Select(x => x.c26Name).Where(x => !string.IsNullOrEmpty(x)).Distinct()) }).ToList();
 
-            return Json(new { ok = true, start = datStart.ToString(FMT), days = intDays, today = DateTime.Today.ToString(FMT), people = people, holidays = holidays });
+            //barvy dne zobrazených lidí (kalendář, dayline): proužek v řádku osoby
+            var j02ids = people.Select(p => p.j02id).ToHashSet();
+            var daycolors = Factory.c24DayColorBL.GetList_c23(datStart.Date, datStart.Date.AddDays(intDays), 0)
+                .Where(p => j02ids.Contains(p.j02ID))
+                .Select(p => new { j02id = p.j02ID, d = p.c23Date.ToString(FMT), color = p.c24Color, name = p.c24Name }).ToList();
+
+            return Json(new { ok = true, start = datStart.ToString(FMT), days = intDays, today = DateTime.Today.ToString(FMT), people = people, holidays = holidays, daycolors = daycolors });
         }
 
         //Export do XLSX: list "Vytížení" (kapacita, plán, volno, absence a vykázané hodiny osob + plán po projektech ve sloupcích podle měřítka) a list "Bloky".

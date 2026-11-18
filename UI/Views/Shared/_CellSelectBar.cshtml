@@ -5,6 +5,9 @@
     Plovoucí lišta s akcemi nad hromadně označenými buňkami (měsíční kalendář, dayline).
     Model: aktivity nepřítomnosti pro rychlé vykázání. Obsluha: ~/js/cellselect.js
 *@
+@{
+    var lisC24 = _f.c24DayColorBL.GetList(new BO.myQuery("c24") { IsRecordValid = true });  //barvy dne
+}
 
 <link rel="stylesheet" href="~/css/cellselect.css" asp-append-version="true" />
 
@@ -35,6 +38,29 @@
                         }
                     </a>
                 }
+            </div>
+        </div>
+    }
+
+    @if (lisC24.Any())
+    {
+        <div class="csbar-wrap">
+            <button type="button" id="csbar_c24" class="btn btn-sm bog" onclick="mtCellSelect.menu(undefined,'c24')">
+                <span class="material-icons-outlined-btn">format_paint</span>
+                @_f.tra("Barva dne") ▴
+            </button>
+            <div id="csbar_menu_c24" class="csbar-menu" style="display:none;">
+                @foreach (var c in lisC24)
+                {
+                    <a onclick="mtCellSelect.color(@(c.pid))">
+                        <span class="csbar-color" style="background-color:@(c.c24Color)"></span>
+                        @c.c24Name
+                    </a>
+                }
+                <a class="csbar-nocolor" onclick="mtCellSelect.color(0)">
+                    <span class="csbar-color"></span>
+                    @_f.tra("Bez barvy")
+                </a>
             </div>
         </div>
     }

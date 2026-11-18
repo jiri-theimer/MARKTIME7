@@ -1,0 +1,33 @@
+/* MtZoom – společné zoom okno pod místem kliknutí (wwwroot/js/mtzoom.js) */
+
+#zoomwin.mtzoom { position: absolute; display: none; box-sizing: border-box; background: #fff; border: 1px solid #8c959f; border-radius: 8px; box-shadow: 0 10px 34px rgba(31, 35, 40, .28), 0 1px 3px rgba(31, 35, 40, .18); }
+.mtzoom .mtzoom-body { position: absolute; left: 0; top: 0; right: 0; bottom: 0; border-radius: 7px; overflow: hidden; background: #fff; }
+.mtzoom iframe { display: block; width: 100%; height: 100%; border: 0; background: #fff; }
+
+/* šipka k hodnotě, na kterou uživatel kliknul */
+.mtzoom .mtzoom-arrow { position: absolute; top: -8px; width: 14px; height: 14px; margin-left: -7px; background: #2D89EF; border-left: 1px solid #8c959f; border-top: 1px solid #8c959f; transform: rotate(45deg); }
+.mtzoom.mtzoom-above .mtzoom-arrow { top: auto; bottom: -8px; background: #fff; border: 0; border-right: 1px solid #8c959f; border-bottom: 1px solid #8c959f; }
+.mtzoom.mtzoom-noarrow .mtzoom-arrow, .mtzoom.mtzoom-max .mtzoom-arrow { display: none; }
+
+/* načítání obsahu */
+.mtzoom .mtzoom-loading { position: absolute; left: 0; top: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; background: #fff; z-index: 1; }
+.mtzoom .mtzoom-loading span { width: 26px; height: 26px; border: 3px solid #d0d7de; border-top-color: #2D89EF; border-radius: 50%; animation: mtzoom-spin .8s linear infinite; }
+.mtzoom.mtzoom-ready .mtzoom-loading { display: none; }
+@keyframes mtzoom-spin { to { transform: rotate(360deg); } }
+
+/* změna výšky tažením za okraj */
+.mtzoom .mtzoom-grip { position: absolute; left: 12px; right: 12px; bottom: -4px; height: 8px; cursor: ns-resize; z-index: 2; }
+.mtzoom.mtzoom-above .mtzoom-grip { bottom: auto; top: -4px; }
+.mtzoom.mtzoom-max .mtzoom-grip { display: none; }
+.mtzoom.mtzoom-drag .mtzoom-body::after { content: ""; position: absolute; left: 0; top: 0; right: 0; bottom: 0; z-index: 3; }
+
+/* přes celé okno prohlížeče */
+#zoomwin.mtzoom.mtzoom-max { position: fixed; left: 8px; top: 8px; right: 8px; bottom: 8px; width: auto; height: auto; }
+
+/* hodnota, ke které je okno otevřené */
+.zoom_ctl_current { outline: 2px solid #2D89EF; outline-offset: 1px; border-radius: 4px; }
+
+/* přetažení okna myší: úchyt přes horní lištu obsahu (tlačítka vpravo zůstávají volná) */
+.mtzoom .mtzoom-move { position: absolute; left: 0; top: 0; right: 70px; height: 30px; cursor: move; z-index: 2; }
+.mtzoom.mtzoom-max .mtzoom-move { display: none; }
+.mtzoom.mtzoom-moving { box-shadow: 0 16px 44px rgba(31, 35, 40, .36), 0 1px 3px rgba(31, 35, 40, .18); user-select: none; }

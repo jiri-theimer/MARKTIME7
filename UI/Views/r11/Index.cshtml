@@ -100,12 +100,14 @@
         <span class="rc-lg rc-s-full"></span>@_f.tra("plno")
         <span class="rc-lg rc-s-over"></span>@_f.tra("přetíženo")
         <span class="rc-lg rc-lg-abs"></span>@_f.tra("absence")
+        <span class="rc-lg rc-lg-dc"></span>@_f.tra("barva dne")
     </div>
     <div class="rc-legend" data-legend="actual" style="display:none;">
         <span class="rc-lg rc-a-under"></span>@_f.tra("vykázáno méně")
         <span class="rc-lg rc-a-ok"></span>@_f.tra("podle plánu")
         <span class="rc-lg rc-a-over"></span>@_f.tra("vykázáno více")
         <span class="rc-lg rc-lg-abs"></span>@_f.tra("absence")
+        <span class="rc-lg rc-lg-dc"></span>@_f.tra("barva dne")
     </div>
 </div>
 
@@ -164,59 +166,14 @@
         _r11.reload();
     }
 
-    // ---- okno se seznamem úkonů (/p31dayline/Zoom), stejné jako v kalendáři; volá se klikem na vykázané hodiny ----
-    var _zoom_normal = null;
-    var _zoom_maximized = false;
+    // ---- okno se seznamem úkonů (/p31dayline/Zoom), společné zoom_open/zoom_close je v wwwroot/js/mtzoom.js ----
 
-    function zoom_open(ctl, url) {
-        url = _ep(url);
-        $(".zoom_ctl_current").removeClass("zoom_ctl_current");
-        $(ctl).addClass("zoom_ctl_current");
 
-        var c = $("#zoomwin");
-        var w = window.innerWidth - 100;
-        var h = 450;
-        var y = $(ctl).offset().top + 24;
-        if (y + h + 20 > window.innerHeight + $(window).scrollTop()) {
-            y = $(ctl).offset().top - h - 2;
-        }
-        if (w < 400) w = window.innerWidth;
-        var x = (window.innerWidth - w) / 2;
-        if (x < 0) x = 0;
-        if (y < 0) y = 0;
 
-        c.css({ display: "block", width: w + "px", height: h + "px", left: x + "px", top: y + "px" });
-        c.html("<iframe id='frazoom' style='border:solid 1px gray;background-color:white;' width='100%' height='" + (h - 2) + "px' src='" + url + "'></iframe>");
-        _zoom_maximized = false;
-    }
-
-    function zoom_toggle() {
-        var c = $("#zoomwin");
-        if (!_zoom_maximized) {
-            _zoom_normal = { left: parseInt(c.css("left")), top: parseInt(c.css("top")), width: c.width(), height: c.height() };
-            c.css({ left: "0px", top: $(window).scrollTop() + "px", width: "100vw", height: "100vh" });
-            $("#frazoom").css({ height: (window.innerHeight - 2) + "px" });
-            _zoom_maximized = true;
-        } else {
-            c.css({ left: _zoom_normal.left + "px", top: _zoom_normal.top + "px", width: _zoom_normal.width + "px", height: _zoom_normal.height + "px" });
-            $("#frazoom").css({ height: (_zoom_normal.height - 2) + "px" });
-            _zoom_maximized = false;
-        }
-    }
-
-    function zoom_close() {
-        $("#zoomwin").css("display", "none").html("");
-        $(".zoom_ctl_current").removeClass("zoom_ctl_current");
-        _zoom_maximized = false;
-    }
 
     function p31c(d, t1, t2, j02id) {   //tlačítko "Vykázat úkon" v okně úkonů
         _window_open("/p31/Record?j02id=" + j02id + "&d=" + d, 3);
     }
 
-    $(document).on("keydown", function (e) {
-        if (e.keyCode == 27 && $("#zoomwin").css("display") == "block") zoom_close();
-    });
 </script>
 
-<div id="zoomwin" style="position:absolute;top:0px;left:0px;z-index:1000;display:none;box-shadow:0 6px 24px rgba(0,0,0,.25);"></div>

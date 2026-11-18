@@ -122,3 +122,6 @@
     .rc-scroll { --rc-left: 240px; }
     .rc-c-pln, .rc-pln, .rc-c-act, .rc-act, .rc-c-fc, .rc-fc, .rc-sub, .rc-legend { display: none; }
 }
+/* barva dne osoby (číselník Barvy dnů, zadává se v kalendáři a dayline) */
+.rc-dc { position: absolute; top: 0; height: 5px; box-sizing: border-box; border-left: 1px solid #fff; border-radius: 0 0 3px 3px; z-index: 2; }
+.rc-lg.rc-lg-dc { background: linear-gradient(#f5a623 0, #f5a623 5px, #fff 5px); border: 1px solid #dfe3e8; }

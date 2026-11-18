@@ -371,11 +371,6 @@ a.link-daycolor_agenda {
         padding: 2px;
     }
 
-.zoom_ctl_current{
-    border:solid 1px blue;
-    border-radius:4px;    
-    
-}
 
 a.stat_link {
     cursor: pointer;

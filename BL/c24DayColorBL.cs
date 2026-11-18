@@ -9,6 +9,7 @@ namespace BL
         public int Save(BO.c24DayColor rec);
         public IEnumerable<BO.c23PersonalDayColor> GetList_c23(DateTime d1,DateTime d2,int j02id);
         public int SaveC23Record(DateTime d, int c24id, int j02id);
+        public int SaveC23Batch(IEnumerable<(int j02id, DateTime d)> cells, int c24id);
 
     }
     class c24DayColorBL : BaseBL, Ic24DayColorBL
@@ -81,7 +82,7 @@ namespace BL
             }
             if (_mother.CurrentUser.IsHostingModeTotalCloud)
             {
-                sb($" AND c24.x01ID={_mother.CurrentUser.x01ID}");
+                s += $" AND c24.x01ID={_mother.CurrentUser.x01ID}";   //dříve přes sb(): filtr licence se do dotazu vůbec nedostal
             }
 
             return _db.GetList<BO.c23PersonalDayColor>(s, new { d1 = d1,d2=d2 });
@@ -116,6 +117,28 @@ namespace BL
             int intPID = _db.SaveRecord("c23PersonalDayColor", p, rec);
 
             return intPID;
+        }
+
+        //hromadné nastavení (c24id>0) nebo vyčištění (c24id=0) barvy dne; vrací počet zpracovaných buněk
+        public int SaveC23Batch(IEnumerable<(int j02id, DateTime d)> cells, int c24id)
+        {
+            int x = 0;
+            foreach (var c in cells.Distinct())
+            {
+                if (c.j02id <= 0) continue;
+                _db.RunSql("DELETE FROM c23PersonalDayColor WHERE j02ID=@j02id AND c23Date=@d", new { j02id = c.j02id, d = c.d.Date });
+                if (c24id > 0)
+                {
+                    var rec = new BO.c23PersonalDayColor() { c23Date = c.d.Date, c24ID = c24id, j02ID = c.j02id };
+                    var p = new DL.Params4Dapper();
+                    p.AddDateTime("c23Date", c.d.Date);
+                    p.AddInt("c24ID", c24id, true);
+                    p.AddInt("j02ID", c.j02id, true);
+                    if (_db.SaveRecord("c23PersonalDayColor", p, rec) <= 0) continue;
+                }
+                x++;
+            }
+            return x;
         }
 
     }

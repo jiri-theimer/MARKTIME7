@@ -413,9 +413,6 @@
 
 <script type="text/javascript">
     var _zoomwin = document.getElementById("zoomwin");
-    _zoomwin = document.getElementById("zoomwin");
-    var _lasturl = "";
-    var _lastctl = null;
     
 
     function re(ctl, j02id, d) {
@@ -476,55 +473,21 @@
 
 
 
+
+
+
     function local_zoom_open(ctl, url) {
-        if (_lasturl == url && _lastctl == ctl && $("#zoomwin").css("display") == "block") {
-            local_zoom_close();
+        if (window !== window.top || typeof zoom_open !== "function") {
+            var w = (window !== window.top) ? window.parent : window;
+            w._window_open(_ep(url), 3, "Zoom");  //kalendář je uvnitř IFRAME (widget): klasické okno
             return;
         }
-        url = _ep(url);
-        _lasturl = url;
-        _lastctl = ctl;
-
-        if (window !== window.top) {
-            window.parent._window_open(url,3,"Zoom");  //kalendář je uvnitř IFRAME
-            return;
-        }
-        
-
-        $(".zoom_ctl_current").removeClass("zoom_ctl_current");
-        $(ctl).addClass("zoom_ctl_current");
-
-        var c = $("#zoomwin");
-        
-
-        var w = _device.innerWidth - 100;
-        var h = 450;
-        var y = $(ctl).offset().top + 20;
-        if (y + h + 20 > _device.innerHeight) {
-            y = $(ctl).offset().top - h - 2;
-        }
-
-        if (_device.innerWidth < w) w = _device.innerWidth;
-        if (_device.innerHeight < h) h = _device.innerHeight;
-        x = (_device.innerWidth - w) / 2;
-
-        $(c).css("display", "block");
-        $(c).css("width", w + "px");
-        $(c).css("height", h + "px");
-        $(c).css("left", x + "px");
-        $(c).css("top", y + "px");
-        $(c).html("<iframe id='frazoom' style='border:solid 1px gray;' width='" + (w - 50) + "px' height='" + (h - 40) + "px' src='" + url + "'></iframe>");
-
+        zoom_open(ctl, url);    //společné zoom okno: wwwroot/js/mtzoom.js
     }
 
     function local_zoom_close() {
-        if ($("#zoomwin").css("display") == "block") {
-            $("#zoomwin").css("display", "none");
-        }
-
-        $(".zoom_ctl_current").removeClass("zoom_ctl_current");
+        if (typeof zoom_close === "function") zoom_close();
     }
-
 
     function sdlocal(d) {
         var j02id = "@Model.j02ID";

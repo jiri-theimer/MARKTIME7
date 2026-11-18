@@ -90,6 +90,11 @@ var MtCapacity = (function () {
                     st.today = parseDay(data.today);
                     st.holidays = {};   // den -> název svátku
                     (data.holidays || []).forEach(function (x) { var hd = parseDay(x.d); if (hd !== null) st.holidays[hd] = x.name || ""; });
+                    st.daycolors = {};  // j02id -> { den: { c: barva, n: název } } (barva dne z kalendáře)
+                    (data.daycolors || []).forEach(function (x) {
+                        var cd = parseDay(x.d); if (cd === null || !/^#[0-9a-fA-F]{3,8}$|^[a-zA-Z]+$/.test(x.color || "")) return;
+                        (st.daycolors[x.j02id] = st.daycolors[x.j02id] || {})[cd] = { c: x.color, n: x.name || "" };
+                    });
                     var first = !st.loaded;
                     st.loaded = true;
                     render();
@@ -138,6 +143,19 @@ var MtCapacity = (function () {
             }
             var title = (name ? name + "\n" : "") + (b.s === b.e ? human(b.s) : human(b.s) + " – " + human(b.e)) + "\n" + tra.vykazano + ": " + num(act) + " h\n" + tra.plan + ": " + num(plan) + " h\n" + tra.rozdil + ": " + (act - plan > 0 ? "+" : "") + num(act - plan) + " h";
             return "<div class='rc-sum " + cls + (b.e >= st.today ? " rc-now" : "") + "' style='left:" + ((b.s - st.start) * st.px) + "px;width:" + w + "px;' title='" + esc(title) + "'>" + txt + "</div>";
+        }
+
+        // barvy dne osoby jako proužek u horního okraje řádku (v každém měřítku jeden dílek na den)
+        function dayColorHtml(p) {
+            var dc = p && st.daycolors ? st.daycolors[p.j02id] : null;
+            if (!dc) return "";
+            var h = [], end = st.start + st.days;
+            Object.keys(dc).forEach(function (k) {
+                var d = +k;
+                if (d < st.start || d >= end) return;
+                h.push("<i class='rc-dc' style='left:" + ((d - st.start) * st.px) + "px;width:" + st.px + "px;background:" + dc[k].c + ";' title='" + esc(human(d) + ": " + dc[k].n) + "'></i>");
+            });
+            return h.join("");
         }
 
         // mini = jen barevný proužek vytížení člověka (v pohledu po projektech), bez čísel
@@ -340,7 +358,7 @@ var MtCapacity = (function () {
                 else h.push("<span>" + esc(it.name) + "</span>");
                 if (p && p.hidden > 0) h.push("<span class='rc-sub' title='" + esc(tra.skryte) + "'>+" + p.hidden + "</span>");
                 h.push("</div><div class='rc-cap'>" + num(total) + "</div><div class='rc-pln'></div><div class='rc-act'>" + num(acts) + "</div><div class='rc-fc'>" + num(total - acts) + "</div></div>");
-                h.push("<div class='rc-track' style='width:" + W + "px;'>" + (byProject ? projSumHtml(it.rows, bks) : sumHtml(p, bks, false)) + "</div></div>");
+                h.push("<div class='rc-track' style='width:" + W + "px;'>" + (byProject ? projSumHtml(it.rows, bks) : sumHtml(p, bks, false) + dayColorHtml(p)) + "</div></div>");
                 if (!open) return;
                 it.rows.forEach(function (r) {
                     var pln;
@@ -358,7 +376,7 @@ var MtCapacity = (function () {
                     if (r.edit > 0) h.push("<button type='button' data-cap='1' title='" + esc(tra.upravitstrop + ": " + num(r.fa) + " Fa + " + num(r.nefa) + " Nefa") + "'>" + num(r.total) + "</button>");
                     else h.push("<span title='" + esc(num(r.fa) + " Fa + " + num(r.nefa) + " Nefa") + "'>" + num(r.total) + "</span>");
                     h.push("</div><div class='rc-pln'>" + pln + "</div>" + actHtml(r) + restHtml(r) + "</div>");
-                    h.push(trackHtml(r, W, byProject ? sumHtml(r.person, bks, true) : "") + "</div>");
+                    h.push(trackHtml(r, W, byProject ? sumHtml(r.person, bks, true) + dayColorHtml(r.person) : "") + "</div>");
                 });
             });
             h.push("</div>");

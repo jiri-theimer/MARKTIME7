@@ -11,6 +11,7 @@ namespace UI.Controllers.p31view
 {
     public class FutBatchResult     //výsledek hromadného vykázání nepřítomnosti (SaveFutBatch)
     {
+        public const int MaxColorCells = 400;   //nejvyšší počet buněk pro hromadnou barvu dne (nevznikají úkony, proto volnější limit)
         public const int MaxCells = 40;     //nejvyšší počet buněk (úkonů) na jedno hromadné vykázání; stejný limit hlídá lišta v prohlížeči
         public int saved { get; set; }
         public bool manual { get; set; }
@@ -197,7 +198,56 @@ namespace UI.Controllers.p31view
 
         public int SaveC23Record(string d, int c24id, int j02id)
         {
+            if (!TestC23Input(c24id, new List<int> { j02id })) return 0;
             return Factory.c24DayColorBL.SaveC23Record(BO.Code.Bas.String2Date(d), c24id, j02id);
+        }
+
+        //barva dne i osoby musí patřit do licence přihlášeného uživatele (Load vrací jen záznamy vlastní licence)
+        private bool TestC23Input(int c24id, IEnumerable<int> j02ids)
+        {
+            if (c24id > 0)
+            {
+                var recC24 = Factory.c24DayColorBL.Load(c24id);
+                if (recC24 == null) return false;
+                if (Factory.CurrentUser.IsHostingModeTotalCloud && recC24.x01ID != Factory.CurrentUser.x01ID) return false;
+            }
+            foreach (int j02id in j02ids.Distinct())
+            {
+                if (j02id <= 0 || Factory.j02UserBL.Load(j02id) == null) return false;
+            }
+            return true;
+        }
+
+        //hromadná barva dne do označených buněk kalendáře nebo dayline; buňka má tvar "j02id|dd.MM.yyyy", c24id=0 barvu vyčistí
+        public FutBatchResult SaveC23Batch(int c24id, List<string> cells)
+        {
+            var ret = new FutBatchResult();
+            var lis = new List<(int j02id, DateTime d)>();
+            foreach (string s in (cells ?? new List<string>()).Distinct())
+            {
+                string[] arr = (s ?? "").Split('|');
+                if (arr.Length == 2 && int.TryParse(arr[0], out int intJ02ID) && intJ02ID > 0 && DateTime.TryParseExact(arr[1], "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime datD))
+                {
+                    lis.Add((intJ02ID, datD));
+                }
+            }
+            if (lis.Count == 0)
+            {
+                ret.errors.Add("Na vstupu chybí označené dny.");
+                return ret;
+            }
+            if (lis.Count > FutBatchResult.MaxColorCells)
+            {
+                ret.errors.Add($"Najednou lze obarvit nejvýše {FutBatchResult.MaxColorCells} buněk, označeno je {lis.Count}.");
+                return ret;
+            }
+            if (!TestC23Input(c24id, lis.Select(p => p.j02id)))
+            {
+                ret.errors.Add("Barva dne nebo osoba nejsou dostupné.");
+                return ret;
+            }
+            ret.saved = Factory.c24DayColorBL.SaveC23Batch(lis, c24id);
+            return ret;
         }
 
         public BO.Result SaveAbsRecord(string d,string prichod,string odchod,int j02id)
