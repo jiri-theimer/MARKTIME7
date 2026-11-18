@@ -46,6 +46,8 @@ namespace BL
         public IEnumerable<ImapMessageInfo> GetMessageList(Imap client, int intTakelastTopMessages, string strSeenFlag, string strFlaggedFlag);
         public BO.o27Attachment LoadByMessageId(string messageid);
         public BO.o27Attachment GetRecordFromMessage(Imap client, ImapMessageInfo c);
+        /// <summary>ID zpráv, které už IMAP pravidla v této licenci uložila.</summary>
+        public HashSet<string> GetImapMessageIds();
 
     }
     class o27AttachmentBL : BaseBL, Io27AttachmentBL
@@ -150,6 +152,7 @@ namespace BL
             p.AddInt("o27MailAttachmentsCount", rec.o27MailAttachmentsCount);
             p.AddBool("o27MailIsBodyHtml", rec.o27MailIsBodyHtml);
             p.AddString("o27MailAttachments", rec.o27MailAttachments);
+            p.AddInt("j40ID", rec.j40ID, true);     //poštovní účet, ze kterého zprávu načetlo IMAP pravidlo
 
 
             int intPID = _db.SaveRecord("o27Attachment", p, rec);
@@ -746,6 +749,13 @@ namespace BL
             return client;
         }
 
+        public HashSet<string> GetImapMessageIds()
+        {
+            var lis = _db.GetList<string>("SELECT a.o27MailMessageID FROM o27Attachment a WHERE a.o27MailMessageID IS NOT NULL AND a.o27ArchiveFolder='IMAP' AND a.x01ID=@x01id", new { x01id = _mother.CurrentUser.x01ID });
+            if (lis == null) return new HashSet<string>(StringComparer.Ordinal);
+            return new HashSet<string>(lis.Where(p => p != null), StringComparer.Ordinal);
+        }
+
         public BO.o27Attachment LoadByMessageId(string messageid)
         {
             return _db.Load<BO.o27Attachment>(GetSQL1(" WHERE a.o27MailMessageID=@messageid"), new { messageid = messageid });
@@ -805,16 +815,14 @@ namespace BL
             {
                 System.IO.Directory.CreateDirectory($"{_mother.UploadFolder}\\IMAP");
             }
-            if (!System.IO.File.Exists($"{_mother.UploadFolder}\\IMAP\\{c.MessageId.Id}.eml"))
+            //ID zprávy může obsahovat znaky, které v názvu souboru být nesmí
+            string strFileName = string.Join("_", c.MessageId.Id.Split(System.IO.Path.GetInvalidFileNameChars())) + ".eml";
+            if (!System.IO.File.Exists($"{_mother.UploadFolder}\\IMAP\\{strFileName}"))
             {
-                mail.Save($"{_mother.UploadFolder}\\IMAP\\{c.MessageId.Id}.eml", Rebex.Mail.MailFormat.Mime);
+                mail.Save($"{_mother.UploadFolder}\\IMAP\\{strFileName}", Rebex.Mail.MailFormat.Mime);
             }
             
-            var rec = new BO.o27Attachment() { j02ID_Owner = _mother.CurrentUser.pid, o27MailMessageID = c.MessageId.Id,o27ArchiveFileName=$"{c.MessageId.Id}.eml" ,o27ArchiveFolder="IMAP",o27FileExtension=".eml", o27OriginalFileName = $"{c.MessageId.Id}.eml" };
-            
-            var cc = mail.AlternateViews[0];
-            var ii = cc.GetContentLength;
-            var ss = cc.ContentString;
+            var rec = new BO.o27Attachment() { j02ID_Owner = _mother.CurrentUser.pid, o27MailMessageID = c.MessageId.Id, o27ArchiveFileName = strFileName, o27ArchiveFolder = "IMAP", o27FileExtension = ".eml", o27OriginalFileName = strFileName };
 
             if (mail.ReceivedDate != null)
             {
@@ -885,8 +893,13 @@ namespace BL
             rec.o27MailIsFlagged = c.IsFlagged;
             rec.o27MailIsDraft = c.IsDraft;
 
-            rec.o27MailSenderName = c.Sender.DisplayName;
-            rec.o27MailSenderAddress = c.Sender.Address;
+            var sender = c.Sender;
+            if (sender == null && c.From != null && c.From.Count > 0) sender = c.From[0];
+            if (sender != null)
+            {
+                rec.o27MailSenderName = sender.DisplayName;
+                rec.o27MailSenderAddress = sender.Address;
+            }
 
             rec.o27FileSize = Convert.ToInt32(c.Length);
 

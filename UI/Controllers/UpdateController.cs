@@ -333,6 +333,19 @@ namespace UI.Controllers
             return "";
         }
 
+        /// <summary>
+        /// varchar / nvarchar sloupec je v cílové databázi širší než ve vzorové struktuře (nebo je MAX a vzor má pevnou délku).
+        /// Takový sloupec se nemění: někteří zákazníci mají délku rozšířenou záměrně a zmenšení by navíc mohlo oříznout data.
+        /// </summary>
+        private static bool IsWiderTextColumn(BO.Sys.syscolumn col, BO.Sys.syscolumn coldest)
+        {
+            if (col == null || coldest == null) return false;
+            if (col.type_name != coldest.type_name) return false;
+            if (col.type_name != "varchar" && col.type_name != "nvarchar") return false;
+            if (col.length == -1) return false;     //vzor je MAX: cílový sloupec nemůže být širší
+            return (coldest.length == -1 || coldest.length > col.length);
+        }
+
         private void Handle_Differences(UpdateViewModel v)
         {
             foreach (var col in v.sourceCols)
@@ -381,7 +394,9 @@ namespace UI.Controllers
                 }
 
                 bool bolDecimal = (col.type_name == "decimal" || col.type_name == "numeric");
-                if (col.length != coldest.length || col.type_name != coldest.type_name || col.xprec != coldest.xprec || (bolDecimal && col.xscale != coldest.xscale))
+                //zákazník má varchar / nvarchar sloupec záměrně rozšířený: nezmenšuje se (vypíše se v přehledu „navíc“); výchozí hodnota se řeší dál jako u ostatních sloupců
+                bool bolWider = IsWiderTextColumn(col, coldest);
+                if (!bolWider && (col.length != coldest.length || col.type_name != coldest.type_name || col.xprec != coldest.xprec || (bolDecimal && col.xscale != coldest.xscale)))
                 {
                     //typ / délka / přesnost. NULL / NOT NULL se zachovává podle skutečného stavu sloupce:
                     //bez uvedení by ALTER COLUMN udělal ze sloupce NOT NULL sloupec NULL.
@@ -593,6 +608,25 @@ namespace UI.Controllers
             if (x == 0)
             {
                 wrl($"---Nic navíc jsem nenašel v cílové db [{v.DestDbName}].");
+            }
+
+            //textové sloupce, které jsou v cílové db širší než ve vzorové struktuře - aktualizace je záměrně nemění
+            var srcColByKey = new Dictionary<string, BO.Sys.syscolumn>();
+            foreach (var col in v.sourceCols)
+            {
+                srcColByKey[K(col.tablename, col.name)] = col;
+            }
+            bool bolHeader = false;
+            foreach (var coldest in v.destCols)
+            {
+                if (!srcColByKey.TryGetValue(K(coldest.tablename, coldest.name), out BO.Sys.syscolumn col) || !IsWiderTextColumn(col, coldest)) continue;
+                if (!bolHeader)
+                {
+                    wrl("");
+                    wrl("----Širší textové sloupce (aktualizace struktury je nezmenšuje):");
+                    bolHeader = true;
+                }
+                wrl($"----Sloupec [{coldest.tablename}].[{coldest.name}]: {coldest.type_name}{SqlTypeSuffix(coldest)}, vzorová struktura má{SqlTypeSuffix(col)}.");
             }
             v.RunResult = _sb.ToString();
         }

@@ -1,3 +1,4 @@
+using BO;
 using System.Collections.Concurrent;
 
 namespace BL.Singleton
@@ -86,7 +87,7 @@ namespace BL.Singleton
                     return strExpression;   //čeština a neznámé jazyky: bez překladu
             }
             if (string.IsNullOrEmpty(strExpression)) return strExpression;
-
+            
             if (_dict.TryGetValue(strExpression, out Entry c))
             {
                 return intLang == 1 ? c.Eng : (intLang == 2 ? c.De : c.Sk);

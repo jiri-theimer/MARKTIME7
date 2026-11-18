@@ -1,5 +1,5 @@
 ﻿using BO;
-using System.Text.RegularExpressions;
+using Rebex.Net;
 
 namespace BL
 {
@@ -90,242 +90,170 @@ namespace BL
 
         public void Run_ImapRobot() //běh robota pro pravidelné zpracování imap pravidel
         {
-            var lisO42 = GetList(new BO.myQuery("o42"));
-            foreach (var rule in lisO42)
+            var qry = GetList(new BO.myQuery("o42"));
+            if (qry == null) return;
+            foreach (var grp in qry.ToList().GroupBy(p => p.j40ID))
             {
-                var recJ40 = _mother.j40MailAccountBL.Load(rule.j40ID);
-                var imapclient = _mother.o27AttachmentBL.ConnectToImapServer(recJ40, "Inbox");
-                if (imapclient == null)
+                try
                 {
-                    return;
+                    Run_OneAccount(grp.Key, grp.ToList());
                 }
+                catch (Exception e)
+                {
+                    //chyba jednoho poštovního účtu nesmí zastavit zpracování ostatních
+                    BO.Code.File.LogError($"IMAP pravidla, j40ID={grp.Key}: {e.Message}");
+                }
+            }
+        }
+
+        private void Run_OneAccount(int j40id, List<BO.o42ImapRule> rules)
+        {
+            var recJ40 = _mother.j40MailAccountBL.Load(j40id);
+            if (recJ40 == null) return;
+            if (_mother.CurrentUser.IsHostingModeTotalCloud && recJ40.x01ID != _mother.CurrentUser.x01ID) return;  //poštovní účet jiné licence
+            var imapclient = _mother.o27AttachmentBL.ConnectToImapServer(recJ40, "Inbox");
+            if (imapclient == null) return;
+
+            try
+            {
                 imapclient.Settings.UsePeekForGetMessage = true;    //nenahazovat IsSeen flag na načtené zprávy
 
-                var messages = _mother.o27AttachmentBL.GetMessageList(imapclient, 20, null, null);
+                var messages = _mother.o27AttachmentBL.GetMessageList(imapclient, 200, null, null);
+                if (messages == null) return;
+                var known = _mother.o27AttachmentBL.GetImapMessageIds();    //zprávy, které už pravidla uložila
 
-                
-                foreach (var c in messages)
+                foreach (var c in messages.ToList())
                 {
-                    
-                    var rec = _mother.o27AttachmentBL.LoadByMessageId(c.MessageId.Id);
-                    
-                    if (rec != null)
-                    {
-                        continue;
-                    }
-                    bool bolGo = true;
-                    if (rule.o42Condition_Subject != null || rule.o42Condition_Sender != null || rule.o42Condition_Cc != null || rule.o42Condition_Bcc != null)
-                    {
-                        bolGo = false;
-                    }
-                    if (rule.o42Condition_Subject != null && c.Subject != null && c.Subject.Contains(rule.o42Condition_Subject))
-                    {
-                        bolGo = true;
-                    }
-                    if (rule.o42Condition_Sender != null && c.Sender != null && c.Sender.Address.Contains(rule.o42Condition_Sender))
-                    {
-                        bolGo = true;
-                    }
-                    if (rule.o42Condition_Cc != null && c.CC.Count() > 0 && c.CC.Contains(rule.o42Condition_Cc))
-                    {
-                        bolGo = true;
-                    }
-                    if (rule.o42Condition_Bcc != null && c.Bcc.Count() > 0 && c.Bcc.Contains(rule.o42Condition_Bcc))
-                    {
-                        bolGo = true;
-                    }
+                    if (c.MessageId == null || string.IsNullOrEmpty(c.MessageId.Id) || known.Contains(c.MessageId.Id)) continue;
+                    var hits = rules.Where(p => IsRuleMatch(p, c)).ToList();
+                    if (hits.Count == 0) continue;
 
-                    if (bolGo)
+                    try
                     {
-                        bolGo = false;
-                        rec = _mother.o27AttachmentBL.GetRecordFromMessage(imapclient, c);
-                        rec.j40ID = rule.j40ID;
-                        
-                        switch (rule.o42WhatToDoFlag)
+                        var payrules = hits.Where(p => p.o42WhatToDoFlag == o42WhatToDoFlagENUM.InvoicePayment || p.o42WhatToDoFlag == o42WhatToDoFlagENUM.ProformaPayment).ToList();
+                        if (payrules.Count > 0)
                         {
-                            case o42WhatToDoFlagENUM.BindWithProject:
-                                if (rule.p41ID_Default > 0)
-                                {
-                                    rec.o27RecordPid = rule.p41ID_Default;
-                                    rec.o27Entity = "p41";
-                                    bolGo = true;
-                                }
-                                break;
-                            case o42WhatToDoFlagENUM.BindWithContact:
-                                if (rule.p28ID_Default > 0)
-                                {
-                                    rec.o27RecordPid = rule.p28ID_Default;
-                                    rec.o27Entity = "p28";
-                                    bolGo = true;
-                                }
-                                break;
-                            case o42WhatToDoFlagENUM.BindWithUser:
-                                if (rule.p28ID_Default > 0)
-                                {
-                                    rec.o27RecordPid = rule.j02ID_Default;
-                                    rec.o27Entity = "j02";
-                                    bolGo = true;
-                                }
-                                break;
-                            case o42WhatToDoFlagENUM.InvoicePayment:    //úhrada faktury
-                                rec.o27RecordPid = Handle_UhradaFaktury(rec, rule);
-                                rec.o27Entity = "p91";
-                                if (rec.o27RecordPid > 0)
-                                {                                    
-                                    bolGo = true;
-                                }
-                                break;
-                            case o42WhatToDoFlagENUM.ProformaPayment:
-                                rec.o27RecordPid = Handle_UhradaZalohy(rec, rule);
-                                rec.o27Entity = "p90";
-                                if (rec.o27RecordPid > 0)
-                                {
-                                    bolGo = true;
-                                }
-                                break;
+                            if (Handle_BankMail(imapclient, c, payrules)) known.Add(c.MessageId.Id);
+                            continue;
                         }
-
-
-                        if (bolGo)
+                        foreach (var rule in hits)
                         {
-                            _mother.o27AttachmentBL.Save(rec);
-                            
+                            if (Handle_BindMail(imapclient, c, rule))
+                            {
+                                known.Add(c.MessageId.Id);
+                                break;
+                            }
                         }
-                        
+                    }
+                    catch (Exception e)
+                    {
+                        BO.Code.File.LogError($"IMAP pravidla, zpráva {c.MessageId.Id}: {e.Message}");
                     }
                 }
-
+            }
+            finally
+            {
                 imapclient.Disconnect();
-
-
             }
         }
 
-        private void Najit_VS_A_Castku(BO.o27Attachment rec, BO.o42ImapRule rule,ref string strVS,ref double dblCastka )
+        private bool HasCondition(BO.o42ImapRule rule)
         {
-            string word_vs = _mother.o58GlobalParamBL.GetGlobalParamValue(7, rule.pid);
-            string word_castka = _mother.o58GlobalParamBL.GetGlobalParamValue(8, rule.pid);
-
-            if (word_vs == null || word_castka == null)
-            {
-                return;
-            }
-            
-            string s = rec.o27MailBodyText;
-            if (string.IsNullOrEmpty(s))
-            {
-                var htmldoc = new HtmlAgilityPack.HtmlDocument();
-                htmldoc.LoadHtml(rec.o27MailBodyHtml);
-                s = htmldoc.DocumentNode.InnerText; //převod html do plaintextu
-
-            }
-            var lines = BO.Code.Bas.ConvertString2List(s, "\r");
-            foreach (var line in lines)
-            {
-                if (line.Contains(word_vs))
-                {
-                    var a = line.Split(word_vs);
-                    a[1] = a[1].Replace("\"", "").Replace(".", "").Replace("\n", "");
-                    if (a[1].Length > 15)
-                    {
-                        a[1] = a[1].Substring(0, 15);
-                    }
-                    strVS = ParseIntFromString(a[1]);
-                }
-                if (line.Contains(word_castka))
-                {
-
-                    var a = line.Split(word_castka);
-                    a[1] = a[1].Replace("\"", "").Replace(".", "").Replace("\n", "");
-                    if (a[1].Length > 20)
-                    {
-                        a[1] = a[1].Substring(0, 15);
-                    }
-                    s = a[1].Replace("\"", "").Replace(" ", "").Replace(".", "").Replace("\n", "").Replace("CZK", "").Replace("EUR", "").Replace("USD", "").Replace("Kč", "").Replace("-", "").Replace("+", "");
-                    s = ParseAmountFromString(s);
-                    dblCastka = BO.Code.Bas.InDouble(s);
-                }
-
-                if (!string.IsNullOrEmpty(strVS) && dblCastka != 0)
-                {
-                    return; //nalezeno
-                    
-                }
-
-            }
-
-            
+            return (rule.o42Condition_Subject != null || rule.o42Condition_Sender != null || rule.o42Condition_Cc != null || rule.o42Condition_Bcc != null);
         }
 
-        private int Handle_UhradaFaktury(BO.o27Attachment rec,BO.o42ImapRule rule)  //vrací p91id faktury, kam náleží spárovaná úhrada
+        private bool IsRuleMatch(BO.o42ImapRule rule, ImapMessageInfo c)
         {
-           
-            string strVS = null;double dblCastka = 0;
-            Najit_VS_A_Castku(rec, rule,ref strVS,ref dblCastka);
+            if (!HasCondition(rule)) return true;   //pravidlo bez podmínky platí pro všechny zprávy
 
-            BO.Code.File.LogInfo($"VS: {strVS}, Částka: {dblCastka}");
+            if (rule.o42Condition_Subject != null && c.Subject != null && c.Subject.Contains(rule.o42Condition_Subject)) return true;
+            if (rule.o42Condition_Sender != null && c.Sender != null && c.Sender.Address.Contains(rule.o42Condition_Sender)) return true;
+            if (rule.o42Condition_Cc != null && c.CC.Count() > 0 && c.CC.Contains(rule.o42Condition_Cc)) return true;
+            if (rule.o42Condition_Bcc != null && c.Bcc.Count() > 0 && c.Bcc.Contains(rule.o42Condition_Bcc)) return true;
 
-            if (strVS !=null && dblCastka != 0)
+            return false;
+        }
+
+        /// <summary>Pravidla, která zprávu jen uloží do FILEBOXu k projektu / kontaktu / uživateli.</summary>
+        private bool Handle_BindMail(Imap imapclient, ImapMessageInfo c, BO.o42ImapRule rule)
+        {
+            string strEntity = null; int intPid = 0;
+            switch (rule.o42WhatToDoFlag)
             {
-                var recP91 = _mother.p91InvoiceBL.LoadByCode(strVS);
-                if (recP91 == null && BO.Code.Bas.InInt(strVS) > 0)
+                case o42WhatToDoFlagENUM.BindWithProject:
+                    strEntity = "p41"; intPid = rule.p41ID_Default;
+                    break;
+                case o42WhatToDoFlagENUM.BindWithContact:
+                    strEntity = "p28"; intPid = rule.p28ID_Default;
+                    break;
+                case o42WhatToDoFlagENUM.BindWithUser:
+                    strEntity = "j02"; intPid = rule.j02ID_Default;
+                    break;
+            }
+            if (strEntity == null || intPid == 0) return false;
+
+            var rec = _mother.o27AttachmentBL.GetRecordFromMessage(imapclient, c);
+            rec.j40ID = rule.j40ID;
+            rec.o27Entity = strEntity;
+            rec.o27RecordPid = intPid;
+            return (_mother.o27AttachmentBL.Save(rec) > 0);
+        }
+
+        /// <summary>
+        /// Oznámení banky o platbě (pravidla Úhrada faktury / Úhrada zálohy). E-mail se uloží do FILEBOXu vždy, jeho pohyby do p87BankTransaction;
+        /// jistou úhradu (sedí variabilní symbol i částka, platba je příchozí) zapíše p87BankTransactionBL rovnou.
+        /// </summary>
+        private bool Handle_BankMail(Imap imapclient, ImapMessageInfo c, List<BO.o42ImapRule> payrules)
+        {
+            var rec = _mother.o27AttachmentBL.GetRecordFromMessage(imapclient, c);
+            rec.j40ID = payrules[0].j40ID;
+            if (payrules[0].j02ID_Default > 0) rec.j02ID_Owner = payrules[0].j02ID_Default;    //komu patří nespárované platby ve frontě FILEBOXu
+
+            var moves = BL.Code.BankMailParser.Parse(rec.o27MailSubject, BL.Code.BankMailParser.GetText(rec.o27MailBodyText, rec.o27MailBodyHtml));
+
+            if (!payrules.Any(p => HasCondition(p)))
+            {
+                //pravidlo bez podmínky čte celou schránku: uloží se jen zpráva, která vypadá jako příchozí platba s variabilním symbolem
+                if (!moves.Any(p => p.Direction == 1 && p.VS != null))
                 {
-                    string strNumericVS = strVS.TrimStart("0".ToCharArray());
-                    recP91 = _mother.p91InvoiceBL.LoadByNumericCode(strNumericVS);
-                }
-                if (recP91 != null && recP91.p91Amount_Debt>0)
-                {
-                    var recP94 = new BO.p94Invoice_Payment() { p91ID = recP91.pid, p94Amount = dblCastka, p94Date = DateTime.Today };
-                    if (_mother.p91InvoiceBL.SaveP94(recP94) > 0)
-                    {
-                        return recP91.pid;
-                    }
+                    DeleteEmlFile(rec);
+                    return false;
                 }
             }
-                       
 
-            return 0;
-        }
-
-        private int Handle_UhradaZalohy(BO.o27Attachment rec, BO.o42ImapRule rule)  //vrací p90id zálohy, kam náleží spárovaná úhrada
-        {
-            string strVS = null; double dblCastka = 0;
-            Najit_VS_A_Castku(rec, rule, ref strVS, ref dblCastka);
-
-            if (strVS != null && dblCastka != 0)
+            if (moves.Count == 0)
             {
-                var recP90 = _mother.p90ProformaBL.LoadByCode(strVS);
-                if (recP90 == null && BO.Code.Bas.InInt(strVS) > 0)
-                {
-                    string strNumericVS = strVS.TrimStart("0".ToCharArray());
-                    recP90 = _mother.p90ProformaBL.LoadByNumericCode(strNumericVS);
-                }
-                if (recP90 != null && recP90.p90Amount_Debt>0)
-                {
-                    var recP82 = new BO.p82Proforma_Payment() { p90ID = recP90.pid, p82Amount = dblCastka, p82Date = DateTime.Today };
-                    if (_mother.p82Proforma_PaymentBL.Save(recP82) > 0)
-                    {
-                        return recP90.pid;
-                    }
-                }
+                //zpráva od banky bez částky (není to oznámení o platbě): uloží se k pravidlu, aby se nečetla znovu
+                rec.o27Entity = "o42";
+                rec.o27RecordPid = payrules[0].pid;
+                return (_mother.o27AttachmentBL.Save(rec) > 0);
             }
 
+            rec.o27Entity = null;
+            rec.o27RecordPid = 0;
+            rec.pid = _mother.o27AttachmentBL.Save(rec);
+            if (rec.pid == 0)
+            {
+                DeleteEmlFile(rec);
+                return false;
+            }
 
-            return 0;
+            var lis = _mother.p87BankTransactionBL.ProcessMail(rec, payrules, moves);
+            BO.Code.File.LogInfo($"IMAP pravidla, bankovní e-mail {c.MessageId.Id}: pohybů {lis.Count}, zapsaných úhrad {lis.Count(p => p.p87StatusFlag == BO.p87StatusFlagENUM.SparovanoAutomaticky)}, nespárovaných {lis.Count(p => p.p87StatusFlag == BO.p87StatusFlagENUM.Nesparovano)}");
+            return true;
         }
 
-        private string ParseIntFromString(string s)
+        private void DeleteEmlFile(BO.o27Attachment rec)
         {
-            var reg = new Regex("[^0-9]");
-            s = reg.Replace(s, "");
-            return s;
-        }
-        private string ParseAmountFromString(string s)
-        {
-            var reg = new Regex(@"[^-?\d{1,3}(,\d{3})*(\.\d\d)?$|^\.\d\d$]");
-            s = reg.Replace(s, "");
-
-            return s;
+            try
+            {
+                string s = $"{_mother.UploadFolder}\\{rec.o27ArchiveFolder}\\{rec.o27ArchiveFileName}";
+                if (System.IO.File.Exists(s)) System.IO.File.Delete(s);
+            }
+            catch
+            {
+                //soubor zůstane na disku, zpracování to nebrání
+            }
         }
     }
 }

@@ -309,12 +309,13 @@
                 </div>
                 @if (_f.CurrentUser.TestPermission(BO.PermValEnum.GR_P91_Owner))
                 {
-                    <div class="hm-item">
+                    <div class="hm-item" style="display:none;">
                         <a id="linkBanka" class="locallink hm-link" href="/BankaImport/Index"><span class="material-icons-outlined-btn">sync</span><span>@_f.tra("Import bank.výpisů")</span></a>
                     </div>
                     <div class="hm-item">
-                        <a class="locallink hm-link" href="/p91MultiReport"><span class="material-icons-outlined-btn">picture_as_pdf</span><span>@_f.tra("Rekonstrukční report")</span></a>
+                        <a id="linkP87" class="locallink hm-link" href="/p87/Index"><span class="material-icons-outlined-btn">account_balance</span><span>@_f.tra("Bankovní úhrady")</span></a>
                     </div>
+                   
                 }
             </section>
         }

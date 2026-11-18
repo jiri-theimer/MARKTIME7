@@ -1,0 +1,127 @@
+﻿@model UI.Models.p87ViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    Model.PageTitle = _f.tra("Bankovní platby");
+
+    string FilterClass(int flag)
+    {
+        return (Model.StatusFlag == flag ? "btn btn-sm btn-primary" : "btn btn-sm btn-light");
+    }
+}
+
+@addTagHelper *,UI
+
+<div class="modal_record_container">
+
+    <h4>@Model.PageTitle</h4>
+
+    <form asp-controller="p87" asp-action="Index" method="POST" id="form1">
+        <input type="hidden" asp-for="StatusFlag" />
+        <input type="hidden" asp-for="oper" />
+        <input type="hidden" asp-for="p87id" />
+        <input type="hidden" asp-for="code" />
+
+        <div class="my-2">
+            <button type="button" class="btn btn-primary" onclick="p87_oper('run',0)">@_f.tra("Stáhnout úhrady z e-mailu")</button>
+
+            <span class="mx-3">
+                <a class="@FilterClass(0)" href="/p87/Index?flag=0">@_f.tra("Nespárované") (@Model.CountUnpaired)</a>
+                <a class="@FilterClass(1)" href="/p87/Index?flag=1">@_f.tra("Spárované automaticky")</a>
+                <a class="@FilterClass(2)" href="/p87/Index?flag=2">@_f.tra("Spárované ručně")</a>
+                <a class="@FilterClass(3)" href="/p87/Index?flag=3">@_f.tra("Ignorované")</a>
+                <a class="@FilterClass(-1)" href="/p87/Index?flag=-1">@_f.tra("Vše")</a>
+            </span>
+        </div>
+
+        @if (Model.lisP87.Count == 0)
+        {
+            <div class="alert alert-light">@_f.tra("Žádné bankovní platby k zobrazení.")</div>
+        }
+        else
+        {
+            <table class="table table-sm table-hover">
+                <thead>
+                    <tr>
+                        <th>@_f.tra("Datum")</th>
+                        <th style="text-align:right;">@_f.tra("Částka")</th>
+                        <th>@_f.tra("Variabilní symbol")</th>
+                        <th>@_f.tra("Protiúčet")</th>
+                        <th>@_f.tra("Doklad")</th>
+                        <th>@_f.tra("Poznámka")</th>
+                        <th>@_f.tra("E-mail")</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var c in Model.lisP87)
+                    {
+                        string strDoc = (c.p91ID > 0 ? c.p91Code : (c.p90ID > 0 ? c.p90Code : null));
+                        <tr>
+                            <td>@(BO.Code.Bas.ObjectDate2String(c.p87Date, "dd.MM.yyyy"))</td>
+                            <td style="text-align:right;white-space:nowrap;">@(BO.Code.Bas.GN(c.p87Amount))</td>
+                            <td>@c.p87Code</td>
+                            <td>@c.p87BankAccount</td>
+                            <td>
+                                @if (c.p91ID > 0)
+                                {
+                                    <a href="/Record/RecPage?prefix=p91&pid=@c.p91ID" target="_top">@c.p91Code</a>
+                                    <span class="text-muted">@c.p91Client</span>
+                                }
+                                else if (c.p90ID > 0)
+                                {
+                                    <a href="/Record/RecPage?prefix=p90&pid=@c.p90ID" target="_top">@c.p90Code</a>
+                                }
+                            </td>
+                            <td>
+                                @switch (c.p87StatusFlag)
+                                {
+                                    case BO.p87StatusFlagENUM.SparovanoAutomaticky:
+                                        <span>@_f.tra("Spárováno automaticky")</span>
+                                        break;
+                                    case BO.p87StatusFlagENUM.SparovanoRucne:
+                                        <span>@_f.tra("Spárováno ručně") (@c.UserUpdate)</span>
+                                        break;
+                                    case BO.p87StatusFlagENUM.Ignorovano:
+                                        <span>@_f.tra("Ignorováno")</span>
+                                        break;
+                                }
+                                @c.p87Message
+                            </td>
+                            <td>
+                                @if (c.o27ID > 0)
+                                {
+                                    <a href="/p87/MailText?p87id=@c.pid" target="_blank" title="@c.o27MailSenderAddress">@(BO.Code.Bas.OM2(c.o27MailSubject, 40))</a>
+                                }
+                            </td>
+                            <td style="white-space:nowrap;">
+                                @if (c.p87StatusFlag == BO.p87StatusFlagENUM.Nesparovano)
+                                {
+                                    <input type="text" id="@("code_" + c.pid)" value="@(strDoc ?? c.p87Code)" class="form-control form-control-sm" style="display:inline-block;width:130px;" placeholder="@_f.tra("Číslo dokladu")" />
+                                    <button type="button" class="btn btn-sm btn-success" onclick="p87_oper('assign',@c.pid)">@_f.tra("Přiřadit")</button>
+                                    <button type="button" class="btn btn-sm btn-light" onclick="p87_oper('ignore',@c.pid)">@_f.tra("Ignorovat")</button>
+                                }
+                                @if (c.p87StatusFlag == BO.p87StatusFlagENUM.Ignorovano)
+                                {
+                                    <button type="button" class="btn btn-sm btn-light" onclick="p87_oper('reopen',@c.pid)">@_f.tra("Vrátit mezi nespárované")</button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </form>
+</div>
+
+<script type="text/javascript">
+    function p87_oper(oper, p87id) {
+        var form = document.getElementById("form1");
+        form.elements["oper"].value = oper;
+        form.elements["p87id"].value = p87id;
+        var c = document.getElementById("code_" + p87id);
+        form.elements["code"].value = (c ? c.value : "");
+        form.submit();
+    }
+</script>

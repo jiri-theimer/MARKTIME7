@@ -135,6 +135,36 @@ namespace UI.Controllers
             {
 
                 var rec = Factory.o27AttachmentBL.Load(o27id);
+
+                //e-mail z banky s nespárovanou platbou: přiřazením k faktuře / záloze se zapíše úhrada
+                var qryP87 = Factory.p87BankTransactionBL.GetList_o27(o27id);
+                var lisP87 = (qryP87 == null ? new List<BO.p87BankTransaction>() : qryP87.Where(p => p.p87StatusFlag == BO.p87StatusFlagENUM.Nesparovano).ToList());
+                if (lisP87.Count > 0)
+                {
+                    bool bolOK = false;
+                    if (lisP87.Count > 1 || (v.prefix != "p91" && v.prefix != "p90"))
+                    {
+                        this.AddMessageTranslated("E-mail obsahuje nespárované bankovní platby. Přiřaďte je v přehledu Bankovní platby.");
+                    }
+                    else if (v.prefix == "p91")
+                    {
+                        bolOK = Factory.p87BankTransactionBL.AssignInvoice(lisP87[0].pid, v.pid);
+                    }
+                    else
+                    {
+                        bolOK = Factory.p87BankTransactionBL.AssignProforma(lisP87[0].pid, v.pid);
+                    }
+                    if (bolOK)
+                    {
+                        v.SetJavascript_CallOnLoad(0);
+                    }
+                    else
+                    {
+                        v.lisO27 = Factory.o27AttachmentBL.GetList(new BO.myQueryO27() { mavazbu = false });
+                    }
+                    return View(v);
+                }
+
                 rec.o27RecordPid = v.pid;
                 rec.o27Entity = v.prefix;
                 

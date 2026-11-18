@@ -127,6 +127,7 @@ namespace BL
         private Ip91InvoiceBL _p91;
         private Ip90ProformaBL _p90;
         private Ip82Proforma_PaymentBL _p82;
+        private Ip87BankTransactionBL _p87;
 
         private Ip95InvoiceRowBL _p95;
         private Ip83UpominkaTypeBL _p83;
@@ -940,6 +941,14 @@ namespace BL
             }
         }
 
+        public Ip87BankTransactionBL p87BankTransactionBL
+        {
+            get
+            {
+                if (_p87 == null) _p87 = new p87BankTransactionBL(this);
+                return _p87;
+            }
+        }
         public Ip82Proforma_PaymentBL p82Proforma_PaymentBL
         {
             get

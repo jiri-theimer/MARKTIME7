@@ -697,6 +697,7 @@ namespace BL
             if (_db.RunSql("DELETE FROM p94Invoice_Payment WHERE p94ID=@p94id", new { p94id = p94id }))
             {
                 Handle_RecalcAmount(p91id);
+                _mother.p87BankTransactionBL.OnInvoicePaymentDeleted(p94id);    //platba z bankovního e-mailu se vrátí mezi nespárované
                 return true;
             }
             else
