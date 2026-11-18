@@ -182,7 +182,6 @@ namespace BL.Singleton
 
             AE("p28Contact", "Kontakty", "Kontakt", "p28Contact a INNER JOIN p29ContactType p29x ON a.p29ID=p29x.p29ID LEFT OUTER JOIN b02WorkflowStatus b02x ON a.b02ID=b02x.b02ID", "a.p28Name");
             AE("p29ContactType", "Typy kontaktu", "Typ kontaktu", "p29ContactType a", "a.p29Ordinary,a.p29Name");
-            AE("p24ContactGroup", "Skupiny kontaktů", "Skupina kontaktů", "p24ContactGroup a ", "a.p24Name");
             
 
             AE("p07ProjectLevel", "Úrovně projektů", "Úroveň projektu", "p07ProjectLevel a", "a.p07Level DESC", "a.p07Level DESC");

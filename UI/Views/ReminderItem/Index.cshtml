@@ -14,8 +14,8 @@
     if ((int)Model.o24MediumFlag == 0) { Model.o24MediumFlag = BO.o24MediumFlagEnum.Email; }
     //starší upozornění s volbou SMS: SMS se už neposílají – nabídnout to, jak se skutečně doručí
     if (Model.o24MediumFlag == BO.o24MediumFlagEnum.EmailPlusSms) { Model.o24MediumFlag = BO.o24MediumFlagEnum.Email; }
-    if (Model.o24MediumFlag == BO.o24MediumFlagEnum.Sms) { Model.o24MediumFlag = (Model.BindPrefix == "p28" || Model.BindPrefix == "p24") ? BO.o24MediumFlagEnum.Email : BO.o24MediumFlagEnum.Chat; }
-    if (Model.o24MediumFlag == BO.o24MediumFlagEnum.Chat && (Model.BindPrefix == "p28" || Model.BindPrefix == "p24")) { Model.o24MediumFlag = BO.o24MediumFlagEnum.Email; }     //kontakt chat nemá
+    if (Model.o24MediumFlag == BO.o24MediumFlagEnum.Sms) { Model.o24MediumFlag = Model.BindPrefix == "p28" ? BO.o24MediumFlagEnum.Email : BO.o24MediumFlagEnum.Chat; }
+    if (Model.o24MediumFlag == BO.o24MediumFlagEnum.Chat && Model.BindPrefix == "p28") { Model.o24MediumFlag = BO.o24MediumFlagEnum.Email; }     //kontakt chat nemá
     if (!Model.is_static_date && Model.o24Count == 0) { Model.o24Count = -1; Model.o24Unit = "d"; }
     if (string.IsNullOrEmpty(Model.o24Unit)) { Model.o24Unit = "d"; }
 
@@ -23,7 +23,6 @@
     if (Model.record_prefix != "p31") { _kinds.Add(("x67", "badge", _f.tra("Role v záznamu"))); }
     _kinds.Add(("j11", "groups", _f.tra("Tým")));
     _kinds.Add(("p28", "contacts", _f.tra("Kontakt")));
-    _kinds.Add(("p24", "folder_shared", _f.tra("Skupina kontaktů")));
 
     var _presets = new List<(int Count, string Unit, string Text)>
     {
@@ -106,11 +105,6 @@
                 <mycombo entity="p28Contact" asp-for="p28ID" selectedtext="@Model.ComboP28Name" filter-flag="1"></mycombo>
                 <div class="rm-dlg-note">@_f.tra("Kontakt dostane jen e-mail – interní chat nemá.")</div>
             }
-            @if (Model.BindPrefix == "p24")
-            {
-                <mycombo entity="p24ContactGroup" asp-for="p24ID" selectedtext="@Model.ComboP24Name"></mycombo>
-                <div class="rm-dlg-note">@_f.tra("Kontakty dostanou jen e-mail – interní chat nemají.")</div>
-            }
         </div>
     </section>
 
@@ -121,7 +115,7 @@
                 <input type="radio" name="o24MediumFlag" id="rmHow_1" value="Email" checked="@(Model.o24MediumFlag == BO.o24MediumFlagEnum.Email)" />
                 <span><span class="material-icons-outlined-nosize">mail</span>E-mail</span>
             </label>
-            @if (Model.BindPrefix != "p28" && Model.BindPrefix != "p24")
+            @if (Model.BindPrefix != "p28")
             {
                 @* kontakty interní chat nemají - volba by pro ně nic nedoručila *@
                 <label class="rm-seg">
@@ -184,7 +178,6 @@
         window.parent.document.getElementById("reminder_edit_j11id").value = "@Model.j11ID";
         window.parent.document.getElementById("reminder_edit_x67id").value = "@Model.x67ID";
         window.parent.document.getElementById("reminder_edit_p28id").value = "@Model.p28ID";
-        window.parent.document.getElementById("reminder_edit_p24id").value = "@Model.p24ID";
         
         window.parent.document.getElementById("reminder_edit_o24memo").value = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.o24Memo ?? ""));
 

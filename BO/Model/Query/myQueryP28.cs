@@ -11,8 +11,6 @@ namespace BO
         public int b01id { get; set; }
         public int p51id { get; set; }      
         public int o51id { get; set; }
-        public int p24id { get; set; }
-        public List<int> p24ids { get; set; }
         public int p28parentid { get; set; }
         public bool? p28iscompany { get; set; }
         public bool? canbe_supplier { get; set; }
@@ -116,14 +114,6 @@ namespace BO
                 AQ(" AND a.p28ID IN (SELECT o52RecordPID FROM o52TagBinding WHERE o52RecordEntity='p28' AND o51ID IN (" + String.Join(",", this.o51ids) + "))", null, null);
             }
 
-            if (this.p24id > 0)
-            {
-                AQ("a.p28ID IN (select p28ID FROM p25ContactGroupBinding WHERE p24ID=@p24id)", "p24id", this.p24id);
-            }
-            if (this.p24ids != null && this.p24ids.Count > 0)
-            {
-                AQ($"a.p28ID IN (select p28ID FROM p25ContactGroupBinding WHERE j11ID IN ({string.Join(",", this.p24ids)}))", null, null);
-            }
 
             //if (this.p29ids !=null)
             //{

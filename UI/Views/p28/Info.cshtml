@@ -10,7 +10,7 @@
     var _disp = _f.p28ContactBL.InhaleRecDisposition(Model.Rec.pid,Model.Rec);
     InfoButtonsViewModel _buttons = new InfoButtonsViewModel() { prefix = Model.prefix, pid = Model.pid, disp = _disp };
 
-    var _lisO32 = _f.p28ContactBL.GetList_o32(Model.pid, 0,0);
+    var _lisO32 = _f.p28ContactBL.GetList_o32(Model.pid, 0);
     var _lisP30 = _f.p28ContactBL.GetList_p30(Model.pid);
 }
 

@@ -42,10 +42,6 @@
                 {
                     ri.p28ID = c.p28ID; ri.BindPrefix = "p28"; ri.BindAlias = c.p28Name;
                 }
-                if (c.p24ID > 0)
-                {
-                    ri.p24ID = c.p24ID; ri.BindPrefix = "p24"; ri.BindAlias = c.p24Name;
-                }
                 if (c.j02ID > 0)
                 {
                     ri.j02ID = c.j02ID; ri.BindPrefix = "j02"; ri.BindAlias = c.Person;
@@ -75,7 +71,6 @@
         rec.j11ID = rec.BindPrefix == "j11" ? Model.edit_j11id : 0;
         rec.x67ID = rec.BindPrefix == "x67" ? Model.edit_x67id : 0;
         rec.p28ID = rec.BindPrefix == "p28" ? Model.edit_p28id : 0;
-        rec.p24ID = rec.BindPrefix == "p24" ? Model.edit_p24id : 0;
         rec.o24Memo = Model.edit_o24memo;
 
         rec.BindAlias = null;
@@ -83,7 +78,6 @@
         if (rec.j11ID > 0) rec.BindAlias = _f.j11TeamBL.Load(rec.j11ID)?.j11Name;
         if (rec.x67ID > 0) rec.BindAlias = _f.x67EntityRoleBL.Load(rec.x67ID)?.x67Name;
         if (rec.p28ID > 0) rec.BindAlias = _f.CBL.GetObjectAlias("p28", rec.p28ID);
-        if (rec.p24ID > 0) rec.BindAlias = _f.p24ContactGroupBL.Load(rec.p24ID)?.p24Name;
 
         if (Model.is_static_date && Model.edit_o24staticdate != null)
         {
@@ -135,7 +129,6 @@
 <input type="hidden" asp-for="edit_j02id" value="@Model.edit_j02id" />
 <input type="hidden" asp-for="edit_j11id" value="@Model.edit_j11id" />
 <input type="hidden" asp-for="edit_p28id" value="@Model.edit_p28id" />
-<input type="hidden" asp-for="edit_p24id" value="@Model.edit_p24id" />
 <input type="hidden" asp-for="edit_x67id" value="@Model.edit_x67id" />
 
 <input type="hidden" asp-for="edit_o24memo" value="@Model.edit_o24memo" />
@@ -159,7 +152,6 @@
         "j11" => _f.tra("Tým"),
         "x67" => _f.tra("Role v záznamu"),
         "p28" => _f.tra("Kontakt"),
-        "p24" => _f.tra("Skupina kontaktů"),
         _ => ""
     };
     string _How(int flag) => (flag == 4 || flag == 2) ? _f.tra("Pouze chat") : "E-mail + chat";   //2 a 3 = dřívější volby se SMS (SMS se už neposílají)
@@ -211,7 +203,6 @@
                     <input type="hidden" asp-for="lisReminder[i].j02ID" value="@r.j02ID" />
                     <input type="hidden" asp-for="lisReminder[i].j11ID" value="@r.j11ID" />
                     <input type="hidden" asp-for="lisReminder[i].p28ID" value="@r.p28ID" />
-                    <input type="hidden" asp-for="lisReminder[i].p24ID" value="@r.p24ID" />
                     <input type="hidden" asp-for="lisReminder[i].x67ID" value="@r.x67ID" />
                     <input type="hidden" asp-for="lisReminder[i].o24Memo" value="@r.o24Memo" />
 
@@ -280,7 +271,7 @@
         reminder_set("edit_reminder", guid);
         var q = "";
         [["o24count", "o24Count"], ["o24unit", "o24Unit"], ["o24mediumflag", "o24MediumFlag"], ["bindprefix", "BindPrefix"],
-         ["j02id", "j02ID"], ["j11id", "j11ID"], ["x67id", "x67ID"], ["p28id", "p28ID"], ["p24id", "p24ID"],
+         ["j02id", "j02ID"], ["j11id", "j11ID"], ["x67id", "x67ID"], ["p28id", "p28ID"],
          ["o24memo", "o24Memo"], ["o24staticdate", "o24StaticDate"]].forEach(function (p) {
             q += "&" + p[0] + "=" + encodeURIComponent(reminder_val(rowindex, p[1]));
         });

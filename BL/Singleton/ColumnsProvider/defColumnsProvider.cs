@@ -58,11 +58,6 @@ namespace BL
             AA("c26CountryCode", "ISO kód státu");
             AppendTimestamp();
 
-            this.EntityName = "p24ContactGroup";
-            AA("p24Name", "Skupina kontaktů", gdc1, null, "string", false, true);
-            AA("p24Email", "Skupinový e-mail");
-            AppendTimestamp();
-
             this.EntityName = "p27Pctype";
             AA("p27Name", "Název", gdc1, null, "string", false, true);
             AFNUM0("p27Ordinary", "#").DefaultColumnFlag = gdc2;
@@ -581,7 +576,7 @@ namespace BL
             AppendTimestamp();
 
             this.EntityName = "x07Integration";
-            AA("x07Flag", "Typ", gdc1, "case a.x07Flag when 1 then 'Ecomail' when 2 then 'SmartEmailing' when 3 then 'AbraFlexi' end", "string", false, true);
+            AA("x07Flag", "Typ", gdc1, "case a.x07Flag when 1 then 'Ecomail' when 2 then 'SmartEmailing' when 3 then 'ABRA Flexi' end", "string", false, true);
             AA("x07Name", "Název", gdc1, null, "string", false, true);
             AppendTimestamp();
 

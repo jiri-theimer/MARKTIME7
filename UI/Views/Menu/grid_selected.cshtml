@@ -32,6 +32,7 @@
     bool _a_p31restore = _pfx == "p31" && _f.CurrentUser.TestPermission(BO.PermValEnum.GR_P31_Owner) && _recordbinquery == 2;
     bool _a_delete = !(_pfx == "p91" || _pfx == "p11" || _pfx == "x40" || (_pfx == "p31" && _recordbinquery == 2));
 
+    bool _a_integrace = (_pfx == "p28" || _pfx == "o23") && !_archiv;     //odeslání vybraných záznamů do cizího systému (Ecomail, ABRA Flexi)
     bool _g_entity = _pfx == "p56" || _a_p31ops || _pfx == "p91" || _pfx == "p90" || _pfx == "p28" || _pfx == "p40";
     bool _g_edit = _a_batchupdate || _a_tagging || _a_workflow;
     bool _g_bin = _a_archive || _a_p31archive || _a_p31restore || _a_delete;
@@ -155,6 +156,14 @@
                     {
                         <a class="nav-link" href="javascript:workflow_batch()"><myicon symbol="task_alt"></myicon> @_f.tra("Posunout ve workflow / doplnit")</a>
                     }
+                </section>
+            }
+
+            @if (_a_integrace)
+            {
+                <section class="gs-group">
+                    <h6>@_f.tra("Integrace")</h6>
+                    <a class="nav-link" href="javascript:_window_open_from_grid_selected('/Integrace/Index?prefix=@(_pfx)', 'pids', 2);"><myicon symbol="webhook"></myicon> @(_pfx == "p28" ? _f.tra("Odeslat kontakty do e-mailingu") : _f.tra("Odeslat doklady do účetnictví"))</a>
                 </section>
             }
 

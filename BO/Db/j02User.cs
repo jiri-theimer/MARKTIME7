@@ -1,5 +1,4 @@
-﻿using BO.Integrace.Ecomail.CreateSubscriber;
-using System;
+﻿using System;
 using System.Text;
 using System.Text.Json.Serialization;
 

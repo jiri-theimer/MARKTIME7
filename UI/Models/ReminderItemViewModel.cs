@@ -21,8 +21,6 @@ namespace UI.Models
         public string ComboJ11ID { get; set; }
         public int p28ID { get; set; }
         public string ComboP28Name { get; set; }
-        public int p24ID { get; set; }
-        public string ComboP24Name { get; set; }
 
         public int x67ID { get; set; }
         public string ComboX67ID { get; set; }

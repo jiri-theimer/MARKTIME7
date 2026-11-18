@@ -1,0 +1,150 @@
+@model UI.Models.Integrace.IntegraceViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = _f.tra("Integrace");
+    Model.PageSymbol = "webhook";
+    string _co = Model.prefix == "p28" ? _f.tra("kontaktů") : _f.tra("dokumentů");
+    bool _canRun = Model.RecX07 != null && Model.SettingError == null && Model.Result == null;
+}
+
+@addTagHelper *, UI
+
+@section header_content {
+    <style>
+        .ig-wrap { max-width: 900px; padding: 12px; }
+        .ig-box { margin-bottom: 12px; padding: 12px 14px; background: #fff; border: 1px solid #dfe3e8; border-radius: 10px; }
+        .ig-box h6 { margin: 0 0 8px; font-weight: 600; }
+        .ig-x07 { display: flex; align-items: center; gap: 8px; padding: 4px 0; }
+        .ig-x07 small { color: #6b7480; }
+        .ig-err { color: #c62828; }
+        .ig-ok { color: #1b7f3b; }
+        .ig-skip { color: #8a6d00; }
+        .ig-res td { padding: 3px 8px; border-bottom: 1px solid #eef0f2; vertical-align: top; }
+        .ig-sum { font-weight: 600; margin-bottom: 8px; }
+    </style>
+}
+
+<div class="bg-light" style="padding:10px;">
+    @if (_canRun)
+    {
+        <button id="cmdRun" type="button" class="btn btn-success" onclick="ig_run()"><span class="material-icons-outlined-btn">cloud_upload</span>@_f.tra("Odeslat")</button>
+    }
+    <button id="cmdClose" type="button" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
+</div>
+
+<form id="form1" asp-controller="Integrace" asp-action="Index" method="POST">
+    <input type="hidden" asp-for="prefix" />
+    <input type="hidden" asp-for="pids" />
+
+    <div class="ig-wrap">
+        <div class="ig-box">
+            <h6>@_f.tra("Vybráno") @_co: @Model.CountSelected</h6>
+
+            @if (!Model.lisX07.Any())
+            {
+                <div>
+                    @_f.tra("Pro tento přehled zatím není připojená žádná integrace.")
+                    @if (_f.CurrentUser.IsAdmin)
+                    {
+                        <span>@_f.tra("Připojení založíte v administraci: Integrace.")</span>
+                    }
+                    else
+                    {
+                        <span>@_f.tra("Připojení zakládá administrátor.")</span>
+                    }
+                </div>
+            }
+            @foreach (var c in Model.lisX07)
+            {
+                <div class="ig-x07">
+                    <input type="radio" asp-for="SelectedX07ID" id="x07_@(c.pid)" value="@c.pid" onchange="_postback('x07')" disabled="@(Model.Result != null)" />
+                    <label for="x07_@(c.pid)"><b>@c.x07Name</b> <small>(@c.TypeName)</small></label>
+                    @if (c.x07LastRun != null)
+                    {
+                        <small>@_f.tra("naposledy") @BO.Code.Bas.ObjectDateTime2String(c.x07LastRun)@(c.x07LastError != null ? " – " + _f.tra("s chybou") : "")</small>
+                    }
+                </div>
+            }
+            @if (Model.Result != null)
+            {
+                <input type="hidden" asp-for="SelectedX07ID" />
+            }
+        </div>
+
+        @if (Model.RecX07 != null && Model.SettingError != null)
+        {
+            <div class="ig-box ig-err">@Model.SettingError</div>
+        }
+
+        @if (_canRun && Model.RecX07.x07Flag == BO.x07FlagEnum.Ecomail)
+        {
+            <div class="ig-box">
+                <h6>@_f.tra("Kam kontakty přidat")</h6>
+                <select asp-for="SelectedListID" class="form-select" style="max-width:420px;">
+                    @foreach (var c in Model.lisEcomailLists)
+                    {
+                        <option value="@c.Key">@c.Value</option>
+                    }
+                </select>
+                <div class="my-2">
+                    <input type="checkbox" asp-for="IncludeContactPersons" />
+                    <label for="IncludeContactPersons">@_f.tra("Přidat i e-maily kontaktních osob")</label>
+                </div>
+                <small class="text-muted">@_f.tra("Kontakty, které v seznamu už jsou, se aktualizují. Odhlášené adresy se znovu nepřihlašují.")</small>
+            </div>
+        }
+
+        @if (_canRun && Model.RecX07.x07Flag == BO.x07FlagEnum.AbraFlexi)
+        {
+            <div class="ig-box">
+                <h6>@_f.tra("Co se odešle")</h6>
+                @foreach (string s in Model.Preview)
+                {
+                    <div>@s</div>
+                }
+            </div>
+        }
+
+        @if (Model.Result != null)
+        {
+            <div class="ig-box">
+                <div class="ig-sum">@Model.Result.Summary</div>
+                @if (Model.Result.Error != null)
+                {
+                    <div class="ig-err">@Model.Result.Error</div>
+                }
+                @{
+                    var rows = Model.Result.Rows.Where(p => !p.IsOk || p.Message != null).ToList();
+                }
+                @if (rows.Count > 0)
+                {
+                    <table class="ig-res">
+                        @foreach (var r in rows.Take(200))
+                        {
+                            <tr>
+                                <td class="@(r.IsOk ? "ig-ok" : (r.IsSkipped ? "ig-skip" : "ig-err"))">@(r.IsOk ? _f.tra("Odesláno") : (r.IsSkipped ? _f.tra("Přeskočeno") : _f.tra("Chyba")))</td>
+                                <td>@r.Name</td>
+                                <td>@r.Message</td>
+                            </tr>
+                        }
+                    </table>
+                    @if (rows.Count > 200)
+                    {
+                        <small class="text-muted">@_f.tra("Zobrazeno prvních 200 řádků.")</small>
+                    }
+                }
+            </div>
+        }
+    </div>
+</form>
+
+<script type="text/javascript">
+    function ig_run() {
+        var cmd = document.getElementById("cmdRun");
+        if (cmd.disabled) return;
+        cmd.disabled = true;    //proti dvojímu odeslání
+        _postback("run");
+    }
+</script>

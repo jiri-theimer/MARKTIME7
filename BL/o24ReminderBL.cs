@@ -27,10 +27,10 @@ namespace BL
 
         private string GetSQL1(string strAppend = null)
         {
-            sb("SELECT a.*,j02.j02LastName+' '+j02.j02FirstName as Person,j11.j11Name,x67.x67Name,p28.p28Name,p24.p24Name,");
+            sb("SELECT a.*,j02.j02LastName+' '+j02.j02FirstName as Person,j11.j11Name,x67.x67Name,p28.p28Name,");
             sb(_db.GetSQL1_Ocas("o24"));
             sb(" FROM o24Reminder a LEFT OUTER JOIN j02User j02 ON a.j02ID=j02.j02ID LEFT OUTER JOIN j11Team j11 ON a.j11ID=j11.j11ID LEFT OUTER JOIN x67EntityRole x67 ON a.x67ID=x67.x67ID");
-            sb(" LEFT OUTER JOIN p28Contact p28 ON a.p28ID=p28.p28ID LEFT OUTER JOIN p24ContactGroup p24 ON a.p24ID=p24.p24ID");
+            sb(" LEFT OUTER JOIN p28Contact p28 ON a.p28ID=p28.p28ID");
             sb(strAppend);
             return sbret();
         }
@@ -88,7 +88,6 @@ namespace BL
             p.AddInt("j02ID", rec.j02ID,true);
             p.AddInt("j11ID", rec.j11ID, true);
             p.AddInt("x67ID", rec.x67ID, true);
-            p.AddInt("p24ID", rec.p24ID, true);
             p.AddInt("p28ID", rec.p28ID, true);
             p.AddString("o24Memo", rec.o24Memo);
             p.AddDateTime("o24StaticDate", rec.o24StaticDate);

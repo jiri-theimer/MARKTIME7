@@ -13,7 +13,7 @@ namespace BL
         public BO.p28Contact LoadByDIC(string strDIC, int pid_exclude);
         public BO.p28Contact LoadByBankAccount(string bankovni_ucet);
         public IEnumerable<BO.p28Contact> GetList(BO.myQueryP28 mq, bool ischangelog = false);
-        public IEnumerable<BO.o32Contact_Medium> GetList_o32(int p28id,int p24id,int p30id);
+        public IEnumerable<BO.o32Contact_Medium> GetList_o32(int p28id,int p30id);
         public int Save(BO.p28Contact rec, List<BO.o32Contact_Medium> lisO32, List<BO.FreeFieldInput> lisFFI,string tempguid, List<BO.x69EntityRole_Assign> lisX69, List<BO.p30ContactPerson> lisP30,string billingmemo=null);
         public bool ValidateBeforeSave(BO.p28Contact rec, List<BO.o32Contact_Medium> lisO32, List<BO.p30ContactPerson> lisP30);
         public BO.p28ContactSum LoadSumRow(int pid);
@@ -467,15 +467,11 @@ namespace BL
             return c;
         }
 
-        public IEnumerable<BO.o32Contact_Medium> GetList_o32(int p28id,int p24id,int p30id)
+        public IEnumerable<BO.o32Contact_Medium> GetList_o32(int p28id,int p30id)
         {
             if (p28id > 0)
             {
                 return _db.GetList<BO.o32Contact_Medium>("select a.*," + _db.GetSQL1_Ocas("o32", false, false) + ", o33.o33Name FROM o32Contact_Medium a INNER JOIN o33MediumType o33 ON a.o33ID=o33.o33ID WHERE a.p28ID=@p28id", new { p28id = p28id });
-            }
-            if (p24id > 0)
-            {
-                return _db.GetList<BO.o32Contact_Medium>("select a.*," + _db.GetSQL1_Ocas("o32", false, false) + ", o33.o33Name FROM o32Contact_Medium a INNER JOIN o33MediumType o33 ON a.o33ID=o33.o33ID WHERE a.p28ID IN (select p28ID FROM p25ContactGroupBinding WHERE p24ID=@p24id)", new { p24id = p24id });
             }
             if (p30id > 0)
             {
@@ -546,7 +542,7 @@ namespace BL
         public string GetVcard(int p28id)
         {
             var rec = Load(p28id);
-            var lisO32 = GetList_o32(p28id, 0, 0);
+            var lisO32 = GetList_o32(p28id, 0);
 
             string strTel = null; string strEmail = null; string strUrl = null; string strCompany = rec.p28CompanyName;
 
@@ -565,7 +561,7 @@ namespace BL
                 {
                     var recMother = Load(lisP30.First().p28ID);
                     strCompany = recMother.p28CompanyName;
-                    lisO32 = GetList_o32(recMother.pid, 0, 0);
+                    lisO32 = GetList_o32(recMother.pid, 0);
                     if (strTel == null)
                     {
                         strTel = (lisO32.Any(p => p.o33ID == BO.o33FlagEnum.Tel) ? lisO32.First(p => p.o33ID == BO.o33FlagEnum.Tel).o32Value : null);

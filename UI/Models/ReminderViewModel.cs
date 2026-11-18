@@ -21,7 +21,6 @@ namespace UI.Models
         public int edit_j02id { get; set; }
         public int edit_j11id { get; set; }
         public int edit_p28id { get; set; }
-        public int edit_p24id { get; set; }
         public int edit_x67id { get; set; }
         public string edit_o24memo { get; set; }
         public string edit_o24staticdate { get; set; }
@@ -34,7 +33,7 @@ namespace UI.Models
             var lisO24 = f.o24ReminderBL.GetList(this.record_prefix, this.record_pid);
             foreach(var c in this.lisReminder)
             {
-                if (c.IsTempDeleted || (c.j02ID==0 && c.j11ID==0 && c.p28ID==0 && c.x67ID==0 && c.p24ID==0))
+                if (c.IsTempDeleted || (c.j02ID==0 && c.j11ID==0 && c.p28ID==0 && c.x67ID==0))
                 {
                     if (c.o24ID > 0) f.CBL.DeleteRecord("o24Reminder", c.o24ID);
                 }
@@ -46,7 +45,7 @@ namespace UI.Models
                         if (lisO24.Any(p => p.pid == c.o24ID))
                         {
                             rec = lisO24.First(p => p.pid == c.o24ID);
-                            rec.j02ID = 0;rec.p28ID = 0;rec.x67ID = 0;rec.p24ID = 0;rec.j11ID = 0;
+                            rec.j02ID = 0;rec.p28ID = 0;rec.x67ID = 0;rec.j11ID = 0;
                         }                        
                     }
                     rec.o24MediumFlag = (BO.o24MediumFlagEnum) c.o24MediumFlag;
@@ -56,7 +55,6 @@ namespace UI.Models
                         case "j11": rec.j11ID = c.j11ID; break;
                         case "x67": rec.x67ID = c.x67ID; break;
                         case "p28": rec.p28ID = c.p28ID; break;
-                        case "p24": rec.p24ID = c.p24ID; break;
                     }
 
                     rec.o24Memo = c.o24Memo;
@@ -104,7 +102,6 @@ namespace UI.Models
         public string BindAlias { get; set; }
         public int j11ID { get; set; }
         public int p28ID { get; set; }
-        public int p24ID { get; set; }
         
         public int x67ID { get; set; }
         public string TempGuid { get; set; }

@@ -22,7 +22,6 @@
 
     //int _intB05Count = _f.WorkflowBL.GetB05CommentsCount("p28", Model.pid);
 
-    IEnumerable<BO.p24ContactGroup> _lisP24 = _f.p24ContactGroupBL.GetList(new BO.myQueryP24() { p28id = Model.pid });
 
 }
 
@@ -193,20 +192,6 @@
         </tr>
     }
     
-    @if (_lisP24.Count() > 0)
-    {
-        <tr>
-            <td class="tdlab">
-                @(_f.tra("Zařazení do skupin")):
-            </td>
-            <td class="tdval">
-                @foreach (var c in _lisP24)
-                {
-                    <div>@c.p24Name</div>
-                }
-            </td>
-        </tr>
-    }
 
     @if (Model.p28JobTitle != null)
     {

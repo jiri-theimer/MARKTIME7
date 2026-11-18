@@ -86,7 +86,7 @@ namespace UI.Controllers
             v.Rec = Factory.p28ContactBL.Load(pid);
             if (v.Rec == null) return RecNotFound(v);
 
-            var lisO32 = Factory.p28ContactBL.GetList_o32(v.rec_pid, 0, 0);
+            var lisO32 = Factory.p28ContactBL.GetList_o32(v.rec_pid, 0);
             v.lisO32 = new List<o32Repeater>();
             foreach (var c in lisO32)
             {
@@ -377,7 +377,7 @@ namespace UI.Controllers
 
             if (v.disp.IsContactMedia)
             {
-                var lisO32 = Factory.p28ContactBL.GetList_o32(v.rec_pid, 0, 0);
+                var lisO32 = Factory.p28ContactBL.GetList_o32(v.rec_pid, 0);
                 v.lisO32 = new List<o32Repeater>();
                 foreach (var c in lisO32)
                 {

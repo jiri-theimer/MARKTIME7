@@ -44,7 +44,6 @@ namespace BL
             oc = AF("p28InlineP26", "Kontakty v projektech"); oc.IsNotUseP31TOTALS = true;
             //oc = AF("KontaktniOsoby", "Kontaktní osoby", "dbo.p28_persons_inline(a.p28ID)"); oc.IsNotUseP31TOTALS = true;
             //oc = AF("KontaktniMaster", "Zařazení kontaktní osoby", "dbo.p28_person_first_master(a.p28ID)"); oc.IsNotUseP31TOTALS = true;
-            oc = AF("ZarazeniDoSkupin", "Zařazení do skupin", "dbo.p28_groups_inline(a.p28ID)");
 
             oc = AF("p28CountryCode", "ISO kód státu", "a.p28CountryCode"); oc.SqlExplicitGroupBy = "a.p28CountryCode";
             oc = AF("p28BankAccount", "Bankovní účet");

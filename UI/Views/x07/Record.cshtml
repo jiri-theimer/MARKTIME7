@@ -1,26 +1,37 @@
-﻿@model UI.Models.Record.x07Record
+@model UI.Models.Record.x07Record
 @inject BL.Factory _f
 
 @{
     Model.PageTitle = _f.tra("Integrace");
     Layout = "~/Views/Shared/_LayoutRecord.cshtml";
     Model.PageSymbol = "webhook";
+    string _saved = _f.tra("uloženo – vyplňte jen při změně");
 }
 
 @addTagHelper *, UI
 
 <div class="modal_record_container">
+    <input type="hidden" asp-for="HasPassword" />
+    <input type="hidden" asp-for="HasToken" />
 
     <div class="row my-2">
         <label class="col-sm-1 col-md-2 col-form-label">Typ:</label>
         <div class="col-sm-5 col-md-4">
             <select asp-for="Rec.x07Flag" class="form-select" onchange="_postback()">
                 <option value="Ecomail">Ecomail</option>
-                <option value="SmartEmailing">SmartEmailing</option>
-                <option value="AbraFlexi">AbraFlexi</option>
+                <option value="AbraFlexi">ABRA Flexi</option>
             </select>
         </div>
-
+        <div class="col-sm-6 col-md-6 col-form-label text-muted">
+            @if (Model.Rec.x07Flag == BO.x07FlagEnum.Ecomail)
+            {
+                @_f.tra("Přidává vybrané kontakty do seznamu v Ecomailu (přehled Kontakty → Vybrané záznamy → Integrace).")
+            }
+            else
+            {
+                @_f.tra("Odesílá vybrané účtenky jako pokladní výdaje nebo přijaté faktury (přehled Dokumenty → Vybrané záznamy → Integrace).")
+            }
+        </div>
     </div>
 
     <div class="row">
@@ -34,36 +45,115 @@
         </div>
     </div>
 
-
     @if (Model.IsShowToken)
     {
         <div class="row my-2">
-            <label class="col-sm-1 col-md-2 col-form-label">Token:</label>
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("API klíč"):</label>
             <div class="col-sm-11 col-md-10">
-                <input class="form-control" asp-for="Rec.x07Token" />
+                <input type="password" class="form-control" asp-for="Rec.x07Token" autocomplete="new-password" placeholder="@(Model.HasToken ? _saved : "")" />
             </div>
-
         </div>
     }
-    
+
     @if (Model.IsShowLoginPassword)
     {
         <div class="row my-2">
-            <label class="col-sm-1 col-md-2 col-form-label">Login:</label>
-            <div class="col-sm-11 col-md-10">
-                <input class="form-control" asp-for="Rec.x07Login" />
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Adresa serveru"):</label>
+            <div class="col-sm-6 col-md-5">
+                <input class="form-control" asp-for="Rec.x07Url" placeholder="https://firma.flexibee.eu" />
             </div>
-
+            <label class="col-sm-2 col-md-2 col-form-label">@_f.tra("Firma"):</label>
+            <div class="col-sm-3 col-md-3">
+                <input class="form-control" asp-for="Config.Company" placeholder="@_f.tra("identifikátor z adresy /c/…")" />
+            </div>
+        </div>
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">Login:</label>
+            <div class="col-sm-5 col-md-4">
+                <input class="form-control" asp-for="Rec.x07Login" autocomplete="off" />
+            </div>
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Heslo"):</label>
+            <div class="col-sm-5 col-md-4">
+                <input type="password" class="form-control" asp-for="Rec.x07Password" autocomplete="new-password" placeholder="@(Model.HasPassword ? _saved : "")" />
+            </div>
+        </div>
+        <div class="row my-2">
+            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Měna účetnictví"):</label>
+            <div class="col-sm-2 col-md-2">
+                <input class="form-control" asp-for="Config.HomeCurrency" maxlength="3" />
+            </div>
+            <div class="col-sm-6 col-md-6 col-form-label">
+                <input type="checkbox" asp-for="Config.SendFiles" />
+                <label for="Config_SendFiles">@_f.tra("Posílat i přílohy dokumentu")</label>
+            </div>
         </div>
 
-        <div class="row my-2">
-            <label class="col-sm-1 col-md-2 col-form-label">@_f.tra("Heslo"):</label>
-            <div class="col-sm-11 col-md-10">
-                <input class="form-control" asp-for="Rec.x07Password" />
+        <div class="card my-2">
+            <div class="card-header">@_f.tra("Typy dokumentů a doklady v ABRA Flexi")</div>
+            <div class="card-body">
+                @if (Model.Config.DocMaps.Count == 0)
+                {
+                    <div class="text-muted">@_f.tra("V MARKTIME není žádný typ dokumentu se šablonou Účtenka.")</div>
+                }
+                else
+                {
+                    <table class="table table-sm" style="margin-bottom:0;">
+                        <tr>
+                            <th>@_f.tra("Typ dokumentu")</th>
+                            <th>@_f.tra("Odesílat jako")</th>
+                            <th>@_f.tra("Kód typu dokladu")</th>
+                            <th>@_f.tra("Kód pokladny")</th>
+                        </tr>
+                        @for (int i = 0; i < Model.Config.DocMaps.Count; i++)
+                        {
+                            <tr>
+                                <td>
+                                    <input type="hidden" asp-for="Config.DocMaps[i].o18ID" />
+                                    @(i < Model.DocMapNames.Count ? Model.DocMapNames[i] : "")
+                                </td>
+                                <td>
+                                    <select asp-for="Config.DocMaps[i].Evidence" class="form-select form-select-sm">
+                                        <option value="">@_f.tra("Neodesílat")</option>
+                                        <option value="pokladni-pohyb">@_f.tra("Pokladní výdej")</option>
+                                        <option value="faktura-prijata">@_f.tra("Přijatá faktura")</option>
+                                    </select>
+                                </td>
+                                <td><input class="form-control form-control-sm" asp-for="Config.DocMaps[i].TypDokl" /></td>
+                                <td><input class="form-control form-control-sm" asp-for="Config.DocMaps[i].Pokladna" /></td>
+                            </tr>
+                        }
+                    </table>
+                    <small class="text-muted">@_f.tra("Kódy (zkratky) typu dokladu a pokladny opište z ABRA Flexi. Pokladna se vyplňuje jen u pokladního výdeje.")</small>
+                }
             </div>
-
         </div>
     }
-    
 
+    <div class="my-2">
+        <button type="button" class="btn btn-light" onclick="_postback('test')"><span class="material-icons-outlined-btn">network_check</span>@_f.tra("Vyzkoušet spojení")</button>
+        @if (Model.TestMessage != null)
+        {
+            <span style="margin-left:10px;color:@(Model.TestOk ? "#1b7f3b" : "#c62828");">@Model.TestMessage</span>
+        }
+    </div>
+
+    @if (Model.lisLog != null && Model.lisLog.Any())
+    {
+        <div class="card my-2">
+            <div class="card-header">@_f.tra("Poslední běhy")</div>
+            <div class="card-body">
+                <table class="table table-sm" style="margin-bottom:0;">
+                    @foreach (var c in Model.lisLog)
+                    {
+                        <tr style="@(c.x09CountOk < c.x09CountAll ? "color:#c62828;" : "")">
+                            <td style="white-space:nowrap;">@BO.Code.Bas.ObjectDateTime2String(c.x09Date)</td>
+                            <td>@c.x09User</td>
+                            <td style="white-space:nowrap;">@c.x09CountOk / @c.x09CountAll</td>
+                            <td>@c.x09Message</td>
+                        </tr>
+                    }
+                </table>
+            </div>
+        </div>
+    }
 </div>

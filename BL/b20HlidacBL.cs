@@ -276,7 +276,7 @@ namespace BL
                 //hlídač za celou databázi nemá vlastníka záznamu ani role v záznamu (licence nemá j02ID_Owner) - příjemci jsou jen členové týmu (j11ID_Notify)
                 int intJ02ID_Owner = (recB20.b20IsNotifyRecordOwner && !recB20.IsSystem ? _mother.CBL.GetRecord_j02ID_Owner(recB20.b20Entity, recB21.b21RecordPid) : 0);
 
-                var emails = _mother.MailBL.GetMailList(intJ02ID_Owner, recB20.j11ID_Notify, recB20.IsSystem ? 0 : recB20.x67ID_Notify1,0,0, recB21.b21RecordPid, recB20.b20Entity,0);
+                var emails = _mother.MailBL.GetMailList(intJ02ID_Owner, recB20.j11ID_Notify, recB20.IsSystem ? 0 : recB20.x67ID_Notify1,0, recB21.b21RecordPid, recB20.b20Entity,0);
                 if (recB21.b21NotifyReceivers != null)
                 {
                     recB21.b21NotifyReceivers = recB21.b21NotifyReceivers.Replace(";", ",");    //ručně zadaní příjemci v notifikovaném záznamu

@@ -50,6 +50,8 @@
     {
         <script type="text/javascript" src="~/lib/froala-editor/js/languages/@(_lang).js"></script>
     }
+    @* styly Froaly načítá partial sám: stránky je do hlavičky dávají jen při x04ID > 0 záznamu, ale editor se zapíná i přes výchozí x04 (viz výše) *@
+    <link href="~/lib/froala-editor/css/froala_editor.pkgd.min.css" rel="stylesheet" type="text/css" />
     <link rel="stylesheet" href="~/css/notepad.css" asp-append-version="true" />
     <script type="text/javascript" src="~/js/notepad.js" asp-append-version="true"></script>
 }

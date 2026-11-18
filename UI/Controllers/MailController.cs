@@ -631,7 +631,7 @@ namespace UI.Controllers
         }
         private void Handle_Najit_Emaily_Klienta(int p28id, string prefix, List<BO.x43MailQueue_Recipient> receivers)
         {
-            var lisO32 = Factory.p28ContactBL.GetList_o32(p28id, 0, 0);
+            var lisO32 = Factory.p28ContactBL.GetList_o32(p28id, 0);
             if (prefix=="p91" || prefix == "p90" || prefix=="p78" || prefix=="p84")
             {
                 lisO32 = lisO32.Where(p => p.o32IsDefaultInInvoice);

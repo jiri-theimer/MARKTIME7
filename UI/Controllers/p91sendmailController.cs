@@ -67,7 +67,7 @@ namespace UI.Controllers
                 }
 
 
-                var lisO32 = Factory.p28ContactBL.GetList_o32(recP28.pid, 0, 0);
+                var lisO32 = Factory.p28ContactBL.GetList_o32(recP28.pid, 0);
                 foreach (var cc in lisO32)
                 {
                     switch (cc.o33ID)

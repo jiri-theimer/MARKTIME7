@@ -64,7 +64,6 @@ namespace BO.Code
                 case "j07": return "j07PersonPosition";
                 case "p28": return "p28Contact";
                 case "p29": return "p29ContactType";
-                case "p24": return "p24ContactGroup";
 
                 case "o23": return "o23Doc";
                 case "o18": return "o18DocType";

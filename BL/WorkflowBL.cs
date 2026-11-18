@@ -199,7 +199,7 @@ namespace BL
                         
                         
                     }
-                    var receivers = _mother.MailBL.GetMailList(0, recB11.j11ID, recB11.x67ID, 0, 0, record_pid, record_prefix,recB11.j04ID,recB11.b11IsRecordOwner,recB11.b11IsRecordCreator);
+                    var receivers = _mother.MailBL.GetMailList(0, recB11.j11ID, recB11.x67ID, 0, record_pid, record_prefix,recB11.j04ID,recB11.b11IsRecordOwner,recB11.b11IsRecordCreator);
                     
                     if (receivers == null || receivers.Count() == 0 || receivers.Count()>50)
                     {

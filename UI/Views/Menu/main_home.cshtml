@@ -17,11 +17,6 @@
 
     
 
-    string _GridUrlP24 = null;
-    if (_f.CurrentUser.j04IsModule_p28)
-    {
-        _GridUrlP24 = cmenu.getGridUrl("p24");
-    }
 
     List<string> _menulinks = BO.Code.Bas.ConvertString2List(_f.CurrentUser.j02MyMenuLinks, "|");
 
@@ -264,12 +259,6 @@
                     <a id="linkKanbanP28" class="locallink hm-link" href="/Kanban/p28"><span class="material-icons-outlined-btn">view_kanban</span><span>Kanban</span></a>
                     @Pin("kanban-p28")
                 </div>
-                @if (_GridUrlP24 != null)
-                {
-                    <div class="hm-item">
-                        <a id="linkSkupinyKontaktu" class="locallink hm-link" href="@(_GridUrlP24)"><span class="material-icons-outlined-btn">group_work</span><span>@_f.tra("Skupiny kontaktů")</span></a>
-                    </div>
-                }
             </section>
         }
 

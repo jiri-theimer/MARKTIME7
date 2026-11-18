@@ -6,14 +6,14 @@ namespace UI.Controllers
 {
     public class ReminderItemController : BaseController
     {
-        public IActionResult Index(string record_prefix,int record_pid,bool is_static_date, int o24count,string o24unit,int o24mediumflag,string bindprefix, int j02id, int j11id,int x67id,int p28id,int p24id,string o24memo,string o24staticdate)
+        public IActionResult Index(string record_prefix,int record_pid,bool is_static_date, int o24count,string o24unit,int o24mediumflag,string bindprefix, int j02id, int j11id,int x67id,int p28id,string o24memo,string o24staticdate)
         {
-            var v = new ReminderItemViewModel() { record_prefix = record_prefix,o24Count=o24count, BindPrefix=bindprefix,j02ID=j02id,j11ID=j11id,p28ID=p28id,p24ID=p24id,x67ID=x67id,o24Memo=o24memo,o24Unit= o24unit };
+            var v = new ReminderItemViewModel() { record_prefix = record_prefix,o24Count=o24count, BindPrefix=bindprefix,j02ID=j02id,j11ID=j11id,p28ID=p28id,x67ID=x67id,o24Memo=o24memo,o24Unit= o24unit };
             if (string.IsNullOrEmpty(v.BindPrefix))
             {
                 v.BindPrefix = "j02";
             }
-            if (v.j02ID == 0 && v.j11ID == 0 && v.p28ID == 0 && v.p24ID == 0 && v.x67ID == 0)
+            if (v.j02ID == 0 && v.j11ID == 0 && v.p28ID == 0 && v.x67ID == 0)
             {
                 v.j02ID = Factory.CurrentUser.pid;
             }
@@ -24,10 +24,6 @@ namespace UI.Controllers
             if (v.j11ID > 0)
             {
                 v.ComboJ11ID = Factory.j11TeamBL.Load(v.j11ID).j11Name;
-            }
-            if (v.p24ID > 0)
-            {
-                v.ComboP24Name = Factory.p24ContactGroupBL.Load(v.p24ID).p24Name;
             }
             if (v.x67ID > 0)
             {
@@ -102,12 +98,7 @@ namespace UI.Controllers
                     v.message = "Na vstupu chybí zadat kontakt.";
                     return View(v);
                 }
-                if (v.BindPrefix == "p24" && v.p24ID == 0)
-                {
-                    v.message = "Na vstupu chybí zadat skupina kontaktů.";
-                    return View(v);
-                }
-                if (v.o24MediumFlag == BO.o24MediumFlagEnum.Chat && (v.BindPrefix == "p28" || v.BindPrefix == "p24"))
+                if (v.o24MediumFlag == BO.o24MediumFlagEnum.Chat && v.BindPrefix == "p28")
                 {
                     v.message = "Kontakty interní chat nemají – zvolte e-mail.";
                     return View(v);

@@ -20,7 +20,6 @@ namespace BO
         public int j02ID { get; set; }
         public int j11ID { get; set; }
         public int p28ID { get; set; }
-        public int p24ID { get; set; }
         public int x67ID { get; set; }
         public int x01ID { get; set; }
         public DateTime? o24StaticDate { get; set; }
@@ -31,7 +30,6 @@ namespace BO
         public string Person { get; }
         public string j11Name { get; }
         public string p28Name { get; }
-        public string p24Name { get; }
         public string x67Name { get; }
 
         public string CalcReminderDateString()

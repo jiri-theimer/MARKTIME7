@@ -106,7 +106,6 @@ namespace UI.Controllers.batch
                 AE(v, "p28Country1", "Stát #1", "text");
                 AE(v, "p28Country2", "Stát #2", "text");
                 AE(v, "p28CountryCode", "ISO kód státu", "text", true,true);
-                AE(v, "p24ID", "Přidat do skupiny kontaktů", "combo",true);
                 AE(v,"rejstrik", "Aktualizovat kontakt z rejstříků", "rejstrik", true);
 
             }
@@ -584,15 +583,6 @@ namespace UI.Controllers.batch
                 case "p28CountryCode":
                     rec.p28CountryCode = v.DestTextValue.ToUpper();
                     break;
-                case "p24ID":
-                    if (v.IsSetValue)
-                    {
-
-                    }
-                    Factory.p24ContactGroupBL.Append(v.DestComboValue, new List<int>() { pid });
-                    v.OksCount += 1;
-                    return;
-                   
                 case "rejstrik":
                     DefaultZaznam c = null;
                     var viesClient = HttpContext.RequestServices.GetRequiredService<BL.Code.IViesClient>();

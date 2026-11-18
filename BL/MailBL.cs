@@ -29,8 +29,8 @@ namespace BL
         public List<string> GetLast10Receivers();
         public Rebex.Mail.MailMessage LoadMailMessageByPid(int x40id);  //načte poštovní zprávu z eml souboru
         public string GetDefaultGridFields(string prefix);  //vrací výchozí nastavení polí pro mail zprávu
-        public List<string> GetMailList(int j02id, int j11id, int x67id, int p28id, int p24id, int record_pid, string record_prefix, int j04id, bool b11IsRecordOwner = false, bool b11IsRecordCreator = false);   //vrací seznam e-mail adres uživatelů
-        public List<string> GetGsmList(int j02id, int j11id, int x67id, int p28id, int p24id, int record_pid, string record_prefix, int j04id, bool b11IsRecordOwner = false, bool b11IsRecordCreator = false);
+        public List<string> GetMailList(int j02id, int j11id, int x67id, int p28id, int record_pid, string record_prefix, int j04id, bool b11IsRecordOwner = false, bool b11IsRecordCreator = false);   //vrací seznam e-mail adres uživatelů
+        public List<string> GetGsmList(int j02id, int j11id, int x67id, int p28id, int record_pid, string record_prefix, int j04id, bool b11IsRecordOwner = false, bool b11IsRecordCreator = false);
         public void Set_SubjectInBody(string s);
 
     }
@@ -753,15 +753,15 @@ namespace BL
             }
         }
 
-        public List<string> GetGsmList(int j02id, int j11id, int x67id, int p28id, int p24id, int record_pid, string record_prefix, int j04id, bool b11IsRecordOwner = false, bool b11IsRecordCreator = false)
+        public List<string> GetGsmList(int j02id, int j11id, int x67id, int p28id, int record_pid, string record_prefix, int j04id, bool b11IsRecordOwner = false, bool b11IsRecordCreator = false)
         {
-            return GetReceivers(j02id, j11id, x67id, p28id, p24id, record_pid, record_prefix, true, j04id, b11IsRecordOwner, b11IsRecordCreator);
+            return GetReceivers(j02id, j11id, x67id, p28id, record_pid, record_prefix, true, j04id, b11IsRecordOwner, b11IsRecordCreator);
         }
-        public List<string> GetMailList(int j02id, int j11id, int x67id, int p28id, int p24id, int record_pid, string record_prefix, int j04id, bool b11IsRecordOwner = false, bool b11IsRecordCreator = false)
+        public List<string> GetMailList(int j02id, int j11id, int x67id, int p28id, int record_pid, string record_prefix, int j04id, bool b11IsRecordOwner = false, bool b11IsRecordCreator = false)
         {
-            return GetReceivers(j02id, j11id, x67id, p28id, p24id, record_pid, record_prefix, false, j04id, b11IsRecordOwner, b11IsRecordCreator);
+            return GetReceivers(j02id, j11id, x67id, p28id, record_pid, record_prefix, false, j04id, b11IsRecordOwner, b11IsRecordCreator);
         }
-        private List<string> GetReceivers(int j02id, int j11id, int x67id, int p28id, int p24id, int record_pid, string record_prefix, bool bolRetGsmNumbers, int j04id, bool b11IsRecordOwner = false, bool b11IsRecordCreator = false)
+        private List<string> GetReceivers(int j02id, int j11id, int x67id, int p28id, int record_pid, string record_prefix, bool bolRetGsmNumbers, int j04id, bool b11IsRecordOwner = false, bool b11IsRecordCreator = false)
         {
             var lis = new List<string>();
 
@@ -824,7 +824,7 @@ namespace BL
             }
             if (p28id > 0)
             {
-                var lisO32 = _mother.p28ContactBL.GetList_o32(p28id, 0, 0);
+                var lisO32 = _mother.p28ContactBL.GetList_o32(p28id, 0);
                 if (bolRetGsmNumbers)
                 {
                     lisO32 = lisO32.Where(p => p.o33ID == BO.o33FlagEnum.Tel);
@@ -837,36 +837,6 @@ namespace BL
                 {
                     lis.Add(c.o32Value);
                 }
-            }
-            if (p24id > 0)
-            {
-                bool b = false;
-                if (!bolRetGsmNumbers)
-                {
-                    var recP24 = _mother.p24ContactGroupBL.Load(p24id);
-                    if (recP24.p24Email != null)
-                    {
-                        lis.Add(recP24.p24Email);   //skupinový e-mail
-                        b = true;
-                    }
-                }
-                if (!b)
-                {
-                    var lisO32 = _mother.p28ContactBL.GetList_o32(0, p24id, 0);
-                    if (bolRetGsmNumbers)
-                    {
-                        lisO32 = lisO32.Where(p => p.o33ID == BO.o33FlagEnum.Tel);
-                    }
-                    else
-                    {
-                        lisO32 = lisO32.Where(p => p.o33ID == BO.o33FlagEnum.Email);
-                    }
-                    foreach (var c in lisO32)
-                    {
-                        lis.Add(c.o32Value);
-                    }
-                }
-
             }
             if (x67id > 0 && record_pid > 0)
             {

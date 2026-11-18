@@ -11,7 +11,7 @@
 
     string _strRecPage = "RecPage";
 
-    var _lisO32 = _f.p28ContactBL.GetList_o32(Model.pid, 0,0);
+    var _lisO32 = _f.p28ContactBL.GetList_o32(Model.pid, 0);
 
     var _lisP30 = _f.p28ContactBL.GetList_p30(Model.pid);
     bool bolIsKontaktniOsoba = false;
@@ -55,7 +55,6 @@
 
     var _lisP26 = _f.p28ContactBL.GetList_p26(Model.pid);
 
-    var _lisP24 = _f.p24ContactGroupBL.GetList(new BO.myQueryP24() { p28id = Model.pid });
 
     IEnumerable<BO.p40WorkSheet_Recurrence> _lisP40 = null;
     if (_f.CurrentUser.IsRatesAccess)
@@ -446,31 +445,6 @@
             </ul>
         }
 
-        @if (_lisP24.Count() > 0)
-        {
-            <ul class="mytreeview">
-                <li>
-                    <a class="mytreeview-toggle-kontejner" onclick="_treeview_toggle(this,'tab1-p28-toggle-p24')">
-                        <span class="material-icons-outlined-btn mytreeview-toggle-sipka">@(UI.Code.basKendoTreeViewSupport.Get_Arrow_LastState(_f, "tab1-p28-toggle-p24"))</span>
-                        <span class="material-icons-outlined-btn" onclick="_treeview_toggle(this)">groups</span>
-                        <span>@_f.tra("Zařazení do skupin kontaktů") (@(_lisP24.Count()))</span>
-
-                    </a>
-
-                    <ul style="display:@(UI.Code.basKendoTreeViewSupport.Get_UL_LastState(_f,"tab1-p28-toggle-p24"))">
-                        @foreach (var c in _lisP24)
-                        {
-                            <li>
-                                <a class="treeview-link" href="javascript:_window_open('/p24/Record?pid=@(c.pid)')">@c.p24Name</a>
-
-                            </li>
-                        }
-
-                    </ul>
-
-                </li>
-            </ul>
-        }
 
         @if (_lisO23 != null && _lisO23.Count() > 0)
         {

@@ -679,7 +679,7 @@ namespace UI.Controllers
                             o24ID = c.pid,
                             j40ID = v.smtp_account == null ? 0 : v.smtp_account.pid
                         };
-                        var receivers = _f.MailBL.GetMailList(c.j02ID, c.j11ID, c.x67ID, c.p28ID, c.p24ID, c.o24RecordPid, c.o24RecordEntity, 0);
+                        var receivers = _f.MailBL.GetMailList(c.j02ID, c.j11ID, c.x67ID, c.p28ID, c.o24RecordPid, c.o24RecordEntity, 0);
                         if (receivers == null || receivers.Count() == 0 || receivers.Count() > 50)
                         {
                             continue;   //nedělat nic, pokud nejsou příjemci zprávy nebo jich je víc než 50
@@ -715,7 +715,7 @@ namespace UI.Controllers
                         //SMS se neposílají: starší upozornění s volbou SMS jdou do chatu (kontaktům, kteří chat nemají, e-mailem), E-mail + SMS jako e-mail
                         var medium = c.o24MediumFlag;
                         if (medium == BO.o24MediumFlagEnum.EmailPlusSms) medium = BO.o24MediumFlagEnum.Email;
-                        if (medium == BO.o24MediumFlagEnum.Sms) medium = (c.p28ID > 0 || c.p24ID > 0 ? BO.o24MediumFlagEnum.Email : BO.o24MediumFlagEnum.Chat);
+                        if (medium == BO.o24MediumFlagEnum.Sms) medium = (c.p28ID > 0 ? BO.o24MediumFlagEnum.Email : BO.o24MediumFlagEnum.Chat);
 
                         bool bolChatDone = false;   //do chatu jen jednou, až když je upozornění zpracované
                         if (medium == BO.o24MediumFlagEnum.Chat)   //pouze interní chat: e-mail neodchází

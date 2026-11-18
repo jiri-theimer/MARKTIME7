@@ -173,10 +173,6 @@
             {
                 <mycombo entity="j19PaymentType" asp-for="DestComboValue" selectedtext="@Model.DestComboText"></mycombo>
             }
-            @if (Model.oper == "p24ID")
-            {
-                <mycombo entity="p24ContactGroup" asp-for="DestComboValue" selectedtext="@Model.DestComboText"></mycombo>
-            }
             @if (Model.oper == "p51ID_Billing")
             {
                 <mycombo entity="p51PriceList" asp-for="DestComboValue" selectedtext="@Model.DestComboText" myqueryinline="typeflag|int|1|iscustomtailor|bool|false"></mycombo>
