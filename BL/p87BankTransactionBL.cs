@@ -23,6 +23,7 @@ namespace BL
     class p87BankTransactionBL : BaseBL, Ip87BankTransactionBL
     {
         private const int _OldMailDays = 30;
+        private const int _SamePaymentDays = 5;     //úhrada se stejnou částkou do tolika dnů od data e-mailu = táž platba
 
         public p87BankTransactionBL(BL.Factory mother) : base(mother)
         {
@@ -185,14 +186,47 @@ namespace BL
             {
                 var c = lisP91[0];
                 rec.p91ID = c.pid;
-                rec.p87Message = (c.p91Amount_Debt <= 0 ? $"Faktura {c.p91Code} je už uhrazená." : $"Částka platby neodpovídá dluhu faktury {c.p91Code} ({BO.Code.Bas.GN(c.p91Amount_Debt)}).");
+                if (c.p91Amount_Debt <= 0)
+                {
+                    //uhrazená faktura: další úhrada se nikdy nezapisuje
+                    var lisP94 = _mother.p91InvoiceBL.GetList_p94(c.pid);
+                    var recP94 = (lisP94 == null ? null : lisP94.FirstOrDefault(p => Math.Abs(p.p94Amount - move.Amount) < 0.005 && Math.Abs((p.p94Date.Date - (rec.p87Date ?? DateTime.Today).Date).TotalDays) <= _SamePaymentDays));
+                    if (recP94 != null)
+                    {
+                        //stejná úhrada už je na faktuře zapsaná (ručně nebo jiným importem): není co řešit
+                        rec.p87StatusFlag = BO.p87StatusFlagENUM.Ignorovano;
+                        rec.p87Message = $"Faktura {c.p91Code} už má tuto úhradu zapsanou ({BO.Code.Bas.ObjectDate2String(recP94.p94Date, "dd.MM.yyyy")}).";
+                    }
+                    else
+                    {
+                        rec.p87Message = $"Faktura {c.p91Code} je už uhrazená, úhrada se nezapsala. Může jít o dvojí platbu.";
+                    }
+                    return false;
+                }
+                rec.p87Message = $"Částka platby neodpovídá dluhu faktury {c.p91Code} ({BO.Code.Bas.GN(c.p91Amount_Debt)}).";
                 return false;
             }
             if (lisP90.Count > 0)
             {
                 var c = lisP90[0];
                 rec.p90ID = c.pid;
-                rec.p87Message = (c.p90Amount_Debt <= 0 ? $"Záloha {c.p90Code} je už uhrazená." : $"Částka platby neodpovídá dluhu zálohy {c.p90Code} ({BO.Code.Bas.GN(c.p90Amount_Debt)}).");
+                if (c.p90Amount_Debt <= 0)
+                {
+                    //uhrazená záloha: další úhrada se nikdy nezapisuje
+                    var lisP82 = _mother.p82Proforma_PaymentBL.GetList(c.pid);
+                    var recP82 = (lisP82 == null ? null : lisP82.FirstOrDefault(p => Math.Abs(p.p82Amount - move.Amount) < 0.005 && p.p82Date != null && Math.Abs((Convert.ToDateTime(p.p82Date).Date - (rec.p87Date ?? DateTime.Today).Date).TotalDays) <= _SamePaymentDays));
+                    if (recP82 != null)
+                    {
+                        rec.p87StatusFlag = BO.p87StatusFlagENUM.Ignorovano;
+                        rec.p87Message = $"Záloha {c.p90Code} už má tuto úhradu zapsanou ({BO.Code.Bas.ObjectDate2String(recP82.p82Date, "dd.MM.yyyy")}).";
+                    }
+                    else
+                    {
+                        rec.p87Message = $"Záloha {c.p90Code} je už uhrazená, úhrada se nezapsala. Může jít o dvojí platbu.";
+                    }
+                    return false;
+                }
+                rec.p87Message = $"Částka platby neodpovídá dluhu zálohy {c.p90Code} ({BO.Code.Bas.GN(c.p90Amount_Debt)}).";
                 return false;
             }
 
@@ -221,6 +255,27 @@ namespace BL
             DateTime d = rec.p87Date ?? DateTime.Today;
             string strText = "E-mail z banky" + (rec.p87BankAccount != null ? ", protiúčet " + rec.p87BankAccount : "");
             bool bolOK = false;
+
+            //pojistka pro automatické i ruční párování: na uhrazený doklad se další úhrada nezapisuje
+            bool bolPaid = false;
+            if (rec.p91ID > 0)
+            {
+                var recP91 = _mother.p91InvoiceBL.Load(rec.p91ID);
+                bolPaid = (recP91 == null || recP91.p91Amount_Debt <= 0);
+            }
+            else if (rec.p90ID > 0)
+            {
+                var recP90 = _mother.p90ProformaBL.Load(rec.p90ID);
+                bolPaid = (recP90 == null || recP90.p90Amount_Debt <= 0);
+            }
+            if (bolPaid)
+            {
+                this.AddMessage("Doklad je už uhrazený, další úhrada se nezapsala.");
+                rec.p87StatusFlag = BO.p87StatusFlagENUM.Nesparovano;
+                rec.p87Message = "Doklad je už uhrazený, další úhrada se nezapsala.";
+                Save(rec);
+                return false;
+            }
 
             if (rec.p91ID > 0)
             {
