@@ -921,6 +921,7 @@ namespace BO
                 case "p31":
                 case "p32":
                 case "p40":
+                case "p49":     //finanční plán nemá vlastní x01ID, licence se určuje přes sešit aktivity
                     s = "p34x.x01ID=@x01id_hostingmode"; break;
 
                 case "p28":
@@ -957,8 +958,6 @@ namespace BO
                     s = "o53x.x01ID=@x01id_hostingmode"; break;
                 case "o23":
                     s = "o18x.x01ID=@x01id_hostingmode"; break;
-                case "r01":
-                    s = "r02.x01ID=@x01id_hostingmode"; break;
                 case "o42":
                     s = "j40x.x01ID=@x01id_hostingmode"; break;
                 case "b02":

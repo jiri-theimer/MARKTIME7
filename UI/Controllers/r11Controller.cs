@@ -273,7 +273,14 @@ namespace UI.Controllers
             var people = BuildTimeline(p41id, d1, ref months, j11id, j18id, out DateTime datStart, out int intDays, out string strError);
             if (people == null) return Fail(strError);
 
-            return Json(new { ok = true, start = datStart.ToString(FMT), days = intDays, today = DateTime.Today.ToString(FMT), people = people });
+            //svátky zobrazeného období (stát licence) pro zvýraznění v časové ose
+            string strCountry = string.IsNullOrEmpty(Factory.CurrentUser.x01CountryCode) ? "CZ" : Factory.CurrentUser.x01CountryCode;
+            var holidays = Factory.c26HolidayBL.GetList(new BO.myQueryC26() { global_d1 = datStart.Date, global_d2 = datStart.Date.AddDays(intDays) })
+                .Where(p => string.IsNullOrEmpty(p.c26CountryCode) || string.Equals(p.c26CountryCode, strCountry, StringComparison.OrdinalIgnoreCase))
+                .GroupBy(p => p.c26Date.Date).OrderBy(p => p.Key)
+                .Select(p => new { d = p.Key.ToString(FMT), name = string.Join(", ", p.Select(x => x.c26Name).Where(x => !string.IsNullOrEmpty(x)).Distinct()) }).ToList();
+
+            return Json(new { ok = true, start = datStart.ToString(FMT), days = intDays, today = DateTime.Today.ToString(FMT), people = people, holidays = holidays });
         }
 
         //Export do XLSX: list "Vytížení" (kapacita, plán, volno, absence a vykázané hodiny osob + plán po projektech ve sloupcích podle měřítka) a list "Bloky".

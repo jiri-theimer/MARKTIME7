@@ -31,10 +31,12 @@
 .rc-ax1 > span, .rc-ax2 > span { position: absolute; top: 0; height: 23px; line-height: 23px; padding-left: 5px; font-size: .75rem; color: #59636e; white-space: nowrap; overflow: hidden; border-left: 1px solid #dfe3e8; box-sizing: border-box; }
 .rc-ax1 > span { font-weight: 600; color: #3d4650; }
 .rc-ax2 > span.rc-we { color: #b0b7bf; }
+.rc-ax2 > span.rc-hol { color: #c0392b; font-weight: 600; background: #fde3e3; cursor: help; }
 .rc-ax2 > span.rc-day { padding-left: 0; text-align: center; }
 
 .rc-bg { position: absolute; z-index: 1; pointer-events: none; }
 .rc-bg > i { position: absolute; top: 0; bottom: 0; width: 1px; background: #dfe3e8; }
+.rc-bg > i.rc-holcol { background: rgba(229, 72, 77, .09); }   /* svátek */
 .rc-bg > i.rc-today { width: 2px; background: #e5484d; z-index: 2; }
 
 .rc-row { position: relative; display: flex; height: var(--rc-row); border-bottom: 1px solid #eef0f3; }

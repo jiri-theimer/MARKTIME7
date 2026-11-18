@@ -88,6 +88,8 @@ var MtCapacity = (function () {
                     st.d1 = st.start;
                     st.days = data.days;
                     st.today = parseDay(data.today);
+                    st.holidays = {};   // den -> název svátku
+                    (data.holidays || []).forEach(function (x) { var hd = parseDay(x.d); if (hd !== null) st.holidays[hd] = x.name || ""; });
                     var first = !st.loaded;
                     st.loaded = true;
                     render();
@@ -288,7 +290,8 @@ var MtCapacity = (function () {
             h.push("</div><div class='rc-ax2'>");
             if (st.zoom === "day") {
                 for (d = st.start; d < end; d++) {
-                    h.push("<span class='rc-day" + (dow(d) >= 5 ? " rc-we" : "") + "' style='left:" + ((d - st.start) * px) + "px;width:" + px + "px;'>" + new Date(d * DAY).getUTCDate() + "</span>");
+                    var hol = st.holidays && st.holidays.hasOwnProperty(d);
+                    h.push("<span class='rc-day" + (dow(d) >= 5 ? " rc-we" : "") + (hol ? " rc-hol" : "") + "'" + (hol ? " title='" + esc(st.holidays[d]) + "'" : "") + " style='left:" + ((d - st.start) * px) + "px;width:" + px + "px;'>" + new Date(d * DAY).getUTCDate() + "</span>");
                 }
             } else if (st.zoom === "week") {
                 for (d = st.start + ((7 - dow(st.start)) % 7); d < end; d += 7) {
@@ -304,6 +307,13 @@ var MtCapacity = (function () {
                 bg = "background-image:repeating-linear-gradient(to right,#eef0f3 0,#eef0f3 1px,transparent 1px,transparent " + unit + "px)," +
                     "linear-gradient(to right,transparent 0,transparent " + (5 * px) + "px,#f6f7f9 " + (5 * px) + "px,#f6f7f9 " + (7 * px) + "px);" +
                     "background-size:" + unit + "px 100%," + (7 * px) + "px 100%;background-position:" + (st.zoom === "day" ? 0 : off) + "px 0," + off + "px 0;";
+            }
+            // svátky: podbarvený sloupec přes celou výšku (v měsíčním měřítku by byl jen čárka, tam se nekreslí)
+            if (st.zoom !== "month" && st.holidays) {
+                Object.keys(st.holidays).forEach(function (k) {
+                    var hd = Number(k);
+                    if (hd >= st.start && hd < end) lines.push("<i class='rc-holcol' style='left:" + ((hd - st.start) * px) + "px;width:" + px + "px;'></i>");
+                });
             }
             if (st.today >= st.start && st.today < end) {
                 lines.push("<i class='rc-today' style='left:" + ((st.today - st.start) * px + Math.floor(px / 2)) + "px;'></i>");
