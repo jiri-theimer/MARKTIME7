@@ -88,6 +88,14 @@
 .aiw-table thead th { font-weight: 600; color: #59636e; border-bottom-width: 1px; white-space: nowrap; }
 .aiw-table td { font-variant-numeric: tabular-nums; }
 .aiw-table tfoot td { font-weight: 600; border-top: 2px solid #dee2e6; }
+/* souhrn s více dimenzemi: skupiny s mezisoučty (AiWidgetRenderer.GroupedTable) */
+.aiw-grouped tr.aiw-g > td { background-color: #f6f8fa; cursor: pointer; }
+.aiw-grouped tr.aiw-g > td.aiw-top::before { content: "\25BE"; display: inline-block; width: 14px; color: #8a939c; }
+.aiw-grouped tr.aiw-g.aiw-closed > td.aiw-top::before { content: "\25B8"; }
+.aiw-grouped tr.aiw-one > td.aiw-top { padding-left: 18px; }
+.aiw-grouped tr.aiw-c > td { color: #3d444d; }
+.aiw-grouped tr.aiw-s > td { background-color: #fafbfc; }
+.aiw-grouped td.aiw-more { color: #6c757d; font-size: .8rem; }
 .aiw-kpis { display: grid; gap: 10px; margin: 4px 0 8px; }
 .aiw-kpis-1 { grid-template-columns: 1fr; }
 .aiw-kpis-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }

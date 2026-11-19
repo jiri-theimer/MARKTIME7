@@ -20,6 +20,12 @@ namespace UI.Code
         private const int MaxChartCategories = 12;
         private const int MaxChartSeries = 3;
         private const int MaxGroups = 5000;
+        /// <summary>Souhrn s více dimenzemi: tolik řádků nejnižší úrovně se načte, aby mezisoučty skupin byly úplné.</summary>
+        private const int MaxGroupedRows = 2000;
+        /// <summary>Nejvýše tolik řádků pod jednou skupinou první úrovně (zbytek jako „… a další N“).</summary>
+        private const int MaxGroupChildren = 50;
+        /// <summary>Do tolika řádků je tabulka se skupinami rozbalená, nad to začíná sbalená na první úroveň.</summary>
+        private const int MaxExpandedRows = 30;
 
         private readonly BL.Factory _f;
         private readonly BL.TheColumnsProvider _cp;
@@ -54,7 +60,8 @@ namespace UI.Code
         }
 
         /// <summary>Výsledek zadání jako tabulka (stejný formát jako v AiAsk). Chyby zadání → errors, tabulka null.</summary>
-        public BO.AI.AiAskTable ComputeTable(BO.AI.AiWidgetTask task, List<string> errors)
+        /// <param name="aggRows">Souhrn: kolik řádků vrátit místo limitu zadání (0 = podle zadání). Pro tabulku s mezisoučty jsou potřeba všechny řádky.</param>
+        public BO.AI.AiAskTable ComputeTable(BO.AI.AiWidgetTask task, List<string> errors, int aggRows = 0)
         {
             var agg = new BL.AI.Tools.AiAggregate(_f, _cp);
             var cat = agg.Catalog(task.Spec.Entity);
@@ -76,6 +83,14 @@ namespace UI.Code
                 if (err.Count > 0) { errors.AddRange(err); return null; }
                 var plan = agg.Build(s, cat);
                 var dt = agg.Run(plan, MaxGroups);
+                if (aggRows > 0)
+                {
+                    int intLimit = s.Limit;
+                    s.Limit = aggRows;      //jen pro převod na tabulku; limit zadání zůstává
+                    var tAll = agg.ToTable(s, plan, dt);
+                    s.Limit = intLimit;
+                    return tAll;
+                }
                 return agg.ToTable(s, plan, dt);
             }
         }
@@ -88,7 +103,7 @@ namespace UI.Code
             try
             {
                 var err = new List<string>();
-                var t = ComputeTable(task, err);
+                var t = ComputeTable(task, err, IsMultiDim(task) ? MaxGroupedRows : 0);
                 if (t == null) return Unavailable(err);
                 return Html(rec, task, t);
             }
@@ -133,8 +148,12 @@ namespace UI.Code
 
         // ------------------------------------------------------------------ HTML
 
-        private string Html(BO.x55Widget rec, BO.AI.AiWidgetTask task, BO.AI.AiAskTable t)
+        private string Html(BO.x55Widget rec, BO.AI.AiWidgetTask task, BO.AI.AiAskTable tAll)
         {
+            //souhrn s více dimenzemi má načtené všechny řádky (kvůli mezisoučtům); graf a prostá tabulka pracují s limitem zadání
+            bool multi = IsMultiDim(task);
+            bool grouped = multi && !tAll.Truncated;    //neúplné řádky = mezisoučty by lhaly → prostá tabulka
+            var t = multi ? Limited(tAll, Math.Clamp(task.Agg.Limit <= 0 ? MaxAggRows : task.Agg.Limit, 1, MaxAggRows)) : tAll;
             var sb = new StringBuilder();
             sb.Append("<div class='aiw'>");
             if (!string.IsNullOrEmpty(t.Description))
@@ -163,8 +182,16 @@ namespace UI.Code
                 }
                 bool table = !chart || task.View != "chart";
                 if (chart) sb.Append(Chart(t));
-                if (table) sb.Append(Table(task, t, rec.x55Code));
-                if (t.Truncated)
+                if (table && grouped)
+                {
+                    sb.Append(GroupedTable(task, tAll, rec.x55Code, out int intShown, out int intAll));
+                    if (intAll > intShown)
+                    {
+                        sb.Append($"<div class='aiw-desc'>{E(string.Format(_f.tra("Zobrazeno {0} z {1} řádků, celkem je spočítáno ze všech."), intShown, intAll.ToString("N0", _cz)))}</div>");
+                    }
+                }
+                else if (table) sb.Append(Table(task, t, rec.x55Code));
+                if (t.Truncated && !(table && grouped))
                 {
                     string m = task.Kind == "list" ? _f.tra("Zobrazeno {0} z {1} záznamů.") : _f.tra("Zobrazeno {0} z {1} řádků, celkem je spočítáno ze všech.");
                     sb.Append($"<div class='aiw-desc'>{E(string.Format(m, t.Rows.Count, t.Groups.ToString("N0", _cz)))}</div>");
@@ -376,6 +403,167 @@ namespace UI.Code
             {
                 sb.Append("<tfoot><tr>");
                 for (int k = 0; k < t.Columns.Count; k++)
+                {
+                    string txt = k == 0 && t.Total[0] == null ? E(_f.tra("Celkem")) : E(Fmt(t.Total[k], t.Columns[k]));
+                    sb.Append($"<td{(t.Columns[k].Type == "number" ? " class='text-end'" : "")}>{txt}</td>");
+                }
+                sb.Append("</tr></tfoot>");
+            }
+            sb.Append("</table>");
+            return sb.ToString();
+        }
+
+        // ------------------------------------------------------------------ tabulka s mezisoučty (souhrn s více dimenzemi)
+
+        private static bool IsMultiDim(BO.AI.AiWidgetTask task) => task.Kind != "list" && task.Agg != null && task.Agg.Dims.Count >= 2;
+
+        /// <summary>Stejná tabulka omezená na prvních n řádků (graf, prostá tabulka).</summary>
+        private static BO.AI.AiAskTable Limited(BO.AI.AiAskTable t, int n)
+        {
+            return new BO.AI.AiAskTable
+            {
+                Id = t.Id, Kind = t.Kind, Title = t.Title, Description = t.Description, Entity = t.Entity, Columns = t.Columns,
+                Rows = t.Rows.Take(n).ToList(), Total = t.Total, Groups = t.Groups, Ids = t.Ids,
+                LinkIds = t.LinkIds?.Take(n).ToList(), Truncated = t.Groups > n, Guid = t.Guid, CanDrill = t.CanDrill
+            };
+        }
+
+        private class GRow
+        {
+            public object[] V;      //hodnoty řádku (u skupiny: popisek dimenze + mezisoučty)
+            public int[] L;         //ID záznamů pro odkazy
+            public int Level;       //úroveň = index dimenze, od které řádek ukazuje hodnoty
+            public bool IsGroup;    //řádek mezisoučtu
+            public int Top;         //pořadí skupiny první úrovně
+            public int More;        //>0: řádek „… a další N“
+        }
+
+        /// <summary>
+        /// Souhrn s více dimenzemi jako tabulka se skupinami: řádky se seskupí podle první dimenze (pak druhé…). Každá hodnota první
+        /// dimenze má řádek souhrnu (i prázdná hodnota a i skupina s jediným řádkem); na dalších úrovních dostane mezisoučet jen
+        /// skupina s více řádky, skupina s jediným řádkem zůstane jedním řádkem. Měřítka jsou součty,
+        /// takže mezisoučet = součet řádků skupiny. Skupiny první úrovně jdou kliknutím sbalit (widgets.js).
+        /// </summary>
+        private string GroupedTable(BO.AI.AiWidgetTask task, BO.AI.AiAskTable t, string tableId, out int shownGroups, out int allGroups)
+        {
+            var s = task.Agg;
+            int nd = t.Columns.TakeWhile(c => !c.Measure).Count();      //dimenze jsou první sloupce
+            int nc = t.Columns.Count;
+
+            //řazení jako v zadání: podle měřítka (výchozí první měřítko sestupně) nebo podle dimenze
+            int si = -1; bool desc = s.SortDesc;
+            if (s.SortBy == BL.AI.Tools.AiAggregate.Count) si = nc - 1;
+            else if (s.SortBy != null)
+            {
+                int di = s.Dims.IndexOf(s.SortBy);
+                int mi = s.Measures.Where(x => x != BL.AI.Tools.AiAggregate.Count).ToList().IndexOf(s.SortBy);
+                si = di >= 0 ? di : (mi >= 0 ? nd + mi : -1);
+            }
+            int firstMeasure = t.Columns.FindIndex(c => c.Measure);
+            if (si < 0 || si >= nc) { si = firstMeasure; desc = true; }
+
+            var src = t.Rows.Select((r, i) => new GRow { V = r, L = (t.LinkIds != null && i < t.LinkIds.Count) ? t.LinkIds[i] : null }).ToList();
+            var output = new List<GRow>();
+            int top = 0; int all = 0; int limit = Math.Clamp(s.Limit <= 0 ? MaxAggRows : s.Limit, 1, MaxAggRows);
+
+            void Emit(List<GRow> rows, int level)
+            {
+                var groups = rows.GroupBy(r => r.V[level]?.ToString() ?? "")     //podle zobrazeného popisku, stejně jako Pivot-Explorer
+                    .Select(g =>
+                    {
+                        var lis = g.ToList();
+                        var sum = new object[nc];
+                        sum[level] = lis[0].V[level];
+                        for (int k = 0; k < nc; k++)
+                            if (t.Columns[k].Measure) sum[k] = Math.Round(lis.Sum(x => D(x.V[k])), t.Columns[k].Decimals);
+                        return (rows: lis, sum);
+                    }).ToList();
+
+                //pořadí skupin: podle mezisoučtu měřítka, podle popisku vlastní dimenze, jinak podle prvního měřítka sestupně
+                if (si >= nd) groups = (desc ? groups.OrderByDescending(g => D(g.sum[si])) : groups.OrderBy(g => D(g.sum[si]))).ToList();
+                else if (si == level) groups = (desc ? groups.OrderByDescending(g => g.sum[level]?.ToString(), StringComparer.Create(_cz, true)) : groups.OrderBy(g => g.sum[level]?.ToString(), StringComparer.Create(_cz, true))).ToList();
+                else if (firstMeasure >= 0) groups = groups.OrderByDescending(g => D(g.sum[firstMeasure])).ToList();
+
+                if (level == 0)
+                {
+                    all = groups.Count;
+                    groups = groups.Take(limit).ToList();
+                }
+                foreach (var g in groups)
+                {
+                    if (level == 0) top++;
+                    if ((g.rows.Count == 1 && level > 0) || level >= nd - 1)     //první úroveň má řádek souhrnu vždy, i s jediným řádkem – jinak by vypadal jako součást předchozí skupiny
+                    {
+                        foreach (var r in g.rows) output.Add(new GRow { V = r.V, L = r.L, Level = level, Top = top });
+                    }
+                    else
+                    {
+                        var links = new int[nc];
+                        var ids = g.rows.Where(x => x.L != null && x.L[level] > 0).Select(x => x.L[level]).Distinct().ToList();
+                        if (ids.Count == 1) links[level] = ids[0];     //odkaz u skupiny jen když všechny její řádky míří na stejný záznam
+                        output.Add(new GRow { V = g.sum, L = links, Level = level, IsGroup = true, Top = top });
+                        Emit(g.rows, level + 1);
+                    }
+                }
+            }
+            Emit(src, 0);
+            shownGroups = top; allGroups = all;
+
+            //nejvýše MaxGroupChildren řádků pod jednou skupinou první úrovně
+            var final = new List<GRow>();
+            foreach (var grp in output.GroupBy(r => r.Top))
+            {
+                var lis = grp.ToList();
+                if (lis.Count > MaxGroupChildren + 1)
+                {
+                    final.AddRange(lis.Take(MaxGroupChildren + 1));
+                    final.Add(new GRow { Level = 1, Top = grp.Key, More = lis.Count - MaxGroupChildren - 1 });
+                }
+                else final.AddRange(lis);
+            }
+            bool closed = final.Count > MaxExpandedRows && final.Any(r => r.IsGroup && r.Level == 0);
+
+            var sb = new StringBuilder();
+            sb.Append($"<table id='{E(tableId)}' class='table table-sm aiw-table aiw-grouped'><thead><tr>");
+            foreach (var c in t.Columns)
+                sb.Append($"<th{(c.Type == "number" ? " class='text-end'" : "")}>{E(c.Name)}</th>");
+            sb.Append("</tr></thead><tbody>");
+
+            foreach (var r in final)
+            {
+                bool topGroup = r.IsGroup && r.Level == 0;
+                bool child = r.Level > 0;
+                string cls = topGroup ? "aiw-g" + (closed ? " aiw-closed" : "") : (child ? "aiw-c" + (r.IsGroup ? " aiw-s" : "") : "aiw-one");
+                string bold = r.IsGroup ? " style='font-weight:600;'" : "";     //inline kvůli odeslání e-mailem
+                sb.Append($"<tr class='{cls}' data-g='{r.Top}'{bold}{(child && closed ? " hidden" : "")}>");
+                if (r.More > 0)
+                {
+                    sb.Append($"<td></td><td colspan='{nc - 1}' class='aiw-more'>{E(_f.tra("… a další"))} {r.More}</td></tr>");
+                    continue;
+                }
+                for (int k = 0; k < nc; k++)
+                {
+                    var c = t.Columns[k];
+                    string txt = "";
+                    bool show = c.Measure || (r.IsGroup ? k == r.Level : k >= r.Level);
+                    if (show)
+                    {
+                        txt = E(Fmt(r.V[k], c));
+                        if (!c.Measure && c.Link != null && r.L != null && r.L[k] > 0) txt = Link(c.Link, r.L[k], txt);
+                        if (!c.Measure && txt == "") txt = r.IsGroup ? E(_f.tra("(prázdné)")) : "–";    //skupina bez hodnoty má vlastní pojmenovaný souhrn
+                    }
+                    string tdcls = c.Type == "number" ? "text-end" : "";
+                    if (k == 0 && r.Level == 0) tdcls = (tdcls + " aiw-top").Trim();
+                    sb.Append($"<td{(tdcls != "" ? $" class='{tdcls}'" : "")}>{txt}</td>");
+                }
+                sb.Append("</tr>");
+            }
+            sb.Append("</tbody>");
+
+            if (t.Total != null && t.Total.Any(x => x != null))
+            {
+                sb.Append("<tfoot><tr>");
+                for (int k = 0; k < nc; k++)
                 {
                     string txt = k == 0 && t.Total[0] == null ? E(_f.tra("Celkem")) : E(Fmt(t.Total[k], t.Columns[k]));
                     sb.Append($"<td{(t.Columns[k].Type == "number" ? " class='text-end'" : "")}>{txt}</td>");

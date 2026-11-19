@@ -260,7 +260,10 @@ function ask_render_table(t) {
 
         var $body = $("<tbody>");
         var canDrillRow = !isList && t.canDrill && dims > 0;
-        t.rows.forEach(function (row, ri) {
+        //souhrn s více dimenzemi a všemi řádky: skupiny s mezisoučty místo opakování stejné hodnoty v prvním sloupci
+        var grouped = !isList && dims >= 2 && !t.truncated && t.rows.length > 1;
+        if (grouped) ask_render_grouped($body, t, dims, canDrillRow);
+        else t.rows.forEach(function (row, ri) {
             var $r = $("<tr>");
             //výpis: ikona karty záznamu v prvním sloupci
             if (canCard) {
@@ -331,6 +334,87 @@ function ask_render_table(t) {
     }
     if ($btns.children().length) $box.append($btns);
     return $box;
+}
+
+// Souhrn s více dimenzemi: řádky seskupené podle první dimenze (pak druhé…). Každá hodnota první dimenze má řádek souhrnu
+// (i prázdná a i s jediným řádkem); na dalších úrovních má mezisoučet jen skupina s více řádky. Měřítka jsou součty.
+// Pořadí skupin i řádků je podle pořadí ve výsledku.
+// Klik na řádek skupiny první úrovně ji sbalí / rozbalí; řádky nejnižší úrovně dál otevírají zdrojové úkony.
+function ask_group_rows(t, dims) {
+    var out = [], top = 0;
+    var src = t.rows.map(function (r, i) { return { v: r, l: (t.linkIds && t.linkIds[i]) ? t.linkIds[i] : null }; });
+    var emit = function (rows, level) {
+        var order = [], map = {};
+        rows.forEach(function (r) {
+            var key = "k" + (r.v[level] === null || r.v[level] === undefined ? "" : String(r.v[level]));
+            if (!map[key]) { map[key] = []; order.push(key); }
+            map[key].push(r);
+        });
+        order.forEach(function (key) {
+            var lis = map[key];
+            if (level === 0) top++;
+            if ((lis.length === 1 && level > 0) || level >= dims - 1) {     //první úroveň má řádek souhrnu vždy, i s jediným řádkem
+                lis.forEach(function (r) { out.push({ v: r.v, l: r.l, level: level, group: false, top: top }); });
+                return;
+            }
+            var sum = [], links = [], lid = 0, same = true;
+            t.columns.forEach(function (c, i) {
+                links.push(0);
+                if (!c.measure) { sum.push(i === level ? lis[0].v[i] : null); return; }
+                var x = 0;
+                lis.forEach(function (r) { if (typeof r.v[i] === "number") x += r.v[i]; });
+                var p = Math.pow(10, c.decimals || 0);
+                sum.push(Math.round(x * p) / p);
+            });
+            //ikona karty u skupiny jen když všechny její řádky míří na stejný záznam
+            lis.forEach(function (r) {
+                var x = r.l ? r.l[level] : 0;
+                if (!x) return;
+                if (!lid) lid = x; else if (lid !== x) same = false;
+            });
+            links[level] = same ? lid : 0;
+            out.push({ v: sum, l: links, level: level, group: true, top: top });
+            emit(lis, level + 1);
+        });
+    };
+    emit(src, 0);
+    return out;
+}
+
+function ask_render_grouped($body, t, dims, canDrillRow) {
+    var out = ask_group_rows(t, dims);
+    var closed = out.length > 30 && out.some(function (r) { return r.group && r.level === 0; });
+    out.forEach(function (r) {
+        var topGroup = r.group && r.level === 0, child = r.level > 0;
+        var $r = $("<tr>").attr("data-g", r.top);
+        if (topGroup) $r.addClass("ai-grp" + (closed ? " ai-grp-closed" : ""));
+        else if (child) $r.addClass("ai-grp-c" + (r.group ? " ai-grp-s" : ""));
+        else $r.addClass("ai-grp-one");
+        if (child && closed) $r.prop("hidden", true);
+        t.columns.forEach(function (c, i) {
+            var $td = $("<td>").addClass(c.type === "number" ? "ai-num" : (c.type === "string" ? "ai-text" : ""));
+            if (i === 0 && r.level === 0) $td.addClass("ai-grp-top");
+            var show = c.measure || (r.group ? i === r.level : i >= r.level);
+            if (show) {
+                var txt = ask_cell(c, r.v[i]);
+                $td.text(!c.measure && txt === "" ? (r.group ? (_ask_txt.blank || "(prázdné)") : "–") : txt);    //skupina bez hodnoty má vlastní pojmenovaný souhrn
+                var lid = (!c.measure && c.link && r.l) ? r.l[i] : 0;
+                if (lid) $td.prepend(ask_rec_icon(c.link, lid));
+            }
+            $r.append($td);
+        });
+        if (topGroup) {
+            $r.on("click", function (e) {
+                if (ask_on_icon(e)) return;
+                var close = !$r.hasClass("ai-grp-closed");
+                $r.toggleClass("ai-grp-closed", close);
+                $body.children("tr.ai-grp-c").each(function () { if (this.getAttribute("data-g") === String(r.top)) this.hidden = close; });
+            });
+        } else if (!r.group && canDrillRow) {
+            $r.addClass("ai-click-row").attr("title", _ask_txt.drillRow).on("click", function (e) { if (!ask_on_icon(e)) ask_drill(t, r.v); });
+        }
+        $body.append($r);
+    });
 }
 
 // ☰ kontextové menu záznamu (stejné jako v gridu – akce a oprávnění řeší server) + ↗ otevřít kartu

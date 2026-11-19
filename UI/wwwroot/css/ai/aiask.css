@@ -17,6 +17,12 @@
 .ai-table .ai-num { text-align: right; white-space: nowrap; }
 .ai-table td.ai-text { max-width: 420px; white-space: pre-wrap; }
 .ai-click-row { cursor: pointer; }
+/* souhrn s více dimenzemi: skupiny s mezisoučty (ask_render_grouped) */
+.ai-table tr.ai-grp > td { font-weight: 600; background-color: #f6f8fa; cursor: pointer; }
+.ai-table tr.ai-grp > td.ai-grp-top::before { content: "\25BE"; display: inline-block; width: 14px; color: #8a939c; }
+.ai-table tr.ai-grp.ai-grp-closed > td.ai-grp-top::before { content: "\25B8"; }
+.ai-table tr.ai-grp-one > td.ai-grp-top { padding-left: 18px; }
+.ai-table tr.ai-grp-s > td { font-weight: 600; background-color: #fafbfc; }
 .ai-result-buttons { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
 
 /* odkaz na kartu záznamu v tabulkách výsledků (výpis: první sloupec, agregace: u dimenze) */

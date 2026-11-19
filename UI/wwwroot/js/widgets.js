@@ -246,6 +246,19 @@ function wd_confirm(btn, fn) {
 
 // ------------------------------------------------------------------ AI widgety
 
+// AI widget se souhrny: klik na řádek skupiny (ne na odkaz v něm) sbalí / rozbalí její řádky
+document.addEventListener("click", function (e) {
+    if (!e.target || !e.target.closest || e.target.closest("a")) return;
+    const tr = e.target.closest("table.aiw-grouped tr.aiw-g");
+    if (!tr) return;
+    const close = !tr.classList.contains("aiw-closed");
+    tr.classList.toggle("aiw-closed", close);
+    const g = tr.getAttribute("data-g");
+    tr.parentNode.querySelectorAll("tr.aiw-c").forEach(function (r) {
+        if (r.getAttribute("data-g") === g) r.hidden = close;
+    });
+});
+
 function aiw_pivot(x55id) { _window_open("/Widgets/AiPivot?x55id=" + x55id, 2); }
 
 function aiw_delete(x55id) {

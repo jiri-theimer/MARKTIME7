@@ -46,6 +46,7 @@
     var _ask_txt = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(new
     {
         total = _f.tra("Celkem"),
+        blank = _f.tra("(prázdné)"),
         yes = _f.tra("ano"),
         no = _f.tra("ne"),
         shown = _f.tra("Zobrazeno {0} z {1} řádků, celkem je spočítáno ze všech."),
