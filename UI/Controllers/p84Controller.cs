@@ -88,7 +88,7 @@ namespace UI.Controllers
                    
                     foreach (var c in oks)
                     {
-                        this.AddMessageTranslated($"{c}: Upomínka vytvořena.","info");
+                        this.AddMessageTranslated(string.Format(Factory.tra("{0}: Upomínka vytvořena."), c), "info");
                     }
                     RefreshState_Create(v);
                 }

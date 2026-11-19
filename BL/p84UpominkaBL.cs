@@ -124,103 +124,92 @@ namespace BL
             }
             var rec = new BO.p84Upominka() { p91ID = p91id, p83ID = p83id,j02ID_Owner=_mother.CurrentUser.pid,p84Date=DateTime.Today };
             var recP91 = _mother.p91InvoiceBL.Load(p91id);
+            if (recP91 == null)
+            {
+                return 0;
+            }
             if (recP91.p91Amount_Debt < 1)
             {
-                this.AddMessageTranslated("Faktura nemá dluh po splatnosti.");
+                this.AddMessage("Faktura nemá dluh.");
                 return 0;   //není dluh
             }
             if (rec.p83ID == 0)
             {
                 var recP92 = _mother.p92InvoiceTypeBL.Load(recP91.p92ID);
-                rec.p83ID = recP92.p83ID;
+                if (recP92 != null) rec.p83ID = recP92.p83ID;
             }
             if (rec.p83ID == 0)
             {
                 var lisP83 = _mother.p83UpominkaTypeBL.GetList(new BO.myQuery("p83"));
                 if (lisP83.Count() == 0)
                 {
-                    this.AddMessageTranslated("V administraci chybí typy upomínek.");
+                    this.AddMessage("V administraci chybí typy upomínek.");
                     return 0;   //není naplněn číselník typů upomínek
                 }
                 rec.p83ID = lisP83.First().pid;
             }
-            var recP83 = _mother.p83UpominkaTypeBL.Load(rec.p83ID);            
-            var intStupenCeka = GetFirstFreeUpominkaIndex(recP91);           
-            
-            if (intStupenCeka == 0)
-            {                
-                TimeSpan span = DateTime.Today - recP91.p91DateMaturity;
-                if (span.Days < recP83.p83Days_Index1)
-                {
-                    this.AddMessageTranslated($"První upomínku je povoleno generovat až po uplynutí {recP83.p83Days_Index1} dní po datu splatnosti faktury ({recP91.p91DateMaturity.ToString("dd.MM.yyyy")}).<hr>Toto můžete změnit v nastavení typu upomínky.");
-                    return 0;   //ještě nenastal čas na první upomínku
-                }
-                               
-            }
-            else
+            var recP83 = _mother.p83UpominkaTypeBL.Load(rec.p83ID);
+            var intStupenCeka = GetFirstFreeUpominkaIndex(recP91);  //u faktury s dluhem vrací 1 až N
+
+            var lis = GetList(new BO.myQueryP84() { p91id = recP91.pid });
+            BO.p84Upominka recPre = null;
+
+            switch (intStupenCeka)
             {
-                                
-                var lis = GetList(new BO.myQueryP84() { p91id = recP91.pid });
-                BO.p84Upominka recPre = null;
-                
-                switch (intStupenCeka)
-                {
-                    case 1:
-                        rec.p84Index = intStupenCeka;
-                        rec.p84Name = recP83.p83Name_Index1;
-                        rec.p84TextA = recP83.p83TextA_Index1;
-                        rec.p84TextB = recP83.p83TextB_Index1;
-                        break;
-                    case 2:
-                        recPre = lis.First(p => p.p84Index == 1);                        
-                        if ((DateTime.Today - recPre.p84Date).Days < recP83.p83Days_Index2)
-                        {
-                            this.AddMessageTranslated($"Druhou upomínku je povoleno generovat až po uplynutí {recP83.p83Days_Index2} dní od vygenerování první upomínky ({recPre.p84Date.ToString("dd.MM.yyyy")}).<hr>Toto můžete změnit v nastavení typu upomínky.");
-                            return 0;   //ještě nenastal čas na druhou upomínku
-                        }
-                        rec.p84Name = recP83.p83Name_Index2;
-                        rec.p84TextA = recP83.p83TextA_Index2;
-                        rec.p84TextB = recP83.p83TextB_Index2;
-                        break;
-                    case 3:
-                        recPre = lis.First(p => p.p84Index == 2);                        
-                        if ((DateTime.Today - recPre.p84Date).Days < recP83.p83Days_Index3)
-                        {
-                            this.AddMessageTranslated("Ještě nenastal čas na třetí upomínku.");
-                            return 0;   //ještě nenastal čas na třetí upomínku
-                        }
-                        rec.p84Name = recP83.p83Name_Index3;
-                        rec.p84TextA = recP83.p83TextA_Index3;
-                        rec.p84TextB = recP83.p83TextB_Index3;
-                        break;
-                    case 4:
-                    case 5:
-                        this.AddMessageTranslated("Třetí upomínka je poslední.");
-                        return 0;   //třetí upomínka je poslední
-                        
-                    default:
-                        break;
-                }
-                
-                
-                
-                rec.p84Index = intStupenCeka;
-
+                case 1:
+                    if (recP91.p91DateMaturity.Date >= DateTime.Today)
+                    {
+                        this.AddMessageWithPars("Faktura ještě není po splatnosti ({0}).", recP91.p91DateMaturity.ToString("dd.MM.yyyy"));
+                        return 0;   //faktura není po splatnosti
+                    }
+                    if ((DateTime.Today - recP91.p91DateMaturity.Date).Days < recP83.p83Days_Index1)
+                    {
+                        Message_JesteNeniCas("První upomínku je povoleno generovat až po uplynutí {0} dní po datu splatnosti faktury ({1}).", recP83.p83Days_Index1, recP91.p91DateMaturity);
+                        return 0;   //ještě nenastal čas na první upomínku
+                    }
+                    rec.p84Name = recP83.p83Name_Index1;
+                    rec.p84TextA = recP83.p83TextA_Index1;
+                    rec.p84TextB = recP83.p83TextB_Index1;
+                    break;
+                case 2:
+                    recPre = lis.FirstOrDefault(p => p.p84Index == 1);
+                    if (recPre != null && (DateTime.Today - recPre.p84Date.Date).Days < recP83.p83Days_Index2)
+                    {
+                        Message_JesteNeniCas("Druhou upomínku je povoleno generovat až po uplynutí {0} dní od vygenerování první upomínky ({1}).", recP83.p83Days_Index2, recPre.p84Date);
+                        return 0;   //ještě nenastal čas na druhou upomínku
+                    }
+                    rec.p84Name = recP83.p83Name_Index2;
+                    rec.p84TextA = recP83.p83TextA_Index2;
+                    rec.p84TextB = recP83.p83TextB_Index2;
+                    break;
+                case 3:
+                    recPre = lis.FirstOrDefault(p => p.p84Index == 2);
+                    if (recPre != null && (DateTime.Today - recPre.p84Date.Date).Days < recP83.p83Days_Index3)
+                    {
+                        Message_JesteNeniCas("Třetí upomínku je povoleno generovat až po uplynutí {0} dní od vygenerování druhé upomínky ({1}).", recP83.p83Days_Index3, recPre.p84Date);
+                        return 0;   //ještě nenastal čas na třetí upomínku
+                    }
+                    rec.p84Name = recP83.p83Name_Index3;
+                    rec.p84TextA = recP83.p83TextA_Index3;
+                    rec.p84TextB = recP83.p83TextB_Index3;
+                    break;
+                default:
+                    this.AddMessage("Třetí upomínka je poslední.");
+                    return 0;   //třetí upomínka je poslední
             }
 
+            rec.p84Index = intStupenCeka;
             rec.p84AmountDebt = recP91.p91Amount_Debt;
-            
             rec.p84Code = $"{recP91.p91Code}-U{rec.p84Index}";
-            
 
-            var intPID = Save(rec);
-            if (intPID > 0)
-            {
-                Handle_SdruzenaUpominka(intPID);
-            }
-            
+            return Save(rec);   //zařazení do sdružené upomínky řeší Save
+        }
 
-            return intPID;
+        private void Message_JesteNeniCas(string strMessage, int intDays, DateTime d)
+        {
+            //hláška se překládá včetně parametrů {0}=počet dní, {1}=datum
+            string s = string.Format(_mother.tra(strMessage), intDays, d.ToString("dd.MM.yyyy"));
+            this.AddMessageTranslated(s + "<hr>" + _mother.tra("Toto můžete změnit v nastavení typu upomínky."));
         }
 
 

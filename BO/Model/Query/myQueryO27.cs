@@ -123,6 +123,12 @@ namespace BO
                 AQ("a.o27Entity IS NULL AND o27RecordPid IS NULL", null, null);
             }
 
+            if (!IsScoped())
+            {
+                //obecný FILEBOX přehled: e-maily načtené pravidly pro úhrady z banky se nezobrazují (jsou v přehledu Bankovní platby a u faktury / zálohy)
+                AQ("NOT (a.o27ArchiveFolder='IMAP' AND (a.o27Entity IS NULL OR a.o27Entity IN ('p91','p90','o42')))", null, null);
+            }
+
             if (this.MyRecordsDisponible)
             {
                 Handle_MyDisponible();
@@ -130,6 +136,18 @@ namespace BO
 
             return this.InhaleRows();
 
+        }
+
+        /// <summary>Dotaz je omezený na konkrétní záznam, frontu bez vazby nebo vyjmenované přílohy.</summary>
+        private bool IsScoped()
+        {
+            if (!string.IsNullOrEmpty(this.entity) && this.recpid > 0) return true;
+            if (!string.IsNullOrEmpty(this.b05_recordentity) && this.b05_recordpid > 0) return true;
+            if (this.x40id > 0 || this.x31id > 0 || this.o23id > 0 || (this.o23ids != null && this.o23ids.Count > 0)) return true;
+            if (this.j02id > 0 || this.p41id > 0 || this.p28id > 0 || this.p56id > 0 || this.p91id > 0 || this.p90id > 0 || this.o22id > 0) return true;
+            if (this.mavazbu != null || this.tempguid != null || this.notepadguid != null) return true;
+            if (this.pids != null && this.pids.Count > 0) return true;
+            return false;
         }
 
         private void Handle_MyDisponible()

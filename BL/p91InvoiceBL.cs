@@ -666,8 +666,9 @@ namespace BL
             int intPID = _db.SaveRecord("p94Invoice_Payment", p, rec, false, true);
             if (intPID > 0)
             {
-                _db.RunSql("UPDATE p84Upominka SET p84ValidUntil=GETDATE() WHERE p91ID=@p91id;UPDATE p91Invoice SET p84ID_Last=null WHERE p91ID=@p91id", new { p91id = rec.p91ID });
                 Handle_RecalcAmount(rec.p91ID);
+                //upomínky jdou do archivu až po úplném doplacení faktury. Částečná úhrada je nechává být, jinak by se stupně upomínek počítaly znovu od první.
+                _db.RunSql("UPDATE p84Upominka SET p84ValidUntil=GETDATE() WHERE p91ID=@p91id AND p84ValidUntil>GETDATE() AND EXISTS (SELECT 1 FROM p91Invoice WHERE p91ID=@p91id AND p91Amount_Debt<1);UPDATE p91Invoice SET p84ID_Last=null WHERE p91ID=@p91id AND p91Amount_Debt<1", new { p91id = rec.p91ID });
             }
 
             return intPID;

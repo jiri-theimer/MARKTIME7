@@ -293,7 +293,14 @@ else
 
         if (document.getElementById("divOverGrid"))
         {
-            $("#divOverGrid").height(30 + $("#tabgrid0").height());
+            //pruh s řádkem aktuálního záznamu: výška podle skutečného obsahu (dřív se počítala z #tabgrid0, který už neexistuje, a zůstávalo pevných 70px)
+            overgrid_fit();
+            document.addEventListener("thegrid_rebound", overgrid_fit);     //po načtení dat gridu
+            var _overgrid_timer = null;
+            $(window).on("resize.overgrid", function () {
+                clearTimeout(_overgrid_timer);
+                _overgrid_timer = setTimeout(overgrid_fit, 300);            //až po přepočtu, který si při změně okna dělá grid sám (150 ms)
+            });
         }
 
 
@@ -358,6 +365,23 @@ else
     function tabclick(tab) {    //uložit aktuální záložku do profilu uživatele + zobrazit (RecTabs)
         return RecTabs.tabClick(tab);
     }
+    function overgrid_fit() {
+        //Grid nad stránkou záznamu má jediný řádek. Posuvný box gridu se jinak natahuje až ke spodnímu okraji okna:
+        //při hodně sloupcích pak vodorovný posuvník skončil schovaný pod obsahem stránky a víceřádková hlavička zakryla řádek.
+        var box = document.getElementById("divOverGrid");
+        var sc = document.getElementById("container_vScroll");
+        var tab = document.getElementById("tabgrid1");
+        if (!box || !sc || !tab) return;
+
+        sc.style.overflowY = "hidden";
+        var hBar = sc.offsetHeight - sc.clientHeight;       //výška vodorovného posuvníku, pokud se sloupce nevejdou na šířku
+        if (hBar < 0 || hBar > 40) hBar = 0;
+        sc.style.height = (tab.offsetHeight + hBar + 1) + "px";
+        box.style.height = "auto";
+
+        try { RecTabs.fitHeight(); } catch (e) { }    //záložky pod pruhem se posunuly (před RecTabs.init ještě není co přepočítat)
+    }
+
     function change_grid(j72id) {
         $.post(_ep("/Common/SetUserParam"), { key: "masterview-j72id-" + _prefix, value: j72id }, function (data) {
             reload();
