@@ -205,6 +205,25 @@ namespace BO.Code
         }
 
 
+        /// <summary>Smaže soubor i tehdy, když má příznak "jen pro čtení" (ten si nese kopie souboru pořízená přes File.Copy). Vrací false, když soubor smazat nejde - např. je právě otevřený.</summary>
+        public static bool TryDeleteFile(string strFullPath)
+        {
+            try
+            {
+                if (!System.IO.File.Exists(strFullPath)) return true;
+                var att = System.IO.File.GetAttributes(strFullPath);
+                if ((att & FileAttributes.ReadOnly) == FileAttributes.ReadOnly)
+                {
+                    System.IO.File.SetAttributes(strFullPath, att & ~FileAttributes.ReadOnly);
+                }
+                System.IO.File.Delete(strFullPath);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
         public static List<string> GetFileListFromDir(string strDir, string strMask, SearchOption so = SearchOption.TopDirectoryOnly, bool bolRetFullPath = false)
         {
             List<string> lis = new List<string>();

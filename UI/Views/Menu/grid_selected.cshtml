@@ -123,6 +123,8 @@
                         <a class="nav-link" href="javascript:p91_sendmail()"><myicon symbol="alternate_email"></myicon> @_f.tra("Odeslat e-mailem")</a>
                         <a class="nav-link" href="javascript:p91_export()"><myicon symbol="cloud_upload"></myicon> @_f.tra("Export do účetního systému")</a>
                         <a class="nav-link" href="javascript:p91_upominky()"><myicon symbol="gavel"></myicon> @_f.tra("Vygenerovat upomínky")</a>
+                        <a class="nav-link" href="javascript:p91_imprint()"><myicon symbol="picture_as_pdf"></myicon> @_f.tra("Vytvořit PDF otisk faktur")</a>
+                        <a class="nav-link" href="javascript:p91_imprint_download()"><myicon symbol="folder_zip"></myicon> @_f.tra("Stáhnout PDF archiv faktur")</a>
                         <a class="nav-link" href="javascript:p91_checkaddress()"><myicon symbol="fact_check"></myicon> @_f.tra("Porovnat klienty s rejstříkem")</a>
                     }
                     @if (_pfx == "p90")
@@ -371,6 +373,14 @@
     function p91_upominky() {
         var url = "/p84/Create";
         _window_open_from_grid_selected(url, "p91ids", 2);
+    }
+    function p91_imprint_download() {
+        //ZIP s PDF soubory z archivu vybraných faktur
+        _window_open_from_grid_selected("/p91oper/p96download", "p91ids", 2);
+    }
+    function p91_imprint() {
+        //uloží aktuální PDF vybraných faktur do PDF archivu
+        _window_open_from_grid_selected("/p91oper/p96create", "p91ids", 2);
     }
 
     function p28_checkaddress() {

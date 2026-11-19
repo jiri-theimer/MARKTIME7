@@ -1,0 +1,74 @@
+﻿@model UI.Models.p91oper.p96DownloadViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = _f.tra("Stáhnout PDF archiv faktur");
+    Model.PageSymbol = "folder_open";
+    bool _bolNothing = (Model.CountFilesAll == 0);
+}
+
+@addTagHelper *, UI
+
+<form id="form1" asp-controller="p91oper" asp-action="p96download" method="POST">
+    <div class="bg-light" style="padding:10px;display:flex;align-items:center;flex-wrap:wrap;gap:8px;">
+        @if (Model.ZipFileName != null)
+        {
+            <a class="btn btn-primary" href="/FileUpload/FileDownloadTempFileNDB?tempfilename=@(Model.ZipFileName)"><span class="material-icons-outlined-btn">file_download</span> @_f.tra("Stáhnout PDF soubory (ZIP)") (@Model.ZipCount)</a>
+        }
+        else if (!_bolNothing)
+        {
+            <button type="submit" id="cmdRun" class="btn btn-primary" onclick="this.disabled=true;this.form.submit();"><span class="material-icons-outlined-btn">folder_zip</span> @_f.tra("Připravit ZIP")</button>
+        }
+        <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light" style="margin-left:auto;">@_f.tra("Zavřít")</button>
+    </div>
+
+    <input type="hidden" asp-for="p91ids" />
+
+    <div class="modal_record_container">
+        <div style="padding:10px;">
+            @_f.tra("Vybrané faktury"): <strong>@Model.CountInput</strong>,
+            @_f.tra("z toho s PDF v archivu"): <strong>@Model.CountWithArchive</strong>
+        </div>
+
+        @if (!_bolNothing)
+        {
+            <div style="margin:0 10px 10px 10px;">
+                <div class="form-check">
+                    <input type="radio" asp-for="IsAllVersions" value="False" id="optLast" class="form-check-input" onchange="option_changed()" />
+                    <label class="form-check-label" for="optLast">@_f.tra("Jen poslední verze") <span style="color:#6c757d;">(@Model.CountFilesLast · @BO.Code.Bas.FormatFileSize(Model.SizeLast))</span></label>
+                </div>
+                <div class="form-check">
+                    <input type="radio" asp-for="IsAllVersions" value="True" id="optAll" class="form-check-input" onchange="option_changed()" />
+                    <label class="form-check-label" for="optAll">@_f.tra("Všechny verze") <span style="color:#6c757d;">(@Model.CountFilesAll · @BO.Code.Bas.FormatFileSize(Model.SizeAll))</span></label>
+                </div>
+            </div>
+        }
+
+        @if (Model.ZipMissing > 0)
+        {
+            <div class="alert alert-warning" style="margin:0 10px 10px 10px;">
+                @_f.tra("Soubory, které v archivu na disku chybí"): <strong>@Model.ZipMissing</strong>
+            </div>
+        }
+
+        @if (Model.CodesWithoutArchive != null && Model.CodesWithoutArchive.Count > 0)
+        {
+            <div style="padding:0 10px 10px 10px;">
+                <div>@_f.tra("Faktury bez PDF v archivu"): <strong>@Model.CodesWithoutArchive.Count</strong></div>
+                <div style="color:#6c757d;font-size:0.9em;">@string.Join(", ", Model.CodesWithoutArchive.Take(60))@(Model.CodesWithoutArchive.Count > 60 ? " …" : null)</div>
+                <div style="color:#6c757d;font-size:0.9em;margin-top:4px;">@_f.tra("PDF do archivu doplníte akcí [Vytvořit PDF otisk faktur].")</div>
+            </div>
+        }
+    </div>
+</form>
+
+<script type="text/javascript">
+    function option_changed() {
+        //po změně volby je hotový ZIP neplatný - připravit znovu
+        @if (Model.ZipFileName != null)
+        {
+            <text>document.getElementById("form1").submit();</text>
+        }
+    }
+</script>

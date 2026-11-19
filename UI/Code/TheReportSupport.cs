@@ -17,6 +17,25 @@ namespace UI
         public string PfxPath { get; set; }
         public string PfxPassword { get; set; }
         public string PfxLabel { get; set; } = "Digitálně podepsáno";
+        public bool IsSaveP91Imprint { get; set; }  //true: vygenerované PDF faktury uložit i do PDF archivu (p96Imprint)
+        public const string ImprintNoteExt = ".p96";    //přípona poznámky k PDF faktury v temp složce (kód sestavy|p91ID)
+
+        /// <summary>PDF faktury odeslané poštou uložit do PDF archivu. Bere jen soubory, ke kterým při generování vznikla poznámka (PDF sestavy vyúčtování). Vrací true, když se otisk uložil.</summary>
+        public static bool SaveImprintOfSentFile(BL.Factory f, string strPdfFullPath)
+        {
+            try
+            {
+                string strNote = strPdfFullPath + ImprintNoteExt;
+                if (!System.IO.File.Exists(strNote) || !System.IO.File.Exists(strPdfFullPath)) return false;
+                var arr = System.IO.File.ReadAllText(strNote).Split('|');
+                if (arr.Length < 2 || !int.TryParse(arr[1], out int p91id) || p91id == 0) return false;
+                return f.p91InvoiceBL.SaveImprint(strPdfFullPath, p91id, arr[0]);
+            }
+            catch
+            {
+                return false;   //archiv nesmí shodit odeslání pošty
+            }
+        }
 
         public string GeneratePdfGridReport(BL.Factory f, string strTrdxFileName, string strUploadGuid, bool bolReturnFullPath = true)
         {
@@ -85,6 +104,14 @@ namespace UI
                 else
                 {
                     System.IO.File.Copy($"{f.App.RootUploadFolder}\\_distribution\\trdx\\{strArchiveFileName}", strTempFile, true);
+                }
+                try
+                {
+                    System.IO.File.SetAttributes(strTempFile, FileAttributes.Normal);   //kopie v TEMP nesmí zdědit příznak "jen pro čtení" ze zdrojové šablony
+                }
+                catch
+                {
+                    //nic
                 }
                 if (j72id > 0)
                 {
@@ -287,10 +314,25 @@ namespace UI
             
 
             f.o27AttachmentBL.CreateTempInfoxFile(strUploadGuid, "x31", $"{strUploadGuid}_{strReportFileName}", strReportFileName, "application/pdf");
-            if (recX31.x31Entity == "p91")
+            if (recX31.x31Entity == "p91" && recpid > 0)
             {
-                //ošetřit otisk faktury
-                f.p91InvoiceBL.SaveImprint($"{f.TempFolder}\\{strUploadGuid}_{strReportFileName}", recpid,recX31.x31Code);
+                if (this.IsSaveP91Imprint)
+                {
+                    //otisk faktury do PDF archivu na výslovný pokyn (akce "Vytvořit PDF otisk")
+                    f.p91InvoiceBL.SaveImprint($"{f.TempFolder}\\{strUploadGuid}_{strReportFileName}", recpid, recX31.x31Code);
+                }
+                else
+                {
+                    //poznámka k PDF v temp složce: sestava a faktura. Když se soubor opravdu odešle poštou, uloží se podle ní do PDF archivu.
+                    try
+                    {
+                        System.IO.File.WriteAllText($"{f.TempFolder}\\{strUploadGuid}_{strReportFileName}{ImprintNoteExt}", $"{recX31.x31Code}|{recpid}");
+                    }
+                    catch
+                    {
+                        //bez poznámky se otisk při odeslání jen neuloží
+                    }
+                }
             }
             if (bolReturnFullPath)
             {                

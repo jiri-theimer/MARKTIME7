@@ -39,7 +39,9 @@ namespace BL
         public bool HasDeletedP31Records(int p91id);
         public BO.Integrace.InputInvoice CreateIntegraceRecord(BO.p91Invoice c);
         public bool SaveImprint(string strSourcePdfFullPath, int p91id, string x31code);
+        public bool DeleteImprint(string p96guid, int p91id);
         public IEnumerable<BO.p96Imprint> GetList_p96(int p91id, string p96guid);
+        public IEnumerable<BO.p96Imprint> GetList_p96(List<int> p91ids);    //PDF archiv více faktur najednou
         public bool Update_Temp_MultiReport(int p91id, string p91Supplier, string p91Supplier_RegID, string p91Supplier_VatID, string p91Supplier_Street, string p91Supplier_City, string p91Supplier_ZIP, string p91Supplier_Country, string p91Supplier_Registration, string p91Supplier_ICDPH_SK,int p93id, string p93Contact, string p93Email,string p93Referent,string p93Signature);
         public int NajdiVychoziJ61ID(BO.p92InvoiceType recP92, BO.p91Invoice recP91, BO.p28Contact recP28);
 
@@ -152,12 +154,17 @@ namespace BL
 
         public bool SaveImprint(string strSourcePdfFullPath, int p91id, string x31code)
         {
-            x31code = x31code.Replace(".", "_");
+            //PDF otisk faktury do archivu. Volá se jen na pokyn uživatele (akce "Vytvořit PDF otisk"), každé volání uloží novou verzi.
+            x31code = (x31code ?? "").Replace(".", "_");
             long intSize = BO.Code.File.GetFileInfo(strSourcePdfFullPath).Length;
 
             string strDir = $"{DateTime.Now.Year}\\{DateTime.Now.Month}";
-            string strFullDir = $"{_mother.UploadFolder}\\p91\\PdfImprint\\{DateTime.Now.Year}\\{DateTime.Now.Month}";
+            string strFullDir = $"{_mother.UploadFolder}\\p91\\PdfImprint\\{strDir}";
             var rec = _mother.p91InvoiceBL.Load(p91id);
+            if (rec == null)
+            {
+                return false;
+            }
             if (!System.IO.Directory.Exists(strFullDir))
             {
                 System.IO.Directory.CreateDirectory(strFullDir);
@@ -165,20 +172,39 @@ namespace BL
 
             string strFileName = $"{rec.p91Code}-{x31code}-{rec.p91Supplier}-{rec.p91Supplier_RegID}-{rec.p91Client}-{rec.p91Client_RegID}";
             strFileName = strFileName.Replace(".", "");
-            strFileName = BO.Code.File.ConvertToSafeFileName(strFileName, 250);
-            if (System.IO.File.Exists($"{strFullDir}\\{strFileName}.pdf"))
+            strFileName = BO.Code.File.ConvertToSafeFileName(strFileName, 220);
+            strFileName += "-" + DateTime.Now.ToString("yyyyMMdd-HHmmss");   //čas v názvu: starší verze se nepřepisují
+            int x = 1;
+            string strFinalName = strFileName;
+            while (System.IO.File.Exists($"{strFullDir}\\{strFinalName}.pdf"))
             {
-                System.IO.File.Copy(strSourcePdfFullPath, $"{strFullDir}\\{strFileName}.pdf", true);
-                return _db.RunSql("UPDATE p96Imprint SET p96FileSize=@size,p96DateUpdate=GETDATE(),p96UserUpdate=@login,p96Guid=NEWID(),p96Supplier=@supplier,p96Supplier_RegID=@supplier_ico,p96Client=@client,p96Client_RegID=@client_ico,p96Code=@code WHERE p96FileName = @file", new { pid = p91id, file = $"{strFileName}.pdf", dir = strDir, size = intSize, x31code = x31code, login = _mother.CurrentUser.j02Login, supplier = rec.p91Supplier, supplier_ico = rec.p91Supplier_RegID, client = rec.p91Client, client_ico = rec.p91Client_RegID, code = rec.p91Code });
-            }
-            else
-            {
-                System.IO.File.Copy(strSourcePdfFullPath, $"{strFullDir}\\{strFileName}.pdf");
-                return _db.RunSql("INSERT INTO p96Imprint(p91ID,p96FileName,p96ArchiveFolder,p96FileSize,p96ReportCode,p96DateInsert,p96DateUpdate,p96UserInsert,p96UserUpdate,p96Guid,p96Supplier,p96Supplier_RegID,p96Client,p96Client_RegID,p96Code) VALUES(@pid,@file,@dir,@size,@x31code,GETDATE(),GETDATE(),@login,@login,NEWID(),@supplier,@supplier_ico,@client,@client_ico,@code)", new { pid = p91id, file = $"{strFileName}.pdf", dir = strDir, size = intSize, x31code = x31code, login = _mother.CurrentUser.j02Login, supplier = rec.p91Supplier, supplier_ico = rec.p91Supplier_RegID, client = rec.p91Client, client_ico = rec.p91Client_RegID, code = rec.p91Code });
+                x++;
+                strFinalName = $"{strFileName}-{x}";
             }
 
-
-
+            System.IO.File.Copy(strSourcePdfFullPath, $"{strFullDir}\\{strFinalName}.pdf");
+            return _db.RunSql("INSERT INTO p96Imprint(p91ID,p96FileName,p96ArchiveFolder,p96FileSize,p96ReportCode,p96DateInsert,p96DateUpdate,p96UserInsert,p96UserUpdate,p96Guid,p96Supplier,p96Supplier_RegID,p96Client,p96Client_RegID,p96Code) VALUES(@pid,@file,@dir,@size,@x31code,GETDATE(),GETDATE(),@login,@login,NEWID(),@supplier,@supplier_ico,@client,@client_ico,@code)", new { pid = p91id, file = $"{strFinalName}.pdf", dir = strDir, size = intSize, x31code = x31code, login = _mother.CurrentUser.j02Login, supplier = rec.p91Supplier, supplier_ico = rec.p91Supplier_RegID, client = rec.p91Client, client_ico = rec.p91Client_RegID, code = rec.p91Code });
+        }
+        public bool DeleteImprint(string p96guid, int p91id)
+        {
+            //odstraní jeden PDF otisk z archivu: soubor i záznam
+            if (string.IsNullOrEmpty(p96guid)) return false;
+            var rec = GetList_p96(0, p96guid).FirstOrDefault();
+            if (rec == null || rec.p91ID != p91id)
+            {
+                return false;
+            }
+            string strFullPath = $"{_mother.UploadFolder}\\p91\\PdfImprint\\{rec.p96ArchiveFolder}\\{rec.p96FileName}";
+            try
+            {
+                if (System.IO.File.Exists(strFullPath)) System.IO.File.Delete(strFullPath);
+            }
+            catch
+            {
+                //soubor nejde smazat (např. je právě otevřený) - záznam zůstává, aby šel smazat později
+                return false;
+            }
+            return _db.RunSql("DELETE FROM p96Imprint WHERE p96Guid=@guid AND p91ID=@p91id", new { guid = p96guid, p91id = p91id });
         }
         public int Create(BO.p91Create rec)
         {
@@ -598,6 +624,19 @@ namespace BL
                     return false;
                 }
             }
+        }
+        public IEnumerable<BO.p96Imprint> GetList_p96(List<int> p91ids)
+        {
+            if (p91ids == null || p91ids.Count == 0)
+            {
+                return new List<BO.p96Imprint>();
+            }
+            sb("select a.*,b.x31ID,b.x31Name,");
+            sb(_db.GetSQL1_Ocas("p96", false, false, true));
+            sb(" from p96Imprint a LEFT OUTER JOIN x31Report b ON a.p96ReportCode=b.x31Code");
+            sb($" WHERE a.p91ID IN ({string.Join(",", p91ids.Distinct())})");
+            sb(" ORDER BY a.p91ID,a.p96ID DESC");
+            return _db.GetList<BO.p96Imprint>(sbret());
         }
         public IEnumerable<BO.p96Imprint> GetList_p96(int p91id, string p96guid)
         {

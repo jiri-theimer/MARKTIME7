@@ -124,6 +124,7 @@ namespace UI.Controllers
                 if (v.PostbackOper== "cleartempfiles")
                 {
                     //odstranit všechny TEMP složky
+                    int intDeleted = 0; int intFailed = 0;
                     foreach (var c in v.lisX01_CloudHeader)
                     {
                         var strTempFolder = $"{Factory.App.RootUploadFolder}\\{c.x01LoginDomain}\\TEMP";
@@ -132,7 +133,8 @@ namespace UI.Controllers
                             var files = BO.Code.File.GetFileListFromDir(strTempFolder, "*.*", SearchOption.AllDirectories, true);
                             for(int i=0;i<files.Count();i++)
                             {
-                                System.IO.File.Delete(files[i]);
+                                //soubor jen pro čtení (kopie šablony sestavy) nebo právě používaný soubor nesmí úklid zastavit
+                                if (BO.Code.File.TryDeleteFile(files[i])) intDeleted++; else intFailed++;
                             }
                             //System.IO.Directory.Delete(strTempFolder);
                             //System.IO.Directory.CreateDirectory(strTempFolder);
@@ -141,6 +143,7 @@ namespace UI.Controllers
                         
 
                     }
+                    this.AddMessageTranslated($"TEMP: smazáno souborů {intDeleted}" + (intFailed > 0 ? $", nepodařilo se smazat {intFailed} (právě se používají)" : ""), "info");
                 }
                 if (v.PostbackOper == "sql_sp_funct_views" || v.PostbackOper == "sql_sp_funct_views-full")
                 {

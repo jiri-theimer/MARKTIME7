@@ -301,7 +301,7 @@ namespace BL
 
                         for (int i = 0; i < files.Count(); i++)
                         {
-                            System.IO.File.Delete(files[i]);
+                            BO.Code.File.TryDeleteFile(files[i]);   //i soubory jen pro čtení; používaný soubor úklid nezastaví
 
                         }
                     }
@@ -314,7 +314,7 @@ namespace BL
                         var files = BO.Code.File.GetFileListFromDir(_mother.UploadFolder + "\\eml", "*.*", SearchOption.AllDirectories, true);
                         for (int i = 0; i < files.Count(); i++)
                         {
-                            System.IO.File.Delete(files[i]);
+                            BO.Code.File.TryDeleteFile(files[i]);   //i soubory jen pro čtení; používaný soubor úklid nezastaví
 
                         }
                         System.IO.Directory.Delete(_mother.UploadFolder + "\\eml", true);
@@ -331,7 +331,7 @@ namespace BL
                         var files = BO.Code.File.GetFileListFromDir(_mother.UploadFolder + "\\p91\\PdfImprint", "*.*", SearchOption.AllDirectories, true);
                         for (int i = 0; i < files.Count(); i++)
                         {
-                            System.IO.File.Delete(files[i]);
+                            BO.Code.File.TryDeleteFile(files[i]);   //i soubory jen pro čtení; používaný soubor úklid nezastaví
 
                         }
                         System.IO.Directory.Delete(_mother.UploadFolder + "\\p91\\PdfImprint", true);

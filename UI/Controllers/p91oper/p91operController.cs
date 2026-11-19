@@ -925,7 +925,232 @@ namespace UI.Controllers
             var v = new p96ViewModel() { p91ID = p91id };
             v.lisP96 = Factory.p91InvoiceBL.GetList_p96(v.p91ID,null);
             v.RecP91 = Factory.p91InvoiceBL.Load(v.p91ID);
+            v.CanDelete = Factory.CurrentUser.IsAdmin || TUP(BO.PermValEnum.GR_P91_Owner);
+            if (v.RecP91 != null)
+            {
+                var recP92 = Factory.p92InvoiceTypeBL.Load(v.RecP91.p92ID);
+                v.HasAttachmentReport = (recP92 != null && recP92.x31ID_Attachment > 0);
+                v.IsIncludeAttachments = Factory.CBL.LoadUserParamBool("p96create-attachments", false);
+            }
             return View(v);
+        }
+        [HttpPost]
+        public BO.Result p96delete(string guid, int p91id)
+        {
+            //odstranění jednoho PDF otisku z archivu faktury
+            if (!(Factory.CurrentUser.IsAdmin || TUP(BO.PermValEnum.GR_P91_Owner)))
+            {
+                return new BO.Result(true, Factory.tra("Nemáte oprávnění pro tuto operaci."));
+            }
+            if (Factory.p91InvoiceBL.DeleteImprint(guid, p91id))
+            {
+                return new BO.Result(false);
+            }
+            return new BO.Result(true, Factory.tra("Operaci se nepodařilo provést."));
+        }
+
+        public IActionResult p96create(string p91ids, string guid_pids, int run, int? attachments)
+        {
+            //PDF otisk vybraných faktur do PDF archivu - spouští se jen na klik (Vybrané záznamy nebo PDF archiv faktury)
+            //run=1: vygenerovat hned bez dotazu (tlačítko v PDF archivu jedné faktury); attachments=1/0: i přílohy faktur
+            if (!string.IsNullOrEmpty(guid_pids))
+            {
+                p91ids = Factory.p85TempboxBL.LoadByGuid(guid_pids).p85Message; //vstupní pids předány přes p85Tempbox
+            }
+            var pids = BO.Code.Bas.ConvertString2ListInt(p91ids);
+            if (pids.Count() == 0)
+            {
+                return this.StopPage(true, "Na vstupu chybí faktury.");
+            }
+            var v = new p96CreateViewModel() { p91ids = p91ids, CountInput = pids.Count() };
+            v.IsIncludeAttachments = (attachments != null ? attachments == 1 : Factory.CBL.LoadUserParamBool("p96create-attachments", false));
+            if (run == 1)
+            {
+                if (attachments != null)
+                {
+                    Factory.CBL.SetUserParam("p96create-attachments", v.IsIncludeAttachments ? "1" : "0");    //volba se pamatuje i z okna PDF archivu
+                }
+                Handle_p96create(v);
+            }
+
+            return View(v);
+        }
+        [HttpPost]
+        public IActionResult p96create(p96CreateViewModel v)
+        {
+            var pids = BO.Code.Bas.ConvertString2ListInt(v.p91ids);
+            if (pids.Count() == 0)
+            {
+                return this.StopPage(true, "Na vstupu chybí faktury.");
+            }
+            v.CountInput = pids.Count();
+            Factory.CBL.SetUserParam("p96create-attachments", v.IsIncludeAttachments ? "1" : "0");    //volba se pamatuje
+            Handle_p96create(v);
+
+            return View(v);
+        }
+        private void Handle_p96create(p96CreateViewModel v)
+        {
+            var pids = BO.Code.Bas.ConvertString2ListInt(v.p91ids);
+            v.Results = new List<BO.StringPair>(); v.ResultsOK = new List<bool>(); v.CountOK = 0;
+            var files = new List<BO.StringPair>();  //Key=plná cesta k PDF, Value=název souboru v ZIPu
+
+            foreach (var c in Factory.p91InvoiceBL.GetList(new BO.myQueryP91() { pids = pids }))
+            {
+                string strResult = null; bool bolOK = false;
+                try
+                {
+                    var recP92 = Factory.p92InvoiceTypeBL.Load(c.p92ID);
+                    if (c.p91IsDraft)
+                    {
+                        strResult = Factory.tra("DRAFT faktura se do PDF archivu neukládá.");
+                    }
+                    else if (recP92 == null || recP92.x31ID_Invoice == 0)
+                    {
+                        strResult = Factory.tra("Typ faktury nemá nastavenou tiskovou sestavu.");
+                    }
+                    else
+                    {
+                        var cc = new TheReportSupport() { IsSaveP91Imprint = true };
+                        var recP93 = Factory.p93InvoiceHeaderBL.Load(recP92.p93ID);
+                        if (recP93 != null && recP93.p93PfxCertificate != null && Factory.CurrentUser.j04IsModule_p91)
+                        {
+                            cc.PfxPath = $"{Factory.WwwUsersFolder}\\PLUGINS\\{recP93.p93PfxCertificate}";  //kvalifikovaný certifikát - stejně jako při odeslání poštou
+                            cc.PfxPassword = recP93.p93PfxPassword;
+                        }
+                        var recX31 = Factory.x31ReportBL.Load(recP92.x31ID_Invoice);
+                        string strPath = cc.GeneratePdfReport(Factory, null, recX31, BO.Code.Bas.GetGuid(), c.pid, true);
+                        files.Add(new BO.StringPair() { Key = strPath, Value = cc.GetReportExportName(Factory, c.pid, recX31, false) });
+                        if (v.IsIncludeAttachments && recP92.x31ID_Attachment > 0)
+                        {
+                            recX31 = Factory.x31ReportBL.Load(recP92.x31ID_Attachment);    //příloha faktury
+                            strPath = cc.GeneratePdfReport(Factory, null, recX31, BO.Code.Bas.GetGuid(), c.pid, true);
+                            files.Add(new BO.StringPair() { Key = strPath, Value = cc.GetReportExportName(Factory, c.pid, recX31, false) });
+                        }
+                        bolOK = true; v.CountOK++;
+                        strResult = Factory.tra("PDF otisk uložen.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    strResult = ex.Message;
+                }
+                v.Results.Add(new BO.StringPair() { Key = c.p91Code, Value = strResult });
+                v.ResultsOK.Add(bolOK);
+            }
+
+            if (files.Count > 0)
+            {
+                //stejné PDF soubory i ke stažení v jednom ZIPu (např. pro účetní do jejich DMS)
+                try
+                {
+                    v.ZipFileName = $"Faktury-PDF-{DateTime.Now.ToString("yyyyMMdd-HHmmss")}-{BO.Code.Bas.GetGuid().Substring(0, 6)}.zip";
+                    var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                    using (var zip = System.IO.Compression.ZipFile.Open($"{Factory.TempFolder}\\{v.ZipFileName}", System.IO.Compression.ZipArchiveMode.Create))
+                    {
+                        foreach (var file in files.Where(p => System.IO.File.Exists(p.Key)))
+                        {
+                            string strName = string.IsNullOrEmpty(file.Value) ? System.IO.Path.GetFileNameWithoutExtension(file.Key) : file.Value;
+                            string strEntry = strName; int x = 1;
+                            while (!names.Add(strEntry))
+                            {
+                                x++; strEntry = $"{strName}-{x}";  //stejný název dvakrát
+                            }
+                            System.IO.Compression.ZipFileExtensions.CreateEntryFromFile(zip, file.Key, strEntry + ".pdf");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    v.ZipFileName = null;
+                    this.AddMessageTranslated(ex.Message);
+                }
+            }
+        }
+
+        public IActionResult p96download(string p91ids, string guid_pids)
+        {
+            //stažení PDF archivu vybraných faktur v jednom ZIPu (Vybrané záznamy v přehledu vyúčtování)
+            if (!string.IsNullOrEmpty(guid_pids))
+            {
+                p91ids = Factory.p85TempboxBL.LoadByGuid(guid_pids).p85Message; //vstupní pids předány přes p85Tempbox
+            }
+            if (BO.Code.Bas.ConvertString2ListInt(p91ids).Count() == 0)
+            {
+                return this.StopPage(true, "Na vstupu chybí faktury.");
+            }
+            var v = new p96DownloadViewModel() { p91ids = p91ids, IsAllVersions = Factory.CBL.LoadUserParamBool("p96download-allversions", false) };
+            Handle_p96download(v, false);
+
+            return View(v);
+        }
+        [HttpPost]
+        public IActionResult p96download(p96DownloadViewModel v)
+        {
+            if (BO.Code.Bas.ConvertString2ListInt(v.p91ids).Count() == 0)
+            {
+                return this.StopPage(true, "Na vstupu chybí faktury.");
+            }
+            Factory.CBL.SetUserParam("p96download-allversions", v.IsAllVersions ? "1" : "0");
+            Handle_p96download(v, true);
+
+            return View(v);
+        }
+        private void Handle_p96download(p96DownloadViewModel v, bool bolCreateZip)
+        {
+            var pids = BO.Code.Bas.ConvertString2ListInt(v.p91ids).Distinct().ToList();
+            var lisP91 = Factory.p91InvoiceBL.GetList(new BO.myQueryP91() { pids = pids }).ToList();
+            pids = lisP91.Select(p => p.pid).ToList();     //jen faktury, které opravdu existují
+            var lisAll = Factory.p91InvoiceBL.GetList_p96(pids).ToList();
+            //poslední verze = nejnovější otisk každé sestavy faktury (seznam je seřazený od nejnovějšího)
+            var lisLast = lisAll.GroupBy(p => p.p91ID + "|" + p.p96ReportCode).Select(g => g.First()).ToList();
+
+            v.CountInput = lisP91.Count;
+            v.CountWithArchive = lisAll.Select(p => p.p91ID).Distinct().Count();
+            v.CountFilesAll = lisAll.Count; v.SizeAll = lisAll.Sum(p => (long)p.p96FileSize);
+            v.CountFilesLast = lisLast.Count; v.SizeLast = lisLast.Sum(p => (long)p.p96FileSize);
+            v.CodesWithoutArchive = lisP91.Where(p => !lisAll.Any(q => q.p91ID == p.pid)).Select(p => p.p91Code).OrderBy(p => p).ToList();
+
+            if (!bolCreateZip)
+            {
+                return;
+            }
+            var lis = (v.IsAllVersions ? lisAll : lisLast);
+            if (lis.Count == 0)
+            {
+                return;
+            }
+            try
+            {
+                string strZip = $"PDF-archiv-{DateTime.Now.ToString("yyyyMMdd-HHmmss")}-{BO.Code.Bas.GetGuid().Substring(0, 6)}.zip";
+                var names = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                using (var zip = System.IO.Compression.ZipFile.Open($"{Factory.TempFolder}\\{strZip}", System.IO.Compression.ZipArchiveMode.Create))
+                {
+                    foreach (var c in lis)
+                    {
+                        string strPath = $"{Factory.UploadFolder}\\p91\\PdfImprint\\{c.p96ArchiveFolder}\\{c.p96FileName}";
+                        if (!System.IO.File.Exists(strPath))
+                        {
+                            v.ZipMissing++;
+                            continue;
+                        }
+                        string strName = System.IO.Path.GetFileNameWithoutExtension(c.p96FileName);
+                        string strEntry = strName; int x = 1;
+                        while (!names.Add(strEntry))
+                        {
+                            x++; strEntry = $"{strName}-{x}";  //stejný název z různých měsíců
+                        }
+                        System.IO.Compression.ZipFileExtensions.CreateEntryFromFile(zip, strPath, strEntry + ".pdf");
+                        v.ZipCount++;
+                    }
+                }
+                if (v.ZipCount > 0) v.ZipFileName = strZip;
+            }
+            catch (Exception ex)
+            {
+                v.ZipFileName = null;
+                this.AddMessageTranslated(ex.Message);
+            }
         }
 
         //Převést na jinou měnu:

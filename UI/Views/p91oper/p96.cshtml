@@ -3,106 +3,171 @@
 
 @{
     Layout = "~/Views/Shared/_LayoutModal.cshtml";
-    Model.PageTitle = "PDF archiv vyúčtování";
+    Model.PageTitle = _f.tra("PDF archiv vyúčtování");
     Model.PageSymbol = "folder_open";
 
+    var _lis = (Model.lisP96 ?? new List<BO.p96Imprint>()).ToList();
+    long _total = _lis.Sum(p => (long)p.p96FileSize);
+    bool _bolDraft = (Model.RecP91 != null && Model.RecP91.p91IsDraft);
 }
 
 @addTagHelper *, UI
 
-<div class="bg-light" style="padding:10px;">
+<style type="text/css">
+    .p96-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 8px 10px; border-bottom: 1px solid #e3e6ea; }
+    .p96-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 10px; padding: 12px 10px 6px 10px; }
+    .p96-code { font-size: 1.15em; font-weight: 600; }
+    .p96-chip { padding: 1px 8px; border-radius: 10px; font-size: 0.85em; background-color: color-mix(in srgb, var(--pozadi, #0b4b92) 10%, #ffffff); white-space: nowrap; }
+    .p96-sum { margin-left: auto; color: #6c757d; font-size: 0.9em; }
+    table.p96-table { width: 100%; border-collapse: collapse; }
+    .p96-table th { font-weight: 400; font-size: 0.85em; color: #495057; background-color: #f6f7f9; text-align: left; padding: 4px 10px; border-bottom: 1px solid #e3e6ea; }
+    .p96-table td { padding: 6px 10px; border-bottom: 1px solid #e9ecef; vertical-align: top; }
+    .p96-table tbody tr:hover { background-color: color-mix(in srgb, var(--oznaceno, #cfe2ff) 30%, #ffffff); }
+    .p96-table .p96-sub { color: #6c757d; font-size: 0.85em; }
+    .p96-table .p96-num { text-align: right; white-space: nowrap; }
+    .p96-table .p96-act { text-align: right; white-space: nowrap; }
+    .p96-table .p96-act a { color: #6c757d; text-decoration: none; margin-left: 10px; }
+    .p96-table .p96-act a:hover { color: var(--pozadi, #0b4b92); }
+    .p96-table .p96-act a.p96-del:hover, .p96-table .p96-act a.p96-sure { color: #c62828; }
+    .p96-new { font-size: 0.75em; padding: 0 6px; border-radius: 8px; background-color: #e7f6e7; color: #1b5e20; margin-left: 6px; }
+    .p96-empty { padding: 26px 10px; color: #6c757d; text-align: center; }
+    .p96-note { padding: 10px; color: #6c757d; font-size: 0.9em; }
+</style>
 
-    <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light">@_f.tra("Zavřít")</button>
-
-
-
+<div class="p96-bar">
+    @if (Model.RecP91 != null && !_bolDraft)
+    {
+        <button type="button" id="cmdCreate" onclick="create_imprint()" class="btn btn-primary"><span class="material-icons-outlined-btn">picture_as_pdf</span> @_f.tra("Vytvořit PDF otisk")</button>
+        @if (Model.HasAttachmentReport)
+        {
+            <div class="form-check" style="margin:0 0 0 6px;">
+                <input type="checkbox" id="chkAttachments" class="form-check-input" checked="@Model.IsIncludeAttachments" />
+                <label class="form-check-label" for="chkAttachments">@_f.tra("Generovat i přílohy faktur")</label>
+            </div>
+        }
+    }
+    <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light" style="margin-left:auto;">@_f.tra("Zavřít")</button>
 </div>
 
-<form id="form1" asp-controller="p91oper" asp-action="p96" method="POST">
-    <div class="modal_record_container">
+<div class="modal_record_container">
 
-        <div style="padding:10px;">
-
-            <span class="badge-light">
-                @Model.RecP91.p92Name
-            </span>
-            <strong>@Model.RecP91.p91Code</strong>
-        </div>
-
-
-
-        <table class="table table-hover">
-            @foreach (var c in Model.lisP96)
+    @if (Model.RecP91 != null)
+    {
+        <div class="p96-head">
+            <span class="p96-code">@Model.RecP91.p91Code</span>
+            <span class="p96-chip">@Model.RecP91.p92Name</span>
+            <span>@Model.RecP91.p91Client</span>
+            @if (_lis.Count > 0)
             {
-                <tr>
-                    <td>
-                        @c.x31Name
-                        <div>
-                            @c.p96Code
-                        </div>
-
-
-                    </td>
-                    <td>
-                        <a target="_blank" href="/FileUpload/FileDownloadImprint?guid=@(c.p96Guid)">
-                            @_f.tra("PDF náhled")
-                        </a>
-                    </td>
-
-                    <td>
-                        @(c.UserInsert)
-                        <div>
-                            @(BO.Code.Bas.ObjectDateTime2String(c.DateUpdate))
-                        </div>
-                    </td>
-                    <td>
-                        @(c.p96Supplier)
-                        <div>@(c.p96Supplier_RegID)</div>
-                    </td>
-
-                    <td>
-                        @(c.p96Client)
-                        <div>
-                            @(c.p96Client_RegID)
-                        </div>
-                    </td>
-
-                </tr>
+                <span class="p96-sum">@_f.tra("Počet"): @_lis.Count · @BO.Code.Bas.FormatFileSize(_total)</span>
             }
+        </div>
+    }
+
+    @if (_lis.Count == 0)
+    {
+        <div class="p96-empty">
+            <div><span class="material-icons-outlined" style="font-size:34px;">folder_open</span></div>
+            @if (_bolDraft)
+            {
+                @_f.tra("DRAFT faktura se do PDF archivu neukládá.")
+            }
+            else
+            {
+                @_f.tra("PDF archiv této faktury je prázdný.")
+            }
+        </div>
+    }
+    else
+    {
+        <table class="p96-table">
+            <thead>
+                <tr>
+                    <th>@_f.tra("Vytvořeno")</th>
+                    <th>@_f.tra("Tisková sestava")</th>
+                    <th>@_f.tra("Vystavovatel faktury")</th>
+                    <th>@_f.tra("Klient")</th>
+                    <th class="p96-num">@_f.tra("Velikost")</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (int i = 0; i < _lis.Count; i++)
+                {
+                    var c = _lis[i];
+                    <tr>
+                        <td>
+                            @(BO.Code.Bas.ObjectDateTime2String(c.DateInsert))
+                            @if (i == 0 && _lis.Count > 1)
+                            {
+                                <span class="p96-new">@_f.tra("Poslední")</span>
+                            }
+                            <div class="p96-sub">@c.UserInsert</div>
+                        </td>
+                        <td>
+                            @(c.x31Name ?? c.p96ReportCode)
+                            <div class="p96-sub">@c.p96Code</div>
+                        </td>
+                        <td>
+                            @c.p96Supplier
+                            <div class="p96-sub">@c.p96Supplier_RegID</div>
+                        </td>
+                        <td>
+                            @c.p96Client
+                            <div class="p96-sub">@c.p96Client_RegID</div>
+                        </td>
+                        <td class="p96-num">@BO.Code.Bas.FormatFileSize(c.p96FileSize)</td>
+                        <td class="p96-act">
+                            <a target="_blank" href="/FileUpload/FileDownloadImprint?guid=@(c.p96Guid)" title="@_f.tra("PDF náhled")"><span class="material-icons-outlined-btn">picture_as_pdf</span></a>
+                            @if (Model.CanDelete)
+                            {
+                                <a class="p96-del" href="javascript:void(0)" data-guid="@c.p96Guid" data-sure="@_f.tra("Opravdu? Klikněte znovu")" title="@_f.tra("Odstranit")"><span class="material-icons-outlined-btn">delete</span></a>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
         </table>
+    }
 
-
-
-
+    <div class="p96-note">
+        @_f.tra("Do PDF archivu se faktura uloží automaticky při odeslání e-mailem. Ručně ji uložíte tlačítkem [Vytvořit PDF otisk] zde, nebo hromadně v přehledu vyúčtování přes [Vybrané záznamy].")
+        @_f.tra("S PDF dokumentem se uloží i aktuální název+IČO vystavovatele faktury a název+IČO klienta vyúčtování.")
     </div>
 
-
-    <input type="hidden" asp-for="@Model.p91ID" />
-</form>
-
-<div class="alert alert-primary" role="alert" style="margin-top:4px;">
-    
-    Do PDF archivu se uloží záznam po PDF operaci s reportem vyúčtováním:
-    <ul>
-        <li>Kliknutí na tlačítko [Odeslat poštou].</li>
-        <li>Kliknutí na tlačítko [PDF MERGE].</li>
-    </ul>
-    <p>
-        S PDF dokumentem se uloží i aktuální název+IČO vystavovatele faktury a název+IČO klienta vyúčtování.
-    </p>
-    
 </div>
 
-
 <script type="text/javascript">
-    $(document).ready(function () {
+    function create_imprint() {
+        $("#cmdCreate").prop("disabled", true);
+        var chk = document.getElementById("chkAttachments");
+        var att = chk ? "&attachments=" + (chk.checked ? "1" : "0") : "";    //bez zaškrtávátka typ faktury přílohu nemá a zapamatovaná volba se nemění
+        $.get("/p91oper/p96create?run=1&p91ids=@(Model.p91ID)" + att, function () {
+            location.replace(location.href);    //archiv se načte znovu už s novým otiskem
+        }).fail(function () {
+            $("#cmdCreate").prop("disabled", false);
+            _notify_message("@_f.tra("Operaci se nepodařilo provést.")");
+        });
+    }
 
-
-
-
-
-    })
-
-
-
+    $(document).on("click", "a.p96-del", function () {
+        //odstranění otisku: první klik se ptá, druhý maže
+        var a = this;
+        if (!a.classList.contains("p96-sure")) {
+            a.classList.add("p96-sure");
+            a.title = a.getAttribute("data-sure");
+            _notify_message(a.getAttribute("data-sure"), "info");
+            setTimeout(function () { a.classList.remove("p96-sure"); }, 4000);
+            return;
+        }
+        $.post("/p91oper/p96delete", { guid: a.getAttribute("data-guid"), p91id: @(Model.p91ID) }, function (data) {
+            if (data && data.flag == 1) {
+                location.replace(location.href);
+            } else {
+                _notify_message((data && data.message) ? data.message : "@_f.tra("Operaci se nepodařilo provést.")");
+            }
+        }).fail(function () {
+            _notify_message("@_f.tra("Operaci se nepodařilo provést.")");
+        });
+    });
 </script>

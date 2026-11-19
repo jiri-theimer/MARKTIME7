@@ -1,0 +1,62 @@
+﻿@model UI.Models.p91oper.p96CreateViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = _f.tra("Vytvořit PDF otisk faktur");
+    Model.PageSymbol = "folder_open";
+}
+
+@addTagHelper *, UI
+
+<form id="form1" asp-controller="p91oper" asp-action="p96create" method="POST">
+    <div class="bg-light" style="padding:10px;display:flex;align-items:center;flex-wrap:wrap;gap:8px;">
+        @if (Model.Results == null)
+        {
+            <button type="submit" id="cmdRun" class="btn btn-primary" onclick="this.disabled=true;this.form.submit();"><span class="material-icons-outlined-btn">picture_as_pdf</span> @_f.tra("Vytvořit PDF otisk")</button>
+        }
+        @if (Model.ZipFileName != null)
+        {
+            <a class="btn btn-primary" href="/FileUpload/FileDownloadTempFileNDB?tempfilename=@(Model.ZipFileName)"><span class="material-icons-outlined-btn">file_download</span> @_f.tra("Stáhnout PDF soubory (ZIP)")</a>
+        }
+        <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light" style="margin-left:auto;">@_f.tra("Zavřít")</button>
+    </div>
+
+    <input type="hidden" asp-for="p91ids" />
+
+    <div class="modal_record_container">
+        @if (Model.Results == null)
+        {
+            <div style="padding:10px;">
+                @_f.tra("Vybrané faktury"): <strong>@Model.CountInput</strong>
+            </div>
+            <div class="form-check" style="margin:0 10px 10px 10px;">
+                <input type="checkbox" asp-for="IsIncludeAttachments" class="form-check-input" />
+                <label class="form-check-label" asp-for="IsIncludeAttachments">@_f.tra("Generovat i přílohy faktur")</label>
+            </div>
+            <div style="padding:0 10px;color:#6c757d;font-size:0.9em;">
+                @_f.tra("Aktuální PDF vybraných faktur se uloží do PDF archivu a nabídne ke stažení v jednom ZIP souboru.")
+            </div>
+        }
+        else
+        {
+            <input type="hidden" asp-for="IsIncludeAttachments" />
+            <div style="padding:10px;">
+                @_f.tra("Uloženo do PDF archivu"): <strong>@Model.CountOK</strong> / @Model.Results.Count
+            </div>
+
+            <table class="table table-hover">
+                @for (int i = 0; i < Model.Results.Count; i++)
+                {
+                    <tr>
+                        <td style="width:30px;">
+                            <span class="material-icons-outlined-btn" style="color:@(Model.ResultsOK[i] ? "green" : "#c62828")">@(Model.ResultsOK[i] ? "check_circle" : "error_outline")</span>
+                        </td>
+                        <td><strong>@Model.Results[i].Key</strong></td>
+                        <td>@Model.Results[i].Value</td>
+                    </tr>
+                }
+            </table>
+        }
+    </div>
+</form>
