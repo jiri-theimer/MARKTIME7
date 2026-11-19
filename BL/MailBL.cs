@@ -323,67 +323,6 @@ namespace BL
             string strEmlFullPath = $"{_mother.UploadFolder}\\{rec.x40EmlFolder}\\{m.MessageId.Id}.eml";
             if (!Directory.Exists($"{_mother.UploadFolder}\\{rec.x40EmlFolder}")) Directory.CreateDirectory(_mother.UploadFolder + "\\" + rec.x40EmlFolder);
 
-            var client = new Rebex.Net.Smtp();
-
-            //Logujeme odesílání pošty, do rec.x40EmlFolder ukládat i logwriter         
-            string strLogFile = $"{_mother.UploadFolder}\\{rec.x40EmlFolder}\\{m.MessageId.Id}.log";
-            client.LogWriter = new Rebex.FileLogWriter(strLogFile, Rebex.LogLevel.Debug);
-
-            
-            try
-            {
-                switch (_account.j40SslModeFlag)
-                {
-                    case SslModelFlagEnum.Implicit:
-                        client.Connect(_account.j40SmtpHost, _account.j40SmtpPort, Rebex.Net.SslMode.Implicit);
-                        break;
-                    case SslModelFlagEnum.Explicit:
-                        client.Connect(_account.j40SmtpHost, _account.j40SmtpPort, Rebex.Net.SslMode.Explicit);
-                        
-
-                        break;
-                    default:
-                        client.Connect(_account.j40SmtpHost, _account.j40SmtpPort);
-
-                        
-                        break;
-                }
-            }
-            catch (Exception e)
-            {
-                return handle_result_error(e.Message);
-            }
-
-
-            if (_account.j40SmtpEnableSsl)
-            {
-                try
-                {
-                    client.Secure();
-                }
-                catch (Exception e)
-                {
-                    
-                    return handle_result_error(e.Message);
-                }
-
-            }
-
-            if (!client.IsAuthenticated && !_account.j40SmtpUseDefaultCredentials)
-            {
-                if (_account.j40SmtpHost.ToLower() == "smtp.mycorecloud.net")
-                {
-                    client.Login(_mother.App.DefaultSmtpSetting.Username, _mother.App.DefaultSmtpSetting.Password);
-
-                }
-                else
-                {
-                    client.Login(_account.j40SmtpLogin, new BO.Code.Cls.Crypto().Decrypt(_account.j40SmtpPassword));
-                }
-                
-
-            }
-
             if (_attachments != null)
             {
                 foreach (var att in _attachments)
@@ -392,14 +331,49 @@ namespace BL
                 }
             }
 
-
-
-            m.Save(strEmlFullPath, Rebex.Mail.MailFormat.Mime);
-            rec.x40EmlFileSize = (int)(new System.IO.FileInfo(strEmlFullPath).Length);
-            rec.x40MessageGuid = m.MessageId.Id;
-
+            //zprávu uložit jako EML ještě před spojením se serverem: i neodeslaná zpráva má záznam v x40MailQueue se svým obsahem
             try
             {
+                m.Save(strEmlFullPath, Rebex.Mail.MailFormat.Mime);
+                rec.x40EmlFileSize = (int)(new System.IO.FileInfo(strEmlFullPath).Length);
+            }
+            catch (Exception e)
+            {
+                BO.Code.File.LogError($"SMTP message, nelze uložit EML soubor: {e.Message}");
+            }
+            rec.x40MessageGuid = m.MessageId.Id;
+
+            var client = new Rebex.Net.Smtp();
+
+            //Logujeme odesílání pošty, do rec.x40EmlFolder ukládat i logwriter         
+            string strLogFile = $"{_mother.UploadFolder}\\{rec.x40EmlFolder}\\{m.MessageId.Id}.log";
+            client.LogWriter = new Rebex.FileLogWriter(strLogFile, Rebex.LogLevel.Debug);
+
+            //Spojení, zabezpečení, přihlášení i odeslání v jednom bloku: jakákoli chyba (i odmítnuté přihlášení) skončí
+            //záznamem zprávy ve stavu Chyba, ne neošetřenou výjimkou. Postup je stejný jako v testu spojení účtu (j40MailAccountBL.TestConnection).
+            try
+            {
+                string strHost = (_account.j40SmtpHost ?? "").Trim();
+                Rebex.Net.SslMode mode = _account.j40SslModeFlag == SslModelFlagEnum.Implicit ? Rebex.Net.SslMode.Implicit : (_account.j40SslModeFlag == SslModelFlagEnum.Explicit ? Rebex.Net.SslMode.Explicit : Rebex.Net.SslMode.None);
+                if (_account.j40SmtpPort > 0) client.Connect(strHost, _account.j40SmtpPort, mode); else client.Connect(strHost, mode);
+
+                if (_account.j40SmtpEnableSsl && !client.IsSecured)
+                {
+                    client.Secure();
+                }
+
+                if (!client.IsAuthenticated && !_account.j40SmtpUseDefaultCredentials)
+                {
+                    if (strHost.ToLower() == "smtp.mycorecloud.net")
+                    {
+                        client.Login(_mother.App.DefaultSmtpSetting.Username, _mother.App.DefaultSmtpSetting.Password);
+                    }
+                    else
+                    {
+                        client.Login(_account.j40SmtpLogin, new BO.Code.Cls.Crypto().Decrypt(_account.j40SmtpPassword));
+                    }
+                }
+
                 if (!istest)
                 {
                     client.Send(m);
@@ -422,11 +396,24 @@ namespace BL
             {
 
                 this.AddMessageTranslated(ex.Message);
+                BO.Code.File.LogError($"SMTP message, strError: {ex.Message}, user: {_mother.CurrentUser.j02Login}");
                 rec.x40ErrorMessage = ex.Message;
                 rec.x40Status = BO.x40StateENUM.IsError;
                 ret.pid = SaveX40(m, rec);  //uložení zprávy do db
                 ret.Flag = ResultEnum.Failed;
                 ret.Message = rec.x40ErrorMessage;
+            }
+            finally
+            {
+                try
+                {
+                    client.Disconnect();
+                }
+                catch
+                {
+                    //nic
+                }
+                client.Dispose();
             }
 
             this.ClearAttachments();    //pro jistotu vyčistit kolekci příloh zprávy
