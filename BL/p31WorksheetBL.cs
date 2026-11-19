@@ -37,6 +37,7 @@ namespace BL
         public IEnumerable<BO.p31WorksheetTimelineDay> GetList_TimelineDays(List<int> j02ids, DateTime d1, DateTime d2, int j70id, int p31statequery, int j72id_query);
         public IEnumerable<BO.p31QuickStat> GetList_QuickStat(string groupbyfield, string record_prefix, int record_pid, DateTime? d1, DateTime? d2, string approve_guid, string groupbyfield2 = null);
         public BO.p31Rate LoadRate(BO.p51TypeFlagENUM flag, DateTime d, int j02id, int p41id, int p32id, int p54id);
+        public List<BO.p31RateCheck> CheckBillingRates(IEnumerable<BO.p31Worksheet> lis);   //uložená fakturační sazba úkonů proti sazbě podle ceníku, nic neukládá
         public BO.p31BudgetCompare LoadBudgetCompare(string prefix, int pid, BO.Model.TimesheetCostRateEnum nss, double dblSimulacniNakladovaSazba, double dblProcentoZFakSazby);
         public BO.p72IdENUM Get_p72ID_NonBillableWork(int p31id);
         public bool Save_Approving(BO.p31WorksheetApproveInput c, bool istempdata, bool isvalidatebefore);
@@ -997,6 +998,48 @@ namespace BL
         }
 
 
+        /// <summary>
+        /// Kontrola fakturačních sazeb časových a kusovníkových úkonů: pro každý úkon se zjistí sazba, kterou by dnes dostal podle ceníku
+        /// (stejná procedura p31_getrate_tu jako při uložení a přepočtu úkonu), a porovná se se sazbou uloženou v úkonu. Nic se neukládá.
+        /// Úkony aktivit s ručně zadávaným honorářem (p32ManualFeeFlag=1) se nekontrolují - jejich částku neurčuje ceník.
+        /// </summary>
+        public List<BO.p31RateCheck> CheckBillingRates(IEnumerable<BO.p31Worksheet> lis)
+        {
+            var ret = new List<BO.p31RateCheck>();
+            if (lis == null) return ret;
+            var manual = new HashSet<int>(_db.GetList<BO.GetInteger>("SELECT p32ID as Value FROM p32Activity WHERE isnull(p32ManualFeeFlag,0)=1").Select(p => p.Value));
+            var cache = new Dictionary<string, BO.p31Rate>();   //stejná kombinace den+osoba+projekt+aktivita+přesčas = jeden dotaz na sazbu
+
+            foreach (var rec in lis.Where(p => p.p33ID == BO.p33IdENUM.Cas || p.p33ID == BO.p33IdENUM.Kusovnik))
+            {
+                var c = new BO.p31RateCheck()
+                {
+                    p31ID = rec.pid, p31Date = rec.p31Date, Person = rec.Person, Project = rec.Project, p32Name = rec.p32Name,
+                    Value = (rec.p33ID == BO.p33IdENUM.Cas ? rec.p31Hours_Orig : rec.p31Value_Orig),
+                    RateStored = rec.p31Rate_Billing_Orig, j27Code_Stored = rec.j27Code_Billing_Orig, AmountStored = rec.p31Amount_WithoutVat_Orig
+                };
+                if (manual.Contains(rec.p32ID))
+                {
+                    c.IsManualFee = true; c.RateExpected = c.RateStored; c.AmountExpected = c.AmountStored; c.j27Code_Expected = c.j27Code_Stored;
+                    ret.Add(c);
+                    continue;
+                }
+                string key = $"{rec.p31Date:yyyyMMdd}|{rec.j02ID}|{rec.p41ID}|{rec.p32ID}|{rec.p54ID}";
+                if (!cache.TryGetValue(key, out BO.p31Rate rate))
+                {
+                    rate = LoadRate(BO.p51TypeFlagENUM.BillingRates, rec.p31Date, rec.j02ID, rec.p41ID, rec.p32ID, rec.p54ID);
+                    cache[key] = rate;
+                }
+                c.RateExpected = rate.Value;
+                c.j27Code_Expected = rate.j27Code;
+                c.AmountExpected = Math.Round(c.Value * c.RateExpected, 2);
+                //rozdíl: jiná sazba, nebo stejná nenulová sazba v jiné měně
+                c.IsDifferent = Math.Abs(c.RateStored - c.RateExpected) > 0.005
+                    || (c.RateExpected != 0 && !string.IsNullOrEmpty(c.j27Code_Expected) && !string.IsNullOrEmpty(c.j27Code_Stored) && c.j27Code_Expected != c.j27Code_Stored);
+                ret.Add(c);
+            }
+            return ret;
+        }
         public BO.p31Rate LoadRate(BO.p51TypeFlagENUM flag, DateTime d, int j02id, int p41id, int p32id, int p54id)
         {
             var ret = new BO.p31Rate() { flag = flag };

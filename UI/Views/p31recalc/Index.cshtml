@@ -3,7 +3,16 @@
 
 @{
     Layout = "~/Views/Shared/_LayoutModal.cshtml";
-    Model.PageTitle = _f.tra("Přepočítat sazby u vybraných úkonů");
+    Model.PageTitle = _f.tra("Kontrola a přepočet sazeb");
+
+    //kontrola fakturačních sazeb proti ceníku
+    var _chk = Model.lisCheck;
+    var _diff = _chk == null ? new List<BO.p31RateCheck>() : _chk.Where(p => p.IsDifferent).OrderByDescending(p => Math.Abs(p.AmountDiff)).ToList();
+    int _manual = _chk == null ? 0 : _chk.Count(p => p.IsManualFee);
+    int _checked = _chk == null ? 0 : _chk.Count - _manual;
+    //rozdíl ve fakturační hodnotě po měnách (měna podle ceníku)
+    var _sums = _diff.GroupBy(p => p.j27Code_Expected ?? p.j27Code_Stored).Select(g => new BO.StringPair() { Key = g.Key, Value = g.Sum(p => p.AmountDiff).ToString("+#,0.00;-#,0.00;0") }).OrderBy(p => p.Key).ToList();
+    const int _maxRows = 200;
     Model.PageSymbol = "price_check";
 
 }
@@ -35,6 +44,77 @@
     </div>
 
 
+
+    @if (Model.WhatRates == "fakturacni")
+    {
+        <div style="margin:0 10px 10px 10px;">
+            @if (Model.IsCheckSkipped)
+            {
+                <div class="alert alert-warning" style="margin:0;">@_f.tra("Úkonů je příliš mnoho, kontrola sazeb proti ceníku se neprovedla. Vyberte menší počet úkonů.")</div>
+            }
+            else if (_chk != null && _diff.Count == 0)
+            {
+                <div class="alert alert-success" style="margin:0;">
+                    <strong>@_f.tra("Sazby odpovídají ceníku.")</strong>
+                    @(string.Format(_f.tra("Zkontrolováno úkonů: {0}."), _checked))
+                </div>
+            }
+            else if (_chk != null)
+            {
+                <div class="alert alert-warning" style="margin:0 0 8px 0;">
+                    <strong>@(string.Format(_f.tra("Jinou sazbu, než určuje ceník, má {0} z {1} úkonů."), _diff.Count, _checked))</strong>
+                    @_f.tra("Rozdíl ve fakturační hodnotě po přepočtu"):
+                    @foreach (var c in _sums)
+                    {
+                        <strong style="margin-left:8px;white-space:nowrap;">@c.Value @c.Key</strong>
+                    }
+                </div>
+                <div class="form-check" style="margin-bottom:8px;">
+                    <input type="checkbox" asp-for="IsOnlyDifferent" class="form-check-input" />
+                    <label class="form-check-label" asp-for="IsOnlyDifferent">@_f.tra("Přepočítat jen úkony s jinou sazbou")</label>
+                </div>
+                <div style="max-height:260px;overflow:auto;border:1px solid #dee2e6;border-radius:6px;">
+                    <table class="table table-sm table-hover" style="margin:0;font-size:90%;">
+                        <thead style="position:sticky;top:0;background-color:#f8f9fa;">
+                            <tr>
+                                <th>@_f.tra("Datum")</th>
+                                <th>@_f.tra("Osoba")</th>
+                                <th>@_f.tra("Projekt")</th>
+                                <th>@_f.tra("Aktivita")</th>
+                                <th class="text-end">@_f.tra("Hodiny")</th>
+                                <th class="text-end">@_f.tra("Sazba v úkonu")</th>
+                                <th class="text-end">@_f.tra("Sazba podle ceníku")</th>
+                                <th class="text-end">@_f.tra("Rozdíl částky")</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var c in _diff.Take(_maxRows))
+                            {
+                                <tr>
+                                    <td style="white-space:nowrap;"><a href="javascript:_edit('p31',@c.p31ID)">@c.p31Date.ToString("dd.MM.yyyy")</a></td>
+                                    <td>@c.Person</td>
+                                    <td>@c.Project</td>
+                                    <td>@c.p32Name</td>
+                                    <td class="text-end">@BO.Code.Bas.Num2StringNull(c.Value)</td>
+                                    <td class="text-end" style="white-space:nowrap;">@c.RateStored.ToString("#,0.00") @c.j27Code_Stored</td>
+                                    <td class="text-end" style="white-space:nowrap;font-weight:600;">@c.RateExpected.ToString("#,0.00") @c.j27Code_Expected</td>
+                                    <td class="text-end" style="white-space:nowrap;color:@(c.AmountDiff < 0 ? "#c62828" : "#1b5e20");">@c.AmountDiff.ToString("+#,0.00;-#,0.00;0")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                @if (_diff.Count > _maxRows)
+                {
+                    <div style="color:#6c757d;font-size:90%;margin-top:4px;">@(string.Format(_f.tra("Zobrazeno {0} z {1} řádků, celkem je spočítáno ze všech."), _maxRows, _diff.Count))</div>
+                }
+            }
+            @if (_manual > 0)
+            {
+                <div style="color:#6c757d;font-size:90%;margin-top:6px;">@(string.Format(_f.tra("Úkony s ručně zadaným honorářem ({0}) se nekontrolují ani nepřepočítávají."), _manual))</div>
+            }
+        </div>
+    }
 
     <input type="hidden" asp-for="@Model.pids" />
     <input type="hidden" asp-for="@Model.pids_valid" value="@Model.pids_valid" />

@@ -34,6 +34,8 @@ namespace UI.Controllers.p31oper
             return View(v);
         }
 
+        private const int MaxCheckRows = 3000;      //nad tento počet úkonů se kontrola sazeb neprovádí (jeden dotaz na sazbu za každou kombinaci den+osoba+projekt+aktivita)
+
         private void RefreshState(p31RecalcViewModel v)
         {
             var mq = new BO.myQueryP31() {tabquery= "time_or_kusovnik", pids = BO.Code.Bas.ConvertString2ListInt(v.pids) };
@@ -44,6 +46,20 @@ namespace UI.Controllers.p31oper
 
             v.lisP31 = Factory.p31WorksheetBL.GetList(mq);
             
+            //kontrola fakturačních sazeb: uložená sazba proti sazbě podle ceníku
+            v.lisCheck = null; v.IsCheckSkipped = false;
+            if (v.WhatRates == "fakturacni")
+            {
+                if (v.lisP31.Count() > MaxCheckRows)
+                {
+                    v.IsCheckSkipped = true;
+                }
+                else
+                {
+                    v.lisCheck = Factory.p31WorksheetBL.CheckBillingRates(v.lisP31);
+                }
+            }
+
             v.pids_valid = string.Join(",", v.lisP31.Select(p => p.pid));
             if (string.IsNullOrEmpty(v.pids_valid))
             {
@@ -72,7 +88,24 @@ namespace UI.Controllers.p31oper
                 switch (v.WhatRates)
                 {
                     case "fakturacni":
-                        intOks = Factory.p31WorksheetBL.Recalc(v.lisP31.Select(p => p.pid).ToList(),1);
+                        var pidsRecalc = v.lisP31.Select(p => p.pid).ToList();
+                        if (v.lisCheck != null)
+                        {
+                            //úkony s ručně zadaným honorářem se nepřepočítávají nikdy - přepočet by jejich částku přepsal sazbou z ceníku
+                            var manual = v.lisCheck.Where(p => p.IsManualFee).Select(p => p.p31ID).ToHashSet();
+                            pidsRecalc = pidsRecalc.Where(p => !manual.Contains(p)).ToList();
+                            if (v.IsOnlyDifferent)
+                            {
+                                var diff = v.lisCheck.Where(p => p.IsDifferent).Select(p => p.p31ID).ToHashSet();
+                                pidsRecalc = pidsRecalc.Where(p => diff.Contains(p)).ToList();
+                            }
+                        }
+                        if (pidsRecalc.Count == 0)
+                        {
+                            this.AddMessage("Všechny sazby odpovídají ceníku, není co přepočítat.", "info");
+                            return View(v);
+                        }
+                        intOks = Factory.p31WorksheetBL.Recalc(pidsRecalc, 1);
                         break;
                     case "nakladove":
                         intOks = Factory.p31WorksheetBL.Recalc(v.lisP31.Select(p => p.pid).ToList(), 2);
