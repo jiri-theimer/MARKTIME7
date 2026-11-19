@@ -5,27 +5,18 @@
 @{
     Layout = "~/Views/Shared/_LayoutModal.cshtml";
 
-    Model.PageTitle = _f.CBL.GetObjectAlias(BO.Code.Entity.GetPrefixDb(Model.prefix), Model.pid);
+    Model.PageTitle = _f.tra("Rychlá statistika") + ": " + _f.CBL.GetObjectAlias(BO.Code.Entity.GetPrefixDb(Model.prefix), Model.pid);
 
     Model.caller = "QuickStat"; //tím říkáme, že se zde má brát v potaz filtrované období
     var _periodinput = new UI.Views.Shared.Components.myPeriod.myPeriodViewModel() { UserParamKey = "tabstat-period" };
-    _periodinput.PeriodValue = _f.CBL.LoadUserParamInt("tabstat-period", 0);
+    bool _bolImmediately = _f.CBL.LoadUserParamBool($"{Model.prefix}-quickstat-immediately", false);
 }
 
 @addTagHelper *, UI
 
-@section header_content {
-
-
-    <link rel="stylesheet" href="/css/htmltable.css" />
-
-
-}
-
-
 
 <form id="form1" asp-controller="Record" asp-action="QuickStat" method="POST">
-    <div class="bg-light input-group" style="margin-bottom:20px;">
+    <div class="qs-bar-top">
         @if (Model.p31guid == null)
         {
             <div>
@@ -33,22 +24,15 @@
             </div>
         }
 
-        <div style="margin-left:10px;">
-            @if (_f.CBL.LoadUserParamBool($"{Model.prefix}-quickstat-immediately", false))
-            {
-                <input type="checkbox" id="chkTurnOff" onchange="turn_off_immediately(this)" checked="checked" class="form-check-input" />
-            }
-            else
-            {
-                <input type="checkbox" id="chkTurnOff" onchange="turn_off_immediately(this)" class="form-check-input" />
-            }
-            
-            
-            <label for="chkTurnOff">@_f.tra("Statistiku generovat automaticky na stránce záznamu")</label>
+        <div class="form-check form-switch">
+            <input type="checkbox" id="chkTurnOff" onchange="turn_off_immediately(this)" checked="@_bolImmediately" class="form-check-input" />
+            <label class="form-check-label" for="chkTurnOff">@_f.tra("Statistiku generovat automaticky na stránce záznamu")</label>
         </div>
 
-        <div style="margin-left:40px;">
-            <button id="cmdClose" onclick="close_and_refresh()" class="btn btn-light">@_f.tra("Zavřít")</button>
+        <div style="margin-left:auto;display:flex;gap:6px;">
+            <button type="button" id="cmdMail" onclick="_window_open('/Record/QuickStatMail?prefix=@(Model.prefix)&pid=@(Model.pid)')" class="btn btn-light"><span class="material-icons-outlined-btn">alternate_email</span> @_f.tra("Odeslat e-mailem")</button>
+            <button type="button" id="cmdExcel" onclick="location.href='/Record/QuickStatExcel?prefix=@(Model.prefix)&pid=@(Model.pid)'" class="btn btn-light"><span class="material-icons-outlined-btn">file_download</span> @_f.tra("Export do MS Excel")</button>
+            <button type="button" id="cmdClose" onclick="close_and_refresh()" class="btn btn-light">@_f.tra("Zavřít")</button>
         </div>
 
     </div>
@@ -64,30 +48,26 @@
 </form>
 
 <script type="text/javascript">
-    
-    function close_and_refresh() {
 
+    function close_and_refresh() {
 
         if (window.parent.document.getElementById("zoom_okno")) {
             window.parent.document.getElementById("zoom_okno").style.display = "none";  //např. statistika ve schvalovacím dialogu
             return;
         }
-        if (window.parent.document.getElementById("linkOpenInNewWindow")) {
-            window.parent.hardrefresh();
-        }
+        try {
+            if (window.parent.document.getElementById("qs_box") && window.parent._qs) {
+                window.parent._qs.reload();   //box na stránce záznamu převezme období zvolené v tomto okně
+            }
+        } catch (e) { }
 
         _window_close();
     }
 
     function turn_off_immediately(chk) {
         var prefix = "@Model.prefix";
-        var val="0";
-        if (chk.checked){
-            val = "1";
-        }
-       
-        $.post("/Common/SetUserParam", { key: prefix + "-quickstat-immediately", value: val }, function (data) {
-            
+        $.post("/Common/SetUserParam", { key: prefix + "-quickstat-immediately", value: (chk.checked ? "1" : "0") }, function (data) {
+
             window.parent.document.location.href = window.parent.document.location.href;
         });
     }

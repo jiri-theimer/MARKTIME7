@@ -35,7 +35,7 @@ namespace BL
         public bool Append2Invoice(int p91id_dest, List<int> pids);
         public bool ValidateVatRate(double vatrate, int p41id, DateTime d, int j27id);
         public IEnumerable<BO.p31WorksheetTimelineDay> GetList_TimelineDays(List<int> j02ids, DateTime d1, DateTime d2, int j70id, int p31statequery, int j72id_query);
-        public IEnumerable<BO.p31QuickStat> GetList_QuickStat(string groupbyfield, string record_prefix, int record_pid, DateTime? d1, DateTime? d2, string approve_guid);
+        public IEnumerable<BO.p31QuickStat> GetList_QuickStat(string groupbyfield, string record_prefix, int record_pid, DateTime? d1, DateTime? d2, string approve_guid, string groupbyfield2 = null);
         public BO.p31Rate LoadRate(BO.p51TypeFlagENUM flag, DateTime d, int j02id, int p41id, int p32id, int p54id);
         public BO.p31BudgetCompare LoadBudgetCompare(string prefix, int pid, BO.Model.TimesheetCostRateEnum nss, double dblSimulacniNakladovaSazba, double dblProcentoZFakSazby);
         public BO.p72IdENUM Get_p72ID_NonBillableWork(int p31id);
@@ -774,33 +774,35 @@ namespace BL
             return ret;
 
         }
-        public IEnumerable<BO.p31QuickStat> GetList_QuickStat(string groupby, string record_prefix, int record_pid, DateTime? d1, DateTime? d2, string approve_guid)
+        private static string[] QuickStat_GroupDef(string groupby)
         {
+            //vrací [sql výraz ID skupiny, sql výraz názvu skupiny]; neznámá hodnota = null
             switch (groupby)
             {
-                case "p41":
-                    sb("SELECT a.p41ID as groupby_pid,min(isnull(p41x.p41NameShort,p41x.p41Name)) as groupby_alias"); break;
-                case "p28":
-                    sb("SELECT p41x.p28ID_Client as groupby_pid,min(p28Client.p28Name) as groupby_alias"); break;
-                case "j02":
-                    sb("SELECT a.j02ID as groupby_pid,min(j02.j02LastName+' '+j02.j02FirstName) as groupby_alias"); break;
-                case "p32":
-                    sb("SELECT a.p32ID as groupby_pid,min(p32x.p32Name) as groupby_alias"); break;
-                case "p34":
-                    sb("SELECT p32x.p34ID as groupby_pid,min(p34x.p34Name) as groupby_alias"); break;
-                case "p95":
-                    sb("SELECT p32x.p95ID as groupby_pid,min(p95.p95Name) as groupby_alias"); break;
-                case "j27":
-                    sb("SELECT a.j27ID_Billing_Orig as groupby_pid,min(j27billing_orig.j27Code) as groupby_alias"); break;
-                case "p91":
-                    sb("SELECT a.p91ID as groupby_pid,min(p91.p91Code) as groupby_alias"); break;
-                case "p56":
-                    sb("SELECT a.p56ID as groupby_pid,min(p56.p56Name) as groupby_alias"); break;
-                case "p31rate_billing_orig":
-                    sb("SELECT a.p31Rate_Billing_Orig as groupby_pid,min(convert(varchar(10),a.p31Rate_Billing_Orig)) as groupby_alias"); break;
-
+                case "p41": return new[] { "a.p41ID", "isnull(p41x.p41NameShort,p41x.p41Name)" };
+                case "p28": return new[] { "p41x.p28ID_Client", "p28Client.p28Name" };
+                case "j02": return new[] { "a.j02ID", "j02.j02LastName+' '+j02.j02FirstName" };
+                case "p32": return new[] { "a.p32ID", "p32x.p32Name" };
+                case "p34": return new[] { "p32x.p34ID", "p34x.p34Name" };
+                case "p95": return new[] { "p32x.p95ID", "p95.p95Name" };
+                case "j27": return new[] { "a.j27ID_Billing_Orig", "j27billing_orig.j27Code" };
+                case "p91": return new[] { "a.p91ID", "p91.p91Code" };
+                case "p56": return new[] { "a.p56ID", "p56.p56Name" };
+                case "p31rate_billing_orig": return new[] { "a.p31Rate_Billing_Orig", "convert(varchar(10),a.p31Rate_Billing_Orig)" };
             }
-            sb(",a.j27ID_Billing_Orig as j27code_orig,min(j27billing_orig.j27Code) as j27code_orig");
+            return null;
+        }
+        public IEnumerable<BO.p31QuickStat> GetList_QuickStat(string groupby, string record_prefix, int record_pid, DateTime? d1, DateTime? d2, string approve_guid, string groupby2 = null)
+        {
+            var g1 = QuickStat_GroupDef(groupby) ?? QuickStat_GroupDef("j02");
+            var g2 = (groupby2 == null || groupby2 == groupby) ? null : QuickStat_GroupDef(groupby2);   //druhá úroveň souhrnu je nepovinná
+
+            sb($"SELECT {g1[0]} as groupby_pid,min({g1[1]}) as groupby_alias");
+            if (g2 != null)
+            {
+                sb($",{g2[0]} as groupby2_pid,min({g2[1]}) as groupby2_alias");
+            }
+            sb(",a.j27ID_Billing_Orig as j27id_orig,min(j27billing_orig.j27Code) as j27code_orig");
             //sb(",a.j27ID_Billing_Invoiced_Domestic as j27id_vyfa,min(j27billing_vyfa.j27Code) as j27code_vyfa");
             sb(",sum(a.p31Hours_Invoiced) as hvyf");
             sb(",sum(a.p31Hours_Orig) as hvyk");
@@ -857,28 +859,14 @@ namespace BL
                     mq.leindex = 1; mq.lepid = record_pid; break;
             }
 
-            switch (groupby)
+            mq.explicit_sqlgroupby = g1[0];
+            if (g2 != null && g2[0] != g1[0])
             {
-                case "p41":
-                    mq.explicit_sqlgroupby = "a.p41ID,a.j27ID_Billing_Orig"; break;
-                case "p28":
-                    mq.explicit_sqlgroupby = "p41x.p28ID_Client,a.j27ID_Billing_Orig"; break;
-                case "j02":
-                    mq.explicit_sqlgroupby = "a.j02ID,a.j27ID_Billing_Orig"; break;
-                case "p32":
-                    mq.explicit_sqlgroupby = "a.p32ID,a.j27ID_Billing_Orig"; break;
-                case "p34":
-                    mq.explicit_sqlgroupby = "p32x.p34ID,a.j27ID_Billing_Orig"; break;
-                case "p95":
-                    mq.explicit_sqlgroupby = "p32x.p95ID,a.j27ID_Billing_Orig"; break;
-                case "j27":
-                    mq.explicit_sqlgroupby = "a.j27ID_Billing_Orig"; break;
-                case "p91":
-                    mq.explicit_sqlgroupby = "a.p91ID,a.j27ID_Billing_Orig"; break;
-                case "p56":
-                    mq.explicit_sqlgroupby = "a.p56ID,a.j27ID_Billing_Orig"; break;
-                case "p31rate_billing_orig":
-                    mq.explicit_sqlgroupby = "a.p31Rate_Billing_Orig,a.j27ID_Billing_Orig"; break;
+                mq.explicit_sqlgroupby += "," + g2[0];
+            }
+            if (!mq.explicit_sqlgroupby.Contains("a.j27ID_Billing_Orig"))
+            {
+                mq.explicit_sqlgroupby += ",a.j27ID_Billing_Orig";  //řádky jsou vždy rozdělené podle vykázané měny
             }
 
 

@@ -92,6 +92,47 @@ namespace UI.Controllers
 
             return View(v);
         }
+        public IActionResult QuickStatBox(string prefix, int pid, string caller, string statby, string statby2)
+        {
+            //překreslení boxu rychlé statistiky bez načtení celé stránky
+            string[] allowed = { "p41", "p28", "j02", "p32", "p34", "p95", "p91", "p56", "j27", "p31rate_billing_orig" };
+            if (!string.IsNullOrEmpty(prefix))
+            {
+                if (!string.IsNullOrEmpty(statby) && allowed.Contains(statby))
+                {
+                    Factory.CBL.SetUserParam($"recpage-{prefix}-statprefix", statby);
+                }
+                if (statby2 != null)
+                {
+                    //druhá úroveň souhrnu: "0" = bez druhé úrovně
+                    Factory.CBL.SetUserParam($"recpage-{prefix}-statprefix2", allowed.Contains(statby2) ? statby2 : "0");
+                }
+            }
+            var v = new BaseTab1ViewModel() { prefix = prefix, pid = pid, caller = (caller == "QuickStat" ? "QuickStat" : null) };
+
+            return PartialView("~/Views/Shared/_TabStat.cshtml", v);
+        }
+        public IActionResult QuickStatExcel(string prefix, int pid)
+        {
+            //rychlá statistika jako XLSX ke stažení
+            if (string.IsNullOrEmpty(prefix) || pid == 0) return BadRequest();
+            var c = UI.Code.QuickStatExport.Create(Factory, _pp, prefix, pid);
+
+            return File(c.Bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", c.FileName);
+        }
+        public IActionResult QuickStatMail(string prefix, int pid, string layout)
+        {
+            //rychlá statistika jako XLSX příloha nové poštovní zprávy k záznamu
+            if (string.IsNullOrEmpty(prefix) || pid == 0) return BadRequest();
+            var c = UI.Code.QuickStatExport.Create(Factory, _pp, prefix, pid);
+
+            string strGuid = BO.Code.Bas.GetGuid();
+            string strTempFileName = $"{strGuid}_{c.FileName}";
+            System.IO.File.WriteAllBytes(Factory.TempFolder + "\\" + strTempFileName, c.Bytes);
+            Factory.o27AttachmentBL.CreateTempInfoxFile(strGuid, "x31", strTempFileName, c.FileName, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+
+            return RedirectToAction("SendMail", "Mail", new { uploadguid = strGuid, record_entity = prefix, record_pid = pid, mailsubject = c.Title, layout = layout });   //layout: okno pošty se otevírá stejně jako z jiných míst
+        }
         public IActionResult Barcode(string value)
         {
             ViewBag.value = value;

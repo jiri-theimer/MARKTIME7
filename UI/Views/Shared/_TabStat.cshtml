@@ -2,250 +2,408 @@
 @inject BL.Factory _f
 @inject BL.Singleton.ThePeriodProvider _cp
 
-
 @{
-    
-    bool _bolQuickStatPreview = false;
-    string _CurrentViewName = ViewContext.RouteData.Values["action"].ToString();
+    //Rychlá statistika úkonů záznamu: box na stránce záznamu (Tab1) i obsah okna /Record/QuickStat
+    string _action = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+    bool _inModal = (Model.caller == "QuickStat");   //okno rychlé statistiky
+    bool _bolQuickStatPreview = _action.StartsWith("QuickStat") || _f.CBL.LoadUserParamBool($"{Model.prefix}-quickstat-immediately", false);
 
-    if (_CurrentViewName == "QuickStat")
-    {
-        _bolQuickStatPreview = true;    //voláno z modálního quickstat okna
-    }
-    else
-    {
-        _bolQuickStatPreview = _f.CBL.LoadUserParamBool($"{Model.prefix}-quickstat-immediately", false);
-    }
-
-    IEnumerable<BO.p31QuickStat> _qrystat = null;
+    var _rows = new List<BO.p31QuickStat>();
+    var _view = new List<QsRow>();      //řádky tabulky: samostatné, nebo skupina + její podřízené řádky
+    var _opts = new List<BO.StringPair>();  //nabídka seskupení
     string _periodAlias = null;
-    string _statbyprefix = null;
+    string _statby = null;
+    string _statby2 = null;     //druhá úroveň souhrnu (nepovinná)
+    double _maxH = 0;
+    var _inv = System.Globalization.CultureInfo.InvariantCulture;
+    Func<double, string> N = BO.Code.Bas.Num2StringNull;
+    Func<IEnumerable<BO.p31QuickStat>, Func<BO.p31QuickStat, double>, List<BO.StringPair>> ByCur = (lis, f) => lis.Where(p => f(p) != 0).GroupBy(p => p.j27code_orig).Select(g => new BO.StringPair() { Key = g.Key, Value = N(g.Sum(f)) }).Where(p => p.Value != null).OrderBy(p => p.Key).ToList();
 
     if (_bolQuickStatPreview)
     {
-        string strDefStatByPrefix = "j02";
+        _opts = UI.Code.QuickStatExport.GetOptions(_f, Model.prefix);
 
-        switch (Model.prefix)
+        _statby = _f.CBL.LoadUserParam($"recpage-{Model.prefix}-statprefix", Model.prefix == "j02" ? "p28" : "j02");
+        if (!_opts.Any(p => p.Key == _statby))
         {
-            case "j02":
-                strDefStatByPrefix = "p28";
-                break;
+            _statby = (Model.prefix == "j02" ? "p28" : "j02");    //uložená volba v této stránce není v nabídce
+        }
+        _statby2 = _f.CBL.LoadUserParam($"recpage-{Model.prefix}-statprefix2", null);
+        if (_statby2 == _statby || !_opts.Any(p => p.Key == _statby2))
+        {
+            _statby2 = null;
         }
 
-        _statbyprefix = _f.CBL.LoadUserParam($"recpage-{Model.prefix}-statprefix", strDefStatByPrefix);
-
-        int intPeriod = _f.CBL.LoadUserParamInt("tabstat-period-value", 0); DateTime? d1 = null; DateTime? d2 = null;
-        if (intPeriod > 1)
+        //období: stejné nastavení jako filtr období v okně rychlé statistiky (včetně uživatelsky pojmenovaných období)
+        var per = new UI.Views.Shared.Components.myPeriod.myPeriodViewModel() { UserParamKey = "tabstat-period" };
+        per.LoadUserSetting(_cp, _f);
+        DateTime? d1 = null; DateTime? d2 = null;
+        if (per.PeriodValue > 0 && per.d1 != null && per.d2 != null)
         {
-            var per = _cp.ByPid(intPeriod);
-            d1 = per.d1;
-            d2 = per.d2;
-            _periodAlias = per.PeriodName;
-            if (per.d1 != null && per.d2 != null)
+            d1 = per.d1; d2 = per.d2;
+            _periodAlias = per.PeriodAlias;
+        }
+
+        var qry = _f.p31WorksheetBL.GetList_QuickStat(_statby, Model.prefix, Model.pid, d1, d2, null, _statby2);
+        if (qry != null)
+        {
+            _rows = qry.OrderBy(p => p.groupby_alias).ThenBy(p => p.groupby2_alias).ToList();
+        }
+
+        string strNoName = _f.tra("(bez zařazení)");
+        Func<IEnumerable<BO.p31QuickStat>, int, int, string, QsRow> MakeRow = (lis, level, g, name) => new QsRow()
+        {
+            Level = level, G = g, Name = (string.IsNullOrEmpty(name) ? strNoName : name),
+            hvyk = lis.Sum(p => p.hvyk), bezdph_vyka = lis.Sum(p => p.bezdph_vyka), nevyuct_h = lis.Sum(p => p.nevyuct_h), nevyuct_castka = lis.Sum(p => p.nevyuct_castka),
+            hvyf = lis.Sum(p => p.hvyf), hvyf6 = lis.Sum(p => p.hvyf6), hvyf23 = lis.Sum(p => p.hvyf23), bezdph_vyfa = lis.Sum(p => p.bezdph_vyfa), pocet = lis.Sum(p => p.pocet),
+            Vyk = ByCur(lis, p => p.bezdph_vyka), Nev = ByCur(lis, p => p.nevyuct_castka),
+            Curs = lis.Select(p => p.j27code_orig).Where(p => !string.IsNullOrEmpty(p)).Distinct().OrderBy(p => p).ToList()
+        };
+
+        if (_statby2 == null)
+        {
+            foreach (var c in _rows)
             {
-                _periodAlias = $"{per.PeriodName}: {Convert.ToDateTime(per.d1).ToString("dd.MM.yyyy")} - {Convert.ToDateTime(per.d2).ToString("dd.MM.yyyy")}";
+                _view.Add(MakeRow(new[] { c }, 0, 0, c.groupby_alias));
             }
         }
-        if (intPeriod == 1)
+        else
         {
-            d1 = _f.CBL.LoadUserParamDate("tabstat-period-d1");
-            d2 = _f.CBL.LoadUserParamDate("tabstat-period-d2");
-            _periodAlias = $"{Convert.ToDateTime(d1).ToString("dd.MM.yyyy")} - {Convert.ToDateTime(d2).ToString("dd.MM.yyyy")}";
+            int intG = 0;
+            foreach (var grp in _rows.GroupBy(p => p.groupby_pid + "|" + p.groupby_alias))
+            {
+                intG++;
+                _view.Add(MakeRow(grp, 1, intG, grp.First().groupby_alias));
+                foreach (var c in grp)
+                {
+                    _view.Add(MakeRow(new[] { c }, 2, intG, c.groupby2_alias));
+                }
+            }
         }
-
-        _qrystat = _f.p31WorksheetBL.GetList_QuickStat(_statbyprefix, Model.prefix, Model.pid, d1, d2, null).OrderBy(p => p.groupby_alias);
+        if (_view.Count > 0)
+        {
+            _maxH = _view.Where(p => p.Level < 2).Max(p => p.hvyk);     //proužek: podíl vůči největší skupině
+        }
     }
+    bool _bolClosed = (_statby2 != null && !_inModal);   //box na stránce záznamu začíná sbalený, okno rozbalené
 
-
-
-
-
-
-
+    //částky ve vykázané měně se nesčítají napříč měnami
+    var _curVyk = ByCur(_rows, p => p.bezdph_vyka);
+    var _curNev = ByCur(_rows, p => p.nevyuct_castka);
+    double _sumHvyk = _rows.Sum(p => p.hvyk);
+    double _sumNevH = _rows.Sum(p => p.nevyuct_h);
+    double _sumHvyf = _rows.Sum(p => p.hvyf);
+    double _sumPau = _rows.Sum(p => p.hvyf6);
+    double _sumOdp = _rows.Sum(p => p.hvyf23);
+    double _sumVyfa = _rows.Sum(p => p.bezdph_vyfa);
+    int _sumPocet = _rows.Sum(p => p.pocet);
 }
 
-
-
+@functions {
+    public class QsRow
+    {
+        public int Level;   //0 = samostatný řádek, 1 = skupina (mezisoučet), 2 = řádek uvnitř skupiny
+        public int G;       //pořadí skupiny
+        public string Name;
+        public double hvyk, bezdph_vyka, nevyuct_h, nevyuct_castka, hvyf, hvyf6, hvyf23, bezdph_vyfa;
+        public int pocet;
+        public List<BO.StringPair> Vyk;     //vykázaná částka po měnách
+        public List<BO.StringPair> Nev;     //nevyúčtovaná částka po měnách
+        public List<string> Curs;
+    }
+}
 
 @if (_bolQuickStatPreview)
 {
-    <div class="input-group">
-        <span class="material-icons-outlined">auto_graph</span>
-        <span>@_f.tra("Rychlá statistika")</span>
+    <link rel="stylesheet" href="~/css/quickstat.css" asp-append-version="true" />
 
-        <code>@(_periodAlias)</code>
+    <div id="qs_box" class="qs @(_inModal ? "qs-modal" : "qs-tab")" data-prefix="@Model.prefix" data-pid="@Model.pid" data-caller="@(_inModal ? "QuickStat" : "")">
+        <div class="qs-head">
+            <span class="material-icons-outlined-nosize qs-ico">auto_graph</span>
+            <span class="qs-title">@_f.tra("Rychlá statistika")</span>
+            @if (_periodAlias != null)
+            {
+                <span class="qs-chip" title="@_f.tra("Časové období")">@_periodAlias</span>
+            }
+            <select id="qs_statby" class="qs-select" title="@_f.tra("Seskupit podle")" onchange="_qs.statby()">
+                @foreach (var o in _opts)
+                {
+                    <option value="@o.Key" selected="@(_statby == o.Key)">@o.Value</option>
+                }
+            </select>
+            <span class="qs-then">›</span>
+            <select id="qs_statby2" class="qs-select @(_statby2 == null ? "qs-select-off" : null)" title="@_f.tra("Druhá úroveň")" onchange="_qs.statby()">
+                <option value="0">—</option>
+                @foreach (var o in _opts.Where(p => p.Key != _statby))
+                {
+                    <option value="@o.Key" selected="@(_statby2 == o.Key)">@o.Value</option>
+                }
+            </select>
+            @if (!_inModal)
+            {
+                //v okně rychlé statistiky jsou e-mail a export nahoře vedle tlačítka Zavřít
+                <span class="qs-tools">
+                    @if (_rows.Count > 0)
+                    {
+                        <a title="@_f.tra("Odeslat e-mailem")" href="javascript:_window_open('/Record/QuickStatMail?prefix=@(Model.prefix)&pid=@(Model.pid)')"><span class="material-icons-outlined-nosize">alternate_email</span></a>
+                        <a title="@_f.tra("Export do MS Excel")" href="/Record/QuickStatExcel?prefix=@(Model.prefix)&pid=@(Model.pid)"><span class="material-icons-outlined-nosize">file_download</span></a>
+                    }
+                    <a title="@_f.tra("V novém okně")" href="javascript:_window_open('/Record/QuickStat?prefix=@(Model.prefix)&pid=@(Model.pid)',3)"><span class="material-icons-outlined-nosize">open_in_new</span></a>
+                    <a title="@_f.tra("Nezobrazovat na stránce záznamu")" href="javascript:_qs.turnoff()"><span class="material-icons-outlined-nosize">close</span></a>
+                </span>
+            }
+        </div>
 
+        @if (_rows.Count == 0)
+        {
+            <div class="qs-empty">@_f.tra("Žádné úkony k zobrazení.")</div>
+        }
+        else
+        {
+            <div class="qs-tiles">
+                <div class="qs-tile">
+                    <div class="qs-tile-lab">@_f.tra("Vykázáno")</div>
+                    <div class="qs-tile-val">@(N(_sumHvyk) ?? "0") <small>h</small></div>
+                    <div class="qs-tile-sub">
+                        @foreach (var c in _curVyk)
+                        {
+                            <span>@c.Value @c.Key</span>
+                        }
+                    </div>
+                </div>
+                <div class="qs-tile @(_sumNevH != 0 || _curNev.Count > 0 ? "qs-tile-warn" : null)">
+                    <div class="qs-tile-lab">@_f.tra("Nevyúčtováno")</div>
+                    <div class="qs-tile-val">@(N(_sumNevH) ?? "0") <small>h</small></div>
+                    <div class="qs-tile-sub">
+                        @foreach (var c in _curNev)
+                        {
+                            <span>@c.Value @c.Key</span>
+                        }
+                    </div>
+                </div>
+                <div class="qs-tile">
+                    <div class="qs-tile-lab">@_f.tra("Vyúčtováno")</div>
+                    <div class="qs-tile-val">@(N(_sumHvyf) ?? "0") <small>h</small></div>
+                    <div class="qs-tile-sub">
+                        @if (_sumVyfa != 0)
+                        {
+                            <span>@N(_sumVyfa)</span>
+                        }
+                        @if (_sumPau != 0)
+                        {
+                            <span class="qs-pau">@_f.tra("V paušálu") @N(_sumPau) h</span>
+                        }
+                        @if (_sumOdp != 0)
+                        {
+                            <span class="qs-odp">@_f.tra("Odepsáno") @N(_sumOdp) h</span>
+                        }
+                    </div>
+                </div>
+            </div>
 
-
-
-        <a title="V novém okně" id="linkOpenInNewWindow" style="margin-left:20px;" href="javascript:_window_open('/Record/QuickStat?prefix=@(Model.prefix)&pid=@(Model.pid)',3)">
-            <span class="material-icons-outlined">open_in_new</span>
-        </a>
+            <table class="qs-table">
+                <thead>
+                    <tr class="qs-groups">
+                        <th></th>
+                        <th colspan="3" class="qs-sep">@_f.tra("Vykázáno")</th>
+                        <th colspan="2" class="qs-sep">@_f.tra("Nevyúčtováno")</th>
+                        <th colspan="4" class="qs-sep">@_f.tra("Vyúčtováno")</th>
+                        <th class="qs-sep"></th>
+                    </tr>
+                    <tr class="qs-cols">
+                        <th class="qs-sort qs-txt" data-type="text">
+                            @if (_statby2 != null)
+                            {
+                                <a class="qs-all" href="javascript:void(0)" data-open="@_f.tra("Rozbalit vše")" data-close="@_f.tra("Sbalit vše")" title="@(_bolClosed ? _f.tra("Rozbalit vše") : _f.tra("Sbalit vše"))"><span class="material-icons-outlined-nosize">@(_bolClosed ? "unfold_more" : "unfold_less")</span></a>
+                            }
+                        </th>
+                        <th class="qs-sort qs-num qs-sep" data-type="num">@_f.tra("Hodiny")</th>
+                        <th class="qs-sort qs-num" data-type="num">@_f.tra("Částka")</th>
+                        <th class="qs-sort qs-txt" data-type="text">@_f.tra("Měna")</th>
+                        <th class="qs-sort qs-num qs-sep" data-type="num">@_f.tra("Hodiny")</th>
+                        <th class="qs-sort qs-num" data-type="num">@_f.tra("Částka")</th>
+                        <th class="qs-sort qs-num qs-sep" data-type="num">@_f.tra("Hodiny")</th>
+                        <th class="qs-sort qs-num" data-type="num">@_f.tra("V paušálu")</th>
+                        <th class="qs-sort qs-num" data-type="num">@_f.tra("Odepsáno")</th>
+                        <th class="qs-sort qs-num" data-type="num">@_f.tra("Částka")</th>
+                        <th class="qs-sort qs-num qs-sep" data-type="num" title="@_f.tra("Počet úkonů")">@_f.tra("Úkonů")</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var c in _view)
+                    {
+                        int intBar = (_maxH > 0 && c.hvyk > 0) ? (int)Math.Round(100 * c.hvyk / _maxH) : 0;
+                        <tr class="@(c.Level == 1 ? "qs-g" : (c.Level == 2 ? "qs-c" : null)) @(c.Level == 1 && _bolClosed ? "qs-closed" : null)" data-g="@c.G" hidden="@(c.Level == 2 && _bolClosed)">
+                            <td class="qs-name" title="@c.Name">@c.Name</td>
+                            <td class="qs-num qs-sep qs-bar" data-v="@c.hvyk.ToString(_inv)" style="--w:@(intBar)%">@N(c.hvyk)</td>
+                            <td class="qs-num" data-v="@c.bezdph_vyka.ToString(_inv)">
+                                @if (c.Vyk.Count == 1)
+                                {
+                                    @c.Vyk[0].Value
+                                }
+                                else
+                                {
+                                    foreach (var m in c.Vyk)
+                                    {
+                                        <div>@m.Value</div>
+                                    }
+                                }
+                            </td>
+                            <td class="qs-cur">
+                                @if (c.Vyk.Count > 1)
+                                {
+                                    foreach (var m in c.Vyk)
+                                    {
+                                        <div>@m.Key</div>
+                                    }
+                                }
+                                else
+                                {
+                                    @(c.Vyk.Count == 1 ? c.Vyk[0].Key : string.Join(", ", c.Curs))
+                                }
+                            </td>
+                            <td class="qs-num qs-sep" data-v="@c.nevyuct_h.ToString(_inv)">@N(c.nevyuct_h)</td>
+                            <td class="qs-num" data-v="@c.nevyuct_castka.ToString(_inv)">
+                                @if (c.Nev.Count == 1 && c.Curs.Count <= 1)
+                                {
+                                    @c.Nev[0].Value
+                                }
+                                else
+                                {
+                                    foreach (var m in c.Nev)
+                                    {
+                                        <div>@m.Value @m.Key</div>
+                                    }
+                                }
+                            </td>
+                            <td class="qs-num qs-sep" data-v="@c.hvyf.ToString(_inv)">@N(c.hvyf)</td>
+                            <td class="qs-num @(c.hvyf6 != 0 ? "qs-pau" : null)" data-v="@c.hvyf6.ToString(_inv)">@N(c.hvyf6)</td>
+                            <td class="qs-num @(c.hvyf23 != 0 ? "qs-odp" : null)" data-v="@c.hvyf23.ToString(_inv)">@N(c.hvyf23)</td>
+                            <td class="qs-num" data-v="@c.bezdph_vyfa.ToString(_inv)">@N(c.bezdph_vyfa)</td>
+                            <td class="qs-num qs-sep qs-cnt" data-v="@c.pocet">@c.pocet</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th class="qs-txt"><span class="material-icons-outlined-nosize">functions</span></th>
+                        <th class="qs-num qs-sep">@N(_sumHvyk)</th>
+                        <th class="qs-num">
+                            @foreach (var c in _curVyk)
+                            {
+                                <div>@c.Value</div>
+                            }
+                        </th>
+                        <th class="qs-cur">
+                            @foreach (var c in _curVyk)
+                            {
+                                <div>@c.Key</div>
+                            }
+                        </th>
+                        <th class="qs-num qs-sep">@N(_sumNevH)</th>
+                        <th class="qs-num">
+                            @foreach (var c in _curNev)
+                            {
+                                <div>@(c.Value)@(_curNev.Count > 1 || _curVyk.Count > 1 ? " " + c.Key : null)</div>
+                            }
+                        </th>
+                        <th class="qs-num qs-sep">@N(_sumHvyf)</th>
+                        <th class="qs-num">@N(_sumPau)</th>
+                        <th class="qs-num">@N(_sumOdp)</th>
+                        <th class="qs-num">@N(_sumVyfa)</th>
+                        <th class="qs-num qs-sep qs-cnt">@_sumPocet</th>
+                    </tr>
+                </tfoot>
+            </table>
+        }
     </div>
 
-
-    <table class="htmltable" style="border:solid 1px silver;">
-        <thead>
-            <tr>
-                <th>
-                    <select asp-for="@_statbyprefix" onchange="statbyprefix_change(this)">
-                        @if (Model.prefix != "p41")
-                        {
-                            <option value="p41">@_f.tra("Projekt")</option>
-                        }
-                        @if (Model.prefix == "j02")
-                        {
-                            <option value="p28">@_f.tra("Klient projektu")</option>
-                        }
-                        else
-                        {
-                            <option value="j02">@_f.tra("Uživatel")</option>
-                        }
-                        <option value="p32">@_f.tra("Aktivita")</option>
-                        <option value="p34">@_f.tra("Sešit")</option>
-                        <option value="p95">@_f.tra("Fakturační oddíl")</option>
-                        <option value="p91">@_f.tra("Vyúčtování (Faktura)")</option>
-                        <option value="p31rate_billing_orig">@_f.tra("Výchozí fakturační sazba")</option>
-
-                        <option value="p56">@_f.tra("Úkol")</option>
-                    </select>
-                </th>
-
-                <th colspan="3" style="border-left:solid 1px silver;">
-                    Vykázáno
-                    <span class="material-icons-outlined">history</span>
-                    <span class="material-icons-outlined">hourglass_top</span>
-                </th>
-                <th colspan="2" style="text-align:center;border-left:solid 1px silver;">
-                    Nevyúčtováno
-                    <span class="material-icons-outlined">hourglass_top</span>
-
-                </th>
-                <th colspan="4" style="text-align:center;border-left:solid 1px silver;">
-                    Vyúčtováno
-                    <span class="material-icons-outlined">attach_money</span>
-                </th>
-
-
-                <th title="Počet vykázaných úkonů" style="border-left:solid 1px silver;"></th>
-
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var c in _qrystat)
-            {
-                <tr>
-                    <td>
-                        @c.groupby_alias
-                    </td>
-
-
-
-                    <td class="cislo" style="border-left:solid 1px silver;">
-                        @(BO.Code.Bas.Num2StringNull(c.hvyk))
-                    </td>
-                    <td class="cislo">
-                        @(BO.Code.Bas.Num2StringNull(c.bezdph_vyka))
-                    </td>
-                    <td>
-                        @(c.j27code_orig)
-                    </td>
-
-                    <td class="cislo" style="border-left:solid 1px silver;">
-                        @(BO.Code.Bas.Num2StringNull(c.nevyuct_h))
-                    </td>
-                    <td class="cislo">
-                        @(BO.Code.Bas.Num2StringNull(c.nevyuct_castka))
-                    </td>
-                    <td class="cislo schvaleno" style="border-left:solid 1px silver;">
-                        @(BO.Code.Bas.Num2StringNull(c.hvyf))
-                    </td>
-                    <td class="cislo pausal">
-                        @(BO.Code.Bas.Num2StringNull(c.hvyf6))
-                    </td>
-                    <td class="cislo odpis">
-                        @(BO.Code.Bas.Num2StringNull(c.hvyf23))
-                    </td>
-                    <td class="cislo">
-                        @(BO.Code.Bas.Num2StringNull(c.bezdph_vyfa))
-
-                    </td>
-
-
-                    <td class="cislo" style="border-left:solid 1px silver;">
-                        @(c.pocet)x
-
-                    </td>
-                </tr>
-
-            }
-        </tbody>
-
-        <tfoot>
-            <tr>
-                <th><span class="material-icons-outlined-nosize">functions</span></th>
-
-
-                <th class="cislo" style="border-left:solid 1px silver;">@(BO.Code.Bas.Num2StringNull(_qrystat.Sum(p => p.hvyk)))</th>
-                <th class="cislo">@(BO.Code.Bas.Num2StringNull(_qrystat.Sum(p => p.bezdph_vyka)))</th>
-                <th></th>
-
-                <th class="cislo" style="border-left:solid 1px silver;">@(BO.Code.Bas.Num2StringNull(_qrystat.Sum(p => p.nevyuct_h)))</th>
-                <th class="cislo">@(BO.Code.Bas.Num2StringNull(_qrystat.Sum(p => p.nevyuct_castka)))</th>
-
-                <th class="cislo" style="border-left:solid 1px silver;">@(BO.Code.Bas.Num2StringNull(_qrystat.Sum(p => p.hvyf)))</th>
-                <th class="cislo">@(BO.Code.Bas.Num2StringNull(_qrystat.Sum(p => p.hvyf6)))</th>
-                <th class="cislo">@(BO.Code.Bas.Num2StringNull(_qrystat.Sum(p => p.hvyf23)))</th>
-                <th class="cislo">@(BO.Code.Bas.Num2StringNull(_qrystat.Sum(p => p.bezdph_vyfa)))</th>
-
-
-                <th class="cislo" style="border-left:solid 1px silver;">@_qrystat.Sum(p => p.pocet)x</th>
-            </tr>
-        </tfoot>
-
-    </table>
-
     <script type="text/javascript">
-
-        if (location.href.indexOf("QuickStat") > 0) {
-            $("#linkOpenInNewWindow").css("display", "none");
-        }
-
-        function statbyprefix_change(cbx) {
-            var prefix = "@Model.prefix";
-            $.post("/Common/SetUserParam", { key: "recpage-" + prefix + "-statprefix", value: cbx.value }, function (data) {
-                location.reload(location.href);
-
+        if (!window._qs) {
+            window._qs = {
+                box: function () { return document.getElementById("qs_box"); },
+                reload: function (statby, statby2) {
+                    //překreslí jen box statistiky, stránka záznamu se nenačítá znovu
+                    var b = _qs.box(); if (!b) return;
+                    b.classList.add("qs-loading");
+                    $.post("/Record/QuickStatBox", { prefix: b.getAttribute("data-prefix"), pid: b.getAttribute("data-pid"), caller: b.getAttribute("data-caller"), statby: statby, statby2: statby2 }, function (html) {
+                        var tmp = document.createElement("div");
+                        tmp.innerHTML = html;
+                        var nb = tmp.querySelector("#qs_box");
+                        if (nb) { b.parentNode.replaceChild(nb, b); } else { b.classList.remove("qs-loading"); }
+                    }).fail(function () { b.classList.remove("qs-loading"); });
+                },
+                statby: function () {
+                    var c1 = document.getElementById("qs_statby"), c2 = document.getElementById("qs_statby2");
+                    _qs.reload(c1.value, c2 ? c2.value : "0");
+                },
+                toggle: function (tr, close) {
+                    //sbalí/rozbalí jednu skupinu
+                    if (close === undefined) close = !tr.classList.contains("qs-closed");
+                    tr.classList.toggle("qs-closed", close);
+                    var g = tr.getAttribute("data-g"), rows = tr.parentNode.rows;
+                    for (var i = 0; i < rows.length; i++) {
+                        if (rows[i].classList.contains("qs-c") && rows[i].getAttribute("data-g") == g) rows[i].hidden = close;
+                    }
+                },
+                toggleAll: function (a) {
+                    var grps = a.closest("table").querySelectorAll("tbody tr.qs-g"), anyopen = false, i;
+                    for (i = 0; i < grps.length; i++) { if (!grps[i].classList.contains("qs-closed")) anyopen = true; }
+                    for (i = 0; i < grps.length; i++) { _qs.toggle(grps[i], anyopen); }
+                    a.title = a.getAttribute(anyopen ? "data-open" : "data-close");
+                    a.firstElementChild.textContent = anyopen ? "unfold_more" : "unfold_less";
+                },
+                turnoff: function () {
+                    var b = _qs.box(); if (!b) return;
+                    $.post("/Common/SetUserParam", { key: b.getAttribute("data-prefix") + "-quickstat-immediately", value: "0" }, function () {
+                        var p = b.parentNode;
+                        if (p && p.classList.contains("recpageboxauto")) { p.parentNode.removeChild(p); } else { p.removeChild(b); }
+                    });
+                },
+                val: function (tr, idx, isnum) {
+                    var td = tr.cells[idx];
+                    if (!isnum) return (td.textContent || "").trim();
+                    var v = parseFloat(td.getAttribute("data-v"));
+                    return isNaN(v) ? 0 : v;
+                },
+                sort: function (th) {
+                    var tab = th.closest("table"), body = tab.tBodies[0], idx = th.cellIndex, isnum = th.getAttribute("data-type") == "num";
+                    var dir = th.classList.contains("qs-desc") ? 1 : (th.classList.contains("qs-asc") ? -1 : (isnum ? -1 : 1));   //čísla napoprvé sestupně
+                    var ths = th.parentNode.cells;
+                    for (var i = 0; i < ths.length; i++) { ths[i].classList.remove("qs-asc", "qs-desc"); }
+                    th.classList.add(dir == 1 ? "qs-asc" : "qs-desc");
+                    var cmp = function (a, b) {
+                        var x = _qs.val(a, idx, isnum), y = _qs.val(b, idx, isnum);
+                        if (isnum) return (x - y) * dir;
+                        return x.localeCompare(y, undefined, { numeric: true, sensitivity: "base" }) * dir;
+                    };
+                    var all = Array.prototype.slice.call(body.rows);
+                    var grps = all.filter(function (r) { return r.classList.contains("qs-g"); });
+                    if (grps.length == 0) {
+                        all.sort(cmp);
+                        all.forEach(function (r) { body.appendChild(r); });
+                        return;
+                    }
+                    //dvě úrovně: řadí se skupiny podle mezisoučtu a řádky uvnitř každé skupiny
+                    grps.sort(cmp);
+                    grps.forEach(function (gr) {
+                        var g = gr.getAttribute("data-g");
+                        var kids = all.filter(function (r) { return r.classList.contains("qs-c") && r.getAttribute("data-g") == g; });
+                        kids.sort(cmp);
+                        body.appendChild(gr);
+                        kids.forEach(function (r) { body.appendChild(r); });
+                    });
+                }
+            };
+            document.addEventListener("click", function (e) {
+                if (!e.target || !e.target.closest) return;
+                var a = e.target.closest("#qs_box a.qs-all");
+                if (a) { _qs.toggleAll(a); return; }
+                var tr = e.target.closest("#qs_box tr.qs-g");
+                if (tr) { _qs.toggle(tr); return; }
+                var th = e.target.closest("#qs_box th.qs-sort");
+                if (th) _qs.sort(th);
             });
         }
-
-        function turn_off_immediately() {
-            var prefix = "@Model.prefix";
-
-            $.post("/Common/SetUserParam", { key: prefix + "-quickstat-immediately", value: "0" }, function (data) {
-                location.reload(location.href);
-
-            });
-        }
-
     </script>
 }
-
-@if (!_bolQuickStatPreview)
-{
-    <script type="text/javascript">
-
-        function turn_on_immediately() {
-            var prefix = "@Model.prefix";
-
-            $.post("/Common/SetUserParam", { key: prefix + "-quickstat-immediately", value: "1" }, function (data) {
-                location.reload(location.href);
-
-            });
-        }
-
-    </script>
-}
-
-
-

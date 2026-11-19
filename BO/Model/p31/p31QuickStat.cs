@@ -5,6 +5,8 @@ namespace BO
     {
         public int groupby_pid { get; set; }
         public string groupby_alias { get; set; }
+        public int groupby2_pid { get; set; }    //druhá úroveň souhrnu (nepovinná)
+        public string groupby2_alias { get; set; }
         
         public int j27id_orig { get; set; }
         //public int j27id_vyfa { get; set; }
