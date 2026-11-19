@@ -156,7 +156,7 @@ namespace BL
                 return new BO.Result(true, _mother.tra("Chybí adresa serveru."));
             }
             strHost = strHost.Trim();
-            if (strHost.ToLower() == "smtp.mycorecloud.net" && !bolImap)
+            if (!bolImap && _mother.App.UseSystemSmtpLogin(strHost))
             {
                 strLogin = _mother.App.DefaultSmtpSetting.Username;
                 strPlainPassword = _mother.App.DefaultSmtpSetting.Password;

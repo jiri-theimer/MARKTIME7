@@ -46,6 +46,40 @@ namespace UI.Controllers
             }
             return View(v);
         }
+        //Systémový SMTP server (appsecrets.json, sekce SystemSmtp): posílá ověřovací kód přihlášení, obnovu hesla a zprávy o založení databáze.
+        //Okno ukáže načtené nastavení a pošle zkušební zprávu stejnou cestou. Jen pro administrátora.
+        public IActionResult SystemSmtp()
+        {
+            if (!Factory.CurrentUser.IsAdmin)
+            {
+                return this.StopPage(true, "Nemáte oprávnění.");
+            }
+            var v = new SystemSmtpViewModel() { TestTo = Factory.CurrentUser.j02Email };
+            return View(v);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult SystemSmtp(SystemSmtpViewModel v)
+        {
+            if (!Factory.CurrentUser.IsAdmin)
+            {
+                return this.StopPage(true, "Nemáte oprávnění.");
+            }
+            if (string.IsNullOrWhiteSpace(v.TestTo) || !v.TestTo.Contains("@"))
+            {
+                v.Result = Factory.tra("Vyplňte e-mailovou adresu příjemce zkušební zprávy.");
+                return View(v);
+            }
+            string strSender = UI.Code.SystemMail.Sender(Factory);
+            string strBody = $"<p>{Factory.tra("Zkušební zpráva systémového SMTP serveru MARKTIME.")}</p><p>{DateTime.Now.ToString("dd.MM.yyyy HH:mm:ss")}<br>{System.Net.WebUtility.HtmlEncode(Factory.CurrentUser.j02Login)}</p>";
+            var res = Factory.MailBL.SendMessageWithoutFactory(strBody, "MARKTIME: test systémového SMTP", v.TestTo.Trim(), null, strSender, "MARKTIME");
+            v.IsOK = (res.Flag != BO.ResultEnum.Failed);
+            v.Result = v.IsOK
+                ? string.Format(Factory.tra("Server zprávu převzal ({0}). Zkontrolujte schránku {1} včetně spamu."), DateTime.Now.ToString("HH:mm:ss"), v.TestTo.Trim())
+                : res.Message;
+            return View(v);
+        }
+
         //test připojení z formuláře (i neuložené hodnoty); prázdné heslo = použít uložené heslo účtu
         [HttpPost]
         [ValidateAntiForgeryToken]

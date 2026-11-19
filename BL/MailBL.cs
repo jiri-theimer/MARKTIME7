@@ -232,6 +232,13 @@ namespace BL
         }
         public BO.Result SendMessageWithoutFactory(string strHtmlBody, string strSubject, string strTo, string strBcc, string strFromAddress, string strFromName)    //odešle zprávu bez vazby na databázi a bez rebexu
         {
+            var smtp = _mother.App.DefaultSmtpSetting;   //systémový SMTP server: sekce "SystemSmtp" v appsecrets.json
+            if (smtp == null || string.IsNullOrWhiteSpace(smtp.Host))
+            {
+                BO.Code.File.LogError($"Systémová zpráva neodešla: chybí systémový SMTP server (sekce SystemSmtp v appsecrets.json). Příjemce: {strTo}, předmět: {strSubject}");
+                return new BO.Result(true, "Systémový SMTP server není nastaven (sekce SystemSmtp v appsecrets.json).");
+            }
+
             var m = new System.Net.Mail.MailMessage() { Body = strHtmlBody, Subject = strSubject, IsBodyHtml = true, BodyEncoding = Encoding.UTF8, SubjectEncoding = Encoding.UTF8 };
 
             m.From = new System.Net.Mail.MailAddress(strFromAddress, strFromName);
@@ -242,28 +249,33 @@ namespace BL
                 m.Bcc.Add(strBcc);
             }
 
-
-            using (SmtpClient client = new SmtpClient(_mother.App.DefaultSmtpSetting.Host, 25))
+            using (SmtpClient client = new SmtpClient(smtp.Host.Trim(), smtp.Port > 0 ? smtp.Port : 587))
             {
-                client.Credentials = new System.Net.NetworkCredential(_mother.App.DefaultSmtpSetting.Username, _mother.App.DefaultSmtpSetting.Password);
-
-                //m.Headers.Add("Message-ID", System.Guid.NewGuid().ToString("N"));                
-                client.DeliveryMethod = SmtpDeliveryMethod.SpecifiedPickupDirectory;    //odeslanou zprávu uložit na serveru jako EML soubor
-                client.PickupDirectoryLocation = _mother.App.LogFolder;
-                client.Send(m);//nejdříve uložit eml soubor do temp složky
-
-                client.DeliveryMethod = SmtpDeliveryMethod.Network; //nyní opravdu odeslat
-                client.EnableSsl = false;
+                client.Credentials = new System.Net.NetworkCredential(smtp.Username, smtp.Password);
 
                 try
                 {
+                    //m.Headers.Add("Message-ID", System.Guid.NewGuid().ToString("N"));                
+                    client.DeliveryMethod = SmtpDeliveryMethod.SpecifiedPickupDirectory;    //odeslanou zprávu uložit na serveru jako EML soubor
+                    client.PickupDirectoryLocation = _mother.App.LogFolder;
+                    client.Send(m);//nejdříve uložit eml soubor do temp složky
+
+                    client.DeliveryMethod = SmtpDeliveryMethod.Network; //nyní opravdu odeslat
+                    client.EnableSsl = smtp.EnableSsl;
+
                     client.Send(m);
                     return new BO.Result(false);
-
                 }
                 catch (Exception e)
                 {
-                    return new BO.Result(true, e.Message);
+                    //SmtpException mívá skutečnou příčinu (odmítnuté přihlášení, TLS, síť) až ve vnitřní výjimce
+                    string strError = e.Message;
+                    for (var inner = e.InnerException; inner != null; inner = inner.InnerException)
+                    {
+                        strError += " | " + inner.Message;
+                    }
+                    BO.Code.File.LogError($"Systémová zpráva neodešla ({smtp.Host}:{smtp.Port}). Příjemce: {strTo}, předmět: {strSubject}, chyba: {strError}");
+                    return new BO.Result(true, strError);
                 }
 
             }
@@ -364,7 +376,7 @@ namespace BL
 
                 if (!client.IsAuthenticated && !_account.j40SmtpUseDefaultCredentials)
                 {
-                    if (strHost.ToLower() == "smtp.mycorecloud.net")
+                    if (_mother.App.UseSystemSmtpLogin(strHost))
                     {
                         client.Login(_mother.App.DefaultSmtpSetting.Username, _mother.App.DefaultSmtpSetting.Password);
                     }

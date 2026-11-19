@@ -35,7 +35,6 @@
     Model.AddChild(n, _f.tra("Klastry aktivit"), "p61");
     Model.AddDivider(n);
     Model.AddChild(n, _f.tra("Uživatelská pole"), "x28", "/Admin/Page?area=projects&prefix=x28&myqueryinline=x28entity|string|p41");
-    Model.AddDivider(n);
 
 
     n = Model.AddMother(_f.tra("Vykazování"), "worksheet", "schedule");
@@ -123,6 +122,7 @@
     Model.AddChild(n, _f.tra("Poštovní účty"), "j40");
     Model.AddChild(n, _f.tra("Šablony poštovních zpráv"), "j61");
     Model.AddChild(n, _f.tra("IMAP automatika"), "o42");
+    Model.AddChild(n, _f.tra("Systémový SMTP server"), null, "javascript:_window_open('/j40/SystemSmtp')");
     Model.AddDivider(n);
     
     Model.AddChild(n, _f.tra("Reminder fronta"), "o24");

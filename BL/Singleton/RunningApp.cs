@@ -57,10 +57,13 @@ namespace BL.Singleton
 
             
             config = new ConfigurationBuilder().AddJsonFile("c:\\temp\\appsecrets.json", true).Build();
-            this.DefaultSmtpSetting = new BO.SmtpSettings();
-            this.DefaultSmtpSetting.Host = config.GetSection("Smtp")["Host"];
-            this.DefaultSmtpSetting.Username = config.GetSection("Smtp")["Username"];
-            this.DefaultSmtpSetting.Password = config.GetSection("Smtp")["Password"];
+            //Systémový SMTP server (ověřovací kód přihlášení, obnova hesla, založení databáze) - sekce "SystemSmtp" v appsecrets.json:
+            //Host, Username, Password, Port (výchozí 587), EnableSsl (výchozí true = STARTTLS). Jiná sekce se nečte.
+            //Bez vyplněného Host systémové zprávy neodejdou a odeslání vrátí srozumitelnou chybu (test: stránka /Update).
+            var sys = config.GetSection("SystemSmtp");
+            this.DefaultSmtpSetting = new BO.SmtpSettings() { Host = sys["Host"], Username = sys["Username"], Password = sys["Password"], Port = 587, EnableSsl = true };
+            if (int.TryParse(sys["Port"], out int intPort) && intPort > 0) this.DefaultSmtpSetting.Port = intPort;
+            if (bool.TryParse(sys["EnableSsl"], out bool bolSsl)) this.DefaultSmtpSetting.EnableSsl = bolSsl;
 
 
         }
@@ -136,6 +139,14 @@ namespace BL.Singleton
 
 
         public BO.SmtpSettings DefaultSmtpSetting { get; set; }
+
+        /// <summary>Poštovní účet se serverem smtp.mycorecloud.net se přihlašuje systémovými údaji - jen když systémový SMTP server je opravdu tento server.</summary>
+        public bool UseSystemSmtpLogin(string strAccountHost)
+        {
+            const string host = "smtp.mycorecloud.net";
+            return string.Equals((strAccountHost ?? "").Trim(), host, StringComparison.OrdinalIgnoreCase)
+                && string.Equals((this.DefaultSmtpSetting?.Host ?? "").Trim(), host, StringComparison.OrdinalIgnoreCase);
+        }
         public HostingModeEnum HostingMode
         {
             get

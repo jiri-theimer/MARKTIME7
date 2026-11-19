@@ -1,0 +1,69 @@
+﻿@model UI.Models.SystemSmtpViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = _f.tra("Systémový SMTP server");
+    Model.PageSymbol = "alternate_email";
+
+    var _smtp = _f.App.DefaultSmtpSetting;
+    bool _isSet = (_smtp != null && !string.IsNullOrWhiteSpace(_smtp.Host));
+    //v hostovaném provozu patří server provozovateli: zákaznický administrátor vidí jen název serveru a může otestovat doručení
+    bool _details = (_f.App.HostingMode == BL.Singleton.HostingModeEnum.None);
+}
+@addTagHelper *, UI
+
+<form id="form1" asp-controller="j40" asp-action="SystemSmtp" method="POST">
+    <div class="bg-light" style="padding:10px;display:flex;align-items:center;gap:8px;">
+        @if (_isSet)
+        {
+            <button type="submit" id="cmdTest" class="btn btn-primary" onclick="this.disabled=true;this.form.submit();"><span class="material-icons-outlined-btn">play_arrow</span> @_f.tra("Odeslat zkušební zprávu")</button>
+        }
+        <button type="button" id="cmdClose" onclick="_window_close()" class="btn btn-light" style="margin-left:auto;">@_f.tra("Zavřít")</button>
+    </div>
+
+    <div class="modal_record_container">
+        <div style="padding:10px;color:#495057;">
+            @_f.tra("Systémový SMTP server posílá zprávy, které nesmí záviset na poštovních účtech: ověřovací kód přihlášení, obnovu hesla a zprávy o založení databáze.")
+        </div>
+
+        @if (!_isSet)
+        {
+            <div class="alert alert-danger" style="margin:0 10px;">
+                @_f.tra("Systémový SMTP server není nastaven.")
+                @if (_details)
+                {
+                    <div style="margin-top:6px;">@_f.tra("Doplňte do souboru appsecrets.json na serveru sekci SystemSmtp (Host, Username, Password, nepovinně Port a EnableSsl) a restartujte aplikaci.")</div>
+                }
+            </div>
+        }
+        else
+        {
+            <table class="table table-sm" style="margin:0 10px;width:auto;">
+                <tr><td style="padding-right:20px;">@_f.tra("Server"):</td><td><code>@_smtp.Host@(_details ? ":" + _smtp.Port : "")</code></td></tr>
+                @if (_details)
+                {
+                    <tr><td>@_f.tra("Šifrování spojení"):</td><td>@(_smtp.EnableSsl ? "STARTTLS" : _f.tra("žádné"))</td></tr>
+                    <tr><td>@_f.tra("Login"):</td><td><code>@_smtp.Username</code></td></tr>
+                    <tr><td>@_f.tra("Heslo"):</td><td>@(string.IsNullOrEmpty(_smtp.Password) ? _f.tra("není vyplněno") : _f.tra("vyplněno"))</td></tr>
+                }
+                <tr><td>@_f.tra("E-mail odesílatele"):</td><td><code>@UI.Code.SystemMail.Sender(_f)</code></td></tr>
+            </table>
+
+            <div style="padding:10px;max-width:420px;">
+                <label class="form-label" for="TestTo">@_f.tra("Zkušební zprávu poslat na"):</label>
+                <input type="text" asp-for="TestTo" class="form-control" />
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(Model.Result))
+        {
+            <div class="alert @(Model.IsOK ? "alert-success" : "alert-danger")" style="margin:0 10px;white-space:pre-wrap;">@Model.Result</div>
+        }
+
+        @if (_isSet && _details)
+        {
+            <div style="padding:10px;color:#6c757d;font-size:0.9em;">@_f.tra("Nastavení se mění v souboru appsecrets.json na serveru (sekce SystemSmtp) a projeví se po restartu aplikace.")</div>
+        }
+    </div>
+</form>

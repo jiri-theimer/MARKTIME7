@@ -1080,5 +1080,33 @@
 
 
     </script>
+    @* Uvítací okno „Co je nového“: samo se otevře uživateli, který ještě neviděl aktuální obsah (UI.Code.WelcomeContent). Kdykoli ho otevře i _welcome_open() z menu Můj profil. *@
+    <script type="text/javascript">
+        var _welcome_version = @UI.Code.WelcomeContent.Version;
+
+        function _welcome_open() {
+            if (document.getElementById("wl_back")) return;
+            $.get("/Home/Welcome", function (html) {
+                $("body").append(html);
+                var b = document.getElementById("wl_ok");
+                if (b) b.focus();
+            });
+        }
+        function _welcome_close() {
+            //zavření jakýmkoli způsobem = uživatel obsah viděl, příště se okno samo neotevře
+            $("#wl_back").remove();
+            $.post("/Common/SetUserParam", { key: "@UI.Code.WelcomeContent.UserParamKey", value: _welcome_version });
+        }
+        $(document).on("keydown", function (e) {
+            if (e.key === "Escape" && document.getElementById("wl_back")) _welcome_close();
+        });
+        $(document).on("mousedown", "#wl_back", function (e) {
+            if (e.target === this) _welcome_close();    //klik mimo okno
+        });
+    </script>
+    @if (UI.Code.WelcomeContent.IsUnseen(_f) && (ViewContext.RouteData.Values["action"]?.ToString() ?? "") != "ChangePassword")     @* při vynucené změně hesla okno nepřekáží *@
+    {
+        <script type="text/javascript">$(function () { _welcome_open(); });</script>
+    }
 </body>
 </html>

@@ -49,6 +49,11 @@ namespace UI.Controllers
         }
 
 
+        public IActionResult Welcome()
+        {
+            //uvítací okno „Co je nového“ (obsah UI.Code.WelcomeContent); načítá ho _welcome_open() v _Layout
+            return PartialView();
+        }
         public IActionResult About()
         {
 
