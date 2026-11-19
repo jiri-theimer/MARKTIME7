@@ -20,57 +20,120 @@ namespace UI.Controllers
         }
        
 
-        public IActionResult LogAsUser(string login, string code)
+        // ------------------------------------------------------------------ Přihlásit se pod jiným uživatelem
+        // Podmínky: oprávnění administrátora, vlastní heslo toho, kdo se přepíná, a API key licence. Každé přepnutí, návrat
+        // i neúspěšný pokus se zapisuje do přihlašovacího logu (j90). Po 5 chybných pokusech je funkce na 15 minut zablokovaná.
+        public IActionResult LogAsUser(string login)
         {
-            var v = new AdminLogAsUser() { Login = login, SecurityCode = code };
+            var v = new AdminLogAsUser() { Login = login, Impersonator = UI.Code.Impersonation.Impersonator(User) };
 
             return ViewTup(v, BO.PermValEnum.GR_Admin);
         }
         [HttpPost]
-        public IActionResult LogAsUser(AdminLogAsUser v)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> LogAsUser(AdminLogAsUser v)
         {
-            if (ModelState.IsValid)
+            if (!TUP(BO.PermValEnum.GR_Admin))
             {
+                return this.StopPage(true, "Pro tuto stránku nemáte oprávnění!");
+            }
+            v.Impersonator = UI.Code.Impersonation.Impersonator(User);
+            string strPwd = v.MyPassword, strKey = v.SecurityCode;
+            v.MyPassword = null; v.SecurityCode = null;     //tajné údaje se do stránky nevrací
+            ModelState.Remove("MyPassword"); ModelState.Remove("SecurityCode");
 
-                if (string.IsNullOrEmpty(v.Login) || string.IsNullOrEmpty(v.SecurityCode))
-                {
-                    this.AddMessage("Login i API key je povinné zadat."); return View(v);
-                }
-                var recJ02 = Factory.j02UserBL.LoadByLogin(v.Login, 0,Factory.CurrentUser.IsHostingModeTotalCloud);
-                if (recJ02 == null)
-                {
-                    this.AddMessage("Zadaný login neexistuje."); return View(v);
-                }
-                if (v.SecurityCode != Factory.Lic.x01ApiKey)
-                {
-                    this.AddMessage("API key není správný."); return View(v);
-                }
+            if (v.Impersonator != null)
+            {
+                this.AddMessage("Už pracujete pod identitou jiného uživatele. Nejdřív se vraťte ke své identitě."); return View(v);
+            }
+            int intFails = Factory.CBL.LoadUserParamInt(UI.Code.Impersonation.ParamFails);
+            double dblMinutes = Factory.CBL.LoadUserParamValidityMinutes(UI.Code.Impersonation.ParamFails);
+            if (intFails >= UI.Code.Impersonation.MaxFails && dblMinutes < UI.Code.Impersonation.BlockMinutes)
+            {
+                this.AddMessageTranslated(string.Format(Factory.tra("Po opakovaných neúspěšných pokusech je přepnutí zablokované. Zkuste to znovu za {0} minut."), Math.Max(1, (int)Math.Ceiling(UI.Code.Impersonation.BlockMinutes - dblMinutes))));
+                return View(v);
+            }
+            if (string.IsNullOrWhiteSpace(v.Login) || string.IsNullOrEmpty(strPwd) || string.IsNullOrEmpty(strKey))
+            {
+                this.AddMessage("Login, vaše heslo i API key je povinné zadat."); return View(v);
+            }
+            v.Login = v.Login.Trim();
 
-                var strID = recJ02.j02Email;
-                if (string.IsNullOrEmpty(strID)) { strID = "info@marktime.cz"; };
-                var userClaims = new List<Claim>()
-                {
-                new Claim(ClaimTypes.Name, recJ02.j02Login),
-                new Claim("access_token","inspis_core_token"),
-                new Claim(ClaimTypes.Email, strID)
-                 };
-
-                var grandmaIdentity = new ClaimsIdentity(userClaims, "User Identity");
-                var userPrincipal = new ClaimsPrincipal(new[] { grandmaIdentity });
-
-                var xx = new AuthenticationProperties() { IsPersistent = true, ExpiresUtc = DateTime.Now.AddHours(1) };
-                HttpContext.SignInAsync(userPrincipal, xx);
-
-                if (recJ02 != null)
-                {
-                    v.SetJavascript_CallOnLoad("/Home/Index");
-
-
-                }
-
+            //ověření toho, kdo se přepíná: vlastní heslo + API key licence
+            bool bolPwd = new BL.Code.PasswordSupport().VerifyUserPassword(strPwd, Factory.CurrentUser.j02Login, Factory.CurrentUser).Flag != BO.ResultEnum.Failed;
+            bool bolKey = UI.Code.Impersonation.SecretEquals(strKey.Trim(), Factory.Lic.x01ApiKey);
+            if (!bolPwd || !bolKey)
+            {
+                intFails = (dblMinutes >= UI.Code.Impersonation.BlockMinutes ? 0 : intFails) + 1;   //starší pokusy se nepočítají
+                Factory.CBL.SetUserParam(UI.Code.Impersonation.ParamFails, intFails.ToString());
+                LogAsUser_Write2Log(Factory.CurrentUser.pid, Factory.CurrentUser.j02Login, $"Přepnutí identity: neúspěšný pokus ({intFails}), cílový login: {v.Login}");
+                this.AddMessage("Heslo nebo API key není správné."); return View(v);
             }
 
+            var recJ02 = Factory.j02UserBL.LoadByLogin(v.Login, 0, Factory.CurrentUser.IsHostingModeTotalCloud);
+            if (recJ02 == null)
+            {
+                this.AddMessage("Zadaný login neexistuje."); return View(v);
+            }
+            if (recJ02.pid == Factory.CurrentUser.pid)
+            {
+                this.AddMessage("To je váš vlastní účet."); return View(v);
+            }
+            if (recJ02.isclosed)
+            {
+                this.AddMessage("Uživatelský účet je uzavřený pro přihlašování!"); return View(v);
+            }
+
+            string strAdmin = Factory.CurrentUser.j02Login;
+            Factory.CBL.SetUserParam(UI.Code.Impersonation.ParamFails, "0");
+            LogAsUser_Write2Log(Factory.CurrentUser.pid, strAdmin, $"Přepnutí identity na uživatele {recJ02.j02Login}");
+            LogAsUser_Write2Log(recJ02.pid, recJ02.j02Login, $"Přihlášení administrátorem {strAdmin} (přepnutí identity)");
+
+            var props = new AuthenticationProperties() { IsPersistent = true, ExpiresUtc = DateTime.Now.AddHours(UI.Code.Impersonation.SessionHours) };
+            await HttpContext.SignInAsync(UI.Code.Impersonation.BuildPrincipal(recJ02.j02Login, recJ02.j02Email, strAdmin), props);
+
+            v.SetJavascript_CallOnLoad("/Home/Index");
             return View(v);
+        }
+
+        //návrat z cizí identity k vlastní; login administrátora je v přihlašovací cookie, nedá se podvrhnout
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> LogAsUserBack()
+        {
+            string strAdmin = UI.Code.Impersonation.Impersonator(User);
+            if (strAdmin == null)
+            {
+                return Redirect("~/Home/Index");
+            }
+            var recJ02 = Factory.j02UserBL.LoadByLogin(strAdmin, 0, Factory.CurrentUser.IsHostingModeTotalCloud);
+            if (recJ02 == null || recJ02.isclosed)
+            {
+                await HttpContext.SignOutAsync();   //účet administrátora mezitím zanikl nebo je uzavřený
+                return Redirect("~/Login/UserLogin");
+            }
+            LogAsUser_Write2Log(recJ02.pid, recJ02.j02Login, $"Návrat z přepnuté identity uživatele {Factory.CurrentUser.j02Login}");
+
+            var props = new AuthenticationProperties() { IsPersistent = true, ExpiresUtc = DateTime.Now.AddHours(UI.Code.Impersonation.ReturnHours) };
+            await HttpContext.SignInAsync(UI.Code.Impersonation.BuildPrincipal(recJ02.j02Login, recJ02.j02Email, null), props);
+            return Redirect("~/Home/Index");
+        }
+
+        private void LogAsUser_Write2Log(int j02id, string strLogin, string strMessage)
+        {
+            try
+            {
+                Factory.Write2AccessLog(new BO.j90LoginAccessLog()
+                {
+                    j02ID = j02id, x01ID = Factory.CurrentUser.x01ID, j90LoginName = strLogin, j90LoginMessage = strMessage,
+                    j90ClientBrowser = Request.Headers["User-Agent"].ToString(), j90UserHostAddress = HttpContext.Connection.RemoteIpAddress?.ToString(),
+                    j90CookieExpiresInHours = UI.Code.Impersonation.SessionHours
+                });
+            }
+            catch (Exception e)
+            {
+                BO.Code.File.LogError("LogAsUser, zápis do přihlašovacího logu: " + e.Message, Factory.CurrentUser?.j02Login);
+            }
         }
 
         public string RunRecovery_Permissions()

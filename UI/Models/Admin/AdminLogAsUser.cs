@@ -9,5 +9,7 @@ namespace UI.Models.Admin
     {
         public string Login { get; set; }
         public string SecurityCode { get; set; }
+        public string MyPassword { get; set; }      //heslo administrátora, který se přepíná
+        public string Impersonator { get; set; }    //už přepnuto: login administrátora
     }
 }

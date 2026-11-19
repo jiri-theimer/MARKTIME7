@@ -47,11 +47,14 @@ namespace UI.Controllers
             }
             //Logout
 
-            if (Factory.CurrentUser.j02IsMustChangePassword && !IsCurrentContextNoRestriction(context))    //test, zda si uživatel nemusí povinně změnit heslo
+            //administrátor pracující pod identitou uživatele (Admin/LogAsUser) se ověřil sám za sebe: změnu hesla ani dvoufázové ověření za uživatele nedělá
+            bool bolImpersonated = UI.Code.Impersonation.Impersonator(context.HttpContext.User) != null;
+
+            if (!bolImpersonated && Factory.CurrentUser.j02IsMustChangePassword && !IsCurrentContextNoRestriction(context))    //test, zda si uživatel nemusí povinně změnit heslo
             {
                 context.Result = new RedirectResult("~/Home/ChangePassword"); return;
             }
-            if (Factory.CurrentUser.j02SmsVerifyCode != null && !IsCurrentContextNoRestriction(context))   //test, zda systém vyžaduje 2faktorové ověření
+            if (!bolImpersonated && Factory.CurrentUser.j02SmsVerifyCode != null && !IsCurrentContextNoRestriction(context))   //test, zda systém vyžaduje 2faktorové ověření
             {
                 context.Result = new RedirectResult("~/Home/TwoFactor");    //systém vyžaduje po uživateli 2faktorové ověření (kód z aplikace / e-mailu)
                 return;
@@ -79,7 +82,7 @@ namespace UI.Controllers
                 return true;
             }
             string strPage = context.RouteData.Values["action"].ToString();
-            if (strPage == "ChangePassword" || strPage == "TwoFactor" || strPage == "SmsVerify" || strPage == "UpdateCurrentUserPing" || strPage == "main_me" || strPage == "Logout")
+            if (strPage == "ChangePassword" || strPage == "TwoFactor" || strPage == "SmsVerify" || strPage == "UpdateCurrentUserPing" || strPage == "main_me" || strPage == "Logout" || strPage == "LogAsUserBack")
             {
                 return true;
             }

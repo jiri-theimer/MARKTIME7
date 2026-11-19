@@ -105,6 +105,23 @@
     <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
 </head>
 <body>
+    @{
+        //administrátor pracuje pod identitou jiného uživatele (Admin/LogAsUser) → pruh s návratem k vlastní identitě
+        string _impersonator = UI.Code.Impersonation.Impersonator(User);
+    }
+    @if (_impersonator != null)
+    {
+        <form asp-controller="Admin" asp-action="LogAsUserBack" method="post" class="imp-bar">
+            <span class="material-icons-outlined-nosize">supervisor_account</span>
+            <span>@(string.Format(_f.tra("Pracujete jako {0}"), _f.CurrentUser.FullNameAsc)) <small>(@_impersonator)</small></span>
+            <button type="submit" class="btn btn-sm btn-light">@_f.tra("Vrátit se ke své identitě")</button>
+        </form>
+        <style type="text/css">
+            .imp-bar { position: fixed; left: 50%; bottom: 10px; transform: translateX(-50%); z-index: 2500; display: flex; align-items: center; gap: 10px; padding: 6px 8px 6px 14px; border-radius: 22px; background-color: #b02a37; color: #fff; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35); white-space: nowrap; }
+            .imp-bar small { opacity: 0.85; }
+            .imp-bar .btn { border-radius: 16px; }
+        </style>
+    }
     
     <script type="text/javascript">
         var _relpath = "@(Url.Content("~/favicon.ico").Replace("favicon.ico", ""))";   //relativní cesta: detekce kvůli případnému IIS virtuálnímu adresáři
@@ -1087,6 +1104,7 @@
         function _welcome_open() {
             if (document.getElementById("wl_back")) return;
             $.get("/Home/Welcome", function (html) {
+                if (typeof html !== "string" || html.indexOf("wl_back") === -1) return;   //server vrátil něco jiného (např. přesměrování na ověření přihlášení)
                 $("body").append(html);
                 var b = document.getElementById("wl_ok");
                 if (b) b.focus();
@@ -1104,7 +1122,12 @@
             if (e.target === this) _welcome_close();    //klik mimo okno
         });
     </script>
-    @if (UI.Code.WelcomeContent.IsUnseen(_f) && (ViewContext.RouteData.Values["action"]?.ToString() ?? "") != "ChangePassword")     @* při vynucené změně hesla okno nepřekáží *@
+    @{
+        //při vynucené změně hesla a ověření přihlášení okno nepřekáží; administrátor pod cizí identitou ho uživateli „neodklikne“
+        string _wlAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+        bool _wlAuto = _impersonator == null && _wlAction != "ChangePassword" && _wlAction != "TwoFactor" && _wlAction != "SmsVerify" && UI.Code.WelcomeContent.IsUnseen(_f);
+    }
+    @if (_wlAuto)
     {
         <script type="text/javascript">$(function () { _welcome_open(); });</script>
     }
