@@ -119,6 +119,13 @@
         <div class="col-auto">
             <a tabindex="-1" href="javascript:_window_open('/workflow_dialog/Index?record_prefix=p31&record_pid=@(Model.rec_pid)')" class="btn btn-sm bog"><myicon symbol="waves"></myicon> @_f.tra("Doplnit poznámku") (Notepad)</a>
         </div>
+
+        @if (Model.rec_pid > 0)
+        {
+            <div class="col-auto">
+                <a tabindex="-1" href="javascript:_window_open('/p31perm/Index?pid=@(Model.rec_pid)',2)" class="btn btn-sm bog"><myicon symbol="verified_user"></myicon> @_f.tra("Oprávnění k úkonu")</a>
+            </div>
+        }
     </div>
 
 
