@@ -77,6 +77,7 @@ namespace UI.Controllers.p31approve
             }
             
             RefreshState(v);
+            if (!v.IsSkipGateway) CheckRates(v);    //při přeskočení brány se stránka hned odesílá, kontrola by se nezobrazila
 
             if (v.lisInputPids.Count() == 1 && (v.prefix == "le5" || v.prefix == "p41" || v.prefix == "p56" || v.prefix == "p28"))
             {
@@ -157,7 +158,7 @@ namespace UI.Controllers.p31approve
                 {
                     Factory.CBL.SetUserParam("approve-index-p31statequery", v.p31statequery.ToString());                    
                 }
-                
+                CheckRates(v);
                 return View(v);
             }
             if (ModelState.IsValid)
@@ -228,6 +229,30 @@ namespace UI.Controllers.p31approve
             }
 
             
+        }
+
+        private const int MaxCheckRows = 3000;      //nad tento počet úkonů se kontrola sazeb neprovádí (jeden dotaz na sazbu za každou kombinaci den+osoba+projekt+aktivita)
+
+        //kontrola fakturačních sazeb proti ceníku: vždy všechny nevyúčtované úkony (rozpracované i schválené čekající na fakturaci)
+        //ve stejném rozsahu a období jako brána, bez ohledu na zvolený stav a formát; nic neukládá
+        private void CheckRates(GatewayViewModel v)
+        {
+            v.lisCheck = null; v.IsCheckSkipped = false;
+            if (v.prefix == "p31" || v.myQueryP31 == null) return;
+
+            int intState = v.p31statequery; string strTab = v.p31tabquery;
+            v.p31statequery = 3; v.p31tabquery = "time_or_kusovnik";
+            Refresh_p31Query(v);
+            var mq = v.myQueryP31;
+            v.p31statequery = intState; v.p31tabquery = strTab;
+            Refresh_p31Query(v);    //vrátit dotaz brány
+
+            var lis = Factory.p31WorksheetBL.GetList(mq);
+            if (lis.Count() > MaxCheckRows)
+            {
+                v.IsCheckSkipped = true; return;
+            }
+            v.lisCheck = Factory.p31WorksheetBL.CheckBillingRates(lis);
         }
 
         private void Refresh_p31Query(GatewayViewModel v)

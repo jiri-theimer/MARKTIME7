@@ -1012,11 +1012,14 @@ namespace BL
 
             foreach (var rec in lis.Where(p => p.p33ID == BO.p33IdENUM.Cas || p.p33ID == BO.p33IdENUM.Kusovnik))
             {
+                bool bolApproved = rec.p71ID == BO.p71IdENUM.Schvaleno;    //schválený úkon: na fakturu jde schválená sazba a schválené hodiny
+                if (bolApproved && rec.p72ID_AfterApprove != BO.p72IdENUM.Fakturovat) continue;   //schválené jinak než [Fakturovat] (paušál, odpis, později) mají nulovou sazbu záměrně - nekontrolují se
                 var c = new BO.p31RateCheck()
                 {
-                    p31ID = rec.pid, p31Date = rec.p31Date, Person = rec.Person, Project = rec.Project, p32Name = rec.p32Name,
-                    Value = (rec.p33ID == BO.p33IdENUM.Cas ? rec.p31Hours_Orig : rec.p31Value_Orig),
-                    RateStored = rec.p31Rate_Billing_Orig, j27Code_Stored = rec.j27Code_Billing_Orig, AmountStored = rec.p31Amount_WithoutVat_Orig
+                    p31ID = rec.pid, p31Date = rec.p31Date, Person = rec.Person, Project = rec.Project, p32Name = rec.p32Name, IsApproved = bolApproved,
+                    Value = bolApproved ? (rec.p33ID == BO.p33IdENUM.Cas ? rec.p31Hours_Approved_Billing : rec.p31Value_Approved_Billing) : (rec.p33ID == BO.p33IdENUM.Cas ? rec.p31Hours_Orig : rec.p31Value_Orig),
+                    RateStored = bolApproved ? rec.p31Rate_Billing_Approved : rec.p31Rate_Billing_Orig, j27Code_Stored = rec.j27Code_Billing_Orig,
+                    AmountStored = bolApproved ? rec.p31Amount_WithoutVat_Approved : rec.p31Amount_WithoutVat_Orig
                 };
                 if (manual.Contains(rec.p32ID))
                 {

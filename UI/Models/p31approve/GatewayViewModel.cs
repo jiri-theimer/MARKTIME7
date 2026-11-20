@@ -28,6 +28,10 @@ namespace UI.Models.p31approve
         public string p31tabquery { get; set; }   //fixní filtr v horním pruhu
 
         public bool IsSkipGateway { get; set; } //přeskočit úvodní stránku/bránu schvalování
+
+        //kontrola fakturačních sazeb nevyúčtovaných úkonů (rozpracované i schválené) proti ceníku
+        public List<BO.p31RateCheck> lisCheck { get; set; }
+        public bool IsCheckSkipped { get; set; }    //příliš mnoho úkonů, kontrola se neprovedla
     }
 
 

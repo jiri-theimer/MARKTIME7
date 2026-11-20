@@ -17,6 +17,8 @@
         public double AmountExpected { get; set; }
         /// <summary>Aktivita s ručně zadávaným honorářem: sazbu neurčuje ceník, úkon se nekontroluje ani nepřepočítává.</summary>
         public bool IsManualFee { get; set; }
+        /// <summary>Schválený úkon: porovnává se schválená fakturační sazba (ta jde na fakturu), ne původní.</summary>
+        public bool IsApproved { get; set; }
         public bool IsDifferent { get; set; }
         public double AmountDiff => AmountExpected - AmountStored;
     }
