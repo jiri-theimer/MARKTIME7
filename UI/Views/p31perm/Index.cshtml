@@ -1,0 +1,94 @@
+﻿@model UI.Models.p31oper.p31PermViewModel
+@inject BL.Factory _f
+
+@{
+    Layout = "~/Views/Shared/_LayoutModal.cshtml";
+    Model.PageTitle = _f.tra("Oprávnění k úkonu");
+    Model.PageSymbol = "verified_user";
+    var e = Model.Explain;
+    var rec = e.Record;
+    bool _none = !e.CanRead && !e.CanEdit && !e.CanApprove;
+}
+
+<div class="bg-light" style="padding:10px;">
+    <button type="button" onclick="_window_close()" class="btn btn-light"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
+</div>
+
+<div class="modal_record_container">
+
+    <div style="margin-bottom:12px;color:#444;">
+        <strong>@rec.p31Date.ToString("dd.MM.yyyy")</strong> · @rec.Person · @rec.Project · @rec.p32Name
+        @if (!string.IsNullOrEmpty(e.LockedReasonMessage))
+        {
+            <span class="badge bg-secondary" style="margin-left:8px;">@_f.tra(e.LockedReasonMessage)</span>
+        }
+    </div>
+
+    <h6>@_f.tra("Co s tímto úkonem můžete dělat")</h6>
+    <div style="display:flex;gap:18px;flex-wrap:wrap;margin-bottom:16px;">
+        @foreach (var x in new[] { (_f.tra("Číst"), e.CanRead), (_f.tra("Upravovat"), e.CanEdit), (_f.tra("Schvalovat"), e.CanApprove) })
+        {
+            <div style="display:flex;align-items:center;gap:4px;color:@(x.Item2 ? "#1b5e20" : "#9e9e9e");">
+                <span class="material-icons-outlined-nosize">@(x.Item2 ? "check_circle" : "radio_button_unchecked")</span> @x.Item1
+            </div>
+        }
+    </div>
+    @if (!string.IsNullOrEmpty(e.LockedReasonMessage) && e.CanEdit)
+    {
+        <div style="color:#6c757d;font-size:90%;margin:-8px 0 14px 0;">@_f.tra("Úkon je ale momentálně uzamčený, úpravy nejsou možné.") (@_f.tra(e.LockedReasonMessage))</div>
+    }
+
+    <h6>@_f.tra("Odkud oprávnění plyne")</h6>
+    @if (_none)
+    {
+        <div class="alert alert-secondary">@_f.tra("K tomuto úkonu nemáte žádné oprávnění.")</div>
+    }
+    else if (e.Reasons.Count == 0)
+    {
+        <div class="alert alert-secondary">@_f.tra("Máte oprávnění administrátora – administrátor má přístup ke všem úkonům.")</div>
+    }
+    else
+    {
+        <table class="table table-sm" style="font-size:95%;">
+            <thead>
+                <tr>
+                    <th>@_f.tra("Zdroj")</th>
+                    <th>@_f.tra("Důvod")</th>
+                    <th class="text-center">@_f.tra("Číst")</th>
+                    <th class="text-center">@_f.tra("Upravovat")</th>
+                    <th class="text-center">@_f.tra("Schvalovat")</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in e.Reasons)
+                {
+                    <tr>
+                        <td style="white-space:nowrap;"><strong>@_f.tra(r.Source)</strong></td>
+                        <td>
+                            @r.Text
+                            @if (r.Url != null)
+                            {
+                                <a href="@r.Url" target="_top" style="margin-left:6px;white-space:nowrap;">@_f.tra("Nastavení")</a>
+                            }
+                        </td>
+                        <td class="text-center">@(r.Read ? "✓" : "")</td>
+                        <td class="text-center">@(r.Edit ? "✓" : "")</td>
+                        <td class="text-center">@(r.Approve ? "✓" : "")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    <div style="color:#6c757d;font-size:90%;margin-top:14px;">
+        @_f.tra("Oprávnění k úkonu je součtem: vlastní úkony, globální práva vaší aplikační role, vztah nadřízený → podřízený a projektové role přiřazené na projektu, klientovi nebo nákladovém středisku. Stačí jeden z těchto zdrojů.")
+        @if (_f.CurrentUser.IsAdmin)
+        {
+            <span>@_f.tra("Jako administrátor můžete nastavení upravit odkazem u příslušného řádku.")</span>
+        }
+        else
+        {
+            <span>@_f.tra("Změnu nastavení řeší administrátor vaší aplikace.")</span>
+        }
+    </div>
+</div>

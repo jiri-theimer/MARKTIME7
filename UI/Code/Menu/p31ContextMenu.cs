@@ -102,6 +102,7 @@ namespace UI.Menu
             
             
             AMI_ChangeLog("p31", pid, "more");
+            AMI("Oprávnění k úkonu", $"javascript: _window_open('/p31perm/Index?pid={pid}',2)", "verified_user", "more");
 
             AMI_SendMail("p31", pid, "more");
             

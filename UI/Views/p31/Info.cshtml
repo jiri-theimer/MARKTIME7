@@ -143,6 +143,7 @@
         {
             <a class="btn btn-light" id="linkGo2Grid" target="_top" href="/TheGrid/FlatView?prefix=p31&myqueryinline=pids|list_int|@(Model.pid)"><span class="material-icons-outlined-btn">grid_view</span>@_f.tra("Zobrazit v Tabulce")</a>
         }
+        <button type="button" class="btn btn-light" onclick="window.parent._window_open('/p31perm/Index?pid=@(Model.pid)',2)"><span class="material-icons-outlined-btn">verified_user</span>@_f.tra("Oprávnění k úkonu")</button>
         <button type="button" id="cmdClose" onclick="window.parent._window_close()" class="btn btn-light pi-close"><span class="material-icons-outlined-btn">close</span>@_f.tra("Zavřít")</button>
     </div>
 

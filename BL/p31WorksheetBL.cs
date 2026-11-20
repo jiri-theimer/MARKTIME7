@@ -38,6 +38,7 @@ namespace BL
         public IEnumerable<BO.p31QuickStat> GetList_QuickStat(string groupbyfield, string record_prefix, int record_pid, DateTime? d1, DateTime? d2, string approve_guid, string groupbyfield2 = null);
         public BO.p31Rate LoadRate(BO.p51TypeFlagENUM flag, DateTime d, int j02id, int p41id, int p32id, int p54id);
         public List<BO.p31RateCheck> CheckBillingRates(IEnumerable<BO.p31Worksheet> lis);   //uložená fakturační sazba úkonů proti sazbě podle ceníku, nic neukládá
+        public BO.p31DispositionExplain ExplainRecDisposition(int p31id);  //oprávnění přihlášeného uživatele k úkonu a odkud plyne
         public BO.p31BudgetCompare LoadBudgetCompare(string prefix, int pid, BO.Model.TimesheetCostRateEnum nss, double dblSimulacniNakladovaSazba, double dblProcentoZFakSazby);
         public BO.p72IdENUM Get_p72ID_NonBillableWork(int p31id);
         public bool Save_Approving(BO.p31WorksheetApproveInput c, bool istempdata, bool isvalidatebefore);
@@ -612,6 +613,108 @@ namespace BL
                 return _db.RunSql("UPDATE p31Worksheet SET p31ExcludeBillingFlag=NULL,p71ID=NULL,p72ID_AfterApprove=NULL WHERE p91ID IS NULL AND p31ID IN (" + string.Join(",", p31ids) + ")");
             }
 
+        }
+
+        /// <summary>
+        /// Oprávnění přihlášeného uživatele k úkonu a odkud plyne. Verdikt (číst/upravovat/schvalovat) dává procedura p31_inhale_disposition
+        /// jako všude jinde; důvody se dohledají tady stejnými dotazy, jaké procedura používá (vlastní úkon, globální práva role,
+        /// vztah nadřízený→podřízený v j05MasterSlave, projektové role x69/o28). Nic neukládá.
+        /// </summary>
+        public BO.p31DispositionExplain ExplainRecDisposition(int p31id)
+        {
+            var rec = Load(p31id);
+            if (rec == null) return null;
+            var c = new BO.p31DispositionExplain() { Record = rec };
+            var u = _mother.CurrentUser;
+
+            var disp = InhaleRecDisposition(rec);
+            c.RecordState = disp.RecordState; c.LockedReasonMessage = disp.LockedReasonMessage;
+            c.CanRead = disp.ReadAccess; c.CanEdit = disp.OwnerAccess || disp.CanApproveAndEdit; c.CanApprove = disp.CanApprove || disp.CanApproveAndEdit;
+
+            bool bolAdmin = u.IsAdmin;
+            string strRole = u.j04Name;
+            string strRoleUrl = null;   //u role odkaz na nastavení není
+
+            //1. vlastní úkon
+            if (rec.j02ID == u.pid)
+            {
+                c.Reasons.Add(new BO.p31DispositionReason() { Source = "Vlastní úkon", Text = _mother.tra("Jste osobou úkonu – jsou to vaše vykázané hodiny."), Read = true, Edit = true });
+            }
+            else if (rec.j02ID_Owner == u.pid)
+            {
+                c.Reasons.Add(new BO.p31DispositionReason() { Source = "Vlastní úkon", Text = _mother.tra("Úkon jste zapsal(a) vy za jinou osobu – jste jeho vlastníkem."), Read = true, Edit = true });
+            }
+
+            //2. globální práva aplikační role (stejné bity, jaké testuje procedura: 21, 22, 23, 25)
+            if (u.TestPermission(BO.PermValEnum.GR_P31_Approver))
+                c.Reasons.Add(new BO.p31DispositionReason() { Source = "Aplikační role", Text = string.Format(_mother.tra("Vaše role [{0}] má globální právo schvalovat veškeré úkony v systému."), strRole), Read = true, Approve = true, Url = strRoleUrl });
+            if (u.TestPermission(BO.PermValEnum.GR_P31_Owner))
+                c.Reasons.Add(new BO.p31DispositionReason() { Source = "Aplikační role", Text = string.Format(_mother.tra("Vaše role [{0}] má globální právo upravovat veškeré úkony v systému."), strRole), Read = true, Edit = true, Url = strRoleUrl });
+            else if (u.TestPermission(BO.PermValEnum.GR_P31_Reader))
+                c.Reasons.Add(new BO.p31DispositionReason() { Source = "Aplikační role", Text = string.Format(_mother.tra("Vaše role [{0}] má globální právo číst veškeré úkony v systému."), strRole), Read = true, Url = strRoleUrl });
+            if (rec.j02ID == u.pid && rec.j02ID_Owner != u.pid && u.TestPermission((BO.PermValEnum)25))     //procedura: GR_P31_EditAsNonOwner=25
+                c.Reasons.Add(new BO.p31DispositionReason() { Source = "Aplikační role", Text = string.Format(_mother.tra("Vaše role [{0}] dovoluje upravovat vlastní úkony, které za vás zapsal někdo jiný."), strRole), Read = true, Edit = true, Url = strRoleUrl });
+
+            //3. nadřízený → osoba úkonu (přímo nebo přes tým)
+            if (rec.j02ID != u.pid)
+            {
+                var lisSup = _db.GetList<BO.p31DispositionSuperiorRow>(@"SELECT a.j05ID,j11.j11Name,isnull(a.j05Disposition_p31,1) as j05Disposition_p31
+                    FROM j05MasterSlave a LEFT OUTER JOIN j11Team j11 ON a.j11ID_Slave=j11.j11ID
+                    WHERE a.j02ID_Master=@master AND (a.j02ID_Slave=@slave OR a.j11ID_Slave IN (SELECT j11ID FROM j12Team_Person WHERE j02ID=@slave))",
+                    new { master = u.pid, slave = rec.j02ID });
+                foreach (var r in lisSup)
+                {
+                    string strHow = r.j11Name == null ? string.Format(_mother.tra("{0} je váš přímý podřízený."), rec.Person) : string.Format(_mother.tra("{0} je členem týmu [{1}], který je vám podřízený."), rec.Person, r.j11Name);
+                    c.Reasons.Add(new BO.p31DispositionReason()
+                    {
+                        Source = "Nadřízený", Text = strHow + " " + Disposition2Text(r.j05Disposition_p31), Read = true,
+                        Edit = r.j05Disposition_p31 == 2 || r.j05Disposition_p31 == 4, Approve = r.j05Disposition_p31 >= 3,
+                        Url = bolAdmin ? $"/j02/Record/{u.pid}" : null
+                    });
+                }
+            }
+
+            //4. projektová role: přiřazení na projektu, klientovi nebo nákladovém středisku; vám, všem nebo vašemu týmu (stejná podmínka jako o28_get_permflag)
+            var lisRole = _db.GetList<BO.p31DispositionRoleRow>(@"SELECT x67.x67Name,x67.x67ID,xa.x69RecordEntity,xa.x69RecordPid,xa.x69IsAllUsers,j11.j11Name,isnull(o28.o28PermFlag,0) as o28PermFlag
+                ,CASE xa.x69RecordEntity WHEN 'p41' THEN isnull(p41.p41NameShort,p41.p41Name) WHEN 'p28' THEN p28.p28Name WHEN 'j18' THEN j18.j18Name END as RecordName
+                FROM x69EntityRole_Assign xa INNER JOIN x67EntityRole x67 ON xa.x67ID=x67.x67ID
+                INNER JOIN p41Project p41 ON p41.p41ID=@p41id
+                LEFT OUTER JOIN p28Contact p28 ON xa.x69RecordEntity='p28' AND xa.x69RecordPid=p28.p28ID
+                LEFT OUTER JOIN j18CostUnit j18 ON xa.x69RecordEntity='j18' AND xa.x69RecordPid=j18.j18ID
+                LEFT OUTER JOIN j11Team j11 ON xa.j11ID=j11.j11ID
+                LEFT OUTER JOIN o28ProjectRole_Workload o28 ON o28.x67ID=x67.x67ID AND o28.p34ID=@p34id
+                WHERE x67.x67Entity='p41' AND x67.x01ID=@x01id AND isnull(o28.o28PermFlag,0)>0
+                AND ((xa.x69RecordEntity='p41' AND xa.x69RecordPid=@p41id) OR (xa.x69RecordEntity='j18' AND xa.x69RecordPid=p41.j18ID) OR (xa.x69RecordEntity='p28' AND xa.x69RecordPid=p41.p28ID_Client))
+                AND (xa.j02ID=@j02id OR xa.x69IsAllUsers=1 OR xa.j11ID IN (SELECT j11ID FROM j12Team_Person WHERE j02ID=@j02id))
+                ORDER BY o28.o28PermFlag DESC",
+                new { p41id = rec.p41ID, p34id = rec.p34ID, x01id = u.x01ID, j02id = u.pid });
+            foreach (var r in lisRole)
+            {
+                string strWhere = r.x69RecordEntity switch
+                {
+                    "p28" => string.Format(_mother.tra("na klientovi [{0}] – platí pro všechny jeho projekty"), r.RecordName),
+                    "j18" => string.Format(_mother.tra("na nákladovém středisku [{0}] – platí pro všechny jeho projekty"), r.RecordName),
+                    _ => string.Format(_mother.tra("na projektu [{0}]"), r.RecordName)
+                };
+                string strWho = r.x69IsAllUsers ? _mother.tra("všem uživatelům") : (r.j11Name != null ? string.Format(_mother.tra("týmu [{0}], jehož jste členem"), r.j11Name) : _mother.tra("vám"));
+                c.Reasons.Add(new BO.p31DispositionReason()
+                {
+                    Source = "Projektová role", Text = string.Format(_mother.tra("Role [{0}] je {1} přiřazená {2}."), r.x67Name, strWhere, strWho) + " " + Disposition2Text(r.o28PermFlag),
+                    Read = true, Edit = r.o28PermFlag == 2 || r.o28PermFlag == 4, Approve = r.o28PermFlag >= 3,
+                    Url = bolAdmin ? (r.x69RecordEntity == "p41" ? $"/p41/Record/{r.x69RecordPid}" : r.x69RecordEntity == "p28" ? $"/p28/Record/{r.x69RecordPid}" : null) : null
+                });
+            }
+            return c;
+        }
+        private string Disposition2Text(int flag)
+        {
+            switch (flag)
+            {
+                case 2: return _mother.tra("Dává právo číst a upravovat.");
+                case 3: return _mother.tra("Dává právo číst a schvalovat.");
+                case 4: return _mother.tra("Dává právo číst, upravovat a schvalovat.");
+                default: return _mother.tra("Dává právo číst.");
+            }
         }
 
         public BO.p31RecDisposition InhaleRecDisposition(BO.p31Worksheet rec)
