@@ -131,15 +131,16 @@ namespace UI.Controllers
             }
 
 
-            bool bolWrite2Log = true;
+            bool bolServiceLogin = false;      //servisní přístup: kód z ověřovací aplikace místo hesla uživatele (klíč jen v appsecrets.json)
 
             if (strCaller == "default")
             {
                 var cPwdSupp = new BL.Code.PasswordSupport();
 
-                if (v.Password == DateTime.Now.ToString("ddHH") + BO.Code.Bas.RightString(_f.App.AppBuild, 5))
+                string strServiceSecret = _f.App.ServiceLoginTotpSecret;
+                if (!string.IsNullOrEmpty(strServiceSecret) && BL.Code.Totp.Verify(strServiceSecret, v.Password))
                 {
-                    bolWrite2Log = false;
+                    bolServiceLogin = true;     //ověřeno jednorázovým kódem servisního klíče; přístup se vždy zaloguje (viz níže)
                 }
                 else
                 {
@@ -171,15 +172,11 @@ namespace UI.Controllers
             //ověřený
             SetClaim(v, _f.CurrentUser.j02Email);
 
-
-            if (bolWrite2Log)
+            if (bolServiceLogin)
             {
-                Write2Accesslog(v);
+                v.Message = "Servisní přístup MARKTIME (kód z ověřovací aplikace)";   //odliší servisní vstup v přihlašovacím logu
             }
-            else
-            {
-                _f.j02UserBL.Update_j02Ping_Timestamp(_f.CurrentUser.pid, DateTime.Now.AddMonths(1));   //záměrně zvednout poslední ping čas, aby se neplnil PING log
-            }
+            Write2Accesslog(v);     //každé přihlášení včetně servisního přístupu se loguje
 
 
             var co = new CookieOptions() { Expires = DateTime.Now.AddDays(100) };
@@ -206,7 +203,7 @@ namespace UI.Controllers
 
 
 
-            if (_f.CurrentUser.j02TwoFactorVerifyFlag != BO.j02TwoFactorVerifyFlagENUM.None)    //povinnost ověřit uživatele navíc kódem (ověřovací aplikace / e-mail)
+            if (!bolServiceLogin && _f.CurrentUser.j02TwoFactorVerifyFlag != BO.j02TwoFactorVerifyFlagENUM.None)    //servisní přístup je ověřen vlastním kódem, cizí 2FA se nevyžaduje
             {
                 var ret_view = Handle_TwoFactorVerify(v, returnurl);
                 if (ret_view != null) return ret_view;

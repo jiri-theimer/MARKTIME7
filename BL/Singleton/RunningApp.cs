@@ -65,6 +65,10 @@ namespace BL.Singleton
             if (int.TryParse(sys["Port"], out int intPort) && intPort > 0) this.DefaultSmtpSetting.Port = intPort;
             if (bool.TryParse(sys["EnableSsl"], out bool bolSsl)) this.DefaultSmtpSetting.EnableSsl = bolSsl;
 
+            //Servisní přihlášení: tajný klíč ověřovací aplikace (TOTP) pro vstup pod identitou kteréhokoli uživatele.
+            //Klíč je jen zde na serveru (sekce "ServiceLogin", pole "TotpSecret"), v aplikaci ho nikdo nevidí. Prázdné = vypnuto.
+            this.ServiceLoginTotpSecret = config.GetSection("ServiceLogin")["TotpSecret"];
+
 
         }
 
@@ -139,6 +143,7 @@ namespace BL.Singleton
 
 
         public BO.SmtpSettings DefaultSmtpSetting { get; set; }
+        public string ServiceLoginTotpSecret { get; set; }      //servisní přihlášení přes kód z ověřovací aplikace (appsecrets.json)
 
         /// <summary>Poštovní účet se serverem smtp.mycorecloud.net se přihlašuje systémovými údaji - jen když systémový SMTP server je opravdu tento server.</summary>
         public bool UseSystemSmtpLogin(string strAccountHost)

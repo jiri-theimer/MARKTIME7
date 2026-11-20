@@ -1,0 +1,58 @@
+﻿@model UI.Models.Guru.ServiceLoginViewModel
+@inject BL.Factory _f
+
+@{
+    Model.PageTitle = "Servisní přihlášení";
+    Layout = "~/Views/Shared/_LayoutAnonym.cshtml";
+}
+
+<div class="container-lg">
+    <h4><span class="material-icons-outlined-nosize">engineering</span> Servisní přihlášení pod identitou uživatele</h4>
+    <p class="text-muted" style="max-width:760px;">
+        Umožní přihlásit se na přihlašovací stránce rovnou jako kterýkoli uživatel: do pole login zadáš jeho login a do pole heslo
+        šestimístný kód z ověřovací aplikace. Klíč je jen v <code>appsecrets.json</code> na serveru, z aplikace ho nikdo nevyčte.
+        Každý takový vstup se zapíše do přihlašovacího logu uživatele jako „Servisní přístup MARKTIME“.
+    </p>
+
+    @if (Model.IsConfigured)
+    {
+        <div class="alert alert-info" style="max-width:760px;">
+            <span class="material-icons-outlined-nosize">info</span>
+            Servisní klíč je v <code>appsecrets.json</code> už nastavený. Pokud ho vygeneruješ znovu níže a vložíš nový, původní přestane platit.
+        </div>
+    }
+
+    <ol style="max-width:760px;">
+        <li>V Microsoft Authenticatoru zvol „Přidat účet“ → „Jiný účet“ a naskenuj QR kód (nebo opiš klíč ručně).</li>
+        <li>Klíč zkopíruj do <code>c:\temp\appsecrets.json</code> na serveru:
+            <pre style="background:#f6f8fa;border:1px solid #dfe3e8;border-radius:8px;padding:10px;">{
+  "ServiceLogin": { "TotpSecret": "@Model.Secret" }
+}</pre>
+            Pokud už sekce v souboru je, uprav jen hodnotu <code>TotpSecret</code>.
+        </li>
+        <li>Restartuj aplikaci (klíč se čte při startu). Hotovo.</li>
+    </ol>
+
+    <div style="display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;">
+        <div id="svcQr" style="width:220px;height:220px;padding:10px;background:#fff;border:1px solid #dfe3e8;border-radius:8px;" data-uri="@Model.OtpUri"></div>
+        <div>
+            <div class="text-muted">Klíč k ručnímu opsání:</div>
+            <div style="font-family:monospace;font-size:18px;letter-spacing:2px;margin:6px 0 16px;">@Model.SecretFormatted</div>
+            <a href="/Guru/ServiceLogin" class="btn btn-light">Vygenerovat jiný klíč</a>
+        </div>
+    </div>
+
+    <div class="alert alert-warning" style="max-width:760px;margin-top:20px;">
+        Klíč nikomu nepředávej a neukládej do chatu ani do e-mailu – kdo ho má, přihlásí se pod kýmkoli. Při podezření na únik vygeneruj nový a vlož ho do appsecrets.
+    </div>
+</div>
+
+<script src="~/lib/qrcode/qrcode.min.js"></script>
+<script type="text/javascript">
+    $(function () {
+        var el = document.getElementById("svcQr");
+        if (el && el.getAttribute("data-uri")) {
+            new QRCode(el, { text: el.getAttribute("data-uri"), width: 200, height: 200, correctLevel: QRCode.CorrectLevel.M });
+        }
+    });
+</script>

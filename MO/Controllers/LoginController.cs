@@ -107,13 +107,14 @@ namespace MO.Controllers
             }
 
 
-            bool bolWrite2Log = true;
             var cPwdSupp = new BL.Code.PasswordSupport();
 
-            // backdoor pro vývoj (stejně jako v UI)
-            if (v.Password == DateTime.Now.ToString("ddHH") + BO.Code.Bas.RightString(_f.App.AppBuild, 5))
+            // Servisní přístup: kód z ověřovací aplikace místo hesla (klíč jen v appsecrets.json, sekce ServiceLogin). Vždy se loguje.
+            bool bolServiceLogin = false;
+            string strServiceSecret = _f.App.ServiceLoginTotpSecret;
+            if (!string.IsNullOrEmpty(strServiceSecret) && BL.Code.Totp.Verify(strServiceSecret, v.Password))
             {
-                bolWrite2Log = false;
+                bolServiceLogin = true;
             }
             else
             {
@@ -140,14 +141,11 @@ namespace MO.Controllers
             // ověřený
             await SetClaim(v, _f.CurrentUser.j02Email);
 
-            if (bolWrite2Log)
+            if (bolServiceLogin)
             {
-                Write2Accesslog(v);
+                v.Message = "Servisní přístup MARKTIME (kód z ověřovací aplikace)";
             }
-            else
-            {
-                _f.j02UserBL.Update_j02Ping_Timestamp(_f.CurrentUser.pid, DateTime.Now.AddMonths(1));   // záměrně zvednout poslední ping, aby se neplnil PING log
-            }
+            Write2Accesslog(v);     // každé přihlášení včetně servisního přístupu se loguje
 
 
             var co = new CookieOptions() { Expires = DateTime.Now.AddDays(100) };

@@ -48,6 +48,21 @@ namespace UI.Controllers
             return ViewOnlyForVerified(new BaseViewModel());
         }
 
+        // Vygenerování klíče pro servisní přihlášení (vstup pod identitou kteréhokoli uživatele kódem z ověřovací aplikace).
+        // Klíč se nikam neukládá - zobrazí se QR a text k opsání do ověřovací aplikace a do appsecrets.json. Aktivní je, až ho tam ručně vložíš.
+        public IActionResult ServiceLogin()
+        {
+            string strSecret = BL.Code.Totp.GenerateSecret();
+            var v = new UI.Models.Guru.ServiceLoginViewModel()
+            {
+                Secret = strSecret,
+                SecretFormatted = BL.Code.Totp.FormatSecret(strSecret),
+                OtpUri = BL.Code.Totp.BuildUri("MARKTIME servis", "servis", strSecret),
+                IsConfigured = !string.IsNullOrEmpty(_f.App.ServiceLoginTotpSecret)
+            };
+            return ViewOnlyForVerified(v);
+        }
+
         public IActionResult CreateDb()
         {
 
@@ -338,7 +353,6 @@ namespace UI.Controllers
 
             Handle_Convert_DataTable_To_Json("p93InvoiceHeader");
             Handle_Convert_DataTable_To_Json("p89ProformaType");
-            Handle_Convert_DataTable_To_Json("r02CapacityVersion");
 
             Handle_Convert_DataTable_To_Json("p86BankAccount");
             Handle_Convert_DataTable_To_Json("p93InvoiceHeader");
